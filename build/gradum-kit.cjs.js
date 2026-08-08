@@ -4022,6 +4022,16 @@ let GradumModel = (() => {
                 }
             });
         }
+        /**
+         * @function create
+         * @description Instantiate a model, then optionally initialize it and make its signals.
+         * Subclasses that need `create` to report their own type should override it and narrow the return type
+         * (see {@link GradumYModel.create}). The type parameters cannot be derived from the callee here, because
+         * `InstanceType`/`infer` resolve this class' generics to their constraints (`object`, `KeyType`, `unknown`)
+         * rather than their `any` defaults, which would break inference at every call site.
+         * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
+         * @returns {GradumModel} The created model.
+         */
         static create(properties = {}) {
             const model = new this(properties);
             if (properties.initialize)
@@ -17440,6 +17450,17 @@ let GradumYModel = (() => {
         }
         observer = (__runInitializers(this, _instanceExtraInitializers), (event, transaction) => this.observeChanges(event, transaction));
         observedYTypes = new WeakSet();
+        /**
+         * @function create
+         * @description Instantiate a GradumYModel, then optionally initialize it and make its signals.
+         * Overrides {@link GradumModel.create} solely to narrow the return type, so that Y-specific members
+         * (`observeChanges`, `attachNestedObservers`, ...) remain visible on the result.
+         * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
+         * @returns {GradumYModel} The created model.
+         */
+        static create(properties = {}) {
+            return super.create(properties);
+        }
         /**
          * @inheritDoc
          */

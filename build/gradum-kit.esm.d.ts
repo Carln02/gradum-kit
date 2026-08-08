@@ -1030,6 +1030,16 @@ declare class GradumModel<DataType = any, DataKeyType extends KeyType = any, IdT
      */
     static readonly ALL: unique symbol;
     static from<DataType extends object = any, IdType extends KeyType = any>(data?: DataType, id?: IdType): GradumModelProxy<DataType, IdType>;
+    /**
+     * @function create
+     * @description Instantiate a model, then optionally initialize it and make its signals.
+     * Subclasses that need `create` to report their own type should override it and narrow the return type
+     * (see {@link GradumYModel.create}). The type parameters cannot be derived from the callee here, because
+     * `InstanceType`/`infer` resolve this class' generics to their constraints (`object`, `KeyType`, `unknown`)
+     * rather than their `any` defaults, which would break inference at every call site.
+     * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
+     * @returns {GradumModel} The created model.
+     */
     static create<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any>(properties?: GradumModelProperties): GradumModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType>;
     /**
      * @description The default constructor used to create nested {@link GradumModel} instances.
@@ -7846,6 +7856,15 @@ type YDocumentProperties<ViewType extends GradumView = GradumView<any, any>, Dat
 declare class GradumYModel<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any> extends GradumModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
     private readonly observer;
     private readonly observedYTypes;
+    /**
+     * @function create
+     * @description Instantiate a GradumYModel, then optionally initialize it and make its signals.
+     * Overrides {@link GradumModel.create} solely to narrow the return type, so that Y-specific members
+     * (`observeChanges`, `attachNestedObservers`, ...) remain visible on the result.
+     * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
+     * @returns {GradumYModel} The created model.
+     */
+    static create<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any>(properties?: GradumModelProperties): GradumYModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType>;
     /**
      * @inheritDoc
      */

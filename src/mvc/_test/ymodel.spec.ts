@@ -999,7 +999,7 @@ describe("YModel", () => {
         }
 
         function makeObs(model: GradumYModel) {
-            return model.generateObserver<any, {id: string}>({
+            return model.generateObserver({
                 onAdded: (_d, _s, ...keys) => ({id: keys.join(".")}),
             }, GradumModel.ALL);
         }
@@ -1082,7 +1082,7 @@ describe("YModel", () => {
 
             const deleted: string[] = [];
             const updated: string[] = [];
-            const obs = model.generateObserver<any, {id: string}>({
+            const obs = model.generateObserver({
                 onAdded: (_d, _s, ...keys) => ({id: keys[0] as string}),
                 onUpdated: (_d, _i, _s, ...keys) => updated.push(keys[0] as string),
                 onDeleted: (_d, _i, _s, ...keys) => deleted.push(keys[0] as string),
@@ -1109,7 +1109,7 @@ describe("YModel", () => {
 
             const model = GradumYModel.create({data: root as any, initialize: true});
             const deleted: string[] = [];
-            model.generateObserver<any, {id: string}>({
+            model.generateObserver({
                 onAdded: (_d, _s, ...keys) => ({id: keys[0] as string}),
                 onDeleted: (_d, _i, _s, ...keys) => deleted.push(keys[0] as string),
             });

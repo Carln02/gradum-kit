@@ -74,6 +74,16 @@ class GradumModel<
         }) as GradumModelProxy<DataType, IdType>;
     }
 
+    /**
+     * @function create
+     * @description Instantiate a model, then optionally initialize it and make its signals.
+     * Subclasses that need `create` to report their own type should override it and narrow the return type
+     * (see {@link GradumYModel.create}). The type parameters cannot be derived from the callee here, because
+     * `InstanceType`/`infer` resolve this class' generics to their constraints (`object`, `KeyType`, `unknown`)
+     * rather than their `any` defaults, which would break inference at every call site.
+     * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
+     * @returns {GradumModel} The created model.
+     */
     public static create<
         DataType = any,
         DataKeyType extends KeyType = any,
