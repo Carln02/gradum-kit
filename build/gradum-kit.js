@@ -1,0 +1,18593 @@
+/**
+ * @typedef {Object} AutoOptions
+ * @group Decorators
+ * @category Augmentation
+ *
+ * @template Type
+ * @description Options for configuring the `@auto` decorator.
+ * @property {boolean} [override] - If true, will try to override the defined property in `super`.
+ * @property {boolean} [cancelIfUnchanged=true] - If true, cancels the setter if the new value is the same as the
+ * current value. Defaults to `true`.
+ * @property {(value: Type) => Type} [preprocessValue] - Optional callback to execute on the value and preprocess it
+ * just before it is set. The returned value will be stored.
+ * @property {(value: Type) => void} [callBefore] - Optional function to call before preprocessing and setting the value.
+ * @property {(value: Type) => void} [callAfter] - Optional function to call after setting the value.
+ * @property {boolean} [setIfUndefined] - If true, will fire the setter when the underlying value is `undefined` and
+ * the program is trying to access it (maybe through its getter).
+ * @property {boolean} [returnDefinedGetterValue] - If true and a custom getter is defined, the return value of this
+ * getter will be returned when accessing the property. Otherwise, the underlying saved value will always be returned.
+ * Defaults to `false`.
+ * @property {boolean} [executeSetterBeforeStoring] - If true, when setting the value, the setter will execute first,
+ * and then the value will be stored. In this case, accessing the value in the setter will return the previous value.
+ * Defaults to `false`.
+ * @property {Type} [defaultValue] - If defined, whenever the underlying value is `undefined` and trying to be
+ * accessed, it will be set to `defaultValue` through the setter before getting accessed.
+ * @property {() => Type} [defaultValueCallback] - If defined, whenever the underlying value is `undefined` and
+ * trying to be accessed, it will be set to the return value of `defaultValueCallback` through the setter before
+ * getting accessed.
+ * @property {Type} [initialValue] - If defined, on initialization, the property will be set to `initialValue`.
+ * @property {() => Type} [initialValueCallback] - If defined, on initialization, the property will be set to the
+ * return value of `initialValueCallback`.
+ */
+
+/**
+ * @typedef {Object} CacheOptions
+ * @group Decorators
+ * @category Cache
+ *
+ * @description Options for configuring the `@cache` decorator.
+ *
+ * Defines when and how cached values should expire, refresh, or invalidate.
+ * These options apply equally to cached **methods**, **getters**, and **accessors**.
+ *
+ * @property {number} [timeout]
+ *  Duration in milliseconds after which the cached value automatically expires.
+ *  Useful for time-based caching where values should refresh periodically.
+ *
+ * @property {string | string[]} [onEvent]
+ *  One or more event names (space-separated string or array) that, when fired on the instance,
+ *  immediately clear the cache.
+ *  This allows integration with custom event systems or reactive models.
+ *
+ * @property {() => boolean | Promise<boolean>} [onCallback]
+ *  Function (sync or async) periodically called to decide whether to invalidate the cache.
+ *  If it returns `true`, the cache is cleared.
+ *
+ * @property {number} [onCallbackFrequency]
+ *  Frequency in milliseconds at which `onCallback` should be executed.
+ *  Ignored if `onCallback` is not provided.
+ *
+ * @property {string | Function | (string | Function)[]} [onFieldChange]
+ *  One or more property names or methods to watch for changes.
+ *  Whenever any of these fields or functions change, the cache for the decorated member is cleared.
+ *  Can be a string, a function reference, or an array of both.
+ *
+ * @property {boolean} [clearOnNextFrame]
+ *  If `true`, clears the cache automatically on the **next animation frame** (or equivalent microtask fallback).
+ *  Useful when the cached value is only valid for the current render/update cycle.
+ */
+
+/**
+ * @typedef {Object} SignalEntry
+ * @group Decorators
+ * @category Signal
+ *
+ * @template Type
+ * @description Type that represents a base signal object.
+ * @property {function(): Type} get - Retrieve the signal value.
+ * @property {function(value: Type): void} set - Set the signal value.
+ * @property {function(updater: (previous: Type) => Type): void} update - Set the value using a pure updater based
+ * on the previous value.
+ * @property {(fn: SignalSubscriber) => () => void} sub - Subscribe to change notifications. Returns an unsubscribe
+ * function.
+ * @property {() => void} emit - Force a notification cycle without changing the value (useful after in-place
+ * mutation of structural data).
+ *
+ * @example
+ * ```ts
+ * const count: SignalEntry<number> = makeSignal(0);
+ * const unsub = count.sub(() => console.log("count:", count.get()));
+ * count.set(1); // logs "count: 1"
+ * count.update(c => c+1); // logs "count: 2"
+ * unsub();
+ * ```
+ */
+
+/**
+ * @typedef {Object} SignalBox
+ * @group Decorators
+ * @category Signal
+ *
+ * @template Type
+ * @description A signal entry that is also usable like its underlying primitive/object.
+ *
+ * ### Interop Notes
+ * - `toJSON()` returns the raw value.
+ * - `valueOf()` returns the raw value.
+ * - `Symbol.toPrimitive(hint)`:
+ *    - `"number"` → numeric coercion from the inner value
+ *    - `"string"` or `"default"` → string coercion from the inner value
+ * - The `value` getter/setter mirrors `get()`/`set()` for ergonomic usage.
+ *
+ * @example
+ * ```ts
+ * const count: SignalBox<number> = signal(0);
+ *
+ * // Read
+ * console.log(count.get()); // 0
+ * console.log(count.value); // 0
+ * console.log(+count); // 0
+ *
+ * // Write
+ * count.set(5);
+ * count.value = 6;
+ * count.update(v => v + 1); // 7
+ *
+ * // JSON / string
+ * console.log(`${count}`); // "7"
+ * console.log(JSON.stringify(count)); // 7
+ *
+ * // Reactivity
+ * const unsub = count.sub(() => console.log("changed to", count.get()));
+ * count.set(8); // triggers subscriber
+ * unsub();
+ * ```
+ */
+
+/**
+ * @typedef {Object} TurboOperatorProperties
+ * @group MVC
+ * @category Operator
+ *
+ * @extends {TurboViewProperties}
+ * @template {object} ElementType - The type of the element.
+ * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {TurboModel} ModelType - The element's model type, if any.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description  Options used to create a new {@link TurboOperator} attached to an element.
+ * @property {ViewType} [view] - The MVC view.
+ */
+
+/**
+ * @typedef {Object} PreventDefaultOptions
+ * @group Types
+ * @category Event
+ *
+ * @description Options for {@link TurboSelector.preventDefault}, which prevents default browser behaviors for
+ * selected event types and can optionally stop propagation.
+ *
+ * @property {string[]} [types] - List of event types to affect. If omitted, defaults to {@link BasicInputEvents}.
+ * @property {"capture" | "bubble"} [phase] - Which phase to prevent. Defaults to `"bubble"`.
+ * @property {false | "stop" | "immediate"} [stop] - Whether to stop propagation when handling the event:
+ * - `false`: do not stop propagation,
+ * - `"stop"`: call `stopPropagation`,
+ * - `"immediate"`: call `stopImmediatePropagation`.
+ * @property {(type: string, e: Event) => boolean} [preventDefaultOn] - Predicate to decide (per event) whether to
+ * call `preventDefault`. Return `true` to prevent default for that event.
+ * @property {boolean} [clearPreviousListeners] - If true, clears previously installed prevent-default listeners
+ * before installing new ones.
+ * @property {TurboEventManager} [manager] - Event manager to use. Defaults to {@link TurboEventManager.instance}.
+ */
+
+/**
+ * @typedef {Object} ListenerProperties
+ * @group Components
+ * @category Listener
+ *
+ * @template {Node} TargetType - The type of the event target.
+ * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
+ * @description Configuration object used to construct a {@link Listener}.
+ *
+ * @property {string} type - Event type (e.g., `"click"`, `"pointermove"`).
+ * @property {CallbackType} callback - Listener callback.
+ * @property {TargetType} [target] - Target node.
+ * @property {string} [toolName] - Tool name to bind this listener to (if applicable).
+ * @property {ListenerOptions} [options] - Options controlling registration and execution behaviors.
+ * @property {TurboEventManager} [manager] - Event manager to use. Defaults to {@link TurboEventManager.instance}.
+ */
+
+/**
+ * @typedef {Object} MatchListenerProperties
+ * @group Components
+ * @category Listener
+ *
+ * @template {Node} TargetType - The type of the event target.
+ * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
+ * @extends ListenerProperties
+ * @description Properties used for matching listeners (see {@link Listener.match}).
+ *
+ * @property {string[]} [optionsToSkip] - List of option keys to ignore when matching `options`.
+ */
+
+/**
+ * @typedef {Object} ListenerOptions
+ * @group Components
+ * @category Listener
+ * @extends AddEventListenerOptions
+ * @description Options used for listeners.
+ *
+ * @property {boolean} [checkConstrainers] - If true, checks constrainers before execution. Defaults to true.
+ * @property {boolean} [solveConstrainers] - If true, triggers constrainer solving after execution. Defaults to true.
+ * @property {number} [throttleEveryFrames] - Throttle execution to at most once every N animation frames.
+ * @property {number} [throttleEveryMs] - Throttle execution to at most once every N milliseconds.
+ */
+
+/**
+ * @typedef {Object} TurboInteractorProperties
+ * @group MVC
+ * @category Interactor
+ *
+ * @extends {TurboOperatorProperties}
+ * @template {object} ElementType - The type of the element.
+ * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {TurboModel} ModelType - The element's model type, if any.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description  Options used to create a new {@link TurboInteractor} attached to an element.
+ * @property {string} [toolName] - The name of the tool (if any) that the event listeners will listen for.
+ * @property {Node} [target] - The target that will listen for the events. Defaults to `this.element`.
+ * @property {PartialRecord<DefaultEventNameKey, ListenerOptions>} [listenerOptions] - Custom default options to define
+ * for all listeners.
+ * @property {TurboEventManager} [manager] - The event manager instance the listeners should register against. Defaults
+ * to `TurboEventManager.instance`.
+ */
+
+/**
+ * @typedef {Object} MakeToolOptions
+ * @group Types
+ * @category Tool
+ *
+ * @description Options used to create a new tool attached to an element via {@link makeTool}.
+ * @property {() => void} [onActivate] - Function to execute when the tool is activated.
+ * @property {() => void} [onDeactivate] - Function to execute when the tool is deactivated.
+ * @property {DefaultEventNameEntry} [activationEvent] - Custom activation event to listen to. Defaults to the
+ * default click event name.
+ * @property {ClickMode} [clickMode] -  Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
+ * @property {(element: Turbo<Element>, manager: TurboEventManager) => void} [customActivation] - Custom activation
+ * function. If provided, is called with `(el, manager)` to define when the tool is activated.
+ * @property {string} [key] - Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
+ * @property {TurboEventManager} [manager] - The event manager instance this tool should register against. Defaults
+ * to `TurboEventManager.instance`.
+ */
+
+/**
+ * @typedef {Object} ToolBehaviorCallback
+ * @group Types
+ * @category Tool
+ *
+ * @description Function signature for a tool behavior. Returning `true` marks the behavior as handled/consumed,
+ * leading to stopping the propagation of the event.
+ * @param {Event} event - The original DOM/Turbo event.
+ * @param {Node} target - The node the behavior should operate on (the object or its embedded target).
+ * @param {ToolBehaviorOptions} [options] - Additional info (embedded context, etc.).
+ * @return {boolean} - Whether to stop the propagation.
+ */
+
+/**
+ * @typedef {Object} ToolBehaviorOptions
+ * @group Types
+ * @category Tool
+ *
+ * @description Options object passed to tool behaviors at execution time.
+ * @property {boolean} [isEmbedded] - Indicates if the tool is embedded in a target node.
+ * @property {Node} [embeddedTarget] - The target of the tool, if it is embedded.
+ */
+
+/**
+ * @typedef {Object} TurboToolProperties
+ * @group MVC
+ * @category Tool
+ *
+ * @extends TurboOperatorProperties
+ * @extends MakeToolOptions
+ *
+ * @template {object} ElementType - The type of the element.
+ * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {TurboModel} ModelType - The element's model type, if any.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description Options used to create a new {@link TurboTool} attached to an element.
+ * @property {string} [toolName] - The name of the tool.
+ * @property {Node} [embeddedTarget] - If the tool is embedded, its target.
+ */
+
+/**
+ * @typedef {Object} TurboConstrainerProperties
+ * @group MVC
+ * @category Constrainer
+ *
+ * @extends TurboOperatorProperties
+ * @extends MakeConstrainerOptions
+ *
+ * @template {object} ElementType - The type of the element.
+ * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {TurboModel} ModelType - The element's model type, if any.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description Options used to create a new {@link TurboConstrainer} attached to an element.
+ * @property {string} [constrainerName] - The name of the constrainer.
+ */
+
+/**
+ * @typedef {Object} NodeListType
+ * @group Components
+ * @category TurboNodeList
+ *
+ * @description Union type representing any value that can be added to or removed from a
+ * {@link TurboNodeList}. Accepts a {@link TurboNodeList}, a live DOM {@link HTMLCollection},
+ * a {@link NodeListOf}, a {@link Set}, or a plain array.
+ *
+ * @template {object} EntryType - The type of the nodes held in the collection.
+ */
+
+/**
+ * @typedef {Object} ElementTagDefinition
+ * @group Types
+ * @category Element
+ * @description Represents an element's definition of its tag and its namespace (both optional).
+ *
+ * @property {string} [tag="div"] - The HTML tag of the element (e.g., "div", "span", "input"). Defaults to "div."
+ * @property {string} [namespace] - The namespace of the element. Defaults to HTML. If "svgManipulation" or "mathML"
+ * is provided, the corresponding namespace will be used to create the element. Otherwise, the custom namespace
+ * provided will be used.
+ */
+
+/**
+ * @typedef {Object} TurboElementProperties
+ * @group TurboElement
+ * @category TurboElement
+ *
+ * @extends TurboProperties
+ * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {object} DataType - The element's data type, if any.
+ * @template {TurboModel<DataType>} ModelType - The element's model type, if any.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description Object containing properties for configuring a custom HTML element. Is basically TurboProperties
+ * without the tag.
+ */
+
+/**
+ * @typedef {Object} MvcGenerationProperties
+ * @group MVC
+ * @category MVC
+ *
+ * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {object} DataType - The element's data type, if any.
+ * @template {TurboModel<DataType>} ModelType - The element's model type, if any.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description Type representing a configuration object for an {@link Mvc} instance.
+ * @property {MvcInstanceOrConstructor<ViewType, TurboViewProperties>} [view] - The view (or view constructor) to attach.
+ * @property {ModelType | (new (data?: any, dataBlocksType?: "map" | "array") => ModelType)} [model] - The model
+ * (or model constructor) to attach.
+ * @property {MvcInstanceOrConstructor<EmitterType, ModelType>} [emitter] - The emitter (or emitter constructor) to
+ * attach. If not defined, a default TurboEmitter will be created.
+ * @property {MvcManyInstancesOrConstructors<TurboOperator, TurboOperatorProperties>} [operators] - The
+ * operator, constructor of operator, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<TurboHandler, ModelType>} [handlers] - The
+ * handler, constructor of handler, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<TurboInteractor, TurboInteractorProperties>} [interactors] - The
+ * interactor, constructor of interactor, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<TurboTool, TurboToolProperties>} [tools] - The
+ * tool, constructor of tool, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<TurboConstrainer, TurboConstrainerProperties>} [constrainers] - The
+ * constrainer, constructor of constrainer, or array of the latter, to attach.
+ */
+
+/**
+ * @typedef {Object} MvcGenerationProperties
+ * @group MVC
+ * @category MVC
+ *
+ * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {object} DataType - The element's data type, if any.
+ * @template {TurboModel<DataType>} ModelType - The element's model type, if any.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @extends {MvcProperties}
+ * @description Type representing a configuration object for an {@link Mvc} instance.
+ * @property {DataType} [data] - The data to attach to the model.
+ * @property {boolean} [initialize] - Whether to initialize the MVC pieces after setting them or not. Defaults to true.
+ */
+
+/**
+ * @typedef {Object} TurboHeadlessProperties
+ * @group TurboElement
+ * @category TurboHeadlessElement
+ *
+ * @template {TurboView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Object containing properties for configuring a headless (non-HTML) element, with possibly MVC properties.
+ */
+
+/**
+ * @typedef {Object} MakeConstrainerOptions
+ * @group Types
+ * @category Constrainer
+ *
+ * @description Type representing objects used to configure the creation of constrainers. Used in {@link makeConstrainer}.
+ * @property {() => void} [onActivate] - Callback function to execute when the constrainer is activated.
+ * @property {() => void} [onDeactivate] - Callback function to execute when the constrainer is deactivated.
+ * @property {number} [priority] - The priority of the constrainer. Higher priority constrainers (lower number) should
+ * be resolved first. Defaults to 10.
+ * @property {boolean} [active] - Whether the constrainer is active. Defaults to true.
+ * @property {TurboConstrainer} [attachedInstance] - The optional TurboConstrainer instance to attach to the constrainer.
+ */
+
+/**
+ * @typedef {Object} ConstrainerCallbackProperties
+ * @group Types
+ * @category Constrainer
+ *
+ * @description Type representing objects passed as context for resolving constrainers. Given as first parameter to
+ * solvers when executing them via {@link solveConstrainer}.
+ * @property {string} [constrainer] - The targeted constrainer. Defaults to `currentConstrainer`.
+ * @property {object} [constrainerHost] - The object to which the target constrainer is attached.
+ * @property {object} [target] - The current object being processed by the solver. Property set by
+ * {@link solveConstrainer} when processing every object in the constrainer's list.
+ * @property {Event} [event] - The event (if any) that fired the resolving of the constrainer.
+ * @property {string} [eventType] - The type of the event.
+ * @property {Node} [eventTarget] - The target of the event.
+ * @property {string} [toolName] - The name of the active tool when the event was fired.
+ * @property {ListenerOptions} [eventOptions] - The options of the event.
+ * @property {TurboEventManager} [manager] - The event manager that captured the event. Defaults to the first
+ * instantiated event manager.
+ */
+
+/**
+ * @typedef {Object} ConstrainerMutatorProperties
+ * @group Types
+ * @category Constrainer
+ *
+ * @extends ConstrainerCallbackProperties
+ * @template Type - The type of the value to mutate.
+ * @description Type representing objects passed as context to mutate a value in an constrainer. Given as first parameter to
+ * mutators when executing them via {@link mutate}.
+ * @property {string} [mutation] - The name of the mutator to execute.
+ * @property {Type} [value] - The value to mutate.
+ */
+
+/**
+ * @typedef {Object} ConstrainerChecker
+ * @group Types
+ * @category Constrainer
+ *
+ * @description Type representing the signature of checker functions that constrainers expect.
+ */
+
+/**
+ * @typedef {Object} ConstrainerMutator
+ * @group Types
+ * @category Constrainer
+ *
+ * @description Type representing the signature of mutator functions that constrainers expect.
+ */
+
+/**
+ * @typedef {Object} ConstrainerSolver
+ * @group Types
+ * @category Constrainer
+ *
+ * @description Type representing the signature of solver functions that constrainers expect.
+ */
+
+/**
+ * @typedef {Object} ConstrainerAddCallbackProperties
+ * @group Types
+ * @category Constrainer
+ * @template {ConstrainerChecker | ConstrainerMutator | ConstrainerSolver} Type - The type of callback.
+ *
+ * @description Type representing a configuration object to add a new callback to the given constrainer.
+ * @property {string} [name] - The name of the callback to add.
+ * @property {Type} [callback] - The callback to add.
+ * @property {string} [constrainer] - The constrainer to add the callback to.
+ * @property {number} [priority] - The priority of the callback.
+ */
+
+/**
+ * @typedef {Object} DefineOptions
+ * @group Decorators
+ * @category Registry, Attributes & DOM
+ *
+ * @description Options object for the {@link define} decorator and imperative function.
+ * @property {boolean} [injectAttributeBridge=true] - Whether to inject an `attributeChangedCallback`
+ * into the class prototype if one is not already present. When enabled, HTML attribute changes are
+ * automatically mirrored to their associated `@observe`-decorated fields, and vice versa.
+ */
+
+/**
+ * @typedef {Object} RegistryEntry
+ * @group Decorators
+ * @category Registry, Attributes & DOM
+ *
+ * @description Represents a single entry in the Gradum Kit class registry, as stored and returned
+ * by {@link findRegistered} and related query functions.
+ * @property {new (...args: any[]) => any} constructor - The registered class constructor.
+ * @property {RegistryCategory} category - The category the class was registered under,
+ * either explicitly provided or inferred from its inheritance chain.
+ * @property {string} name - The registered name of the class, used as the registry key.
+ * Typically the class name as passed to {@link define}.
+ * @property {string} [tag] - The custom element tag name associated with this class.
+ * Only present for classes registered as custom HTML elements via {@link define}.
+ */
+
+/**
+ * @typedef {Object} StylesRoot
+ * @group Types
+ * @category Style
+ *
+ * @description A type that represents entities that can hold a <style> object (Shadow root or HTML head).
+ */
+
+/**
+ * @typedef {Object} StylesType
+ * @group Types
+ * @category Style
+ *
+ * @description A type that represents the types that are accepted as styles entries (mainly by the HTMLElement.setStyles()
+ * method). It includes strings, numbers, and records of CSS attributes to strings or numbers.
+ */
+
+/**
+ * @typedef {Object} TurboIconProperties
+ * @group Components
+ * @category TurboIcon
+ *
+ * @description Properties object that extends TurboElementProperties with properties specific to icons.
+ * @extends TurboProperties
+ *
+ * @property {string} icon - The name of the icon.
+ * @property {string} [iconColor] - The color of the icon.
+ * @property {((svgManipulation: SVGElement) => {})} [onLoaded] - Custom function that takes an SVG element to execute on the
+ * SVG icon (if it is one) once it is loaded. This property will be disregarded if the icon is not of type SVG.
+ *
+ * @property {string} [type] - Custom type of the icon, overrides the default type assigned to
+ * TurboIcon.config.type (whose default value is "svgManipulation").
+ * @property {string} [directory] - Custom directory to the icon, overrides the default directory assigned to
+ * TurboIcon.config.directory.
+ * @property {boolean} [unsetDefaultClasses] - Set to true to not add the default classes specified in
+ * TurboIcon.config.defaultClasses to this instance of Icon.
+ */
+
+/**
+ * @typedef {Object} TurboRichElementProperties
+ * @group Components
+ * @category TurboRichElement
+ *
+ * @description Properties object for configuring a Button. Extends TurboElementProperties.
+ * @extends TurboProperties
+ *
+ * @property {string} [text] - The text to set to the rich element's main element.
+ *
+ * @property {Element | Element[]} [leftCustomElements] - Custom elements
+ * to be placed on the left side of the button (before the left icon).
+ * @property {string | TurboIcon} [leftIcon] - An icon to be placed on the left side of the button text. Can be a
+ * string (icon name/path) or an Icon instance.
+ * @property {string | TurboProperties<ElementTag> | ValidElement<ElementTag>} [buttonText] - The text content of the button.
+ * @property {string | TurboIcon} [rightIcon] - An icon to be placed on the right side of the button text. Can be a
+ * string (icon name/path) or an Icon instance.
+ * @property {Element | Element[]} [rightCustomElements] - Custom elements
+ * to be placed on the right side of the button (after the right icon).
+ *
+ * @property {ValidTag} [customTextTag] - The HTML tag to be used for the buttonText element (if the latter is passed as
+ * a string). If not specified, the default text tag specified in the Button class will be used.
+ * @property {boolean} [unsetDefaultClasses] - Set to true to not add the default classes specified in TurboConfig.Button
+ * to this instance of Button.
+ *
+ * @template {ValidTag} ElementTag="p"
+ */
+
+/**
+ * @typedef {Object} TurboSelectElementProperties
+ * @group Components
+ * @category TurboDropdown
+ *
+ * @description Properties for configuring a Dropdown.
+ * @extends TurboProperties
+ *
+ * @property {string | string[]} [entriesClasses] - CSS class(es) for dropdown entries.
+ * @property {string | string[]} [selectedEntriesClasses] - CSS class(es) for selected entries.
+ */
+
+/**
+ * @typedef {Object} TurboDropdownProperties
+ * @group Components
+ * @category TurboDropdown
+ *
+ * @description Properties for configuring a Dropdown.
+ * @extends TurboProperties
+ *
+ * @property {(string | HTMLElement)} [selector] - Element or descriptor used as the dropdown selector. If a
+ * string is passed, a Button with the given string as text will be assigned as the selector.
+ * @property {HTMLElement} [popup] - The element used as a container for the dropdown entries.
+ *
+ * @property {boolean} [multiSelection=false] - Enables selection of multiple dropdown entries.
+ *
+ * @property {ValidTag} [selectorTag] - Custom HTML tag for the selector's text. Overrides the
+ * default tag set in TurboConfig.Dropdown.
+ *
+ * @property {string | string[]} [selectorClasses] - Custom CSS class(es) for the selector. Overrides the default
+ * classes set in TurboConfig.Dropdown.
+ * @property {string | string[]} [popupClasses] - Custom CSS class(es) for the popup container. Overrides the
+ * default classes set in TurboConfig.Dropdown.
+ */
+
+/**
+ * @typedef {Object} TurboDropdownProperties
+ * @group Components
+ * @category TurboDropdown
+ *
+ * @description Properties for configuring a Dropdown.
+ * @extends TurboProperties
+ *
+ * @property {(string | HTMLElement)} [selector] - Element or descriptor used as the dropdown selector. If a
+ * string is passed, a Button with the given string as text will be assigned as the selector.
+ * @property {HTMLElement} [popup] - The element used as a container for the dropdown entries.
+ *
+ * @property {boolean} [multiSelection=false] - Enables selection of multiple dropdown entries.
+ *
+ * @property {ValidTag} [selectorTag] - Custom HTML tag for the selector's text. Overrides the
+ * default tag set in TurboConfig.Dropdown.
+ *
+ * @property {string | string[]} [selectorClasses] - Custom CSS class(es) for the selector. Overrides the default
+ * classes set in TurboConfig.Dropdown.
+ * @property {string | string[]} [popupClasses] - Custom CSS class(es) for the popup container. Overrides the
+ * default classes set in TurboConfig.Dropdown.
+ */
+
+/**
+ * @typedef {Object} ChildHandler
+ * @group Types
+ * @category Hierarchy
+ *
+ * @description A type that represents all entities that can hold and manage children (an element or a shadow root).
+ */
+
+/**
+ * @typedef {Object} ApplyDefaultsOptions
+ * @group Types
+ * @category Misc
+ *
+ * @description Options for {@link TurboSelector.applyDefaults}.
+ * @property {string[]} [mergeProperties] - Array-like keys to merge. Defaults to {@link ApplyDefaultsMergeProperties}.
+ * @property {boolean} [removeDuplicates] - Whether to remove duplicates when merging arrays. Defaults to `true`.
+ */
+
+/**
+ * @typedef {Object} FontProperties
+ * @group Utilities
+ * @category Font
+ *
+ * @description An object representing a local font, or a family of fonts.
+ *
+ * @property {string} name - The name of the font. The font's filename should also match.
+ * @property {string} pathOrDirectory - The path to the local font file, or the path to the local font family's directory.
+ * @property {Record<string, string> | Record<number, Record<string, string>>} [weight] - If loading a single font, a
+ * record in the form {weight: style}. Defaults to {"normal": "normal"}. If loading a family, a record in the form
+ * {weight: {fontSubName: style}}, such that every font file in the family is named in the form fontName-fontSubName.
+ * Defaults to an object containing common sub-names and styles for weights from 100 to 900.
+ * @property {string} [format] - The format of the font. Defaults to "woff2".
+ * @property {string} [extension] - The extension of the font file(s). Defaults to ".ttf".
+ */
+
+var Turbo = (function (exports, yjs) {
+    'use strict';
+
+    /**
+     * @internal
+     */
+    class AutoUtils {
+        constructorMap = new WeakMap();
+        constructorData(target) {
+            let obj = this.constructorMap.get(target);
+            if (!obj) {
+                obj = { installed: new Map() };
+                this.constructorMap.set(target, obj);
+            }
+            return obj;
+        }
+    }
+
+    /**
+     * @group Utilities
+     * @category Null Check
+     */
+    function isNull(value) {
+        return value == null && value != undefined;
+    }
+    /**
+     * @group Utilities
+     * @category Null Check
+     */
+    function isUndefined(value) {
+        return typeof value == "undefined";
+    }
+    /**
+     * @group Utilities
+     * @category Sorting
+     */
+    function alphabeticalSorting(a, b) {
+        if (typeof a === "symbol")
+            a = String(a);
+        if (typeof b === "symbol")
+            b = String(b);
+        if (typeof a == "string" && typeof b == "string")
+            return a.localeCompare(b);
+        else if (typeof a == "number" && typeof b == "number")
+            return a - b;
+        return 0;
+    }
+
+    /**
+     * @group Utilities
+     * @category Prototype
+     */
+    function getFirstDescriptorInChain(object, key) {
+        let currentObject = object;
+        while (currentObject && currentObject !== Object.prototype) {
+            const descriptor = Object.getOwnPropertyDescriptor(currentObject, key);
+            if (descriptor)
+                return descriptor;
+            currentObject = Object.getPrototypeOf(currentObject);
+        }
+        return undefined;
+    }
+    /**
+     * @group Utilities
+     * @category Prototype
+     */
+    function hasPropertyInChain(object, key) {
+        let currentObject = object;
+        while (currentObject && currentObject !== Object.prototype) {
+            if (Object.prototype.hasOwnProperty.call(currentObject, key))
+                return true;
+            currentObject = Object.getPrototypeOf(currentObject);
+        }
+        return false;
+    }
+    /**
+     * @group Utilities
+     * @category Prototype
+     */
+    function getFirstPrototypeInChainWith(object, key) {
+        let currentObject = Object.getPrototypeOf(object);
+        while (currentObject && currentObject !== Object.prototype) {
+            const descriptor = Object.getOwnPropertyDescriptor(currentObject, key);
+            if (descriptor)
+                return currentObject;
+            currentObject = Object.getPrototypeOf(currentObject);
+        }
+        return undefined;
+    }
+    /**
+     * @group Utilities
+     * @category Prototype
+     */
+    function getSuperMethod(object, key, wrapperFn) {
+        let currentObject = Object.getPrototypeOf(object);
+        while (currentObject && currentObject !== Object.prototype) {
+            const descriptor = Object.getOwnPropertyDescriptor(currentObject, key);
+            const fn = descriptor?.value ?? descriptor?.get ?? descriptor?.set;
+            if (typeof fn === "function" && fn !== wrapperFn)
+                return fn;
+            currentObject = Object.getPrototypeOf(currentObject);
+        }
+        return undefined;
+    }
+    /**
+     * @group Utilities
+     * @category Prototype
+     */
+    function getSuperDescriptor(object, key) {
+        let currentObject = Object.getPrototypeOf(object);
+        if (currentObject)
+            currentObject = Object.getPrototypeOf(currentObject);
+        while (currentObject && currentObject !== Object.prototype) {
+            const descriptor = Object.getOwnPropertyDescriptor(currentObject, key);
+            if (descriptor)
+                return descriptor;
+            currentObject = Object.getPrototypeOf(currentObject);
+        }
+        return undefined;
+    }
+    /**
+     * @group Utilities
+     * @category Prototype
+     */
+    function getPrototypeChain(object) {
+        const chain = [];
+        let constructor = typeof object === "function" ? object : Object.getPrototypeOf(object);
+        while (constructor && constructor !== Function.prototype) {
+            chain.push(constructor);
+            constructor = Object.getPrototypeOf(constructor);
+        }
+        return chain;
+    }
+    /**
+     * @group Utilities
+     * @category Prototype
+     */
+    function getConstructorChain(object) {
+        const chain = [];
+        let constructor = typeof object === "function" ? object : object.constructor;
+        while (constructor && constructor !== Object) {
+            chain.push(constructor);
+            constructor = Object.getPrototypeOf(constructor);
+        }
+        return chain;
+    }
+
+    const utils$d = new AutoUtils();
+    /**
+     * @decorator
+     * @function auto
+     * @group Decorators
+     * @category Augmentation
+     *
+     * @description Stage-3 decorator that augments fields, getters, setters, and accessors. Useful to quickly create a setter
+     * and only define additional functionality on set. The decorator takes an optional object as parameter to configure
+     * it, allowing you to, among other things:
+     * - Preprocess the value when it is set,
+     * - Specify callbacks to call before/after the value is set,
+     * - Define a default value to return instead of `undefined` when calling the getter, and
+     * - Fire the setter when the underlying value is `undefined`.
+     *
+     * *Note: If you want to chain decorators, place `@auto` closest to the property to ensure it runs first and sets
+     * up the accessor for other decorators.*
+     *
+     * @param {AutoOptions} [options] - Options object to define custom behaviors.
+     *
+     * @example
+     * ```ts
+     * @auto() public set color(value: string) {
+     *    this.style.backgroundColor = value;
+     * }
+     * ```
+     *Is equivalent to:
+     * ```ts
+     * private _color: string;
+     * public get color(): string {
+     *    return this._color;
+     * }
+     *
+     * public set color(value: string) {
+     *    this._color = value;
+     *    this.style.backgroundColor = value;
+     * }
+     * ```
+     */
+    function auto(options) {
+        return function (value, context) {
+            if (!options)
+                options = {};
+            const { kind, name, static: isStatic } = context;
+            const key = name;
+            const backing = Symbol(`__auto_${key}`);
+            context.addInitializer(function () {
+                const prototype = isStatic ? this : getFirstPrototypeInChainWith(this, key);
+                const superDescriptor = getSuperDescriptor(this, key);
+                let customGetter;
+                let customSetter;
+                const baseRead = function () {
+                    if (customGetter && options?.returnDefinedGetterValue)
+                        return customGetter.call(this);
+                    if (options.override && superDescriptor?.get)
+                        return superDescriptor.get.call(this);
+                    return this[backing];
+                };
+                const baseWrite = function (value) {
+                    if (options.override && superDescriptor?.set)
+                        superDescriptor.set.call(this, value);
+                    this[backing] = value;
+                };
+                let readFlag = false;
+                const read = function () {
+                    let value = baseRead.call(this);
+                    if (readFlag)
+                        return value;
+                    readFlag = true;
+                    if (!options.returnDefinedGetterValue && isUndefined(value)) {
+                        if (options.defaultValue)
+                            value = options.defaultValue;
+                        else if (options.defaultValueCallback)
+                            value = options.defaultValueCallback.call(this);
+                        if (options.setIfUndefined || options.defaultValue || options.defaultValueCallback) {
+                            write.call(this, value);
+                            value = baseRead.call(this);
+                        }
+                    }
+                    readFlag = false;
+                    return value;
+                };
+                let writeFlag = false;
+                const write = function (value) {
+                    if (writeFlag)
+                        return baseWrite.call(this, value);
+                    writeFlag = true;
+                    options.callBefore?.call(this, value);
+                    let next = options?.preprocessValue ? options.preprocessValue.call(this, value) : value;
+                    if ((options.cancelIfUnchanged ?? true) && Object.is(baseRead.call(this), next)) {
+                        writeFlag = false;
+                        return;
+                    }
+                    if (options.executeSetterBeforeStoring && customSetter)
+                        customSetter.call(this, next);
+                    baseWrite.call(this, next);
+                    if (!options.executeSetterBeforeStoring && customSetter)
+                        customSetter.call(this, next);
+                    options.callAfter?.call(this, next);
+                    writeFlag = false;
+                };
+                if (isUndefined(baseRead.call(this))) {
+                    let initialValue = kind === "field" ? value : undefined;
+                    if (isUndefined(initialValue)) {
+                        if (options.initialValue)
+                            initialValue = options.initialValue;
+                        else if (options.initialValueCallback)
+                            initialValue = options.initialValueCallback.call(this);
+                    }
+                    if (!isUndefined(initialValue) && options.preprocessValue)
+                        initialValue = options.preprocessValue.call(this, initialValue);
+                    this[backing] = initialValue;
+                }
+                if (kind === "field" || kind === "accessor") {
+                    const accessor = value;
+                    if (accessor?.get)
+                        customGetter = accessor.get;
+                    if (accessor?.set)
+                        customSetter = accessor.set;
+                    const descriptor = getFirstDescriptorInChain(this, key) ?? { enumerable: true };
+                    Object.defineProperty(this, key, {
+                        configurable: true,
+                        enumerable: descriptor.enumerable ?? true,
+                        get: () => read.call(this),
+                        set: (value) => write.call(this, value),
+                    });
+                }
+                else if (kind === "getter" || kind === "setter") {
+                    const installed = utils$d.constructorData(prototype).installed;
+                    if (installed.get(key))
+                        return;
+                    installed.set(key, true);
+                    const descriptor = getFirstDescriptorInChain(prototype, key) ?? { enumerable: true };
+                    if (typeof descriptor.get === "function")
+                        customGetter = descriptor.get;
+                    if (typeof descriptor.set === "function")
+                        customSetter = descriptor.set;
+                    Object.defineProperty(prototype, key, {
+                        configurable: true,
+                        enumerable: descriptor.enumerable ?? true,
+                        get: function () { return read.call(this); },
+                        set: function (value) { write.call(this, value); },
+                    });
+                }
+            });
+        };
+    }
+
+    /**
+     * @class TurboSelector
+     * @group TurboSelector
+     *
+     * @template {object} Type - The type of the object it wraps.
+     * @description Selector class that wraps an object and augments it with useful functions to manipulate it. It also
+     * proxies the object, so you can access properties and methods on the underlying object directly through the selector.
+     */
+    class TurboSelector {
+        /**
+         * @description The underlying, wrapped object.
+         */
+        element;
+        #generateProxy() {
+            return new Proxy(this, {
+                get(target, prop, receiver) {
+                    if (prop in target)
+                        return Reflect.get(target, prop, receiver);
+                    const value = target.element?.[prop];
+                    return typeof value === "function" ? value.bind(target.element) : value;
+                },
+                set(target, prop, value, receiver) {
+                    if (prop in target)
+                        return Reflect.set(target, prop, value, receiver);
+                    target.element[prop] = value;
+                    return true;
+                },
+                has(target, prop) {
+                    return prop in target || prop in target.element;
+                },
+                ownKeys(target) {
+                    return Array.from([...Reflect.ownKeys(target), ...Reflect.ownKeys(target.element)]);
+                },
+                getOwnPropertyDescriptor(target, prop) {
+                    return Reflect.getOwnPropertyDescriptor(target, prop)
+                        || Object.getOwnPropertyDescriptor(target.element, prop)
+                        || undefined;
+                }
+            });
+        }
+        constructor() {
+            return this.#generateProxy();
+        }
+    }
+
+    class HierarchyFunctionsUtils {
+        dataMap = new WeakMap;
+        data(element) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element)
+                return {};
+            if (!this.dataMap.has(element))
+                this.dataMap.set(element, {});
+            return this.dataMap.get(element);
+        }
+    }
+
+    const utils$c = new HierarchyFunctionsUtils();
+    function setupHierarchyFunctions() {
+        //Readonly fields
+        /**
+         * @description The child handler object associated with the node. It is the node itself (if it is handling
+         * its children) or its shadow root (if defined). Set it to change the node where the children are added/removed/
+         * queried from when manipulating the node's children.
+         */
+        Object.defineProperty(TurboSelector.prototype, "childHandler", {
+            set: function (value) {
+                if (value instanceof TurboSelector)
+                    value = value.element;
+                utils$c.data(this).childHandler = value;
+            },
+            get: function () {
+                const childHandler = utils$c.data(this).childHandler;
+                if (childHandler)
+                    return childHandler;
+                if (this.element instanceof Element && this.element.shadowRoot)
+                    return this.element.shadowRoot;
+                return this.element;
+            },
+            configurable: false,
+            enumerable: true
+        });
+        /**
+         * @description Static array of all the child nodes of the node.
+         */
+        Object.defineProperty(TurboSelector.prototype, "childNodesArray", {
+            get: function () {
+                if (!this.element)
+                    return [];
+                return Array.from(this.childHandler?.childNodes) || [];
+            },
+            configurable: false,
+            enumerable: true
+        });
+        /**
+         * @description Static array of all the child elements of the node.
+         */
+        Object.defineProperty(TurboSelector.prototype, "childrenArray", {
+            get: function () {
+                return this.childNodesArray.filter((node) => node.nodeType === 1);
+            },
+            configurable: false,
+            enumerable: true
+        });
+        /**
+         * @description Static array of all the sibling nodes (including the node itself) of the node.
+         */
+        Object.defineProperty(TurboSelector.prototype, "siblingNodes", {
+            get: function () {
+                const parent = this.element?.parentNode;
+                if (!parent)
+                    return [];
+                return $(parent).childNodesArray || [];
+            },
+            configurable: false,
+            enumerable: true
+        });
+        /**
+         * @description Static array of all the sibling elements (including the element itself, if it is one) of the node.
+         */
+        Object.defineProperty(TurboSelector.prototype, "siblings", {
+            get: function () {
+                const parent = this.element?.parentElement;
+                if (!parent)
+                    return [];
+                return $(parent).childrenArray || [];
+            },
+            configurable: false,
+            enumerable: true
+        });
+        //Self manipulation
+        TurboSelector.prototype.bringToFront = function _bringToFront() {
+            const parent = this.element?.parentNode;
+            if (!parent)
+                return this;
+            $(parent).addChild(this.element);
+            return this;
+        };
+        TurboSelector.prototype.sendToBack = function _sendToBack() {
+            const parent = this.element?.parentNode;
+            if (!parent)
+                return this;
+            $(parent).addChild(this.element, 0);
+            return this;
+        };
+        /**
+         * @description Removes the node from the document.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.remove = function _remove() {
+            this.element?.parentNode?.removeChild(this.element);
+            return this;
+        };
+        //Child manipulation
+        /**
+         * @description Add one or more children to the referenced parent node.
+         * @param {Node | Node[]} [children] - Array of (or single) child nodes.
+         * @param {number} [index] - The position at which to add the child relative to the parent's child list.
+         * Leave undefined to add the child at the end.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * use as computation reference for index placement. Defaults to the node's `childrenArray`.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.addChild = function _addChild(children, index, referenceList = this.childrenArray) {
+            if (!this.element || !children)
+                return this;
+            if (index !== undefined && (index < 0 || index > referenceList.length))
+                index = undefined;
+            if (index != undefined)
+                this.addChildBefore(children, referenceList[index]);
+            else
+                try {
+                    // Try to append every provided child (according to its type)
+                    if (!Array.isArray(children))
+                        children = [children];
+                    children.forEach((child) => {
+                        if (!child)
+                            return;
+                        if (child instanceof TurboSelector)
+                            child = child.element;
+                        this.childHandler.appendChild(child);
+                        //TODO
+                        // if (child["__outName"] && !this[child["__outName"]]) this[child["__outName"]] = child;
+                    });
+                }
+                catch (e) {
+                    console.error(e);
+                }
+            return this;
+        };
+        /**
+         * @description Remove one or more children from the referenced parent node.
+         * @param {Node | Node[]} [children] - Array of (or single) child nodes.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.remChild = function _remChild(children) {
+            if (!this.element || !children)
+                return this;
+            // Try to remove every provided child (according to its type)
+            try {
+                if (!Array.isArray(children))
+                    children = [children];
+                children.forEach(child => {
+                    if (!child)
+                        return;
+                    if (child instanceof TurboSelector)
+                        child = child.element;
+                    this.childHandler.removeChild(child);
+                });
+            }
+            catch (e) {
+                console.error(e);
+            }
+            return this;
+        };
+        /**
+         * @description Add one or more children to the referenced parent node before the provided sibling. If the
+         * sibling is not found in the parent's children, the nodes will be added to the end of the parent's child list.
+         * @param {Node | Node[]} [children] - Array of (or single) child nodes to insert before sibling.
+         * @param {Node} [sibling] - The sibling node to insert the children before.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.addChildBefore = function _addChildBefore(children, sibling) {
+            if (!this.element || !children)
+                return this;
+            if (!sibling)
+                return this.addChild(children);
+            // Try to append every provided child (according to its type)
+            try {
+                if (!Array.isArray(children))
+                    children = [children];
+                children.forEach((child) => {
+                    if (!child)
+                        return;
+                    if (child instanceof TurboSelector)
+                        child = child.element;
+                    this.childHandler.insertBefore(child, sibling);
+                });
+            }
+            catch (e) {
+                console.error(e);
+            }
+            return this;
+        };
+        /**
+         * @description Remove one or more child nodes from the referenced parent node.
+         * @param {number} [index] - The index of the child(ren) to remove.
+         * @param {number} [count=1] - The number of children to remove.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * use as computation reference for index placement and count. Defaults to the node's `childrenArray`.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.removeChildAt = function _removeChildAt(index, count = 1, referenceList = this.childrenArray) {
+            if (!this.element || index === undefined || index < 0)
+                return this;
+            if (index >= referenceList.length)
+                return this;
+            // Try to remove every provided child (according to its type)
+            try {
+                for (let i = index + count - 1; i >= index; i--) {
+                    if (i >= referenceList.length)
+                        continue;
+                    this.removeChild(referenceList[i]);
+                }
+            }
+            catch (e) {
+                console.error(e);
+            }
+            return this;
+        };
+        /**
+         * @description Remove all children of the node.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * representing all the nodes to remove. Defaults to the node's `childrenArray`.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.removeAllChildren = function _removeAllChildren(referenceList = this.childrenArray) {
+            if (!this.element)
+                return this;
+            try {
+                for (let i = 0; i < referenceList.length; i++)
+                    this.removeChild(referenceList[i]);
+            }
+            catch (e) {
+                console.error(e);
+            }
+            return this;
+        };
+        //Child identification
+        /**
+         * @description Returns the child of the parent node at the given index. Any number inputted (including negatives)
+         * will be reduced modulo length of the list size.
+         * @param {number} [index] - The index of the child to retrieve.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * use as computation reference for index placement. Defaults to the node's `childrenArray`.
+         * @returns {Node | Element | null} The child at the given index, or `null` if the index is invalid.
+         */
+        TurboSelector.prototype.childAt = function _childAt(index, referenceList = this.childrenArray) {
+            if (!this.element || index === undefined)
+                return null;
+            if (index >= referenceList.length)
+                index = referenceList.length - 1;
+            while (index < 0)
+                index += referenceList.length;
+            return referenceList[index];
+        };
+        /**
+         * @description Returns the index of the given child.
+         * @param {Node} [child] - The child element to find.
+         * @param {Node[] | Element[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * use as computation reference for index placement. Defaults to the node's `childrenArray`.
+         * @returns {number} The index of the child node in the provided list, or -1 if the child is not found.
+         */
+        TurboSelector.prototype.indexOfChild = function _indexOfChild(child, referenceList = this.childrenArray) {
+            if (!this.element || !child)
+                return -1;
+            if (!(referenceList instanceof Array))
+                referenceList = Array.from(referenceList);
+            return referenceList.indexOf(child);
+        };
+        /**
+         * @description Identify whether one or more children belong to this parent node.
+         * @param {Node | Node[]} [children] - Array of (or single) child nodes.
+         * @returns {boolean} A boolean indicating whether the provided nodes belong to the parent or not.
+         */
+        TurboSelector.prototype.hasChild = function _hasChild(children) {
+            if (!this.element || !children)
+                return false;
+            const nodesArray = Array.from(this.element?.childNodes);
+            if (children instanceof Node)
+                return nodesArray.includes(children);
+            for (const child of children) {
+                if (!nodesArray.includes(child))
+                    return false;
+            }
+            return true;
+        };
+        /**
+         * Finds the closest ancestor of the current element (or the current element itself) that matches the
+         * provided type. Accepts either a constructor (matched via `instanceof`) or a string. When a string is
+         * given it is first resolved to a constructor via `customElements` (so `"my-component"` matches any
+         * element that is an `instanceof MyComponent`); if no custom element is registered for that name it
+         * falls back to a native CSS-selector walk via `Element.closest()`.
+         * @param {string | (new (...args: any[]) => Element)} type - Custom-element tag name, CSS selector,
+         * or element constructor to match.
+         * @returns {Element | null} The matching ancestor element, or null if no match is found.
+         */
+        TurboSelector.prototype.closest = function _closest(type) {
+            if (!this.element || !type || !(this.element instanceof Element))
+                return null;
+            if (typeof type === "string") {
+                const ctor = customElements.get(type);
+                if (ctor) {
+                    let el = this.element;
+                    while (el && !(el instanceof ctor))
+                        el = el.parentElement;
+                    return el || null;
+                }
+                return this.element.closest(type);
+            }
+            let el = this.element;
+            while (el && !(el instanceof type))
+                el = el.parentElement;
+            return el || null;
+        };
+        //Parent identification
+        /**
+         * @description Finds whether this node is within the given parent(s).
+         * @param {Node | Node[]} [parents] - The parent(s) to check.
+         * @returns {boolean} True if the node is within the given parents, false otherwise.
+         */
+        TurboSelector.prototype.findInParents = function _findInParents(parents) {
+            if (!parents || !this.element)
+                return false;
+            if (parents instanceof Node)
+                parents = [parents];
+            let element = this.element;
+            let count = 0;
+            while (element && count < parents.length) {
+                if (parents.includes(element))
+                    count++;
+                element = element.parentNode;
+            }
+            return count === parents.length;
+        };
+        /**
+         * @description Finds whether one or more children belong to this node.
+         * @param {Node | Node[]} [children] - The child or children to check.
+         * @returns {boolean} True if the children belong to the node, false otherwise.
+         */
+        TurboSelector.prototype.findInSubTree = function _findInSubTree(children) {
+            if (!children || !this.element)
+                return false;
+            if (children instanceof Node)
+                children = [children];
+            let count = 0;
+            const recur = (node) => {
+                if (children.includes(node))
+                    count++;
+                if (count >= children.length)
+                    return;
+                node.childNodes.forEach(child => recur(child));
+            };
+            recur(this.element);
+            return count >= children.length;
+        };
+        /**
+         * @description Finds whether one or more children belong to this node.
+         * @param {Node[]} [referenceList=this.siblings] - The siblings list to use as computation
+         * reference for index placement. Defaults to the node's `siblings`.
+         * @returns {boolean} True if the children belong to the node, false otherwise.
+         */
+        TurboSelector.prototype.indexInParent = function _indexInParent(referenceList = this.siblings) {
+            if (!referenceList || !this.element)
+                return -1;
+            return referenceList.indexOf(this.element);
+        };
+        //Parent manipulation
+        /**
+         * @description Add one or more children to the referenced parent node.
+         * @param {Node} [parent] - Array of (or single) child nodes.
+         * @param {number} [index] - The position at which to add the child relative to the parent's child list.
+         * Leave undefined to add the child at the end.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * use as computation reference for index placement. Defaults to the node's `childrenArray`.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.addToParent = function _addToParent(parent, index, referenceList) {
+            if (!this.element || !parent)
+                return this;
+            $(parent).addChild(this.element, index, referenceList);
+            return this;
+        };
+    }
+
+    /**
+     * @constant
+     * @group Types
+     * @category Misc
+     * @description Default array-like keys to merge when applying defaults with {@link TurboSelector.applyDefaults}.
+     */
+    const ApplyDefaultsMergeProperties = ["interactors", "tools", "constrainers", "operators", "handlers"];
+
+    function setupMiscFunctions() {
+        /**
+         * @description Execute a callback on the node while still benefiting from chaining.
+         * @param {(el: this) => void} callback The function to execute, with 1 parameter representing the instance itself.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.execute = function _execute(callback) {
+            callback(this);
+            return this;
+        };
+        TurboSelector.prototype.apply = function apply(properties) {
+            if (!this.element || typeof this.element !== "object")
+                return this;
+            if (!properties || typeof properties !== "object")
+                return this;
+            for (const [key, value] of Object.entries(properties)) {
+                try {
+                    this.element[key] = value;
+                }
+                catch { }
+            }
+            return this;
+        };
+        TurboSelector.prototype.removeFields = function removeFields(keys) {
+            if (!this.element || typeof this.element !== "object")
+                return this;
+            if (!keys || !Array.isArray(keys))
+                return this;
+            for (const key of keys) {
+                try {
+                    delete this.element[key];
+                }
+                catch {
+                    try {
+                        delete this.element[key];
+                    }
+                    catch { }
+                }
+            }
+            return this;
+        };
+        TurboSelector.prototype.getDefaults = function getDefaults(defaults) {
+            if (!this.element || typeof this.element !== "object")
+                return {};
+            if (!defaults || typeof defaults !== "object")
+                return {};
+            const result = {};
+            for (const key of defaults) {
+                if (!isUndefined(this.element[key]))
+                    result[key] = this.element[key];
+            }
+            return result;
+        };
+        TurboSelector.prototype.getIntersection = function getIntersection(other) {
+            if (!this.element || typeof this.element !== "object")
+                return {};
+            if (!other || typeof other !== "object")
+                return {};
+            const result = {};
+            for (const key of Object.keys(other)) {
+                if (!isUndefined(this.element[key]))
+                    result[key] = this.element[key];
+            }
+            return result;
+        };
+        TurboSelector.prototype.getDifference = function getDifference(other) {
+            if (!this.element || typeof this.element !== "object")
+                return {};
+            if (!other || typeof other !== "object")
+                return {};
+            const result = {};
+            for (const key of Object.keys(this.element)) {
+                if (isUndefined(other[key]))
+                    result[key] = this.element[key];
+            }
+            return result;
+        };
+        TurboSelector.prototype.extract = function extract(keys) {
+            if (!this.element || typeof this.element !== "object")
+                return {};
+            if (!keys || !Array.isArray(keys))
+                return {};
+            const result = {};
+            for (const key of keys) {
+                if (isUndefined(this.element[key]))
+                    continue;
+                result[key] = this.element[key];
+                delete this.element[key];
+            }
+            return result;
+        };
+        TurboSelector.prototype.applyDefaults = function applyDefaults(defaults, options = {}) {
+            if (!this.element || typeof this.element !== "object")
+                return this;
+            if (!defaults || typeof defaults !== "object")
+                return this;
+            const { mergeProperties = ApplyDefaultsMergeProperties, removeDuplicates = true } = options;
+            for (const [key, value] of Object.entries(defaults)) {
+                const isMergeKey = mergeProperties?.includes(key);
+                if (isMergeKey) {
+                    const defaultArray = Array.isArray(value) ? value : [value];
+                    const currentArray = isUndefined(this.element[key]) ? []
+                        : Array.isArray(this.element[key]) ? this.element[key].slice()
+                            : [this.element[key]];
+                    let merged = currentArray.concat(defaultArray);
+                    if (removeDuplicates)
+                        merged = Array.from(new Set(merged));
+                    this.element[key] = merged;
+                }
+                else if (isUndefined(this.element[key])) {
+                    this.element[key] = value;
+                }
+            }
+            return this;
+        };
+    }
+
+    class ClassFunctionsUtils {
+        /**
+         * @description Utility function to operate on the provided classes
+         * @param selector
+         * @param classes
+         * @param callback
+         */
+        operateOnClasses(selector, classes, callback = (() => { })) {
+            if (!selector || !classes || !selector.element)
+                return selector;
+            try {
+                // If string provided --> split by spaces
+                if (typeof classes === "string")
+                    classes = classes.split(" ");
+                classes.filter(entry => entry.trim().length > 0)
+                    .forEach(entry => callback(entry));
+            }
+            catch (e) {
+                console.error(e);
+            }
+            return selector;
+        }
+    }
+
+    const utils$b = new ClassFunctionsUtils();
+    function setupClassFunctions() {
+        /**
+         * @description Add one or more CSS classes to the element.
+         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.addClass = function _addClass(classes) {
+            if (!(this.element instanceof Element))
+                return this;
+            return utils$b.operateOnClasses(this, classes, entry => this.element.classList.add(entry));
+        };
+        /**
+         * @description Remove one or more CSS classes from the element.
+         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.removeClass = function _removeClass(classes) {
+            if (!(this.element instanceof Element))
+                return this;
+            return utils$b.operateOnClasses(this, classes, entry => this.element.classList.remove(entry));
+        };
+        /**
+         * @description Toggle one or more CSS classes in the element.
+         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
+         * @param {boolean} force - (Optional) Boolean that turns the toggle into a one way-only operation. If set to false,
+         * then the class will only be removed, but not added. If set to true, then token will only be added, but not removed.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.toggleClass = function _toggleClass(classes, force) {
+            if (!(this.element instanceof Element))
+                return this;
+            return utils$b.operateOnClasses(this, classes, entry => this.element.classList.toggle(entry, force));
+        };
+        /**
+         * @description Check if the element's class list contains the provided class(es).
+         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings
+         * @return A boolean indicating whether the provided classes are included
+         */
+        TurboSelector.prototype.hasClass = function _hasClass(classes) {
+            if (!classes || !(this.element instanceof Element))
+                return false;
+            if (typeof classes === "string")
+                return this.element.classList.contains(classes);
+            for (let entry of classes) {
+                if (!this.element.classList.contains(entry))
+                    return false;
+            }
+            return true;
+        };
+    }
+
+    /**
+     * @group Types
+     * @category SVG Element
+     * @description URL to the SVG namespace.
+     */
+    const SvgNamespace = "http://www.w3.org/2000/svg";
+    /**
+     * @group Types
+     * @category SVG Element
+     * @description Set of Valid SVG tags.
+     */
+    const SvgTags = new Set([
+        "a", "animate", "animateMotion", "animateTransform", "circle", "clipPath", "defs", "desc", "ellipse",
+        "feBlend", "feColorMatrix", "feComponentTransfer", "feComposite", "feConvolveMatrix", "feDiffuseLighting",
+        "feDisplacementMap", "feDistantLight", "feDropShadow", "feFlood", "feFuncA", "feFuncB", "feFuncG", "feFuncR",
+        "feGaussianBlur", "feImage", "feMerge", "feMergeNode", "feMorphology", "feOffset", "fePointLight",
+        "feSpecularLighting", "feSpotLight", "feTile", "feTurbulence", "filter", "foreignObject", "g", "image",
+        "line", "linearGradient", "marker", "mask", "metadata", "mpath", "path", "pattern", "polygon", "polyline",
+        "radialGradient", "rect", "script", "set", "stop", "style", "svg", "switch", "symbol", "text", "textPath",
+        "title", "tspan", "use", "view",
+    ]);
+
+    /**
+     * @group Types
+     * @category MathML Element
+     * @description URL to the MathML namespace.
+     */
+    const MathMLNamespace = "http://www.w3.org/1998/Math/MathML";
+    /**
+     * @group Types
+     * @category MathML Element
+     * @description Set of Valid MathML tags.
+     */
+    const MathMLTags = new Set([
+        "annotation", "annotation-xml", "maction", "math", "merror", "mfrac", "mi", "mmultiscripts", "mn", "mo",
+        "mover", "mpadded", "mphantom", "mprescripts", "mroot", "mrow", "ms", "mspace", "msqrt", "mstyle", "msub",
+        "msubsup", "msup", "mtable", "mtd", "mtext", "mtr", "munder", "munderover", "semantics",
+    ]);
+
+    /**
+     * @group Element Creation
+     * @category Creation Functions
+     *
+     * @description returns a function that generates an HTML element with the provided tag that takes TurboProperties
+     * as input.
+     * @param {keyof ElementTagMap} tag - The tag to generate the function from.
+     * @return The function
+     */
+    function generateTagFunction(tag) {
+        return (properties = {}) => {
+            properties.tag = tag;
+            return element({ ...properties, tag: tag });
+        };
+    }
+    /**
+     * @group Element Creation
+     * @category Creation Functions
+     *
+     * @description Create an element with the specified properties (and the specified namespace if applicable).
+     * @param {TurboProperties<Tag>} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<Tag>} The created element.
+     * @template Tag
+     */
+    function element(properties = {}) {
+        let element;
+        if (properties.namespace) {
+            if (properties.namespace == "svg")
+                element = document.createElementNS(SvgNamespace, properties.tag || "svg");
+            else if (properties.namespace == "mathML")
+                element = document.createElementNS(MathMLNamespace, properties.tag || "math");
+            else
+                element = document.createElementNS(properties.namespace, properties.tag || "div");
+        }
+        else {
+            element = document.createElement(properties.tag || "div");
+        }
+        turbo(element, true).setProperties(properties);
+        return element;
+    }
+    /**
+     * @group Element Creation
+     * @category Creation Functions
+     *
+     * @description Create an element with the specified properties. Supports SVG and MathML.
+     * @param {TurboProperties<Tag>} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<Tag>} The created element.
+     * @template Tag
+     */
+    function blindElement(properties = {}) {
+        let element;
+        if (isSvgTag(properties.tag))
+            element = document.createElementNS(SvgNamespace, properties.tag || "svg");
+        else if (isMathMLTag(properties.tag))
+            element = document.createElementNS(MathMLNamespace, properties.tag || "math");
+        else
+            element = document.createElement(properties.tag || "div");
+        turbo(element, true).setProperties(properties);
+        return element;
+    }
+    /**
+     * @group Element Creation
+     * @category Tag Functions
+     *
+     * @description Evaluates whether the provided string is an SVG tag.
+     * @param {string} [tag] - The string to evaluate
+     * @return A boolean indicating whether the tag is in the SVG namespace or not.
+     */
+    function isSvgTag(tag) {
+        return SvgTags.has(tag) || tag?.startsWith("svg");
+    }
+    /**
+     * @group Element Creation
+     * @category Tag Functions
+     *
+     * @description Evaluates whether the provided string is a MathML tag.
+     * @param {string} [tag] - The string to evaluate
+     * @return A boolean indicating whether the tag is in the MathML namespace or not.
+     */
+    function isMathMLTag(tag) {
+        return MathMLTags.has(tag) || tag?.startsWith("math");
+    }
+
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates an "a" element with the specified properties.
+     * @param {TurboProperties<"a">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"a">} The created element.
+     */
+    function a(properties = {}) {
+        return element({ ...properties, tag: "a" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "canvas" element with the specified properties.
+     * @param {TurboProperties<"canvas">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"canvas">} The created element.
+     */
+    function canvas(properties = {}) {
+        return element({ ...properties, tag: "canvas" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "div" element with the specified properties.
+     * @param {TurboProperties<"div">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"div">} The created element.
+     */
+    function div(properties = {}) {
+        return element({ ...properties, tag: "div" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "form" element with the specified properties.
+     * @param {TurboProperties<"form">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"form">} The created element.
+     */
+    function form(properties = {}) {
+        return element({ ...properties, tag: "form" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "h1" element with the specified properties.
+     * @param {TurboProperties<"h1">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"h1">} The created element.
+     */
+    function h1(properties = {}) {
+        return element({ ...properties, tag: "h1" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "h2" element with the specified properties.
+     * @param {TurboProperties<"h2">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"h2">} The created element.
+     */
+    function h2(properties = {}) {
+        return element({ ...properties, tag: "h2" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "h3" element with the specified properties.
+     * @param {TurboProperties<"h3">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"h3">} The created element.
+     */
+    function h3(properties = {}) {
+        return element({ ...properties, tag: "h3" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "h4" element with the specified properties.
+     * @param {TurboProperties<"h4">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"h4">} The created element.
+     */
+    function h4(properties = {}) {
+        return element({ ...properties, tag: "h4" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "h5" element with the specified properties.
+     * @param {TurboProperties<"h5">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"h5">} The created element.
+     */
+    function h5(properties = {}) {
+        return element({ ...properties, tag: "h5" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "h6" element with the specified properties.
+     * @param {TurboProperties<"h6">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"h6">} The created element.
+     */
+    function h6(properties = {}) {
+        return element({ ...properties, tag: "h6" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates an "img" element with the specified properties.
+     * @param {TurboProperties<"img">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"img">} The created element.
+     */
+    function img(properties = {}) {
+        return element({ ...properties, tag: "img" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates an "input" element with the specified properties.
+     * @param {TurboProperties<"input">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"input">} The created element.
+     */
+    function input(properties = {}) {
+        return element({ ...properties, tag: "input" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "link" element with the specified properties.
+     * @param {TurboProperties<"link">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"link">} The created element.
+     */
+    function link(properties = {}) {
+        return element({ ...properties, tag: "link" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "p" element with the specified properties.
+     * @param {TurboProperties<"p">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"p">} The created element.
+     */
+    function p(properties = {}) {
+        return element({ ...properties, tag: "p" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "span" element with the specified properties.
+     * @param {TurboProperties<"span">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"span">} The created element.
+     */
+    function span(properties = {}) {
+        return element({ ...properties, tag: "span" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "style" element with the specified properties.
+     * @param {TurboProperties<"style">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"style">} The created element.
+     */
+    function style(properties = {}) {
+        return element({ ...properties, tag: "style" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "textarea" element with the specified properties.
+     * @param {TurboProperties<"textarea">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"textarea">} The created element.
+     */
+    function textarea(properties = {}) {
+        return element({ ...properties, tag: "textarea" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "video" element with the specified properties.
+     * @param {TurboProperties<"video">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"video">} The created element.
+     */
+    function video(properties = {}) {
+        return element({ ...properties, tag: "video" });
+    }
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a "button" element with the specified properties.
+     * @param {TurboProperties<"button">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"button">} The created element.
+     */
+    function button(properties = {}) {
+        return element({ ...properties, tag: "button" });
+    }
+
+    /**
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Adds the provided string as a new style element to the provided root.
+     * @param {string} [styles] - The css string. Use the css literal function for autocompletion.
+     * @param {StylesRoot} [root] - The root to which the style element will be added.
+     */
+    function stylesheet(styles, root = document.head) {
+        if (!styles)
+            return;
+        const stylesheet = style({ innerHTML: styles });
+        $(root).addChild(stylesheet);
+    }
+
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const TurboKeyEventName = {
+        keyPressed: "turbo-key-pressed",
+        keyReleased: "turbo-key-released"
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const DefaultKeyEventName = {
+        keyPressed: "keydown",
+        keyReleased: "keyup",
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const TurboClickEventName = {
+        click: "turbo-click",
+        clickStart: "turbo-click-start",
+        clickEnd: "turbo-click-end",
+        longPress: "turbo-long-press"
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const DefaultClickEventName = {
+        click: "click",
+        clickStart: "mousedown",
+        clickEnd: "mouseup",
+        longPress: TurboClickEventName.longPress
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const TurboMoveEventName = {
+        move: "turbo-move"
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const DefaultMoveEventName = {
+        move: "mousemove"
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const TurboDragEventName = {
+        drag: "turbo-drag",
+        dragStart: "turbo-drag-start",
+        dragEnd: "turbo-drag-end"
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const DefaultDragEventName = {
+        drag: TurboDragEventName.drag,
+        dragStart: TurboDragEventName.dragStart,
+        dragEnd: TurboDragEventName.dragEnd,
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const TurboWheelEventName = {
+        scroll: "turbo-scroll",
+        pinch: "turbo-pinch",
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const DefaultWheelEventName = {
+        scroll: "wheel",
+        pinch: "wheel",
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     */
+    const TurboEventName = {
+        ...TurboClickEventName,
+        ...TurboKeyEventName,
+        ...TurboMoveEventName,
+        ...TurboDragEventName,
+        ...TurboWheelEventName,
+        selectInput: "turbo-select-input",
+    };
+    /**
+     * @group Types
+     * @category Event Names
+     *
+     * @description Object containing the names of events fired by default by the turboComponents. Modifying it (prior to
+     * setting up new turbo components) will subsequently alter the events that the instantiated components will listen for.
+     */
+    const DefaultEventName = {
+        ...DefaultKeyEventName,
+        ...DefaultClickEventName,
+        ...DefaultMoveEventName,
+        ...DefaultDragEventName,
+        ...DefaultWheelEventName,
+        wheel: "wheel",
+        scroll: "scroll",
+        input: "input",
+        change: "change",
+        focus: "focus",
+        focusIn: "focusin",
+        focusOut: "focusout",
+        blur: "blur",
+        resize: "resize",
+        compositionStart: "compositionstart",
+        compositionEnd: "compositionend",
+    };
+
+    /**
+     * @group Utilities
+     * @category String
+     *
+     * @description Converts the passed variable into a string.
+     * @param value - The variable to convert to string
+     * @returns {string} - The string representation of the value
+     */
+    function stringify(value) {
+        if (value === null || value === undefined)
+            return undefined;
+        switch (typeof value) {
+            case "string":
+                return value;
+            case "number":
+            case "boolean":
+            case "bigint":
+            case "symbol":
+            case "function":
+                return value.toString();
+            case "object":
+                if (Array.isArray(value))
+                    return JSON.stringify(value.map(entry => stringify(entry)));
+                else if (value instanceof Date)
+                    return value.toISOString();
+                else if (value instanceof Element)
+                    return "[DOM ELEMENT]";
+                else {
+                    try {
+                        return JSON.stringify(value);
+                    }
+                    catch {
+                        return "[object Object]";
+                    }
+                }
+            default:
+                return String(value);
+        }
+    }
+    /**
+     * @group Utilities
+     * @category String
+     *
+     * @description Attempts to convert the passed string back to its original type.
+     * @param str - The string to convert back to its original type
+     * @returns {any} - The original value
+     */
+    function parse$1(str) {
+        if (isUndefined(str))
+            return undefined;
+        switch (str) {
+            case "null":
+                return null;
+            case "true":
+                return true;
+            case "false":
+                return false;
+        }
+        if (str !== "" && !isNaN(Number(str)))
+            return Number(str);
+        if (/^\d+n$/.test(str))
+            return BigInt(str.slice(0, -1));
+        if (str.startsWith("function") || str.startsWith("(")) {
+            try {
+                const parsedFunction = new Function(`return (${str})`)();
+                if (typeof parsedFunction === "function")
+                    return parsedFunction;
+            }
+            catch {
+            }
+        }
+        try {
+            const parsed = JSON.parse(str);
+            if (typeof parsed === "object" && parsed != null)
+                return parsed;
+        }
+        catch {
+        }
+        return str;
+    }
+
+    /**
+     * @group Utilities
+     * @category Equity
+     */
+    function areEqual(...entries) {
+        if (entries.length < 2)
+            return true;
+        for (let i = 0; i < entries.length - 1; i++) {
+            if (!Object.is(entries[i], entries[i + 1]))
+                return false;
+        }
+        return true;
+    }
+    function areSimilar(...entries) {
+        if (entries.length < 2)
+            return true;
+        for (let i = 0; i < entries.length - 1; i++) {
+            const e1 = entries[i];
+            const e2 = entries[i + 1];
+            if (e1 === e2)
+                continue;
+            if (typeof e1 !== "object" || typeof e2 !== "object")
+                return false;
+            if (Object.is(e1, e2))
+                continue;
+            if (e1 !== null && "equals" in e1 && typeof e1.equals === "function") {
+                const value = e1.equals(e2);
+                if (typeof value === "boolean")
+                    return value;
+            }
+            if (e1 != null && e2 != null) {
+                let cont = false;
+                try {
+                    if (JSON.stringify(e1) === JSON.stringify(e2) && e1.toString() === e2.toString())
+                        cont = true;
+                }
+                catch { }
+                if (!cont)
+                    return false;
+            }
+        }
+        return true;
+    }
+    /**
+     * @group Utilities
+     * @category Equity
+     */
+    function equalToAny(entry, ...values) {
+        if (values.length < 1)
+            return true;
+        for (const value of values) {
+            if (entry == value)
+                return true;
+        }
+        return false;
+    }
+    /**
+     * @group Utilities
+     * @category Equity
+     */
+    function eachEqualToAny(values, ...entries) {
+        if (entries.length < 1)
+            return true;
+        for (const entry of entries) {
+            let equals = false;
+            for (const value of values) {
+                if (entry == value)
+                    equals = true;
+            }
+            if (!equals)
+                return false;
+        }
+        return true;
+    }
+
+    class ElementFunctionsUtils {
+        dataMap = new WeakMap;
+        data(element) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element || !this.dataMap.has(element)) {
+                const entry = {
+                    feedforwardElements: new Map(),
+                    defaultFeedforwardProperties: {}
+                };
+                if (element)
+                    this.dataMap.set(element, entry);
+            }
+            return this.dataMap.get(element);
+        }
+    }
+
+    /******************************************************************************
+    Copyright (c) Microsoft Corporation.
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+    REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+    AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+    INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+    LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+    OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+    PERFORMANCE OF THIS SOFTWARE.
+    ***************************************************************************** */
+    /* global Reflect, Promise, SuppressedError, Symbol, Iterator */
+
+
+    function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+        function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
+        var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+        var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+        var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+        var _, done = false;
+        for (var i = decorators.length - 1; i >= 0; i--) {
+            var context = {};
+            for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+            for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+            context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
+            var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+            if (kind === "accessor") {
+                if (result === void 0) continue;
+                if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+                if (_ = accept(result.get)) descriptor.get = _;
+                if (_ = accept(result.set)) descriptor.set = _;
+                if (_ = accept(result.init)) initializers.unshift(_);
+            }
+            else if (_ = accept(result)) {
+                if (kind === "field") initializers.unshift(_);
+                else descriptor[key] = _;
+            }
+        }
+        if (target) Object.defineProperty(target, contextIn.name, descriptor);
+        done = true;
+    }
+    function __runInitializers(thisArg, initializers, value) {
+        var useValue = arguments.length > 2;
+        for (var i = 0; i < initializers.length; i++) {
+            value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+        }
+        return useValue ? value : void 0;
+    }
+    typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+        var e = new Error(message);
+        return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+    };
+
+    /**
+     * @internal
+     */
+    class ReactivityUtils {
+        constructorMap = new WeakMap();
+        dataMap = new WeakMap();
+        activeEffect = null;
+        constructorData(target) {
+            let obj = this.constructorMap.get(target);
+            if (!obj) {
+                obj = { installed: new Map() };
+                this.constructorMap.set(target, obj);
+            }
+            return obj;
+        }
+        data(target) {
+            let obj = this.dataMap.get(target);
+            if (!obj) {
+                obj = { propertyKeyMap: new Map(), pathMap: new Map() };
+                this.dataMap.set(target, obj);
+            }
+            return obj;
+        }
+        track(entry) {
+            if (this.activeEffect)
+                this.activeEffect.dependencies.add(entry);
+        }
+        createSignalEntry(initial, target, key, read, write, options) {
+            const subs = new Set();
+            const self = this;
+            if (!options)
+                options = { diffOnWrite: true };
+            if (!write)
+                write = (value) => Reflect.set(target, key, value, target);
+            if (!read) {
+                if (target && !isUndefined(key))
+                    read = () => Reflect.get(target, key);
+                else
+                    read = () => initial;
+            }
+            const entry = {
+                get() {
+                    self.track(entry);
+                    return read();
+                },
+                set(value) {
+                    if (!target || isUndefined(key)) {
+                        const prev = initial;
+                        initial = value;
+                        if (!Object.is(prev, value))
+                            entry.emit();
+                    }
+                    else if (!options.diffOnWrite) {
+                        write(value);
+                        entry.emit();
+                    }
+                    else {
+                        const prev = read();
+                        write(value);
+                        const next = read();
+                        if (!Object.is(prev, next))
+                            entry.emit();
+                    }
+                },
+                update(updater) {
+                    entry.set(updater(read()));
+                },
+                sub(fn) {
+                    subs.add(fn);
+                    return () => subs.delete(fn);
+                },
+                emit() {
+                    for (const fn of Array.from(subs))
+                        queueMicrotask(fn);
+                }
+            };
+            if (target && !isUndefined(key))
+                this.getReactivityData(target, key).signal = entry;
+            return entry;
+        }
+        getReactivityData(target, key) {
+            const data = this.data(target).propertyKeyMap;
+            if (!data.has(key))
+                data.set(key, {});
+            return data.get(key);
+        }
+        getSignal(target, key) {
+            return this.getReactivityData(target, key).signal;
+        }
+        setSignal(target, key, next) {
+            const entry = this.getSignal(target, key);
+            if (entry)
+                entry.set(next);
+            else
+                Reflect.set(target, key, next, target);
+        }
+        getEffect(target, key) {
+            return this.getReactivityData(target, key).effect;
+        }
+        setEffect(target, key, effect) {
+            this.getReactivityData(target, key).effect = effect;
+        }
+        markDirty(target, key) {
+            this.getSignal(target, key)?.emit();
+        }
+        markDirtyPath(target, keys) {
+            const changed = this.serializePath(keys);
+            for (const [boundPath, propertyKey] of this.data(target).pathMap) {
+                // An empty changed path means the root was replaced, which overlaps every bound path
+                if (changed === ""
+                    || boundPath === changed
+                    || boundPath.startsWith(changed + "|")
+                    || changed.startsWith(boundPath + "|"))
+                    this.markDirty(target, propertyKey);
+            }
+        }
+        bindPath(target, propertyKey, keys) {
+            this.data(target).pathMap.set(this.serializePath(keys), propertyKey);
+        }
+        getKeyFromPath(target, keys) {
+            return this.data(target).pathMap.get(this.serializePath(keys));
+        }
+        serializePath(keys) {
+            return keys.map(k => typeof k === "symbol" ? `@@${k.description ?? ""}` : String(k)).join("|");
+        }
+        schedule(effect) {
+            if (effect.scheduled)
+                return;
+            effect.scheduled = true;
+            queueMicrotask(() => {
+                effect.scheduled = false;
+                effect.run();
+            });
+        }
+    }
+
+    class SignalUtils {
+        utils;
+        constructor(utils) {
+            this.utils = utils;
+        }
+        createBoxFromEntry(entry) {
+            return new Proxy({
+                ...entry,
+                toJSON: () => entry.get(),
+                valueOf: () => entry.get(),
+                [Symbol.toPrimitive]: (hint) => {
+                    const value = entry.get();
+                    if (hint === "string")
+                        return String(value);
+                    if (typeof value === "number")
+                        return value;
+                    if (value != null && typeof value.valueOf === "function")
+                        return value.valueOf();
+                    return value;
+                },
+                get value() {
+                    return entry.get();
+                },
+                set value(value) {
+                    entry.set(value);
+                }
+            }, {
+                get(target, key, receiver) {
+                    return Reflect.get(target, key, receiver);
+                },
+                set(target, key, value, receiver) {
+                    if (key === "value") {
+                        target.value = value;
+                        return true;
+                    }
+                    return Reflect.set(target, key, value, receiver);
+                }
+            });
+        }
+        signalDecorator(value, context, baseGetter, baseSetter, callSetterOnInitialize = false) {
+            const { kind, name, static: isStatic, private: isPrivate } = context;
+            if (isPrivate)
+                throw new Error("@signal does not support private class elements.");
+            const key = name;
+            const backingKey = Symbol(`[[signal:${String(key)}]]`);
+            const shadowKey = Symbol(`[[signal:${String(key)}:shadow]]`);
+            const utils = this.utils;
+            context.addInitializer(function () {
+                const prototype = isStatic ? this : this.constructor.prototype;
+                let customGetter;
+                let customSetter;
+                const read = function () {
+                    if (baseGetter && !this[shadowKey])
+                        return baseGetter.call(this);
+                    if (customGetter && !this[shadowKey])
+                        return customGetter.call(this);
+                    return this[backingKey];
+                };
+                const write = function (v) {
+                    if (!customSetter && !baseSetter) {
+                        this[backingKey] = v;
+                        this[shadowKey] = true;
+                    }
+                    else {
+                        if (baseSetter)
+                            baseSetter.call(this, v);
+                        if (customSetter)
+                            customSetter.call(this, v);
+                        if (!customGetter && !baseGetter) {
+                            this[backingKey] = v;
+                            this[shadowKey] = true;
+                        }
+                    }
+                };
+                const ensureEntry = (self, diffOnWrite = true) => {
+                    let entry = utils.getSignal(self, key);
+                    if (entry)
+                        return entry;
+                    if (kind === "field" && !customGetter && !baseGetter)
+                        self[backingKey] = self[key];
+                    entry = utils.createSignalEntry(undefined, self, key, () => read.call(self), (v) => write.call(self, v), { diffOnWrite });
+                    if (kind === "field")
+                        delete self[key];
+                    return entry;
+                };
+                if (kind === "field" || kind === "accessor") {
+                    const acc = value;
+                    if (acc?.get)
+                        customGetter = acc.get;
+                    if (acc?.set)
+                        customSetter = acc.set;
+                    const entry = ensureEntry(this, !customGetter && !baseGetter);
+                    const descriptor = getFirstDescriptorInChain(this, key);
+                    Object.defineProperty(this, key, {
+                        configurable: descriptor?.configurable ?? true,
+                        enumerable: descriptor?.enumerable ?? true,
+                        get: () => {
+                            utils.track(entry);
+                            return read.call(this);
+                        },
+                        set: (v) => entry.set(v),
+                    });
+                }
+                else if (kind === "getter" || kind === "setter") {
+                    const installed = utils.constructorData(prototype).installed;
+                    if (installed.get(key))
+                        return;
+                    installed.set(key, true);
+                    const descriptor = getFirstDescriptorInChain(prototype, key) ?? {};
+                    if (typeof descriptor.get === "function")
+                        customGetter = descriptor.get;
+                    if (typeof descriptor.set === "function")
+                        customSetter = descriptor.set;
+                    Object.defineProperty(prototype, key, {
+                        configurable: descriptor?.configurable ?? true,
+                        enumerable: !!descriptor?.enumerable,
+                        get: function () {
+                            const e = ensureEntry(this, !customGetter && !baseGetter);
+                            utils.track(e);
+                            return read.call(this);
+                        },
+                        set: function (v) {
+                            const e = ensureEntry(this, !customGetter && !baseGetter);
+                            e.set(v);
+                        },
+                    });
+                }
+                if (callSetterOnInitialize) {
+                    const current = baseGetter?.call(this) ?? customGetter?.call(this);
+                    if (isUndefined(current))
+                        ensureEntry(this, !customGetter && !baseGetter).set(undefined);
+                }
+            });
+        }
+    }
+
+    class EffectUtils {
+        utils;
+        constructor(utils) {
+            this.utils = utils;
+        }
+        makeEffect(callback) {
+            const utils = this.utils;
+            return {
+                callback,
+                dependencies: new Set(),
+                cleanups: [],
+                scheduled: false,
+                run() {
+                    for (const c of this.cleanups)
+                        c();
+                    this.cleanups = [];
+                    this.dependencies = new Set();
+                    utils.activeEffect = this;
+                    try {
+                        this.callback();
+                    }
+                    finally {
+                        utils.activeEffect = null;
+                    }
+                    for (const dep of this.dependencies) {
+                        const unsub = dep.sub(() => utils.schedule(this));
+                        this.cleanups.push(unsub);
+                    }
+                },
+                dispose() {
+                    for (const c of this.cleanups)
+                        c();
+                    this.cleanups = [];
+                    this.dependencies.clear();
+                }
+            };
+        }
+    }
+
+    const utils$a = new ReactivityUtils();
+    const signalUtils = new SignalUtils(utils$a);
+    const effectUtils = new EffectUtils(utils$a);
+    function signal(...args) {
+        // Decorator
+        if (args.length === 2 && args[1] && typeof args[1] === "object"
+            && "kind" in args[1] && "name" in args[1] && "static" in args[1] && "private" in args[1]) {
+            return signalUtils.signalDecorator(args[0], args[1]);
+        }
+        // Getter + setter: signal(get, set, target?, ...keys)
+        if (typeof args[0] === "function" && typeof args[1] === "function") {
+            const [get, set, target, ...keys] = args;
+            const key = keys.length === 1 ? keys[0] : keys.length > 1 ? utils$a.serializePath(keys) : undefined;
+            return signalUtils.createBoxFromEntry(utils$a.createSignalEntry(undefined, target, key, get, set));
+        }
+        // From value: signal(initial?, target?, ...keys)
+        const [initial, target, ...keys] = args;
+        const key = keys.length === 1 ? keys[0] : keys.length > 1 ? utils$a.serializePath(keys) : undefined;
+        return signalUtils.createBoxFromEntry(utils$a.createSignalEntry(initial, target, key));
+    }
+    /**
+     * @decorator
+     * @function modelSignal
+     * @group Decorators
+     * @category Signal
+     *
+     * @description Decorator that binds a reactive signal to a key path in the model's data,
+     * read via `this.get(...keys)` and written via `this.set(value, ...keys)`.
+     *
+     * @param {...string[]} keys - The key path into the model's data. Defaults to the decorated member name if omitted.
+     *
+     * @example
+     * ```ts
+     * class TodoModel extends TurboModel {
+     *   @modelSignal() title = "";
+     *   @modelSignal("meta", "author") author = "";
+     * }
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * class TodoModel extends TurboModel {
+     *   @signal get title() { return this.get("title"); }
+     *   set title(value) { this.set(value, "title"); }
+     *
+     *   @signal get author() { return this.get("meta", "author"); }
+     *   set author(value) { this.set(value, "meta", "author"); }
+     * }
+     * ```
+     */
+    function modelSignal(...keys) {
+        return function (value, context) {
+            const resolvedKeys = keys.length > 0 ? keys : [String(context.name)];
+            context.addInitializer(function () {
+                utils$a.bindPath(this, context.name, resolvedKeys);
+            });
+            let defaultValue = undefined;
+            let hasDefault = false;
+            const decorated = signalUtils.signalDecorator(value, context, function () {
+                const v = this.get?.(...resolvedKeys);
+                if (v !== undefined)
+                    return v;
+                if (hasDefault) {
+                    this.set?.(defaultValue, ...resolvedKeys);
+                    return defaultValue;
+                }
+                return undefined;
+            }, function (v) {
+                this.set?.(v, ...resolvedKeys);
+            });
+            if (context.kind === "field") {
+                return function (initialFieldValue) {
+                    if (initialFieldValue !== undefined) {
+                        defaultValue = initialFieldValue;
+                        hasDefault = true;
+                    }
+                    return decorated?.call(this, initialFieldValue);
+                };
+            }
+            return decorated;
+        };
+    }
+    /**
+     * @decorator
+     * @function nestedModelSignal
+     * @group Decorators
+     * @category Signal
+     *
+     * @description Decorator that binds a reactive signal to a nested {@link TurboModel} instance at the given key path.
+     * - Getter returns the nested model instance via `this.getNested(...keys)`.
+     * - Setter assigns the new value to the nested model's root data via `this.getNested(...keys).data = value`.
+     *
+     * @param {...string[]} keys - The key path navigating to the nested model.
+     *
+     * @example
+     * ```ts
+     * class AppModel extends TurboModel {
+     *   @nestedModelSignal("users", "42") user = undefined;
+     * }
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * class AppModel extends TurboModel {
+     *   @signal get user() { return this.getNested("users", "42"); }
+     *   set user(value) { this.getNested("users", "42").data = value; }
+     * }
+     * ```
+     */
+    function nestedModelSignal(...keys) {
+        return function (value, context) {
+            const resolvedKeys = keys.length > 0 ? keys : [String(context.name)];
+            context.addInitializer(function () {
+                utils$a.bindPath(this, context.name, resolvedKeys);
+            });
+            return signalUtils.signalDecorator(value, context, function () {
+                return this.nest?.(...resolvedKeys);
+            }, function (value) {
+                this.set?.(value, ...resolvedKeys);
+            });
+        };
+    }
+    /**
+     * @decorator
+     * @function isolatedModelSignal
+     * @group Decorators
+     * @category Signal
+     *
+     * @description Decorator that binds a reactive signal to a nested {@link TurboModel} at the given key path,
+     * where the nested model's data is **not** stored inside the parent model's data container.
+     *
+     * Use this when the nested model holds data that lives outside the parent's data tree — for example,
+     * a Y.js type that is already part of a Y.js document at a different location. Unlike
+     * {@link nestedModelSignal}, this decorator does **not** write to the parent model's data when
+     * the value is set, so it will not attempt to insert a foreign Y.js type into the parent's Y.js
+     * structure (which would throw, since a Y.js type can only belong to one place in a document).
+     *
+     * - Getter returns the nested model instance via `this.nest(...keys)`.
+     * - Setter assigns directly to `nestedModel.data = value`, leaving the parent's data untouched.
+     *
+     * **Limitation:** `@modelSignal("myField", "subKey")` will **not** work for a field backed by
+     * `@isolatedModelSignal`, because `TurboModel.get()` reads through the parent's data container
+     * rather than routing through registered nested models. Access sub-keys directly through the
+     * nested model instead: `(this.myField as MyNestedModel).subKey`.
+     *
+     * @param {...string[]} keys - The key path identifying the nested model slot. Defaults to the
+     * decorated property name if omitted.
+     *
+     * @example
+     * ```ts
+     * class CardModel extends TurboYModel {
+     *   // Foreign YMap managed elsewhere in the Y.js document — must not be written into this
+     *   // model's data tree.
+     *   @isolatedModelSignal() cardData: CardDataModel;
+     * }
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * class CardModel extends TurboYModel {
+     *   @signal get cardData() { return this.nest("cardData"); }
+     *   set cardData(value) { this.nest("cardData").data = value; }
+     * }
+     * ```
+     */
+    function isolatedModelSignal(...keys) {
+        return function (value, context) {
+            const resolvedKeys = keys.length > 0 ? keys : [String(context.name)];
+            context.addInitializer(function () {
+                utils$a.bindPath(this, context.name, resolvedKeys);
+            });
+            return signalUtils.signalDecorator(value, context, function () {
+                return this.nest?.(...resolvedKeys);
+            }, function (value) {
+                const model = this.nest?.(...resolvedKeys);
+                if (model)
+                    model.data = value;
+            });
+        };
+    }
+    function effect(...args) {
+        const value = args[0];
+        const context = args[1];
+        if (context && typeof context === "object" && "kind" in context
+            && "name" in context && "static" in context && "private" in context) {
+            const { kind, name, static: isStatic } = context;
+            const key = String(name);
+            if (kind !== "method" && kind !== "getter" && !(kind === "field" && typeof value === "function"))
+                throw new Error("@effect can only decorate zero-arg instance methods or getters.");
+            if (isStatic)
+                throw new Error("@effect does not support static methods/getters.");
+            context.addInitializer?.(function () {
+                const self = this;
+                const fn = function () {
+                    value?.call(this);
+                };
+                const eff = effectUtils.makeEffect(() => fn.call(self));
+                utils$a.setEffect(self, key, eff);
+            });
+        }
+        else if (typeof value === "function") {
+            const eff = effectUtils.makeEffect(value);
+            eff.run();
+            return () => eff.dispose();
+        }
+    }
+    /**
+     * @function getSignal
+     * @group Decorators
+     * @category Signal
+     *
+     * @template Type
+     * @description Retrieve the signal at the given `key` inside `target`.
+     * @param {object} target - The target to which the signal is bound.
+     * @param {PropertyKey} key - The key of the signal inside `target`.
+     * @return {SignalEntry<Type>} - The signal entry.
+     */
+    function getSignal(target, key) {
+        return utils$a.getSignal(target, key);
+    }
+    /**
+     * @function setSignal
+     * @group Decorators
+     * @category Signal
+     *
+     * @template Type
+     * @description Set the value of the signal at the given `key` inside `target`.
+     * @param {object} target - The target to which the signal is bound.
+     * @param {PropertyKey} key - The key of the signal inside `target`.
+     * @param {Type} value - The new value of the signal.
+     */
+    function setSignal(target, key, value) {
+        return utils$a.setSignal(target, key, value);
+    }
+    function markDirty(target, ...keys) {
+        const computedKey = keys.length > 1
+            ? utils$a.getKeyFromPath(target, keys)
+            : keys[0];
+        return utils$a.markDirty(target, computedKey ?? keys[0]);
+    }
+    /**
+     * @function markDirtyPath
+     * @group Decorators
+     * @category Signal
+     *
+     * @description Marks as dirty every signal whose bound key path (registered via {@link modelSignal} or
+     * {@link nestedModelSignal}) overlaps the given changed key path, and fires their attached effects.
+     * A bound path overlaps the changed path when either is a prefix of (or equal to) the other:
+     * replacing a parent value invalidates signals bound deeper inside it, and changing a nested value
+     * invalidates signals bound to any of its ancestors. An empty `keys` array marks every bound path dirty,
+     * as it represents a change at the root.
+     * @param {object} target - The target to which the signals are bound.
+     * @param {KeyType[]} keys - The key path of the data that changed.
+     */
+    function markDirtyPath(target, keys) {
+        utils$a.markDirtyPath(target, keys);
+    }
+    /**
+     * @function initializeEffects
+     * @group Decorators
+     * @category Effect
+     *
+     * @description Initializes and runs all the effects attached to the given `target`.
+     * @param {object} target - The target to which the effects are bound.
+     */
+    function initializeEffects(target) {
+        for (const [, entry] of utils$a.data(target).propertyKeyMap)
+            entry.effect?.run();
+    }
+    function disposeEffect(target, key) {
+        const dispose = (data) => {
+            data.effect?.dispose();
+            data.effect = undefined;
+        };
+        if (key !== undefined)
+            dispose(utils$a.getReactivityData(target, key));
+        else
+            for (const [, entry] of utils$a.data(target).propertyKeyMap)
+                dispose(entry);
+    }
+    function untrack(fn) {
+        const prev = utils$a.activeEffect;
+        utils$a.activeEffect = null;
+        try {
+            return fn();
+        }
+        finally {
+            utils$a.activeEffect = prev;
+        }
+    }
+
+    /**
+     * @internal
+     * @class SimpleDelegate
+     * @template {(...args: any[]) => any} CallbackType - The type of callbacks accepted by the delegate.
+     * @description Class representing a set of callbacks that can be maintained and executed together.
+     */
+    class SimpleDelegate {
+        callbacks = new Set();
+        /**
+         * @description Adds a callback to the list.
+         * @param callback - The callback function to add.
+         */
+        add(callback) {
+            this.callbacks.add(callback);
+        }
+        /**
+         * @description Removes a callback from the list.
+         * @param callback - The callback function to remove.
+         * @returns A boolean indicating whether the callback was found and removed.
+         */
+        remove(callback) {
+            return this.callbacks.delete(callback);
+        }
+        /**
+         * @description Checks whether a callback is in the list.
+         * @param callback - The callback function to check for.
+         * @returns A boolean indicating whether the callback was found.
+         */
+        has(callback) {
+            return this.callbacks.has(callback);
+        }
+        /**
+         * @description Invokes all callbacks with the provided arguments.
+         * @param args - The arguments to pass to the callbacks.
+         */
+        fire(...args) {
+            let returnValue;
+            for (const callback of this.callbacks) {
+                try {
+                    const value = callback(...args);
+                    if (!isUndefined(value))
+                        returnValue = value;
+                }
+                catch (error) {
+                    console.error("Error invoking callback:", error);
+                }
+            }
+            return returnValue;
+        }
+        /**
+         * @description Clears added callbacks
+         */
+        clear() {
+            this.callbacks.clear();
+        }
+    }
+    /**
+     * @class Delegate
+     * @group Components
+     * @category Delegate
+     * @template {(...args: any[]) => any} CallbackType - The type of callbacks accepted by the delegate.
+     * @description Class representing a set of callbacks that can be maintained and executed together.
+     */
+    class Delegate extends SimpleDelegate {
+        /**
+         * @description Delegate fired when a callback is added.
+         */
+        onAdded = new SimpleDelegate();
+        /**
+         * @description Adds a callback to the list.
+         * @param callback - The callback function to add.
+         */
+        add(callback) {
+            super.add(callback);
+            this.onAdded.fire(callback);
+        }
+    }
+
+    class TurboNestedMapNode extends Map {
+    }
+    /**
+     * @class TurboNestedMap
+     * @group Components
+     * @category TurboNestedMap
+     *
+     * @description A map of arbitrary nesting depth, addressed via `...keys` paths.
+     *
+     * @template ValueType - The type of stored values.
+     * @template KeyType - The type of keys at each level of the path. Defaults to `string | symbol | number`.
+     */
+    class TurboNestedMap {
+        nestedMap = new TurboNestedMapNode();
+        /*
+         *
+         * GET
+         *
+         */
+        /**
+         * @function get
+         * @description Retrieve the value at the given key path.
+         * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
+         * @returns {ValueType | undefined} The stored value, or `undefined` if not found.
+         */
+        get(...keys) {
+            let node = this.nestedMap;
+            for (const key of keys) {
+                if (!(node instanceof TurboNestedMapNode))
+                    return;
+                node = node.get(key);
+            }
+            return node;
+        }
+        /**
+         * @function getFlat
+         * @description Retrieve the value at the given flat key.
+         * @param {number | string} flatKey - A flat key produced by {@link flattenKey}.
+         * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
+         * @returns {ValueType | undefined} The stored value, or `undefined` if not found.
+         */
+        getFlat(flatKey, depth) {
+            const keys = this.scopeKey(flatKey, depth);
+            if (keys?.length)
+                return this.get(...keys);
+        }
+        /**
+         * @function getKey
+         * @description Find the key path of the first occurrence of the given value.
+         * @param {ValueType} value - The value to locate.
+         * @returns {KeyType[] | undefined} The key path, or `undefined` if not found.
+         */
+        getKey(value) {
+            return this.findPaths(this.nestedMap, value, false)[0];
+        }
+        /**
+         * @function getKeys
+         * @description Find the key paths of all occurrences of the given value.
+         * @param {ValueType} value - The value to locate.
+         * @returns {KeyType[][]} Array of key paths.
+         */
+        getKeys(value) {
+            return this.findPaths(this.nestedMap, value);
+        }
+        /**
+         * @function getFlatKey
+         * @description Return the flat key of the first occurrence of the given value.
+         * @param {ValueType} value - The value to query.
+         * @returns {string | number | undefined} The flat key, or `undefined` if not found.
+         */
+        getFlatKey(value) {
+            const path = this.findPaths(this.nestedMap, value, false)[0];
+            if (!path)
+                return undefined;
+            return this.flattenKey(...path);
+        }
+        /*
+         *
+         * SET
+         *
+         */
+        /**
+         * @function set
+         * @description Store a value at the given key path. Intermediate nodes are created automatically.
+         * @param {ValueType} value - The value to store.
+         * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
+         */
+        set(value, ...keys) {
+            if (!keys.length)
+                return;
+            let node = this.nestedMap;
+            for (let i = 0; i < keys.length - 1; i++) {
+                const key = keys[i];
+                if (!node.has(key) || !(node.get(key) instanceof TurboNestedMapNode))
+                    node.set(key, new TurboNestedMapNode());
+                node = node.get(key);
+            }
+            node.set(keys[keys.length - 1], value);
+        }
+        /**
+         * @function setFlat
+         * @description Store a value at the given flat key.
+         * @param {ValueType} value - The value to store.
+         * @param {number | string} flatKey - A flat key produced by {@link flattenKey}.
+         * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
+         */
+        setFlat(value, flatKey, depth) {
+            const keys = this.scopeKey(flatKey, depth);
+            if (keys?.length)
+                this.set(value, ...keys);
+        }
+        /*
+         *
+         * HAS
+         *
+         */
+        /**
+         * @function has
+         * @description Check whether an entry exists at the given key path.
+         * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
+         * @returns {boolean}
+         */
+        has(...keys) {
+            if (!keys.length)
+                return false;
+            const parent = this.get(...keys.slice(0, -1));
+            if (!(parent instanceof TurboNestedMapNode))
+                return false;
+            return parent.has(keys[keys.length - 1]);
+        }
+        /**
+         * @function hasFlat
+         * @description Check whether an entry exists at the given flat key.
+         * @param {number | string} flatKey - A flat key produced by {@link flattenKey}.
+         * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
+         * @returns {boolean}
+         */
+        hasFlat(flatKey, depth) {
+            const keys = this.scopeKey(flatKey, depth);
+            return keys?.length ? this.has(...keys) : false;
+        }
+        /**
+         * @function hasValue
+         * @description Check whether the given value exists anywhere in the map.
+         * @param {ValueType} value - The value to look for.
+         * @returns {boolean}
+         */
+        hasValue(value) {
+            return !!this.getKey(value);
+        }
+        /*
+         *
+         * REMOVE
+         *
+         */
+        /**
+         * @function remove
+         * @description Remove the entry at the given key path.
+         * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
+         */
+        remove(...keys) {
+            if (!keys.length)
+                return;
+            const parent = this.get(...keys.slice(0, -1));
+            if (parent instanceof TurboNestedMapNode)
+                parent.delete(keys[keys.length - 1]);
+        }
+        /**
+         * @function removeValue
+         * @description Remove the first occurrence of the given value.
+         * @param {ValueType} value - The value to remove.
+         */
+        removeValue(value) {
+            const path = this.findPaths(this.nestedMap, value, false)[0];
+            if (path)
+                this.remove(...path);
+        }
+        /**
+         * @function removeValues
+         * @description Remove all occurrences of the given value.
+         * @param {ValueType} value - The value to remove.
+         */
+        removeValues(value) {
+            this.findPaths(this.nestedMap, value).forEach(path => this.remove(...path));
+        }
+        /*
+         *
+         * ENTRIES
+         *
+         */
+        /**
+         * @function getEntriesAt
+         * @description Return all leaf `[key, value]` pairs under the given path, sorted alphabetically by key.
+         * Pass no keys to get all leaf entries in the map.
+         * @param {...KeyType[]} keys - Path to the subtree root.
+         * @returns {[KeyType, ValueType][]}
+         */
+        getEntriesAt(...keys) {
+            return this.getPathsAt(...keys).map(path => [path[path.length - 1], this.get(...path)]);
+        }
+        /**
+         * @description All leaf `[key, value]` pairs in the nested map, sorted alphabetically by key.
+         */
+        get entries() {
+            return this.getEntriesAt();
+        }
+        /*
+         *
+         * KEYS
+         *
+         */
+        /**
+         * @function getKeysAt
+         * @description Return all leaf keys under the given path, sorted alphabetically.
+         * Pass no keys to get all leaf keys in the map.
+         * @param {...KeyType[]} keys - Path to the parent node.
+         * @returns {KeyType[]}
+         */
+        getKeysAt(...keys) {
+            return this.getEntriesAt(...keys).map(e => e[0]);
+        }
+        /**
+         * @description All leaf keys in the nested map, sorted alphabetically.
+         */
+        get keys() {
+            return this.getKeysAt();
+        }
+        /*
+         *
+         * VALUES
+         *
+         */
+        /**
+         * @function getValuesAt
+         * @description Return all leaf values under the given path, sorted alphabetically by key.
+         * Pass no keys to get all leaf values in the map.
+         * @param {...KeyType[]} keys - Path to the parent node.
+         * @returns {ValueType[]}
+         */
+        getValuesAt(...keys) {
+            return this.getEntriesAt(...keys).map(e => e[1]);
+        }
+        /**
+         * @description All leaf values in the nested map, sorted alphabetically by key.
+         */
+        get values() {
+            return this.getValuesAt();
+        }
+        /*
+         *
+         * PATHS
+         *
+         */
+        /**
+         * @function getPathsAt
+         * @description Return all leaf key paths under the given path.
+         * Pass no keys to get all leaf paths in the map.
+         * @param {...KeyType[]} keys - Path to the subtree root.
+         * @returns {KeyType[][]}
+         */
+        getPathsAt(...keys) {
+            return this.findPaths(this.get(...keys));
+        }
+        /**
+         * @description All leaf key paths in the map.
+         */
+        get paths() {
+            return this.getPathsAt();
+        }
+        /*
+         *
+         * SIZE
+         *
+         */
+        /**
+         * @function getSizeAt
+         * @description Return the number of leaf entries under the given path.
+         * Pass no keys to get the number of all leaf entries.
+         * @param {...KeyType[]} keys - Path to the root.
+         * @returns {number}
+         */
+        getSizeAt(...keys) {
+            return this.getPathsAt(...keys).length;
+        }
+        /**
+         * @description Number of all leaf entries in the nested map.
+         */
+        get size() {
+            return this.getSizeAt();
+        }
+        /*
+         *
+         * SCOPE AND FLAT UTILS
+         *
+         */
+        /**
+         * @function flattenKey
+         * @description Serialize a key path into a single flat key.
+         * - Fully numeric paths produce a numeric global leaf index.
+         * - All other paths produce a `"k0|k1|k2|..."` string.
+         * @param {...KeyType[]} keys - The key path to serialize.
+         * @returns {string | number | undefined} The flat key, or `undefined` if the path is invalid.
+         */
+        flattenKey(...keys) {
+            if (!keys.length)
+                return;
+            const compatible = keys.map(k => this.getFlatCompatibleKey(k));
+            if (compatible.some(k => k === undefined))
+                return;
+            if (compatible.every(k => typeof k === "number")) {
+                let index = 0;
+                const allLeafPaths = this.findPaths(this.nestedMap).filter(p => p.length === keys.length);
+                for (const path of allLeafPaths) {
+                    if (path.every((k, i) => k === keys[i]))
+                        return index;
+                    index++;
+                }
+            }
+            return compatible.map(k => k.toString()).join("|");
+        }
+        /**
+         * @function scopeKey
+         * @description Convert a flat key back into a key path. Reverses {@link flattenKey}.
+         * - A string `"k0|k1|k2"` becomes `[k0, k1, k2]`.
+         * - A numeric global leaf index becomes the corresponding numeric path.
+         * @param {number | string} flatKey - The flat key to convert.
+         * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
+         * @returns {KeyType[] | undefined} The key path, or `undefined` if conversion fails.
+         */
+        scopeKey(flatKey, depth) {
+            if (typeof flatKey === "string") {
+                const parts = flatKey.split("|");
+                return parts.length >= 1 ? parts : undefined;
+            }
+            if (typeof flatKey === "number") {
+                const allLeafPaths = depth !== undefined
+                    ? this.findPaths(this.nestedMap).filter(p => p.length === depth)
+                    : this.findPaths(this.nestedMap);
+                if (flatKey < 0)
+                    return allLeafPaths[0];
+                if (flatKey >= allLeafPaths.length)
+                    return allLeafPaths[allLeafPaths.length - 1];
+                return allLeafPaths[flatKey];
+            }
+            return undefined;
+        }
+        /**
+         * @function clear
+         * @description Remove all entries from the map.
+         */
+        clear() {
+            this.nestedMap.clear();
+        }
+        /*
+         *
+         * PROTECTED
+         *
+         */
+        findPaths(node, target, allPaths = true, prefix = []) {
+            if (!node || !(node instanceof TurboNestedMapNode))
+                return [];
+            const results = [];
+            const entries = Array.from(node.entries())
+                .sort((a, b) => alphabeticalSorting(a[0], b[0]));
+            for (const [key, value] of entries) {
+                const path = [...prefix, key];
+                if (value instanceof TurboNestedMapNode) {
+                    const nested = this.findPaths(value, target, allPaths, path);
+                    if (!allPaths && target !== undefined && nested.length)
+                        return nested;
+                    else
+                        results.push(...nested);
+                }
+                else {
+                    if (allPaths && target === undefined)
+                        results.push(path);
+                    else if (value === target) {
+                        results.push(path);
+                        if (!allPaths)
+                            return results;
+                    }
+                }
+            }
+            return results;
+        }
+        getFlatCompatibleKey(key) {
+            if (typeof key === "number" || typeof key === "string")
+                return key;
+            const s = stringify(key);
+            return s !== undefined ? s : undefined;
+        }
+    }
+
+    /**
+     * @class TurboObserver
+     * @group MVC
+     * @category TurboModel
+     *
+     * @extends TurboNestedMap
+     * @description Generic observer that keeps a set of component instances organized by key path.
+     * Useful to maintain UI components or other per-entry objects synchronized with a data source
+     * ({@link TurboModel}).
+     *
+     * @template DataType - The type of data handled by the observer.
+     * @template {object} ComponentType - The instance type created/managed by the observer.
+     * @template {string | number | symbol} KeyType - The key type used at each level of the path.
+     */
+    class TurboObserver extends TurboNestedMap {
+        _isInitialized = false;
+        prevData = new TurboNestedMap();
+        replaceOnUpdate;
+        /**
+         * @property onAdded
+         * @description Delegate called when a change is reported at a key path for which no component instance exists yet.
+         * Handlers may return a newly-created component instance, which will be stored and passed to subsequent
+         * `onUpdated` calls.
+         */
+        onAdded = new Delegate();
+        /**
+         * @property onUpdated
+         * @description Delegate called when a change is reported at a key path that already has an associated instance.
+         */
+        onUpdated = new Delegate();
+        /**
+         * @property onDeleted
+         * @description Delegate called when a key path is reported as deleted.
+         */
+        onDeleted = new Delegate();
+        /**
+         * @property onInitialize
+         * @description Delegate fired once when the observer is initialized. Useful for initial population.
+         */
+        onInitialize = new Delegate();
+        /**
+         * @property onDestroy
+         * @description Delegate fired when the observer is destroyed.
+         */
+        onDestroy = new Delegate();
+        /**
+         * @constructor
+         * @description Create a TurboObserver.
+         * By default, `onUpdated` updates the data of the mapped instance if it exposes a {@link TurboModel} model,
+         * or `data` / `dataId` fields. `onDeleted` removes the instance from the map and the DOM.
+         * @param {TurboObserverProperties<DataType, ComponentType, KeyType>} [properties] - Initialization
+         * options and lifecycle callbacks.
+         */
+        constructor(properties = {}) {
+            super();
+            if (properties.onAdded)
+                this.onAdded.add((data, self, ...keys) => properties.onAdded(data, self, ...keys));
+            this.onUpdated.add((data, instance, self, ...keys) => {
+                if (properties.onUpdated)
+                    properties.onUpdated(data, instance, self, ...keys);
+                else {
+                    if (typeof instance !== "object")
+                        return;
+                    if ("data" in instance)
+                        instance.data = data;
+                    if ("dataId" in instance)
+                        instance.dataId = keys[keys.length - 1].toString();
+                }
+            });
+            this.onDeleted.add((data, instance, self, ...keys) => {
+                if (properties.onDeleted)
+                    properties.onDeleted(data, instance, self, ...keys);
+                else
+                    this.removeValue(instance);
+            });
+            if (properties.replaceOnUpdate)
+                this.replaceOnUpdate = properties.replaceOnUpdate;
+            if (properties.onInitialize)
+                this.onInitialize.add((self) => properties.onInitialize(self));
+            if (properties.onDestroy)
+                this.onDestroy.add((self) => properties.onDestroy(self));
+            if (properties.initialize)
+                this.initialize();
+        }
+        /**
+         * @function remove
+         * @description Remove the instance at the given key path from the map and call `instance.remove()` if available.
+         * @param {...KeyType[]} keys - Ordered path to the instance.
+         */
+        remove(...keys) {
+            const instance = this.get(...keys);
+            super.remove(...keys);
+            if (!instance)
+                return;
+            if (instance && typeof instance === "object"
+                && "remove" in instance && typeof instance.remove == "function")
+                instance?.remove();
+        }
+        /**
+         * @function detach
+         * @description Remove the instance at the given key path from the map without calling `instance.remove()`,
+         * detaching it from the observer.
+         * @param {...KeyType[]} keys - Ordered path to the instance.
+         */
+        detach(...keys) {
+            super.remove(...keys);
+        }
+        /**
+         * @property isInitialized
+         * @description Whether the observer has been initialized (i.e. {@link initialize} has been called).
+         */
+        get isInitialized() {
+            return this._isInitialized;
+        }
+        /**
+         * @function initialize
+         * @description Initialization method that fires `onInitialize`. No-op if already initialized.
+         */
+        initialize() {
+            if (this.isInitialized)
+                return;
+            this.onInitialize.fire(this);
+            this._isInitialized = true;
+        }
+        /**
+         * @function clear
+         * @description Remove all managed instances, reset the observer to an uninitialized state, and optionally
+         * call `instance.remove()` on each instance.
+         * @param {boolean} [removeFromDom=true] - Whether to call `instance.remove()` on each managed instance.
+         */
+        clear(removeFromDom = true) {
+            if (removeFromDom)
+                this.values.forEach(instance => {
+                    if (typeof instance === "object" && "remove" in instance && typeof instance.remove == "function")
+                        instance.remove();
+                });
+            super.clear();
+            this.prevData.clear();
+            this._isInitialized = false;
+        }
+        /**
+         * @function destroy
+         * @description Remove all managed instances, reset the observer to an uninitialized state, optionally
+         * call `instance.remove()` on each instance, and fire `onDestroy`.
+         * @param {boolean} [removeFromDom=true] - Whether to call `instance.remove()` on each managed instance.
+         */
+        destroy(removeFromDom = true) {
+            this.clear(removeFromDom);
+            this.onDestroy.fire(this);
+        }
+        /**
+         * @function keyChanged
+         * @description Notify the observer of a change at the given key path.
+         * Fires `onDeleted` if `deleted` is `true` and an instance exists, `onAdded` if no instance exists yet
+         * (storing the returned instance if any), and `onUpdated` otherwise.
+         * @param {KeyType[]} keys - The key path that changed.
+         * @param {DataType} value - The new value at that path.
+         * @param {boolean} [deleted=false] - Whether the entry was deleted.
+         */
+        keyChanged(keys, value, deleted = false) {
+            let instance = this.get(...keys);
+            if (!instance && deleted)
+                return;
+            if (instance && deleted) {
+                // Model-side deletions pass value = undefined by convention; recover the last
+                // seen value so onDeleted handlers know what was removed.
+                const prev = this.prevData.get(...keys);
+                this.prevData.remove(...keys);
+                this.onDeleted.fire(value ?? prev, instance, this, ...keys);
+                return;
+            }
+            if (instance && this.replaceOnUpdate) {
+                const prev = this.prevData.get(...keys);
+                if (this.replaceOnUpdate(prev, value, instance, this, ...keys)) {
+                    // Semantically a different item at this key — destroy old, create new.
+                    this.prevData.remove(...keys);
+                    this.onDeleted.fire(prev, instance, this, ...keys);
+                    // Force-detach if the onDeleted handler didn't remove the instance.
+                    if (this.get(...keys) === instance)
+                        this.detach(...keys);
+                    instance = undefined;
+                }
+            }
+            if (!instance) {
+                instance = this.onAdded.fire(value, this, ...keys);
+                if (!instance)
+                    return;
+                this.set(instance, ...keys);
+            }
+            this.prevData.set(value, ...keys);
+            this.onUpdated.fire(value, instance, this, ...keys);
+        }
+    }
+
+    /**
+     * @enum {string} RegistryCategory
+     * @group Decorators
+     * @category Registry, Attributes & DOM
+     *
+     * @description Categorizes registered classes by their base type in the Gradum Kit registry.
+     * Categories are ordered from most to least specific within each group, which determines
+     * how {@link inferCategory} resolves ambiguous inheritance chains.
+     *
+     * **Gradum Kit elements** (most to least specific):
+     * - `TurboProxiedElement`, `TurboElement`, `TurboBaseElement`, `TurboHeadlessElement`
+     *
+     * **Native DOM elements** (most to least specific):
+     * - `SVGElement`, `MathMLElement`, `HTMLElement`, `Element`, `Node`
+     *
+     * **MVC pieces:**
+     * - `TurboOperator`, `TurboHandler`, `TurboInteractor`, `TurboTool`, `TurboConstrainer`,
+     *   `TurboView`, `TurboEmitter`, `TurboModel`
+     *
+     * **Fallback:**
+     * - `Other` — for classes that do not match any recognized base type.
+     */
+    exports.RegistryCategory = void 0;
+    (function (RegistryCategory) {
+        RegistryCategory["TurboElement"] = "TurboElement";
+        RegistryCategory["TurboBaseElement"] = "TurboBaseElement";
+        RegistryCategory["TurboHeadlessElement"] = "TurboHeadlessElement";
+        RegistryCategory["TurboProxiedElement"] = "TurboProxiedElement";
+        RegistryCategory["HTMLElement"] = "HTMLElement";
+        RegistryCategory["SVGElement"] = "SVGElement";
+        RegistryCategory["MathMLElement"] = "MathMLElement";
+        RegistryCategory["Element"] = "Element";
+        RegistryCategory["Node"] = "Node";
+        RegistryCategory["TurboModel"] = "TurboModel";
+        RegistryCategory["TurboView"] = "TurboView";
+        RegistryCategory["TurboEmitter"] = "TurboEmitter";
+        RegistryCategory["TurboOperator"] = "TurboOperator";
+        RegistryCategory["TurboHandler"] = "TurboHandler";
+        RegistryCategory["TurboInteractor"] = "TurboInteractor";
+        RegistryCategory["TurboTool"] = "TurboTool";
+        RegistryCategory["TurboConstrainer"] = "TurboConstrainer";
+        RegistryCategory["Other"] = "Other";
+    })(exports.RegistryCategory || (exports.RegistryCategory = {}));
+
+    class DefineDecoratorUtils {
+        registry = new Map();
+        categoryMap = new WeakMap();
+        prototypeMap = new WeakMap();
+        dataMap = new WeakMap();
+        // -------------------------------------------------------------------------
+        // Category registration
+        // -------------------------------------------------------------------------
+        /**
+         * @description Registers a constructor's associated registry category. Called by each
+         * Gradum Kit base class after its definition to avoid circular import dependencies.
+         */
+        setCategory(constructor, category) {
+            this.categoryMap.set(constructor.prototype, category);
+        }
+        inferCategory(constructor) {
+            let proto = constructor.prototype;
+            while (proto && proto !== Object.prototype) {
+                const category = this.categoryMap.get(proto);
+                if (category)
+                    return category;
+                proto = Object.getPrototypeOf(proto);
+            }
+            const p = constructor.prototype;
+            if (p instanceof SVGElement)
+                return exports.RegistryCategory.SVGElement;
+            if (typeof MathMLElement !== "undefined" && p instanceof MathMLElement)
+                return exports.RegistryCategory.MathMLElement;
+            if (p instanceof HTMLElement)
+                return exports.RegistryCategory.HTMLElement;
+            if (p instanceof Element)
+                return exports.RegistryCategory.Element;
+            if (p instanceof Node)
+                return exports.RegistryCategory.Node;
+            return exports.RegistryCategory.Other;
+        }
+        // -------------------------------------------------------------------------
+        // Registry
+        // -------------------------------------------------------------------------
+        register(constructor, name, tag, category) {
+            const resolvedCategory = category ?? this.inferCategory(constructor);
+            const entry = { constructor, category: resolvedCategory, name, tag };
+            if (!this.registry.has(resolvedCategory))
+                this.registry.set(resolvedCategory, new Map());
+            this.registry.get(resolvedCategory)?.set(name, entry);
+        }
+        // -------------------------------------------------------------------------
+        // Define utils
+        // -------------------------------------------------------------------------
+        data(element) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element)
+                return {};
+            if (!this.dataMap.has(element))
+                this.dataMap.set(element, {});
+            return this.dataMap.get(element);
+        }
+        prototype(prototype) {
+            if (!prototype)
+                return {};
+            if (!this.prototypeMap.has(prototype))
+                this.prototypeMap.set(prototype, {});
+            return this.prototypeMap.get(prototype);
+        }
+        fieldSetInPrototype(prototype, field) {
+            while (prototype && prototype !== HTMLElement.prototype) {
+                if (this.prototype(prototype)[field])
+                    return true;
+                prototype = Object.getPrototypeOf(prototype);
+            }
+            return false;
+        }
+        skipAttributeChangedCallback(prototype) {
+            return this.fieldSetInPrototype(prototype, "setupAttributeChangedCallback");
+        }
+        skipConnectedCallback(prototype) {
+            return this.fieldSetInPrototype(prototype, "setupConnectedCallback");
+        }
+        getNamesOfPrototypeChain(prototype) {
+            const result = [];
+            while (prototype && prototype !== HTMLElement.prototype) {
+                const name = this.prototype(prototype).name;
+                if (name)
+                    result.push(name);
+                prototype = Object.getPrototypeOf(prototype);
+            }
+            return result;
+        }
+    }
+
+    /**
+     * @group Utilities
+     * @category String
+     *
+     * @description converts the provided string from camelCase to kebab-case.
+     * @param {string} str - The string to convert
+     */
+    function camelToKebabCase(str) {
+        if (!str || str.length == 0)
+            return;
+        return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+    }
+    /**
+     * @group Utilities
+     * @category String
+     *
+     * @description converts the provided string from kebab-case to camelCase.
+     * @param {string} str - The string to convert
+     */
+    function kebabToCamelCase(str) {
+        if (!str || str.length == 0)
+            return;
+        return str.replace(/-([a-z])/g, g => g[1].toUpperCase());
+    }
+
+    const utils$9 = new DefineDecoratorUtils();
+    function define(...args) {
+        if (typeof args[0] === "function") {
+            let [Base, elementName, className, options] = args;
+            if (!className)
+                className = Base?.name;
+            if (!elementName)
+                elementName = camelToKebabCase(className);
+            return applyDefine(Base, className, elementName, options);
+        }
+        let [className, elementName, options] = args;
+        return function (Base, context) {
+            if (!className)
+                className = context.name ?? Base?.constructor.name;
+            if (!elementName)
+                elementName = camelToKebabCase(className);
+            return applyDefine(Base, className, elementName, options);
+        };
+    }
+    function applyDefine(Base, className, elementName, options = { injectAttributeBridge: true }) {
+        const prototype = Base.prototype;
+        utils$9.register(Base, className, prototype instanceof Element ? elementName : undefined);
+        if (!(prototype instanceof Element))
+            return Base;
+        if (elementName)
+            utils$9.prototype(prototype).name = elementName;
+        Object.defineProperty(Base, "tagName", {
+            configurable: true,
+            enumerable: false,
+            writable: false,
+            value: elementName
+        });
+        if (typeof Base["create"] === "function" && !utils$9.prototype(Base.prototype).wrappedCreate) {
+            utils$9.prototype(Base.prototype).wrappedCreate = true;
+            const originalCreate = Base["create"];
+            Object.defineProperty(Base, "create", {
+                configurable: true,
+                enumerable: false,
+                writable: true,
+                value: function (properties = {}) {
+                    turbo(properties).applyDefaults({ tag: elementName, ...(this.defaultProperties ?? {}) });
+                    return originalCreate.call(this, properties);
+                }
+            });
+        }
+        Object.defineProperty(Base, "observedAttributes", {
+            configurable: true,
+            enumerable: false,
+            get: function () {
+                const combined = new Set();
+                let constructor = this;
+                while (constructor && constructor !== Function.prototype) {
+                    const set = constructor[Symbol.metadata]?.observedAttributes;
+                    if (set)
+                        for (const entry of set)
+                            combined.add(entry);
+                    constructor = Object.getPrototypeOf(constructor);
+                }
+                return Array.from(combined);
+            },
+        });
+        if (options.injectAttributeBridge !== false && !utils$9.skipAttributeChangedCallback(prototype)) {
+            utils$9.prototype(prototype).setupAttributeChangedCallback = true;
+            const wrapper = function (name, oldValue, newValue) {
+                getSuperMethod(this, "attributeChangedCallback", wrapper)?.call(this, name, oldValue, newValue);
+                if (newValue === oldValue)
+                    return;
+                if (utils$9.data(this).attributeBridgePass)
+                    return;
+                const property = kebabToCamelCase(name);
+                if (!(property in this))
+                    return;
+                try {
+                    utils$9.data(this).attributeBridgePass = true;
+                    this[property] = newValue === null ? undefined : parse$1(newValue);
+                }
+                finally {
+                    utils$9.data(this).attributeBridgePass = false;
+                }
+            };
+            Object.defineProperty(prototype, "attributeChangedCallback", {
+                configurable: true,
+                enumerable: false,
+                writable: true,
+                value: wrapper
+            });
+        }
+        if (!utils$9.skipConnectedCallback(prototype)) {
+            utils$9.prototype(prototype).setupConnectedCallback = true;
+            const wrapper = function () {
+                getSuperMethod(this, "connectedCallback", wrapper)?.call(this);
+                if (!(this instanceof HTMLElement))
+                    return;
+                for (const attribute of this.constructor.observedAttributes ?? []) {
+                    const value = this[kebabToCamelCase(attribute)];
+                    if (value === undefined)
+                        continue;
+                    const stringValue = stringify(value);
+                    if (this.getAttribute(attribute) !== stringValue)
+                        this.setAttribute(attribute, stringValue);
+                }
+                utils$9.getNamesOfPrototypeChain(Object.getPrototypeOf(this)).forEach(name => this.classList?.add(name));
+            };
+            Object.defineProperty(prototype, "connectedCallback", {
+                configurable: true,
+                enumerable: false,
+                writable: true,
+                value: wrapper,
+            });
+        }
+        if (elementName && !customElements.get(elementName))
+            customElements.define(elementName, Base);
+        return Base;
+    }
+    /**
+     * @function findRegistered
+     * @group Decorators
+     * @category Registry, Attributes & DOM
+     *
+     * @description Finds a registered entry by name, optionally scoped to a specific category.
+     * If no category is provided, searches across all categories and returns the first match.
+     * @param {string} name - The registered name to search for.
+     * @param {RegistryCategory} [category] - The category to scope the search to. Searches all categories if omitted.
+     * @returns {RegistryEntry} The matching registry entry, or `undefined` if not found.
+     */
+    function findRegistered(name, category) {
+        if (category)
+            return utils$9.registry.get(category)?.get(name);
+        for (const map of utils$9.registry.values()) {
+            const entry = map.get(name);
+            if (entry)
+                return entry;
+        }
+        return undefined;
+    }
+    /**
+     * @function getRegisteredByCategories
+     * @group Decorators
+     * @category Registry, Attributes & DOM
+     *
+     * @description Returns all registered entries across one or more specified categories.
+     * @param {...RegistryCategory[]} categories - The categories to retrieve entries from.
+     * @returns {RegistryEntry[]} An array of all registry entries in the specified categories.
+     */
+    function getRegisteredByCategories(...categories) {
+        return categories.flatMap(category => Array.from(utils$9.registry.get(category)?.values() ?? []));
+    }
+    /**
+     * @function getAllRegistered
+     * @group Decorators
+     * @category Registry, Attributes & DOM
+     *
+     * @description Returns all registered entries across every category in the registry.
+     * @returns {RegistryEntry[]} An array of all registry entries.
+     */
+    function getAllRegistered() {
+        return Array.from(utils$9.registry.values()).flatMap(map => Array.from(map.values()));
+    }
+    /**
+     * @function getRegisteredMvc
+     * @group Decorators
+     * @category Registry, Attributes & DOM
+     *
+     * @description Returns all registered entries belonging to MVC-related categories:
+     * `TurboOperator`, `TurboEmitter`, `TurboHandler`, `TurboInteractor`, `TurboModel`,
+     * `TurboConstrainer`, `TurboTool`, and `TurboView`.
+     * @returns {RegistryEntry[]} An array of all MVC registry entries.
+     */
+    function getRegisteredMvc() {
+        return getRegisteredByCategories(exports.RegistryCategory.TurboOperator, exports.RegistryCategory.TurboEmitter, exports.RegistryCategory.TurboHandler, exports.RegistryCategory.TurboInteractor, exports.RegistryCategory.TurboModel, exports.RegistryCategory.TurboConstrainer, exports.RegistryCategory.TurboTool, exports.RegistryCategory.TurboView);
+    }
+    /**
+     * @function getRegisteredElements
+     * @group Decorators
+     * @category Registry, Attributes & DOM
+     *
+     * @description Returns all registered entries belonging to element-related categories:
+     * `TurboElement`, `TurboProxiedElement`, `Element`, `HTMLElement`, `SVGElement`, and `MathMLElement`.
+     * @returns {RegistryEntry[]} An array of all element registry entries.
+     */
+    function getRegisteredElements() {
+        return getRegisteredByCategories(exports.RegistryCategory.TurboElement, exports.RegistryCategory.TurboProxiedElement, exports.RegistryCategory.Element, exports.RegistryCategory.HTMLElement, exports.RegistryCategory.SVGElement, exports.RegistryCategory.MathMLElement);
+    }
+    /**
+     * @function addRegistryCategory
+     * @group Decorators
+     * @category Registry
+     *
+     * @description Associates a class constructor with a {@link RegistryCategory} in the Gradum Kit registry's
+     * category inference map. When {@link define} is called on a subclass, it walks the prototype chain and
+     * uses this map to determine the appropriate category without requiring direct imports of the base classes
+     * (which would cause circular dependencies).
+     *
+     * This should be called once per base class, after its definition, by the Gradum Kit internals.
+     * User-defined subclasses do not need to call this — category inference propagates automatically
+     * through the prototype chain.
+     *
+     * @param {new (...args: any[]) => object} type - The base class constructor to associate with a category.
+     * @param {RegistryCategory} [category] - The category to associate with the class. Defaults to the
+     * class name if omitted, which is useful when the class name matches a {@link RegistryCategory} value.
+     *
+     * @example
+     * ```ts
+     * // At the bottom of turboModel.ts, after class definition:
+     * addRegistryCategory(TurboModel, RegistryCategory.TurboModel);
+     *
+     * // Later, when a subclass is defined:
+     * class MyModel extends TurboModel { ... }
+     * define(MyModel, "MyModel"); // infers RegistryCategory.TurboModel automatically
+     * ```
+     */
+    function addRegistryCategory(type, category) {
+        utils$9.setCategory(type, category ?? type.name);
+    }
+    /**
+     * @function getRegisteredEntry
+     * @group Decorators
+     * @category Registry, Attributes & DOM
+     *
+     * @description Returns the registry entry for a given class instance, looked up by its constructor.
+     * Walks the instance's prototype chain until it finds a registered constructor, so subclasses that
+     * were not themselves passed to {@link define} will still resolve to their nearest registered ancestor.
+     * @param {object} instance - The class instance to look up.
+     * @returns {RegistryEntry | undefined} The matching registry entry (containing `name`, `category`,
+     * `constructor`, and optionally `tag`), or `undefined` if no registered class is found in the chain.
+     */
+    function getRegisteredEntry(instance) {
+        if (!instance)
+            return undefined;
+        let proto = Object.getPrototypeOf(instance);
+        while (proto && proto !== Object.prototype) {
+            const constructor = proto.constructor;
+            for (const map of utils$9.registry.values()) {
+                for (const entry of map.values()) {
+                    if (entry.constructor === constructor)
+                        return entry;
+                }
+            }
+            proto = Object.getPrototypeOf(proto);
+        }
+        return undefined;
+    }
+
+    const META = Symbol("__meta__");
+    /**
+     * @class TurboModel
+     * @group MVC
+     * @category TurboModel
+     *
+     * @template DataType - The type of the data held in the model.
+     * @template {KeyType} KeyType - The type of the data's keys.
+     * @template {KeyType} IdType - The type of the data's ID.
+     * @template ComponentType - The type of instances managed by attached observers.
+     * @template DataEntryType - The type of data associated with each observer instance.
+     *
+     * @description Wrapper around a plain JS container (object, Array, or Map) that exposes a
+     * consistent API for reads/writes, signals, and {@link TurboObserver}s.
+     */
+    let TurboModel = (() => {
+        let _enabledCallbacks_decorators;
+        let _enabledCallbacks_initializers = [];
+        let _enabledCallbacks_extraInitializers = [];
+        let _bubbleChanges_decorators;
+        let _bubbleChanges_initializers = [];
+        let _bubbleChanges_extraInitializers = [];
+        return class TurboModel {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(this, null, _enabledCallbacks_decorators, { kind: "accessor", name: "enabledCallbacks", static: false, private: false, access: { has: obj => "enabledCallbacks" in obj, get: obj => obj.enabledCallbacks, set: (obj, value) => { obj.enabledCallbacks = value; } }, metadata: _metadata }, _enabledCallbacks_initializers, _enabledCallbacks_extraInitializers);
+                __esDecorate(this, null, _bubbleChanges_decorators, { kind: "accessor", name: "bubbleChanges", static: false, private: false, access: { has: obj => "bubbleChanges" in obj, get: obj => obj.bubbleChanges, set: (obj, value) => { obj.bubbleChanges = value; } }, metadata: _metadata }, _bubbleChanges_initializers, _bubbleChanges_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            /**
+             * @description Symbol used in {@link nestAll}, {@link makeSignals}, and {@link generateObserver}
+             * to target all entries at a certain level inside the data.
+             */
+            static ALL = Symbol("ALL");
+            static from(data = {}, id) {
+                const model = TurboModel.create({ data, id, initialize: true, makeSignals: true });
+                return new Proxy(data, {
+                    get(target, key) {
+                        if (key === "$model")
+                            return model;
+                        return model.get(key);
+                    },
+                    set(target, key, value) {
+                        if (!model.has(key))
+                            model.makeSignal(key);
+                        model.set(value, key);
+                        return true;
+                    }
+                });
+            }
+            static create(properties = {}) {
+                const model = new this(properties);
+                if (properties.initialize)
+                    model.initialize();
+                if (properties.makeSignals)
+                    model.makeSignals(TurboModel.ALL);
+                return model;
+            }
+            /**
+             * @description The default constructor used to create nested {@link TurboModel} instances.
+             */
+            modelConstructor = TurboModel;
+            /**
+             * @description The default constructor used to create {@link TurboObserver} instances via {@link generateObserver}.
+             */
+            observerConstructor = TurboObserver;
+            /**
+             * @description Map of MVC handlers bound to this model.
+             */
+            handlers = new Map();
+            #enabledCallbacks_accessor_storage = __runInitializers(this, _enabledCallbacks_initializers, void 0);
+            /**
+             * @description Whether change callbacks and observer notifications are enabled.
+             */
+            get enabledCallbacks() { return this.#enabledCallbacks_accessor_storage; }
+            set enabledCallbacks(value) { this.#enabledCallbacks_accessor_storage = value; }
+            #bubbleChanges_accessor_storage = (__runInitializers(this, _enabledCallbacks_extraInitializers), __runInitializers(this, _bubbleChanges_initializers, void 0));
+            /**
+             * @description Whether changes bubble up from nested models to their parent.
+             */
+            get bubbleChanges() { return this.#bubbleChanges_accessor_storage; }
+            set bubbleChanges(value) { this.#bubbleChanges_accessor_storage = value; }
+            /**
+             * @description Delegate fired whenever a value changes at a key path. Receives the new value followed
+             * by the key path as spread arguments.
+             */
+            onKeyChanged = (__runInitializers(this, _bubbleChanges_extraInitializers), new Delegate());
+            onDataChanged = new Delegate();
+            fireCallbackHook;
+            isInitialized = false;
+            signals = new Map();
+            changeObservers = new Set();
+            nestedModels = new Map();
+            nestedListeners = new Set();
+            /**
+             * @description The ID of the data held by this model.
+             */
+            id;
+            _data;
+            /**
+             * @description The data held by this model. Setting it clears the current state and re-initializes the model.
+             */
+            get data() {
+                return this._data;
+            }
+            set data(data) {
+                const oldData = this._data;
+                if (areEqual(oldData, data))
+                    return;
+                if (this.diffCheck(oldData, data))
+                    this.diffAction(oldData, data);
+                else {
+                    this.clear(false);
+                    this._data = data;
+                    if (data)
+                        this.initialize();
+                }
+                markDirtyPath(this, []);
+                this.onDataChanged.fire(oldData, data);
+            }
+            /**
+             * @description The metadata held by this model. Separate from this model's data.
+             */
+            get meta() {
+                return this.nest(META);
+            }
+            /**
+             * @constructor
+             * @description Create a new TurboModel.
+             * @param {TurboModelProperties} [properties] - Optional initialization properties.
+             */
+            constructor(properties = {}) {
+                this.id = properties.id;
+                this._data = properties.data ?? {};
+                if (typeof properties.enabledCallbacks === "boolean")
+                    this.enabledCallbacks = properties.enabledCallbacks;
+                if (typeof properties.bubbleChanges === "boolean")
+                    this.bubbleChanges = properties.bubbleChanges;
+                this.setup();
+                this.onDataChanged.fire(undefined, this._data);
+            }
+            /**
+             * @function setup
+             * @description Called in the constructor. Use for setup that should happen at instantiation,
+             * before `this.initialize()` is called.
+             * @protected
+             */
+            setup() {
+                initializeEffects(this);
+            }
+            /*
+             *
+             * GET
+             *
+             */
+            /**
+             * @protected
+             * @function getAction
+             * @description Read a single key from a data container. Override this method to support other datatypes.
+             * @param {any} data - The container to read from.
+             * @param {KeyType} key - The key to read.
+             * @returns {any} The value at the key, or `undefined` if not found.
+             */
+            getAction(data, key) {
+                if (data instanceof Map)
+                    return data.get(key);
+                return data?.[key];
+            }
+            get(...keys) {
+                if (keys.length === 0)
+                    return this.data;
+                let current = this.data;
+                for (const key of keys) {
+                    if (!current || typeof current !== "object")
+                        return undefined;
+                    current = this.getAction(current, key);
+                }
+                return current;
+            }
+            /**
+             * @function getFlat
+             * @description Retrieve the value at the given flat key.
+             * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
+             * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
+             * @returns {any} The stored value, or `undefined` if not found.
+             */
+            getFlat(flatKey, depth) {
+                const keys = this.scopeKey(flatKey, depth);
+                if (!keys?.length)
+                    return undefined;
+                return this.get(...keys);
+            }
+            /**
+             * @function getKey
+             * @description Find the key path of the first occurrence of the given value, searching depth-first.
+             * @param {any} value - The value to locate.
+             * @returns {KeyType[]} The key path, or `undefined` if not found.
+             */
+            getKey(value) {
+                const search = (data, path) => {
+                    if (!data || typeof data !== "object")
+                        return undefined;
+                    const keys = data instanceof Map
+                        ? Array.from(data.keys())
+                        : [...Object.keys(data), ...Object.getOwnPropertySymbols(data)];
+                    for (const key of keys) {
+                        const entry = this.getAction(data, key);
+                        if (Object.is(entry, value))
+                            return [...path, key];
+                        const nested = search(entry, [...path, key]);
+                        if (nested)
+                            return nested;
+                    }
+                    return undefined;
+                };
+                return search(this.data, []);
+            }
+            /**
+             * @function getFlatKey
+             * @description Return the flat key of the first occurrence of the given value.
+             * @param {any} value - The value to query.
+             * @returns {FlatKeyType | undefined} The flat key, or `undefined` if not found.
+             */
+            getFlatKey(value) {
+                const path = this.getKey(value);
+                if (!path?.length)
+                    return undefined;
+                return this.flattenKey(...path);
+            }
+            /**
+             * @function getKeys
+             * @description Find the key paths of all occurrences of the given value, searching depth-first.
+             * @param {any} value - The value to locate.
+             * @returns {KeyType[][]} Array of key paths.
+             */
+            getKeys(value) {
+                const results = [];
+                const search = (data, path) => {
+                    if (!data || typeof data !== "object")
+                        return;
+                    const keys = data instanceof Map
+                        ? Array.from(data.keys())
+                        : [...Object.keys(data), ...Object.getOwnPropertySymbols(data)];
+                    for (const key of keys) {
+                        const entry = this.getAction(data, key);
+                        const currentPath = [...path, key];
+                        if (Object.is(entry, value))
+                            results.push(currentPath);
+                        else
+                            search(entry, currentPath);
+                    }
+                };
+                search(this.data, []);
+                return results;
+            }
+            /**
+             * @function getFlatKeys
+             * @description Return the flat keys of all occurrences of the given value.
+             * @param {any} value - The value to query.
+             * @returns {FlatKeyType[]} Array of flat keys.
+             */
+            getFlatKeys(value) {
+                return this.getKeys(value).map(path => this.flattenKey(...path)).filter(k => k !== undefined);
+            }
+            /*
+             *
+             * SET
+             *
+             */
+            /**
+             * @protected
+             * @function setAction
+             * @description Write a single key to a data container. Override this method to support other datatypes.
+             * @param {any} data - The container to write to.
+             * @param {KeyType} key - The key to write.
+             * @param {any} value - The value to set.
+             */
+            setAction(data, value, key) {
+                if (data instanceof Map)
+                    data.set(key, value);
+                else
+                    data[key] = value;
+            }
+            /**
+             * @protected
+             * @function internalSet
+             * @description Write a value at a key, propagating the change to a nested model if one exists,
+             * and firing {@link keyChanged} if the value actually changed.
+             * @param {TurboModel} model - The owning model (used for nested model lookup and change notification),
+             * or `undefined` if operating on a non-root container.
+             * @param {any} data - The container to write to.
+             * @param {KeyType} key - The key to write.
+             * @param {any} value - The value to set.
+             */
+            internalSet(model, data, value, key) {
+                if (isUndefined(key)) {
+                    if (!model || areEqual(model.data, value))
+                        return false;
+                    model.data = value;
+                    return true;
+                }
+                if (model) {
+                    const nested = model.getNested(key);
+                    if (nested)
+                        nested.data = value;
+                }
+                if (!data || typeof data !== "object")
+                    return false;
+                const prev = this.getAction(data, key);
+                if (prev === value || Object.is(prev, value))
+                    return false;
+                this.setAction(data, value, key);
+                return true;
+            }
+            set(value, ...keys) {
+                let bool;
+                if (keys.length < 2)
+                    bool = this.internalSet(this, this.data, value, keys[0]);
+                else {
+                    const nested = this.getNested(keys[0]);
+                    if (nested)
+                        bool = nested.set(value, ...keys.slice(1));
+                    else
+                        bool = this.internalSet(undefined, this.get(keys[0], ...keys.slice(1, -1)), value, keys[keys.length - 1]);
+                }
+                if (bool)
+                    this.keyChanged(keys, value);
+                return bool;
+            }
+            /**
+             * @function setFlat
+             * @description Set a value at the given flat key.
+             * @param {unknown} value - The value to set.
+             * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
+             * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
+             */
+            setFlat(value, flatKey, depth) {
+                const keys = this.scopeKey(flatKey, depth);
+                if (keys?.length)
+                    return this.set(value, ...keys);
+                return false;
+            }
+            /*
+             *
+             * ADD
+             *
+             */
+            /**
+             * @protected
+             * @function internalAdd
+             * @description Insert a value into a container via {@link addAction} and fire {@link keyChanged}.
+             * @param {TurboModel} model - The owning model for change notification, or `undefined` for non-root containers.
+             * @param {any} data - The container to insert into.
+             * @param {any} value - The value to insert.
+             * @param {KeyType} key - The target index or key.
+             * @returns {KeyType} The index or key where the value was stored.
+             */
+            internalAdd(model, data, value, key) {
+                if (!data || typeof data !== "object")
+                    return;
+                return this.addAction(model, data, value, key);
+            }
+            /**
+             * @protected
+             * @function addAction
+             * @description Perform the raw insertion. Override this method to support other datatypes.
+             * @param {TurboModel} model - The owning model.
+             * @param {any} data - The container to insert into.
+             * @param {any} value - The value to insert.
+             * @param {KeyType} key - The target index or key. Clamped to valid array bounds for array containers.
+             * @returns {KeyType} The index or key where the value was stored.
+             */
+            addAction(model, data, value, key) {
+                if (Array.isArray(data)) {
+                    let index = key;
+                    if (isUndefined(index) || typeof index !== "number" || index > data.length)
+                        index = data.length;
+                    else if (index < 0)
+                        index = 0;
+                    data.splice(index, 0, value);
+                    return index;
+                }
+                const bool = this.internalSet(model, data, value, key);
+                return bool ? key : undefined;
+            }
+            add(value, ...keys) {
+                let key;
+                if (keys.length < 2)
+                    key = this.internalAdd(this, this.data, value, keys[0]);
+                else {
+                    const nested = this.getNested(keys[0]);
+                    if (nested)
+                        key = nested.add(value, ...keys.slice(1));
+                    else
+                        key = this.internalAdd(undefined, this.get(keys[0], ...keys.slice(1, -1)), value, keys[keys.length - 1]);
+                }
+                const lastKeyWasUndefined = isUndefined(keys[keys.length - 1]);
+                const changePath = lastKeyWasUndefined ? [...keys.slice(0, -1), key] : keys;
+                if (!isUndefined(key))
+                    this.keyChanged(changePath);
+                return key;
+            }
+            /**
+             * @function addFlat
+             * @description Insert a value at the position described by the given flat key.
+             * @param {unknown} value - The value to insert.
+             * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
+             * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
+             * @returns {KeyType} The index or key where the value was stored.
+             */
+            addFlat(value, flatKey, depth) {
+                const keys = this.scopeKey(flatKey, depth);
+                if (!keys?.length)
+                    throw new Error(`TurboModel.addFlat: could not resolve flat key "${String(flatKey)}" to a key path.`);
+                return this.add(value, ...keys);
+            }
+            /*
+             *
+             * HAS
+             *
+             */
+            /**
+             * @protected
+             * @function hasAction
+             * @description Check whether a key exists in a container. Override this method to support other datatypes.
+             * @param {any} data - The container to check.
+             * @param {KeyType} key - The key to check.
+             * @returns {boolean} `true` if the key is present.
+             */
+            hasAction(data, key) {
+                if (data instanceof Map)
+                    return data.has(key);
+                return data?.[key] !== undefined;
+            }
+            has(...keys) {
+                const data = this.get(...keys.slice(0, -1));
+                const key = keys[keys.length - 1];
+                if (!data || key === undefined)
+                    return false;
+                return this.hasAction(data, key);
+            }
+            /**
+             * @function hasFlat
+             * @description Check whether an entry exists at the given flat key.
+             * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
+             * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
+             * @returns {boolean}
+             */
+            hasFlat(flatKey, depth) {
+                const keys = this.scopeKey(flatKey, depth);
+                if (!keys?.length)
+                    return false;
+                return this.has(...keys);
+            }
+            /*
+             *
+             * DELETE
+             *
+             */
+            /**å
+             * @protected
+             * @function deleteAction
+             * @description Remove a single key from a container. Override this method to support other datatypes.
+             * @param {any} data - The container to remove from.
+             * @param {KeyType} key - The key to remove.
+             */
+            deleteAction(data, key) {
+                if (data instanceof Map)
+                    data.delete(key);
+                else if (Array.isArray(data))
+                    data.splice(key, 1);
+                else
+                    delete data[key];
+            }
+            /**
+             * @protected
+             * @function internalDelete
+             * @description Remove a key from a container, clearing any associated nested model, and firing {@link keyChanged}.
+             * No-op if the key does not exist.
+             * @param {TurboModel} model - The owning model for nested model cleanup and change notification,
+             * or `undefined` for non-root containers.
+             * @param {any} data - The container to remove from.
+             * @param {KeyType} key - The key to remove.
+             */
+            internalDelete(model, data, key) {
+                if (!data || !this.hasAction(data, key))
+                    return;
+                if (model) {
+                    const nested = model.getNested(key);
+                    if (nested) {
+                        nested.clear();
+                        model.nestedModels.delete(key);
+                    }
+                }
+                this.deleteAction(data, key);
+            }
+            delete(...keys) {
+                if (keys.length === 0)
+                    return;
+                // keyChanged must fire before internalDelete/deleteAction so that observer slots are
+                // vacated before shiftIndices (triggered synchronously by the Yjs transaction inside
+                // deleteAction) shifts neighbouring entries into the slot being deleted.
+                this.keyChanged(keys, undefined, true);
+                if (keys.length === 1)
+                    this.internalDelete(this, this.data, keys[0]);
+                else {
+                    const nested = this.getNested(keys[0]);
+                    if (nested)
+                        nested.delete(...keys.slice(1));
+                    else {
+                        const parentData = this.get(keys[0], ...keys.slice(1, -1));
+                        if (typeof parentData !== "object")
+                            return;
+                        this.internalDelete(undefined, parentData, keys[keys.length - 1]);
+                    }
+                }
+            }
+            /**
+             * @function deleteFlat
+             * @description Remove the entry at the given flat key.
+             * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
+             * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
+             */
+            deleteFlat(flatKey, depth) {
+                const keys = this.scopeKey(flatKey, depth);
+                if (keys?.length)
+                    this.delete(...keys);
+            }
+            /*
+             *
+             * KEYS
+             *
+             */
+            getKeysAction(data) {
+                if (!data || typeof data !== "object")
+                    return [];
+                if (Array.isArray(data))
+                    return Array.from({ length: data.length }, (_, i) => i);
+                if (data instanceof Map)
+                    return Array.from(data.keys());
+                return [...Object.keys(data), ...Object.getOwnPropertySymbols(data)];
+            }
+            /**
+             * @property keys
+             * @description All keys currently present in the model.
+             */
+            get keys() {
+                return this.getKeysAction(this.data);
+            }
+            /**
+             * @property values
+             * @description All values in the model, in the order of {@link keys}.
+             */
+            get values() {
+                return this.keys.map(key => this.get(key));
+            }
+            /**
+             * @property dataSize
+             * @description Number of entries in the model.
+             */
+            get dataSize() {
+                return this.keys.length;
+            }
+            /**
+             * @function flatSize
+             * @description Return the total number of entries reachable from this model at the given depth.
+             * @param {number} depth - How many levels deep to count.
+             * @returns {number}
+             */
+            flatSize(depth) {
+                return TurboModel.flattenSize(this.data, depth);
+            }
+            /*
+             *
+             * DIFFING
+             *
+             */
+            diffCheck(oldData, newData) {
+                if (!oldData || !newData)
+                    return false;
+                if (Array.isArray(oldData) && Array.isArray(newData))
+                    return true;
+                if (oldData instanceof Map && newData instanceof Map)
+                    return true;
+                if (Array.isArray(oldData) || Array.isArray(newData) || oldData instanceof Map || newData instanceof Map
+                    || oldData instanceof Set || newData instanceof Set)
+                    return false;
+                if (typeof oldData !== "object" || typeof newData !== "object")
+                    return false;
+                return Object.getPrototypeOf(oldData) === Object.prototype && Object.getPrototypeOf(newData) === Object.prototype;
+            }
+            diffAction(oldData, newData) {
+                this._data = newData;
+                for (const [key, child] of this.nestedModels) {
+                    const newVal = this.getAction(newData, key);
+                    if (child.data !== newVal)
+                        child.data = newVal;
+                }
+                const oldKeys = new Set(this.getKeysAction(oldData));
+                const newKeys = new Set(this.getKeysAction(newData));
+                for (const key of oldKeys) {
+                    // Deletions pass undefined by convention (nested-child onKeyChanged listeners
+                    // rely on it to clear their data). TurboObserver recovers the old value for
+                    // onDeleted from its own prevData tracking.
+                    if (!newKeys.has(key))
+                        this.keyChanged([key], undefined, true);
+                    else {
+                        const oldVal = this.getAction(oldData, key);
+                        const newVal = this.getAction(newData, key);
+                        if (!areEqual(oldVal, newVal))
+                            this.keyChanged([key], newVal);
+                    }
+                }
+                for (const key of newKeys) {
+                    if (!oldKeys.has(key))
+                        this.keyChanged([key], this.getAction(newData, key));
+                }
+            }
+            /*
+             *
+             * Iteration
+             *
+             */
+            /**
+             * @description Iterate over `[key, value]` pairs.
+             */
+            *[(_enabledCallbacks_decorators = [auto({ defaultValue: true })], _bubbleChanges_decorators = [auto({ defaultValue: false })], Symbol.iterator)]() {
+                for (const key of this.keys)
+                    yield [key, this.get(key)];
+            }
+            /**
+             * @function entries
+             * @description Return all `[key, value]` pairs in the model.
+             * @returns {[KeyType, any][]}
+             */
+            entries() {
+                return this.keys.map(key => [key, this.get(key)]);
+            }
+            /**
+             * @function forEach
+             * @description Execute a callback for each entry in the model.
+             * @param {(value: any, key: KeyType, model: this) => void} callback - Called with the value, key, and model.
+             * @param {any} [thisArg] - Value to use as `this` when calling the callback.
+             */
+            forEach(callback, thisArg) {
+                for (const key of this.keys)
+                    callback.call(thisArg, this.get(key), key, this);
+            }
+            /*
+             *
+             * Utilities
+             *
+             */
+            /**
+             * @function initialize
+             * @description Fire change notifications for all existing keys, marking the model as initialized.
+             * No-op if already initialized or if data is empty.
+             */
+            initialize() {
+                if (!this.data || this.isInitialized)
+                    return;
+                this.isInitialized = true;
+                for (const [key, child] of this.nestedModels) {
+                    const newData = this.get(key);
+                    if (child.data !== newData)
+                        child.data = newData;
+                    else if (!child.isInitialized)
+                        child.initialize();
+                }
+                for (const key of this.keys)
+                    this.keyChanged([key]);
+                for (const observer of this.changeObservers)
+                    observer.observer.initialize();
+            }
+            /**
+             * @function clear
+             * @description Reset the model, clearing nested models, observers, and signals.
+             * @param {boolean} [clearData=true] - Whether to also clear the stored data.
+             */
+            clear(clearData = true) {
+                if (clearData)
+                    this._data = undefined;
+                this.nestedModels.forEach(nested => nested.clear(clearData));
+                if (clearData)
+                    this.nestedModels.clear();
+                this.signals.clear();
+                if (clearData)
+                    this.nestedListeners.clear();
+                if (clearData)
+                    this.changeObservers.forEach(e => this.changeObservers.delete(e));
+                else
+                    this.changeObservers.forEach(e => e.observer.clear());
+                this.isInitialized = false;
+            }
+            /**
+             * @function toJSON
+             * @description Convert the model's data into a JSON-serializable form.
+             * Maps become plain objects. For non-object data types, the raw value is returned.
+             * @returns {object | DataType}
+             */
+            toJSON() {
+                if (typeof this.data !== "object")
+                    return this.data;
+                if (this.data instanceof Map)
+                    return Object.fromEntries(this.data);
+                if (this.data && typeof this.data === "object") {
+                    const out = {};
+                    for (const k of this.keys)
+                        out[k] = this.get(k);
+                    return out;
+                }
+                return {};
+            }
+            makeSignal(...keys) {
+                return this.makeSignals(...keys)[0];
+            }
+            /**
+             * @function makeSignals
+             * @description Return reactive {@link SignalBox} instances for multiple keys at the given path.
+             * Pass {@link TurboModel.ALL} at any level of the path to expand all entries at that level.
+             * @template Type - The type of the signals' values.
+             * @param {...KeyType[]} keys - Key path to the signal targets. Use `ALL` at any level to target all entries there.
+             * @returns {SignalBox<Type>[]}
+             */
+            makeSignals(...keys) {
+                if (keys.length === 0)
+                    keys = [TurboModel.ALL];
+                const maker = (key, model) => {
+                    if (model.signals.has(key))
+                        return model.signals.get(key);
+                    const sig = signal(() => model.get(key), (value) => model.set(value, key), this, key);
+                    model.signals.set(key, sig);
+                    return sig;
+                };
+                const pathKeys = keys.slice(0, -1);
+                const signalKey = keys[keys.length - 1];
+                const models = this.nestAll(...pathKeys);
+                if (signalKey === TurboModel.ALL)
+                    return models.flatMap(model => model.keys.map(k => maker(k, model)));
+                return models.map(model => maker(signalKey, model));
+            }
+            getSignal(...keys) {
+                return this.getNested(...keys.slice(0, -1)).signals.get(keys[keys.length - 1]);
+            }
+            nestAll(...args) {
+                const lastEntry = args[args.length - 1];
+                const properties = lastEntry !== null && typeof lastEntry === "object" ? lastEntry : {};
+                const keys = args.slice(0, lastEntry !== null && typeof lastEntry === "object" ? -1 : undefined);
+                if (keys.length === 0)
+                    return [this];
+                turbo(properties).applyDefaults({ bubbleChanges: this.bubbleChanges, enabledCallbacks: this.enabledCallbacks });
+                return this.nestRecur(keys, properties);
+            }
+            nestRecur(keys, properties) {
+                if (keys.length === 0)
+                    return [this];
+                if (keys[0] === TurboModel.ALL) {
+                    this.nestedListeners.add({
+                        listener: (selfKeys) => this.createNestedChild(this, selfKeys[0], properties).nestRecur(keys.slice(1), properties),
+                        keys: keys.slice(1)
+                    });
+                    return this.keys.flatMap(key => this.createNestedChild(this, key, properties).nestRecur(keys.slice(1), properties));
+                }
+                else
+                    return this.createNestedChild(this, keys[0], properties).nestRecur(keys.slice(1), properties);
+            }
+            nest(...keysAndProperties) {
+                return this.nestAll(...keysAndProperties)[0];
+            }
+            getNested(...keys) {
+                if (keys.length === 0)
+                    return this;
+                const nested = this.nestedModels.get(keys[0]);
+                if (keys.length > 1 && nested instanceof TurboModel)
+                    return nested.getNested(...keys.slice(1));
+                return nested;
+            }
+            /*
+             *
+             * Change observers
+             *
+             */
+            /**
+             * @function generateObserver
+             * @description Create and attach a {@link TurboObserver} to this model.
+             * If a key path is provided, the observer is attached to the nested model(s) at that path instead.
+             * Pass {@link TurboModel.ALL} at any level of the path to process all entries at that level,
+             * allowing a single observer to track multiple subtrees simultaneously.
+             * @param {TurboObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
+             * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe. Use `ALL` at
+             * any level to process all entries there.
+             * @returns {TurboObserver<DataEntryType, ComponentType, KeyType>}
+             */
+            generateObserver(properties = {}, ...keys) {
+                const initialize = (this.isInitialized && isUndefined(properties.initialize)) || properties.initialize === true;
+                const observer = new (properties.customConstructor
+                    ?? this.observerConstructor
+                    ?? (TurboObserver))({
+                    ...properties,
+                    initialize: false,
+                    onDestroy: (self) => {
+                        Array.from(this.changeObservers)
+                            .filter(e => e.observer === self)
+                            .forEach(e => this.changeObservers.delete(e));
+                        properties.onDestroy?.(self);
+                    },
+                    onInitialize: (self) => {
+                        this.initializeObserverOnPath(this.data, self, keys, []);
+                        properties.onInitialize?.(self);
+                    }
+                });
+                this.changeObservers.add({ keys, observer });
+                if (initialize)
+                    observer.initialize();
+                return observer;
+            }
+            /**
+             * @function generateDeepObserver
+             * @description Like {@link generateObserver}, but fires for the registered depth **and all deeper levels**.
+             * Whereas `generateObserver(..., TurboModel.ALL)` only notifies at depth-2, `generateDeepObserver(..., TurboModel.ALL)`
+             * also notifies for depth-3, depth-4, etc. — passing the full key path to `onAdded`/`onUpdated`/`onDeleted`.
+             * Use when you need to react to any nested change regardless of depth.
+             * @param {TurboObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
+             * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe.
+             * @returns {TurboObserver<DataEntryType, ComponentType, KeyType>}
+             */
+            generateDeepObserver(properties = {}, ...keys) {
+                const initialize = (this.isInitialized && isUndefined(properties.initialize)) || properties.initialize === true;
+                const observer = new (properties.customConstructor
+                    ?? this.observerConstructor
+                    ?? (TurboObserver))({
+                    ...properties,
+                    initialize: false,
+                    onDestroy: (self) => {
+                        Array.from(this.changeObservers)
+                            .filter(e => e.observer === self)
+                            .forEach(e => this.changeObservers.delete(e));
+                        properties.onDestroy?.(self);
+                    },
+                    onInitialize: (self) => {
+                        this.initializeObserverOnPath(this.data, self, keys, [], true);
+                        properties.onInitialize?.(self);
+                    }
+                });
+                this.changeObservers.add({ keys, observer, deep: true });
+                if (initialize)
+                    observer.initialize();
+                return observer;
+            }
+            initializeObserverOnPath(data, observer, keys, prefixKeys, deep = false) {
+                if (keys.length === 0) {
+                    if (!this.isInitialized)
+                        return;
+                    for (const key of this.getKeysAction(data)) {
+                        const value = this.getAction(data, key);
+                        observer.keyChanged([...prefixKeys, key], value);
+                        if (deep && value !== null && typeof value === "object")
+                            this.initializeObserverOnPath(value, observer, [], [...prefixKeys, key], deep);
+                    }
+                }
+                else if (keys[0] === TurboModel.ALL)
+                    for (const key of this.getKeysAction(data)) {
+                        this.initializeObserverOnPath(this.getAction(data, key), observer, keys.slice(1), [...prefixKeys, key], deep);
+                    }
+                else
+                    this.initializeObserverOnPath(this.getAction(data, keys[0]), observer, keys.slice(1), [...prefixKeys, keys[0]], deep);
+            }
+            /*
+             *
+             * Internal utilities
+             *
+             */
+            /**
+             * @protected
+             * @function keyChanged
+             * @description Called internally whenever an entry is added, updated, or deleted.
+             * Emits signals, fires {@link onKeyChanged}, and notifies attached observers.
+             * @param {KeyType[]} keys - The key path that changed.
+             * @param {unknown} [value] - The new value. Defaults to the current value at the key.
+             * @param {boolean} [deleted=false] - Whether the entry was removed.
+             */
+            keyChanged(keys, value = this.get(...keys), deleted = false) {
+                const key = keys[0];
+                if (key === undefined)
+                    return;
+                this.signals.get(key)?.emit();
+                markDirtyPath(this, keys);
+                if (deleted)
+                    this.signals.delete(key);
+                if (!this.enabledCallbacks)
+                    return;
+                if (!deleted && !this.nestedModels.has(key) && this.nestedListeners.size > 0)
+                    this.nestedListeners.forEach(({ listener }) => listener(keys, value));
+                this.onKeyChanged.fire(value, ...keys);
+                this.changeObservers.forEach(({ observer, keys: pattern, deep }) => this.matchObserverAndNotify(observer, keys, pattern, [], value, deleted, deep));
+            }
+            matchObserverAndNotify(observer, incomingKeys, pattern, prefixKeys, value, deleted, deep = false) {
+                if (!observer.isInitialized)
+                    return;
+                if (pattern.length === 0) {
+                    if (incomingKeys.length === 0) {
+                        if (!deleted && value !== null && typeof value === "object") {
+                            for (const key of this.getKeysAction(value)) {
+                                observer.keyChanged([...prefixKeys, key], this.getAction(value, key), deleted);
+                            }
+                        }
+                        else if (deleted) {
+                            for (const path of observer.getPathsAt(...prefixKeys)) {
+                                observer.keyChanged([...prefixKeys, ...path], undefined, true);
+                            }
+                        }
+                    }
+                    else if (deep)
+                        observer.keyChanged([...prefixKeys, ...incomingKeys], this.get(...prefixKeys, ...incomingKeys), deleted);
+                    else
+                        observer.keyChanged([...prefixKeys, incomingKeys[0]], this.get(...prefixKeys, incomingKeys[0]), deleted && incomingKeys.length === 1);
+                    return;
+                }
+                if (incomingKeys.length === 0) {
+                    if (!deleted && value !== null && typeof value === "object") {
+                        for (const key of this.getKeysAction(value))
+                            this.matchObserverAndNotify(observer, [key], pattern, prefixKeys, this.getAction(value, key), deleted, deep);
+                    }
+                    return;
+                }
+                const [head, ...tail] = incomingKeys;
+                const [patternHead, ...patternTail] = pattern;
+                if (patternHead === TurboModel.ALL || patternHead === head)
+                    this.matchObserverAndNotify(observer, tail, patternTail, [...prefixKeys, head], value, deleted, deep);
+            }
+            static flattenSize(data, depth) {
+                if (!data || depth <= 0)
+                    return 1;
+                if (Array.isArray(data)) {
+                    let total = 0;
+                    for (const item of data)
+                        total += this.flattenSize(item, depth - 1);
+                    return total;
+                }
+                if (typeof data === "object" && typeof data.length === "number" && typeof data.get === "function") {
+                    let total = 0;
+                    for (let i = 0; i < data.length; i++)
+                        total += this.flattenSize(data.get(i), depth - 1);
+                    return total;
+                }
+                return 1;
+            }
+            /**
+             * @function flattenKey
+             * @description Serialize a key path into a single flat key.
+             * - Fully numeric paths into array-backed data produce a numeric global leaf index.
+             * - All other paths produce a `"k0|k1|k2|..."` string, with symbols encoded as `"@@description"`.
+             * @param {...KeyType[]} keys - The key path to serialize.
+             * @returns {FlatKeyType}
+             */
+            flattenKey(...keys) {
+                const stringFLatKey = () => keys.map(k => typeof k === "symbol" ? `@@${k.description ?? ""}` : String(k)).join("|");
+                if (keys.some(k => typeof k !== "number"))
+                    return stringFLatKey();
+                let index = 0;
+                let current = this.data;
+                for (let i = 0; i < keys.length; i++) {
+                    if (!Array.isArray(current))
+                        return stringFLatKey();
+                    const key = keys[i];
+                    for (let sibling = 0; sibling < key; sibling++) {
+                        const siblingData = current[sibling];
+                        index += TurboModel.flattenSize(siblingData, keys.length - i - 1);
+                    }
+                    current = current[key];
+                }
+                return index;
+            }
+            scopeKey(flatKey, depth) {
+                if (typeof flatKey === "string") {
+                    return flatKey.split("|").map(k => {
+                        if (k.startsWith("@@"))
+                            return Symbol(k.slice(2));
+                        const n = Number(k);
+                        return isNaN(n) || k === "" ? k : n;
+                    });
+                }
+                if (depth == null)
+                    depth = 1;
+                const keys = [];
+                let remaining = flatKey;
+                let current = this.data;
+                for (let i = 0; i < depth; i++) {
+                    const isIndexable = Array.isArray(current)
+                        || (typeof current === "object" && current !== null
+                            && typeof current.length === "number" && typeof current.get === "function");
+                    if (!isIndexable)
+                        break;
+                    const remainingDepth = depth - i - 1;
+                    const getItem = Array.isArray(current) ? (j) => current[j] : (j) => current.get(j);
+                    for (let j = 0; j < current.length; j++) {
+                        const size = TurboModel.flattenSize(getItem(j), remainingDepth);
+                        if (remaining < size) {
+                            keys.push(j);
+                            current = getItem(j);
+                            break;
+                        }
+                        remaining -= size;
+                    }
+                }
+                return keys;
+            }
+            /*
+             *
+             * HANDLER
+             *
+             */
+            /**
+             * @function getHandler
+             * @description Retrieves the attached MVC handler with the given key.
+             * By default, unless manually defined in the handler, if the element's class name is MyElement
+             * and the handler's class name is MyElementSomethingHandler, the key would be "something".
+             * @param {string} key - The handler's key.
+             * @return {TurboHandler} - The handler.
+             */
+            getHandler(key) {
+                return this.handlers?.get(key);
+            }
+            /**
+             * @function addHandler
+             * @description Registers a TurboHandler for the given key.
+             * @param {TurboHandler} handler - The handler instance to register.
+             */
+            addHandler(handler) {
+                if (!handler.keyName)
+                    return;
+                this.handlers?.set(handler.keyName, handler);
+            }
+            setDataWithoutInitializing(data) {
+                this.clear(false);
+                this._data = data;
+            }
+            fireCallback(key, ...values) {
+                this.fireCallbackHook?.(key, ...values);
+            }
+            createNestedChild(model, key, properties) {
+                if (model.nestedModels.has(key))
+                    return model.nestedModels.get(key);
+                const child = this.modelConstructor.create({ ...properties, data: model.get(key), initialize: this.isInitialized });
+                model.onKeyChanged.add((value, changedKey) => {
+                    if (changedKey !== key)
+                        return;
+                    if (child.data !== value)
+                        child.data = value;
+                });
+                child.onKeyChanged.add((_value, ...keys) => {
+                    if (!model.enabledCallbacks || !model.bubbleChanges)
+                        return;
+                    model.keyChanged(keys, model.get(key));
+                });
+                model.nestedModels.set(key, child);
+                return child;
+            }
+            ;
+        };
+    })();
+    addRegistryCategory(TurboModel);
+    define(TurboModel);
+
+    /**
+     * @class TurboEmitter
+     * @group MVC
+     * @category Emitter
+     *
+     * @template {TurboModel} ModelType - The element's MVC model type.
+     * @template {KeyType} DataKeyType - The key type of the MVC's model.
+     * @description The base MVC emitter class. Its role is basically an event bus. It allows the different parts of the
+     * MVC structure to fire events or listen to some, with various methods.
+     */
+    class TurboEmitter {
+        /**
+         * @description Map containing all custom callbacks.
+         * @protected
+         */
+        callbacks = new Map();
+        /**
+         * @description Map containing all data callbacks.
+         * @protected
+         */
+        dataCallbacks = new Map();
+        /**
+         * @description The attached MVC model.
+         */
+        model;
+        constructor(model) {
+            if (model)
+                this.model = model;
+        }
+        /**
+         * @function add
+         * @description Register a callback for the given event name.
+         * @param {string} event - The event name.
+         * @param {(...args: any[]) => void} callback - The callback to invoke when the event fires.
+         */
+        add(event, callback) {
+            if (!this.callbacks.has(event))
+                this.callbacks.set(event, new Delegate());
+            this.callbacks.get(event)?.add(callback);
+        }
+        /**
+         * @function remove
+         * @description Remove a specific callback from the given event, or all callbacks if omitted.
+         * @param {string} event - The event name.
+         * @param {(...args: any[]) => void} [callback] - The callback to remove. If omitted,
+         * all callbacks for the event are removed.
+         */
+        remove(event, callback) {
+            if (!callback)
+                this.callbacks.delete(event);
+            else
+                this.callbacks.get(event)?.remove(callback);
+        }
+        /**
+         * @function fire
+         * @description Trigger all callbacks registered for the given event name.
+         * @param {string} event - The event name.
+         * @param {...any[]} args - Arguments passed to each callback.
+         */
+        fire(event, ...args) {
+            this.callbacks.get(event)?.fire(...args);
+        }
+        /**
+         * @function addKey
+         * @description Register a callback fired when the entry at the given key path changes in the model.
+         * The callback receives the new value as its first argument, followed by the key path as spread arguments.
+         * @param {(value: any, ...keys: DataKeyType[]) => void} callback - The callback to register.
+         * @param {...DataKeyType[]} keys - Ordered path from outermost to innermost key.
+         */
+        addKey(callback, ...keys) {
+            const flatKey = this.resolveFlatKey(keys);
+            if (!this.dataCallbacks.has(flatKey))
+                this.dataCallbacks.set(flatKey, new Delegate());
+            this.dataCallbacks.get(flatKey)?.add(callback);
+        }
+        /**
+         * @function removeKey
+         * @description Remove a specific callback for the given key path, or all callbacks if omitted.
+         * @param {(value: any, ...keys: DataKeyType[]) => void} [callback] - The callback to remove. If omitted,
+         * all callbacks for this path are removed.
+         * @param {...DataKeyType[]} keys - Ordered path from outermost to innermost key.
+         */
+        removeKey(callback, ...keys) {
+            const flatKey = this.resolveFlatKey(keys);
+            if (!callback)
+                this.dataCallbacks.delete(flatKey);
+            else
+                this.dataCallbacks.get(flatKey)?.remove(callback);
+        }
+        /**
+         * @function fireKey
+         * @description Trigger all callbacks registered for the given key path.
+         * Called automatically when the model fires a change notification at this path.
+         * @param {any} value - The new value at the key path.
+         * @param {...DataKeyType[]} keys - Ordered path from outermost to innermost key.
+         */
+        fireKey(value, ...keys) {
+            const flatKey = this.resolveFlatKey(keys);
+            this.dataCallbacks.get(flatKey)?.fire(value, ...keys);
+        }
+        /**
+         * @protected
+         * @function resolveFlatKey
+         * @description Convert a key path to a stable flat string key for internal storage lookup. Joins with `"|"`.
+         * @param {DataKeyType[]} keys - The key path to flatten.
+         * @returns {FlatKeyType}
+         */
+        resolveFlatKey(keys) {
+            return keys.map(k => typeof k === "symbol" ? `@@${k.description ?? ""}` : String(k)).join("|");
+        }
+    }
+    addRegistryCategory(TurboEmitter);
+    define(TurboEmitter);
+
+    const proxyWrapperSymbol = Symbol("__proxyWrapper__");
+    class MvcFunctionsUtils {
+        dataMap = new WeakMap;
+        modelLookupMap = new WeakMap;
+        peek(element) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (element instanceof TurboModel)
+                element = this.modelLookupMap.get(element)?.values().next().value;
+            return element ? this.dataMap.get(element) : undefined;
+        }
+        data(element) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (element instanceof TurboModel)
+                element = this.modelLookupMap.get(element)?.values().next().value;
+            if (!element)
+                return;
+            let entry = this.dataMap.get(element);
+            if (!entry) {
+                entry = {
+                    emitter: new TurboEmitter(),
+                    operators: new Map(), constrainers: new Map(), interactors: new Map(), tools: new Map(),
+                    emitterCallback: (key, ...values) => entry.emitter?.fire(key, ...values),
+                    emitterKeyCallback: (value, ...keys) => entry.emitter?.fireKey(value, ...keys)
+                };
+                this.dataMap.set(element, entry);
+            }
+            return entry;
+        }
+        attachModel(element, model, attach = true) {
+            if (!element || !model)
+                return;
+            if (attach && !this.modelLookupMap.has(model))
+                this.modelLookupMap.set(model, new Set());
+            if (attach)
+                this.modelLookupMap.get(model).add(element);
+            else
+                this.modelLookupMap.get(model).delete(element);
+        }
+        updateModel(element, model, attach = true) {
+            if (!element || !model)
+                return;
+            const mvc = this.peek(element);
+            if (!mvc)
+                return;
+            if (attach) {
+                if (!model.onKeyChanged.has(mvc.emitterKeyCallback))
+                    model.onKeyChanged.add(mvc.emitterKeyCallback);
+                model.fireCallbackHook = mvc.emitterCallback;
+            }
+            else {
+                model.onKeyChanged.remove(mvc.emitterKeyCallback);
+                model.fireCallbackHook = undefined;
+            }
+        }
+        updateView(element, view, attach = true) {
+            if (!view || !element)
+                return;
+            const mvc = this.peek(element);
+            if (!mvc)
+                return;
+            view.emitter = attach ? mvc.emitter : undefined;
+            view.model = attach ? mvc.model : undefined;
+        }
+        updateEmitter(element, emitter, attach = true) {
+            if (!emitter || !element)
+                return;
+            const mvc = this.peek(element);
+            if (!mvc)
+                return;
+            emitter.model = attach ? mvc.model : undefined;
+        }
+        updateOperator(element, operator, attach = true) {
+            if (!operator || !element)
+                return;
+            const mvc = this.peek(element);
+            if (!mvc)
+                return;
+            operator.emitter = attach ? mvc.emitter : undefined;
+            operator.model = attach ? mvc.model : undefined;
+            operator.view = attach ? mvc.view : undefined;
+        }
+        updateHandler(element, handler, attach = true) {
+            if (!element || !handler)
+                return;
+            const mvc = this.peek(element);
+            if (!mvc)
+                return;
+            handler.model = attach ? mvc.model : undefined;
+        }
+        updateInteractor(element, interactor, attach = true) {
+            if (!element || !interactor)
+                return;
+            const mvc = this.peek(element);
+            if (!mvc)
+                return;
+            interactor.model = attach ? mvc.model : undefined;
+            interactor.view = attach ? mvc.view : undefined;
+            interactor.emitter = attach ? mvc.emitter : undefined;
+        }
+        updateTool(element, tool, attach = true) {
+            if (!element || !tool)
+                return;
+            const mvc = this.peek(element);
+            if (!mvc)
+                return;
+            tool.model = attach ? mvc.model : undefined;
+            tool.view = attach ? mvc.view : undefined;
+            tool.emitter = attach ? mvc.emitter : undefined;
+        }
+        updateConstrainer(element, constrainer, attach = true) {
+            if (!element || !constrainer)
+                return;
+            const mvc = this.peek(element);
+            if (!mvc)
+                return;
+            constrainer.model = attach ? mvc.model : undefined;
+            constrainer.view = attach ? mvc.view : undefined;
+            constrainer.emitter = attach ? mvc.emitter : undefined;
+        }
+        linkPieces(element) {
+            if (!element)
+                return;
+            const mvc = this.peek(element);
+            if (!mvc)
+                return;
+            this.updateModel(element, mvc.model);
+            this.updateEmitter(element, mvc.emitter);
+            this.updateView(element, mvc.view);
+            mvc.operators.forEach(operator => this.updateOperator(element, operator));
+            mvc.model?.handlers.forEach(handler => this.updateHandler(element, handler));
+            mvc.interactors.forEach(interactor => this.updateInteractor(element, interactor));
+            mvc.tools.forEach(tool => this.updateTool(element, tool));
+            mvc.constrainers.forEach(constrainer => this.updateConstrainer(element, constrainer));
+        }
+        removeInstance(element, kind, keyOrInstance) {
+            if (!element)
+                return;
+            const map = kind === "handler" ? this.peek(element)?.model?.handlers : this.peek(element)?.[kind + "s"];
+            if (!map)
+                return;
+            const key = typeof keyOrInstance === "string" ? keyOrInstance
+                : Array.from(map.entries()).find(([, v]) => v === keyOrInstance)?.[0];
+            if (!key)
+                return;
+            const methodName = "update" + kind.charAt(0).toUpperCase() + kind.slice(1);
+            this[methodName]?.(element, map.get(key), false);
+            map.delete(key);
+        }
+        generateInstance(data, element) {
+            if (!data)
+                return undefined;
+            // If element is a raw DOM node backing a TurboProxiedElement, pass the wrapper instead so
+            // that view/operator/etc. constructors receive the public class instance (e.g. FlowEntry)
+            // rather than the internal <g> element.
+            const effectiveElement = element?.[proxyWrapperSymbol] ?? element;
+            if (typeof data === "function")
+                return new data(effectiveElement ? { element: effectiveElement } : undefined);
+            return data;
+        }
+        generateInstances(data, element) {
+            if (!data)
+                return [];
+            if (typeof data !== "object" || !Array.isArray(data))
+                data = [data];
+            const result = [];
+            data.forEach(constructor => {
+                const instance = this.generateInstance(constructor, element);
+                if (instance)
+                    result.push(instance);
+            });
+            return result;
+        }
+        /**
+         * @protected
+         * @function extractClassEssenceName
+         * @description Utility that derives a shorter "essence" key name for an MVC piece from its constructor name.
+         * It strips the element/class name prefix (if any) and the type suffix (e.g., "Operator", "Tool") to
+         * produce a key that reads well in camelCase (e.g., `MyElementSnapOperator` -> `snap`).
+         * @param element
+         * @param {new (...args: any[]) => any} constructor - The constructor to derive the name from.
+         * @param {string} type - The type suffix to strip (e.g., "Operator", "Handler", "Tool", "Constrainer").
+         * @returns {string} - A lower-cased, camel-style key name derived from the constructor.
+         */
+        extractClassEssenceName(element, constructor, type) {
+            let className = constructor.name;
+            const target = element[proxyWrapperSymbol] ?? element;
+            let prototype = Object.getPrototypeOf(target);
+            while (prototype && prototype.constructor !== Object) {
+                const name = prototype.constructor.name.replaceAll("_", "");
+                if (className.startsWith(name)) {
+                    className = className.slice(name.length);
+                    break;
+                }
+                prototype = Object.getPrototypeOf(prototype);
+            }
+            if (className.endsWith(type))
+                className = className.slice(0, -(type.length));
+            return className.charAt(0).toLowerCase() + className.slice(1);
+        }
+    }
+
+    const MvcFields = ["model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
+    const utils$8 = new MvcFunctionsUtils();
+    function setupMvcFunctions() {
+        Object.defineProperty(TurboSelector.prototype, "mvc", {
+            get() {
+                const data = utils$8.peek(this.element);
+                if (!data)
+                    return {};
+                return {
+                    model: data.model,
+                    view: data.view,
+                    operators: Array.from(data.operators?.values() ?? []),
+                    handlers: Array.from(data.model?.handlers?.values() ?? []),
+                    interactors: Array.from(data.interactors?.values() ?? []),
+                    tools: Array.from(data.tools?.values() ?? []),
+                    constrainers: Array.from(data.constrainers?.values() ?? []),
+                };
+            }, configurable: true, enumerable: true,
+        });
+        // -------------------------------------------------------------------------
+        // Singular pieces
+        // -------------------------------------------------------------------------
+        Object.defineProperty(TurboSelector.prototype, "model", {
+            get() {
+                return utils$8.peek(this.element)?.model;
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                const mvc = utils$8.data(this.element);
+                utils$8.attachModel(this.element, this.model, false);
+                utils$8.updateModel(this.element, mvc.model, false);
+                if (!value)
+                    return;
+                mvc.model = typeof value === "function" ? value.create() : value;
+                utils$8.attachModel(this.element, mvc.model);
+                utils$8.linkPieces(this.element);
+            },
+            configurable: true, enumerable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "view", {
+            get() {
+                return utils$8.peek(this.element)?.view;
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                utils$8.data(this.element).view = utils$8.generateInstance(value, this.element);
+                utils$8.linkPieces(this.element);
+            },
+            configurable: true, enumerable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "emitter", {
+            get() {
+                return utils$8.peek(this.element)?.emitter;
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                utils$8.data(this.element).emitter = utils$8.generateInstance(value);
+                utils$8.linkPieces(this.element);
+            },
+            configurable: true, enumerable: true,
+        });
+        // -------------------------------------------------------------------------
+        // Data
+        // -------------------------------------------------------------------------
+        Object.defineProperty(TurboSelector.prototype, "data", {
+            get() {
+                return utils$8.peek(this.element)?.model?.data;
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                const mvc = utils$8.data(this.element);
+                if (!mvc.model)
+                    return;
+                mvc.model.data = value;
+            },
+            configurable: true, enumerable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "metadata", {
+            get() {
+                return utils$8.peek(this.element)?.model?.meta;
+            },
+            configurable: true, enumerable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "dataId", {
+            get() {
+                return utils$8.peek(this.element)?.model?.id;
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                const mvc = utils$8.data(this.element);
+                if (!mvc.model)
+                    return;
+                mvc.model.id = value;
+            },
+            configurable: true, enumerable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "dataIndex", {
+            get() {
+                return Number.parseInt(this.dataId);
+            },
+            set(value) {
+                this.dataId = value;
+            },
+            configurable: true, enumerable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "dataSize", {
+            get() {
+                return utils$8.peek(this.element)?.model?.dataSize;
+            },
+            configurable: true, enumerable: true,
+        });
+        // -------------------------------------------------------------------------
+        // Collections
+        // -------------------------------------------------------------------------
+        Object.defineProperty(TurboSelector.prototype, "operators", {
+            get() {
+                return Array.from(utils$8.peek(this.element)?.operators.values() ?? []);
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                utils$8.generateInstances(value, this.element).forEach(instance => this.addOperator(instance));
+                utils$8.linkPieces(this.element);
+            },
+            configurable: true, enumerable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "handlers", {
+            get() {
+                return Array.from(utils$8.peek(this.element)?.model?.handlers.values() ?? []);
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                utils$8.generateInstances(value).forEach(instance => this.addHandler(instance));
+            },
+            configurable: true, enumerable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "interactors", {
+            get() {
+                return Array.from(utils$8.peek(this.element)?.interactors.values() ?? []);
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                utils$8.generateInstances(value, this.element).forEach(instance => this.addInteractor(instance));
+                utils$8.linkPieces(this.element);
+            },
+            configurable: true, enumerable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "tools", {
+            get() {
+                return Array.from(utils$8.peek(this.element)?.tools.values() ?? []);
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                utils$8.generateInstances(value, this.element).forEach(instance => this.addTool(instance));
+                utils$8.linkPieces(this.element);
+            },
+            configurable: true, enumerable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "constrainers", {
+            get() {
+                return Array.from(utils$8.peek(this.element)?.constrainers.values() ?? []);
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                utils$8.generateInstances(value, this.element).forEach(instance => this.addConstrainer(instance));
+                utils$8.linkPieces(this.element);
+            },
+            configurable: true, enumerable: true,
+        });
+        // -------------------------------------------------------------------------
+        // Main methods
+        // -------------------------------------------------------------------------
+        TurboSelector.prototype.setMvc = function (properties) {
+            const mvc = utils$8.data(this.element);
+            for (const [key, value] of Object.entries(turbo(properties).extract(MvcFields))) {
+                try {
+                    this[key] = value;
+                }
+                catch { }
+            }
+            if (!mvc.emitter)
+                mvc.emitter = new TurboEmitter();
+            if (properties.data && mvc.model)
+                mvc.model.setDataWithoutInitializing(properties.data);
+            if (properties.initialize === undefined || properties.initialize)
+                this.initializeMvc();
+            return this;
+        };
+        TurboSelector.prototype.initializeMvc = function () {
+            if (!this.element)
+                return this;
+            const mvc = utils$8.peek(this.element);
+            if (!mvc)
+                return this;
+            mvc.view?.initialize();
+            mvc.operators.forEach(operator => operator.initialize());
+            mvc.interactors.forEach(interactor => interactor.initialize());
+            mvc.tools.forEach(tool => tool.initialize());
+            mvc.constrainers.forEach(constrainer => constrainer.initialize());
+            mvc.model?.initialize();
+            return this;
+        };
+        TurboSelector.prototype.getMvcDifference = function (properties = {}) {
+            const difference = {};
+            const toConstructor = (x) => {
+                if (!x)
+                    return;
+                if (typeof x === "function")
+                    return x;
+                if (typeof x === "object")
+                    return x.constructor;
+            };
+            const toConstructorList = (x) => {
+                if (!x)
+                    return [];
+                const arr = Array.isArray(x) ? x : [x];
+                return arr.map(toConstructor).filter(Boolean);
+            };
+            const processField = (field) => {
+                if (!this[field])
+                    return;
+                const current = toConstructor(this[field]);
+                const external = toConstructor(properties[field]);
+                if (current === external)
+                    return;
+                difference[field] = current;
+            };
+            const processArray = (field) => {
+                if (!this[field] || this[field].length === 0)
+                    return;
+                const current = new Set(toConstructorList(this[field]));
+                const external = new Set(toConstructorList(properties[field] ?? []));
+                const result = [];
+                for (const entry of current)
+                    if (!external.has(entry))
+                        result.push(entry);
+                if (result.length > 0)
+                    difference[field] = result;
+            };
+            processField("view");
+            processField("model");
+            processField("emitter");
+            processArray("operators");
+            processArray("handlers");
+            processArray("interactors");
+            processArray("tools");
+            processArray("constrainers");
+            return difference;
+        };
+        // -------------------------------------------------------------------------
+        // Manipulations
+        // -------------------------------------------------------------------------
+        TurboSelector.prototype.getOperator = function (key) {
+            return utils$8.peek(this.element)?.operators.get(key);
+        };
+        TurboSelector.prototype.addOperator = function (operator) {
+            if (!this.element)
+                return this;
+            if (!operator.keyName)
+                operator.keyName =
+                    utils$8.extractClassEssenceName(this.element, operator.constructor, "Operator");
+            const data = utils$8.data(this.element);
+            if (data.operators.has(operator.keyName))
+                return this;
+            data.operators.set(operator.keyName, operator);
+            utils$8.updateOperator(this.element, operator);
+            return this;
+        };
+        TurboSelector.prototype.removeOperator = function (keyOrInstance) {
+            if (!this.element)
+                return this;
+            utils$8.removeInstance(this.element, "operator", keyOrInstance);
+            return this;
+        };
+        TurboSelector.prototype.getHandler = function (key) {
+            return utils$8.peek(this.element)?.model?.handlers.get(key);
+        };
+        TurboSelector.prototype.addHandler = function (handler) {
+            if (!this.element)
+                return this;
+            if (!handler.keyName)
+                handler.keyName =
+                    utils$8.extractClassEssenceName(this.element, handler.constructor, "Handler");
+            const data = utils$8.data(this.element);
+            if (data.model?.handlers.has(handler.keyName))
+                return this;
+            data.model?.handlers.set(handler.keyName, handler);
+            utils$8.updateHandler(this.element, handler);
+            return this;
+        };
+        TurboSelector.prototype.removeHandler = function (keyOrInstance) {
+            if (!this.element)
+                return this;
+            utils$8.removeInstance(this.element, "handler", keyOrInstance);
+            return this;
+        };
+        TurboSelector.prototype.getInteractor = function (key) {
+            return utils$8.peek(this.element)?.interactors.get(key);
+        };
+        TurboSelector.prototype.addInteractor = function (interactor) {
+            if (!this.element)
+                return this;
+            if (!interactor.keyName)
+                interactor.keyName =
+                    utils$8.extractClassEssenceName(this.element, interactor.constructor, "Interactor");
+            const data = utils$8.data(this.element);
+            if (data.interactors.has(interactor.keyName))
+                return this;
+            data.interactors.set(interactor.keyName, interactor);
+            utils$8.updateInteractor(this.element, interactor);
+            return this;
+        };
+        TurboSelector.prototype.removeInteractor = function (keyOrInstance) {
+            if (!this.element)
+                return this;
+            utils$8.removeInstance(this.element, "interactor", keyOrInstance);
+            return this;
+        };
+        TurboSelector.prototype.getTool = function (key) {
+            return utils$8.peek(this.element)?.tools.get(key);
+        };
+        TurboSelector.prototype.addTool = function (tool) {
+            if (!this.element)
+                return this;
+            if (!tool.keyName)
+                tool.keyName =
+                    utils$8.extractClassEssenceName(this.element, tool.constructor, "Tool");
+            const data = utils$8.data(this.element);
+            if (data.tools.has(tool.keyName))
+                return this;
+            data.tools.set(tool.keyName, tool);
+            utils$8.updateTool(this.element, tool);
+            return this;
+        };
+        TurboSelector.prototype.removeTool = function (keyOrInstance) {
+            if (!this.element)
+                return this;
+            utils$8.removeInstance(this.element, "tool", keyOrInstance);
+            return this;
+        };
+        TurboSelector.prototype.getConstrainer = function (key) {
+            return utils$8.peek(this.element)?.constrainers.get(key);
+        };
+        TurboSelector.prototype.addConstrainer = function (constrainer) {
+            if (!this.element)
+                return this;
+            if (!constrainer.keyName)
+                constrainer.keyName =
+                    utils$8.extractClassEssenceName(this.element, constrainer.constructor, "Constrainer");
+            const data = utils$8.data(this.element);
+            if (data.constrainers.has(constrainer.keyName))
+                return this;
+            data.constrainers.set(constrainer.keyName, constrainer);
+            utils$8.updateConstrainer(this.element, constrainer);
+            return this;
+        };
+        TurboSelector.prototype.removeConstrainer = function (keyOrInstance) {
+            if (!this.element)
+                return this;
+            utils$8.removeInstance(this.element, "constrainer", keyOrInstance);
+            return this;
+        };
+    }
+
+    function defineDefaultProperties(constructor) {
+        const prototype = constructor.prototype;
+        const initializedKey = Symbol("__initialized__");
+        Object.defineProperty(prototype, "destroy", {
+            value: function () { },
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, "initialized", {
+            get: function () {
+                return this[initializedKey] ?? false;
+            },
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, "initialize", {
+            value: function () {
+                if (this[initializedKey])
+                    return;
+                this[initializedKey] = true;
+                this.setupUIElements?.();
+                this.setupUILayout?.();
+                this.setupUIListeners?.();
+                this.setupFields?.();
+                this.setupChangedCallbacks?.();
+                turbo(this).initializeMvc();
+                initializeEffects(this);
+            },
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, "clone", {
+            value: function (properties) { return turbo(this).clone(properties); },
+            configurable: true,
+            enumerable: false,
+        });
+        const ffKey = Symbol("__defaultFeedforwardProperties__");
+        Object.defineProperty(prototype, "defaultFeedforwardProperties", {
+            get() {
+                if (!this[ffKey])
+                    this[ffKey] = {};
+                return this[ffKey];
+            },
+            set(value) { this[ffKey] = value; },
+            configurable: true,
+            enumerable: true
+        });
+        Object.defineProperty(prototype, "feedforward", {
+            value: function (properties) { return turbo(this).feedforward(properties); },
+            configurable: true,
+            enumerable: false,
+        });
+    }
+
+    /**
+     * Define MVC-style accessors on a class prototype via Object.defineProperty.
+     * Adds: view, model, emitter, operators, handlers, interactors, tools, constrainers,
+     * data, dataId, dataIndex, dataSize, and all add/get/remove methods.
+     */
+    function defineMvcAccessors(constructor) {
+        const prototype = constructor.prototype;
+        // Fields — proxy through turbo(this)
+        [...MvcFields, "data", "dataId", "dataIndex"].forEach(fieldName => {
+            Object.defineProperty(prototype, fieldName, {
+                get() { return turbo(this)[fieldName]; },
+                set(value) { turbo(this)[fieldName] = value; },
+                configurable: true,
+                enumerable: true,
+            });
+        });
+        ["dataSize"].forEach(fieldName => {
+            Object.defineProperty(prototype, fieldName, {
+                get() { return turbo(this)[fieldName]; },
+                configurable: true,
+                enumerable: true,
+            });
+        });
+    }
+
+    function defineUIPrototype(constructor) {
+        const prototype = constructor.prototype;
+        const shadowDOMKey = Symbol("__shadow_dom__");
+        const unsetDefaultClassesKey = Symbol("__unset_default_classes__");
+        const defaultClassesKey = Symbol("__default_classes__");
+        Object.defineProperty(prototype, "shadowDOM", {
+            get: function () { return this[shadowDOMKey] ?? false; },
+            set: function (value) {
+                this[shadowDOMKey] = value;
+                const el = this.element;
+                if (value && !el.shadowRoot)
+                    try {
+                        el.attachShadow({ mode: "open" });
+                    }
+                    catch { }
+                if (el.shadowRoot) {
+                    const from = value ? el : el.shadowRoot;
+                    const to = value ? el.shadowRoot : el;
+                    while (from.childNodes.length > 0)
+                        to.appendChild(from.childNodes[0]);
+                }
+            },
+            enumerable: true,
+            configurable: true,
+        });
+        Object.defineProperty(prototype, "unsetDefaultClasses", {
+            get: function () { return this[unsetDefaultClassesKey] ?? false; },
+            set: function (value) {
+                this[unsetDefaultClassesKey] = value;
+                turbo(this).toggleClass(this.defaultClasses, !value);
+            },
+            enumerable: true,
+            configurable: true,
+        });
+        Object.defineProperty(prototype, "defaultClasses", {
+            get: function () { return this[defaultClassesKey] ?? ""; },
+            set: function (value) {
+                if (!this.unsetDefaultClasses)
+                    turbo(this).toggleClass(this[defaultClassesKey], false);
+                this[defaultClassesKey] = value;
+                if (!this.unsetDefaultClasses)
+                    turbo(this).toggleClass(value, true);
+            },
+            enumerable: true,
+            configurable: true,
+        });
+    }
+
+    const VOID       = -1;
+    const PRIMITIVE  = 0;
+    const ARRAY      = 1;
+    const OBJECT     = 2;
+    const DATE       = 3;
+    const REGEXP     = 4;
+    const MAP        = 5;
+    const SET        = 6;
+    const ERROR      = 7;
+    const BIGINT     = 8;
+    // export const SYMBOL = 9;
+
+    const env = typeof self === 'object' ? self : globalThis;
+
+    const guard = (name, init) => {
+      switch (name) {
+        case 'Function':
+        case 'SharedWorker':
+        case 'Worker':
+        case 'eval':
+        case 'setInterval':
+        case 'setTimeout':
+          throw new TypeError('unable to deserialize ' + name);
+      }
+      return new env[name](init);
+    };
+
+    const deserializer = ($, _) => {
+      const as = (out, index) => {
+        $.set(index, out);
+        return out;
+      };
+
+      const unpair = index => {
+        if ($.has(index))
+          return $.get(index);
+
+        const [type, value] = _[index];
+        switch (type) {
+          case PRIMITIVE:
+          case VOID:
+            return as(value, index);
+          case ARRAY: {
+            const arr = as([], index);
+            for (const index of value)
+              arr.push(unpair(index));
+            return arr;
+          }
+          case OBJECT: {
+            const object = as({}, index);
+            for (const [key, index] of value)
+              object[unpair(key)] = unpair(index);
+            return object;
+          }
+          case DATE:
+            return as(new Date(value), index);
+          case REGEXP: {
+            const {source, flags} = value;
+            return as(new RegExp(source, flags), index);
+          }
+          case MAP: {
+            const map = as(new Map, index);
+            for (const [key, index] of value)
+              map.set(unpair(key), unpair(index));
+            return map;
+          }
+          case SET: {
+            const set = as(new Set, index);
+            for (const index of value)
+              set.add(unpair(index));
+            return set;
+          }
+          case ERROR: {
+            const {name, message} = value;
+            return as(
+              typeof env[name] === 'function' ?
+                guard(name, message) :
+                new Error(message),
+              index
+            );
+          }
+          case BIGINT:
+            return as(BigInt(value), index);
+          case 'BigInt':
+            return as(Object(BigInt(value)), index);
+          case 'ArrayBuffer':
+            return as(new Uint8Array(value).buffer, value);
+          case 'DataView': {
+            const { buffer } = new Uint8Array(value);
+            return as(new DataView(buffer), value);
+          }
+        }
+        return as(guard(type, value), index);
+      };
+
+      return unpair;
+    };
+
+    /**
+     * @typedef {Array<string,any>} Record a type representation
+     */
+
+    /**
+     * Returns a deserialized value from a serialized array of Records.
+     * @param {Record[]} serialized a previously serialized value.
+     * @returns {any}
+     */
+    const deserialize = serialized => deserializer(new Map, serialized)(0);
+
+    /*! (c) Andrea Giammarchi - ISC */
+
+
+    const {parse: $parse} = JSON;
+
+    /**
+     * Revive a previously stringified structured clone.
+     * @param {string} str previously stringified data as string.
+     * @returns {any} whatever was previously stringified as clone.
+     */
+    const parse = str => deserialize($parse(str));
+
+    /**
+     * @class TurboElement
+     * @group TurboElement
+     * @category TurboElement
+     *
+     * @extends HTMLElement
+     * @description Base TurboElement class, extending the base HTML element with a few useful tools and functions.
+     * @template {TurboView} ViewType - The element's view type, if initializing MVC.
+     * @template {object} DataType - The element's data type, if initializing MVC.
+     * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
+     * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+     * */
+    class TurboElement extends HTMLElement {
+        /**
+         * @description Default properties assigned to a new instance.
+         */
+        static defaultProperties = {
+            defaultSelectedClasses: "selected"
+        };
+        // public static create<Type extends new (...args: any[]) => TurboElement>
+        // (this: Type, properties: InstanceType<Type>["properties"] = {}): InstanceType<Type> {
+        //     return (this as any).customCreate.call(this, properties);
+        // }
+        static create(properties) {
+            return this.customCreate(properties ?? {});
+        }
+        static customCreate(properties) {
+            const prototypeChain = getPrototypeChain(this);
+            for (const prototype of prototypeChain)
+                turbo(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+            return element({ ...properties });
+        }
+        /**
+         * @description Delegate fired when the element is attached to DOM.
+         */
+        onAttach = new Delegate();
+        /**
+         * @description Delegate fired when the element is detached from the DOM.
+         */
+        onDetach = new Delegate();
+        /**
+         * @description Delegate fired when the element is adopted by a new parent in the DOM.
+         */
+        onAdopt = new Delegate();
+        /**
+         * @function setupChangedCallbacks
+         * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
+         * @protected
+         */
+        setupChangedCallbacks() {
+        }
+        /**
+         * @function setupUIElements
+         * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
+         * them in fields. Called on `initialize()`.
+         * @protected
+         */
+        setupUIElements() {
+        }
+        /**
+         * @function setupUILayout
+         * @description Setup method to create the layout structure of the element by adding all created sub-elements to
+         * this element's child tree. Called on `initialize()`.
+         * @protected
+         */
+        setupUILayout() {
+        }
+        /**
+         * @function setupUIListeners
+         * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
+         * `initialize()`.
+         * @protected
+         */
+        setupUIListeners() {
+        }
+        /**
+         * @function connectedCallback
+         * @description function called when the element is attached to the DOM.
+         */
+        connectedCallback() {
+            if (!this.initialized) {
+                const prototypeChain = getPrototypeChain(this);
+                const defaults = {};
+                for (const proto of prototypeChain)
+                    turbo(defaults).applyDefaults(proto.constructor?.["defaultProperties"]);
+                const toApply = {};
+                for (const [key, value] of Object.entries(defaults))
+                    if (isUndefined(this[key]))
+                        toApply[key] = value;
+                turbo(this).setProperties(toApply);
+                for (const attribute of this.constructor["observedAttributes"] ?? []) {
+                    if (!this.hasAttribute(attribute))
+                        continue;
+                    const property = kebabToCamelCase(attribute);
+                    const current = this.getAttribute(attribute);
+                    this[property] = parse(current);
+                }
+            }
+            this.onAttach.fire();
+        }
+        /**
+         * @function disconnectedCallback
+         * @description function called when the element is detached from the DOM.
+         */
+        disconnectedCallback() {
+            this.onDetach.fire();
+        }
+        /**
+         * @function adoptedCallback
+         * @description function called when the element is adopted by a new parent in the DOM.
+         */
+        adoptedCallback() {
+            this.onAdopt.fire();
+        }
+    }
+    (() => {
+        defineDefaultProperties(TurboElement);
+        defineMvcAccessors(TurboElement);
+        defineUIPrototype(TurboElement);
+    })();
+    addRegistryCategory(TurboElement);
+
+    /**
+     * @class TurboBaseElement
+     * @group TurboElement
+     * @category TurboBaseElement
+     *
+     * @description TurboHeadlessElement class, similar to TurboElement but without extending HTMLElement.
+     * @template {TurboView} ViewType - The element's view type, if initializing MVC.
+     * @template {object} DataType - The element's data type, if initializing MVC.
+     * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
+     * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+     */
+    class TurboBaseElement {
+        /**
+         * @description Default properties assigned to a new instance.
+         */
+        static defaultProperties = {};
+        static create(properties = {}) {
+            return this.customCreate.call(this, properties);
+        }
+        static customCreate(properties) {
+            const prototypeChain = getPrototypeChain(this);
+            for (const prototype of prototypeChain)
+                turbo(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+            const obj = new this();
+            turbo(obj).setProperties(properties);
+            return obj;
+        }
+    }
+    (() => {
+        defineDefaultProperties(TurboBaseElement);
+    })();
+    addRegistryCategory(TurboBaseElement);
+
+    const elementSymbol = Symbol("___element___");
+    /**
+     * @class TurboProxiedElement
+     * @group TurboElement
+     * @category TurboProxiedElement
+     *
+     * @description TurboProxiedElement class, similar to TurboElement but containing an HTML element instead of being one.
+     * @template {TurboView} ViewType - The element's view type, if initializing MVC.
+     * @template {object} DataType - The element's data type, if initializing MVC.
+     * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
+     * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+     */
+    class TurboProxiedElement {
+        /**
+         * @description Default properties assigned to a new instance.
+         */
+        static defaultProperties = {
+            defaultSelectedClasses: "selected"
+        };
+        static create(properties = {}) {
+            const prototypeChain = getPrototypeChain(this);
+            for (const prototype of prototypeChain)
+                turbo(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+            return this.customCreate.call(this, properties);
+        }
+        static customCreate(properties) {
+            const obj = new this();
+            obj[elementSymbol] = blindElement({ tag: properties["tag"] });
+            // turbo(obj) without raw unwraps to obj.element, which is the same key the model getter
+            // resolves to later. Using raw=true here would key MVC data under obj instead, making
+            // turbo(obj).model return undefined during initialize().
+            // The back-reference lets extractClassEssenceName walk obj's prototype chain (FlowEntry,
+            // etc.) instead of the raw SVGGElement chain, so handler/operator key derivation works.
+            obj[elementSymbol][proxyWrapperSymbol] = obj;
+            const shouldInitialize = properties["initialize"] !== false;
+            turbo(obj).setProperties(Object.assign({}, properties, { initialize: false }));
+            // Dispatch custom wrapper setters that setProperties couldn't reach.
+            // turbo(obj) routes through obj.element (the raw DOM node), so properties that have no
+            // meaning on the raw element (e.g. FlowEntry.flow) are silently dropped. We replay them
+            // onto obj directly — but only when: (1) not an MVC field already handled by TurboSelector,
+            // (2) the raw element has no descriptor for the key (setProperties already handled it), and
+            // (3) obj's prototype chain has a real setter for the key.
+            const rawEl = obj[elementSymbol];
+            for (const [key, value] of Object.entries(properties)) {
+                if (MvcFields.includes(key))
+                    continue;
+                if (getFirstDescriptorInChain(rawEl, key))
+                    continue;
+                const desc = getFirstDescriptorInChain(obj, key);
+                if (desc?.set)
+                    obj[key] = value;
+            }
+            if (shouldInitialize && typeof obj["initialize"] === "function")
+                obj["initialize"]();
+            return obj;
+        }
+        /**
+         * @description The HTML (or other) element wrapped inside this instance.
+         */
+        get element() {
+            return this[elementSymbol];
+        }
+        /**
+         * @function setupChangedCallbacks
+         * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
+         * @protected
+         */
+        setupChangedCallbacks() {
+        }
+        /**
+         * @function setupUIElements
+         * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
+         * them in fields. Called on `initialize()`.
+         * @protected
+         */
+        setupUIElements() {
+        }
+        /**
+         * @function setupUILayout
+         * @description Setup method to create the layout structure of the element by adding all created sub-elements to
+         * this element's child tree. Called on `initialize()`.
+         * @protected
+         */
+        setupUILayout() {
+        }
+        /**
+         * @function setupUIListeners
+         * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
+         * `initialize()`.
+         * @protected
+         */
+        setupUIListeners() {
+        }
+    }
+    (() => {
+        defineDefaultProperties(TurboProxiedElement);
+        defineMvcAccessors(TurboProxiedElement);
+        defineUIPrototype(TurboProxiedElement);
+    })();
+    addRegistryCategory(TurboProxiedElement);
+
+    /**
+     * @class TurboHeadlessElement
+     * @group TurboElement
+     * @category TurboHeadlessElement
+     *
+     * @description TurboHeadlessElement class, similar to TurboElement but without extending HTMLElement.
+     * @template {TurboView} ViewType - The element's view type, if initializing MVC.
+     * @template {object} DataType - The element's data type, if initializing MVC.
+     * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
+     * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+     */
+    class TurboHeadlessElement {
+        /**
+         * @description Default properties assigned to a new instance.
+         */
+        static defaultProperties = {};
+        static create(properties = {}) {
+            return this.customCreate.call(this, properties);
+        }
+        static customCreate(properties) {
+            const prototypeChain = getPrototypeChain(this);
+            for (const prototype of prototypeChain)
+                turbo(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+            const obj = new this();
+            turbo(obj).setProperties(properties);
+            return obj;
+        }
+    }
+    (() => {
+        defineDefaultProperties(TurboHeadlessElement);
+        defineMvcAccessors(TurboHeadlessElement);
+    })();
+    addRegistryCategory(TurboHeadlessElement);
+
+    /**
+     * @group Utilities
+     * @category Numbers
+     */
+    function trim(value, max, min = 0, fallback = 0) {
+        if (value === undefined || typeof value !== "number")
+            return fallback;
+        if (value < min)
+            value = min;
+        if (value > max)
+            value = max;
+        return value;
+    }
+    /**
+     * @group Utilities
+     * @category Numbers
+     */
+    function mod(value, modValue = 0) {
+        while (value < 0)
+            value += modValue;
+        while (value >= modValue)
+            value -= modValue;
+        return value;
+    }
+
+    /**
+     * @group Components
+     * @category Point
+     */
+    class Point {
+        x;
+        y;
+        constructor(x = 0, y = typeof x == "number" ? x : 0) {
+            if (typeof x == "number") {
+                this.x = x;
+                this.y = y;
+            }
+            else if ("clientX" in x) {
+                this.x = x.clientX;
+                this.y = x.clientY;
+            }
+            else if ("x" in x) {
+                this.x = x.x;
+                this.y = x.y;
+            }
+            else {
+                this.x = x[0];
+                this.y = x[1];
+            }
+        }
+        // Static methods
+        /**
+         * @description Calculate the distance between two Position2D points.
+         * @param {Point} p1 - First point
+         * @param {Point} p2 - Second point
+         */
+        static dist(p1, p2) {
+            return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+        }
+        /**
+         * @description Calculate the mid-point from the provided points
+         * @param {Point[]} arr - Undetermined number of point parameters
+         */
+        static midPoint(...arr) {
+            const points = arr.filter(p => p != null);
+            if (points.length == 0)
+                return null;
+            const x = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+            const y = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+            return new Point(x, y);
+        }
+        /**
+         * @description Calculate the max on both x and y from the provided points
+         * @param {Point[]} arr - Undetermined number of point parameters
+         */
+        static max(...arr) {
+            const points = arr.filter(p => p != null);
+            if (points.length == 0)
+                return null;
+            const x = points.reduce((max, p) => Math.max(max, p.x), -Infinity);
+            const y = points.reduce((max, p) => Math.max(max, p.y), -Infinity);
+            return new Point(x, y);
+        }
+        /**
+         * @description Calculate the min on both x and y from the provided points
+         * @param {Point[]} arr - Undetermined number of point parameters
+         */
+        static min(...arr) {
+            const points = arr.filter(p => p != null);
+            if (points.length == 0)
+                return null;
+            const x = points.reduce((min, p) => Math.min(min, p.x), Infinity);
+            const y = points.reduce((min, p) => Math.min(min, p.y), Infinity);
+            return new Point(x, y);
+        }
+        // Instance methods
+        get object() {
+            return { x: this.x, y: this.y };
+        }
+        equals(x, y = 0) {
+            if (typeof x == "number")
+                return this.x == x && this.y == y;
+            return this.x == x.x && this.y == x.y;
+        }
+        boundX(x1, x2) {
+            return this.x < x1 ? x1
+                : this.x > x2 ? x2
+                    : this.x;
+        }
+        boundY(y1, y2) {
+            return this.y < y1 ? y1
+                : this.y > y2 ? y2
+                    : this.y;
+        }
+        bound(x1, x2, y1 = x1, y2 = x2) {
+            return new Point(this.boundX(x1, x2), this.boundY(y1, y2));
+        }
+        add(x, y) {
+            if (typeof x == "number")
+                return new Point(this.x + x, this.y + (y || y == 0 ? y : x));
+            return new Point(this.x + x.x, this.y + x.y);
+        }
+        sub(x, y) {
+            if (typeof x == "number")
+                return new Point(this.x - x, this.y - (y || y == 0 ? y : x));
+            return new Point(this.x - x.x, this.y - x.y);
+        }
+        mul(x, y) {
+            if (typeof x == "number")
+                return new Point(this.x * x, this.y * (y || y == 0 ? y : x));
+            return new Point(this.x * x.x, this.y * x.y);
+        }
+        div(x, y) {
+            if (typeof x == "number")
+                return new Point(this.x / x, this.y / (y || y == 0 ? y : x));
+            return new Point(this.x / x.x, this.y / x.y);
+        }
+        mod(x, y) {
+            const modDiv = typeof x == "number" ?
+                { x: x, y: (y || y == 0 ? y : x) } : { x: x.x, y: x.y };
+            const temp = this.object;
+            while (temp.x < 0)
+                temp.x += modDiv.x;
+            while (temp.x >= modDiv.x)
+                temp.x -= modDiv.x;
+            while (temp.y < 0)
+                temp.y += modDiv.y;
+            while (temp.y >= modDiv.y)
+                temp.y -= modDiv.y;
+            return new Point(temp);
+        }
+        /**
+         * @description Calculate the absolute value of the coordinates
+         * @returns A new Point object with the absolute values
+         */
+        get abs() {
+            return new Point(Math.abs(this.x), Math.abs(this.y));
+        }
+        /**
+         * @description Get the maximum value between x and y coordinates
+         * @returns The maximum value
+         */
+        get max() {
+            return Math.max(this.x, this.y);
+        }
+        /**
+         * @description Get the minimum value between x and y coordinates
+         * @returns The minimum value
+         */
+        get min() {
+            return Math.min(this.x, this.y);
+        }
+        get length2() {
+            return this.x * this.x + this.y * this.y;
+        }
+        get length() {
+            return Math.sqrt(this.length2);
+        }
+        dot(p) {
+            return this.x * p.x + this.y * p.y;
+        }
+        /**
+         * @description Create a copy of the current point
+         * @returns A new Point object with the same coordinates
+         */
+        copy() {
+            return new Point(this.x, this.y);
+        }
+        /**
+         * @description Get the coordinates as an array
+         * @returns An array with x and y coordinates
+         */
+        arr() {
+            return [this.x, this.y];
+        }
+        positionOnSegment(start, end) {
+            const shiftedEnd = end.sub(start);
+            const shiftedLength2 = shiftedEnd.length2;
+            if (shiftedLength2 < 1e-9)
+                return 0;
+            return trim((this.sub(start).dot(shiftedEnd)) / shiftedLength2, 1);
+        }
+        static linearInterpolation(start, end, t) {
+            return start.add(end.sub(start).mul(t));
+        }
+        toString() {
+            return JSON.stringify({ x: this.x, y: this.y });
+        }
+        fromString(value) {
+            try {
+                const parsed = JSON.parse(value);
+                if (typeof parsed.x === "number" && typeof parsed.y === "number")
+                    return new Point(parsed.x, parsed.y);
+            }
+            catch {
+                new Point(0, 0);
+            }
+        }
+    }
+
+    /**
+     * @class TurboMovable
+     * @group Components
+     * @category TurboMovable
+     *
+     * @extends TurboElement
+     * @description Positioning wrapper that places arbitrary content via pure CSS transforms.
+     * Set {@link translation} (alias {@link position}) and {@link rotation} to move/rotate the
+     * wrapper without touching the content's own fields — useful for previews (feedforwards),
+     * ghosts, overlays, or any element that must be positioned independently of how its content
+     * renders itself.
+     *
+     * @example
+     * ```ts
+     * const movable = TurboMovable.create({content: myElement});
+     * movable.translation = new Point(120, 40);
+     * movable.rotation = Math.PI / 6;
+     * movable.translateBy(new Point(5, 0));
+     * ```
+     */
+    let TurboMovable = (() => {
+        let _classSuper = TurboElement;
+        let _instanceExtraInitializers = [];
+        let _translation_decorators;
+        let _translation_initializers = [];
+        let _translation_extraInitializers = [];
+        let _rotation_decorators;
+        let _rotation_initializers = [];
+        let _rotation_extraInitializers = [];
+        let _centerAnchor_decorators;
+        let _centerAnchor_initializers = [];
+        let _centerAnchor_extraInitializers = [];
+        let _set_content_decorators;
+        let _updateTransform_decorators;
+        return class TurboMovable extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _translation_decorators = [signal];
+                _rotation_decorators = [signal];
+                _centerAnchor_decorators = [signal];
+                _set_content_decorators = [auto()];
+                _updateTransform_decorators = [effect];
+                __esDecorate(this, null, _set_content_decorators, { kind: "setter", name: "content", static: false, private: false, access: { has: obj => "content" in obj, set: (obj, value) => { obj.content = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _updateTransform_decorators, { kind: "method", name: "updateTransform", static: false, private: false, access: { has: obj => "updateTransform" in obj, get: obj => obj.updateTransform }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _translation_decorators, { kind: "field", name: "translation", static: false, private: false, access: { has: obj => "translation" in obj, get: obj => obj.translation, set: (obj, value) => { obj.translation = value; } }, metadata: _metadata }, _translation_initializers, _translation_extraInitializers);
+                __esDecorate(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
+                __esDecorate(null, null, _centerAnchor_decorators, { kind: "field", name: "centerAnchor", static: false, private: false, access: { has: obj => "centerAnchor" in obj, get: obj => obj.centerAnchor, set: (obj, value) => { obj.centerAnchor = value; } }, metadata: _metadata }, _centerAnchor_initializers, _centerAnchor_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            /** @description The translation applied to the wrapper, in pixels. */
+            translation = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _translation_initializers, new Point()));
+            /** @description The rotation applied to the wrapper, in radians. */
+            rotation = (__runInitializers(this, _translation_extraInitializers), __runInitializers(this, _rotation_initializers, 0));
+            /** @description When true, the wrapper is offset by -50% so translation refers to its center. */
+            centerAnchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _centerAnchor_initializers, false));
+            /** @description The content element wrapped by this movable. Assigning it appends it as a child. */
+            set content(value) {
+                if (value)
+                    turbo(this).addChild(value);
+            }
+            setupUILayout() {
+                super.setupUILayout();
+                turbo(this).setStyles({ display: "inline-block", position: "absolute", left: "0", top: "0" });
+            }
+            updateTransform() {
+                const offset = this.centerAnchor ? " - 50%" : "";
+                // Instant so per-pointer-event positioning isn't deferred a frame behind by the
+                // rAF-batched style queue.
+                turbo(this).setStyle("transform", `translate3d(
+            calc(${this.translation.x}px${offset}),
+            calc(${this.translation.y}px${offset}),
+            0) rotate(${this.rotation}rad)`, true);
+            }
+            /** @description Add the given delta to the current translation. */
+            translateBy(delta) {
+                this.translation = this.translation.add(delta);
+            }
+            /** @description Add the given angle (radians) to the current rotation. */
+            rotateBy(angle) {
+                this.rotation += angle;
+            }
+            /**
+             * @description Alias of {@link translation}, so code that positions elements through a
+             * `position` field (e.g. constrainer solvers) works on the wrapper as-is.
+             */
+            get position() {
+                return this.translation;
+            }
+            set position(value) {
+                if (!value)
+                    return;
+                this.translation = value instanceof Point ? value : new Point(value);
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _centerAnchor_extraInitializers);
+            }
+        };
+    })();
+    define(TurboMovable, "turbo-movable");
+
+    const utils$7 = new ElementFunctionsUtils();
+    function setupElementFunctions() {
+        /**
+         * Sets the declared properties to the element.
+         * @param {TurboProperties<Tag>} [properties] - The properties object.
+         * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base turbo properties (classes,
+         * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in TurboProperties.
+         * @returns {this} Itself, allowing for method chaining.
+         * @template Tag
+         */
+        TurboSelector.prototype.setProperties = function _setProperties(properties = {}, setOnlyBaseProperties = false) {
+            if (!this.element)
+                return this;
+            const props = { ...properties };
+            const element = this.element instanceof Element ? this.element :
+                this.element["element"] instanceof Element ? this.element["element"] : undefined;
+            turbo(props, true).removeFields(["tag", "namespace"]);
+            const { out, shadowDOM, initialize, parent, model, data, dataId } = turbo(props, true).extract(["out", "shadowDOM", "initialize", "parent", "model", "data", "dataId"]);
+            let mvcUpdated = false;
+            if (out) {
+                if (typeof out == "string")
+                    this["__outName"] = out;
+                else
+                    Object.assign(out, this);
+            }
+            if (!!shadowDOM) {
+                if ("shadowDOM" in this.element)
+                    this["shadowDOM"] = shadowDOM;
+                else if (element)
+                    element.attachShadow({ mode: "open" });
+            }
+            if (!element || (element && !setOnlyBaseProperties)) {
+                if (model) {
+                    this.model = model;
+                    if (data && this.model) {
+                        this.model.setDataWithoutInitializing(data);
+                        this.model.id = dataId;
+                    }
+                    mvcUpdated = true;
+                }
+                const mvc = turbo(props, true).extract(MvcFields);
+                for (const [key, value] of Object.entries(mvc)) {
+                    try {
+                        this[key] = value;
+                        mvcUpdated = true;
+                    }
+                    catch {
+                    }
+                }
+            }
+            if (element) {
+                const elementProps = turbo(props, true).extract(["text", "style",
+                    "stylesheet", "id", "classes", "listeners", "onClick", "onDrag", "children"]);
+                for (const [property, value] of Object.entries(elementProps)) {
+                    if (value === undefined)
+                        continue;
+                    switch (property) {
+                        case "text":
+                            if (element instanceof HTMLElement)
+                                element.innerText = value;
+                            break;
+                        case "style":
+                            if (!(element instanceof HTMLElement || element instanceof SVGElement))
+                                break;
+                            turbo(element).setStyles(value, true);
+                            break;
+                        case "stylesheet":
+                            stylesheet(value, turbo(element).closestRoot);
+                            break;
+                        case "id":
+                            element.id = value;
+                            break;
+                        case "classes":
+                            turbo(element).addClass(value);
+                            break;
+                        case "listeners":
+                            Object.entries(value).forEach(([type, callback]) => turbo(element).on(type, callback));
+                            break;
+                        case "onClick":
+                            turbo(element).on(DefaultEventName.click, value);
+                            break;
+                        case "onDrag":
+                            turbo(element).on(DefaultEventName.drag, value);
+                            break;
+                        case "children":
+                            turbo(element).addChild(value);
+                            break;
+                    }
+                }
+            }
+            if (!element || !setOnlyBaseProperties) {
+                for (const [property, value] of Object.entries(props)) {
+                    if (value === undefined)
+                        continue;
+                    try {
+                        this.element[property] = value;
+                    }
+                    catch {
+                        if (element)
+                            try {
+                                element.setAttribute(property, stringify(value));
+                            }
+                            catch (e) {
+                                console.error(e);
+                            }
+                    }
+                }
+            }
+            if (parent)
+                turbo(element).addToParent(parent);
+            if (initialize === undefined || initialize) {
+                if ("initialize" in this.element && typeof this.element.initialize === "function")
+                    this.element.initialize();
+                else if (mvcUpdated)
+                    this.initializeMvc();
+            }
+            return this;
+        };
+        TurboSelector.prototype.getFields = function _getFields() {
+            if (!this.element)
+                return {};
+            const chain = getPrototypeChain(this.element);
+            const seen = new Set();
+            const result = {};
+            const builtinPrototypes = new Set([
+                TurboElement.prototype, TurboBaseElement.prototype, TurboProxiedElement.prototype,
+                TurboHeadlessElement.prototype, Element.prototype, HTMLElement.prototype, Node.prototype,
+                SVGElement.prototype, MathMLElement.prototype, EventTarget.prototype, Object.prototype
+            ]);
+            for (const proto of [this.element, ...chain].reverse()) {
+                if (builtinPrototypes.has(proto)) {
+                    for (const key of Object.getOwnPropertyNames(proto))
+                        seen.add(key);
+                    continue;
+                }
+                for (const key of Object.getOwnPropertyNames(proto)) {
+                    if (seen.has(key) || key.startsWith("_"))
+                        continue;
+                    const desc = Object.getOwnPropertyDescriptor(proto, key);
+                    if (!desc || typeof desc.value === "function" || (desc.get && !desc.set))
+                        continue;
+                    seen.add(key);
+                    result[key] = this.element[key];
+                }
+            }
+            return result;
+        };
+        TurboSelector.prototype.clone = function _clone(options = {}) {
+            const originElement = this.element instanceof Node ? this.element : undefined;
+            if (!originElement)
+                return;
+            const exclude = new Set(options.exclude ?? []);
+            const force = new Set(options.forceInclude ?? []);
+            const deepClone = new Set(options.deepClone ?? []);
+            const copyReference = new Set(options.copyReference ?? []);
+            const shouldCopy = (key, value, prototype) => {
+                if (force.has(key))
+                    return true;
+                if (exclude.has(key) || key === "mvc" || key === "__proto__" || key === "prototype")
+                    return false;
+                if (typeof value === "function" || value instanceof Delegate)
+                    return false;
+                if (key === "model" || key === "view" || key === "emitter" || key === "operators"
+                    || key === "handlers" || key === "interactors" || key === "tools" || key === "constrainers")
+                    return false;
+                const desc = Object.getOwnPropertyDescriptor(prototype, key);
+                if (!desc)
+                    return false;
+                if (desc.get && !desc.set)
+                    return false;
+                if (desc.writable === false)
+                    return false;
+                return true;
+            };
+            const copyField = (key, value) => {
+                if (value === null || value === undefined || typeof value !== "object")
+                    return value;
+                if (copyReference.has(key))
+                    return value;
+                if (value instanceof Node) {
+                    if (deepClone.has(key) || options.deepCloneNodes) {
+                        try {
+                            return turbo(value).clone(options);
+                        }
+                        catch {
+                            return undefined;
+                        }
+                    }
+                    return options.copyNodes ? value : undefined;
+                }
+                if (options.deepCloneObjects || deepClone.has(key)) {
+                    try {
+                        return structuredClone(value);
+                    }
+                    catch { /* fall through to reference */ }
+                }
+                return value;
+            };
+            const constructor = originElement.constructor;
+            const prototypeChain = getPrototypeChain(originElement);
+            const properties = {};
+            if (originElement["model"] && originElement["data"] != null) {
+                const rawData = originElement["data"];
+                let clonedData = rawData;
+                if (options.snapshotData || options.deepCloneObjects) {
+                    // Y.js types: deep-copy into a fresh detached Y.Doc. The clone's model machinery
+                    // (observers, nested models, views) then works unchanged on real Y types, and
+                    // nothing syncs since the doc has no provider. A plain-object (toJSON) snapshot
+                    // renders degraded previews — observers never populate from plain data.
+                    if (options.snapshotData && rawData instanceof yjs.AbstractType
+                        && typeof rawData.clone === "function") {
+                        try {
+                            const yClone = rawData.clone();
+                            // Y types must be inside a document before they can be read.
+                            new yjs.Doc().getMap("__turbo_snapshot__").set("data", yClone);
+                            clonedData = yClone;
+                        }
+                        catch { }
+                    }
+                    // Fallbacks: toJSON (plain detached object), then structuredClone. Only under
+                    // snapshotData — deepCloneObjects keeps its documented fallback to reference
+                    // sharing for non-structured-cloneable data.
+                    if (clonedData === rawData && options.snapshotData && typeof rawData.toJSON === "function")
+                        try {
+                            clonedData = rawData.toJSON();
+                        }
+                        catch { }
+                    if (clonedData === rawData)
+                        try {
+                            clonedData = structuredClone(rawData);
+                        }
+                        catch { }
+                }
+                properties.data = clonedData;
+            }
+            try {
+                Object.assign(properties, turbo(originElement).getMvcDifference());
+            }
+            catch { }
+            let clone;
+            if (typeof constructor.create === "function") {
+                try {
+                    clone = constructor.create(properties);
+                }
+                catch { }
+            }
+            if (!clone) {
+                if (originElement instanceof Element) {
+                    clone = turbo(document.createElement(originElement.tagName)).setProperties(properties).element;
+                }
+                else {
+                    try {
+                        clone = originElement.cloneNode(false);
+                    }
+                    catch { }
+                }
+            }
+            if (!clone)
+                return;
+            if (originElement instanceof Element && clone instanceof Element) {
+                for (const attr of Array.from(originElement.attributes)) {
+                    if (exclude.has(attr.name))
+                        continue;
+                    try {
+                        clone.setAttribute(attr.name, attr.value);
+                    }
+                    catch { }
+                }
+            }
+            const keys = new Map();
+            const addKeys = (prototype) => {
+                for (const property of Object.getOwnPropertyNames(prototype))
+                    if (!keys.has(property))
+                        keys.set(property, prototype);
+                for (const property of Object.getOwnPropertySymbols(prototype))
+                    if (!keys.has(property))
+                        keys.set(property, prototype);
+            };
+            const mathMLProto = typeof MathMLElement !== "undefined" ? MathMLElement.prototype : null;
+            addKeys(originElement);
+            for (const prototype of prototypeChain) {
+                if (equalToAny(prototype, TurboElement.prototype, TurboBaseElement.prototype, TurboProxiedElement.prototype, TurboHeadlessElement.prototype, Element.prototype, Node.prototype, HTMLElement.prototype, SVGElement.prototype, mathMLProto, EventTarget.prototype, Object.prototype))
+                    break;
+                addKeys(prototype);
+            }
+            for (const [key, prototype] of keys.entries()) {
+                const value = originElement[key];
+                if (!shouldCopy(key, value, prototype))
+                    continue;
+                const newValue = copyField(key, value);
+                if (newValue !== undefined)
+                    try {
+                        clone[key] = newValue;
+                    }
+                    catch { }
+            }
+            return clone;
+        };
+        /**
+         * @description Destroys the node by removing it from the document and removing all its bound listeners.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.destroy = function _destroy() {
+            this.removeAllListeners();
+            this.remove();
+            if (this.element && "destroy" in this.element && typeof this.element.destroy === "function")
+                this.element.destroy();
+            return this;
+        };
+        /**
+         * @description Sets the value of an attribute on the underlying element.
+         * @param {string} name The name of the attribute.
+         * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent a
+         * true boolean.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.setAttribute = function _setAttribute(name, value) {
+            if (this.element instanceof Element)
+                this.element.setAttribute(name, value?.toString() || "true");
+            return this;
+        };
+        /**
+         * @description Removes an attribute from the underlying element.
+         * @param {string} name The name of the attribute to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.removeAttribute = function _removeAttribute(name) {
+            if (this.element instanceof Element)
+                this.element.removeAttribute(name);
+            return this;
+        };
+        /**
+         * @description Causes the element to lose focus.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.blur = function _blur() {
+            if (this.element instanceof HTMLElement)
+                this.element.blur();
+            return this;
+        };
+        /**
+         * @description Sets focus on the element.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.focus = function _focus() {
+            if (this.element instanceof HTMLElement)
+                this.element.focus();
+            return this;
+        };
+        const FEEDFORWARD_STYLE_ID = "turbo-feedforward-styles";
+        const wrapFeedforwardClone = (clone) => {
+            // Stylesheet !important beats the inline styles the clone's view keeps writing
+            // (its snapshot model still renders the original position). Injected once.
+            // position: static keeps absolutely-positioned clones (cards, nodes) in the wrapper's
+            // flow — otherwise they collapse the wrapper to 0x0 and break centerAnchor centering.
+            if (!document.getElementById(FEEDFORWARD_STYLE_ID)) {
+                const sheet = document.createElement("style");
+                sheet.id = FEEDFORWARD_STYLE_ID;
+                sheet.textContent = ".turbo-feedforward-wrapper > .turbo-feedforward-clone " +
+                    "{transform: none !important; position: static !important;}";
+                document.head.appendChild(sheet);
+            }
+            if (clone instanceof Element)
+                clone.classList.add("turbo-feedforward-clone");
+            const wrapper = TurboMovable.create({ content: clone instanceof Element ? clone : undefined });
+            wrapper.classList.add("turbo-feedforward-wrapper");
+            Object.defineProperty(wrapper, "feedforwardClone", { value: clone, configurable: true });
+            return wrapper;
+        };
+        TurboSelector.prototype.feedforward = function _feedforward(properties = {}) {
+            if (properties.removeOnPointerRelease === undefined)
+                properties.removeOnPointerRelease = true;
+            if (!this.element)
+                return;
+            const type = properties?.type ?? "___DEFAULT___";
+            const feedforwardElements = utils$7.data(this.element).feedforwardElements;
+            if (!feedforwardElements)
+                return;
+            let saved = feedforwardElements.get(type);
+            if (!saved) {
+                // Feedforwards are visual previews — snapshot the data so MVC/synced elements
+                // don't produce a live twin writing through the shared (e.g. Y.js) model.
+                const cloneOptions = { snapshotData: true, ...properties?.cloneOptions };
+                if (typeof this.element["clone"] === "function")
+                    saved = this.element["clone"](cloneOptions);
+                else
+                    saved = this.clone(cloneOptions);
+                // Positioning wrapper: callers move/rotate the preview through pure CSS
+                // transforms on the wrapper, never through the clone's semantic fields.
+                if (properties.wrap && saved)
+                    saved = wrapFeedforwardClone(saved);
+                // Register cleanup once per clone, not once per feedforward() call.
+                if (properties.removeOnPointerRelease && saved) {
+                    const savedClone = saved;
+                    turbo(document.body).on(DefaultEventName.clickEnd, () => {
+                        if (typeof savedClone["remove"] === "function")
+                            savedClone["remove"]();
+                        if (feedforwardElements.get(type) === savedClone)
+                            feedforwardElements.delete(type);
+                    }, { capture: true, once: true });
+                }
+            }
+            // feedforward() is called in hot paths (per pointer event). Re-applying an unchanged
+            // parent re-appends the whole subtree each call — custom-element disconnect/reconnect
+            // churn and forced reflows. Strip parent when the element is already inside it.
+            const stripUnchangedParent = (props) => {
+                if (!props?.parent || !(saved instanceof Node))
+                    return props;
+                const parentNode = props.parent instanceof TurboSelector ? props.parent.element : props.parent;
+                if (saved.parentNode === parentNode)
+                    return { ...props, parent: undefined };
+                return props;
+            };
+            turbo(saved).setProperties(stripUnchangedParent(this.defaultFeedforwardProperties ?? {}))
+                .setProperties(stripUnchangedParent({
+                ...properties,
+                cloneOptions: undefined,
+                type: undefined,
+                removeOnPointerRelease: undefined,
+                wrap: undefined
+            }));
+            feedforwardElements.set(type, saved);
+            return saved;
+        };
+        Object.defineProperty(TurboSelector.prototype, "defaultFeedforwardProperties", {
+            get: function () {
+                if ("defaultFeedforwardProperties" in this.element)
+                    return this.element.defaultFeedforwardProperties;
+                return utils$7.data(this.element).defaultFeedforwardProperties;
+            },
+            set: function (value) {
+                if ("defaultFeedforwardProperties" in this.element)
+                    this.element.defaultFeedforwardProperties = value;
+                utils$7.data(this.element).defaultFeedforwardProperties = value;
+            },
+            configurable: true,
+            enumerable: true
+        });
+    }
+
+    /**
+     * @enum {Propagation}
+     * @group Types
+     * @category Event
+     *
+     * @description Enum dictating the propagation of an event.
+     *
+     * @property {Propagation.propagate} propagate - Continue normal propagation.
+     * @property {Propagation.stopPropagation} stopPropagation - Stop propagation to parent targets.
+     * @property {Propagation.stopImmediatePropagation} stopImmediatePropagation - Stop propagation and prevent any
+     * additional listeners on the same target from executing.
+     */
+    exports.Propagation = void 0;
+    (function (Propagation) {
+        Propagation["propagate"] = "propagate";
+        Propagation["stopPropagation"] = "stopPropagation";
+        Propagation["stopImmediatePropagation"] = "stopImmediatePropagation";
+    })(exports.Propagation || (exports.Propagation = {}));
+    /**
+     * @group Types
+     * @category Event
+     * @description Default set of basic input event types typically handled by {@link TurboSelector.preventDefault}.
+     */
+    const BasicInputEvents = [
+        "mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu",
+        "dragstart", "selectstart",
+        "touchstart", "touchmove", "touchend", "touchcancel",
+        "pointerdown", "pointermove", "pointerup",
+        "wheel"
+    ];
+    /**
+     * @group Types
+     * @category Event
+     * @description Event types that should usually be registered as **non-passive** when you intend to call
+     *  * `preventDefault()` (e.g., scroll/touch/pointer interactions).
+     */
+    const NonPassiveEvents = [
+        "wheel", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "pointercancel"
+    ];
+
+    /**
+     * @group Event Handling
+     * @category Enums
+     */
+    exports.ActionMode = void 0;
+    (function (ActionMode) {
+        ActionMode[ActionMode["none"] = 0] = "none";
+        ActionMode[ActionMode["click"] = 1] = "click";
+        ActionMode[ActionMode["longPress"] = 2] = "longPress";
+        ActionMode[ActionMode["drag"] = 3] = "drag";
+    })(exports.ActionMode || (exports.ActionMode = {}));
+    /**
+     * @group Event Handling
+     * @category Enums
+     */
+    exports.ClickMode = void 0;
+    (function (ClickMode) {
+        ClickMode[ClickMode["none"] = 0] = "none";
+        ClickMode[ClickMode["left"] = 1] = "left";
+        ClickMode[ClickMode["right"] = 2] = "right";
+        ClickMode[ClickMode["middle"] = 3] = "middle";
+        ClickMode[ClickMode["other"] = 4] = "other";
+        ClickMode[ClickMode["key"] = 5] = "key";
+    })(exports.ClickMode || (exports.ClickMode = {}));
+    /**
+     * @group Event Handling
+     * @category Enums
+     */
+    exports.InputDevice = void 0;
+    (function (InputDevice) {
+        InputDevice[InputDevice["unknown"] = 0] = "unknown";
+        InputDevice[InputDevice["mouse"] = 1] = "mouse";
+        InputDevice[InputDevice["trackpad"] = 2] = "trackpad";
+        InputDevice[InputDevice["touch"] = 3] = "touch";
+    })(exports.InputDevice || (exports.InputDevice = {}));
+
+    /**
+     * @internal
+     */
+    function inferKey(name, type, context) {
+        return name ?? (String(context.name).endsWith(type)
+            ? String(context.name).slice(0, -type.length)
+            : String(context.name));
+    }
+    /**
+     * @internal
+     */
+    function generateField(context, type, name) {
+        const cacheKey = Symbol(`__${type.toLowerCase()}_${String(context.name)}`);
+        const keyName = inferKey(name, type, context);
+        context.addInitializer(function () {
+            Object.defineProperty(this, context.name, {
+                configurable: true,
+                enumerable: false,
+                get: function () {
+                    if (this[cacheKey])
+                        return this[cacheKey];
+                    let value;
+                    let functionName;
+                    switch (type) {
+                        case "Operator":
+                            functionName = "getOperator";
+                            break;
+                        case "Handler":
+                            functionName = "getHandler";
+                            break;
+                        case "Interactor":
+                            functionName = "getInteractor";
+                            break;
+                        case "Tool":
+                            functionName = "getTool";
+                            break;
+                        case "Constrainer":
+                            functionName = "getConstrainer";
+                            break;
+                    }
+                    if (!functionName)
+                        return;
+                    value = turbo(this)[functionName]?.(keyName);
+                    if (!value)
+                        throw new Error(`${type} "${keyName}" not found on ${this?.constructor?.name}.`);
+                    this[cacheKey] = value;
+                    return value;
+                },
+                set: function (value) { this[cacheKey] = value; }
+            });
+        });
+    }
+    /**
+     * @decorator
+     * @function operator
+     * @group Decorators
+     * @category MVC
+     *
+     * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+     * fetched operator.
+     * @param {string} [name] - The key name of the operator in the MVC instance (if any). By default, it is inferred
+     * from the name of the field. If the field is named `somethingOperator`, the key name will be `something`.
+     *
+     * @example
+     * ```ts
+     * @operator() protected textOperator: TurboOperator;
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * protected get textOperator(): TurboOperator {
+     *    if (this.mvc instanceof Mvc) return this.mvc.getOperator("text");
+     *    if (typeof this.getOperator === "function") return this.getOperator("text");
+     * }
+     * ```
+     */
+    function operator(name) {
+        return function (_unused, context) {
+            generateField(context, "Operator", name);
+        };
+    }
+    /**
+     * @decorator
+     * @function handler
+     * @group Decorators
+     * @category MVC
+     *
+     * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+     * fetched handler.
+     * @param {string} [name] - The key name of the handler in the MVC instance (if any). By default, it is inferred
+     * from the name of the field. If the field is named `somethingHandler`, the key name will be `something`.
+     *
+     * @example
+     * ```ts
+     * @handler() protected textHandler: TurboHandler;
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * protected get textHandler(): TurboHandler {
+     *    if (this.mvc instanceof Mvc) return this.mvc.getHandler("text");
+     *    if (typeof this.getHandler === "function") return this.getHandler("text");
+     * }
+     * ```
+     */
+    function handler(name) {
+        return function (_unused, context) {
+            generateField(context, "Handler", name);
+        };
+    }
+    /**
+     * @decorator
+     * @function interactor
+     * @group Decorators
+     * @category MVC
+     *
+     * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+     * fetched interactor.
+     * @param {string} [name] - The key name of the interactor in the MVC instance (if any). By default, it is inferred
+     * from the name of the field. If the field is named `somethingInteractor`, the key name will be `something`.
+     *
+     * @example
+     * ```ts
+     * @interactor() protected textInteractor: TurboInteractor;
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * protected get textInteractor(): TurboInteractor {
+     *    if (this.mvc instanceof Mvc) return this.mvc.getInteractor("text");
+     *    if (typeof this.getInteractor === "function") return this.getInteractor("text");
+     * }
+     * ```
+     */
+    function interactor(name) {
+        return function (_unused, context) {
+            generateField(context, "Interactor", name);
+        };
+    }
+    /**
+     * @decorator
+     * @function tool
+     * @group Decorators
+     * @category MVC
+     *
+     * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+     * fetched tool.
+     * @param {string} [name] - The key name of the tool in the MVC instance (if any). By default, it is inferred
+     * from the name of the field. If the field is named `somethingTool`, the key name will be `something`.
+     *
+     * @example
+     * ```ts
+     * @tool() protected textTool: TurboTool;
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * protected get textTool(): TurboTool {
+     *    if (this.mvc instanceof Mvc) return this.mvc.getTool("text");
+     *    if (typeof this.getTool === "function") return this.getTool("text");
+     * }
+     * ```
+     */
+    function tool(name) {
+        return function (_unused, context) {
+            generateField(context, "Tool", name);
+        };
+    }
+    /**
+     * @decorator
+     * @function constrainer
+     * @group Decorators
+     * @category MVC
+     *
+     * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+     * fetched constrainer.
+     * @param {string} [name] - The key name of the constrainer in the MVC instance (if any). By default, it is inferred
+     * from the name of the field. If the field is named `somethingConstrainer`, the key name will be `something`.
+     *
+     * @example
+     * ```ts
+     * @tool() protected textConstrainer: TurboConstrainer;
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * protected get textConstrainer(): TurboConstrainer {
+     *    if (this.mvc instanceof Mvc) return this.mvc.getConstrainer("text");
+     *    if (typeof this.getConstrainer === "function") return this.getConstrainer("text");
+     * }
+     * ```
+     */
+    function constrainer(name) {
+        return function (_unused, context) {
+            generateField(context, "Constrainer", name);
+        };
+    }
+
+    /**
+     * @group Components
+     * @category TurboMap
+     */
+    class TurboMap extends Map {
+        enforceImmutability = true;
+        set(key, value) {
+            return super.set(key, this.enforceImmutability ? this.copy(value) : value);
+        }
+        get(key) {
+            const result = super.get(key);
+            return this.enforceImmutability ? this.copy(result) : result;
+        }
+        get first() {
+            if (this.size == 0)
+                return null;
+            const result = this.values().next().value;
+            return this.enforceImmutability ? this.copy(result) : result;
+        }
+        get last() {
+            if (this.size == 0)
+                return null;
+            const result = this.valuesArray()[this.size - 1];
+            return this.enforceImmutability ? this.copy(result) : result;
+        }
+        keysArray() {
+            return Array.from(this.keys());
+        }
+        valuesArray() {
+            return Array.from(this.values());
+        }
+        copy(value) {
+            if (value && typeof value == "object") {
+                if (value instanceof Array)
+                    return value.map(item => this.copy(item));
+                if (value.constructor && value.constructor != Object) {
+                    if (typeof value.clone == "function")
+                        return value.clone();
+                    if (typeof value.copy == "function")
+                        return value.copy();
+                }
+                return { ...value };
+            }
+            return value;
+        }
+        mapKeys(callback) {
+            const newMap = new TurboMap();
+            for (let [key, value] of this) {
+                newMap.set(callback(key, value), value);
+            }
+            return newMap;
+        }
+        mapValues(callback) {
+            const newMap = new TurboMap();
+            for (let [key, value] of this) {
+                newMap.set(key, callback(key, value));
+            }
+            return newMap;
+        }
+        filter(callback) {
+            const newMap = new TurboMap();
+            for (let [key, value] of this) {
+                if (callback(key, value))
+                    newMap.set(key, value);
+            }
+            return newMap;
+        }
+        merge(map) {
+            for (let [key, value] of map) {
+                this.set(key, value);
+            }
+            return this;
+        }
+    }
+
+    let TurboEventManagerModel = (() => {
+        let _classSuper = TurboModel;
+        let _instanceExtraInitializers = [];
+        let _utils_decorators;
+        let _utils_initializers = [];
+        let _utils_extraInitializers = [];
+        let _currentAction_decorators;
+        let _currentAction_initializers = [];
+        let _currentAction_extraInitializers = [];
+        let _currentClick_decorators;
+        let _currentClick_initializers = [];
+        let _currentClick_extraInitializers = [];
+        let _wasRecentlyTrackpad_decorators;
+        let _wasRecentlyTrackpad_initializers = [];
+        let _wasRecentlyTrackpad_extraInitializers = [];
+        let _moveThreshold_decorators;
+        let _moveThreshold_initializers = [];
+        let _moveThreshold_extraInitializers = [];
+        let _longPressDuration_decorators;
+        let _longPressDuration_initializers = [];
+        let _longPressDuration_extraInitializers = [];
+        let _authorizeEventScaling_decorators;
+        let _authorizeEventScaling_initializers = [];
+        let _authorizeEventScaling_extraInitializers = [];
+        let _scaleEventPosition_decorators;
+        let _scaleEventPosition_initializers = [];
+        let _scaleEventPosition_extraInitializers = [];
+        let _set_inputDevice_decorators;
+        return class TurboEventManagerModel extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _utils_decorators = [handler()];
+                _currentAction_decorators = [signal];
+                _currentClick_decorators = [signal];
+                _wasRecentlyTrackpad_decorators = [signal];
+                _moveThreshold_decorators = [signal];
+                _longPressDuration_decorators = [signal];
+                _authorizeEventScaling_decorators = [signal];
+                _scaleEventPosition_decorators = [signal];
+                _set_inputDevice_decorators = [auto({
+                        callBefore: function (value) {
+                            if (value == exports.InputDevice.trackpad)
+                                this.wasRecentlyTrackpad = true;
+                        }
+                    })];
+                __esDecorate(this, null, _set_inputDevice_decorators, { kind: "setter", name: "inputDevice", static: false, private: false, access: { has: obj => "inputDevice" in obj, set: (obj, value) => { obj.inputDevice = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _utils_decorators, { kind: "field", name: "utils", static: false, private: false, access: { has: obj => "utils" in obj, get: obj => obj.utils, set: (obj, value) => { obj.utils = value; } }, metadata: _metadata }, _utils_initializers, _utils_extraInitializers);
+                __esDecorate(null, null, _currentAction_decorators, { kind: "field", name: "currentAction", static: false, private: false, access: { has: obj => "currentAction" in obj, get: obj => obj.currentAction, set: (obj, value) => { obj.currentAction = value; } }, metadata: _metadata }, _currentAction_initializers, _currentAction_extraInitializers);
+                __esDecorate(null, null, _currentClick_decorators, { kind: "field", name: "currentClick", static: false, private: false, access: { has: obj => "currentClick" in obj, get: obj => obj.currentClick, set: (obj, value) => { obj.currentClick = value; } }, metadata: _metadata }, _currentClick_initializers, _currentClick_extraInitializers);
+                __esDecorate(null, null, _wasRecentlyTrackpad_decorators, { kind: "field", name: "wasRecentlyTrackpad", static: false, private: false, access: { has: obj => "wasRecentlyTrackpad" in obj, get: obj => obj.wasRecentlyTrackpad, set: (obj, value) => { obj.wasRecentlyTrackpad = value; } }, metadata: _metadata }, _wasRecentlyTrackpad_initializers, _wasRecentlyTrackpad_extraInitializers);
+                __esDecorate(null, null, _moveThreshold_decorators, { kind: "field", name: "moveThreshold", static: false, private: false, access: { has: obj => "moveThreshold" in obj, get: obj => obj.moveThreshold, set: (obj, value) => { obj.moveThreshold = value; } }, metadata: _metadata }, _moveThreshold_initializers, _moveThreshold_extraInitializers);
+                __esDecorate(null, null, _longPressDuration_decorators, { kind: "field", name: "longPressDuration", static: false, private: false, access: { has: obj => "longPressDuration" in obj, get: obj => obj.longPressDuration, set: (obj, value) => { obj.longPressDuration = value; } }, metadata: _metadata }, _longPressDuration_initializers, _longPressDuration_extraInitializers);
+                __esDecorate(null, null, _authorizeEventScaling_decorators, { kind: "field", name: "authorizeEventScaling", static: false, private: false, access: { has: obj => "authorizeEventScaling" in obj, get: obj => obj.authorizeEventScaling, set: (obj, value) => { obj.authorizeEventScaling = value; } }, metadata: _metadata }, _authorizeEventScaling_initializers, _authorizeEventScaling_extraInitializers);
+                __esDecorate(null, null, _scaleEventPosition_decorators, { kind: "field", name: "scaleEventPosition", static: false, private: false, access: { has: obj => "scaleEventPosition" in obj, get: obj => obj.scaleEventPosition, set: (obj, value) => { obj.scaleEventPosition = value; } }, metadata: _metadata }, _scaleEventPosition_initializers, _scaleEventPosition_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            utils = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _utils_initializers, void 0));
+            state = (__runInitializers(this, _utils_extraInitializers), TurboModel.from({
+                enabled: true,
+                preventDefaultMouse: false,
+                preventDefaultTouch: false,
+                preventDefaultWheel: false
+            }));
+            lockState = TurboModel.from();
+            //Delegate fired when the input device changes
+            onInputDeviceChange = new Delegate();
+            /**
+             * @description Delegate fired when a tool is changed on a certain click button/mode
+             */
+            onToolChange = new Delegate();
+            //Input events states
+            currentKeys = TurboModel.from([]);
+            currentAction = __runInitializers(this, _currentAction_initializers, exports.ActionMode.none);
+            currentClick = (__runInitializers(this, _currentAction_extraInitializers), __runInitializers(this, _currentClick_initializers, exports.ClickMode.none));
+            wasRecentlyTrackpad = (__runInitializers(this, _currentClick_extraInitializers), __runInitializers(this, _wasRecentlyTrackpad_initializers, false));
+            //Threshold differentiating a click from a drag
+            moveThreshold = (__runInitializers(this, _wasRecentlyTrackpad_extraInitializers), __runInitializers(this, _moveThreshold_initializers, 10));
+            //Duration to reach long press
+            longPressDuration = (__runInitializers(this, _moveThreshold_extraInitializers), __runInitializers(this, _longPressDuration_initializers, 500));
+            authorizeEventScaling = (__runInitializers(this, _longPressDuration_extraInitializers), __runInitializers(this, _authorizeEventScaling_initializers, void 0));
+            scaleEventPosition = (__runInitializers(this, _authorizeEventScaling_extraInitializers), __runInitializers(this, _scaleEventPosition_initializers, void 0));
+            activePointers = (__runInitializers(this, _scaleEventPosition_extraInitializers), new Set());
+            //Saved values (Maps to account for different touch points and their IDs)
+            origins = new TurboMap();
+            previousPositions = new TurboMap();
+            positions;
+            lastTargetOrigin;
+            //Single timer instance --> easily cancel it and set it again
+            timerMap = new TurboMap();
+            //All created tools
+            tools = new Map();
+            //Tools mapped to keys
+            mappedKeysToTool = new Map();
+            //Tools currently held by the user (one - or none - per each click button/mode)
+            currentTools = new Map();
+            set inputDevice(value) {
+                this.onInputDeviceChange.fire(value);
+            }
+        };
+    })();
+
+    /**
+     * @group Event Handling
+     * @category Enums
+     */
+    exports.ClosestOrigin = void 0;
+    (function (ClosestOrigin) {
+        ClosestOrigin["target"] = "target";
+        ClosestOrigin["position"] = "position";
+    })(exports.ClosestOrigin || (exports.ClosestOrigin = {}));
+
+    /**
+     * @class TurboEvent
+     * @group Event Handling
+     * @category TurboEvents
+     * @description Generic turbo event.
+     */
+    let TurboEvent = (() => {
+        let _classSuper = Event;
+        let _instanceExtraInitializers = [];
+        let _closest_decorators;
+        let _get_scaledPosition_decorators;
+        return class TurboEvent extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _closest_decorators = [cache()];
+                _get_scaledPosition_decorators = [cache()];
+                __esDecorate(this, null, _closest_decorators, { kind: "method", name: "closest", static: false, private: false, access: { has: obj => "closest" in obj, get: obj => obj.closest }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_scaledPosition_decorators, { kind: "getter", name: "scaledPosition", static: false, private: false, access: { has: obj => "scaledPosition" in obj, get: obj => obj.scaledPosition }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            /**
+             * @description The event manager that fired this event.
+             */
+            eventManager = __runInitializers(this, _instanceExtraInitializers);
+            /**
+             * @description The name of the tool (if any) associated with this event.
+             */
+            toolName;
+            /**
+             * @description The name of the event.
+             */
+            eventName;
+            /**
+             * @description The click mode of the fired event
+             */
+            clickMode;
+            /**
+             * @description The input device that fired this event
+             */
+            inputDevice;
+            /**
+             * @description The keys pressed when the event was fired
+             */
+            keys;
+            /**
+             * @description The screen position from where the event was fired
+             */
+            position;
+            /**
+             * @description Callback function (or boolean) to be overridden to specify when to allow transformation
+             * and/or scaling.
+             */
+            authorizeScaling;
+            /**
+             * @description Callback function to be overridden to specify how to transform a position from screen to
+             * document space.
+             */
+            scalePosition;
+            constructor(properties) {
+                super(properties.eventName, { bubbles: true, cancelable: true, ...properties.eventInitDict });
+                this.eventManager = properties.eventManager ?? TurboEventManager.instance;
+                this.authorizeScaling = properties.authorizeScaling ?? true;
+                this.scalePosition = properties.scalePosition ?? ((position) => position);
+                this.clickMode = properties.clickMode ?? TurboEventManager.instance.currentClick;
+                this.inputDevice = properties.inputDevice ?? exports.InputDevice.unknown;
+                this.keys = properties.keys ?? TurboEventManager.instance.currentKeys;
+                this.eventName = properties.eventName;
+                this.position = properties.position;
+                this.toolName = properties.toolName;
+            }
+            /**
+             * @description The tool (if any) associated with this event.
+             */
+            get tool() {
+                if (!this.toolName || !(this.eventManager instanceof TurboEventManager))
+                    return null;
+                return this.eventManager.getToolByName(this.toolName);
+            }
+            closest(type, strict = true, from = exports.ClosestOrigin.target) {
+                const elements = from === exports.ClosestOrigin.target ? [this.target]
+                    : document.elementsFromPoint(this.position.x, this.position.y);
+                const strictElement = strict instanceof Element ? strict : null;
+                const isStrict = strict === true || strictElement !== null;
+                const ctor = typeof type === "string" ? customElements.get(type) : type;
+                for (let element of elements) {
+                    if (!ctor) {
+                        // No registered custom element for the string — CSS selector fallback.
+                        const match = element.closest(type);
+                        if (match && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? match)))
+                            return match;
+                        continue;
+                    }
+                    while (element && !((element instanceof ctor)
+                        && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? element))))
+                        element = element.parentElement;
+                    if (element)
+                        return element;
+                }
+                return null;
+            }
+            /**
+             * @description Checks if the position is inside the given element's bounding box.
+             * @param position
+             * @param element
+             */
+            isPositionInsideElement(position, element) {
+                const rect = element.getBoundingClientRect();
+                return position.x >= rect.left && position.x <= rect.right
+                    && position.y >= rect.top && position.y <= rect.bottom;
+            }
+            /**
+             * @description The target of the event (as an Element - or the document)
+             */
+            get target() {
+                return super.target || document;
+            }
+            /**
+             * @description The position of the fired event transformed and/or scaled using the class's scalePosition().
+             */
+            get scaledPosition() {
+                if (!this.scalingAuthorized)
+                    return this.position;
+                return this.scalePosition(this.position);
+            }
+            /**
+             * @description Specifies whether to allow transformation and/or scaling.
+             */
+            get scalingAuthorized() {
+                return typeof this.authorizeScaling == "function" ? this.authorizeScaling() : this.authorizeScaling;
+            }
+            /**
+             * @private
+             * @description Takes a map of points and returns a new map where each point is transformed accordingly.
+             * @param positions
+             */
+            scalePositionsMap(positions) {
+                return positions.mapValues((key, position) => this.scalePosition(position));
+            }
+        };
+    })();
+
+    /**
+     * @class TurboKeyEvent
+     * @group Event Handling
+     * @category TurboEvents
+     *
+     * @extends TurboEvent
+     * @description Custom key event
+     */
+    class TurboKeyEvent extends TurboEvent {
+        /**
+         * @description The key pressed (if any) when the event was fired
+         */
+        keyPressed;
+        /**
+         * @description The key released (if any) when the event was fired
+         */
+        keyReleased;
+        constructor(properties) {
+            super({ ...properties, position: null });
+            this.keyPressed = properties.keyPressed;
+            this.keyReleased = properties.keyReleased;
+        }
+    }
+
+    class ListenerUtils {
+        constructorMap = new WeakMap();
+        constructorData(prototype) {
+            let obj = this.constructorMap.get(prototype);
+            if (!obj) {
+                obj = { listeners: new Map() };
+                this.constructorMap.set(prototype, obj);
+            }
+            return obj;
+        }
+        addListener(prototype, listener) {
+            if (!listener.methodName)
+                return;
+            const data = this.constructorData(prototype)?.listeners;
+            if (!data || data.has(listener.methodName))
+                return;
+            data.set(listener.methodName, listener);
+        }
+        getAllListeners(instance) {
+            let prototype = Object.getPrototypeOf(instance);
+            const results = new Map();
+            while (prototype && prototype !== Object.prototype) {
+                const map = this.constructorData(prototype).listeners;
+                if (map?.size)
+                    for (const [key, value] of map.entries()) {
+                        if (!results.has(key))
+                            results.set(key, value);
+                    }
+                prototype = Object.getPrototypeOf(prototype);
+            }
+            return results;
+        }
+    }
+
+    const utils$6 = new ListenerUtils();
+    /**
+     * @decorator
+     * @function listener
+     * @group Decorators
+     * @category Listeners
+     *
+     * @description Method decorator that registers the decorated method as an event listener, to be attached later
+     * via {@link attachListenersAndBehaviors}.
+     * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
+     * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
+     * to derive the event name from {@link DefaultEventName}.
+     *
+     * @example ```ts
+     * class MyElement {
+     *   @listener() click(e: Event) { ... }
+     *   //Equivalent to: turbo(this).on(DefaultEventName.click, (e: Event) => { ... });
+     * }
+     * ```
+     */
+    function listener(properties = {}) {
+        return function (value, context) {
+            //TODO FIX
+            TurboEventManager.instance;
+            let type = properties.type;
+            if (!type) {
+                const kebab = camelToKebabCase(String(context.name));
+                type = Object.values(DefaultEventName).includes("turbo-" + kebab) ? "turbo-" + kebab : kebab;
+            }
+            context.addInitializer(function () {
+                utils$6.addListener(Object.getPrototypeOf(this), { ...properties, type, methodName: context.name, kind: "listener" });
+            });
+            return value;
+        };
+    }
+    /**
+     * @decorator
+     * @function behavior
+     * @group Decorators
+     * @category Listeners
+     *
+     * @description Method decorator that registers the decorated method as a tool behavior, to be attached later
+     * via {@link attachListenersAndBehaviors}.
+     * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
+     * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
+     * to derive the event name from {@link DefaultEventName}.
+     *
+     * @example ```ts
+     * class MyElement {
+     *   @behavior() click(e: Event) { ... }
+     *   //Equivalent to: turbo(this).addToolBehavior(DefaultEventName.click, (e: Event) => { ... });
+     * }
+     * ```
+     */
+    function behavior(properties = {}) {
+        return function (value, context) {
+            //TODO FIX
+            TurboEventManager.instance;
+            let type = properties.type;
+            if (!type) {
+                const kebab = camelToKebabCase(String(context.name));
+                type = Object.values(DefaultEventName).includes("turbo-" + kebab) ? "turbo-" + kebab : kebab;
+            }
+            context.addInitializer(function () {
+                utils$6.addListener(Object.getPrototypeOf(this), { ...properties, type, methodName: context.name, kind: "behavior" });
+            });
+            return value;
+        };
+    }
+    /**
+     * @decorator
+     * @function attachListenersAndBehaviors
+     * @group Decorators
+     * @category Listeners
+     *
+     * @description Attach all previously-decorated listeners and behaviors recorded on the given `context`. It attempts to
+     * resolve defaults from the latter, such as the `target`, `toolName`, `options`, and `manager`. This method is called
+     * automatically in the TurboElement lifecycle.
+     * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
+     */
+    function attachListenersAndBehaviors(context) {
+        if (!context || typeof context !== "object")
+            return;
+        const listeners = utils$6.getAllListeners(context);
+        if (!listeners || listeners.size === 0)
+            return;
+        const defaultTarget = context.target instanceof Node
+            ? context.target : context instanceof Node
+            ? context : context.element instanceof Node
+            ? context.element : undefined;
+        const defaultTool = typeof context.toolName === "string" ? context.toolName : undefined;
+        const defaultOptions = typeof context.options === "object" ? context.options : undefined;
+        const defaultManager = context.manager instanceof TurboEventManager ? context.manager : undefined;
+        for (const [, listener] of listeners) {
+            const method = context[listener.methodName];
+            if (typeof method !== "function")
+                continue;
+            const target = listener.target ?? defaultTarget;
+            const tool = listener.toolName ?? defaultTool;
+            const manager = listener.manager ?? defaultManager;
+            if (listener.kind === "behavior") {
+                if (!tool)
+                    continue;
+                turbo(context).addToolBehavior(listener.type, (e, el) => method.call(context, e, el), tool, manager);
+            }
+            else if (listener.kind === "listener") {
+                if (!(target instanceof Node))
+                    continue;
+                turbo(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el), listener.options ?? defaultOptions, manager);
+            }
+        }
+    }
+
+    /**
+     * @class TurboOperator
+     * @group MVC
+     * @category Operator
+     *
+     * @description The MVC base operator class. Its main job is to handle some part of (or all of) the logic of the
+     * component. It has access to the element, the model to read and write data, the view to update the UI, and the
+     * emitter to listen for changes in the model or any other internal events. It can only communicate with other
+     * operators via the emitter (by firing or listening for changes on a certain key).
+     * @template {object} ElementType - The type of the main component.
+     * @template {TurboView} ViewType - The element's MVC view type.
+     * @template {TurboModel} ModelType - The element's MVC model type.
+     * @template {TurboEmitter} EmitterType - The element's MVC emitter type.
+     */
+    class TurboOperator {
+        /**
+         * @description The key of the operator. Used to retrieve it in the main component. If not set, if the element's
+         * class name is MyElement and the operator's class name is MyElementSomethingOperator, the key would
+         * default to "something".
+         */
+        keyName;
+        /**
+         * @description The element it is bound to.
+         */
+        element;
+        /**
+         * @description The MVC view.
+         */
+        view;
+        /**
+         * @description The MVC model.
+         */
+        model;
+        /**
+         * @description The MVC emitter.
+         */
+        emitter;
+        constructor(properties) {
+            this.element = properties.element;
+            if (properties.model)
+                this.model = properties.model;
+            if (properties.emitter)
+                this.emitter = properties.emitter;
+            if (properties.view)
+                this.view = properties.view;
+            this.setup();
+        }
+        /**
+         * @function setup
+         * @description Called in the constructor. Use for setup that should happen at instantiation,
+         * before `this.initialize()` is called.
+         * @protected
+         */
+        setup() { }
+        /**
+         * @function initialize
+         * @description Initializes the operator. Specifically, it will set up the change callbacks.
+         */
+        initialize() {
+            this.setupUIListeners();
+            this.setupChangedCallbacks();
+        }
+        /**
+         * @function setupUIListeners
+         * @description Setup method for defining DOM and input event listeners.
+         * @protected
+         */
+        setupUIListeners() {
+            attachListenersAndBehaviors(this);
+        }
+        /**
+         * @function setupChangedCallbacks
+         * @description Setup method intended to initialize change listeners and callbacks.
+         * @protected
+         */
+        setupChangedCallbacks() {
+            initializeEffects(this);
+        }
+    }
+    addRegistryCategory(TurboOperator);
+    define(TurboOperator);
+
+    class TurboEventManagerKeyOperator extends TurboOperator {
+        keyName = "key";
+        keyDown = (e) => this.keyDownFn(e);
+        keyDownFn(e) {
+            if (!this.element.enabled)
+                return;
+            //Return if key already pressed
+            if (this.model.currentKeys.includes(e.key))
+                return;
+            //Add key to currentKeys
+            this.model.currentKeys.push(e.key);
+            //Fire a keyPressed event (only once)
+            this.emitter.fire("dispatchEvent", document, TurboKeyEvent, { eventName: TurboKeyEventName.keyPressed, keyPressed: e.key });
+        }
+        keyUp = (e) => this.keyUpFn(e);
+        keyUpFn(e) {
+            if (!this.element.enabled)
+                return;
+            //Return if key not pressed
+            if (!this.model.currentKeys.includes(e.key))
+                return;
+            //Remove key from currentKeys
+            this.model.currentKeys.splice(this.model.currentKeys.indexOf(e.key), 1);
+            //Fire a keyReleased event
+            this.emitter.fire("dispatchEvent", document, TurboKeyEvent, { eventName: TurboKeyEventName.keyReleased, keyReleased: e.key });
+        }
+    }
+
+    /**
+     * @class TurboWheelEvent
+     * @group Event Handling
+     * @category TurboEvents
+     *
+     * @extends TurboEvent
+     * @description Custom wheel event
+     */
+    class TurboWheelEvent extends TurboEvent {
+        /**
+         * @description The delta amount of scrolling
+         */
+        delta;
+        constructor(properties) {
+            super({ ...properties, position: null });
+            this.delta = properties.delta;
+        }
+    }
+
+    class TurboEventManagerWheelOperator extends TurboOperator {
+        keyName = "wheel";
+        wheel = (e) => {
+            if (!this.element.enabled)
+                return;
+            //Prevent default scroll behavior
+            if (this.element.preventDefaultWheel)
+                e.preventDefault();
+            //Most likely trackpad
+            if (Math.abs(e.deltaY) <= 40 || e.deltaX != 0)
+                this.model.inputDevice = exports.InputDevice.trackpad;
+            //Set input device to mouse if it wasn't trackpad recently
+            if (!this.model.wasRecentlyTrackpad)
+                this.model.inputDevice = exports.InputDevice.mouse;
+            //Reset trackpad timer
+            this.model.utils.clearTimer("recentlyTrackpadTimer");
+            //Set timer to clear recently trackpad boolean after a delay
+            this.model.utils.setTimer("recentlyTrackpadTimer", () => {
+                if (this.model.inputDevice == exports.InputDevice.trackpad)
+                    this.model.wasRecentlyTrackpad = false;
+            }, 800);
+            //Get name of event according to input type
+            //Pinching (for trackpad, Ctrl key is marked as pressed in the WheelEvent)
+            const eventName = (this.model.inputDevice == exports.InputDevice.trackpad && e.ctrlKey)
+                ? TurboEventName.pinch
+                : TurboEventName.scroll;
+            const target = document.elementFromPoint?.(e.clientX, e.clientY) || document;
+            this.emitter.fire("dispatchEvent", target, TurboWheelEvent, { delta: new Point(e.deltaX, e.deltaY), eventName: eventName });
+        };
+    }
+
+    /**
+     * @class TurboDragEvent
+     * @group Event Handling
+     * @category TurboEvents
+     *
+     * @extends TurboEvent
+     * @description Turbo drag event class, fired on turbo-drag, turbo-drag-start, turbo-drag-end, etc.
+     */
+    let TurboDragEvent = (() => {
+        let _classSuper = TurboEvent;
+        let _instanceExtraInitializers = [];
+        let _get_scaledOrigins_decorators;
+        let _get_scaledPreviousPositions_decorators;
+        let _get_scaledPositions_decorators;
+        let _get_deltaPositions_decorators;
+        let _get_deltaPosition_decorators;
+        let _get_scaledDeltaPositions_decorators;
+        let _get_scaledDeltaPosition_decorators;
+        return class TurboDragEvent extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _get_scaledOrigins_decorators = [cache()];
+                _get_scaledPreviousPositions_decorators = [cache()];
+                _get_scaledPositions_decorators = [cache()];
+                _get_deltaPositions_decorators = [cache()];
+                _get_deltaPosition_decorators = [cache()];
+                _get_scaledDeltaPositions_decorators = [cache()];
+                _get_scaledDeltaPosition_decorators = [cache()];
+                __esDecorate(this, null, _get_scaledOrigins_decorators, { kind: "getter", name: "scaledOrigins", static: false, private: false, access: { has: obj => "scaledOrigins" in obj, get: obj => obj.scaledOrigins }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_scaledPreviousPositions_decorators, { kind: "getter", name: "scaledPreviousPositions", static: false, private: false, access: { has: obj => "scaledPreviousPositions" in obj, get: obj => obj.scaledPreviousPositions }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_scaledPositions_decorators, { kind: "getter", name: "scaledPositions", static: false, private: false, access: { has: obj => "scaledPositions" in obj, get: obj => obj.scaledPositions }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_deltaPositions_decorators, { kind: "getter", name: "deltaPositions", static: false, private: false, access: { has: obj => "deltaPositions" in obj, get: obj => obj.deltaPositions }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_deltaPosition_decorators, { kind: "getter", name: "deltaPosition", static: false, private: false, access: { has: obj => "deltaPosition" in obj, get: obj => obj.deltaPosition }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_scaledDeltaPositions_decorators, { kind: "getter", name: "scaledDeltaPositions", static: false, private: false, access: { has: obj => "scaledDeltaPositions" in obj, get: obj => obj.scaledDeltaPositions }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_scaledDeltaPosition_decorators, { kind: "getter", name: "scaledDeltaPosition", static: false, private: false, access: { has: obj => "scaledDeltaPosition" in obj, get: obj => obj.scaledDeltaPosition }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            /**
+             * @description Map containing the origins of the dragging points
+             */
+            origins = __runInitializers(this, _instanceExtraInitializers);
+            /**
+             * @description Map containing the previous positions of the dragging points
+             */
+            previousPositions;
+            /**
+             * @description Map containing the positions of the dragging points
+             */
+            positions;
+            constructor(properties) {
+                super({ ...properties, position: properties.positions.first });
+                this.origins = properties.origins;
+                this.previousPositions = properties.previousPositions;
+                this.positions = properties.positions; //TODO MOVE TO DEFAULT EVENT
+            }
+            /**
+             * @description Map of the origins mapped to the current canvas translation and scale
+             */
+            get scaledOrigins() {
+                if (!this.scalingAuthorized)
+                    return this.origins;
+                return this.scalePositionsMap(this.origins);
+            }
+            /**
+             * @description Map of the previous positions mapped to the current canvas translation and scale
+             */
+            get scaledPreviousPositions() {
+                if (!this.scalingAuthorized)
+                    return this.previousPositions;
+                return this.scalePositionsMap(this.previousPositions);
+            }
+            /**
+             * @description Map of the positions mapped to the current canvas translation and scale
+             */
+            get scaledPositions() {
+                if (!this.scalingAuthorized)
+                    return this.positions;
+                return this.scalePositionsMap(this.positions);
+            }
+            get deltaPositions() {
+                return this.positions.mapValues((key, position) => {
+                    const previousPosition = this.previousPositions.get(key);
+                    // No previous position (drag start, or a finger just joined) → zero delta,
+                    // so consumers reading deltas on the first event get a defined Point.
+                    return previousPosition ? position.sub(previousPosition) : new Point(0, 0);
+                });
+            }
+            get deltaPosition() {
+                return Point.midPoint(...this.deltaPositions.valuesArray());
+            }
+            get scaledDeltaPositions() {
+                return this.scaledPositions.mapValues((key, position) => {
+                    const previousPosition = this.scaledPreviousPositions.get(key);
+                    return previousPosition ? position.sub(previousPosition) : new Point(0, 0);
+                });
+            }
+            get scaledDeltaPosition() {
+                return Point.midPoint(...this.scaledDeltaPositions.valuesArray());
+            }
+        };
+    })();
+
+    class TurboEventManagerPointerOperator extends TurboOperator {
+        keyName = "pointer";
+        pointerDown = (e) => this.pointerDownFn(e);
+        pointerMove = (e) => this.pointerMoveFn(e);
+        pointerUp = (e) => this.pointerUpFn(e);
+        pointerCancel = (e) => this.pointerCancelFn(e);
+        lostPointerCapture = (e) => this.lostPointerCaptureFn(e);
+        pointerDownFn(e) {
+            if (!e.composedPath().includes(this.model.lockState.lockOrigin)) {
+                document.activeElement?.blur?.();
+                this.element.unlock();
+            }
+            if (!this.element.enabled)
+                return;
+            //Check if it's touch
+            const isTouch = e.pointerType === "touch";
+            //Prevent default actions (especially useful for touch events on iOS and iPadOS)
+            if (this.element.preventDefaultMouse && !isTouch)
+                e.preventDefault();
+            if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
+                e.preventDefault();
+            //Update input device
+            if (isTouch)
+                this.model.inputDevice = exports.InputDevice.touch;
+            else if (this.model.inputDevice === exports.InputDevice.unknown || this.model.inputDevice === exports.InputDevice.touch)
+                this.model.inputDevice = exports.InputDevice.mouse;
+            //Initialize origin & previous position using pointerId
+            const id = e.pointerId;
+            const position = new Point(e.clientX, e.clientY);
+            this.model.origins.set(id, position);
+            this.model.previousPositions.set(id, position);
+            //Capture this pointer so we keep receiving move/up even if the pointer leaves the element
+            const target = document.elementFromPoint(position.x, position.y);
+            if (target)
+                target.setPointerCapture?.(e.pointerId);
+            //Update click mode
+            this.model.activePointers.add(id);
+            this.model.utils.setClickMode(isTouch ? this.model.activePointers.size : e.button, isTouch);
+            //Return if click events are disabled
+            if (!this.element.clickEventsEnabled)
+                return;
+            // Fire click start
+            this.fireClick(this.model.origins.first, TurboEventName.clickStart);
+            this.model.currentAction = exports.ActionMode.click;
+            // Long-press timer
+            this.model.utils.setTimer(TurboEventName.longPress, () => {
+                if (this.model.currentAction !== exports.ActionMode.click)
+                    return;
+                this.model.currentAction = exports.ActionMode.longPress;
+                this.fireClick(this.model.origins.first, TurboEventName.longPress);
+            }, this.model.longPressDuration);
+        }
+        pointerMoveFn(e) {
+            if (!this.element.enabled)
+                return;
+            //Check if is touch
+            const isTouch = e.pointerType === "touch";
+            if (!this.element.moveEventsEnabled && !this.element.dragEventsEnabled
+                && !(isTouch && this.element.wheelEventsEnabled))
+                return;
+            //Prevent default actions
+            if (this.element.preventDefaultMouse && !isTouch)
+                e.preventDefault();
+            if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
+                e.preventDefault();
+            //New positions map
+            this.model.positions = new TurboMap();
+            // Only update the current pointer's position (others remain tracked from prior moves)
+            this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
+            // Clear cached target origin if not dragging
+            if (this.model.currentAction !== exports.ActionMode.drag)
+                this.model.lastTargetOrigin = null;
+            //Fire touch scroll/pinch events (2-finger only)
+            if (isTouch && this.element.wheelEventsEnabled) {
+                const currentPos = new Point(e.clientX, e.clientY);
+                const prevPos = this.model.previousPositions.get(e.pointerId);
+                if (this.model.activePointers.size === 2 && prevPos) {
+                    const otherId = [...this.model.activePointers].find(id => id !== e.pointerId);
+                    const otherPos = this.model.previousPositions.get(otherId);
+                    if (otherPos) {
+                        const prevCenter = Point.midPoint(prevPos, otherPos);
+                        const currentCenter = Point.midPoint(currentPos, otherPos);
+                        const scrollDelta = currentCenter.sub(prevCenter);
+                        const pinchDelta = Point.dist(currentPos, otherPos) - Point.dist(prevPos, otherPos);
+                        const centerTarget = document.elementFromPoint(currentCenter.x, currentCenter.y) || document;
+                        if (scrollDelta.x !== 0 || scrollDelta.y !== 0)
+                            this.emitter.fire("dispatchEvent", centerTarget, TurboWheelEvent, { delta: scrollDelta, eventName: TurboEventName.scroll });
+                        if (pinchDelta !== 0)
+                            this.emitter.fire("dispatchEvent", centerTarget, TurboWheelEvent, { delta: new Point(0, pinchDelta), eventName: TurboEventName.pinch });
+                    }
+                }
+            }
+            //Fire move event if enabled
+            if (this.element.moveEventsEnabled)
+                this.fireDrag(this.model.positions, TurboEventName.move);
+            //If drag events are enabled and user is interacting
+            if (this.model.currentAction !== exports.ActionMode.none && this.element.dragEventsEnabled) {
+                //Initialize drag
+                if (this.model.currentAction !== exports.ActionMode.drag) {
+                    //Check if any tracked origin moved beyond threshold
+                    if (!Array.from(this.model.origins.entries()).some(([key, origin]) => {
+                        const p = (key === e.pointerId)
+                            ? this.model.positions.get(key)
+                            : this.model.previousPositions.get(key);
+                        return p && Point.dist(p, origin) > this.model.moveThreshold;
+                    })) {
+                        this.model.previousPositions.set(e.pointerId, this.model.positions.get(e.pointerId));
+                        return;
+                    }
+                    //If didn't return --> fire drag start and set action to drag
+                    clearCache(this);
+                    this.fireDrag(this.model.origins, TurboEventName.dragStart);
+                    this.model.currentAction = exports.ActionMode.drag;
+                }
+                //Fire drag step
+                this.fireDrag(this.model.positions);
+            }
+            //Update previous positions for the moved pointer
+            this.model.previousPositions.set(e.pointerId, this.model.positions.get(e.pointerId));
+        }
+        pointerUpFn(e) {
+            if (!this.element.enabled)
+                return;
+            //Check if is touch
+            const isTouch = e.pointerType === "touch";
+            //Prevent default actions
+            if (this.element.preventDefaultMouse && !isTouch)
+                e.preventDefault();
+            if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
+                e.preventDefault();
+            //Clear any timer set
+            this.model.utils.clearTimer(TurboEventName.longPress);
+            //Initialize a new positions map
+            this.model.positions = new TurboMap();
+            this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
+            //If action was drag --> fire drag end
+            if (this.model.currentAction === exports.ActionMode.drag && this.element.dragEventsEnabled) {
+                this.fireDrag(this.model.positions, TurboEventName.dragEnd);
+            }
+            //If click events are enabled
+            if (this.element.clickEventsEnabled) {
+                //If action is click --> fire click
+                if (this.model.currentAction === exports.ActionMode.click) {
+                    this.fireClick(this.model.positions.first, TurboEventName.click);
+                }
+                //Fire click end
+                this.fireClick(this.model.origins.first, TurboEventName.clickEnd);
+            }
+            //Cleanup for this pointerId only
+            this.model.origins.delete(e.pointerId);
+            this.model.previousPositions.delete(e.pointerId);
+            this.model.activePointers.delete(e.pointerId);
+            //If no more active pointers, reset modes
+            if (this.model.activePointers.size === 0) {
+                this.model.currentAction = exports.ActionMode.none;
+                this.model.currentClick = exports.ClickMode.none;
+            }
+        }
+        pointerCancelFn(e) {
+            if (!this.model.activePointers.has(e.pointerId))
+                return;
+            this.model.utils.clearTimer(TurboEventName.longPress);
+            this.model.positions = new TurboMap();
+            this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
+            if (this.model.currentAction === exports.ActionMode.drag && this.element.dragEventsEnabled)
+                this.fireDrag(this.model.positions, TurboEventName.dragEnd);
+            if (this.element.clickEventsEnabled)
+                this.fireClick(this.model.origins.first, TurboEventName.clickEnd);
+            this.model.origins.delete(e.pointerId);
+            this.model.previousPositions.delete(e.pointerId);
+            this.model.activePointers.delete(e.pointerId);
+            if (this.model.activePointers.size === 0) {
+                this.model.currentAction = exports.ActionMode.none;
+                this.model.currentClick = exports.ClickMode.none;
+            }
+        }
+        lostPointerCaptureFn(e) {
+            // lostpointercapture fires after pointercancel too; guard avoids double-cleanup
+            if (this.model.activePointers.has(e.pointerId))
+                this.pointerCancelFn(e);
+        }
+        /**
+         * @description Fires a custom Turbo click event at the click target with the click position
+         * @param p
+         * @param eventName
+         * @private
+         */
+        fireClick(p, eventName = TurboEventName.click) {
+            if (!p)
+                return;
+            const target = document.elementFromPoint(p.x, p.y) || document;
+            this.emitter.fire("dispatchEvent", target, TurboEvent, { position: p, eventName: eventName });
+        }
+        /**
+         * @description Fires a custom Turbo drag event at the target with the origin of the drag, the last drag position, and the current position
+         * @param positions
+         * @param eventName
+         * @private
+         */
+        fireDrag(positions, eventName = TurboEventName.drag) {
+            if (!positions)
+                return;
+            this.emitter.fire("dispatchEvent", this.getFireOrigin(positions), TurboDragEvent, {
+                positions: positions,
+                previousPositions: this.model.previousPositions,
+                origins: this.model.origins,
+                eventName: eventName
+            });
+        }
+        getFireOrigin(positions, reload = false) {
+            if (!this.model.lastTargetOrigin || reload) {
+                const origin = this.model.origins.first ? this.model.origins.first : positions.first;
+                this.model.lastTargetOrigin = document.elementFromPoint(origin.x, origin.y);
+            }
+            return this.model.lastTargetOrigin;
+        }
+    }
+
+    class TurboEventManagerDispatchOperator extends TurboOperator {
+        keyName = "dispatch";
+        boundHooks = new Map();
+        setupChangedCallbacks() {
+            super.setupChangedCallbacks();
+            this.emitter.add("dispatchEvent", this.dispatchEvent);
+        }
+        dispatchEvent = (target, eventType, properties) => {
+            if (!target)
+                return;
+            properties.keys = this.model.currentKeys;
+            properties.toolName = this.element.getCurrentToolName(this.model.currentClick);
+            properties.clickMode = this.model.currentClick;
+            properties.inputDevice = this.model.inputDevice;
+            properties.eventManager = this.element;
+            properties.eventInitDict = { bubbles: true, cancelable: true, composed: true };
+            properties.authorizeScaling = this.element.authorizeEventScaling;
+            properties.scalePosition = this.element.scaleEventPosition;
+            if (properties.eventName === TurboKeyEventName.keyPressed)
+                this.element.setToolByKey(properties["keyPressed"]);
+            else if (properties.eventName === TurboKeyEventName.keyReleased)
+                this.element.setTool(undefined, exports.ClickMode.key, { select: false });
+            target.dispatchEvent(new eventType(properties));
+        };
+        getToolHandlingCallback(type, e) {
+            const toolName = this.element.getCurrentToolName(this.model.currentClick);
+            // For move events, composedPath() is the drag-origin's ancestor chain and never
+            // includes non-topmost components at the current cursor (e.g. Playback behind
+            // ClipRenderer). Use the full z-stack at the cursor instead, dispatching topmost-first
+            // and stopping at the first handler that returns non-propagate.
+            if (type === TurboMoveEventName.move && e instanceof TurboDragEvent && e.position) {
+                const { x, y } = e.position;
+                const stack = document.elementsFromPoint?.(x, y) ?? [];
+                for (const el of stack) {
+                    if (!(el instanceof Node))
+                        continue;
+                    const propagate = turbo(el).executeAction(type, toolName, e, undefined, this.element);
+                    if (propagate !== exports.Propagation.propagate)
+                        break;
+                }
+                return;
+            }
+            const path = e.composedPath?.() || [];
+            for (let i = path.length - 1; i >= 0; i--) {
+                if (!(path[i] instanceof Node))
+                    continue;
+                const propagate = turbo(path[i]).executeAction(type, toolName, e, { capture: true }, this.element);
+                if (propagate !== exports.Propagation.propagate) {
+                    e.stopPropagation();
+                    break;
+                }
+            }
+            for (let i = 0; i < path.length; i++) {
+                if (!(path[i] instanceof Node))
+                    continue;
+                const propagate = turbo(path[i]).executeAction(type, toolName, e, undefined, this.element);
+                if (propagate !== exports.Propagation.propagate) {
+                    e.stopPropagation();
+                    break;
+                }
+            }
+        }
+        setupCustomDispatcher(type) {
+            if (this.boundHooks.has(type))
+                return;
+            const hook = (e) => this.getToolHandlingCallback(type, e);
+            this.boundHooks.set(type, hook);
+            document.addEventListener(type, hook, { capture: true });
+        }
+        removeCustomDispatcher(type) {
+            const hook = this.boundHooks.get(type);
+            if (!hook)
+                return;
+            document.removeEventListener(type, hook, { capture: true });
+            this.boundHooks.delete(type);
+        }
+    }
+
+    /**
+     * @class TurboHandler
+     * @group MVC
+     * @category Handler
+     *
+     * @description The MVC base handler class. It's an extension of the model, and its main job is to provide some utility
+     * functions to manipulate some of (or all of) the model's data.
+     * @template {TurboModel} ModelType - The element's MVC model type.
+     */
+    class TurboHandler {
+        /**
+         * @description The key of the handler. Used to retrieve it in the main component. If not set, if the element's
+         * class name is MyElement and the handler's class name is MyElementSomethingHandler, the key would
+         * default to "something".
+         */
+        keyName;
+        /**
+         * @description The MVC model.
+         * @protected
+         */
+        model;
+        constructor(model) {
+            if (this.model)
+                this.model = model;
+            this.setup();
+        }
+        /**
+         * @function setup
+         * @description Called in the constructor. Use for setup that should happen at instantiation,
+         * before `this.initialize()` is called.
+         * @protected
+         */
+        setup() {
+            initializeEffects(this);
+        }
+    }
+    addRegistryCategory(TurboHandler);
+    define(TurboHandler);
+
+    class TurboEventManagerUtilsHandler extends TurboHandler {
+        keyName = "utils";
+        setClickMode(button, isTouch = false) {
+            if (isTouch)
+                button--;
+            switch (button) {
+                case -1:
+                    this.model.currentClick = exports.ClickMode.none;
+                    return;
+                case 0:
+                    this.model.currentClick = exports.ClickMode.left;
+                    return;
+                case 1:
+                    this.model.currentClick = exports.ClickMode.middle;
+                    return;
+                case 2:
+                    this.model.currentClick = exports.ClickMode.right;
+                    return;
+                default:
+                    this.model.currentClick = exports.ClickMode.other;
+                    return;
+            }
+        }
+        applyEventNames(eventNames) {
+            for (const eventName in eventNames)
+                DefaultEventName[eventName] = eventNames[eventName];
+        }
+        //Sets a timer function associated with a certain event name, with its duration
+        setTimer(timerName, callback, duration) {
+            this.clearTimer(timerName);
+            this.model.timerMap.set(timerName, setTimeout(() => {
+                callback();
+                this.clearTimer(timerName);
+            }, duration));
+        }
+        //Clears timer associated with the provided event name
+        clearTimer(timerName) {
+            const timer = this.model.timerMap.get(timerName);
+            if (!timer)
+                return;
+            clearTimeout(timer);
+            this.model.timerMap.delete(timerName);
+        }
+        activateTool(element, toolName, value) {
+            if (value)
+                $(element).onToolActivate(toolName).fire();
+            else
+                $(element).onToolDeactivate(toolName).fire();
+        }
+    }
+
+    /**
+     * @group Components
+     * @category TurboWeakSet
+     */
+    class TurboWeakSet {
+        _weakRefs;
+        constructor() {
+            this._weakRefs = new Set();
+        }
+        // Add an object as a WeakRef if it's not already in the set
+        add(obj) {
+            if (!this.has(obj))
+                this._weakRefs.add(new WeakRef(obj));
+            return this;
+        }
+        // Check if the set contains a WeakRef to the given object
+        has(obj) {
+            for (const weakRef of this._weakRefs) {
+                if (weakRef.deref() === obj)
+                    return true;
+            }
+            return false;
+        }
+        // Delete the WeakRef associated with the given object
+        delete(obj) {
+            for (const weakRef of this._weakRefs) {
+                if (weakRef.deref() === obj) {
+                    this._weakRefs.delete(weakRef);
+                    return true;
+                }
+            }
+            return false;
+        }
+        // Clean up any WeakRefs whose objects have been garbage-collected
+        cleanup() {
+            for (const weakRef of this._weakRefs) {
+                if (weakRef.deref() === undefined)
+                    this._weakRefs.delete(weakRef);
+            }
+        }
+        // Convert live objects in the TurboWeakSet to an array
+        toArray() {
+            const result = [];
+            for (const weakRef of this._weakRefs) {
+                const obj = weakRef.deref();
+                if (obj !== undefined)
+                    result.push(obj);
+                else
+                    this._weakRefs.delete(weakRef);
+            }
+            return result;
+        }
+        // Get the size of the TurboWeakSet (only live objects)
+        get size() {
+            return this.toArray().length;
+        }
+        // Clear all weak references
+        clear() {
+            this._weakRefs.clear();
+        }
+        forEach(callback, thisArg) {
+            for (const weakRef of this._weakRefs) {
+                const obj = weakRef.deref();
+                if (obj !== undefined)
+                    callback.call(thisArg, obj, obj, this);
+                else
+                    this._weakRefs.delete(weakRef);
+            }
+        }
+        *[Symbol.iterator]() {
+            for (const weakRef of this._weakRefs) {
+                const obj = weakRef.deref();
+                if (obj !== undefined)
+                    yield obj;
+                else
+                    this._weakRefs.delete(weakRef);
+            }
+        }
+    }
+
+    function expose(...args) {
+        if (typeof args[0] === "object") {
+            if (args.length < 3)
+                return;
+            return applyExpose(args[0], args[2], args[1], args[3] ?? true);
+        }
+        else {
+            return function (value, context) {
+                return exposeDecorator(args[0], args[1] ?? true, value, context);
+            };
+        }
+    }
+    function applyExpose(host, key, rootKey, exposeSetter) {
+        const nestedRoots = rootKey.split(".").filter(Boolean);
+        const getLowestRoot = (h) => nestedRoots.reduce((p, r) => p?.[r], h);
+        const descriptor = getFirstDescriptorInChain(host, key);
+        Object.defineProperty(host, key, {
+            configurable: true,
+            enumerable: descriptor?.enumerable ?? true,
+            get() { return getLowestRoot(this)?.[key]; },
+            set(value) { if (exposeSetter) {
+                const r = getLowestRoot(this);
+                if (r)
+                    r[key] = value;
+            } },
+        });
+    }
+    function exposeDecorator(rootKey, exposeSetter, value, context) {
+        if (!rootKey)
+            return value;
+        const { kind, name } = context;
+        const key = String(name);
+        const nestedRoots = rootKey.split(".").filter(Boolean);
+        const getLowestRoot = (host) => nestedRoots.reduce((p, r) => p?.[r], host);
+        if (kind === "method") {
+            return function (...args) {
+                const root = getLowestRoot(this);
+                const fn = root?.[key];
+                if (typeof fn === "function")
+                    return fn.apply(root, args);
+            };
+        }
+        context.addInitializer(function () {
+            applyExpose(this, key, rootKey, exposeSetter);
+        });
+    }
+
+    //TODO Create merged events maybe --> fire event x when "mousedown" | "touchstart" | "mousemove" etc.
+    //ToDO Create "interaction" event --> when element interacted with
+    /**
+     * @class TurboEventManager
+     * @group Event Handling
+     * @category TurboEventManager
+     *
+     * @description Class that manages default mouse, trackpad, and touch events, and accordingly fires custom events for
+     * easier management of input.
+     */
+    let TurboEventManager = (() => {
+        let _classSuper = TurboBaseElement;
+        let _instanceExtraInitializers = [];
+        let _keyOperator_decorators;
+        let _keyOperator_initializers = [];
+        let _keyOperator_extraInitializers = [];
+        let _wheelOperator_decorators;
+        let _wheelOperator_initializers = [];
+        let _wheelOperator_extraInitializers = [];
+        let _pointerOperator_decorators;
+        let _pointerOperator_initializers = [];
+        let _pointerOperator_extraInitializers = [];
+        let _dispatchOperator_decorators;
+        let _dispatchOperator_initializers = [];
+        let _dispatchOperator_extraInitializers = [];
+        let _inputDevice_decorators;
+        let _inputDevice_initializers = [];
+        let _inputDevice_extraInitializers = [];
+        let _onInputDeviceChange_decorators;
+        let _onInputDeviceChange_initializers = [];
+        let _onInputDeviceChange_extraInitializers = [];
+        let _currentClick_decorators;
+        let _currentClick_initializers = [];
+        let _currentClick_extraInitializers = [];
+        let _currentKeys_decorators;
+        let _currentKeys_initializers = [];
+        let _currentKeys_extraInitializers = [];
+        let _onToolChange_decorators;
+        let _onToolChange_initializers = [];
+        let _onToolChange_extraInitializers = [];
+        let _authorizeEventScaling_decorators;
+        let _authorizeEventScaling_initializers = [];
+        let _authorizeEventScaling_extraInitializers = [];
+        let _scaleEventPosition_decorators;
+        let _scaleEventPosition_initializers = [];
+        let _scaleEventPosition_extraInitializers = [];
+        let _moveThreshold_decorators;
+        let _moveThreshold_initializers = [];
+        let _moveThreshold_extraInitializers = [];
+        let _longPressDuration_decorators;
+        let _longPressDuration_initializers = [];
+        let _longPressDuration_extraInitializers = [];
+        let _set_keyEventsEnabled_decorators;
+        let _set_wheelEventsEnabled_decorators;
+        let _set_moveEventsEnabled_decorators;
+        let _set_mouseEventsEnabled_decorators;
+        let _set_touchEventsEnabled_decorators;
+        let _set_clickEventsEnabled_decorators;
+        let _set_dragEventsEnabled_decorators;
+        return class TurboEventManager extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _keyOperator_decorators = [operator()];
+                _wheelOperator_decorators = [operator()];
+                _pointerOperator_decorators = [operator()];
+                _dispatchOperator_decorators = [operator()];
+                _inputDevice_decorators = [expose("model", false)];
+                _onInputDeviceChange_decorators = [expose("model", false)];
+                _currentClick_decorators = [expose("model", false)];
+                _currentKeys_decorators = [expose("model", false)];
+                _onToolChange_decorators = [expose("model", false)];
+                _authorizeEventScaling_decorators = [expose("model")];
+                _scaleEventPosition_decorators = [expose("model")];
+                _moveThreshold_decorators = [expose("model")];
+                _longPressDuration_decorators = [expose("model")];
+                _set_keyEventsEnabled_decorators = [auto()];
+                _set_wheelEventsEnabled_decorators = [auto()];
+                _set_moveEventsEnabled_decorators = [auto()];
+                _set_mouseEventsEnabled_decorators = [auto()];
+                _set_touchEventsEnabled_decorators = [auto()];
+                _set_clickEventsEnabled_decorators = [auto()];
+                _set_dragEventsEnabled_decorators = [auto()];
+                __esDecorate(this, null, _set_keyEventsEnabled_decorators, { kind: "setter", name: "keyEventsEnabled", static: false, private: false, access: { has: obj => "keyEventsEnabled" in obj, set: (obj, value) => { obj.keyEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_wheelEventsEnabled_decorators, { kind: "setter", name: "wheelEventsEnabled", static: false, private: false, access: { has: obj => "wheelEventsEnabled" in obj, set: (obj, value) => { obj.wheelEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_moveEventsEnabled_decorators, { kind: "setter", name: "moveEventsEnabled", static: false, private: false, access: { has: obj => "moveEventsEnabled" in obj, set: (obj, value) => { obj.moveEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_mouseEventsEnabled_decorators, { kind: "setter", name: "mouseEventsEnabled", static: false, private: false, access: { has: obj => "mouseEventsEnabled" in obj, set: (obj, value) => { obj.mouseEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_touchEventsEnabled_decorators, { kind: "setter", name: "touchEventsEnabled", static: false, private: false, access: { has: obj => "touchEventsEnabled" in obj, set: (obj, value) => { obj.touchEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_clickEventsEnabled_decorators, { kind: "setter", name: "clickEventsEnabled", static: false, private: false, access: { has: obj => "clickEventsEnabled" in obj, set: (obj, value) => { obj.clickEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_dragEventsEnabled_decorators, { kind: "setter", name: "dragEventsEnabled", static: false, private: false, access: { has: obj => "dragEventsEnabled" in obj, set: (obj, value) => { obj.dragEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _keyOperator_decorators, { kind: "field", name: "keyOperator", static: false, private: false, access: { has: obj => "keyOperator" in obj, get: obj => obj.keyOperator, set: (obj, value) => { obj.keyOperator = value; } }, metadata: _metadata }, _keyOperator_initializers, _keyOperator_extraInitializers);
+                __esDecorate(null, null, _wheelOperator_decorators, { kind: "field", name: "wheelOperator", static: false, private: false, access: { has: obj => "wheelOperator" in obj, get: obj => obj.wheelOperator, set: (obj, value) => { obj.wheelOperator = value; } }, metadata: _metadata }, _wheelOperator_initializers, _wheelOperator_extraInitializers);
+                __esDecorate(null, null, _pointerOperator_decorators, { kind: "field", name: "pointerOperator", static: false, private: false, access: { has: obj => "pointerOperator" in obj, get: obj => obj.pointerOperator, set: (obj, value) => { obj.pointerOperator = value; } }, metadata: _metadata }, _pointerOperator_initializers, _pointerOperator_extraInitializers);
+                __esDecorate(null, null, _dispatchOperator_decorators, { kind: "field", name: "dispatchOperator", static: false, private: false, access: { has: obj => "dispatchOperator" in obj, get: obj => obj.dispatchOperator, set: (obj, value) => { obj.dispatchOperator = value; } }, metadata: _metadata }, _dispatchOperator_initializers, _dispatchOperator_extraInitializers);
+                __esDecorate(null, null, _inputDevice_decorators, { kind: "field", name: "inputDevice", static: false, private: false, access: { has: obj => "inputDevice" in obj, get: obj => obj.inputDevice, set: (obj, value) => { obj.inputDevice = value; } }, metadata: _metadata }, _inputDevice_initializers, _inputDevice_extraInitializers);
+                __esDecorate(null, null, _onInputDeviceChange_decorators, { kind: "field", name: "onInputDeviceChange", static: false, private: false, access: { has: obj => "onInputDeviceChange" in obj, get: obj => obj.onInputDeviceChange, set: (obj, value) => { obj.onInputDeviceChange = value; } }, metadata: _metadata }, _onInputDeviceChange_initializers, _onInputDeviceChange_extraInitializers);
+                __esDecorate(null, null, _currentClick_decorators, { kind: "field", name: "currentClick", static: false, private: false, access: { has: obj => "currentClick" in obj, get: obj => obj.currentClick, set: (obj, value) => { obj.currentClick = value; } }, metadata: _metadata }, _currentClick_initializers, _currentClick_extraInitializers);
+                __esDecorate(null, null, _currentKeys_decorators, { kind: "field", name: "currentKeys", static: false, private: false, access: { has: obj => "currentKeys" in obj, get: obj => obj.currentKeys, set: (obj, value) => { obj.currentKeys = value; } }, metadata: _metadata }, _currentKeys_initializers, _currentKeys_extraInitializers);
+                __esDecorate(null, null, _onToolChange_decorators, { kind: "field", name: "onToolChange", static: false, private: false, access: { has: obj => "onToolChange" in obj, get: obj => obj.onToolChange, set: (obj, value) => { obj.onToolChange = value; } }, metadata: _metadata }, _onToolChange_initializers, _onToolChange_extraInitializers);
+                __esDecorate(null, null, _authorizeEventScaling_decorators, { kind: "field", name: "authorizeEventScaling", static: false, private: false, access: { has: obj => "authorizeEventScaling" in obj, get: obj => obj.authorizeEventScaling, set: (obj, value) => { obj.authorizeEventScaling = value; } }, metadata: _metadata }, _authorizeEventScaling_initializers, _authorizeEventScaling_extraInitializers);
+                __esDecorate(null, null, _scaleEventPosition_decorators, { kind: "field", name: "scaleEventPosition", static: false, private: false, access: { has: obj => "scaleEventPosition" in obj, get: obj => obj.scaleEventPosition, set: (obj, value) => { obj.scaleEventPosition = value; } }, metadata: _metadata }, _scaleEventPosition_initializers, _scaleEventPosition_extraInitializers);
+                __esDecorate(null, null, _moveThreshold_decorators, { kind: "field", name: "moveThreshold", static: false, private: false, access: { has: obj => "moveThreshold" in obj, get: obj => obj.moveThreshold, set: (obj, value) => { obj.moveThreshold = value; } }, metadata: _metadata }, _moveThreshold_initializers, _moveThreshold_extraInitializers);
+                __esDecorate(null, null, _longPressDuration_decorators, { kind: "field", name: "longPressDuration", static: false, private: false, access: { has: obj => "longPressDuration" in obj, get: obj => obj.longPressDuration, set: (obj, value) => { obj.longPressDuration = value; } }, metadata: _metadata }, _longPressDuration_initializers, _longPressDuration_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static managers = [];
+            static get instance() {
+                if (TurboEventManager.managers.length == 0)
+                    this.managers.push(TurboEventManager.create());
+                return TurboEventManager.managers[0];
+            }
+            static get allManagers() {
+                return [...this.managers];
+            }
+            static set allManagers(managers) {
+                this.managers = managers;
+            }
+            get model() {
+                return turbo(this).model;
+            }
+            static defaultProperties = {
+                model: TurboEventManagerModel,
+                operators: [
+                    TurboEventManagerKeyOperator,
+                    TurboEventManagerWheelOperator,
+                    TurboEventManagerPointerOperator,
+                    TurboEventManagerDispatchOperator
+                ],
+                handlers: TurboEventManagerUtilsHandler,
+                keyEventsEnabled: true,
+                wheelEventsEnabled: true,
+                mouseEventsEnabled: true,
+                touchEventsEnabled: true,
+                clickEventsEnabled: true,
+                dragEventsEnabled: true,
+                moveEventsEnabled: true,
+            };
+            keyOperator = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _keyOperator_initializers, void 0));
+            wheelOperator = (__runInitializers(this, _keyOperator_extraInitializers), __runInitializers(this, _wheelOperator_initializers, void 0));
+            pointerOperator = (__runInitializers(this, _wheelOperator_extraInitializers), __runInitializers(this, _pointerOperator_initializers, void 0));
+            dispatchOperator = (__runInitializers(this, _pointerOperator_extraInitializers), __runInitializers(this, _dispatchOperator_initializers, void 0));
+            /**
+             * @description The currently identified input device. It is not 100% accurate, especially when differentiating
+             * between mouse and trackpad.
+             */
+            inputDevice = (__runInitializers(this, _dispatchOperator_extraInitializers), __runInitializers(this, _inputDevice_initializers, void 0));
+            onInputDeviceChange = (__runInitializers(this, _inputDevice_extraInitializers), __runInitializers(this, _onInputDeviceChange_initializers, void 0));
+            currentClick = (__runInitializers(this, _onInputDeviceChange_extraInitializers), __runInitializers(this, _currentClick_initializers, void 0));
+            currentKeys = (__runInitializers(this, _currentClick_extraInitializers), __runInitializers(this, _currentKeys_initializers, void 0));
+            /**
+             * @description Delegate fired when a tool is changed on a certain click button/mode
+             */
+            onToolChange = (__runInitializers(this, _currentKeys_extraInitializers), __runInitializers(this, _onToolChange_initializers, void 0));
+            authorizeEventScaling = (__runInitializers(this, _onToolChange_extraInitializers), __runInitializers(this, _authorizeEventScaling_initializers, void 0));
+            scaleEventPosition = (__runInitializers(this, _authorizeEventScaling_extraInitializers), __runInitializers(this, _scaleEventPosition_initializers, void 0));
+            moveThreshold = (__runInitializers(this, _scaleEventPosition_extraInitializers), __runInitializers(this, _moveThreshold_initializers, void 0));
+            longPressDuration = (__runInitializers(this, _moveThreshold_extraInitializers), __runInitializers(this, _longPressDuration_initializers, void 0));
+            constructor() {
+                super();
+                __runInitializers(this, _longPressDuration_extraInitializers);
+                TurboEventManager.managers.push(this);
+            }
+            initialize() {
+                super.initialize();
+                this.unlock();
+                document.addEventListener("pointerdown", this.pointerOperator.pointerDown, { passive: false });
+                document.addEventListener("pointermove", this.pointerOperator.pointerMove, { passive: false });
+                document.addEventListener("pointerup", this.pointerOperator.pointerUp, { passive: false });
+                document.addEventListener("pointercancel", this.pointerOperator.pointerCancel, { passive: false });
+                //TODO
+                this.dispatchOperator.setupCustomDispatcher("pointerdown");
+            }
+            set keyEventsEnabled(value) {
+                if (value) {
+                    document.addEventListener("keydown", this.keyOperator.keyDown);
+                    document.addEventListener("keyup", this.keyOperator.keyUp);
+                }
+                else {
+                    document.removeEventListener("keydown", this.keyOperator.keyDown);
+                    document.removeEventListener("keyup", this.keyOperator.keyUp);
+                }
+                this.applyAndHookEvents(TurboKeyEventName, DefaultKeyEventName, value);
+            }
+            set wheelEventsEnabled(value) {
+                if (value)
+                    document.body.addEventListener("wheel", this.wheelOperator.wheel, { passive: false });
+                else
+                    document.body.removeEventListener("wheel", this.wheelOperator.wheel);
+                this.applyAndHookEvents(TurboWheelEventName, DefaultWheelEventName, value);
+            }
+            set moveEventsEnabled(value) {
+                this.applyAndHookEvents(TurboMoveEventName, DefaultMoveEventName, value);
+            }
+            set mouseEventsEnabled(value) {
+                //TODO
+                // if (value) {
+                //     doc.on("pointerdown", this.pointerOperator.pointerDown, {passive: false, propagate: true});
+                //     doc.on("pointermove", this.pointerOperator.pointerMove, {passive: false, propagate: true});
+                //     doc.on("pointerup", this.pointerOperator.pointerUp, {passive: false, propagate: true});
+                //     doc.on("pointercancel", this.pointerOperator.pointerCancel, {passive: false, propagate: true});
+                // } else {
+                //     doc.removeListener("mousedown", this.pointerOperator.pointerDown);
+                //     doc.removeListener("mousemove", this.pointerOperator.pointerMove);
+                //     doc.removeListener("mouseup", this.pointerOperator.pointerUp);
+                //     doc.removeListener("mouseleave", this.pointerOperator.pointerLeave);
+                // }
+            }
+            set touchEventsEnabled(value) {
+                // if (value) {
+                //     doc.on("touchstart", this.pointerOperator.pointerDown, {passive: false, propagate: true});
+                //     doc.on("touchmove", this.pointerOperator.pointerMove, {passive: false, propagate: true});
+                //     doc.on("touchend", this.pointerOperator.pointerUp, {passive: false, propagate: true});
+                //     doc.on("touchcancel", this.pointerOperator.pointerUp, {passive: false, propagate: true});
+                // } else {
+                //     doc.removeListener("touchstart", this.pointerOperator.pointerDown);
+                //     doc.removeListener("touchmove", this.pointerOperator.pointerMove);
+                //     doc.removeListener("touchend", this.pointerOperator.pointerUp);
+                //     doc.removeListener("touchcancel", this.pointerOperator.pointerUp);
+                // }
+            }
+            set clickEventsEnabled(value) {
+                this.applyAndHookEvents(TurboClickEventName, DefaultClickEventName, value);
+            }
+            set dragEventsEnabled(value) {
+                this.applyAndHookEvents(TurboDragEventName, DefaultDragEventName, value);
+            }
+            /*
+             *
+             *
+             * State and lock management
+             *
+             *
+             *
+             */
+            /**
+             * @description Sets the lock state for the event manager.
+             * @param origin - The element that initiated the lock state.
+             * @param value - The state properties to set.
+             */
+            lock(origin, value) {
+                this.unlock();
+                this.model.lockState.lockOrigin = origin;
+                for (const key in value)
+                    this.model.lockState[key] = value[key];
+            }
+            /**
+             * @description Resets the lock state to the default values.
+             */
+            unlock() {
+                this.model.lockState = { lockOrigin: document.body };
+            }
+            get enabled() {
+                return this.model.state.enabled && (this.model.lockState.enabled ?? true);
+            }
+            set enabled(value) {
+                this.model.state.enabled = value;
+            }
+            get preventDefaultWheel() {
+                return this.model.state.preventDefaultWheel && (this.model.lockState.preventDefaultWheel ?? true);
+            }
+            set preventDefaultWheel(value) {
+                this.model.state.preventDefaultWheel = value;
+            }
+            get preventDefaultMouse() {
+                return this.model.state.preventDefaultMouse && (this.model.lockState.preventDefaultMouse ?? true);
+            }
+            set preventDefaultMouse(value) {
+                this.model.state.preventDefaultMouse = value;
+            }
+            get preventDefaultTouch() {
+                return this.model.state.preventDefaultTouch && (this.model.lockState.preventDefaultTouch ?? true);
+            }
+            set preventDefaultTouch(value) {
+                this.model.state.preventDefaultTouch = value;
+            }
+            get preventDefaults() {
+                return this.preventDefaultMouse || this.preventDefaultTouch || this.preventDefaultWheel;
+            }
+            set preventDefaults(value) {
+                this.model.state.preventDefaultWheel = value;
+                this.model.state.preventDefaultMouse = value;
+                this.model.state.preventDefaultTouch = value;
+            }
+            /*
+             *
+             *
+             * Tool management
+             *
+             *
+             *
+             */
+            /**
+             * @description All attached tools in an array
+             */
+            get toolsArray() {
+                const array = [];
+                for (const tools of this.model.tools.values())
+                    array.push(...tools.toArray());
+                return array;
+            }
+            getCurrentTool(mode = this.model.currentClick) {
+                return this.model.currentTools.get(mode);
+            }
+            /**
+             * @description Returns the instances of the tool currently held by the provided click mode
+             * @param mode
+             */
+            getCurrentTools(mode = this.model.currentClick) {
+                return this.getToolsByName(this.getCurrentToolName(mode));
+            }
+            /**
+             * @description Returns the name of the tool currently held by the provided click mode
+             * @param mode
+             */
+            getCurrentToolName(mode = this.model.currentClick) {
+                return this.getToolName(this.getCurrentTool(mode));
+            }
+            getToolName(tool) {
+                for (const [toolName, weakSet] of this.model.tools.entries()) {
+                    if (weakSet.has(tool))
+                        return toolName;
+                }
+            }
+            getSimilarTools(tool) {
+                for (const [toolName, weakSet] of this.model.tools.entries()) {
+                    if (weakSet.has(tool))
+                        return weakSet.toArray();
+                }
+                return [];
+            }
+            /**
+             * @description Returns the tool with the given name (or undefined)
+             * @param name
+             */
+            getToolsByName(name) {
+                return this.model.tools.get(name)?.toArray() || [];
+            }
+            /**
+             * @description Returns the first tool with the given name (or undefined)
+             * @param name
+             * @param predicate
+             */
+            getToolByName(name, predicate) {
+                const tools = this.getToolsByName(name);
+                return predicate ? tools?.find(predicate) : tools?.[0];
+            }
+            /**
+             * @description Returns the tools associated with the given key
+             * @param key
+             */
+            getToolsByKey(key) {
+                const toolName = this.model.mappedKeysToTool.get(key);
+                if (!toolName)
+                    return [];
+                return this.getToolsByName(toolName);
+            }
+            /**
+             * @description Returns the first tool associated with the given key
+             * @param key
+             * @param predicate
+             */
+            getToolByKey(key, predicate) {
+                const tools = this.getToolsByKey(key);
+                return predicate ? tools?.find(predicate) : tools?.[0];
+            }
+            /**
+             * @description Adds a tool to the tools map, identified by its name. Optionally, provide a key to bind the tool to.
+             * @param toolName
+             * @param tool
+             * @param key
+             */
+            addTool(toolName, tool, key) {
+                if (!this.model.tools.has(toolName))
+                    this.model.tools.set(toolName, new TurboWeakSet());
+                const tools = this.model.tools.get(toolName);
+                if (!tools.has(tool))
+                    tools.add(tool);
+                if (key)
+                    this.model.mappedKeysToTool.set(key, toolName);
+            }
+            /**
+             * @description Sets the provided tool as a current tool associated with the provided type
+             * @param tool
+             * @param type
+             * @param options
+             */
+            setTool(tool, type, options = {}) {
+                if (!isUndefined(tool) && !$(tool).isTool(this))
+                    return;
+                turbo(options).applyDefaults({ select: true, activate: true, setAsNoAction: type == exports.ClickMode.left });
+                //Get previous tool
+                const previousTool = this.model.currentTools.get(type);
+                if (previousTool) {
+                    //Return if it's the same
+                    if (previousTool === tool)
+                        return;
+                    //Deselect and deactivate previous tool
+                    this.getSimilarTools(previousTool).forEach(element => {
+                        if (options.select)
+                            turbo(element).selected = false;
+                        if (options.activate)
+                            this.model.utils.activateTool(element, this.getToolName(previousTool), false);
+                    });
+                }
+                //Select new tool (and maybe set it as the tool for no click mode)
+                this.model.currentTools.set(type, tool);
+                if (options.setAsNoAction)
+                    this.model.currentTools.set(exports.ClickMode.none, tool);
+                //Select and activate the tool
+                this.getSimilarTools(tool).forEach(element => {
+                    if (options.activate)
+                        this.model.utils.activateTool(element, this.getToolName(tool), true);
+                    if (options.select)
+                        turbo(element).selected = true;
+                });
+                //Fire tool changed
+                this.onToolChange.fire(previousTool, tool, type);
+            }
+            /**
+             * @description Sets tool associated with the provided key as the current tool for the key mode
+             * @param key
+             */
+            setToolByKey(key) {
+                const toolName = this.model.mappedKeysToTool.get(key);
+                if (!toolName)
+                    return false;
+                this.setTool(this.getToolByName(toolName), exports.ClickMode.key, { select: false });
+                return true;
+            }
+            /*
+             *
+             *
+             * Utils
+             *
+             *
+             */
+            setupCustomDispatcher(type) {
+                return this.dispatchOperator.setupCustomDispatcher(type);
+            }
+            applyAndHookEvents(turboEventNames, defaultEventNames, applyTurboEvents) {
+                this.model.utils.applyEventNames(applyTurboEvents ? turboEventNames : defaultEventNames);
+                for (const name of Object.values(applyTurboEvents ? turboEventNames : defaultEventNames)) {
+                    if (applyTurboEvents)
+                        this.dispatchOperator.setupCustomDispatcher(name);
+                    else
+                        this.dispatchOperator.removeCustomDispatcher(name);
+                }
+            }
+            destroy() {
+                this.keyEventsEnabled = false;
+                this.wheelEventsEnabled = false;
+                this.mouseEventsEnabled = false;
+                this.touchEventsEnabled = false;
+                this.dragEventsEnabled = false;
+                this.clickEventsEnabled = false;
+                this.onToolChange.clear();
+                return this;
+            }
+        };
+    })();
+    define(TurboEventManager);
+
+    /**
+     * @class Listener
+     * @group Components
+     * @category Listener
+     *
+     * @template {Node} TargetType - The type of the event target.
+     * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
+     * @description Object representing an event listener, storing its metadata (type, target, toolName, options,
+     * manager) and providing utilities to execute and match it.
+     */
+    class Listener {
+        /** @description Event type (e.g., `"click"`, `"pointermove"`). */
+        type;
+        /** @description Target node this listener is associated with. */
+        target;
+        /** @description Name of the tool this listener is bound to (if any). */
+        toolName;
+        /** @description Callback provided by the user. */
+        callback;
+        /**
+         * @description Bundled listener that adapts native events to the {@link ListenerCallback} signature.
+         */
+        bundledListener;
+        /** @description Listener options used for registration and additional behaviors.*/
+        options;
+        /** @description Associated event manager used to coordinate listener execution. */
+        manager;
+        /** @description Last animation frame index during which this listener executed. */
+        lastExecutionFrame;
+        /** @description Last timestamp (ms) at which this listener executed. */
+        lastExecutionTime;
+        /**
+         * @constructor
+         * @param {ListenerProperties<TargetType, CallbackType>} properties - Listener configuration.
+         * @description Creates a {@link Listener}.
+         */
+        constructor(properties) {
+            if (properties.target instanceof TurboSelector)
+                properties.target = properties.target.element;
+            this.type = properties.type;
+            this.target = properties.target;
+            this.toolName = properties.toolName;
+            this.callback = properties.callback;
+            this.bundledListener = (e) => this.callback(e, this.target);
+            this.options = properties.options ?? {};
+            this.manager = properties.manager ?? TurboEventManager.instance;
+        }
+        /**
+         * @function execute
+         * @description Executes the listener using its bundled signature.
+         * @param {Event} e - Event passed to the callback.
+         * @returns {Propagation} Propagation returned by the callback.
+         */
+        execute(e) {
+            return this.bundledListener(e);
+        }
+        /**
+         * @function executeOn
+         * @description Executes the underlying callback on an explicit target.
+         * @param {Event} e - Event passed to the callback.
+         * @param {TargetType} target - Target node.
+         * @param {...any[]} args - Additional arguments forwarded to the callback.
+         * @returns {any} Whatever the callback returns (typically {@link Propagation}).
+         */
+        executeOn(e, target, ...args) {
+            return this.callback(e, target, ...args);
+        }
+        /**
+         * @function match
+         * @description Checks whether this listener matches a subset of properties.
+         * @param {MatchListenerProperties<TargetType, CallbackType>} [properties={}] - Properties to match against.
+         * @returns {boolean} Whether this listener matches.
+         */
+        match(properties = {}) {
+            for (let [key, value] of Object.entries(properties)) {
+                if (key === "target" && value instanceof TurboSelector)
+                    value = value.element;
+                if (key === "optionsToSkip")
+                    continue;
+                if (value === undefined) {
+                    if (key === "toolName" && this.toolName !== undefined)
+                        return false;
+                    continue;
+                }
+                if (typeof value === "object") {
+                    if (typeof this[key] !== "object")
+                        return false;
+                    for (const [subKey, subValue] of Object.entries(value)) {
+                        if (key === "options" && properties.optionsToSkip?.includes(subKey))
+                            continue;
+                        if (subValue === undefined)
+                            continue;
+                        if (this[key][subKey] !== subValue)
+                            return false;
+                    }
+                    continue;
+                }
+                if (this[key] !== value)
+                    return false;
+            }
+            return true;
+        }
+    }
+
+    /**
+     * @class ListenerSet
+     * @group Components
+     * @category Listener
+     *
+     * @template {Node} TargetType - The type of the event target.
+     * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
+     * @description Collection of {@link Listener} instances indexed by event type.
+     * Provides helpers to add/remove/query listeners and to remove listeners matching criteria.
+     */
+    class ListenerSet {
+        /**
+         * @description Map from event type to a set of listeners registered for that type.
+         */
+        listeners = new Map();
+        /**
+         * @readonly
+         * @description Flattened array of all listeners in the set.
+         */
+        get listenersArray() {
+            const listeners = [];
+            for (const set of this.listeners.values()) {
+                for (const entry of set.values()) {
+                    listeners.push(entry);
+                }
+            }
+            return listeners;
+        }
+        addListener(value) {
+            if (typeof value === "object" && !(value instanceof Listener))
+                value = new Listener(value);
+            if (!value.type)
+                return;
+            if (!this.listeners.has(value.type))
+                this.listeners.set(value.type, new Set());
+            this.listeners.get(value.type).add(value);
+        }
+        removeListener(value) {
+            if (!value)
+                return;
+            if (value instanceof Listener)
+                this.listeners.get(value.type)?.delete(value);
+            else {
+                const listener = this.listenersArray.find(listener => listener.callback === value);
+                if (!listener)
+                    return;
+                this.listeners.get(listener.type)?.delete(listener);
+            }
+        }
+        /**
+         * @function removeMatchingListeners
+         * @description Removes all listeners that match the provided properties (see {@link Listener.match}).
+         * @param {MatchListenerProperties<TargetType, CallbackType>} [matchingProperties={}] - Properties to match.
+         */
+        removeMatchingListeners(matchingProperties = {}) {
+            this.getListeners(matchingProperties).forEach((listener) => {
+                // listener.target?.removeEventListener(listener.type, listener.bundledListener, listener.options);
+                this.removeListener(listener);
+            });
+        }
+        /**
+         * @function getListeners
+         * @description Returns all listeners matching the provided properties (see {@link Listener.match}).
+         * @param {MatchListenerProperties<TargetType, CallbackType>} [matchingProperties={}] - Properties to match.
+         * @returns {Listener[]} Matching listeners.
+         */
+        getListeners(matchingProperties = {}) {
+            return this.listenersArray.filter(listener => listener.match(matchingProperties));
+        }
+        /**
+         * @function getListenersByType
+         * @description Returns the set of listeners registered for the given event type.
+         * @param {string} type - Event type.
+         * @returns {Set<Listener<TargetType, CallbackType>>} Set of listeners for that type.
+         */
+        getListenersByType(type) {
+            if (!type || !this.listeners.has(type))
+                return new Set();
+            return this.listeners.get(type);
+        }
+    }
+
+    class EventFunctionsUtils {
+        dataMap = new WeakMap;
+        data(element) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element || !this.dataMap.has(element)) {
+                const entry = {
+                    boundListeners: new ListenerSet(),
+                    preventDefaultListeners: {},
+                };
+                if (element)
+                    this.dataMap.set(element, entry);
+            }
+            return this.dataMap.get(element);
+        }
+        getBoundListenersSet(element) {
+            let set = this.data(element).boundListeners;
+            if (!set) {
+                set = new ListenerSet();
+                this.data(element).boundListeners = set;
+            }
+            return set;
+        }
+        getBoundListeners(properties) {
+            if (!properties.target)
+                return [];
+            if (!properties.manager)
+                properties.manager = TurboEventManager.instance;
+            return this.getBoundListenersSet(properties.target).getListeners({
+                ...properties,
+                optionsToSkip: ["checkConstrainers", "solveConstrainers"]
+            });
+        }
+        getPreventDefaultListeners(element) {
+            let map = this.data(element).preventDefaultListeners;
+            if (!map) {
+                map = {};
+                this.data(element).preventDefaultListeners = map;
+            }
+            return map;
+        }
+        bypassManager(element, eventManager, bypassResults) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element)
+                return;
+            if (typeof bypassResults == "boolean")
+                eventManager.lock(element, {
+                    enabled: bypassResults,
+                    preventDefaultWheel: bypassResults,
+                    preventDefaultMouse: bypassResults,
+                    preventDefaultTouch: bypassResults
+                });
+            else
+                eventManager.lock(element, {
+                    enabled: bypassResults.enabled ?? false,
+                    preventDefaultWheel: bypassResults.preventDefaultWheel ?? false,
+                    preventDefaultMouse: bypassResults.preventDefaultMouse ?? false,
+                    preventDefaultTouch: bypassResults.preventDefaultTouch ?? false,
+                });
+        }
+        //TODO FIX IDK
+        processPropagation(currentPropagation, storedPropagation = exports.Propagation.propagate, defaultPropagation = exports.Propagation.stopPropagation) {
+            const orderedValues = [
+                exports.Propagation.propagate,
+                exports.Propagation.stopPropagation,
+                exports.Propagation.stopImmediatePropagation
+            ];
+            if (!orderedValues.includes(currentPropagation))
+                currentPropagation = defaultPropagation;
+            return orderedValues.indexOf(currentPropagation) <= orderedValues.indexOf(storedPropagation)
+                ? storedPropagation : currentPropagation;
+        }
+    }
+
+    const utils$5 = new EventFunctionsUtils();
+    function setupEventFunctions() {
+        /**
+         * @description Initializes a `boundListeners` set in the Node prototype, that will hold all the element's bound
+         * listeners.
+         */
+        Object.defineProperty(TurboSelector.prototype, "boundListeners", {
+            get: function () {
+                return utils$5.getBoundListenersSet(this);
+            },
+            configurable: true,
+            enumerable: true
+        });
+        /**
+         * @description If you want the element to bypass the event manager and allow native events to seep through,
+         * you can set this field to a predicate that defines when to bypass the manager.
+         * @param {Event} e The event.
+         */
+        Object.defineProperty(TurboSelector.prototype, "bypassManagerOn", {
+            get: function () {
+                return utils$5.data(this)["bypassCallback"];
+            },
+            set: function (value) {
+                utils$5.data(this)["bypassCallback"] = value;
+            },
+            configurable: true,
+            enumerable: true
+        });
+        /**
+         * @description Adds an event listener to the element.
+         * @param {string} type - The type of the event.
+         * @param toolName - The name of the tool. Set to null or undefined to check for listeners not bound to a tool.
+         * @param {ListenerCallback} listener - The function that receives a notification.
+         * @param {ListenerOptions} [options] - An options object that specifies characteristics
+         * about the event listener.
+         * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.onTool = function _onTool(type, toolName, listener, options, manager = TurboEventManager.instance) {
+            if (this.hasToolListener(type, toolName, listener, manager))
+                return this;
+            manager.setupCustomDispatcher?.(type);
+            utils$5.getBoundListenersSet(this).addListener({
+                target: this,
+                type,
+                toolName,
+                callback: listener,
+                options,
+                manager
+            });
+            return this;
+        };
+        /**
+         * @description Adds an event listener to the element.
+         * @param {string} type - The type of the event.
+         * @param {ListenerCallback} listener - The function that receives a notification.
+         * @param {ListenerOptions} [options] - An options object that specifies characteristics
+         * about the event listener.
+         * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.on = function _on(type, listener, options, manager = TurboEventManager.instance) {
+            return this.onTool(type, undefined, listener, options, manager);
+        };
+        /**
+         * @description
+         * @param type
+         * @param toolName
+         * @param event
+         * @param options
+         * @param manager
+         */
+        TurboSelector.prototype.executeAction = function _executeAction(type, toolName, event, options, manager = TurboEventManager.instance) {
+            if (!type)
+                return exports.Propagation.propagate;
+            if (!options)
+                options = {};
+            turbo(options).applyDefaults({ checkConstrainers: true, solveConstrainers: true });
+            const activeTool = toolName ?? manager.getCurrentToolName();
+            const checkedConstrainersFor = new Set();
+            const checkedObjectsToolMap = new Map();
+            const firedListeners = new Set();
+            let propagation = exports.Propagation.propagate;
+            if (this.bypassManagerOn)
+                utils$5.bypassManager(this, manager, this.bypassManagerOn(event));
+            const checkConstrainers = (target, tool) => {
+                if (!target)
+                    return;
+                if (propagation === exports.Propagation.stopImmediatePropagation)
+                    return;
+                if (!checkedConstrainersFor.has(target)) {
+                    checkedConstrainersFor.add(target);
+                    if (tool)
+                        checkedObjectsToolMap.set(target, tool);
+                    if (options.checkConstrainers) {
+                        const check = this.checkConstrainersForEvent({
+                            event, manager,
+                            toolName: tool,
+                            eventType: type,
+                            eventTarget: target,
+                            eventOptions: options,
+                        });
+                        if (!check)
+                            propagation = exports.Propagation.stopImmediatePropagation;
+                    }
+                }
+                checkConstrainers(target.parentNode, tool);
+            };
+            const runListeners = (target, tool) => {
+                const ts = target instanceof TurboSelector ? target : turbo(target);
+                const boundSet = utils$5.getBoundListenersSet(target);
+                const entries = utils$5.getBoundListeners({ target, type, toolName: tool, options, manager });
+                checkConstrainers(target, tool);
+                if (entries.length === 0)
+                    return;
+                if (propagation === exports.Propagation.stopImmediatePropagation)
+                    return;
+                for (const entry of entries) {
+                    if (firedListeners.has(entry))
+                        continue;
+                    try {
+                        propagation = utils$5.processPropagation(entry.executeOn(event, ts), propagation);
+                    }
+                    finally {
+                        firedListeners.add(entry);
+                        if (entry.options?.once)
+                            boundSet.removeListener(entry);
+                    }
+                    if (propagation === exports.Propagation.stopImmediatePropagation)
+                        return;
+                }
+            };
+            const applyTool = (target, tool) => {
+                if (options.capture || !tool)
+                    return;
+                if (turbo(target).isToolIgnored(tool, type, manager))
+                    return;
+                checkConstrainers(target, tool);
+                if (!this.hasToolBehavior(type, tool, manager))
+                    return;
+                if (propagation === exports.Propagation.stopImmediatePropagation)
+                    return;
+                propagation = turbo(target).applyTool(tool, type, event, manager);
+            };
+            const main = () => {
+                if (activeTool) {
+                    runListeners(this, activeTool);
+                    if (propagation !== exports.Propagation.propagate)
+                        return;
+                }
+                applyTool(this.element, activeTool);
+                if (propagation !== exports.Propagation.propagate)
+                    return;
+                const embeddedTarget = this.getEmbeddedToolTarget(manager);
+                const objectTools = this.getToolNames(manager);
+                if (embeddedTarget && objectTools.length > 0) {
+                    for (const toolName of objectTools) {
+                        runListeners(embeddedTarget, toolName);
+                        if (propagation === exports.Propagation.stopImmediatePropagation)
+                            return;
+                    }
+                    if (propagation !== exports.Propagation.propagate)
+                        return;
+                    if (!options.capture)
+                        for (const toolName of objectTools) {
+                            applyTool(embeddedTarget, toolName);
+                            if (propagation === exports.Propagation.stopImmediatePropagation)
+                                return;
+                        }
+                    if (propagation !== exports.Propagation.propagate)
+                        return;
+                }
+                runListeners(this, undefined);
+            };
+            main();
+            if (options.solveConstrainers)
+                checkedConstrainersFor.forEach(entry => turbo(this).solveConstrainersForEvent({
+                    event,
+                    toolName: checkedObjectsToolMap.get(entry),
+                    eventType: type,
+                    eventTarget: entry,
+                    eventOptions: options,
+                    manager: manager
+                }));
+            return propagation;
+        };
+        /**
+         * @description Checks if the given event listener is bound to the element (in its boundListeners list).
+         * @param {string} type - The type of the event. Set to null or undefined to get all event types.
+         * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
+         * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {boolean} - Whether the element has the given listener.
+         */
+        TurboSelector.prototype.hasListener = function _hasListener(type, listener, manager = TurboEventManager.instance) {
+            return this.hasToolListener(type, undefined, listener, manager);
+        };
+        /**
+         * @description Checks if the given event listener is bound to the element (in its boundListeners list).
+         * @param {string} type - The type of the event. Set to null or undefined to get all event types.
+         * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
+         * to check for listeners not bound to a tool.
+         * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
+         * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {boolean} - Whether the element has the given listener.
+         */
+        TurboSelector.prototype.hasToolListener = function _hasToolListener(type, toolName, listener, manager = TurboEventManager.instance) {
+            return utils$5.getBoundListeners({ target: this, callback: listener, type, toolName, manager }).length > 0;
+        };
+        /**
+         * @description Checks if the element has bound listeners of the given type (in its boundListeners list).
+         * @param {string} type - The type of the event. Set to null or undefined to get all event types.
+         * @param {string} toolName - The name of the tool to consider (if any). Set to null or undefined
+         * to check for listeners not bound to a tool.
+         * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {boolean} - Whether the element has the given listener.
+         */
+        TurboSelector.prototype.hasListenersByType = function _hasListenersByType(type, toolName, manager = TurboEventManager.instance) {
+            return utils$5.getBoundListeners({ target: this, type, toolName, manager }).length > 0;
+        };
+        /**
+         * @description Removes an event listener that is bound to the element (in its boundListeners list).
+         * @param {string} type - The type of the event.
+         * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
+         * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.removeListener = function _removeListener(type, listener, manager = TurboEventManager.instance) {
+            return this.removeToolListener(type, undefined, listener, manager);
+        };
+        /**
+         * @description Removes an event listener that is bound to the element (in its boundListeners list).
+         * @param {string} type - The type of the event.
+         * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
+         * to check for listeners not bound to a tool.
+         * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
+         * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.removeToolListener = function _removeToolListener(type, toolName, listener, manager = TurboEventManager.instance) {
+            utils$5.getBoundListenersSet(this).removeMatchingListeners({ target: this, type, toolName, callback: listener, manager });
+            return this;
+        };
+        /**
+         * @description Removes all event listeners bound to the element (in its boundListeners list) assigned to the
+         * specified type.
+         * @param {string} type - The type of the event. Set to null or undefined to consider all types.
+         * @param {string} toolName - The name of the tool associated (if any). Set to null or undefined
+         * to check for listeners not bound to a tool.
+         * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.removeListenersByType = function _removeListenersByType(type, toolName, manager = TurboEventManager.instance) {
+            utils$5.getBoundListenersSet(this).removeMatchingListeners({ target: this, type, toolName, manager });
+            return this;
+        };
+        /**
+         * @description Removes all event listeners bound to the element (in its boundListeners list).
+         * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.removeAllListeners = function _removeListeners(manager = TurboEventManager.instance) {
+            utils$5.getBoundListenersSet(this).removeMatchingListeners({ manager });
+            return this;
+        };
+        /**
+         * @description Prevent default browser behavior on the provided event types. By default, all basic input events
+         * will be processed.
+         * @param {PreventDefaultOptions} options - An options object to customize the behavior of the function.
+         */
+        TurboSelector.prototype.preventDefault = function _preventDefault(options) {
+            if (!options)
+                options = {};
+            const manager = options.manager ?? TurboEventManager.instance;
+            const types = options.types ?? BasicInputEvents;
+            const phase = options.phase ?? "capture";
+            const stop = options.stop ?? false;
+            utils$5.data(this.element).preventDefaultOn = options.preventDefaultOn
+                ?? utils$5.data(this.element).preventDefaultOn ?? (() => true);
+            const preventDefaultListeners = utils$5.getPreventDefaultListeners(this);
+            if (options.clearPreviousListeners)
+                for (const [type, listener] of Object.entries(preventDefaultListeners)) {
+                    this.removeListener(type, listener);
+                    delete preventDefaultListeners[type];
+                }
+            const shouldNotBePassive = new Set(NonPassiveEvents);
+            for (const type of new Set(types)) {
+                const handler = (event) => {
+                    if (!utils$5.data(this.element).preventDefaultOn(type, event))
+                        return false;
+                    event.preventDefault?.();
+                    if (stop === "immediate")
+                        event.stopImmediatePropagation?.();
+                    else if (stop === "stop")
+                        event.stopPropagation?.();
+                    return true;
+                };
+                preventDefaultListeners[type] = handler;
+                const options = {};
+                if (phase === "capture")
+                    options.capture = true;
+                if (shouldNotBePassive.has(type))
+                    options.passive = false;
+                this.on(type, handler, options, manager);
+            }
+            return this;
+        };
+    }
+
+    class StyleFunctionsUtils {
+        dataMap = new WeakMap;
+        data(element) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element)
+                return {};
+            if (!this.dataMap.has(element))
+                this.dataMap.set(element, {});
+            return this.dataMap.get(element);
+        }
+        setStyle(selector, attribute, value, instant = false, apply = true) {
+            if (instant) {
+                selector.element.style[attribute] = value.toString();
+                return;
+            }
+            let pendingStyles = this.data(selector.element)["pendingStyles"];
+            if (!pendingStyles || typeof pendingStyles !== "object") {
+                pendingStyles = {};
+                this.data(selector.element)["pendingStyles"] = pendingStyles;
+            }
+            pendingStyles[attribute] = value;
+            if (apply)
+                this.applyStyles(selector);
+            return;
+        }
+        /**
+         * @description Apply the pending styles to the element.
+         */
+        applyStyles(selector) {
+            const pendingStyles = this.data(selector.element)["pendingStyles"];
+            if (!pendingStyles || typeof pendingStyles !== "object")
+                return;
+            requestAnimationFrame(() => {
+                for (const property in pendingStyles) {
+                    if (property == "cssText")
+                        selector.element.style.cssText += ";" + pendingStyles["cssText"];
+                    else
+                        selector.element.style[property] = pendingStyles[property];
+                }
+                this.data(selector.element)["pendingStyles"] = {};
+            });
+        }
+    }
+
+    const utils$4 = new StyleFunctionsUtils();
+    const selectedKey = Symbol("__selected__");
+    const selectedClass = Symbol("__selectedClass__");
+    const defaultSelectedClassesKey = Symbol("__default_selected_classes__");
+    function setupStyleFunctions() {
+        /**
+         * @description The closest root to the element in the document (the closest ShadowRoot, or the document's head).
+         */
+        Object.defineProperty(TurboSelector.prototype, "closestRoot", {
+            get: function () {
+                let node = this.element;
+                while (node) {
+                    if (node instanceof Element && node.shadowRoot)
+                        return node.shadowRoot;
+                    node = node.parentElement;
+                }
+                return document.head;
+            },
+            configurable: false,
+            enumerable: true
+        });
+        Object.defineProperty(TurboSelector.prototype, "selected", {
+            get() {
+                return !!this[selectedKey];
+            },
+            set(value) {
+                const element = this.element;
+                if (!element)
+                    return;
+                if (element instanceof Element) {
+                    const prevClass = element[selectedClass];
+                    const nextClass = this["defaultSelectedClasses"] || "selected";
+                    element[selectedClass] = nextClass;
+                    if (prevClass && prevClass !== nextClass)
+                        turbo(element).toggleClass(prevClass, false);
+                    turbo(element).toggleClass(nextClass, !!value);
+                }
+                element[selectedKey] = value;
+                this.onSelected.fire(value);
+            },
+            enumerable: true,
+            configurable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "defaultSelectedClasses", {
+            get: function () {
+                return this[defaultSelectedClassesKey] ?? "";
+            },
+            set: function (value) {
+                if (this.selected)
+                    turbo(this).toggleClass(this[defaultSelectedClassesKey], false);
+                this[defaultSelectedClassesKey] = value;
+                if (this.selected)
+                    turbo(this).toggleClass(value, true);
+            },
+            enumerable: true,
+            configurable: true,
+        });
+        Object.defineProperty(TurboSelector.prototype, "onSelected", {
+            get: function () {
+                const data = utils$4.data(this);
+                if (!data["onSelected"])
+                    data["onSelected"] = new Delegate();
+                return data["onSelected"];
+            },
+            enumerable: true,
+            configurable: true,
+        });
+        /**
+         * @description Set a certain style attribute of the element to the provided value.
+         * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to set.
+         * @param {string | number} value - A string representing the value to set the attribute to.
+         * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next
+         * animation frame.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.setStyle = function _setStyle(attribute, value, instant = false) {
+            if (!attribute || value == undefined)
+                return this;
+            if (!(this.element instanceof HTMLElement) && !(this.element instanceof SVGElement))
+                return this;
+            utils$4.setStyle(this, attribute, value, instant);
+            return this;
+        };
+        /**
+         * @description Set a certain style attribute of the element to the provided value.
+         * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to set.
+         * @param {string} value - A string representing the value to set the attribute to.
+         * @param {string} [separator=", "] - The separator to use between the existing and new value.
+         * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next
+         * animation frame.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.appendStyle = function _appendStyle(attribute, value, separator = ", ", instant = false) {
+            if (!attribute || value == undefined)
+                return this;
+            if (!(this.element instanceof HTMLElement) && !(this.element instanceof SVGElement))
+                return this;
+            const currentStyle = (this.element.style[attribute] || "");
+            separator = currentStyle.length > 0 ? separator : "";
+            utils$4.setStyle(this, attribute, currentStyle + separator + value, instant);
+            return this;
+        };
+        /**
+         * @description Parses and applies the given CSS to the element's inline styles.
+         * @param {StylesType} styles - A CSS string of style attributes and their values, seperated by semicolons,
+         * or an object of CSS properties. Use the css literal function for autocompletion.
+         * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next
+         * animation frame.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.setStyles = function _setStyles(styles, instant = false) {
+            if (!styles || typeof styles == "number")
+                return this;
+            if (!(this.element instanceof HTMLElement) && !(this.element instanceof SVGElement))
+                return this;
+            let stylesObject = {};
+            if (typeof styles === "object")
+                stylesObject = styles;
+            else if (typeof styles == "string") {
+                styles.split(";").forEach(entry => {
+                    const [property, value] = entry.split(":").map(part => part.trim());
+                    if (!property || !value)
+                        return;
+                    stylesObject[property] = value;
+                });
+            }
+            Object.entries(stylesObject).forEach(([key, value]) => utils$4.setStyle(this, key, value, instant, false));
+            if (!instant)
+                utils$4.applyStyles(this);
+            return this;
+        };
+    }
+
+    class ToolFunctionsUtils {
+        elements = new WeakMap();
+        tools = new WeakMap();
+        getOrCreate(map, key, factory) {
+            let value = map.get(key);
+            if (!value) {
+                value = factory();
+                map.set(key, value);
+            }
+            return value;
+        }
+        getElementData(element, manager) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            const es = this.getOrCreate(this.elements, element, () => new WeakMap());
+            return this.getOrCreate(es, manager, () => ({
+                tools: new Set(),
+                ignoreAllTools: false,
+                ignoredTools: new Map(),
+                activationDelegates: new Map(),
+                deactivationDelegates: new Map(),
+            }));
+        }
+        getToolsData(manager, toolName) {
+            const byTool = this.getOrCreate(this.tools, manager, () => new Map());
+            return this.getOrCreate(byTool, toolName, () => ({
+                behaviors: new ListenerSet()
+            }));
+        }
+        getActivationDelegate(element, toolName, manager) {
+            const map = this.getElementData(element, manager).activationDelegates;
+            if (!map.get(toolName))
+                map.set(toolName, new Delegate());
+            return map.get(toolName);
+        }
+        getDeactivationDelegate(element, toolName, manager) {
+            const map = this.getElementData(element, manager).deactivationDelegates;
+            if (!map.get(toolName))
+                map.set(toolName, new Delegate());
+            return map.get(toolName);
+        }
+        saveTool(element, toolName, manager) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element)
+                return;
+            this.getElementData(element, manager).tools.add(toolName);
+        }
+        getToolNames(element, manager) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element)
+                return [];
+            return [...this.getElementData(element, manager).tools];
+        }
+        setEmbeddedToolTarget(element, target, manager) {
+            if (target instanceof TurboSelector)
+                target = target.element;
+            if (!target)
+                return;
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element)
+                return;
+            this.getElementData(element, manager).embeddedTarget = target;
+        }
+        getEmbeddedToolTarget(element, manager) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element)
+                return;
+            return this.getElementData(element, manager).embeddedTarget;
+        }
+        addToolBehavior(toolName, type, callback, manager) {
+            this.getToolsData(manager, toolName).behaviors?.addListener({ callback, type, toolName, manager });
+        }
+        getToolBehaviors(toolName, type, manager) {
+            return this.getToolsData(manager, toolName).behaviors?.getListeners({ toolName, manager, type });
+        }
+        removeToolBehaviors(toolName, type, manager) {
+            this.getToolsData(manager, toolName).behaviors?.removeMatchingListeners({ toolName, manager, type });
+        }
+        clearToolBehaviors(manager) {
+            this.getOrCreate(this.tools, manager, () => new Map()).clear();
+        }
+        ignoreTool(element, toolName, type, ignore, manager) {
+            const ignoredTools = this.getElementData(element, manager).ignoredTools;
+            if (!type) {
+                if (ignore)
+                    ignoredTools.set(toolName, "all");
+                else
+                    ignoredTools.delete(toolName);
+            }
+            else {
+                const ignoredTool = ignoredTools.get(toolName);
+                if (!ignore) {
+                    if (ignoredTool instanceof Set)
+                        ignoredTool.delete(type);
+                    return;
+                }
+                if (!(ignoredTool instanceof Set))
+                    ignoredTools.set(toolName, new Set());
+                ignoredTools.get(toolName).add(type);
+            }
+        }
+        isToolIgnored(element, toolName, type, manager) {
+            const ignoredTool = this.getElementData(element, manager).ignoredTools?.get(toolName);
+            if (!ignoredTool)
+                return false;
+            if (ignoredTool === "all" || !type)
+                return true;
+            return ignoredTool.has(type);
+        }
+        processPropagation(currentPropagation, storedPropagation = exports.Propagation.propagate, defaultPropagation = exports.Propagation.stopPropagation) {
+            const orderedValues = [
+                exports.Propagation.propagate,
+                exports.Propagation.stopPropagation,
+                exports.Propagation.stopImmediatePropagation
+            ];
+            if (!orderedValues.includes(currentPropagation))
+                currentPropagation = defaultPropagation;
+            return orderedValues.indexOf(currentPropagation) <= orderedValues.indexOf(storedPropagation)
+                ? storedPropagation : currentPropagation;
+        }
+    }
+
+    const utils$3 = new ToolFunctionsUtils();
+    function setupToolFunctions() {
+        /*
+         *
+         * Basic tool manipulation
+         *
+         */
+        TurboSelector.prototype.makeTool = function _makeTool(toolName, options) {
+            if (!toolName)
+                return this;
+            if (!options)
+                options = {};
+            if (!options.manager)
+                options.manager = TurboEventManager.instance;
+            options.manager.addTool(toolName, this.element, options.key);
+            if (options.customActivation && typeof options.customActivation === "function") {
+                options.customActivation(this, options.manager);
+            }
+            else {
+                options.activationEvent ??= DefaultEventName.click;
+                options.clickMode ??= exports.ClickMode.left;
+                this.on(options.activationEvent, () => {
+                    options.manager.setTool(this.element, options.clickMode);
+                    return exports.Propagation.stopPropagation;
+                }, undefined, options.manager);
+            }
+            utils$3.saveTool(this, toolName, options.manager);
+            if (options.onActivate)
+                utils$3.getActivationDelegate(this, toolName, options.manager).add(options.onActivate);
+            if (options.onDeactivate)
+                utils$3.getDeactivationDelegate(this, toolName, options.manager).add(options.onDeactivate);
+            return this;
+        };
+        TurboSelector.prototype.isTool = function _isTool(manager = TurboEventManager.instance) {
+            return utils$3.getToolNames(this.element, manager).length > 0;
+        };
+        TurboSelector.prototype.getToolNames = function _getToolName(manager = TurboEventManager.instance) {
+            return utils$3.getToolNames(this.element, manager);
+        };
+        TurboSelector.prototype.getToolName = function _getToolName(manager = TurboEventManager.instance) {
+            const toolNames = utils$3.getToolNames(this.element, manager);
+            if (toolNames.length > 0)
+                return toolNames[0];
+        };
+        /*
+         *
+         * Tool activation manipulation
+         *
+         */
+        TurboSelector.prototype.onToolActivate = function _onActivate(toolName, manager = TurboEventManager.instance) {
+            if (!toolName)
+                toolName = this.getToolName(manager);
+            return utils$3.getActivationDelegate(this, toolName, manager);
+        };
+        TurboSelector.prototype.onToolDeactivate = function _onDeactivate(toolName, manager = TurboEventManager.instance) {
+            if (!toolName)
+                toolName = this.getToolName(manager);
+            return utils$3.getDeactivationDelegate(this, toolName, manager);
+        };
+        /*
+         *
+         * Tool behavior manipulation
+         *
+         */
+        TurboSelector.prototype.addToolBehavior = function _addToolBehavior(type, callback, toolName = this.getToolName(), manager = TurboEventManager.instance) {
+            if (type && toolName) {
+                manager.setupCustomDispatcher?.(type);
+                utils$3.addToolBehavior(toolName, type, callback, manager);
+            }
+            return this;
+        };
+        TurboSelector.prototype.hasToolBehavior = function _hasToolBehavior(type, toolName = this.getToolName(), manager = TurboEventManager.instance) {
+            if (!type || !toolName)
+                return false;
+            return utils$3.getToolBehaviors(toolName, type, manager).length > 0;
+        };
+        TurboSelector.prototype.removeToolBehaviors = function _removeToolBehaviors(type, toolName = this.getToolName(), manager = TurboEventManager.instance) {
+            if (type && toolName)
+                utils$3.removeToolBehaviors(toolName, type, manager);
+            return this;
+        };
+        TurboSelector.prototype.clearToolBehaviors = function _clearToolBehaviors(manager = TurboEventManager.instance) {
+            utils$3.clearToolBehaviors(manager);
+            return this;
+        };
+        /*
+         *
+         * Embedded tool manipulation
+         *
+         */
+        TurboSelector.prototype.embedTool = function _embedTool(target, manager = TurboEventManager.instance) {
+            if (this.isTool(manager))
+                utils$3.setEmbeddedToolTarget(this.element, target, manager);
+            return this;
+        };
+        TurboSelector.prototype.isEmbeddedTool = function _isEmbeddedTool(manager = TurboEventManager.instance) {
+            return !!utils$3.getEmbeddedToolTarget(this.element, manager);
+        };
+        TurboSelector.prototype.getEmbeddedToolTarget = function _getEmbeddedToolTarget(manager = TurboEventManager.instance) {
+            return utils$3.getEmbeddedToolTarget(this.element, manager);
+        };
+        /*
+         *
+         * Apply tool
+         *
+         */
+        TurboSelector.prototype.applyTool = function _applyTool(toolName, type, event, manager = TurboEventManager.instance) {
+            let propagation = exports.Propagation.propagate;
+            const behaviors = utils$3.getToolBehaviors(toolName, type, manager);
+            const options = {};
+            options.embeddedTarget = utils$3.getEmbeddedToolTarget(this.element, manager);
+            options.isEmbedded = !!options.embeddedTarget;
+            for (const behavior of behaviors) {
+                propagation = utils$3.processPropagation(behavior.executeOn(event, this.element, options), propagation, exports.Propagation.propagate);
+                if (propagation === exports.Propagation.stopImmediatePropagation)
+                    break;
+            }
+            return propagation;
+        };
+        TurboSelector.prototype.ignoreTool = function _ignoreTool(toolName, type, ignore = true, manager = TurboEventManager.instance) {
+            utils$3.ignoreTool(this.element, toolName, type, ignore, manager);
+            return this;
+        };
+        TurboSelector.prototype.ignoreAllTools = function _ignoreAllTools(ignore = true, manager = TurboEventManager.instance) {
+            utils$3.getElementData(this.element, manager).ignoreAllTools = ignore;
+            return this;
+        };
+        TurboSelector.prototype.isToolIgnored = function _isToolIgnored(toolName, type, manager = TurboEventManager.instance) {
+            if (utils$3.getElementData(this.element, manager).ignoreAllTools)
+                return true;
+            return utils$3.isToolIgnored(this.element, toolName, type, manager);
+        };
+    }
+
+    /**
+     * @class TurboQueue
+     * @group Components
+     * @category TurboQueue
+     */
+    class TurboQueue {
+        items = [];
+        head = 0;
+        push(...values) {
+            values.forEach(value => this.items.push(value));
+            return this;
+        }
+        addOnTop(...values) {
+            this.items = [...values, ...this.items];
+            return this;
+        }
+        pop() {
+            if (this.head >= this.items.length)
+                return undefined;
+            const value = this.items[this.head];
+            this.items[this.head] = undefined;
+            this.head++;
+            if (this.head > 1024 && this.head * 2 > this.items.length) {
+                this.items = this.items.slice(this.head);
+                this.head = 0;
+            }
+            return value;
+        }
+        peek() {
+            return this.head < this.items.length ? this.items[this.head] : undefined;
+        }
+        has(value) {
+            return this.items.includes(value);
+        }
+        get size() {
+            return this.items.length - this.head;
+        }
+        get isEmpty() {
+            return this.size === 0;
+        }
+        removeDuplicates(entry) {
+            const uniques = new Set();
+            const toDelete = [];
+            for (let i = 0; i < this.items.length; i++) {
+                if (entry && this.items[i] !== entry)
+                    continue;
+                if (!uniques.has(this.items[i]))
+                    uniques.add(this.items[i]);
+                else
+                    toDelete.push(i);
+            }
+            for (let i = toDelete.length - 1; i >= 0; i--)
+                this.items.splice(i, 1);
+            return this;
+        }
+        clear() {
+            this.items = [];
+            this.head = 0;
+            return this;
+        }
+        toArray() {
+            const arr = [];
+            for (let i = this.head; i < this.items.length; i += 1)
+                arr.push(this.items[i]);
+            return arr;
+        }
+        clone() {
+            const queue = new TurboQueue();
+            for (let i = this.head; i < this.items.length; i += 1)
+                queue.push(this.items[i]);
+            return queue;
+        }
+        remove(value) {
+            for (let i = this.head; i < this.items.length; i += 1) {
+                if (this.items[i] !== value)
+                    continue;
+                this.items.splice(i, 1);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /**
+     * @class TurboNodeList
+     * @group Components
+     * @category TurboNodeList
+     *
+     * @description A composable, Set-like collection for managing nodes. Supports individual nodes, live DOM
+     * collections ({@link HTMLCollection} or {@link NodeListOf}), and nested {@link TurboNodeList} instances as
+     * sub-lists. Changes to sub-lists and live DOM collections propagate automatically on iteration.
+     *
+     * @template {object} Type - The type of the nodes held in the list.
+     */
+    let TurboNodeList = (() => {
+        let _instanceExtraInitializers = [];
+        let _set_observeDomLists_decorators;
+        return class TurboNodeList {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(this, null, _set_observeDomLists_decorators, { kind: "setter", name: "observeDomLists", static: false, private: false, access: { has: obj => "observeDomLists" in obj, set: (obj, value) => { obj.observeDomLists = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            slots = (__runInitializers(this, _instanceExtraInitializers), []);
+            ignoredMap = new WeakMap();
+            domListObservers = new Map();
+            subNodeListHandlers = new Map();
+            /**
+             * @description Delegate fired whenever an entry is added to or removed from the list, including entries
+             * from nested {@link TurboNodeList}s, {@link HTMLCollection}s, and {@link NodeListOf} instances.
+             */
+            onChanged = new Delegate();
+            /**
+             * @constructor
+             * @param {...(Type | NodeListType<Type>)[]} [values] - Optional initial value(s) to populate the list with.
+             */
+            constructor(...values) {
+                this.add(...values);
+            }
+            /**
+             * @description Whether to observe added {@link HTMLCollection}s and {@link NodeListOf} instances for DOM
+             * mutations, automatically firing {@link onChanged} when nodes are added or removed from the DOM.
+             */
+            set observeDomLists(value) {
+                if (value) {
+                    for (const entry of this.slots) {
+                        const obj = entry.deref();
+                        if (this.isDomList(obj))
+                            this.attachObserver(obj);
+                    }
+                }
+                else {
+                    for (const [, observer] of this.domListObservers)
+                        observer.disconnect();
+                    this.domListObservers.clear();
+                }
+            }
+            /**
+             * @description A {@link Set} snapshot of all entries in this list, without duplicates.
+             */
+            get list() {
+                return new Set(this);
+            }
+            set list(value) {
+                if (!value)
+                    return;
+                this.clear();
+                this.addEntry(value);
+            }
+            /**
+             * @description An array snapshot of all entries in this list, without duplicates.
+             */
+            get array() {
+                return Array.from(this);
+            }
+            /**
+             * @description The number of resolved unique entries in this list. For the number of slots, see
+             * {@link slotCount}.
+             */
+            get size() {
+                let count = 0;
+                for (const _ of this)
+                    count++;
+                return count;
+            }
+            /**
+             * @description The number of slots in this list. Individual entries, {@link HTMLCollection}s,
+             * {@link NodeListOf} instances, and nested {@link TurboNodeList}s each count as one slot, regardless
+             * of how many entries they contain. For the number of resolved entries, see {@link size}.
+             */
+            get slotCount() {
+                return this.slots.length;
+            }
+            /**
+             * @function isTurboNodeList
+             * @protected
+             * @description Type guard — returns true if the given value is a {@link TurboNodeList}.
+             * @param {any} entry - The value to check.
+             * @returns {boolean} Whether the value is a {@link TurboNodeList}.
+             */
+            isTurboNodeList(entry) {
+                return entry instanceof TurboNodeList;
+            }
+            /**
+             * @function isDomList
+             * @protected
+             * @description Type guard — returns true if the given value is an {@link HTMLCollection} or
+             * {@link NodeListOf}.
+             * @param {any} entry - The value to check.
+             * @returns {boolean} Whether the value is a DOM list.
+             */
+            isDomList(entry) {
+                return entry instanceof NodeList || entry instanceof HTMLCollection;
+            }
+            /**
+             * @function isSet
+             * @protected
+             * @description Type guard — returns true if the given value is a {@link Set} or an array.
+             * @param {any} entry - The value to check.
+             * @returns {boolean} Whether the value is a Set or array.
+             */
+            isSet(entry) {
+                return entry instanceof Set || Array.isArray(entry);
+            }
+            /**
+             * @function isEntry
+             * @protected
+             * @description Type guard — returns true if the given value is an individual node entry (i.e. not a
+             * {@link TurboNodeList}, DOM list, Set, array, or {@link WeakRef}).
+             * @param {any} entry - The value to check.
+             * @returns {boolean} Whether the value is an individual entry.
+             */
+            isEntry(entry) {
+                return typeof entry === "object" && entry !== null
+                    && !this.isTurboNodeList(entry)
+                    && !this.isDomList(entry)
+                    && !this.isSet(entry)
+                    && !(entry instanceof WeakRef);
+            }
+            /**
+             * @description Iterates over all resolved unique entries in slot order, skipping ignored and duplicate
+             * entries.
+             */
+            *[(_set_observeDomLists_decorators = [auto({ cancelIfUnchanged: true })], Symbol.iterator)]() {
+                const seen = new Set();
+                for (const slot of this.slots) {
+                    for (const entry of this.resolveSlot(slot)) {
+                        if (!this.ignoredMap.get(entry) && !seen.has(entry)) {
+                            seen.add(entry);
+                            yield entry;
+                        }
+                    }
+                }
+            }
+            /**
+             * @function resolveSlot
+             * @description Resolves a slot {@link WeakRef} into its constituent entries. Yields all entries from
+             * sub-lists and DOM lists, or the single entry for individual node slots. Yields nothing if the
+             * referent has been garbage collected.
+             * @param {WeakRef<NodeListSlot<Type>>} slot - The slot to resolve.
+             */
+            *resolveSlot(slot) {
+                const obj = slot.deref();
+                if (!obj)
+                    return;
+                if (this.isTurboNodeList(obj))
+                    yield* obj;
+                else if (this.isDomList(obj))
+                    yield* Array.from(obj);
+                else
+                    yield obj;
+            }
+            forEach(callback, thisArg) {
+                for (const entry of this) {
+                    callback.call(thisArg, entry, entry, this);
+                }
+                return this;
+            }
+            /**
+             * @function add
+             * @description Adds one or more entries to the end of the list. Entries may be individual nodes,
+             * arrays, {@link Set}s, {@link HTMLCollection}s, {@link NodeListOf} instances, or nested
+             * {@link TurboNodeList}s.
+             * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
+             * @returns {this} Itself, allowing for method chaining.
+             */
+            add(...entries) {
+                entries.forEach(entry => this.addEntry(entry));
+                return this;
+            }
+            /**
+             * @function addAt
+             * @description Adds one or more entries at the given resolved size index. The index refers to the position
+             * among resolved unique entries, not slots. Arrays and {@link Set}s are expanded inline.
+             * @param {number} index - The resolved entry index to insert at.
+             * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
+             * @returns {this} Itself, allowing for method chaining.
+             */
+            addAt(index, ...entries) {
+                return this.addAtSlot(this.sizeIndexToSlotIndex(index), ...entries);
+            }
+            /**
+             * @function addAtSlot
+             * @description Adds one or more entries at the given slot index. Subsequent entries are inserted
+             * consecutively after the previous one. Arrays and {@link Set}s are expanded inline, each item
+             * occupying the next slot index.
+             * @param {number} index - The slot index to insert at.
+             * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
+             * @returns {this} Itself, allowing for method chaining.
+             */
+            addAtSlot(index, ...entries) {
+                entries.forEach(entry => index = this.addEntry(entry, index));
+                return this;
+            }
+            /**
+             * @function remove
+             * @description Removes one or more entries from the list. Entries may be individual nodes, arrays,
+             * {@link Set}s, {@link HTMLCollection}s, {@link NodeListOf} instances, or nested
+             * {@link TurboNodeList}s.
+             * @param {...(NodeListType<Type> | Type)[]} entries - The entries to remove.
+             * @returns {this} Itself, allowing for method chaining.
+             */
+            remove(...entries) {
+                entries.forEach(entry => this.removeEntry(entry));
+                return this;
+            }
+            /**
+             * @function removeAtSlot
+             * @description Removes one or more slots starting at the given slot index. Each slot removed may
+             * correspond to an individual entry, a DOM list, or a nested {@link TurboNodeList}.
+             * @param {number} index - The slot index to start removing from.
+             * @param {number} [count=1] - The number of consecutive slots to remove.
+             * @returns {this} Itself, allowing for method chaining.
+             */
+            removeAtSlot(index, count = 1) {
+                const toRemove = this.slots.slice(index, index + count)
+                    .map(s => s.deref()).filter(Boolean);
+                for (const slot of toRemove)
+                    this.removeEntry(slot);
+                return this;
+            }
+            /**
+             * @function move
+             * @description Moves an existing entry to the given resolved size index. If the entry is a member of a
+             * nested {@link TurboNodeList}, it is moved within that sub-list. If it belongs to a DOM list, it is
+             * repositioned in the DOM accordingly.
+             * @param {Type} entry - The entry to move.
+             * @param {number} index - The resolved entry index to move the entry to.
+             * @returns {this} Itself, allowing for method chaining.
+             */
+            move(entry, index) {
+                const currentSlotIndex = this.slots.findIndex(s => s.deref() === entry);
+                if (currentSlotIndex > -1)
+                    return this.moveToSlot(entry, this.sizeIndexToSlotIndex(index));
+                const container = this.findContainingSlot(entry);
+                if (!container)
+                    return this;
+                if (this.isTurboNodeList(container)) {
+                    container.move(entry, index);
+                    return this;
+                }
+                if (this.isDomList(container)) {
+                    if (!(entry instanceof Node))
+                        return this;
+                    const parent = entry.parentNode;
+                    if (!parent)
+                        return this;
+                    const siblings = Array.from(container).filter(n => n !== entry);
+                    const ref = siblings[Math.max(0, Math.min(index, siblings.length))] ?? null;
+                    parent.insertBefore(entry, ref);
+                    return this;
+                }
+            }
+            /**
+             * @function moveToSlot
+             * @description Moves an existing entry to the given slot index.
+             * @param {Type} entry - The entry to move.
+             * @param {number} index - The slot index to move the entry to.
+             * @returns {this} Itself, allowing for method chaining.
+             */
+            moveToSlot(entry, index) {
+                if (!entry || !this.has(entry))
+                    return this;
+                const currentSlotIndex = this.slots.findIndex(s => s.deref() === entry);
+                if (currentSlotIndex === -1)
+                    return this;
+                index = trim(index, this.slots.length, 0, this.slots.length);
+                if (currentSlotIndex === index)
+                    return this;
+                this.slots.splice(currentSlotIndex, 1);
+                this.slots.splice(index > currentSlotIndex ? index - 1 : index, 0, new WeakRef(entry));
+                return this;
+            }
+            /**
+             * @function has
+             * @description Checks whether the given entry or entries are present in the list.
+             * - For {@link TurboNodeList}s and DOM lists, checks if they belong to this list.
+             * - For arrays and {@link Set}s, returns true only if every item is present.
+             * @param {Type | NodeListType<Type>} entry - The entry or entries to check.
+             * @returns {boolean} Whether the entry or entries are present in the list.
+             */
+            has(entry) {
+                if (!entry)
+                    return false;
+                if (this.isTurboNodeList(entry) || this.isDomList(entry))
+                    return this.slots.some(s => s.deref() === entry);
+                if (this.isSet(entry)) {
+                    const arr = Array.from(entry);
+                    return arr.length > 0 && arr.every(item => this.has(item));
+                }
+                if (this.ignoredMap.get(entry))
+                    return false;
+                for (const resolved of this)
+                    if (resolved === entry)
+                        return true;
+                return false;
+            }
+            /**
+             * @function clear
+             * @description Clears all entries from the list, firing {@link onChanged} for every resolved entry.
+             * @returns {this} Itself, allowing for method chaining.
+             */
+            clear() {
+                for (const entry of this)
+                    this.onChanged.fire(entry, "removed");
+                for (const [_, observer] of this.domListObservers)
+                    observer.disconnect();
+                this.domListObservers.clear();
+                for (const [subNodeList, handler] of this.subNodeListHandlers)
+                    subNodeList.onChanged.remove(handler);
+                this.subNodeListHandlers.clear();
+                this.slots = [];
+                this.ignoredMap = new WeakMap();
+                return this;
+            }
+            /**
+             * @function addEntry
+             * @description Core insertion method. Inserts a single entry, DOM list, sub-list, or expands an
+             * array/Set inline. Skips already-present entries and duplicate slots. Registers sub-list handlers
+             * and DOM observers as needed.
+             * @param {Type | NodeListType<Type>} entry - The entry to add.
+             * @param {number} [index] - The slot index to insert at. Defaults to the end of the slot array.
+             * @returns {number} The next available slot index after this insertion, for consecutive chaining.
+             */
+            addEntry(entry, index) {
+                if (index === undefined)
+                    index = this.slots.length;
+                if (!entry)
+                    return index;
+                if (this.isSet(entry)) {
+                    for (const item of entry)
+                        index = this.addEntry(item, index);
+                    return index;
+                }
+                if (this.isEntry(entry) && !this.has(entry)) {
+                    this.ignoredMap.delete(entry);
+                    return this.insertOrRemoveSlot(entry, "added", index);
+                }
+                if (this.slots.some(s => s.deref() === entry))
+                    return index;
+                index = this.insertOrRemoveSlot(entry, "added", index);
+                if (this.isTurboNodeList(entry)) {
+                    const handler = (subEntry, state) => {
+                        if (state === "added" && this.ignoredMap.get(subEntry))
+                            return;
+                        this.onChanged.fire(subEntry, state);
+                    };
+                    this.subNodeListHandlers.set(entry, handler);
+                    entry.onChanged.add(handler);
+                }
+                else if (this.isDomList(entry) && this.observeDomLists)
+                    this.attachObserver(entry);
+                return index;
+            }
+            /**
+             * @function removeEntry
+             * @description Core removal method. Removes a single entry, DOM list, sub-list, or expands an
+             * array/Set inline. Marks removed individual entries in {@link ignoredMap}. Disconnects observers
+             * and unregisters sub-list handlers as needed.
+             * @param {Type | NodeListType<Type>} entry - The entry to remove.
+             */
+            removeEntry(entry) {
+                if (!entry)
+                    return;
+                if (this.isSet(entry)) {
+                    for (const item of entry)
+                        this.removeEntry(item);
+                    return;
+                }
+                if (this.isEntry(entry)) {
+                    if (this.has(entry)) {
+                        this.ignoredMap.set(entry, true);
+                        this.insertOrRemoveSlot(entry, "removed");
+                    }
+                    return;
+                }
+                if (this.isTurboNodeList(entry)) {
+                    const handler = this.subNodeListHandlers.get(entry);
+                    if (handler) {
+                        entry.onChanged.remove(handler);
+                        this.subNodeListHandlers.delete(entry);
+                    }
+                }
+                else if (this.isDomList(entry)) {
+                    const observer = this.domListObservers.get(entry);
+                    if (observer) {
+                        observer.disconnect();
+                        this.domListObservers.delete(entry);
+                    }
+                }
+                this.insertOrRemoveSlot(entry, "removed");
+            }
+            /**
+             * @function insertOrRemoveSlot
+             * @description Low-level slot mutation. On `"added"`, clamps the index and splices a new
+             * {@link WeakRef} into {@link slots}. On `"removed"`, finds the slot by identity and splices it out.
+             * Fires {@link onChanged} for all resolved entries of the slot.
+             * @param {NodeListSlot<Type>} slot - The slot value to insert or remove.
+             * @param {"added" | "removed"} state - Whether to insert or remove the slot.
+             * @param {number} [index] - Slot index for insertion. Ignored on removal.
+             * @returns {number} The next available slot index after the operation, for consecutive chaining.
+             */
+            insertOrRemoveSlot(slot, state, index) {
+                if (state === "added") {
+                    index = trim(index, this.slots.length, 0, this.slots.length);
+                    this.slots.splice(index, 0, new WeakRef(slot));
+                }
+                else {
+                    index = this.slots.findIndex(s => s.deref() === slot);
+                    if (index !== -1)
+                        this.slots.splice(index, 1);
+                }
+                if (this.isEntry(slot))
+                    this.onChanged.fire(slot, state);
+                else
+                    for (const entry of this.isDomList(slot) ? Array.from(slot) : slot) {
+                        if (!this.ignoredMap.get(entry))
+                            this.onChanged.fire(entry, state);
+                    }
+                return index + 1;
+            }
+            /**
+             * @function attachObserver
+             * @description Attaches a {@link MutationObserver} to the parent of the first node in the given DOM
+             * list, firing {@link onChanged} when nodes matching the list are added to or removed from the DOM.
+             * Does nothing if an observer is already attached for this list, or if no parent node is found.
+             * @param {HTMLCollection | NodeListOf<Type & Node>} domList - The DOM list to observe.
+             */
+            attachObserver(domList) {
+                if (this.domListObservers.has(domList))
+                    return;
+                const firstNode = domList[0];
+                const parent = firstNode?.parentElement ?? firstNode?.parentNode;
+                if (!parent)
+                    return;
+                const snapshot = new Set(Array.from(domList));
+                const observer = new MutationObserver(mutations => mutations.forEach(mutation => {
+                    mutation.addedNodes.forEach(node => {
+                        const obj = node;
+                        if (snapshot.has(obj) || this.ignoredMap.get(obj) || node.parentNode !== parent)
+                            return;
+                        snapshot.add(obj);
+                        this.onChanged.fire(obj, "added");
+                    });
+                    mutation.removedNodes.forEach(node => {
+                        const obj = node;
+                        if (!snapshot.has(obj) || this.ignoredMap.get(obj))
+                            return;
+                        snapshot.delete(obj);
+                        this.onChanged.fire(obj, "removed");
+                    });
+                }));
+                observer.observe(parent, { childList: true, subtree: true });
+                this.domListObservers.set(domList, observer);
+            }
+            sizeIndexToSlotIndex(sizeIndex) {
+                const size = this.size;
+                sizeIndex = trim(sizeIndex, size, 0, size);
+                let count = 0;
+                for (let i = 0; i < this.slots.length; i++) {
+                    if (count === sizeIndex)
+                        return i;
+                    for (const _ of this.resolveSlot(this.slots[i])) {
+                        count++;
+                        if (count === sizeIndex)
+                            return i + 1;
+                    }
+                }
+                return this.slots.length;
+            }
+            /**
+             * @function findContainingSlot
+             * @protected
+             * @description Finds the slot that directly contains or resolves to the given entry.
+             * Returns the slot itself if the entry is a direct slot, the nested {@link TurboNodeList}
+             * that contains it, or the DOM list that contains it.
+             * @param {Type} entry - The entry to locate.
+             * @returns {NodeListSlot<Type> | undefined} The containing slot, or undefined if not found.
+             */
+            findContainingSlot(entry) {
+                for (const slot of this.slots) {
+                    const obj = slot.deref();
+                    if (!obj)
+                        continue;
+                    if (obj === entry)
+                        return obj;
+                    if (this.isTurboNodeList(obj) && obj.has(entry))
+                        return obj;
+                    else if (this.isDomList(obj) && Array.from(obj).includes(entry))
+                        return obj;
+                }
+            }
+        };
+    })();
+
+    /**
+     * @class TurboConstrainer
+     * @group MVC
+     * @category Constrainer
+     *
+     * @extends TurboOperator
+     * @template {object} ElementType - The type of the element.
+     * @template {TurboView} ViewType - The element's view type, if any.
+     * @template {TurboModel} ModelType - The element's model type, if any.
+     * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+     * @description Class representing an constrainer in MVC, bound to the provided element.
+     */
+    class TurboConstrainer extends TurboOperator {
+        /**
+         * @description The name of the constrainer.
+         */
+        constrainerName;
+        /**
+         * @description The property keys of the constrainer solvers defined in the instance.
+         */
+        solversMetadata = [];
+        /**
+         * @description The property keys of the constrainer checkers defined in the instance.
+         */
+        checkersMetadata = [];
+        /**
+         * @description The property keys of the constrainer mutators defined in the instance.
+         */
+        mutatorsMetadata = [];
+        /**
+         * @description The priority of the constrainer. Higher priority constrainers (lower number) should
+         * be resolved first. Defaults to 10.
+         */
+        priority;
+        /**
+         * @description The list of objects constrained by the constrainer. To manipulate, check {@link TurboNodeList}.
+         * Defaults to the children of the element the constrainer is attached to.
+         */
+        objectList;
+        /**
+         * @description The list of objects that trigger the constrainer to resolve.
+         * Interacting with any of these objects would typically lead to the solving of the given constrainer.
+         * To manipulate, check {@link TurboNodeList}. Defaults to the objects in this.objectList.
+         */
+        triggerList;
+        /**
+         * @description The default queue template for the constrainer, used when starting a new resolving pass.
+         * It defaults to the constrainer's object list.
+         */
+        defaultQueue;
+        /**
+         * @description The maximum number of passes allowed per object for this constrainer during resolving.
+         * This helps prevent infinite cycles in constraint propagation. Defaults to 5.
+         */
+        maxPasses;
+        /**
+         * @description Whether the constrainer is active. Defaults to true.
+         */
+        get active() {
+            return turbo(this).activeConstrainers.includes(this.constrainerName);
+        }
+        set active(value) {
+            turbo(this).toggleConstrainer(this.constrainerName, value);
+        }
+        /**
+         * @description Delegate fired whenever an object is added to or removed from the constrainer's object list.
+         */
+        get onObjectListChange() {
+            return turbo(this).onConstrainerObjectListChange(this.constrainerName);
+        }
+        /**
+         * @description The current queue to be processed by the constrainer while resolving.
+         */
+        get queue() {
+            return turbo(this).getConstrainerQueue(this.constrainerName);
+        }
+        constructor(properties) {
+            super(properties);
+            this.constrainerName = properties.constrainerName ?? this.constrainerName ?? undefined;
+            if (properties.onActivate)
+                this.onActivate = properties.onActivate;
+            if (properties.onDeactivate)
+                this.onDeactivate = properties.onDeactivate;
+            if (properties.active !== undefined)
+                this.active = properties.active;
+            if (typeof properties.priority === "number")
+                this.priority = properties.priority;
+            if (!this.objectList)
+                this.objectList = new TurboNodeList(this.element instanceof Element ? this.element.children
+                    : this.element instanceof Node ? this.element.childNodes
+                        : []);
+            if (!this.triggerList)
+                this.triggerList = new TurboNodeList(this.objectList);
+            this.setup();
+        }
+        /**
+         * @function initialize
+         * @override
+         * @description Initialization function that calls {@link makeConstrainer} on `this.element`, sets it up, and attaches
+         * all the defined solvers.
+         */
+        initialize() {
+            super.initialize();
+            if (!this.constrainerName)
+                return;
+            turbo(this).makeConstrainer(this.constrainerName, {
+                onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
+                onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
+                attachedInstance: this
+            });
+            this.solversMetadata.forEach(metadata => {
+                if (!metadata.name)
+                    return;
+                turbo(this).addSolver({
+                    name: metadata.name,
+                    constrainer: this.constrainerName,
+                    priority: metadata.priority,
+                    callback: props => this[metadata.name]?.(props)
+                });
+            });
+            this.checkersMetadata.forEach(metadata => {
+                if (!metadata.name)
+                    return;
+                turbo(this).addChecker({
+                    name: metadata.name,
+                    constrainer: this.constrainerName,
+                    priority: metadata.priority,
+                    callback: props => this[metadata.name]?.(props)
+                });
+            });
+            this.mutatorsMetadata.forEach(metadata => {
+                if (!metadata.name)
+                    return;
+                turbo(this).addMutator({
+                    name: metadata.name,
+                    constrainer: this.constrainerName,
+                    priority: metadata.priority,
+                    callback: props => this[metadata.name]?.(props)
+                });
+            });
+        }
+        /**
+         * @function getObjectPasses
+         * @description Retrieve how many times the given object has been processed for the current resolving session
+         * of the constrainer.
+         * @param {object} object - The object to query.
+         * @return {number} - Number of passes already performed on this object.
+         */
+        getObjectPasses(object) {
+            return turbo(this).getObjectPassesForConstrainer(object, this.constrainerName);
+        }
+        /**
+         * @function getObjectData
+         * @description Retrieve custom per-object data for this constrainer. It is reset on every new
+         * resolving session.
+         * @param {object} object - The object to query.
+         * @return {Record<string, any>} - The stored data object (or an empty object if none).
+         */
+        getObjectData(object) {
+            return turbo(this).getObjectDataForConstrainer(object, this.constrainerName);
+        }
+        /**
+         * @function setObjectData
+         * @description Set custom per-object data for this constrainer. It is reset on every new resolving session.
+         * @param {object} object - The object to update.
+         * @param {Record<string, any>} [data] - The new data object to associate with this object.
+         * @return {this} - Itself for chaining.
+         */
+        setObjectData(object, data) {
+            return turbo(this).setObjectDataForConstrainer(object, data, this.constrainerName);
+        }
+        /**
+         * @function addChecker
+         * @description Register a checker in the constrainer. Checkers dictate whether the event should continue
+         * executing depending on the provided context (event, tool, target, etc.).
+         * @param {ConstrainerAddCallbackProperties<ConstrainerChecker>} properties - Configuration object, including the
+         * checker `callback` to be executed, the `name` of the checker to access it later, the name of the attached
+         * `constrainer`, and the `priority` of the checker.
+         * @return {this} - Itself for chaining.
+         */
+        addChecker(properties) {
+            turbo(this).addChecker({ ...properties, constrainer: this.constrainerName });
+            return this;
+        }
+        /**
+         * @function removeChecker
+         * @description Remove a checker from this constrainer by its name.
+         * @param {string} name - The checker name.
+         * @return {this} - Itself for chaining.
+         */
+        removeChecker(name) {
+            turbo(this).removeChecker(name, this.constrainerName);
+            return this;
+        }
+        /**
+         * @function clearCheckers
+         * @description Remove all checkers attached to this constrainer.
+         * @return {this} - Itself for chaining.
+         */
+        clearCheckers() {
+            turbo(this).clearCheckers(this.constrainerName);
+            return this;
+        }
+        /**
+         * @function check
+         * @description Evaluate all checkers for this constrainer and return whether the event should proceed or halt.
+         * @param {ConstrainerCallbackProperties} [properties] - Context passed to each checker.
+         * @return {boolean} - Whether the constrainer passes all checks.
+         */
+        check(properties) {
+            return turbo(this).checkConstrainer({ ...properties, constrainer: this.constrainerName });
+        }
+        /**
+         * @function addMutator
+         * @description Register a mutator in the constrainer. Mutators compute or transform a value based on the context.
+         * @param {ConstrainerAddCallbackProperties<ConstrainerMutator>} properties - Configuration object, including the
+         * mutator `callback` to be executed, the `name` of the mutator to access it later, and the `priority` of the mutator.
+         * @return {this} - Itself for chaining.
+         */
+        addMutator(properties) {
+            turbo(this).addMutator({ ...properties, constrainer: this.constrainerName });
+            return this;
+        }
+        /**
+         * @function removeMutator
+         * @description Remove a mutator from this constrainer by its name.
+         * @param {string} name - The mutator name.
+         * @return {this} - Itself for chaining.
+         */
+        removeMutator(name) {
+            turbo(this).removeMutator(name, this.constrainerName);
+            return this;
+        }
+        /**
+         * @function clearMutators
+         * @description Remove all mutators attached to this constrainer.
+         * @return {this} - Itself for chaining.
+         */
+        clearMutators() {
+            turbo(this).clearMutators(this.constrainerName);
+            return this;
+        }
+        /**
+         * @function mutate
+         * @template Type - The type of the value to mutate
+         * @description Execute a mutator for this constrainer and return the resulting value.
+         * @param {ConstrainerMutatorProperties<Type>} [properties] - Context object, including the
+         * `mutation` to execute, and the input `value` to mutate.
+         * @return {Type} - The mutated result.
+         */
+        mutate(properties) {
+            return turbo(this).mutate({ ...properties, constrainer: this.constrainerName });
+        }
+        /**
+         * @function addSolver
+         * @description Register a solver in the constrainer. Solvers typically execute after an event is fired to
+         * ensure the constrainer's constraints are maintained. They process all objects in the constrainer's queue,
+         * one after the other.
+         * @param {ConstrainerAddCallbackProperties<ConstrainerSolver>} properties - Configuration object, including the
+         * solver `callback` to be executed, the `name` of the solver to access it later, and the `priority` of the solver.
+         * @return {this} - Itself for chaining.
+         */
+        addSolver(properties) {
+            turbo(this).addSolver({ ...properties, constrainer: this.constrainerName });
+            return this;
+        }
+        /**
+         * @function removeSolver
+         * @description Remove the given function from the constrainer's list of solvers.
+         * @param {string} name - The solver's name.
+         * @return {this} - Itself for chaining.
+         */
+        removeSolver(name) {
+            turbo(this).removeSolver(name, this.constrainerName);
+            return this;
+        }
+        /**
+         * @function clearSolvers
+         * @description Remove all solvers attached to the constrainer.
+         * @return {this} - Itself for chaining.
+         */
+        clearSolvers() {
+            turbo(this).clearSolvers(this.constrainerName);
+            return this;
+        }
+        /**
+         * @function solve
+         * @description Solve the constrainer by executing all of its attached solvers. Each solver will be executed
+         * on every object in the constrainer's queue, incrementing its number of passes in the process.
+         * @param {ConstrainerCallbackProperties} [properties] - Options object to configure the context.
+         * @return {this} - Itself for chaining.
+         */
+        solve(properties = {}) {
+            turbo(this).solveConstrainer({ ...properties, constrainer: this.constrainerName });
+            return this;
+        }
+    }
+    addRegistryCategory(TurboConstrainer);
+    define(TurboConstrainer);
+
+    class ConstrainerFunctionsUtils {
+        objectsSet = new TurboWeakSet();
+        dataMap = new WeakMap;
+        data(element) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (!element)
+                return {};
+            if (!this.dataMap.has(element))
+                this.dataMap.set(element, { constrainers: new Map() });
+            return this.dataMap.get(element);
+        }
+        createConstrainer(element, constrainer) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            const objectList = new TurboNodeList(element instanceof Element ? element.children
+                : element instanceof Node ? element.childNodes
+                    : []);
+            const data = {
+                active: false,
+                objectList: objectList,
+                triggerList: new TurboNodeList(objectList),
+                customData: new WeakMap(),
+                objectsChangedDelegate: new Delegate(),
+                priority: 10,
+                maxPasses: 5,
+                queue: new TurboQueue(),
+                passes: new WeakMap(),
+                onActivate: new Delegate(),
+                onDeactivate: new Delegate(),
+                checkers: new Map(),
+                mutators: new Map(),
+                solvers: new Map(),
+                sortedSolvers: []
+            };
+            if (element) {
+                this.objectsSet.add(element);
+                this.data(element).constrainers.set(constrainer, data);
+                this.ensureObjectListBridge(element, constrainer);
+            }
+            return data;
+        }
+        /**
+         * Forward the effective object list's onChanged into objectsChangedDelegate, so the public
+         * onObjectListChange API actually fires. The effective list may be the data's own objectList
+         * or one shadowed by an attached TurboConstrainer instance, and either can be replaced later —
+         * call this again after any change to rewire (the previous bridge is removed).
+         */
+        ensureObjectListBridge(element, constrainer) {
+            const data = this.getConstrainerData(element, constrainer);
+            if (!data)
+                return;
+            const list = this.getField(element, constrainer, "objectList");
+            if (!(list instanceof TurboNodeList) || data.bridgedObjectList === list)
+                return;
+            if (data.bridgedObjectList && data.bridgeHandler)
+                data.bridgedObjectList.onChanged.remove(data.bridgeHandler);
+            data.bridgeHandler = (entry, state) => data.objectsChangedDelegate.fire(entry, state);
+            data.bridgedObjectList = list;
+            list.onChanged.add(data.bridgeHandler);
+        }
+        activate(element, constrainer, activate) {
+            const data = this.getConstrainerData(element, constrainer);
+            if (!data)
+                return;
+            if (typeof activate === "boolean")
+                data.active = activate;
+            else
+                data.active = !data.active;
+        }
+        getConstrainerData(element, constrainer) {
+            return this.data(element)?.constrainers?.get(constrainer);
+        }
+        getConstrainers(element) {
+            return [...this.data(element)?.constrainers?.keys()];
+        }
+        getActiveConstrainers(element) {
+            const data = this.data(element)?.constrainers;
+            if (!data)
+                return [];
+            const entries = [];
+            for (const [key, value] of data.entries()) {
+                if (value.active)
+                    entries.push(key);
+            }
+            return entries;
+        }
+        getDefaultConstrainer(element, allowInactive = true) {
+            const data = this.data(element).constrainers;
+            if (!data)
+                return;
+            for (const [key, value] of data.entries()) {
+                if (value.active)
+                    return key;
+            }
+            if (allowInactive)
+                return data.keys()[0];
+        }
+        getCustomData(element, constrainer, object) {
+            const constrainerData = this.getConstrainerData(element, constrainer);
+            if (!constrainerData || !constrainerData.customData)
+                return {};
+            let customData = constrainerData.customData.get(object);
+            if (!customData) {
+                customData = {};
+                constrainerData.customData.set(object, customData);
+            }
+            return customData;
+        }
+        getConstrainersTriggeredByObjects(...elements) {
+            if (!elements || elements.length === 0)
+                return [];
+            const nodeTargets = elements.filter(el => el instanceof Node);
+            const data = [];
+            const checkTargets = (constrainerName, object) => {
+                const hits = new Set();
+                const list = this.getField(object, constrainerName, "triggerList") ?? new TurboNodeList();
+                for (const el of nodeTargets)
+                    if (list.has(el))
+                        hits.add(el);
+                return Array.from(hits.values());
+            };
+            this.objectsSet.toArray().forEach(object => this.data(object).constrainers.forEach((constrainerData, name) => {
+                if (!constrainerData.active)
+                    return;
+                const hits = checkTargets(name, object);
+                if (hits.length > 0)
+                    data.push({ name, data: constrainerData, host: object, targets: hits });
+            }));
+            data.sort((a, b) => this.getField(a.host, a.name, "priority") - this.getField(b.host, b.name, "priority"));
+            return data;
+        }
+        getField(element, constrainer, field) {
+            const data = this.getConstrainerData(element, constrainer);
+            if (!data)
+                return;
+            if (data.attachedInstance && data.attachedInstance instanceof TurboConstrainer
+                && data.attachedInstance[field] !== undefined)
+                return data.attachedInstance[field];
+            return data[field];
+        }
+        setField(element, constrainer, field, value) {
+            const data = this.getConstrainerData(element, constrainer);
+            if (data.attachedInstance && data.attachedInstance instanceof TurboConstrainer)
+                data.attachedInstance[field] = value;
+            else
+                data[field] = value;
+            if (field === "objectList")
+                this.ensureObjectListBridge(element, constrainer);
+        }
+        setupConstrainerCallbackProperties(element, properties) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            turbo(properties).applyDefaults({
+                constrainerHost: element,
+                constrainer: element ? this.getDefaultConstrainer(element, false) : undefined,
+                manager: TurboEventManager.instance,
+                eventOptions: {},
+                toolName: properties.event?.toolName,
+                eventType: properties.event?.type,
+                eventTarget: properties.event?.target
+            });
+        }
+        solveConstrainerInternal(data, properties) {
+            const constrainerData = data.data;
+            constrainerData.passes = new WeakMap();
+            constrainerData.customData = new WeakMap();
+            constrainerData.queue = turbo(data.host).getDefaultConstrainerQueue(data.name);
+            if (!constrainerData.queue)
+                constrainerData.queue = new TurboQueue();
+            if (!constrainerData.solvers)
+                return;
+            let object = properties.eventTarget;
+            if (properties.eventTarget)
+                constrainerData.queue.remove(properties.eventTarget);
+            else
+                object = constrainerData.queue.pop();
+            const onObjectAdded = (entry, state) => {
+                if (state === "added")
+                    constrainerData.queue.push(entry);
+            };
+            constrainerData.objectList.onChanged.add(onObjectAdded);
+            while (object) {
+                const passes = constrainerData.passes.get(object) ?? 0;
+                if (passes < constrainerData.maxPasses) {
+                    constrainerData.passes.set(object, passes + 1);
+                    for (const solverName of constrainerData.sortedSolvers) {
+                        const propagation = constrainerData.solvers.get(solverName)?.callback({ ...properties, target: object, constrainer: data.name });
+                        if (propagation === exports.Propagation.stopImmediatePropagation || propagation === exports.Propagation.stopPropagation)
+                            break;
+                    }
+                }
+                object = constrainerData.queue.pop();
+            }
+            constrainerData.objectList.onChanged.remove(onObjectAdded);
+        }
+    }
+
+    /**
+     * Inserts `item` into `array` using binary search.
+     * Keeps array sorted according to `compare`.
+     *
+     * @returns the index where the item was inserted
+     */
+    function binaryInsert(array, item, compare) {
+        let low = 0;
+        let high = array.length;
+        while (low < high) {
+            const mid = (low + high) >>> 1;
+            if (compare(array[mid], item) <= 0)
+                low = mid + 1;
+            else
+                high = mid;
+        }
+        array.splice(low, 0, item);
+        return low;
+    }
+
+    /**
+     * @group Utilities
+     * @category Random
+     */
+    function randomId(length = 8) {
+        const array = new Uint8Array(length);
+        crypto.getRandomValues(array);
+        return Array.from(array)
+            .map(b => b.toString(36).padStart(2, "0"))
+            .join("")
+            .slice(0, length);
+    }
+    /**
+     * @group Utilities
+     * @category Random
+     */
+    function randomFromRange(n1, n2) {
+        if (typeof n1 != "number" || typeof n2 != "number")
+            return 0;
+        const min = Math.min(n1, n2);
+        const max = Math.max(n1, n2);
+        return (Math.random() * (max - min)) + min;
+    }
+    /**
+     * @group Utilities
+     * @category Random
+     */
+    function randomString(length = 12) {
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let result = "";
+        for (let i = 0; i < length; i++)
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        return result;
+    }
+
+    const utils$2 = new ConstrainerFunctionsUtils();
+    function setupConstrainerFunctions() {
+        TurboSelector.prototype.makeConstrainer = function _makeConstrainer(constrainer, options) {
+            if (!utils$2.getConstrainerData(this, constrainer))
+                utils$2.createConstrainer(this, constrainer);
+            if (options?.onActivate)
+                this.onConstrainerActivate(constrainer).add(options.onActivate);
+            if (options?.onDeactivate)
+                this.onConstrainerDeactivate(constrainer).add(options.onDeactivate);
+            if (options?.priority)
+                utils$2.getConstrainerData(this, constrainer).priority = options.priority;
+            if (options?.attachedInstance) {
+                utils$2.getConstrainerData(this, constrainer).attachedInstance = options.attachedInstance;
+                // The instance may shadow the data's objectList — rewire the onObjectListChange bridge.
+                utils$2.ensureObjectListBridge(this, constrainer);
+            }
+            if (options?.active || options?.active === undefined)
+                utils$2.activate(this, constrainer, true);
+            return this;
+        };
+        Object.defineProperty(TurboSelector.prototype, "constrainersNames", {
+            get: function () {
+                return utils$2.getConstrainers(this.element);
+            },
+            configurable: false,
+            enumerable: true
+        });
+        //ACTIVATION
+        Object.defineProperty(TurboSelector.prototype, "activeConstrainers", {
+            get: function () {
+                return utils$2.getActiveConstrainers(this.element);
+            },
+            configurable: false,
+            enumerable: true
+        });
+        TurboSelector.prototype.activateConstrainer = function _activateConstrainers(...constrainers) {
+            const targets = constrainers.length ? constrainers : [utils$2.getDefaultConstrainer(this)];
+            targets.forEach(constrainer => {
+                if (constrainer)
+                    utils$2.activate(this, constrainer, true);
+            });
+            return this;
+        };
+        TurboSelector.prototype.deactivateConstrainer = function _deactivateConstrainers(...constrainers) {
+            const targets = constrainers.length ? constrainers : [utils$2.getDefaultConstrainer(this)];
+            targets.forEach(constrainer => {
+                if (constrainer)
+                    utils$2.activate(this, constrainer, false);
+            });
+            return this;
+        };
+        TurboSelector.prototype.toggleConstrainer = function _toggleConstrainers(constrainer = utils$2.getDefaultConstrainer(this), force) {
+            if (constrainer)
+                utils$2.activate(this, constrainer, force);
+            return this;
+        };
+        TurboSelector.prototype.activateOnlyConstrainer = function _activateOnlyConstrainers(constrainer = utils$2.getDefaultConstrainer(this)) {
+            if (constrainer)
+                utils$2.getConstrainers(this).forEach(enf => utils$2.activate(this, constrainer, constrainer === enf));
+            return this;
+        };
+        TurboSelector.prototype.activateAllConstrainers = function _activateAllConstrainers() {
+            utils$2.getConstrainers(this).forEach(constrainer => utils$2.activate(this, constrainer, true));
+            return this;
+        };
+        TurboSelector.prototype.deactivateAllConstrainers = function _deactivateAllConstrainers() {
+            utils$2.getConstrainers(this).forEach(constrainer => utils$2.activate(this, constrainer, false));
+            return this;
+        };
+        TurboSelector.prototype.onConstrainerActivate = function _onConstrainerActivate(constrainer = utils$2.getDefaultConstrainer(this)) {
+            return utils$2.getConstrainerData(this, constrainer)?.onActivate ?? new Delegate();
+        };
+        TurboSelector.prototype.onConstrainerDeactivate = function _onConstrainerDeactivate(constrainer = utils$2.getDefaultConstrainer(this)) {
+            return utils$2.getConstrainerData(this, constrainer)?.onDeactivate ?? new Delegate();
+        };
+        //PRIORITY
+        TurboSelector.prototype.getConstrainerPriority = function _getConstrainerPriority(constrainer = utils$2.getDefaultConstrainer(this)) {
+            return utils$2.getField(this, constrainer, "priority") ?? 0;
+        };
+        TurboSelector.prototype.setConstrainerPriority = function _setConstrainerPriority(priority, constrainer = utils$2.getDefaultConstrainer(this)) {
+            if (typeof priority === "number")
+                utils$2.setField(this, constrainer, "priority", priority);
+            return this;
+        };
+        //OBJECT LIST
+        TurboSelector.prototype.getConstrainerObjectList = function _getConstrainerObjectList(constrainer = utils$2.getDefaultConstrainer(this)) {
+            utils$2.ensureObjectListBridge(this, constrainer);
+            return utils$2.getField(this, constrainer, "objectList") ?? new TurboNodeList();
+        };
+        TurboSelector.prototype.onConstrainerObjectListChange = function _onConstrainerObjectListChange(constrainer = utils$2.getDefaultConstrainer(this)) {
+            utils$2.ensureObjectListBridge(this, constrainer);
+            return utils$2.getConstrainerData(this, constrainer)?.objectsChangedDelegate ?? new Delegate();
+        };
+        //TRIGGER LIST
+        TurboSelector.prototype.getConstrainerTriggerList = function _getConstrainerTriggerList(constrainer = utils$2.getDefaultConstrainer(this)) {
+            return utils$2.getField(this, constrainer, "triggerList") ?? new TurboNodeList();
+        };
+        //QUEUE
+        TurboSelector.prototype.getConstrainerQueue = function _getConstrainerQueue(constrainer = utils$2.getDefaultConstrainer(this)) {
+            return utils$2.getConstrainerData(this, constrainer).queue;
+        };
+        TurboSelector.prototype.getDefaultConstrainerQueue = function _getDefaultConstrainerQueue(constrainer = utils$2.getDefaultConstrainer(this)) {
+            const queue = utils$2.getField(this, constrainer, "defaultQueue");
+            if (queue instanceof TurboQueue)
+                return queue.clone();
+            else if (queue instanceof Array || queue instanceof Set)
+                return new TurboQueue().push(...queue);
+            return new TurboQueue().push(...this.getConstrainerObjectList(constrainer));
+        };
+        TurboSelector.prototype.setDefaultConstrainerQueue = function _setDefaultConstrainerQueue(queue, constrainer = utils$2.getDefaultConstrainer(this)) {
+            if (!queue || typeof queue !== "object")
+                return this;
+            if (Array.isArray(queue))
+                queue = new TurboQueue().push(...queue);
+            if (queue instanceof TurboQueue)
+                utils$2.setField(this, constrainer, "defaultQueue", queue.clone());
+            return this;
+        };
+        //PASSES
+        TurboSelector.prototype.getObjectPassesForConstrainer = function _getObjectPassesForConstrainer(object, constrainer = utils$2.getDefaultConstrainer(this)) {
+            if (!object)
+                return 0;
+            const map = utils$2.getConstrainerData(this, constrainer).passes;
+            if (!map || !(map instanceof WeakMap))
+                return 0;
+            return map.get(object) ?? 0;
+        };
+        TurboSelector.prototype.getMaxPassesForConstrainer = function _getMaxPassesForConstrainer(constrainer = utils$2.getDefaultConstrainer(this)) {
+            return utils$2.getField(this, constrainer, "maxPasses");
+        };
+        TurboSelector.prototype.setMaxPassesForConstrainer = function _setMaxPassesForConstrainer(passes, constrainer = utils$2.getDefaultConstrainer(this)) {
+            utils$2.setField(this, constrainer, "maxPasses", passes);
+            return this;
+        };
+        //CUSTOM DATA
+        TurboSelector.prototype.getObjectDataForConstrainer = function _getObjectDataForConstrainer(object, constrainer = utils$2.getDefaultConstrainer(this)) {
+            return utils$2.getCustomData(this.element, constrainer, object);
+        };
+        TurboSelector.prototype.setObjectDataForConstrainer = function _setObjectDataForConstrainer(object, data, constrainer = utils$2.getDefaultConstrainer(this)) {
+            if (!data || typeof data !== "object")
+                data = {};
+            utils$2.getConstrainerData(this.element, constrainer).customData.set(object, data);
+            return this;
+        };
+        //CHECKER
+        TurboSelector.prototype.addChecker = function _addChecker(properties) {
+            if (!properties || !properties.name || !properties.callback)
+                return this;
+            const constrainer = properties.constrainer || utils$2.getDefaultConstrainer(this);
+            utils$2.getConstrainerData(this, constrainer).checkers?.set(properties.name, properties.callback);
+            return this;
+        };
+        TurboSelector.prototype.removeChecker = function _removeChecker(name, constrainer = utils$2.getDefaultConstrainer(this)) {
+            utils$2.getConstrainerData(this, constrainer).checkers?.delete(name);
+            return this;
+        };
+        TurboSelector.prototype.clearCheckers = function _clearCheckers(constrainer = utils$2.getDefaultConstrainer(this)) {
+            utils$2.getConstrainerData(this, constrainer).checkers?.clear();
+            return this;
+        };
+        TurboSelector.prototype.checkConstrainer = function _checkConstrainer(properties) {
+            if (!properties)
+                properties = {};
+            utils$2.setupConstrainerCallbackProperties(this, properties);
+            if (!properties.constrainer)
+                return true;
+            const constrainer = properties.constrainer || utils$2.getDefaultConstrainer(this);
+            for (const checker of utils$2.getConstrainerData(this, constrainer).checkers.values()) {
+                if (!checker(properties))
+                    return false;
+            }
+            return true;
+        };
+        TurboSelector.prototype.checkConstrainersForEvent = function _checkConstrainersForEvent(properties) {
+            if (!properties || !properties.event)
+                return true;
+            utils$2.setupConstrainerCallbackProperties(null, properties);
+            if (!properties.eventTarget || typeof properties.eventTarget !== "object") {
+                properties.eventTarget = this.element;
+                if (!properties.eventTarget || typeof properties.eventTarget !== "object")
+                    return true;
+            }
+            const constrainersData = utils$2.getConstrainersTriggeredByObjects(properties.eventTarget);
+            for (const constrainerData of constrainersData) {
+                for (const checker of constrainerData.data.checkers.values()) {
+                    if (!checker({ ...properties, constrainer: constrainerData.name }))
+                        return false;
+                }
+            }
+            return true;
+        };
+        //MUTATOR
+        TurboSelector.prototype.addMutator = function _addMutator(properties) {
+            if (!properties || !properties.name || !properties.callback)
+                return this;
+            const constrainer = properties.constrainer || utils$2.getDefaultConstrainer(this);
+            utils$2.getConstrainerData(this, constrainer).mutators?.set(properties.name, properties.callback);
+            return this;
+        };
+        TurboSelector.prototype.removeMutator = function _removeMutator(name, constrainer = utils$2.getDefaultConstrainer(this)) {
+            utils$2.getConstrainerData(this, constrainer).mutators?.delete(name);
+            return this;
+        };
+        TurboSelector.prototype.clearMutators = function _clearMutators(constrainer = utils$2.getDefaultConstrainer(this)) {
+            utils$2.getConstrainerData(this, constrainer).mutators?.clear();
+            return this;
+        };
+        TurboSelector.prototype.mutate = function _mutate(properties) {
+            if (!properties || !properties.mutation)
+                return;
+            utils$2.setupConstrainerCallbackProperties(this, properties);
+            if (!properties.constrainer)
+                return this;
+            const mutation = utils$2.getConstrainerData(this, properties.constrainer).mutators?.get(properties.mutation);
+            if (mutation)
+                return mutation(properties);
+        };
+        //SOLVERS
+        TurboSelector.prototype.addSolver = function _addSolver(properties) {
+            if (!properties || !properties.callback)
+                return this;
+            if (!properties.name)
+                properties.name = randomString(8);
+            const constrainer = properties.constrainer ?? utils$2.getDefaultConstrainer(this);
+            const data = utils$2.getConstrainerData(this, constrainer);
+            if (!data)
+                return this;
+            const name = properties.name;
+            delete properties.name;
+            delete properties.constrainer;
+            if (!properties.priority)
+                properties.priority = 10;
+            data.solvers?.set(name, properties);
+            binaryInsert(data.sortedSolvers, name, (name1, name2) => data.solvers.get(name1).priority - data.solvers.get(name2).priority);
+            return this;
+        };
+        TurboSelector.prototype.removeSolver = function _removeSolver(name, constrainer = utils$2.getDefaultConstrainer(this)) {
+            const data = utils$2.getConstrainerData(this, constrainer);
+            if (!data)
+                return this;
+            data.solvers?.delete(name);
+            const index = data.sortedSolvers?.indexOf(name);
+            if (index !== undefined && index >= 0)
+                data.sortedSolvers.splice(index, 1);
+            return this;
+        };
+        TurboSelector.prototype.clearSolvers = function _clearSolvers(constrainer = utils$2.getDefaultConstrainer(this)) {
+            const data = utils$2.getConstrainerData(this, constrainer);
+            if (!data)
+                return this;
+            data.solvers?.clear();
+            data.sortedSolvers = [];
+            return this;
+        };
+        TurboSelector.prototype.solveConstrainer = function _solveConstrainer(properties = {}) {
+            if (!properties)
+                properties = {};
+            utils$2.setupConstrainerCallbackProperties(this, properties);
+            if (!properties.constrainer)
+                return this;
+            const data = utils$2.getConstrainerData(this, properties.constrainer);
+            if (!data)
+                return this;
+            utils$2.solveConstrainerInternal({ data, host: this.element, name: properties.constrainer }, properties);
+            return this;
+        };
+        TurboSelector.prototype.solveConstrainersForEvent = function _solveConstrainersForEvent(properties) {
+            if (!properties || !properties.event)
+                return this;
+            utils$2.setupConstrainerCallbackProperties(null, properties);
+            if (!properties.eventTarget || typeof properties.eventTarget !== "object") {
+                properties.eventTarget = this.element;
+                if (!properties.eventTarget || typeof properties.eventTarget !== "object")
+                    return this;
+            }
+            const constrainersData = utils$2.getConstrainersTriggeredByObjects(properties.eventTarget);
+            for (const constrainerData of constrainersData)
+                utils$2.solveConstrainerInternal(constrainerData, properties);
+            return this;
+        };
+    }
+
+    const onceRegistry = new WeakMap();
+    /**
+     * @function callOnce
+     * @group Decorators
+     * @category Augmentation
+     *
+     * @template {(...args: any[]) => any} Type
+     * @description Function wrapper that ensures the passed function is called only once.
+     * Subsequent calls will just return the cached computed result (if any) of the first call of that function.
+     * @param {Type} fn - The function to process.
+     *
+     * @example
+     * ```ts
+     * const init = callOnce(function () { ... });
+     * const out = init();
+     * ```
+     */
+    function callOnce(fn) {
+        if (onceRegistry.has(fn))
+            return onceRegistry.get(fn);
+        let called = false;
+        let result;
+        let promise;
+        const wrapper = function (...args) {
+            if (called)
+                return result;
+            if (promise)
+                return promise;
+            try {
+                const out = fn.apply(this, args);
+                if (out instanceof Promise) {
+                    promise = out.then((val) => {
+                        result = val;
+                        called = true;
+                        promise = null;
+                        return val;
+                    }).catch((err) => {
+                        promise = null;
+                        throw err;
+                    });
+                    return promise;
+                }
+                else {
+                    result = out;
+                    called = true;
+                    return out;
+                }
+            }
+            catch (err) {
+                throw err;
+            }
+        };
+        onceRegistry.set(fn, wrapper);
+        return wrapper;
+    }
+    /**
+     * @decorator
+     * @function callOncePerInstance
+     * @group Decorators
+     * @category Augmentation
+     *
+     * @description Stage-3 method decorator. It ensures a method in a class is called only once per instance.
+     * Subsequent calls will be canceled and log a warning. Works for instance or static methods.
+     *
+     * @example
+     * ```ts
+     *   class A {
+     *     @callOnce init() { ... }
+     *   }
+     * ```
+     */
+    function callOncePerInstance(value, context) {
+        if (context.kind !== "method")
+            throw new Error(`@callOnce can only be used on methods (got: ${context.kind}).`);
+        const name = String(context.name);
+        const flag = Symbol(`__callOnce__${name}`);
+        return function (...args) {
+            if (this[flag]) {
+                console.warn(`Function ${name} has already been called once on this instance and will not be called again.`);
+                return;
+            }
+            this[flag] = true;
+            return value.apply(this, args);
+        };
+    }
+
+    /**
+     * @class StatefulReifect
+     * @group Components
+     * @category StatefulReifect
+     *
+     * @description A class to manage and apply dynamic state-based properties, styles, classes, and transitions to a
+     * set of objects.
+     *
+     * @template {string | number | symbol} State - The type of the reifier's states.
+     * @template {object} ClassType - The object type this reifier will be applied to.
+     */
+    let StatefulReifect = (() => {
+        let _instanceExtraInitializers = [];
+        let _get_states_decorators;
+        let _set_propertiesEnabled_decorators;
+        let _set_classesEnabled_decorators;
+        let _set_stylesEnabled_decorators;
+        let _set_replacedWithEnabled_decorators;
+        let _set_enabled_decorators;
+        let _set_properties_decorators;
+        let _set_styles_decorators;
+        let _set_classes_decorators;
+        let _set_replaceWith_decorators;
+        return class StatefulReifect {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _get_states_decorators = [auto({ preprocessValue: function (value) { return this.normalizeStates(value); } })];
+                _set_propertiesEnabled_decorators = [auto({ defaultValue: true })];
+                _set_classesEnabled_decorators = [auto({ defaultValue: true })];
+                _set_stylesEnabled_decorators = [auto({ defaultValue: true })];
+                _set_replacedWithEnabled_decorators = [auto({ defaultValue: true })];
+                _set_enabled_decorators = [auto({ defaultValue: true })];
+                _set_properties_decorators = [auto({ setIfUndefined: true, preprocessValue: function (value) { return this.normalizePropertyConfig(this.properties, value); } })];
+                _set_styles_decorators = [auto({ setIfUndefined: true, preprocessValue: function (value) { return this.normalizePropertyConfig(this.styles, value); } })];
+                _set_classes_decorators = [auto({ setIfUndefined: true, preprocessValue: function (value) { return this.normalizePropertyConfig(this.classes, value); } })];
+                _set_replaceWith_decorators = [auto({ setIfUndefined: true, preprocessValue: function (value) { return this.normalizePropertyConfig(this.replaceWith, value); } })];
+                __esDecorate(this, null, _get_states_decorators, { kind: "getter", name: "states", static: false, private: false, access: { has: obj => "states" in obj, get: obj => obj.states }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_propertiesEnabled_decorators, { kind: "setter", name: "propertiesEnabled", static: false, private: false, access: { has: obj => "propertiesEnabled" in obj, set: (obj, value) => { obj.propertiesEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_classesEnabled_decorators, { kind: "setter", name: "classesEnabled", static: false, private: false, access: { has: obj => "classesEnabled" in obj, set: (obj, value) => { obj.classesEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_stylesEnabled_decorators, { kind: "setter", name: "stylesEnabled", static: false, private: false, access: { has: obj => "stylesEnabled" in obj, set: (obj, value) => { obj.stylesEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_replacedWithEnabled_decorators, { kind: "setter", name: "replacedWithEnabled", static: false, private: false, access: { has: obj => "replacedWithEnabled" in obj, set: (obj, value) => { obj.replacedWithEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_enabled_decorators, { kind: "setter", name: "enabled", static: false, private: false, access: { has: obj => "enabled" in obj, set: (obj, value) => { obj.enabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_properties_decorators, { kind: "setter", name: "properties", static: false, private: false, access: { has: obj => "properties" in obj, set: (obj, value) => { obj.properties = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_styles_decorators, { kind: "setter", name: "styles", static: false, private: false, access: { has: obj => "styles" in obj, set: (obj, value) => { obj.styles = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_classes_decorators, { kind: "setter", name: "classes", static: false, private: false, access: { has: obj => "classes" in obj, set: (obj, value) => { obj.classes = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_replaceWith_decorators, { kind: "setter", name: "replaceWith", static: false, private: false, access: { has: obj => "replaceWith" in obj, set: (obj, value) => { obj.replaceWith = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static fields = ["properties", "classes", "styles", "replaceWith"];
+            static knownFields = new Set(["states", "attachedObjects", "initialState", ...this.fields]);
+            static chainableStyleFields = new Set(["transition", "transitionDelay",
+                "transitionTimingFunction", "transitionDuration", "transform"]);
+            timeRegex = (__runInitializers(this, _instanceExtraInitializers), /^(\d+(?:\.\d+)?)(ms|s)?$/i);
+            attachedObjectsData = new WeakMap();
+            attachedObjects = new TurboNodeList();
+            /**
+             * @description All possible states.
+             */
+            get states() { return; }
+            set states(states) { }
+            set propertiesEnabled(value) { this.refreshProperties(); }
+            set classesEnabled(value) { this.refreshClasses(); }
+            set stylesEnabled(value) { this.refreshStyles(); }
+            set replacedWithEnabled(value) { this.refreshReplaceWith(); }
+            set enabled(value) { this.refreshAll(); }
+            /**
+             * @description The properties to be assigned to the objects. It could take:
+             * - A record of `{key: value}` pairs.
+             * - A record of `{state: {key: value} pairs or an interpolation function that would return a record of
+             * {key: value} pairs}`.
+             * - An interpolation function that would return a record of `{key: value}` pairs based on the state value.
+             *
+             * The interpolation function would take as arguments:
+             * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
+             * defined for the whole field (and not for a specific state).
+             * - `index: number`: the index of the object in the applied list.
+             * - `total: number`: the total number of objects in the applied list.
+             * - `object: ClassType`: the object itself.
+             */
+            set properties(value) { }
+            get properties() { return; }
+            /**
+             * @description The styles to be assigned to the objects (only if they are eligible elements). It could take:
+             * - A record of `{CSS property: value}` pairs.
+             * - A record of `{state: {CSS property: value} pairs or an interpolation function that would return a record of
+             * {key: value} pairs}`.
+             * - An interpolation function that would return a record of `{key: value}` pairs based on the state value.
+             *
+             * The interpolation function would take as arguments:
+             * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
+             * defined for the whole field (and not for a specific state).
+             * - `index: number`: the index of the object in the applied list.
+             * - `total: number`: the total number of objects in the applied list.
+             * - `object: ClassType`: the object itself.
+             */
+            set styles(value) { }
+            get styles() { return; }
+            /**
+             * @description The classes to be assigned to the objects (only if they are eligible elements). It could take:
+             * - A string of space-separated classes.
+             * - An array of classes.
+             * - A record of `{state: space-separated class string, array of classes, or an interpolation function that would
+             * return any of the latter}`.
+             * - An interpolation function that would return a string of space-separated classes or an array of classes based
+             * on the state value.
+             *
+             * The interpolation function would take as arguments:
+             * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
+             * defined for the whole field (and not for a specific state).
+             * - `index: number`: the index of the object in the applied list.
+             * - `total: number`: the total number of objects in the applied list.
+             * - `object: ClassType`: the object itself.
+             */
+            set classes(value) { }
+            get classes() { return; }
+            /**
+             * @description The object that should replace (in the DOM as well if eligible) the attached objects. It could take:
+             * - The object to be replaced with.
+             * - A record of `{state: object to be replaced with, or an interpolation function that would return an object
+             * to be replaced with}`.
+             * - An interpolation function that would return the object to be replaced with based on the state value.
+             *
+             * The interpolation function would take as arguments:
+             * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
+             * defined for the whole field (and not for a specific state).
+             * - `index: number`: the index of the object in the applied list.
+             * - `total: number`: the total number of objects in the applied list.
+             * - `object: ClassType`: the object itself.
+             */
+            set replaceWith(value) { }
+            get replaceWith() { return; }
+            /**
+             * @description Creates an instance of StatefulReifier.
+             * @param {StatefulReifectProperties<State, ClassType>} properties - The configuration properties.
+             */
+            constructor(properties) {
+                if (properties.states)
+                    this.states = properties.states;
+                const unknownEntries = [];
+                Object.entries(properties).forEach(([key, value]) => {
+                    if (key === "attachedObjects" || key === "states" || key === "initialState")
+                        return;
+                    if (StatefulReifect.knownFields.has(key))
+                        this[key] = value;
+                    else
+                        unknownEntries.push([key, value]);
+                });
+                if (unknownEntries.length > 0)
+                    this.properties = Object.fromEntries(unknownEntries);
+                if (properties.attachedObjects)
+                    this.attach(...properties.attachedObjects);
+                if (properties.initialState !== undefined)
+                    this.apply(properties.initialState);
+            }
+            attach(...args) {
+                const lastArg = args[args.length - 1];
+                const secondLastArg = args[args.length - 2];
+                const trailingIndex = typeof lastArg === "number" ? lastArg : undefined;
+                const onSwitchArg = trailingIndex !== undefined ? secondLastArg : lastArg;
+                const trailingOnSwitch = typeof onSwitchArg === "function" ? onSwitchArg : undefined;
+                const objects = args.slice(0, args.length
+                    - (trailingIndex !== undefined ? 1 : 0)
+                    - (trailingOnSwitch !== undefined ? 1 : 0));
+                objects.forEach((object, i) => {
+                    const index = trailingIndex !== undefined ? trailingIndex + i : undefined;
+                    this.attachObject(object, trailingOnSwitch, index);
+                });
+                return this;
+            }
+            detach(...objects) {
+                objects.forEach(object => this.detachObject(object));
+                return this;
+            }
+            /**
+             * @protected
+             * @function attachObject
+             * @description Function used to generate a data entry for the given object, and add it to the attached list at
+             * the provided index (if any).
+             * @param {ClassType} object - The object to attach
+             * @param {number} [index] - Optional index to specify the position at which to insert the object in the reifier's
+             * attached list.
+             * @param {ReifectOnSwitchCallback<State, ClassType>} [onSwitch] - Optional
+             * callback fired when the reifier is applied to the object. The callback takes as parameters:
+             * - `state: State`: The state being applied to the object.
+             * - `index: number`: the index of the object in the applied list.
+             * - `total: number`: the total number of objects in the applied list.
+             * - `object: ClassType`: the object itself.
+             * @returns {ReifectObjectData<State, ClassType>} - The created data entry.
+             */
+            attachObject(object, onSwitch, index) {
+                let data = this.getData(object);
+                if (data) {
+                    if (onSwitch)
+                        data.onSwitch = onSwitch;
+                    if (index !== undefined) {
+                        data.index = index;
+                        this.attachedObjects.move(object, index);
+                    }
+                    return data;
+                }
+                index = trim(index, this.attachedObjects.size, 0, this.attachedObjects.size);
+                this.attachedObjects.addAt(index, object);
+                data = this.generateNewData(object, onSwitch, index);
+                this.attachedObjectsData.set(object, data);
+                turbo(object).attachReifect(this);
+                data.lastState = this.stateOf(object);
+                this.applyAll(object);
+                return data;
+            }
+            /**
+             * @protected
+             * @function detachObject
+             * @description Function used to remove a data entry from the attached objects list.
+             * @param object
+             */
+            detachObject(object) {
+                if (!object || !this.attachedObjects.has(object))
+                    return;
+                const data = this.getData(object);
+                if (data) {
+                    data.disposeEffect?.();
+                    data.disposeEffect = undefined;
+                }
+                this.attachedObjectsData.delete(object);
+                turbo(object).detachReifect(this);
+            }
+            /**
+             * @function getData
+             * @description Retrieve the data entry of a given object.
+             * @param {ClassType} object - The object to find the data of.
+             * @returns {ReifectObjectData<State, ClassType>} - The corresponding data, or `null` if was not found.
+             */
+            getData(object) {
+                if (!object)
+                    return;
+                return this.attachedObjectsData.get(object);
+            }
+            /**
+             * @function getObject
+             * @description Retrieves the object attached to the given data entry.
+             * @param {ReifectObjectData<State, ClassType>} data - The data entry to get the corresponding object of.
+             * @returns {ClassType} The corresponding object, or `null` if was garbage collected.
+             */
+            getObject(data) {
+                if (!data)
+                    return;
+                return data.object.deref();
+            }
+            /*
+             *
+             * *********************************
+             *
+             * States stuff
+             *
+             * *********************************
+             *
+             */
+            /**
+             * @function stateOf
+             * @description Determine the current state of the reifect on the provided object.
+             * @param {ClassType} object - The object to determine the state for.
+             * @returns {State | undefined} - The current state of the reifect or undefined if not determinable.
+             */
+            stateOf(object) {
+                if (!object)
+                    return;
+                const data = this.getData(object);
+                if (!data)
+                    return;
+                if (data.lastState)
+                    return data.lastState;
+                if (!(object instanceof HTMLElement))
+                    return this.states[0];
+                if (!data.resolvedValues)
+                    this.processRawProperties(object);
+                for (const state of this.states) {
+                    if (!data.resolvedValues?.styles?.[state])
+                        continue;
+                    let matches = true;
+                    for (const [property, value] of Object.entries(data.resolvedValues.styles[state])) {
+                        if (object.style[property] != value) {
+                            matches = false;
+                            break;
+                        }
+                    }
+                    if (!matches)
+                        continue;
+                    data.lastState = state;
+                    return state;
+                }
+                return this.states[0];
+            }
+            /**
+             * @protected
+             * @function parseState
+             * @description Parses a boolean into the corresponding state value.
+             * @param {State | boolean} value - The value to parse.
+             * @returns {State} The parsed value, or `null` if the boolean could not be parsed.
+             */
+            parseState(value) {
+                if (typeof value != "boolean")
+                    return this.states.includes(value) ? value : this.states[0];
+                else
+                    for (const str of value ? ["true", "on", "in", "enabled", "shown"]
+                        : ["false", "off", "out", "disabled", "hidden"]) {
+                        if (this.states.includes(str))
+                            return str;
+                    }
+                return this.states[0];
+            }
+            /*
+             *
+             * *********************************
+             *
+             * Enabled stuff
+             *
+             * *********************************
+             *
+             */
+            /**
+             * @function getObjectEnabledState
+             * @description Returns the `enabled` value corresponding to the provided object for this reifier.
+             * @param {ClassType} object - The object to get the state of.
+             * @returns {ReifectEnabledObject} - The corresponding enabled state.
+             */
+            getObjectEnabledState(object) {
+                return this.getData(object)?.enabled;
+            }
+            /*
+             *
+             * *********************************
+             *
+             * Usage methods
+             *
+             * *********************************
+             *
+             */
+            initialize(state, objects, options) {
+                if (!this.enabled)
+                    return this;
+                state = this.parseState(state);
+                options = this.initializeOptions(options, objects);
+                this.getEnabledObjects(objects, options).forEach(object => {
+                    const data = this.getData(object);
+                    if (!data)
+                        return;
+                    if (options.recomputeProperties || !data.resolvedValues)
+                        this.processRawProperties(object, options.propertiesOverride);
+                    data.lastState = state;
+                    this.applyAll(object, options?.applyStylesInstantly);
+                    if (data.onSwitch)
+                        data.onSwitch(state, data.index, data.total, this.getObject(data));
+                });
+                return this;
+            }
+            apply(state, objects, options) {
+                if (!this.enabled)
+                    return this;
+                state = this.parseState(state);
+                options = this.initializeOptions(options, objects);
+                this.getEnabledObjects(objects, options).forEach(object => {
+                    const data = this.getData(object);
+                    if (!data)
+                        return;
+                    if (options.recomputeProperties || !data.resolvedValues)
+                        this.processRawProperties(object, options.propertiesOverride);
+                    data.lastState = state;
+                    this.applyAll(object, options?.applyStylesInstantly);
+                    if (data.onSwitch)
+                        data.onSwitch(state, data.index, data.total, this.getObject(data));
+                });
+                return this;
+            }
+            toggle(objects, options) {
+                if (!this.enabled)
+                    return this;
+                if (!objects)
+                    objects = [];
+                else if (objects instanceof HTMLCollection)
+                    objects = [...objects];
+                else if (!Array.isArray(objects))
+                    objects = [objects];
+                const referenceObject = objects[0] ?? this.attachedObjects.array[0];
+                const previousState = this.getData(referenceObject)?.lastState;
+                const nextStateIndex = mod(!previousState ? 0 : this.states.indexOf(previousState) + 1, this.states.length);
+                return this.apply(this.states[nextStateIndex], objects, options);
+            }
+            //TODO FIXXXX
+            unapply(objects, options) {
+                if (!this.enabled)
+                    return this;
+                options = this.initializeOptions(options, objects);
+                this.getEnabledObjects(objects, options).forEach(object => {
+                    const data = this.getData(object);
+                    if (!data || !data.resolvedValues)
+                        return;
+                    this.unapplyAll(object, options?.applyStylesInstantly);
+                    // if (data.onSwitch) data.onSwitch(undefined, data.index, data.total, this.getObject(data));
+                });
+                return this;
+            }
+            /**
+             * @function reloadFor
+             * @description Generates the transition CSS string for the provided transition with the correct interpolation
+             * information.
+             * @param {ClassType} object - The element to apply the string to.
+             * @returns {this} Itself for method chaining.
+             */
+            reloadFor(object) {
+                if (!this.enabled)
+                    return this;
+                const data = this.getData(object);
+                if (!data || !data.enabled || !data.enabled.global)
+                    return this;
+                this.applyAll(object);
+                return this;
+            }
+            getEnabledObjects(objects, options) {
+                if (!this.enabled) {
+                    console.warn("The reifier object you are trying to access is disabled.");
+                    return [];
+                }
+                if (!objects)
+                    objects = [];
+                else if (objects instanceof HTMLCollection)
+                    objects = [...objects];
+                else if (!Array.isArray(objects))
+                    objects = [objects];
+                options = this.initializeOptions(options, objects);
+                if (options.attachObjects)
+                    objects.forEach(element => this.attach(element));
+                if (options.executeForAll) {
+                    objects = [];
+                    this.attachedObjects.forEach(entry => objects.push(entry));
+                }
+                const enabledObjectsData = [];
+                objects.forEach((object) => {
+                    const data = this.getData(object) || this.generateNewData(object);
+                    if (!this.filterEnabledObjects(data))
+                        return;
+                    if (options.recomputeIndices || data.index == undefined)
+                        data.index = enabledObjectsData.length;
+                    enabledObjectsData.push(data);
+                });
+                enabledObjectsData.forEach(data => {
+                    if (options.recomputeIndices || data.total == undefined)
+                        data.total = enabledObjectsData.length;
+                });
+                return objects;
+            }
+            /*
+             *
+             * *********************************
+             *
+             * Property setting stuff
+             *
+             * *********************************
+             *
+             */
+            applyAll(object, applyStylesInstantly = false) {
+                this.applyReplaceWith(object);
+                this.applyStyles(object, undefined, applyStylesInstantly);
+                this.applyProperties(object);
+                this.applyClasses(object);
+            }
+            unapplyAll(object, applyStylesInstantly = false) {
+                this.unapplyReplaceWith(object);
+                this.unapplyStyles(object, applyStylesInstantly);
+                this.unapplyProperties(object);
+                this.unapplyClasses(object);
+            }
+            refreshAll() {
+                this.refreshReplaceWith();
+                this.refreshProperties();
+                this.refreshStyles();
+                this.refreshClasses();
+            }
+            applyProperties(object, state) {
+                this.applyField(object, "properties", (object, data, state) => {
+                    const properties = data.resolvedValues?.properties?.[state];
+                    if (!properties)
+                        return;
+                    for (const [field, value] of Object.entries(properties)) {
+                        if (!field || value === undefined)
+                            continue;
+                        try {
+                            if (areSimilar(object[field], value))
+                                continue;
+                            object[field] = value;
+                        }
+                        catch (e) {
+                            console.error(`Unable to set property ${field} to ${value}: ${e.message}`);
+                        }
+                    }
+                }, state);
+            }
+            unapplyProperties(object) {
+                this.applyField(object, "properties", (object, data, state) => {
+                    const properties = data.resolvedValues?.properties?.[state];
+                    if (!properties)
+                        return;
+                    for (const field of Object.keys(properties)) {
+                        if (!field)
+                            continue;
+                        try {
+                            object[field] = undefined;
+                        }
+                        catch (e) {
+                            console.error(`Unable to unset property ${field}: ${e.message}`);
+                        }
+                    }
+                });
+            }
+            refreshProperties() {
+                if (!this.enabled || !this.propertiesEnabled)
+                    return;
+                this.attachedObjects.forEach(object => this.applyProperties(object));
+            }
+            applyReplaceWith(object, state) {
+                this.applyField(object, "replaceWith", (object, data, state) => {
+                    const newObject = data.resolvedValues?.replaceWith?.[state];
+                    if (!newObject)
+                        return;
+                    try {
+                        if (object instanceof Node && newObject instanceof Node)
+                            object.parentNode?.replaceChild(newObject, object);
+                        data.object = new WeakRef(newObject);
+                    }
+                    catch (e) {
+                        console.error(`Unable to replace object: ${e.message}`);
+                    }
+                }, state);
+            }
+            unapplyReplaceWith(object) {
+                return;
+            }
+            refreshReplaceWith() {
+                if (!this.enabled || !this.replacedWithEnabled)
+                    return;
+                this.attachedObjects.forEach(object => this.applyReplaceWith(object));
+            }
+            applyClasses(object, state) {
+                this.applyField(object, "classes", (object, data, state) => {
+                    if (!(object instanceof Element) || !data.resolvedValues?.classes)
+                        return;
+                    for (const [key, value] of Object.entries(data.resolvedValues.classes)) {
+                        turbo(object).toggleClass(value, state === key);
+                    }
+                }, state);
+            }
+            unapplyClasses(object) {
+                this.applyField(object, "classes", (object, data, state) => {
+                    if (!(object instanceof Element) || !data.resolvedValues?.classes)
+                        return;
+                    for (const value of Object.values(data.resolvedValues.classes)) {
+                        turbo(object).toggleClass(value, false);
+                    }
+                });
+            }
+            refreshClasses() {
+                if (!this.enabled || !this.classesEnabled)
+                    return;
+                this.attachedObjects.forEach(object => this.applyClasses(object));
+            }
+            applyStyles(object, state, applyStylesInstantly = false) {
+                this.applyField(object, "styles", (object, data, state) => {
+                    if (!(object instanceof Element) || !data.resolvedValues?.styles)
+                        return;
+                    const styles = data.resolvedValues.styles[state];
+                    if (!styles)
+                        return;
+                    const normal = {};
+                    let hasChainable = false;
+                    for (const [key, value] of Object.entries(styles)) {
+                        if (StatefulReifect.chainableStyleFields.has(key))
+                            hasChainable = true;
+                        else
+                            normal[key] = value;
+                    }
+                    if (Object.keys(normal).length > 0)
+                        turbo(object).setStyles(normal, applyStylesInstantly);
+                    if (hasChainable)
+                        turbo(object).reloadReifectsChainableStyles();
+                }, state);
+            }
+            unapplyStyles(object, applyStylesInstantly = false) {
+                this.applyField(object, "styles", (object, data, state) => {
+                    if (!(object instanceof Element) || !data.resolvedValues?.styles)
+                        return;
+                    let hasChainable = false;
+                    for (const state of this.states) {
+                        const styles = data.resolvedValues.styles?.[state];
+                        if (!styles)
+                            return;
+                        for (const key of Object.keys(styles)) {
+                            if (StatefulReifect.chainableStyleFields.has(key))
+                                hasChainable = true;
+                            else
+                                turbo(object).setStyle(key, "", applyStylesInstantly);
+                        }
+                    }
+                    data.resolvedValues.styles = {};
+                    if (hasChainable)
+                        turbo(object).reloadReifectsChainableStyles();
+                });
+            }
+            refreshStyles() {
+                if (!this.enabled || !this.stylesEnabled)
+                    return;
+                this.attachedObjects.forEach(object => this.applyStyles(object));
+            }
+            getChainableStyles(object) {
+                if (!this.enabled || !this.stylesEnabled)
+                    return {};
+                const data = this.getData(object);
+                if (!data?.resolvedValues?.styles || !data.lastState || !data.enabled.global || !data.enabled.styles)
+                    return {};
+                const styles = data.resolvedValues.styles[data.lastState];
+                if (!styles)
+                    return {};
+                const result = {};
+                for (const [key, value] of Object.entries(styles)) {
+                    if (StatefulReifect.chainableStyleFields.has(key) && value != null)
+                        result[key] = value.toString().trim();
+                }
+                return result;
+            }
+            applyField(object, field, callback, state) {
+                if (!object || !field)
+                    return;
+                if (!this.enabled || !this[field + "Enabled"])
+                    return;
+                const data = this.getData(object);
+                if (!data.enabled || !data.enabled.global || !data.enabled[field])
+                    return;
+                if (!state)
+                    state = data.lastState;
+                if (!data.resolvedValues)
+                    return;
+                callback(object, data, state);
+            }
+            parseStylesValue(styles) {
+                if (!styles || typeof styles === "number")
+                    return {};
+                if (typeof styles === "object")
+                    return styles;
+                const result = {};
+                styles.split(";").forEach(entry => {
+                    const colonIndex = entry.indexOf(":");
+                    if (colonIndex === -1)
+                        return;
+                    const property = entry.slice(0, colonIndex).trim();
+                    const value = entry.slice(colonIndex + 1).trim();
+                    if (property && value)
+                        result[property] = value;
+                });
+                return result;
+            }
+            //General methods (to be overridden for custom functionalities)
+            filterEnabledObjects(data) {
+                if (!data.enabled || !data.enabled.global) {
+                    console.warn("The reified properties instance you are trying to set on an object is " +
+                        "disabled for this particular object.");
+                    return false;
+                }
+                return true;
+            }
+            //Utilities
+            processRawProperties(object, override) {
+                if (!object)
+                    return;
+                const data = this.getData(object);
+                data.disposeEffect?.();
+                let firstRun = true;
+                data.disposeEffect = effect(() => {
+                    if (!data.resolvedValues)
+                        data.resolvedValues = {};
+                    if (isNull(override))
+                        return;
+                    const index = data.index ?? 0;
+                    const total = data.total ?? 1;
+                    for (const field of StatefulReifect.fields) {
+                        const rawValue = this.normalizePropertyConfig(this[field], override?.[field]);
+                        if (!data.resolvedValues[field])
+                            data.resolvedValues[field] = {};
+                        for (const state of this.states) {
+                            const resolved = rawValue[state]?.(index, total, object);
+                            data.resolvedValues[field][state] = field === "styles"
+                                ? this.parseStylesValue(resolved)
+                                : resolved;
+                        }
+                    }
+                    if (!firstRun && data.lastState !== undefined)
+                        this.applyAll(object, false);
+                    firstRun = false;
+                });
+            }
+            generateNewData(object, onSwitch, index) {
+                return {
+                    object: new WeakRef(object),
+                    enabled: { global: true, properties: true, classes: true, styles: true, replaceWith: true },
+                    lastState: this.stateOf(object),
+                    onSwitch: onSwitch,
+                    index: index,
+                };
+            }
+            initializeOptions(options, objects) {
+                if (!objects)
+                    objects = [];
+                else if (objects instanceof HTMLCollection)
+                    objects = [...objects];
+                else if (!Array.isArray(objects))
+                    objects = [objects];
+                options = options || {};
+                options.attachObjects = options.attachObjects ?? true;
+                options.executeForAll = options.executeForAll ?? (objects.length === 0);
+                options.recomputeIndices = options.recomputeIndices ?? (objects.length !== 0);
+                options.recomputeProperties = options.recomputeProperties ?? (objects.length !== 0);
+                return options;
+            }
+            /**
+             * @description Clone the reifect to create a new copy with the same properties but no attached objects.
+             * @returns {StatefulReifect<State, ClassType>} - The new reifect.
+             */
+            clone() {
+                return new StatefulReifect({
+                    states: this.states,
+                    properties: this.properties,
+                    classes: this.classes,
+                    styles: this.styles,
+                    replaceWith: this.replaceWith,
+                });
+            }
+            normalizeStates(states) {
+                if (Array.isArray(states))
+                    return states;
+                const values = Object.values(states);
+                const isNumericEnum = values.some(v => typeof v === "number");
+                return (isNumericEnum ? values.filter(v => typeof v === "number") : values);
+            }
+            normalizePropertyConfig(currentConfig, newConfig) {
+                const out = currentConfig ? { ...currentConfig } : {};
+                if (isUndefined(newConfig) || !this.states?.length)
+                    return out;
+                const isObject = typeof newConfig === "object" && newConfig !== null && !Array.isArray(newConfig);
+                const keys = isObject ? Reflect.ownKeys(newConfig) : [];
+                const isStateRecord = isObject && keys.length > 0 &&
+                    keys.every(key => this.states.includes(key));
+                if (isObject && keys.length === 0)
+                    return out;
+                if (typeof newConfig === "function")
+                    this.states.forEach(state => {
+                        out[state] = (index, total, object) => newConfig(state, index, total, object);
+                    });
+                else if (isStateRecord)
+                    this.states.forEach(state => {
+                        const entry = newConfig[state];
+                        if (!isUndefined(entry))
+                            out[state] = typeof entry === "function"
+                                ? entry
+                                : () => entry;
+                    });
+                else {
+                    const entries = Object.entries(newConfig);
+                    const hasPerPropertyInterpolators = entries.some(([, v]) => typeof v === "function");
+                    if (hasPerPropertyInterpolators) {
+                        this.states.forEach(state => {
+                            out[state] = (index, total, object) => {
+                                const result = {};
+                                for (const [key, val] of entries)
+                                    result[key] = typeof val === "function"
+                                        ? val(index, total, object)
+                                        : val;
+                                return result;
+                            };
+                        });
+                    }
+                    else {
+                        const value = () => newConfig;
+                        this.states.forEach(state => out[state] = value);
+                    }
+                }
+                return out;
+            }
+        };
+    })();
+
+    class ReifectFunctionsUtils {
+        dataMap = new WeakMap;
+        data(element) {
+            if (element instanceof TurboSelector)
+                element = element.element;
+            if (this.dataMap.has(element))
+                return this.dataMap.get(element);
+            const newMap = {
+                reifects: new TurboWeakSet(),
+                enabled: {},
+                onTransitionStart: new Delegate(),
+                onTransitionEnd: new Delegate(),
+            };
+            if (element)
+                this.dataMap.set(element, newMap);
+            return newMap;
+        }
+        attachReifect(element, reifect) {
+            const data = this.data(element).reifects;
+            if (!data.has(reifect))
+                data.add(reifect);
+        }
+        detachReifect(element, reifect) {
+            const data = this.data(element).reifects;
+            if (data.has(reifect))
+                data.delete(reifect);
+        }
+    }
+
+    //@ts-nocheck
+    /**
+     * @class Reifect
+     * @group Components
+     * @category Reifect
+     *
+     * @description A class to manage and apply dynamic properties, styles, classes, and transitions to a
+     * set of objects.
+     *
+     * @template {object} ClassType - The object type this reifier will be applied to.
+     */
+    class Reifect extends StatefulReifect {
+        /**
+         * @description Creates an instance of StatefulReifier.
+         * @param {StatelessReifectProperties<ClassType>} properties - The configuration properties.
+         */
+        constructor(properties) {
+            properties.states = ["default"];
+            super(properties);
+        }
+        /**
+         * @description The properties to be assigned to the objects. It could take:
+         * - A record of `{key: value}` pairs.
+         * - An interpolation function that would return a record of `{key: value}` pairs.
+         *
+         * The interpolation function would take as arguments:
+         * - `index: number`: the index of the object in the applied list.
+         * - `total: number`: the total number of objects in the applied list.
+         * - `object: ClassType`: the object itself.
+         */
+        get properties() {
+            return super.properties?.["default"];
+        }
+        set properties(value) {
+            super.properties = value;
+        }
+        /**
+         * @description The styles to be assigned to the objects (only if they are eligible elements). It could take:
+         * - A record of `{CSS property: value}` pairs.
+         * - An interpolation function that would return a record of `{key: value}` pairs.
+         *
+         * The interpolation function would take as arguments:
+         * - `index: number`: the index of the object in the applied list.
+         * - `total: number`: the total number of objects in the applied list.
+         * - `object: ClassType`: the object itself.
+         */
+        get styles() {
+            return super.styles?.["default"];
+        }
+        set styles(value) {
+            super.styles = value;
+        }
+        /**
+         * @description The classes to be assigned to the objects (only if they are eligible elements). It could take:
+         * - A string of space-separated classes.
+         * - An array of classes.
+         * - An interpolation function that would return a string of space-separated classes or an array of classes.
+         *
+         * The interpolation function would take as arguments:
+         * - `index: number`: the index of the object in the applied list.
+         * - `total: number`: the total number of objects in the applied list.
+         * - `object: ClassType`: the object itself.
+         */
+        get classes() {
+            return super.classes?.["default"];
+        }
+        set classes(value) {
+            super.classes = value;
+        }
+        /**
+         * @description The object that should replace (in the DOM as well if eligible) the attached objects. It could take:
+         * - The object to be replaced with.
+         * - An interpolation function that would return the object to be replaced with.
+         *
+         * The interpolation function would take as arguments:
+         * - `index: number`: the index of the object in the applied list.
+         * - `total: number`: the total number of objects in the applied list.
+         * - `object: ClassType`: the object itself.
+         */
+        get replaceWith() {
+            return super.replaceWith?.["default"];
+        }
+        set replaceWith(value) {
+            super.replaceWith = value;
+        }
+        initialize(objects, options) {
+            super.initialize("default", objects, options);
+        }
+        apply(objects, options) {
+            super.apply("default", objects, options);
+        }
+        normalizePropertyConfig(currentConfig, newConfig) {
+            if (typeof newConfig === "function" && newConfig.length <= 3) {
+                const wrapped = (_state, index, total, object) => newConfig(index, total, object);
+                return super.normalizePropertyConfig(currentConfig, wrapped);
+            }
+            return super.normalizePropertyConfig(currentConfig, newConfig);
+        }
+    }
+
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.Direction = void 0;
+    (function (Direction) {
+        Direction["vertical"] = "vertical";
+        Direction["horizontal"] = "horizontal";
+    })(exports.Direction || (exports.Direction = {}));
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.SideH = void 0;
+    (function (SideH) {
+        SideH["left"] = "left";
+        SideH["right"] = "right";
+    })(exports.SideH || (exports.SideH = {}));
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.SideV = void 0;
+    (function (SideV) {
+        SideV["top"] = "top";
+        SideV["bottom"] = "bottom";
+    })(exports.SideV || (exports.SideV = {}));
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.Side = void 0;
+    (function (Side) {
+        Side["top"] = "top";
+        Side["bottom"] = "bottom";
+        Side["left"] = "left";
+        Side["right"] = "right";
+    })(exports.Side || (exports.Side = {}));
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.InOut = void 0;
+    (function (InOut) {
+        InOut["in"] = "in";
+        InOut["out"] = "out";
+    })(exports.InOut || (exports.InOut = {}));
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.OnOff = void 0;
+    (function (OnOff) {
+        OnOff["on"] = "on";
+        OnOff["off"] = "off";
+    })(exports.OnOff || (exports.OnOff = {}));
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.Open = void 0;
+    (function (Open) {
+        Open["open"] = "open";
+        Open["closed"] = "closed";
+    })(exports.Open || (exports.Open = {}));
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.Shown = void 0;
+    (function (Shown) {
+        Shown["visible"] = "visible";
+        Shown["hidden"] = "hidden";
+    })(exports.Shown || (exports.Shown = {}));
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.AccessLevel = void 0;
+    (function (AccessLevel) {
+        AccessLevel["public"] = "public";
+        AccessLevel["protected"] = "protected";
+        AccessLevel["private"] = "private";
+    })(exports.AccessLevel || (exports.AccessLevel = {}));
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.Range = void 0;
+    (function (Range) {
+        Range["min"] = "min";
+        Range["max"] = "max";
+    })(exports.Range || (exports.Range = {}));
+    /**
+     * @group Types
+     * @category Enums
+     */
+    exports.Anchor = void 0;
+    (function (Anchor) {
+        Anchor["TopLeft"] = "topLeft";
+        Anchor["TopRight"] = "topRight";
+        Anchor["TopMiddle"] = "topMiddle";
+        Anchor["BottomLeft"] = "bottomLeft";
+        Anchor["BottomMiddle"] = "bottomMiddle";
+        Anchor["BottomRight"] = "bottomRight";
+        Anchor["Center"] = "center";
+        Anchor["CenterLeft"] = "centerLeft";
+        Anchor["CenterRight"] = "centerRight";
+    })(exports.Anchor || (exports.Anchor = {}));
+
+    const utils$1 = new ReifectFunctionsUtils();
+    const showTransition = new StatefulReifect({
+        states: [exports.Shown.visible, exports.Shown.hidden],
+        styles: (state) => `visibility: ${state}`
+    });
+    function setupReifectFunctions() {
+        /**
+         * @description Adds a readonly "reifects" property to Node prototype.
+         */
+        Object.defineProperty(TurboSelector.prototype, "reifects", {
+            get: function () {
+                if (!this.element)
+                    return new Set();
+                return new Set(utils$1.data(this.element).reifects?.toArray());
+            },
+            configurable: false,
+            enumerable: true
+        });
+        /**
+         * @description Adds a configurable "showTransition" property to Node prototype. Defaults to a global
+         * transition assigned to all nodes.
+         */
+        Object.defineProperty(TurboSelector.prototype, "showTransition", {
+            get: function () {
+                if (!this.element)
+                    return;
+                const data = utils$1.data(this.element);
+                if (!data.showTransition)
+                    data.showTransition = showTransition;
+                return data.showTransition;
+            },
+            set: function (value) {
+                if (!this.element)
+                    return;
+                utils$1.data(this.element).showTransition = value;
+            },
+            configurable: true,
+            enumerable: true
+        });
+        /**
+         * @description Boolean indicating whether the node is shown or not, based on its showTransition.
+         */
+        Object.defineProperty(TurboSelector.prototype, "isShown", {
+            get: function () {
+                if (!this.element)
+                    return;
+                const state = this.showTransition.stateOf(this.element);
+                if (state == exports.Shown.visible)
+                    return true;
+                else if (state == exports.Shown.hidden)
+                    return false;
+                return this.element.style.display != "none"
+                    && this.element.style.visibility != "hidden"
+                    && this.element.style.opacity != "0";
+            },
+            configurable: false,
+            enumerable: true
+        });
+        /**
+         * @description Show or hide the element (based on CSS) by transitioning in/out of the element's showTransition.
+         * @param {boolean} b - Whether to show the element or not
+         * @param {ReifectAppliedOptions<Shown>} [options={executeForAll: false}] - The options to pass to the reifect
+         * execution.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        TurboSelector.prototype.show = function _show(b, options = {}) {
+            if (!this.element)
+                return this;
+            if (!options.executeForAll)
+                options.executeForAll = false;
+            this.showTransition.apply(b ? exports.Shown.visible : exports.Shown.hidden, this.element, options);
+            return this;
+        };
+        TurboSelector.prototype.attachReifect = function _attachReifect(...reifects) {
+            if (!this.element || typeof this.element !== "object")
+                return this;
+            reifects.forEach(entry => {
+                if (this.reifects.has(entry))
+                    return;
+                utils$1.attachReifect(this.element, entry);
+                entry.attach(this.element);
+            });
+            return this;
+        };
+        TurboSelector.prototype.detachReifect = function _detachReifect(...reifects) {
+            if (!this.element || typeof this.element !== "object")
+                return this;
+            reifects.forEach(entry => {
+                if (!this.reifects.has(entry))
+                    return;
+                utils$1.detachReifect(this.element, entry);
+                entry.detach(this.element);
+            });
+            return this;
+        };
+        TurboSelector.prototype.initializeReifect = function _initializeReifect(reifect, state, options) {
+            if (!this.element)
+                return this;
+            if (reifect instanceof Reifect)
+                reifect.initialize(this.element, options);
+            else
+                reifect.initialize(this.element, state, options);
+            return this;
+        };
+        TurboSelector.prototype.applyReifect = function _applyReifect(reifect, state, options) {
+            if (!this.element)
+                return this;
+            if (reifect instanceof Reifect)
+                reifect.apply(this.element, options);
+            else
+                reifect.apply(this.element, state, options);
+            return this;
+        };
+        TurboSelector.prototype.toggleReifect = function _toggleReifect(reifect, options) {
+            if (!this.element)
+                return this;
+            if (reifect instanceof Reifect)
+                return this;
+            else
+                reifect.toggle(this.element, options);
+            return this;
+        };
+        TurboSelector.prototype.reloadReifects = function _reloadReifects() {
+            if (!this.element)
+                return this;
+            this.reifects.forEach(reifect => reifect.reloadFor(this.element));
+            return this;
+        };
+        TurboSelector.prototype.reloadReifectsChainableStyles = function _reloadChainableStyles(applyInstantly = true) {
+            if (!this.element)
+                return this;
+            const contributions = {};
+            this.reifects.forEach((reifect) => {
+                const chainable = reifect.getChainableStyles(this.element);
+                for (const [key, value] of Object.entries(chainable)) {
+                    if (!value)
+                        continue;
+                    if (!contributions[key])
+                        contributions[key] = [];
+                    contributions[key].push(value);
+                }
+            });
+            for (const [key, values] of Object.entries(contributions)) {
+                const separator = key === "transform" ? " " : ", ";
+                turbo(this.element).setStyle(key, values.join(separator), applyInstantly);
+            }
+            return this;
+        };
+        TurboSelector.prototype.reifectEnabledState = function _reifectEnabledState(reifect) {
+            if (!this.element)
+                return {};
+            if (reifect)
+                return reifect.getObjectEnabledState(this.element);
+            return utils$1.data(this.element).enabled;
+        };
+        TurboSelector.prototype.enableReifect = function _enableReifect(value, reifect) {
+            if (!this.element)
+                return this;
+            const enabled = reifect ? reifect.getData(this.element)?.enabled
+                : utils$1.data(this.element).enabled;
+            if (!enabled)
+                return this;
+            if (typeof value === "boolean")
+                enabled.global = value;
+            else if (typeof value === "object")
+                Object.entries(value)
+                    .forEach(([key, value]) => enabled[key] = value);
+            return this;
+        };
+    }
+
+    const cache$1 = new WeakMap();
+    function turbo(tagOrElement, raw = false) {
+        turbofy();
+        let el;
+        if (!tagOrElement)
+            tagOrElement = "div";
+        if (typeof tagOrElement === "string")
+            el = element({ tag: tagOrElement });
+        else if (typeof tagOrElement === "object") {
+            if (tagOrElement instanceof TurboSelector)
+                return tagOrElement;
+            if (raw || tagOrElement instanceof Node)
+                el = tagOrElement;
+            else if (tagOrElement["element"] && typeof tagOrElement["element"] === "object") {
+                el = tagOrElement["element"];
+            }
+            else
+                el = tagOrElement;
+        }
+        const cached = cache$1.get(el);
+        if (cached)
+            return cached;
+        const turboSelector = new TurboSelector();
+        turboSelector.element = el;
+        cache$1.set(el, turboSelector);
+        return turboSelector;
+    }
+    function tu(tagOrElement, raw = false) {
+        return turbo(tagOrElement, raw);
+    }
+    function t(tagOrElement, raw = false) {
+        return turbo(tagOrElement, raw);
+    }
+    function $(tagOrElement, raw = false) {
+        return turbo(tagOrElement, raw);
+    }
+    /**
+     * @group TurboSelector
+     */
+    const turbofy = callOnce(function (options = {}) {
+        if (!options.excludeHierarchyFunctions)
+            setupHierarchyFunctions();
+        if (!options.excludeMvcFunctions)
+            setupMvcFunctions();
+        if (!options.excludeMiscFunctions)
+            setupMiscFunctions();
+        if (!options.excludeClassFunctions)
+            setupClassFunctions();
+        if (!options.excludeElementFunctions)
+            setupElementFunctions();
+        if (!options.excludeEventFunctions)
+            setupEventFunctions();
+        if (!options.excludeStyleFunctions)
+            setupStyleFunctions();
+        if (!options.excludeToolFunctions)
+            setupToolFunctions();
+        if (!options.excludeConstrainerFunctions)
+            setupConstrainerFunctions();
+        if (!options.excludeReifectFunctions)
+            setupReifectFunctions();
+    });
+
+    /**
+     * @internal
+     */
+    function keyFromArgs(args) {
+        if (!args || args.length === 0)
+            return "__no_args__";
+        return JSON.stringify(args.map((v) => {
+            if (typeof v === "function")
+                return `function:${v.name}`;
+            if (v && typeof v === "object") {
+                try {
+                    return JSON.stringify(Object.entries(v).sort());
+                }
+                catch {
+                    return "[[unserializable-object]]";
+                }
+            }
+            return v === undefined ? "undefined" : v;
+        }));
+    }
+    /**
+     * @internal
+     */
+    function cacheKeySymbolFor(name) {
+        return Symbol(`__cache__${name}`);
+    }
+    /**
+     * @internal
+     */
+    function initInvalidation(instance, name, isGetterCache, cacheKey, timeouts, options, deleteFn) {
+        // onEvent: attach to instance if it’s an EventTarget, else to document
+        if (options.onEvent) {
+            const target = typeof instance?.addEventListener === "function" ? instance : document;
+            const names = Array.isArray(options.onEvent)
+                ? options.onEvent
+                : String(options.onEvent).split(/\s+/).filter(Boolean);
+            for (const evt of names)
+                $(target).on(evt, () => deleteFn());
+        }
+        // onFieldChange: wrap methods / define property setters to invalidate
+        if (options.onFieldChange) {
+            const list = Array.isArray(options.onFieldChange)
+                ? options.onFieldChange
+                : [options.onFieldChange];
+            for (const fieldOrFn of list) {
+                const fieldName = typeof fieldOrFn === "string" ? fieldOrFn : fieldOrFn.name;
+                if (!fieldName)
+                    continue;
+                const desc = getFirstDescriptorInChain(instance, fieldName);
+                // If it's a method, wrap it (on the instance) to invalidate before/after
+                const existing = instance[fieldName];
+                if (typeof existing === "function") {
+                    const originalFn = existing;
+                    Object.defineProperty(instance, fieldName, {
+                        configurable: true,
+                        enumerable: desc?.enumerable ?? true,
+                        writable: true,
+                        value: function (...args) {
+                            deleteFn(); // invalidate first
+                            return originalFn.apply(this, args);
+                        },
+                    });
+                }
+                else {
+                    // Data / accessor property — define an instance-level accessor that invalidates on set
+                    const getFallback = () => desc?.get ? desc.get.call(instance) : existing;
+                    const setFallback = (nv) => {
+                        if (desc?.set)
+                            desc.set.call(instance, nv);
+                        else {
+                            // define on instance to shadow proto
+                            Object.defineProperty(instance, fieldName, {
+                                configurable: true,
+                                enumerable: true,
+                                writable: true,
+                                value: nv,
+                            });
+                        }
+                    };
+                    Object.defineProperty(instance, fieldName, {
+                        configurable: true,
+                        enumerable: desc?.enumerable ?? true,
+                        get() {
+                            return getFallback();
+                        },
+                        set(nv) {
+                            deleteFn();
+                            setFallback(nv);
+                        },
+                    });
+                }
+            }
+        }
+        // onCallback (polling) — clears on a "destroy" event if the instance supports it
+        if (options.onCallback) {
+            const id = setInterval(() => {
+                const res = options.onCallback.call(instance);
+                if (res instanceof Promise) {
+                    res.then((v) => deleteFn(Boolean(v)));
+                }
+                else {
+                    deleteFn(Boolean(res));
+                }
+            }, options.onCallbackFrequency ?? 50);
+            if (typeof instance?.addEventListener === "function") {
+                instance.addEventListener("destroy", () => clearInterval(id), { once: true });
+            }
+        }
+        // convenience time-based deletion helpers are scheduled where we write cache
+    }
+
+    /**
+     * @decorator
+     * @function cache
+     * @group Decorators
+     * @category Cache
+     *
+     * @description Stage-3 decorator that memorizes expensive reads.
+     *
+     * **What it does**
+     * - **Method**: caches the return value **per unique arguments** (using a stable key from args).
+     * - **Getter**: caches the value **once per instance** until invalidated.
+     * - **Accessor**: wraps the `get` path like a cached getter; the `set` path invalidates cached value.
+     *
+     * @param {CacheOptions} [options] - Optional caching configuration to define when to clear it (on event, after
+     * timeout, on next frame, on callback, etc.).
+     *
+     * @example
+     * ```ts
+     * class IconRenderer {
+     *   #value = 0;
+     *
+     *   // Accessor: cached read; any write invalidates immediately
+     *   @cache({clearOnNextFrame: true}) accessor data = {
+     *     get: () => this.#value,
+     *     set: (v: number) => { this.#value = v; }
+     *   };
+     *
+     *   // Caches per argument list (e.g., same path ⇒ same result until invalidation)
+     *   @cache({timeout: 5_000}) async loadSvg(path: string): Promise<string> {
+     *     // ...expensive IO
+     *     return fetch(path).then(r => r.text());
+     *   }
+     * }
+     * ```
+     */
+    //TODO FIX THEN TEST ON ICON loadSvg
+    function cache(options = {}) {
+        return function (value, context) {
+            const { kind, name, static: isStatic } = context;
+            const key = name;
+            const cacheKey = cacheKeySymbolFor(key);
+            const setupKey = Symbol(`__cache__setup__${key}`);
+            const timeouts = [];
+            const deleteCallback = function (hard = true) {
+                if (!hard)
+                    return;
+                const slot = this[cacheKey];
+                if (!slot)
+                    return;
+                if (slot instanceof Map)
+                    slot.clear();
+                else
+                    delete this[cacheKey];
+                for (const t of timeouts)
+                    clearTimeout(t);
+                timeouts.length = 0;
+            };
+            // one-time per-instance setup
+            const ensureSetup = function () {
+                if (this[setupKey])
+                    return;
+                this[setupKey] = true;
+                initInvalidation(this, key, kind === "getter" || kind === "accessor", cacheKey, timeouts, options, deleteCallback.bind(this));
+            };
+            if (kind === "method") {
+                const original = value;
+                context.addInitializer(function () {
+                    if (!this[cacheKey])
+                        this[cacheKey] = new Map();
+                });
+                return function (...args) {
+                    ensureSetup.call(this);
+                    const map = this[cacheKey] ?? (this[cacheKey] = new Map());
+                    const k = keyFromArgs(args);
+                    if (map.has(k))
+                        return map.get(k);
+                    const result = original.apply(this, args);
+                    map.set(k, result);
+                    // timeouts/RAF per-entry:
+                    if (options.timeout) {
+                        const tid = setTimeout(() => map.delete(k), options.timeout);
+                        timeouts.push(tid);
+                    }
+                    if (options.clearOnNextFrame) {
+                        const raf = (typeof requestAnimationFrame === "function"
+                            ? requestAnimationFrame
+                            : (fn) => setTimeout(fn, 0));
+                        raf(() => deleteCallback.call(this));
+                    }
+                    return result;
+                };
+            }
+            // ---- GETTER -----------------------------------------------------------
+            if (kind === "getter") {
+                const originalGet = value;
+                return function () {
+                    ensureSetup.call(this);
+                    if (this[cacheKey] === undefined) {
+                        this[cacheKey] = originalGet.call(this);
+                        if (options.timeout) {
+                            const tid = setTimeout(() => deleteCallback.call(this), options.timeout);
+                            timeouts.push(tid);
+                        }
+                        if (options.clearOnNextFrame) {
+                            const raf = (typeof requestAnimationFrame === "function"
+                                ? requestAnimationFrame
+                                : (fn) => setTimeout(fn, 0));
+                            raf(() => deleteCallback.call(this));
+                        }
+                    }
+                    return this[cacheKey];
+                };
+            }
+            // ---- ACCESSOR (wrap read path; keep set untouched) --------------------
+            if (kind === "accessor") {
+                const orig = value;
+                return {
+                    get() {
+                        ensureSetup.call(this);
+                        if (this[cacheKey] === undefined) {
+                            const out = orig.get ? orig.get.call(this) : undefined;
+                            this[cacheKey] = out;
+                            if (options.timeout) {
+                                const tid = setTimeout(() => deleteCallback.call(this), options.timeout);
+                                timeouts.push(tid);
+                            }
+                            if (options.clearOnNextFrame) {
+                                const raf = (typeof requestAnimationFrame === "function"
+                                    ? requestAnimationFrame
+                                    : (fn) => setTimeout(fn, 0));
+                                raf(() => deleteCallback.call(this));
+                            }
+                        }
+                        return this[cacheKey];
+                    },
+                    set(v) {
+                        // when the underlying value changes, invalidate cache immediately
+                        deleteCallback.call(this);
+                        if (orig.set)
+                            orig.set.call(this, v);
+                    },
+                    init(initial) {
+                        // keep normal accessor init behavior
+                        return initial;
+                    },
+                };
+            }
+        };
+    }
+    /**
+     * @function clearCache
+     * @group Decorators
+     * @category Cache
+     *
+     * @description Clear *all* cache entries created by `@cache` on an instance.
+     * @param {any} instance - The instance for which the cache should be cleared.
+     */
+    function clearCache(instance) {
+        for (const sym of Object.getOwnPropertySymbols(instance)) {
+            if (String(sym).startsWith("Symbol(__cache__")) {
+                delete instance[sym];
+            }
+        }
+    }
+    /**
+     * @function clearCacheEntry
+     * @group Decorators
+     * @category Cache
+     *
+     * @description Clear a specific cache entry for a given method, function, or getter.
+     * @param {any} instance - The instance for which the cache should be cleared.
+     * @param {string | Function} field - The name (or the function itself) of the field to clear.
+     */
+    function clearCacheEntry(instance, field) {
+        const name = typeof field === "function" ? field.name : field;
+        const sym = Object.getOwnPropertySymbols(instance).find((s) => String(s) === `Symbol(__cache__${name})`);
+        if (sym)
+            delete instance[sym];
+    }
+
+    /**
+     * @decorator
+     * @function solver
+     * @group Decorators
+     * @category MVC
+     *
+     * @description Stage-3 decorator that turns methods into constrainer solvers.
+     * @example
+     * ```ts
+     * @solver private constrainPosition(properties: ConstrainerSolverProperties) {...}
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * private constrainPosition(properties: ConstrainerSolverProperties) {...}
+     *
+     * public initialize() {
+     *   ...
+     *   $(this).addSolver(this.constrainPosition);
+     * }
+     * ```
+     */
+    function solver(properties) {
+        return function (value, context) {
+            if (!properties || typeof properties !== "object")
+                properties = {};
+            if (!properties.name)
+                properties.name = context?.name;
+            context.addInitializer(function () {
+                if (!this["solversMetadata"])
+                    return;
+                for (let i = this["solversMetadata"].length - 1; i >= 0; i--) {
+                    if (this["solversMetadata"][i]?.name === properties.name)
+                        this["solversMetadata"].splice(i, 1);
+                }
+                this["solversMetadata"]?.push(properties);
+            });
+            return value;
+        };
+    }
+    /**
+     * @decorator
+     * @function checker
+     * @group Decorators
+     * @category MVC
+     *
+     * @description Stage-3 decorator that turns methods into constrainer checkers.
+     * @example
+     * ```ts
+     * @checker private constrainPosition(properties: ConstrainerSolverProperties) {...}
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * private constrainPosition(properties: ConstrainerSolverProperties) {...}
+     *
+     * public initialize() {
+     *   ...
+     *   $(this).addChecker(this.constrainPosition);
+     * }
+     * ```
+     */
+    function checker(properties) {
+        return function (value, context) {
+            if (!properties || typeof properties !== "object")
+                properties = {};
+            if (!properties.name)
+                properties.name = context?.name;
+            context.addInitializer(function () {
+                if (!this["checkersMetadata"])
+                    return;
+                for (let i = this["checkersMetadata"].length - 1; i >= 0; i--) {
+                    if (this["checkersMetadata"][i]?.name === properties.name)
+                        this["checkersMetadata"].splice(i, 1);
+                }
+                this["checkersMetadata"]?.push(properties);
+            });
+            return value;
+        };
+    }
+    /**
+     * @decorator
+     * @function mutator
+     * @group Decorators
+     * @category MVC
+     *
+     * @description Stage-3 decorator that turns methods into constrainer mutators.
+     * @example
+     * ```ts
+     * @mutator private constrainPosition(properties: ConstrainerSolverProperties) {...}
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * private constrainPosition(properties: ConstrainerSolverProperties) {...}
+     *
+     * public initialize() {
+     *   ...
+     *   $(this).addMutator(this.constrainPosition);
+     * }
+     * ```
+     */
+    function mutator(properties) {
+        return function (value, context) {
+            if (!properties || typeof properties !== "object")
+                properties = {};
+            if (!properties.name)
+                properties.name = context?.name;
+            context.addInitializer(function () {
+                if (!this["mutatorsMetadata"])
+                    return;
+                for (let i = this["mutatorsMetadata"].length - 1; i >= 0; i--) {
+                    if (this["mutatorsMetadata"][i]?.name === properties.name)
+                        this["mutatorsMetadata"].splice(i, 1);
+                }
+                this["mutatorsMetadata"]?.push(properties);
+            });
+            return value;
+        };
+    }
+
+    class ObserveUtils {
+        constructorMap = new WeakMap();
+        constructorData(target) {
+            let obj = this.constructorMap.get(target);
+            if (!obj) {
+                obj = { installed: new Map() };
+                this.constructorMap.set(target, obj);
+            }
+            return obj;
+        }
+    }
+
+    if (!("metadata" in Symbol)) {
+        Object.defineProperty(Symbol, "metadata", {
+            value: Symbol.for("Symbol.metadata"),
+            writable: false, enumerable: false, configurable: true,
+        });
+    }
+    const utils = new ObserveUtils();
+    /**
+     * @decorator
+     * @function observe
+     * @group Decorators
+     * @category Attributes & DOM
+     *
+     * @description Stage-3 decorator for fields, getters, setters, and accessors that reflects a property to an HTML
+     * attribute. So when the value of the property changes, it is reflected in the element's HTML attributes.
+     * It also records the attribute name into the class's `observedAttributed` to listen for changes on the HTML.
+     *
+     * @example
+     * ```ts
+     * @define()
+     * class MyClass extends HTMLElement {
+     *    @observe fieldName: string = "hello";
+     * }
+     * ```
+     *
+     * Leads to:
+     * ```html
+     * <my-class field-name="hello"></my-class>
+     * ```
+     *
+     */
+    function observe(value, context) {
+        const { kind, name, static: isStatic } = context;
+        const key = String(name);
+        const attribute = camelToKebabCase(key);
+        const backing = Symbol(`__observed_${key}`);
+        if (context.metadata) {
+            const observedAttributes = context.metadata.observedAttributes;
+            if (!Object.prototype.hasOwnProperty.call(context.metadata, "observedAttributes"))
+                context.metadata.observedAttributes = new Set(observedAttributes);
+            else if (!observedAttributes)
+                context.metadata.observedAttributes = new Set();
+            context.metadata.observedAttributes.add(attribute);
+        }
+        context.addInitializer(function () {
+            const prototype = isStatic ? this : getFirstPrototypeInChainWith(this, key);
+            let customGetter;
+            let customSetter;
+            if (kind === "field" || kind === "accessor")
+                try {
+                    this[backing] = this[name];
+                }
+                catch { }
+            const read = function () {
+                return customGetter ? customGetter.call(this) : this[backing];
+            };
+            const write = function (value) {
+                const previous = this[key];
+                if (previous === value)
+                    return;
+                if (customSetter)
+                    customSetter.call(this, value);
+                else
+                    this[backing] = value;
+                this.setAttribute?.(attribute, stringify(this[key]));
+            };
+            if (kind === "field" || kind === "accessor") {
+                const accessor = value;
+                if (accessor?.get)
+                    customGetter = accessor.get;
+                if (accessor?.set)
+                    customSetter = accessor.set;
+                const descriptor = getFirstDescriptorInChain(this, key);
+                if (descriptor?.get)
+                    customGetter = descriptor.get;
+                if (descriptor?.set)
+                    customSetter = descriptor.set;
+                Object.defineProperty(this, key, {
+                    configurable: true,
+                    enumerable: descriptor?.enumerable ?? true,
+                    get: () => read.call(this),
+                    set: (value) => write.call(this, value),
+                });
+            }
+            else if (kind === "getter" || kind === "setter") {
+                const installed = utils.constructorData(prototype).installed;
+                if (installed.get(key))
+                    return;
+                installed.set(key, true);
+                const descriptor = getFirstDescriptorInChain(prototype, key) ?? {};
+                if (typeof descriptor.get === "function")
+                    customGetter = descriptor.get;
+                if (typeof descriptor.set === "function")
+                    customSetter = descriptor.set;
+                Object.defineProperty(prototype, key, {
+                    configurable: true,
+                    enumerable: !!descriptor?.enumerable,
+                    get: function () { return read.call(this); },
+                    set: function (value) { write.call(this, value); },
+                });
+            }
+        });
+    }
+
+    /**
+     * @group Element Creation
+     * @category Flex Elements
+     *
+     * @description Create a flex column element.
+     * @param {TurboProperties<Tag>} properties - Object containing properties of the element.
+     * @returns {ValidHTMLElement<Tag>} The created flex element.
+     * @template {HTMLTag} Tag
+     */
+    function flexCol(properties) {
+        const el = element(properties);
+        $(el).setStyles({ display: "flex", flexDirection: "column" }, true);
+        return el;
+    }
+    /**
+     * @group Element Creation
+     * @category Flex Elements
+     *
+     * @description Create a flex column element.
+     * @param {TurboProperties<Tag>} properties - Object containing properties of the element.
+     * @returns {ValidHTMLElement<Tag>} The created flex element.
+     * @template {HTMLTag} Tag
+     */
+    function flexColCenter(properties) {
+        const el = flexCol(properties);
+        $(el).setStyles({ justifyContent: "center", alignItems: "center" }, true);
+        return el;
+    }
+    /**
+     * @group Element Creation
+     * @category Flex Elements
+     *
+     * @description Create a flex row element.
+     * @param {TurboProperties<Tag>} properties - Object containing properties of the element.
+     * @returns {ValidHTMLElement<Tag>} The created flex element.
+     * @template {HTMLTag} Tag
+     */
+    function flexRow(properties) {
+        const el = element(properties);
+        $(el).setStyles({ display: "flex", flexDirection: "row" }, true);
+        return el;
+    }
+    /**
+     * @group Element Creation
+     * @category Flex Elements
+     *
+     * @description Create a flex row element.
+     * @param {TurboProperties<Tag>} properties - Object containing properties of the element.
+     * @returns {ValidHTMLElement<Tag>} The created flex element.
+     * @template {HTMLTag} Tag
+     */
+    function flexRowCenter(properties) {
+        const el = flexRow(properties);
+        $(el).setStyles({ justifyContent: "center", alignItems: "center" }, true);
+        return el;
+    }
+    /**
+     * @group Element Creation
+     * @category Flex Elements
+     *
+     * @description Create a spacer element.
+     * @param {TurboProperties<Tag>} properties - Object containing properties of the element.
+     * @returns {ValidHTMLElement<Tag>} The created spacer element.
+     * @template {HTMLTag} Tag
+     */
+    function spacer(properties) {
+        const el = element(properties);
+        $(el).setStyle("flexGrow", 1, true);
+        return el;
+    }
+
+    /**
+     * @class TurboInteractor
+     * @group MVC
+     * @category Interactor
+     *
+     * @extends TurboOperator
+     * @template {object} ElementType - The type of the main component.
+     * @template {TurboView} ViewType - The element's MVC view type.
+     * @template {TurboModel} ModelType - The element's MVC model type.
+     * @template {TurboEmitter} EmitterType - The element's MVC emitter type.
+     * @description Class representing an MVC interactor. It holds event listeners to set up on the element itself, or
+     * the custom defined target.
+     */
+    class TurboInteractor extends TurboOperator {
+        #target_accessor_storage;
+        /**
+         * @description The target of the event listeners. Defaults to the element itself.
+         */
+        get target() { return this.#target_accessor_storage; }
+        set target(value) { this.#target_accessor_storage = value; }
+        /**
+         * @readonly
+         * @description The name of the tool (if any) to listen for.
+         */
+        toolName;
+        /**
+         * @readonly
+         * @description The associated event manager. Defaults to `TurboEventManager.instance`.
+         */
+        manager;
+        /**
+         *
+         * @readonly
+         * @description Optional custom options to define per event type.
+         */
+        options;
+        constructor(properties) {
+            super(properties);
+            this.manager = properties.manager ?? this.manager ?? TurboEventManager.instance;
+            this.toolName = properties.toolName ?? this.toolName ?? undefined;
+            this.options = properties.listenerOptions ?? {};
+            const host = this.element;
+            try {
+                this.target = properties.target ?? this.target ?? (host instanceof Node ? host
+                    : host?.element instanceof Node ? host.element
+                        : undefined);
+            }
+            catch { }
+        }
+    }
+    addRegistryCategory(TurboInteractor);
+    define(TurboInteractor);
+
+    /**
+     * @group MVC
+     * @category TurboModel
+     */
+    let TurboYModel = (() => {
+        let _classSuper = TurboModel;
+        let _instanceExtraInitializers = [];
+        let _set_enabledCallbacks_decorators;
+        return class TurboYModel extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _set_enabledCallbacks_decorators = [auto({ override: true })];
+                __esDecorate(this, null, _set_enabledCallbacks_decorators, { kind: "setter", name: "enabledCallbacks", static: false, private: false, access: { has: obj => "enabledCallbacks" in obj, set: (obj, value) => { obj.enabledCallbacks = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            observer = (__runInitializers(this, _instanceExtraInitializers), (event, transaction) => this.observeChanges(event, transaction));
+            observedYTypes = new WeakSet();
+            /**
+             * @inheritDoc
+             */
+            modelConstructor = TurboYModel;
+            /**
+             * @inheritDoc
+             */
+            set enabledCallbacks(value) {
+                if (!this.data)
+                    return;
+                if (this.data instanceof yjs.AbstractType) {
+                    if (value)
+                        this.attachNestedObservers(this.data);
+                    else
+                        this.detachNestedObservers(this.data);
+                }
+                else if (Array.isArray(this.data)) {
+                    for (const item of this.data) {
+                        if (value)
+                            this.attachNestedObservers(item);
+                        else
+                            this.detachNestedObservers(item);
+                    }
+                }
+            }
+            /*
+             *
+             * Basics
+             *
+             */
+            /**
+             * @inheritDoc
+             */
+            getAction(data, key) {
+                if (data instanceof yjs.Map)
+                    return data.get(key.toString());
+                if (data instanceof yjs.Array)
+                    return data.get(trim(Number(key), data.length));
+                return super.getAction(data, key);
+            }
+            /**
+             * @inheritDoc
+             */
+            setAction(data, value, key) {
+                if (data instanceof yjs.Map)
+                    data.doc.transact(() => data.set(key.toString(), value), this);
+                else if (data instanceof yjs.Array) {
+                    const index = trim(Number(key), data.length + 1);
+                    if (index < data.length)
+                        data.delete(index, 1);
+                    data.doc.transact(() => data.insert(index, [value]), this);
+                }
+                else {
+                    const oldValue = this.getAction(data, key);
+                    if (oldValue !== value && oldValue != null && typeof oldValue === "object")
+                        this.detachNestedObservers(oldValue);
+                    super.setAction(data, value, key);
+                    if (oldValue !== value && value != null && typeof value === "object")
+                        this.attachNestedObservers(value);
+                }
+            }
+            /**
+             * @inheritDoc
+             */
+            addAction(model, data, value, key) {
+                if (data instanceof yjs.Array) {
+                    let index = key;
+                    if (isUndefined(index) || typeof index !== "number" || index > data.length) {
+                        index = data.length;
+                        data.doc.transact(() => data.push([value]), this);
+                    }
+                    else {
+                        if (index < 0)
+                            index = 0;
+                        data.doc.transact(() => data.insert(index, [value]), this);
+                    }
+                    return index;
+                }
+                if (Array.isArray(data)) {
+                    const index = super.addAction(model, data, value, key);
+                    if (index !== undefined && value != null && typeof value === "object")
+                        this.attachNestedObservers(value);
+                    return index;
+                }
+                return super.addAction(model, data, value, key);
+            }
+            /**
+             * @inheritDoc
+             */
+            hasAction(data, key) {
+                if (data instanceof yjs.Map)
+                    return data.has(key.toString());
+                if (data instanceof yjs.Array)
+                    return typeof key === "number" && key >= 0 && key < data.length;
+                return super.hasAction(data, key);
+            }
+            /**
+             * @inheritDoc
+             */
+            deleteAction(data, key) {
+                if (data instanceof yjs.Map)
+                    data.doc.transact(() => data.delete(key.toString()), this);
+                else if (data instanceof yjs.Array && typeof key === "number" && key >= 0 && key < data.length)
+                    data.doc.transact(() => data.delete(key, 1), this);
+                else
+                    super.deleteAction(data, key);
+            }
+            /**
+             * @inheritDoc
+             */
+            getKeysAction(data) {
+                if (data instanceof yjs.Map)
+                    return Array.from(data.keys());
+                if (data instanceof yjs.Array) {
+                    const output = [];
+                    for (let i = 0; i < data.length; i++)
+                        output.push(i);
+                    return output;
+                }
+                return super.getKeysAction(data);
+            }
+            /**
+             * @inheritDoc
+             */
+            initialize() {
+                super.initialize();
+                if (!this.enabledCallbacks)
+                    return;
+                if (this.data instanceof yjs.AbstractType)
+                    this.attachNestedObservers(this.data);
+                else if (Array.isArray(this.data)) {
+                    for (const item of this.data)
+                        this.attachNestedObservers(item);
+                }
+            }
+            /**
+             * @inheritDoc
+             */
+            clear(clearData = true) {
+                if (clearData) {
+                    if (this.data instanceof yjs.AbstractType)
+                        this.detachNestedObservers(this.data);
+                    else if (Array.isArray(this.data)) {
+                        for (const item of this.data)
+                            this.detachNestedObservers(item);
+                    }
+                }
+                super.clear(clearData);
+            }
+            diffCheck(oldData, newData) {
+                if (oldData instanceof yjs.AbstractType || newData instanceof yjs.AbstractType)
+                    return false;
+                return super.diffCheck(oldData, newData);
+            }
+            /*
+             *
+             * Utilities
+             *
+             */
+            observeChanges(event, transaction) {
+                const selfOriginated = transaction?.origin === this;
+                const basePath = this.getPathToTarget(event.target);
+                if (event instanceof yjs.YMapEvent) {
+                    if (selfOriginated)
+                        return;
+                    event.keysChanged.forEach(key => {
+                        const change = event.changes.keys.get(key);
+                        if (!change)
+                            return;
+                        if (change.action === "delete")
+                            this.keyChanged([...basePath, key], undefined, true);
+                        else {
+                            this.attachNestedObservers(this.getAction(event.target, key));
+                            this.keyChanged([...basePath, key]);
+                        }
+                    });
+                }
+                else if (event instanceof yjs.YArrayEvent) {
+                    let currentIndex = 0;
+                    for (const delta of event.delta) {
+                        if (delta.retain !== undefined) {
+                            currentIndex += delta.retain;
+                        }
+                        else if (delta.insert) {
+                            const insertedItems = Array.isArray(delta.insert) ? delta.insert : [delta.insert];
+                            const count = insertedItems.length;
+                            this.shiftIndices(basePath, currentIndex, count);
+                            if (!selfOriginated) {
+                                for (let i = 0; i < count; i++) {
+                                    this.attachNestedObservers(this.getAction(event.target, currentIndex + i));
+                                    this.keyChanged([...basePath, currentIndex + i]);
+                                }
+                            }
+                            currentIndex += count;
+                        }
+                        else if (delta.delete) {
+                            const count = delta.delete;
+                            if (!selfOriginated) {
+                                for (let i = 0; i < count; i++)
+                                    this.keyChanged([...basePath, currentIndex + i], undefined, true);
+                            }
+                            this.shiftIndices(basePath, currentIndex + count, -count);
+                        }
+                    }
+                }
+            }
+            attachNestedObservers(value) {
+                if (value instanceof yjs.AbstractType) {
+                    if (!this.observedYTypes.has(value)) {
+                        value.observe(this.observer);
+                        this.observedYTypes.add(value);
+                    }
+                    // Skip key iteration when the type has no document yet — Y.js throws
+                    // "Invalid access: Add Yjs type to a document before reading data."
+                    // when keys() / get() are called before the type is inserted into a doc.
+                    if (!value.doc)
+                        return;
+                    for (const key of this.getKeysAction(value)) {
+                        if (!this.nestedModels.has(key))
+                            this.attachNestedObservers(this.getAction(value, key));
+                    }
+                }
+                else if (Array.isArray(value)) {
+                    for (let i = 0; i < value.length; i++)
+                        this.attachNestedObservers(value[i]);
+                }
+            }
+            detachNestedObservers(value) {
+                if (value instanceof yjs.AbstractType) {
+                    if (this.observedYTypes.has(value)) {
+                        // Guard: Y.js GC can clear event handlers on deleted types, leaving
+                        // observedYTypes stale. Check the internal handler array before calling
+                        // unobserve to avoid "[yjs] Tried to remove event handler that doesn't exist."
+                        if (value._eH?.l?.includes(this.observer))
+                            value.unobserve(this.observer);
+                        this.observedYTypes.delete(value);
+                    }
+                    for (const key of this.getKeysAction(value))
+                        this.detachNestedObservers(this.getAction(value, key));
+                }
+                else if (Array.isArray(value)) {
+                    for (let i = 0; i < value.length; i++)
+                        this.detachNestedObservers(value[i]);
+                }
+            }
+            shiftIndices(basePath, fromIndex, offset) {
+                const depth = basePath.length;
+                Array.from(this.changeObservers).forEach(entry => {
+                    const observer = entry.observer;
+                    const pathsToShift = observer.paths.filter(path => path.length > depth &&
+                        basePath.every((k, i) => path[i] == k) &&
+                        Number(path[depth]) >= fromIndex);
+                    const itemsToShift = pathsToShift
+                        .map(path => [Number(path[depth]), path, observer.get(...path)]);
+                    itemsToShift.sort((a, b) => offset < 0 ? a[0] - b[0] : b[0] - a[0]);
+                    pathsToShift.forEach(path => observer.detach(...path));
+                    for (const [oldIndex, path, instance] of itemsToShift) {
+                        const newIndex = oldIndex + offset;
+                        if (typeof instance === "object" && "dataId" in instance)
+                            instance.dataId = String(newIndex);
+                        const newPath = [...basePath, newIndex, ...path.slice(depth + 1)];
+                        observer.set(instance, ...newPath);
+                    }
+                });
+            }
+            getPathToTarget(target) {
+                const search = (current, path) => {
+                    if (current === target)
+                        return path;
+                    for (const key of this.getKeysAction(current)) {
+                        const child = this.getAction(current, key);
+                        const result = search(child, [...path, key]);
+                        if (result)
+                            return result;
+                    }
+                    return null;
+                };
+                return search(this.data, []) ?? [];
+            }
+        };
+    })();
+
+    /**
+     * @class TurboTool
+     * @group MVC
+     * @category Tool
+     *
+     * @extends TurboOperator
+     * @template {object} ElementType - The type of the element.
+     * @template {TurboView} ViewType - The element's view type, if any.
+     * @template {TurboModel} ModelType - The element's model type, if any.
+     * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+     * @description Class representing a tool in MVC, bound to the provided element.
+     */
+    class TurboTool extends TurboOperator {
+        /**
+         * @description The name of the tool.
+         */
+        toolName;
+        /**
+         * @readonly
+         * @description The target of this tool. If defined, will embed the tool.
+         */
+        embeddedTarget;
+        /**
+         * @readonly
+         * @description The associated event manager. Defaults to `TurboEventManager.instance`.
+         */
+        manager;
+        /**
+         * @readonly
+         * @description Custom activation event to listen to. Defaults to the default click event name.
+         */
+        activationEvent = DefaultEventName.click;
+        /**
+         * @readonly
+         * @description Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
+         */
+        clickMode = exports.ClickMode.left;
+        /**
+         * @readonly
+         * @description Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
+         */
+        key;
+        constructor(properties) {
+            super(properties);
+            this.toolName = properties.toolName ?? this.toolName ?? undefined;
+            if (properties.embeddedTarget)
+                this.embeddedTarget = properties.embeddedTarget;
+            if (properties.onActivate)
+                this.onActivate = properties.onActivate;
+            if (properties.onDeactivate)
+                this.onDeactivate = properties.onDeactivate;
+            if (properties.activationEvent)
+                this.activationEvent = properties.activationEvent;
+            if (properties.clickMode)
+                this.clickMode = properties.clickMode;
+            if (properties.customActivation)
+                this.customActivation = properties.customActivation;
+            if (properties.key)
+                this.key = properties.key;
+            this.manager = properties.manager ?? this.manager ?? TurboEventManager.instance;
+            this.setup();
+        }
+        /**
+         * @function initialize
+         * @override
+         * @description Initialization function that calls {@link makeTool} on `this.element`, sets it up, and attaches
+         * all the defined tool behaviors.
+         */
+        initialize() {
+            if (this.toolName)
+                turbo(this).makeTool(this.toolName, {
+                    onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
+                    onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
+                    activationEvent: this.activationEvent,
+                    clickMode: this.clickMode,
+                    customActivation: typeof this.customActivation === "function" ? this.customActivation.bind(this) : undefined,
+                    key: this.key,
+                    manager: this.manager,
+                });
+            if (this.embeddedTarget)
+                turbo(this).embedTool(this.embeddedTarget, this.manager);
+            super.initialize();
+        }
+    }
+    addRegistryCategory(TurboTool);
+    define(TurboTool);
+
+    /**
+     * @class TurboView
+     * @group MVC
+     * @category View
+     *
+     * @template {object} ElementType - The type of the element attached to the view.
+     * @template {TurboModel} ModelType - The model type used in this view.
+     * @template {TurboEmitter} EmitterType - The emitter type used in this view.
+     * @description A base view class for MVC elements, providing structure for initializing and managing UI setup and
+     * event listeners. Designed to be devoid of logic and only handle direct UI changes.
+     */
+    class TurboView {
+        /**
+         * @description The main component this view is attached to.
+         */
+        element;
+        /**
+         * @description The model instance this view is bound to.
+         */
+        model;
+        /**
+         * @description The emitter instance used for event communication.
+         */
+        emitter;
+        /**
+         * @constructor
+         * @param {TurboViewProperties<ElementType, ModelType, EmitterType>} properties - Properties to initialize the view with.
+         */
+        constructor(properties) {
+            this.element = properties.element;
+            if (properties.model)
+                this.model = properties.model;
+            if (properties.emitter)
+                this.emitter = properties.emitter;
+            this.setup();
+        }
+        /**
+         * @function setup
+         * @description Called in the constructor. Use for setup that should happen at instantiation,
+         * before `this.initialize()` is called.
+         * @protected
+         */
+        setup() { }
+        /**
+         * @function initialize
+         * @description Initializes the view by setting up change callbacks, UI elements, layout, and event listeners.
+         */
+        initialize() {
+            this.setupUIElements();
+            this.setupUILayout();
+            this.setupUIListeners();
+            this.setupChangedCallbacks();
+        }
+        /**
+         * @function setupChangedCallbacks
+         * @description Setup method for initializing data/model change listeners and associated UI logic.
+         * @protected
+         */
+        setupChangedCallbacks() {
+            initializeEffects(this);
+        }
+        /**
+         * @function setupUIElements
+         * @description Setup method for initializing and storing sub-elements of the UI.
+         * @protected
+         */
+        setupUIElements() {
+        }
+        /**
+         * @function setupUILayout
+         * @description Setup method for creating the layout structure and injecting sub-elements into the DOM tree.
+         * @protected
+         */
+        setupUILayout() {
+        }
+        /**
+         * @function setupUIListeners
+         * @description Setup method for defining DOM and input event listeners.
+         * @protected
+         */
+        setupUIListeners() {
+            attachListenersAndBehaviors(this);
+        }
+    }
+    addRegistryCategory(TurboView);
+    define(TurboView);
+
+    function styleInject(css, ref) {
+      if ( ref === void 0 ) ref = {};
+      var insertAt = ref.insertAt;
+
+      if (!css || typeof document === 'undefined') { return; }
+
+      var head = document.head || document.getElementsByTagName('head')[0];
+      var style = document.createElement('style');
+      style.type = 'text/css';
+
+      if (insertAt === 'top') {
+        if (head.firstChild) {
+          head.insertBefore(style, head.firstChild);
+        } else {
+          head.appendChild(style);
+        }
+      } else {
+        head.appendChild(style);
+      }
+
+      if (style.styleSheet) {
+        style.styleSheet.cssText = css;
+      } else {
+        style.appendChild(document.createTextNode(css));
+      }
+    }
+
+    var css_248z$4 = "turbo-button{align-items:center;background-color:#dadada;border:1px solid #000;border-radius:.4em;color:#000;display:inline-flex;flex-direction:row;gap:.4em;padding:.5em .7em;text-decoration:none}turbo-button>h4{flex-grow:1}";
+    styleInject(css_248z$4);
+
+    /**
+     * @group Utilities
+     * @category String
+     *
+     * @description Extracts the extension from the given filename or path (e.g.: ".png").
+     * @param {string} str - The filename or path
+     * @return The extension, or an empty string if not found.
+     */
+    function getFileExtension(str) {
+        if (!str || str.length == 0)
+            return "";
+        const match = str.match(/\.\S{1,4}$/);
+        return match ? match[0] : "";
+    }
+
+    /**
+     * @group Utilities
+     * @category Element
+     *
+     * @description Converts a string of tags into an Element.
+     * @param {string} text - The string to convert
+     * @return The Element
+     */
+    function textToElement(text) {
+        let wrapper = document.createElement("div");
+        wrapper.innerHTML = text;
+        return wrapper.children[0];
+    }
+    /**
+     * @group Utilities
+     * @category Element
+     */
+    function createProxy(self, proxied) {
+        return new Proxy(self, {
+            get(target, prop, receiver) {
+                if (prop in target)
+                    return Reflect.get(target, prop, receiver);
+                if (prop in proxied)
+                    return Reflect.get(proxied, prop, receiver);
+                return undefined;
+            },
+            set(target, prop, value, receiver) {
+                if (prop in target)
+                    return Reflect.set(target, prop, value, receiver);
+                return Reflect.set(proxied, prop, value, receiver);
+            }
+        });
+    }
+
+    /**
+     * @group Utilities
+     * @category SVG
+     *
+     * @description Fetches an SVG from the given path
+     * @param {string} path - The path to the SVG
+     * @param logError
+     * @returns An SVGElement promise
+     */
+    function fetchSvg(path, logError = true) {
+        return new Promise((resolve, reject) => {
+            if (!path || path.length === 0) {
+                reject(new Error("Invalid path"));
+                return;
+            }
+            fetch(path)
+                .then(response => {
+                if (!response.ok)
+                    throw new Error("Network response was not ok while loading your SVG");
+                return response.text();
+            })
+                .then(svgText => {
+                const svg = textToElement(svgText);
+                if (!svg)
+                    throw new Error("Error parsing SVG text");
+                resolve(svg);
+            })
+                .catch(error => {
+                if (!logError)
+                    reject(error);
+                console.error("Error fetching SVG:", error);
+                reject(error);
+            });
+        });
+    }
+
+    /**
+     * @class Color
+     * @group Utilities
+     * @category Color
+     *
+     * @description Unified color class. Parses any CSS color string (hex, rgb/rgba, hsl/hsla), stores the color
+     * internally as RGBA, and provides conversions, interpolation, luminance, and contrast utilities.
+     * All channels are kept in sync: setting any of r/g/b/a/h/s/l/hex updates the rest automatically.
+     */
+    let Color = (() => {
+        let _instanceExtraInitializers = [];
+        let _set_r_decorators;
+        let _set_g_decorators;
+        let _set_b_decorators;
+        let _set_a_decorators;
+        let _set_h_decorators;
+        let _set_s_decorators;
+        let _set_l_decorators;
+        let _set_hex_decorators;
+        return class Color {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _set_r_decorators = [auto({ preprocessValue: (value) => trim(value, 255) })];
+                _set_g_decorators = [auto({ preprocessValue: (value) => trim(value, 255) })];
+                _set_b_decorators = [auto({ preprocessValue: (value) => trim(value, 255) })];
+                _set_a_decorators = [auto({ preprocessValue: (value) => trim(value, 1) })];
+                _set_h_decorators = [auto({ preprocessValue: (value) => ((value % 360) + 360) % 360 })];
+                _set_s_decorators = [auto({ preprocessValue: (value) => trim(value, 100) })];
+                _set_l_decorators = [auto({ preprocessValue: (value) => trim(value, 100) })];
+                _set_hex_decorators = [auto()];
+                __esDecorate(this, null, _set_r_decorators, { kind: "setter", name: "r", static: false, private: false, access: { has: obj => "r" in obj, set: (obj, value) => { obj.r = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_g_decorators, { kind: "setter", name: "g", static: false, private: false, access: { has: obj => "g" in obj, set: (obj, value) => { obj.g = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_b_decorators, { kind: "setter", name: "b", static: false, private: false, access: { has: obj => "b" in obj, set: (obj, value) => { obj.b = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_a_decorators, { kind: "setter", name: "a", static: false, private: false, access: { has: obj => "a" in obj, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_h_decorators, { kind: "setter", name: "h", static: false, private: false, access: { has: obj => "h" in obj, set: (obj, value) => { obj.h = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_s_decorators, { kind: "setter", name: "s", static: false, private: false, access: { has: obj => "s" in obj, set: (obj, value) => { obj.s = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_l_decorators, { kind: "setter", name: "l", static: false, private: false, access: { has: obj => "l" in obj, set: (obj, value) => { obj.l = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_hex_decorators, { kind: "setter", name: "hex", static: false, private: false, access: { has: obj => "hex" in obj, set: (obj, value) => { obj.hex = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            syncing = (__runInitializers(this, _instanceExtraInitializers), false);
+            set r(value) {
+                this.syncFromRgb();
+            }
+            set g(value) {
+                this.syncFromRgb();
+            }
+            set b(value) {
+                this.syncFromRgb();
+            }
+            set a(value) {
+                this.syncHex();
+            }
+            set h(value) {
+                this.syncFromHsl();
+            }
+            set s(value) {
+                this.syncFromHsl();
+            }
+            set l(value) {
+                this.syncFromHsl();
+            }
+            set hex(value) {
+                this.syncFromHex();
+            }
+            /**
+             * @constructor
+             * @param {number} r - Red channel (0–255).
+             * @param {number} g - Green channel (0–255).
+             * @param {number} b - Blue channel (0–255).
+             * @param {number} [a=1] - Alpha channel (0–1).
+             */
+            constructor(r = 0, g = 0, b = 0, a = 1) {
+                this.syncing = true;
+                this.r = r;
+                this.g = g;
+                this.b = b;
+                this.a = a;
+                this.syncing = false;
+                this.syncFromRgb();
+            }
+            /**
+             * @description Returns the color as a CSS `rgb()` string (alpha ignored).
+             * @returns {string} - e.g. `"rgb(255 136 0)"`.
+             */
+            get rgb() {
+                return `rgb(${this.r} ${this.g} ${this.b})`;
+            }
+            /**
+             * @description Returns the color as a CSS `rgb()` string with alpha.
+             * @returns {string} - e.g. `"rgb(255 136 0 / 0.5)"`.
+             */
+            get rgba() {
+                return `rgb(${this.r} ${this.g} ${this.b} / ${+this.a.toFixed(4)})`;
+            }
+            /**
+             * @description Returns the color as a CSS `hsl()` string (alpha ignored).
+             * @returns {string} - e.g. `"hsl(32 100% 50%)"`.
+             */
+            get hsl() {
+                return `hsl(${this.h} ${this.s}% ${this.l}%)`;
+            }
+            /**
+             * @description Returns the color as a CSS `hsl()` string with alpha.
+             * @returns {string} - e.g. `"hsl(32 100% 50% / 0.5)"`.
+             */
+            get hsla() {
+                return `hsl(${this.h} ${this.s}% ${this.l}% / ${+this.a.toFixed(4)})`;
+            }
+            /**
+             * @description Returns `rgb()` for opaque colors and `rgb()` with alpha for semi-transparent ones.
+             */
+            toString() {
+                return this.a < 1 ? this.rgba : this.rgb;
+            }
+            fromString(value) {
+                return Color.from(value);
+            }
+            syncFromRgb() {
+                if (this.syncing)
+                    return;
+                this.syncing = true;
+                const { h, s, l } = Color.rgbToHsl(this.r, this.g, this.b);
+                this.h = h;
+                this.s = s;
+                this.l = l;
+                this.hex = Color.toHexStr(this.r, this.g, this.b, this.a);
+                this.syncing = false;
+            }
+            syncFromHsl() {
+                if (this.syncing)
+                    return;
+                this.syncing = true;
+                const { r, g, b } = Color.hslToRgb(this.h, this.s, this.l);
+                this.r = r;
+                this.g = g;
+                this.b = b;
+                this.hex = Color.toHexStr(this.r, this.g, this.b, this.a);
+                this.syncing = false;
+            }
+            syncFromHex() {
+                if (this.syncing)
+                    return;
+                const parsed = Color.fromHexString(this.hex);
+                if (!parsed)
+                    return;
+                this.syncing = true;
+                this.r = parsed.r;
+                this.g = parsed.g;
+                this.b = parsed.b;
+                this.a = parsed.a;
+                const { h, s, l } = Color.rgbToHsl(this.r, this.g, this.b);
+                this.h = h;
+                this.s = s;
+                this.l = l;
+                this.syncing = false;
+            }
+            syncHex() {
+                this.syncing = true;
+                this.hex = Color.toHexStr(this.r, this.g, this.b, this.a);
+                this.syncing = false;
+            }
+            /**
+             * @description Creates a Color from a CSS color string or an existing Color instance.
+             * Supports hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), `rgb()`/`rgba()`, and `hsl()`/`hsla()`.
+             * Returns `Color(0, 0, 0)` if the string cannot be parsed.
+             * @param {string | Color} color - The CSS color string or Color instance to parse.
+             * @returns {Color}
+             */
+            static from(color) {
+                if (!color)
+                    return new Color();
+                if (color instanceof Color)
+                    return color;
+                color = color.trim();
+                if (color.startsWith("#"))
+                    return Color.fromHexString(color) ?? new Color();
+                if (/^hsla?\s*\(/i.test(color))
+                    return Color.fromHslString(color) ?? new Color();
+                if (/^rgba?\s*\(/i.test(color))
+                    return Color.fromRgbString(color) ?? new Color();
+                return new Color(0, 0, 0);
+            }
+            /**
+             * @description Creates a Color from a hex string (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`).
+             * @param {string} hex - The hex color string.
+             * @returns {Color | null} - Null if the string is not a valid hex color.
+             */
+            static fromHexString(hex) {
+                if (!hex)
+                    return new Color();
+                const raw = hex.replace(/^#/, "");
+                const color = new Color();
+                if (raw.length === 3 || raw.length === 4) {
+                    color.r = parseInt(raw[0] + raw[0], 16);
+                    color.g = parseInt(raw[1] + raw[1], 16);
+                    color.b = parseInt(raw[2] + raw[2], 16);
+                    if (raw.length === 4)
+                        color.a = parseInt(raw[3] + raw[3], 16) / 255;
+                }
+                else if (raw.length === 6 || raw.length === 8) {
+                    color.r = parseInt(raw.slice(0, 2), 16);
+                    color.g = parseInt(raw.slice(2, 4), 16);
+                    color.b = parseInt(raw.slice(4, 6), 16);
+                    if (raw.length === 8)
+                        color.a = parseInt(raw.slice(6, 8), 16) / 255;
+                }
+                else
+                    return new Color();
+                if (isNaN(color.r) || isNaN(color.g) || isNaN(color.b))
+                    return new Color();
+                return color;
+            }
+            /**
+             * @description Creates a Color from HSL components.
+             * @param {number} h - Hue, 0–360.
+             * @param {number} s - Saturation, 0–100.
+             * @param {number} l - Lightness, 0–100.
+             * @param {number} [a=1] - Alpha, 0–1.
+             * @returns {Color}
+             */
+            static fromHsl(h, s, l, a = 1) {
+                const { r, g, b } = Color.hslToRgb(h, s, l);
+                return new Color(r, g, b, a);
+            }
+            /**
+             * @description Creates a Color from a CSS `hsl()`/`hsla()` string.
+             * Handles both comma-separated (CSS Level 3) and space-separated (CSS Level 4) syntax,
+             * with or without `%` signs and `deg` units, and optional alpha via `/` or as a fourth argument.
+             * @param {string} color - The HSL color string.
+             * @returns {Color | null} - Null if parsing fails.
+             */
+            static fromHslString(color) {
+                const inner = color.match(/hsla?\s*\(([^)]+)\)/i)?.[1];
+                if (!inner)
+                    return new Color();
+                const parts = Color.extractNumbers(inner);
+                if (parts.length < 3)
+                    return new Color();
+                return Color.fromHsl(parts[0], parts[1], parts[2], parts[3] ?? 1);
+            }
+            /**
+             * @description Creates a Color from a CSS `rgb()`/`rgba()` string.
+             * Handles both comma-separated (CSS Level 3) and space-separated (CSS Level 4) syntax,
+             * and optional alpha via `/` or as a fourth argument.
+             * @param {string} color - The RGB color string.
+             * @returns {Color | null} - Null if parsing fails.
+             */
+            static fromRgbString(color) {
+                const inner = color.match(/rgba?\s*\(([^)]+)\)/i)?.[1];
+                if (!inner)
+                    return new Color();
+                const parts = Color.extractNumbers(inner);
+                if (parts.length < 3)
+                    return new Color();
+                return new Color(parts[0], parts[1], parts[2], parts[3] ?? 1);
+            }
+            /**
+             * @description The WCAG 2.1 relative luminance of the color (0 = black, 1 = white).
+             * @returns {number}
+             */
+            get luminance() {
+                const lin = (c) => {
+                    c /= 255;
+                    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+                };
+                return 0.2126 * lin(this.r) + 0.7152 * lin(this.g) + 0.0722 * lin(this.b);
+            }
+            /**
+             * @description Computes the WCAG 2.1 contrast ratio between this color and another.
+             * @param {Color | string} other - The color to compare against.
+             * @returns {number} - Contrast ratio, 1–21.
+             */
+            contrast(other) {
+                const l1 = this.luminance, l2 = Color.from(other).luminance;
+                return (Math.max(l1, l2) + 0.1) / (Math.min(l1, l2) + 0.1);
+            }
+            /**
+             * @description Returns whichever of the two candidate colors has better contrast against this color.
+             * Defaults to black and white if candidates are not provided.
+             * @param {Color | string} [dark="#000000"] - The dark candidate.
+             * @param {Color | string} [light="#ffffff"] - The light candidate.
+             * @returns {Color}
+             */
+            bestOverlay(dark = "#000000", light = "#ffffff") {
+                const d = Color.from(dark), l = Color.from(light);
+                return this.contrast(l) >= this.contrast(d) ? l : d;
+            }
+            /**
+             * @description Linearly interpolates between this color and another in RGB space.
+             * Works regardless of the original format of the input color.
+             * @param {Color | string} other - The target color.
+             * @param {number} t - Interpolation factor (0 = this, 1 = other).
+             * @returns {Color}
+             */
+            interpolate(other, t) {
+                const c = Color.from(other);
+                return new Color(this.r + (c.r - this.r) * t, this.g + (c.g - this.g) * t, this.b + (c.b - this.b) * t, this.a + (c.a - this.a) * t);
+            }
+            /**
+             * @description Checks whether this color is equal to another color or CSS color string,
+             * comparing all four channels within an optional tolerance.
+             * @param {Color | string} other - The color to compare against.
+             * @param {number} [tolerance=0] - Maximum allowed difference per channel.
+             * @returns {boolean}
+             */
+            equals(other, tolerance = 0) {
+                const c = Color.from(other);
+                return Math.abs(this.r - c.r) <= tolerance
+                    && Math.abs(this.g - c.g) <= tolerance
+                    && Math.abs(this.b - c.b) <= tolerance
+                    && Math.abs(this.a - c.a) <= tolerance;
+            }
+            /**
+             * @description Linearly interpolates between two colors in RGB space.
+             * Accepts any mix of `Color` instances and CSS color strings of any supported format.
+             * @param {Color | string} color1 - The start color.
+             * @param {Color | string} color2 - The end color.
+             * @param {number} t - Interpolation factor (0 = color1, 1 = color2).
+             * @returns {Color}
+             */
+            static interpolate(color1, color2, t) {
+                return Color.from(color1).interpolate(color2, t);
+            }
+            /**
+             * @description Interpolates along a multi-stop gradient.
+             * `t = 0` returns the first color, `t = 1` returns the last color.
+             * @param {(Color | string)[]} colors - Two or more color stops.
+             * @param {number} t - Gradient position (0–1).
+             * @returns {Color}
+             */
+            static gradient(colors, t) {
+                if (colors.length === 0)
+                    return new Color(0, 0, 0);
+                if (colors.length === 1)
+                    return Color.from(colors[0]);
+                t = Math.max(0, Math.min(1, t));
+                const segments = colors.length - 1;
+                const index = Math.min(Math.floor(t * segments), segments - 1);
+                const localT = t * segments - index;
+                return Color.from(colors[index]).interpolate(colors[index + 1], localT);
+            }
+            /**
+             * @description Computes the WCAG 2.1 contrast ratio between two colors.
+             * @param {Color | string} color1
+             * @param {Color | string} color2
+             * @returns {number}
+             */
+            static contrast(color1, color2) {
+                return Color.from(color1).contrast(color2);
+            }
+            /**
+             * @description Computes the WCAG 2.1 relative luminance of a color.
+             * @param {Color | string} color
+             * @returns {number}
+             */
+            static luminance(color) {
+                return Color.from(color).luminance;
+            }
+            /**
+             * @description Returns whichever of the two candidates has better contrast against the base color.
+             * @param {Color | string} base
+             * @param {Color | string} [dark="#000000"]
+             * @param {Color | string} [light="#ffffff"]
+             * @returns {Color}
+             */
+            static bestOverlay(base, dark = "#000000", light = "#ffffff") {
+                return Color.from(base).bestOverlay(dark, light);
+            }
+            /**
+             * @group Utilities
+             * @category Random
+             */
+            static random(saturation = [50, 70], lightness = [70, 85]) {
+                if (typeof saturation != "number" && saturation.length >= 2)
+                    saturation = randomFromRange(saturation[0], saturation[1]);
+                if (typeof lightness != "number" && lightness.length >= 2)
+                    lightness = randomFromRange(lightness[0], lightness[1]);
+                return Color.fromHsl(Math.random() * 360, saturation, lightness);
+            }
+            static rgbToHsl(r, g, b) {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+                const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                const d = max - min;
+                const l = (max + min) / 2;
+                if (d === 0)
+                    return { h: 0, s: 0, l: Math.round(l * 100) };
+                const s = d / (1 - Math.abs(2 * l - 1));
+                let h = 0;
+                if (max === r)
+                    h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+                else if (max === g)
+                    h = ((b - r) / d + 2) / 6;
+                else
+                    h = ((r - g) / d + 4) / 6;
+                return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+            }
+            static hslToRgb(h, s, l) {
+                s /= 100;
+                l /= 100;
+                h = ((h % 360) + 360) % 360;
+                const C = (1 - Math.abs(2 * l - 1)) * s;
+                const X = C * (1 - Math.abs((h / 60) % 2 - 1));
+                const m = l - C / 2;
+                let r1 = 0, g1 = 0, b1 = 0;
+                if (h < 60) {
+                    r1 = C;
+                    g1 = X;
+                    b1 = 0;
+                }
+                else if (h < 120) {
+                    r1 = X;
+                    g1 = C;
+                    b1 = 0;
+                }
+                else if (h < 180) {
+                    r1 = 0;
+                    g1 = C;
+                    b1 = X;
+                }
+                else if (h < 240) {
+                    r1 = 0;
+                    g1 = X;
+                    b1 = C;
+                }
+                else if (h < 300) {
+                    r1 = X;
+                    g1 = 0;
+                    b1 = C;
+                }
+                else {
+                    r1 = C;
+                    g1 = 0;
+                    b1 = X;
+                }
+                return {
+                    r: Math.round((r1 + m) * 255),
+                    g: Math.round((g1 + m) * 255),
+                    b: Math.round((b1 + m) * 255),
+                };
+            }
+            static toHexStr(r, g, b, a) {
+                const h = (n) => Math.round(n).toString(16).padStart(2, "0");
+                const base = `#${h(r)}${h(g)}${h(b)}`;
+                return a < 1 ? base + h(a * 255) : base;
+            }
+            static extractNumbers(str) {
+                return (str.match(/-?[\d.]+(?:e[+-]?\d+)?/gi) ?? []).map(Number);
+            }
+        };
+    })();
+
+    /**
+     * @class TurboIcon
+     * @group Components
+     * @category TurboIcon
+     *
+     * @description Icon class for creating icon elements.
+     * @extends TurboElement
+     */
+    let TurboIcon = (() => {
+        let _classSuper = TurboElement;
+        let _instanceExtraInitializers = [];
+        let _type_decorators;
+        let _type_initializers = [];
+        let _type_extraInitializers = [];
+        let _directory_decorators;
+        let _directory_initializers = [];
+        let _directory_extraInitializers = [];
+        let _set_icon_decorators;
+        let _get_iconColor_decorators;
+        let _set_iconColor_decorators;
+        let _loadSvg_decorators;
+        return class TurboIcon extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _type_decorators = [observe, auto({
+                        preprocessValue: function (value) {
+                            if (!value || value.length == 0)
+                                return this.type;
+                            if (value[0] == ".")
+                                value = value.substring(1);
+                            return value;
+                        },
+                        callAfter: function () { this.generateIcon(); },
+                    })];
+                _directory_decorators = [observe, auto({
+                        preprocessValue: function (value) {
+                            if (isUndefined(value))
+                                return this.directory;
+                            if (value.length > 0 && !value.endsWith("/"))
+                                value += "/";
+                            return value;
+                        },
+                        callAfter: function () { this.generateIcon(); }
+                    })];
+                _set_icon_decorators = [observe, auto()];
+                _get_iconColor_decorators = [observe, auto()];
+                _set_iconColor_decorators = [observe, auto()];
+                _loadSvg_decorators = [cache()];
+                __esDecorate(this, null, _set_icon_decorators, { kind: "setter", name: "icon", static: false, private: false, access: { has: obj => "icon" in obj, set: (obj, value) => { obj.icon = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_iconColor_decorators, { kind: "getter", name: "iconColor", static: false, private: false, access: { has: obj => "iconColor" in obj, get: obj => obj.iconColor }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_iconColor_decorators, { kind: "setter", name: "iconColor", static: false, private: false, access: { has: obj => "iconColor" in obj, set: (obj, value) => { obj.iconColor = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _loadSvg_decorators, { kind: "method", name: "loadSvg", static: false, private: false, access: { has: obj => "loadSvg" in obj, get: obj => obj.loadSvg }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _type_decorators, { kind: "field", name: "type", static: false, private: false, access: { has: obj => "type" in obj, get: obj => obj.type, set: (obj, value) => { obj.type = value; } }, metadata: _metadata }, _type_initializers, _type_extraInitializers);
+                __esDecorate(null, null, _directory_decorators, { kind: "field", name: "directory", static: false, private: false, access: { has: obj => "directory" in obj, get: obj => obj.directory, set: (obj, value) => { obj.directory = value; } }, metadata: _metadata }, _directory_initializers, _directory_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static customLoaders = {};
+            static defaultProperties = {
+                type: "svg"
+            };
+            static imageTypes = ["png", "jpg", "jpeg", "gif", "webp", "PNG", "JPG", "JPEG", "GIF", "WEBP"];
+            _element = __runInitializers(this, _instanceExtraInitializers);
+            _loadToken = 0;
+            onLoaded;
+            /**
+             * @description The type of the icon.
+             */
+            type = __runInitializers(this, _type_initializers, void 0);
+            /**
+             * @description The user-provided (or statically configured) directory to the icon's file.
+             */
+            directory = (__runInitializers(this, _type_extraInitializers), __runInitializers(this, _directory_initializers, void 0));
+            /**
+             * @description The path to the icon's source file.
+             */
+            get path() {
+                let extension = getFileExtension(this.icon);
+                const icon = this.icon?.replace(extension, "");
+                if (extension.length === 0 && this.type?.length > 0)
+                    extension = "." + this.type;
+                return (this.directory ?? "") + icon + extension;
+            }
+            /**
+             * @description The name (or path) of the icon. Might include the file extension (to override the icon's type).
+             * Setting it will update the icon accordingly.
+             */
+            set icon(value) {
+                const ext = getFileExtension(value).substring(1);
+                if (ext)
+                    this.type = ext;
+                this.generateIcon();
+            }
+            /**
+             * @description The assigned color to the icon (if any)
+             */
+            get iconColor() { return; }
+            set iconColor(value) {
+                this.updateColor(Color.from(value));
+            }
+            /**
+             * @description The child element of the icon element (an HTML image or an SVG element).
+             */
+            set element(value) {
+                this._element = value;
+            }
+            get element() {
+                return this._element;
+            }
+            //Utilities
+            loadSvg(path) {
+                return fetchSvg(path);
+            }
+            loadImg(path) {
+                return img({ src: path, alt: this.icon });
+            }
+            updateColor(value = this.iconColor) {
+                if (value && this.element instanceof SVGElement)
+                    this.element.style.fill = value.toString();
+            }
+            generateIcon() {
+                const path = this.path;
+                const type = getFileExtension(path)?.substring(1);
+                if (this.element instanceof HTMLImageElement
+                    && equalToAny(type, ...this.constructor.imageTypes)) {
+                    this.element.src = this.path;
+                    this.element.alt = this.icon;
+                    return;
+                }
+                this.clear();
+                if (!this.icon || this.icon.length === 0)
+                    return;
+                if (!type)
+                    return;
+                const token = ++this._loadToken;
+                const element = this.getLoader(type)(path);
+                if (element instanceof Element)
+                    this.setupLoadedElement(element);
+                else
+                    element.then(element => {
+                        if (token !== this._loadToken)
+                            return;
+                        this.setupLoadedElement(element);
+                    }).catch(error => console.error(`Failed to load icon: ${error}`));
+            }
+            getLoader(type) {
+                if (!type)
+                    return;
+                const customLoader = this.constructor.customLoaders?.[type];
+                if (customLoader)
+                    return customLoader;
+                if (equalToAny(type, "svg", "SVG"))
+                    return this.loadSvg.bind(this);
+                if (equalToAny(type, ...this.constructor.imageTypes))
+                    return this.loadImg.bind(this);
+                throw new Error(`Unsupported icon type: ${type}`);
+            }
+            setupLoadedElement(element) {
+                if (this.element || !element)
+                    return;
+                if (element.parentElement)
+                    element = element.cloneNode(true);
+                turbo(this).addChild(element);
+                this.updateColor();
+                this.onLoaded?.(element);
+                this.element = element;
+            }
+            clear() {
+                turbo(this.element).destroy();
+                this.element = null;
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _directory_extraInitializers);
+            }
+        };
+    })();
+    define(TurboIcon);
+
+    /**
+     * @class TurboRichElement
+     * @group Components
+     * @category TurboRichElement
+     *
+     * @description Class for creating a rich turbo element (an element that is possibly accompanied by icons (or other elements) on
+     * its left and/or right).
+     * @extends TurboElement
+     * @template {ValidTag} ElementTag - The tag of the main element to create the rich element from.
+     */
+    let TurboRichElement = (() => {
+        let _classSuper = TurboElement;
+        let _instanceExtraInitializers = [];
+        let _set_leftCustomElements_decorators;
+        let _set_leftIcon_decorators;
+        let _set_prefixEntry_decorators;
+        let _set_element_decorators;
+        let _set_suffixEntry_decorators;
+        let _set_rightIcon_decorators;
+        let _set_rightCustomElements_decorators;
+        return class TurboRichElement extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _set_leftCustomElements_decorators = [auto({ executeSetterBeforeStoring: true })];
+                _set_leftIcon_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (typeof value == "string") {
+                                if (this.leftIcon) {
+                                    this.leftIcon.icon = value;
+                                    return this.leftIcon;
+                                }
+                                value = TurboIcon.create({ icon: value });
+                            }
+                            turbo(this).remChild(this.leftIcon);
+                            this.addAtPosition(value, "leftIcon");
+                            return value;
+                        }
+                    })];
+                _set_prefixEntry_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (typeof value == "string") {
+                                if (this.prefixEntry) {
+                                    this.prefixEntry.textContent = value;
+                                    return this.prefixEntry;
+                                }
+                                value = element({ text: value });
+                            }
+                            turbo(this).remChild(this.prefixEntry);
+                            this.addAtPosition(value, "prefixEntry");
+                            return value;
+                        }
+                    })];
+                _set_element_decorators = [signal, auto({
+                        preprocessValue: function (value) {
+                            if (typeof value === "string") {
+                                if (this.element && "textContent" in this.element) {
+                                    this.element.textContent = value;
+                                    return this.element;
+                                }
+                                value = element({ tag: this.elementTag, text: value });
+                            }
+                            else if (typeof value === "object" && !(value instanceof Element)) {
+                                if (!value.tag)
+                                    value.tag = this.elementTag;
+                                value = element(value);
+                            }
+                            turbo(this).remChild(this.element);
+                            this.addAtPosition(value, "element");
+                            return value;
+                        }
+                    })];
+                _set_suffixEntry_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (typeof value == "string") {
+                                if (this.suffixEntry) {
+                                    this.suffixEntry.textContent = value;
+                                    return this.suffixEntry;
+                                }
+                                value = element({ text: value });
+                            }
+                            turbo(this).remChild(this.suffixEntry);
+                            this.addAtPosition(value, "suffixEntry");
+                            return value;
+                        }
+                    })];
+                _set_rightIcon_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (typeof value == "string") {
+                                if (this.rightIcon) {
+                                    this.rightIcon.icon = value;
+                                    return this.rightIcon;
+                                }
+                                value = TurboIcon.create({ icon: value });
+                            }
+                            turbo(this).remChild(this.rightIcon);
+                            this.addAtPosition(value, "rightIcon");
+                            return value;
+                        }
+                    })];
+                _set_rightCustomElements_decorators = [auto({ executeSetterBeforeStoring: true })];
+                __esDecorate(this, null, _set_leftCustomElements_decorators, { kind: "setter", name: "leftCustomElements", static: false, private: false, access: { has: obj => "leftCustomElements" in obj, set: (obj, value) => { obj.leftCustomElements = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_leftIcon_decorators, { kind: "setter", name: "leftIcon", static: false, private: false, access: { has: obj => "leftIcon" in obj, set: (obj, value) => { obj.leftIcon = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_prefixEntry_decorators, { kind: "setter", name: "prefixEntry", static: false, private: false, access: { has: obj => "prefixEntry" in obj, set: (obj, value) => { obj.prefixEntry = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_element_decorators, { kind: "setter", name: "element", static: false, private: false, access: { has: obj => "element" in obj, set: (obj, value) => { obj.element = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_suffixEntry_decorators, { kind: "setter", name: "suffixEntry", static: false, private: false, access: { has: obj => "suffixEntry" in obj, set: (obj, value) => { obj.suffixEntry = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_rightIcon_decorators, { kind: "setter", name: "rightIcon", static: false, private: false, access: { has: obj => "rightIcon" in obj, set: (obj, value) => { obj.rightIcon = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_rightCustomElements_decorators, { kind: "setter", name: "rightCustomElements", static: false, private: false, access: { has: obj => "rightCustomElements" in obj, set: (obj, value) => { obj.rightCustomElements = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                elementTag: "h4"
+            };
+            static customCreate(properties) {
+                if (properties.text && !properties.element) {
+                    properties.element = properties.text;
+                    properties.text = undefined;
+                }
+                if (properties.elementTag && typeof properties.element === "object" && !(properties.element instanceof Element)) {
+                    properties.element.tag = properties.elementTag;
+                }
+                return super.customCreate(properties);
+            }
+            childrenOrder = (__runInitializers(this, _instanceExtraInitializers), ["leftCustomElements", "leftIcon",
+                "prefixEntry", "element", "suffixEntry", "rightIcon", "rightCustomElements"]);
+            /**
+             * @description Adds a given element or elements to the button at a specified position.
+             * @param {Element | Element[] | null} element - The element(s) to add.
+             * @param {this["childrenOrder"][number]} type - The type of child element being added.
+             */
+            addAtPosition(element, type) {
+                if (!element || !type)
+                    return;
+                let nextSiblingIndex = 0;
+                for (let i = 0; i < this.childrenOrder.length; i++) {
+                    const key = this.childrenOrder[i];
+                    if (key === type)
+                        break;
+                    const el = this[key];
+                    if (el && el instanceof Element)
+                        nextSiblingIndex++;
+                    else if (el && Array.isArray(el))
+                        nextSiblingIndex += el.length;
+                }
+                turbo(this).addChild(element, nextSiblingIndex);
+            }
+            /**
+             * @description The tag of the text element in the button
+             */
+            elementTag;
+            /**
+             * @description The custom element(s) on the left. Can be set to new element(s) by a simple assignment.
+             */
+            set leftCustomElements(value) {
+                turbo(this).remChild(this.leftCustomElements);
+                this.addAtPosition(value, "leftCustomElements");
+            }
+            /**
+             * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
+             * icon, or a Turbo/HTML element).
+             */
+            set leftIcon(value) { }
+            get leftIcon() { return; }
+            /**
+             * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
+             * icon, or a Turbo/HTML element).
+             */
+            set prefixEntry(value) { }
+            get prefixEntry() { return; }
+            /**
+             * @description The text element. Can be set to a new element by a simple assignment. Setting the value to a new
+             * string will update the text's textContent with the given string.
+             */
+            set element(value) { }
+            get element() { return; }
+            /**
+             * @description The text element. Can be set to a new element by a simple assignment. Setting the value to a new
+             * string will update the text's textContent with the given string.
+             */
+            get text() {
+                const element = this.element;
+                if (!element)
+                    return "";
+                return element.textContent;
+            }
+            set text(value) {
+                if (!value)
+                    value = "";
+                this.element = value;
+            }
+            /**
+             * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
+             * icon, or a Turbo/HTML element).
+             */
+            set suffixEntry(value) { }
+            get suffixEntry() { return; }
+            /**
+             * @description The right icon element. Can be set with a new icon by a simple assignment (the name/path of the
+             * icon, or a Turbo/HTML element).
+             */
+            set rightIcon(value) { }
+            get rightIcon() { return; }
+            /**
+             * @description The custom element(s) on the right. Can be set to new element(s) by a simple assignment.
+             */
+            set rightCustomElements(value) {
+                turbo(this).remChild(this.rightCustomElements);
+                this.addAtPosition(value, "rightCustomElements");
+            }
+        };
+    })();
+    define(TurboRichElement);
+
+    /**
+     * @class TurboButton
+     * @group Components
+     * @category TurboButton
+     *
+     * @description Button class for creating Turbo button elements.
+     * @extends TurboElement
+     */
+    class TurboButton extends TurboRichElement {
+    }
+    define(TurboButton);
+
+    /**
+     * @group Components
+     * @category TurboIconSwitch
+     */
+    let TurboIconSwitch = (() => {
+        let _classSuper = TurboIcon;
+        let _instanceExtraInitializers = [];
+        let _set_switchReifect_decorators;
+        let _set_defaultState_decorators;
+        let _set_appendStateToIconName_decorators;
+        return class TurboIconSwitch extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _set_switchReifect_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (value instanceof StatefulReifect)
+                                return value;
+                            else
+                                return new StatefulReifect(value || {});
+                        }
+                    })];
+                _set_defaultState_decorators = [auto()];
+                _set_appendStateToIconName_decorators = [auto()];
+                __esDecorate(this, null, _set_switchReifect_decorators, { kind: "setter", name: "switchReifect", static: false, private: false, access: { has: obj => "switchReifect" in obj, set: (obj, value) => { obj.switchReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_defaultState_decorators, { kind: "setter", name: "defaultState", static: false, private: false, access: { has: obj => "defaultState" in obj, set: (obj, value) => { obj.defaultState = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_appendStateToIconName_decorators, { kind: "setter", name: "appendStateToIconName", static: false, private: false, access: { has: obj => "appendStateToIconName" in obj, set: (obj, value) => { obj.appendStateToIconName = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            get switchReifect() { return; }
+            set switchReifect(value) {
+                this.switchReifect.attach(this);
+                if (this.defaultState)
+                    this.switchReifect.apply(this.defaultState, this);
+            }
+            set defaultState(value) {
+                this.switchReifect?.apply(value, this);
+            }
+            set appendStateToIconName(value) {
+                if (value) {
+                    const properties = this.switchReifect.properties;
+                    this.switchReifect.states.forEach(state => {
+                        properties[state] = { ...properties[state], icon: this.icon + "-" + state.toString() };
+                    });
+                    this.switchReifect.properties = properties;
+                }
+            }
+            initialize() {
+                super.initialize();
+                if (this.defaultState)
+                    this.switchReifect?.apply(this.defaultState, this);
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _instanceExtraInitializers);
+            }
+        };
+    })();
+    define(TurboIconSwitch);
+
+    /**
+     * @group Components
+     * @category TurboIconToggle
+     */
+    let TurboIconToggle = (() => {
+        let _classSuper = TurboIcon;
+        let _instanceExtraInitializers = [];
+        let _set_toggled_decorators;
+        let _set_toggleOnClick_decorators;
+        return class TurboIconToggle extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _set_toggled_decorators = [auto({ initialValue: false })];
+                _set_toggleOnClick_decorators = [auto({ initialValue: false })];
+                __esDecorate(this, null, _set_toggled_decorators, { kind: "setter", name: "toggled", static: false, private: false, access: { has: obj => "toggled" in obj, set: (obj, value) => { obj.toggled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_toggleOnClick_decorators, { kind: "setter", name: "toggleOnClick", static: false, private: false, access: { has: obj => "toggleOnClick" in obj, set: (obj, value) => { obj.toggleOnClick = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            stopPropagationOnClick = (__runInitializers(this, _instanceExtraInitializers), true);
+            onToggle;
+            clickListener = () => {
+                this.toggle();
+                return this.stopPropagationOnClick;
+            };
+            set toggled(value) {
+                if (this.onToggle)
+                    this.onToggle(value, this);
+            }
+            set toggleOnClick(value) {
+                if (value)
+                    turbo(this).on(DefaultEventName.click, this.clickListener);
+                else
+                    turbo(this).removeListener(DefaultEventName.click, this.clickListener);
+            }
+            toggle() {
+                this.toggled = !this.toggled;
+            }
+        };
+    })();
+    define(TurboIconToggle);
+
+    let TurboInputInputInteractor = (() => {
+        let _classSuper = TurboInteractor;
+        let _instanceExtraInitializers = [];
+        let _focusIn_decorators;
+        let _focusOut_decorators;
+        let _compositionStart_decorators;
+        let _compositionEnd_decorators;
+        let _input_decorators;
+        return class TurboInputInputInteractor extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _focusIn_decorators = [listener()];
+                _focusOut_decorators = [listener()];
+                _compositionStart_decorators = [listener({ options: { capture: true } })];
+                _compositionEnd_decorators = [listener({ options: { capture: true } })];
+                _input_decorators = [listener({ options: { capture: true } })];
+                __esDecorate(this, null, _focusIn_decorators, { kind: "method", name: "focusIn", static: false, private: false, access: { has: obj => "focusIn" in obj, get: obj => obj.focusIn }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _focusOut_decorators, { kind: "method", name: "focusOut", static: false, private: false, access: { has: obj => "focusOut" in obj, get: obj => obj.focusOut }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _compositionStart_decorators, { kind: "method", name: "compositionStart", static: false, private: false, access: { has: obj => "compositionStart" in obj, get: obj => obj.compositionStart }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _compositionEnd_decorators, { kind: "method", name: "compositionEnd", static: false, private: false, access: { has: obj => "compositionEnd" in obj, get: obj => obj.compositionEnd }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _input_decorators, { kind: "method", name: "input", static: false, private: false, access: { has: obj => "input" in obj, get: obj => obj.input }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            keyName = (__runInitializers(this, _instanceExtraInitializers), "__input__interactor__");
+            _composing = false;
+            _resizeQueued = false;
+            get target() {
+                return this.element.element;
+            }
+            initialize() {
+                super.initialize();
+                turbo(this.target).bypassManagerOn = () => true;
+            }
+            setupChangedCallbacks() {
+                super.setupChangedCallbacks();
+                this.emitter.add("valueSet", () => this.handleInput());
+            }
+            focusIn(e) {
+                if (this.element.locked) {
+                    this.target.blur();
+                    return exports.Propagation.propagate;
+                }
+                if (this.element.selectTextOnFocus)
+                    requestAnimationFrame(() => {
+                        try {
+                            this.target.select?.();
+                        }
+                        catch { }
+                    });
+                this.element.onFocus.fire();
+            }
+            focusOut(e) {
+                this.element.rawValue = this.element.element?.value ?? "";
+                this.element.onBlur.fire();
+            }
+            compositionStart(e) {
+                this._composing = true;
+            }
+            compositionEnd(e) {
+                this._composing = false;
+                this.handleInput();
+                this.emitter.fire("processValue");
+            }
+            input(e) {
+                this.handleInput();
+                this.emitter.fire("processValue");
+            }
+            handleInput() {
+                if (this._composing)
+                    return;
+                if (this.element.dynamicVerticalResize && this.target instanceof HTMLTextAreaElement) {
+                    if (!this._resizeQueued) {
+                        this._resizeQueued = true;
+                        queueMicrotask(() => {
+                            this._resizeQueued = false;
+                            turbo(this.target)
+                                .setStyle("height", "auto", true)
+                                .setStyle("height", this.target.scrollHeight + "px", true);
+                        });
+                    }
+                }
+            }
+        };
+    })();
+
+    let TurboLabelElement = (() => {
+        let _classSuper = TurboRichElement;
+        let _instanceExtraInitializers = [];
+        let _defaultId_decorators;
+        let _defaultId_initializers = [];
+        let _defaultId_extraInitializers = [];
+        let _labelElement_decorators;
+        let _labelElement_initializers = [];
+        let _labelElement_extraInitializers = [];
+        let _get_element_decorators;
+        let _updateId_decorators;
+        return class TurboLabelElement extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _defaultId_decorators = [signal];
+                _labelElement_decorators = [signal];
+                _get_element_decorators = [signal];
+                _updateId_decorators = [effect];
+                __esDecorate(this, null, _get_element_decorators, { kind: "getter", name: "element", static: false, private: false, access: { has: obj => "element" in obj, get: obj => obj.element }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _updateId_decorators, { kind: "method", name: "updateId", static: false, private: false, access: { has: obj => "updateId" in obj, get: obj => obj.updateId }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _defaultId_decorators, { kind: "field", name: "defaultId", static: false, private: false, access: { has: obj => "defaultId" in obj, get: obj => obj.defaultId, set: (obj, value) => { obj.defaultId = value; } }, metadata: _metadata }, _defaultId_initializers, _defaultId_extraInitializers);
+                __esDecorate(null, null, _labelElement_decorators, { kind: "field", name: "labelElement", static: false, private: false, access: { has: obj => "labelElement" in obj, get: obj => obj.labelElement, set: (obj, value) => { obj.labelElement = value; } }, metadata: _metadata }, _labelElement_initializers, _labelElement_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            defaultId = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _defaultId_initializers, "turbo-id-" + randomId()));
+            labelElement = (__runInitializers(this, _defaultId_extraInitializers), __runInitializers(this, _labelElement_initializers, void 0));
+            content = __runInitializers(this, _labelElement_extraInitializers);
+            set label(value) {
+                if (!value || value.length === 0) {
+                    if (this.labelElement)
+                        this.labelElement.remove();
+                    return;
+                }
+                if (!this.labelElement) {
+                    this.labelElement = element({ tag: "label" });
+                    turbo(this).childHandler = this;
+                    turbo(this).addChild(this.labelElement, 0);
+                    if (this.content)
+                        turbo(this).childHandler = this.content;
+                }
+                this.labelElement.textContent = value;
+            }
+            get label() {
+                return this.labelElement?.textContent;
+            }
+            get element() {
+                return super.element;
+            }
+            set element(value) {
+                super.element = value;
+                if (this.element) {
+                    if (!this.element.id)
+                        this.element.id = this.defaultId;
+                    else if (this.labelElement)
+                        this.labelElement.htmlFor = this.element.id;
+                }
+            }
+            setupUIElements() {
+                super.setupUIElements();
+                this.content = div();
+            }
+            setupUILayout() {
+                super.setupUILayout();
+                turbo(this.content).addChild(turbo(this).childrenArray);
+                turbo(this).addChild([this.labelElement, this.content]);
+                turbo(this).childHandler = this.content;
+            }
+            updateId() {
+                if (this.element && !this.element.id)
+                    this.element.id = this.defaultId;
+                if (this.labelElement)
+                    this.labelElement.htmlFor = this.element?.id ?? this.defaultId;
+            }
+        };
+    })();
+    define(TurboLabelElement);
+
+    /**
+     * @group Components
+     * @category TurboInput
+     */
+    let TurboInput = (() => {
+        let _classSuper = TurboLabelElement;
+        let _instanceExtraInitializers = [];
+        let _locked_decorators;
+        let _locked_initializers = [];
+        let _locked_extraInitializers = [];
+        let _selectTextOnFocus_decorators;
+        let _selectTextOnFocus_initializers = [];
+        let _selectTextOnFocus_extraInitializers = [];
+        let _dynamicVerticalResize_decorators;
+        let _dynamicVerticalResize_initializers = [];
+        let _dynamicVerticalResize_extraInitializers = [];
+        let _get_element_decorators;
+        let _type_decorators;
+        let _type_initializers = [];
+        let _type_extraInitializers = [];
+        let _placeholder_decorators;
+        let _placeholder_initializers = [];
+        let _placeholder_extraInitializers = [];
+        let _pattern_decorators;
+        let _pattern_initializers = [];
+        let _pattern_extraInitializers = [];
+        let _size_decorators;
+        let _size_initializers = [];
+        let _size_extraInitializers = [];
+        let _get_value_decorators;
+        let _get_rawValue_decorators;
+        return class TurboInput extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _locked_decorators = [signal];
+                _selectTextOnFocus_decorators = [signal];
+                _dynamicVerticalResize_decorators = [signal];
+                _get_element_decorators = [signal];
+                _type_decorators = [expose("element")];
+                _placeholder_decorators = [expose("element")];
+                _pattern_decorators = [expose("element")];
+                _size_decorators = [expose("element")];
+                _get_value_decorators = [signal];
+                _get_rawValue_decorators = [signal];
+                __esDecorate(this, null, _get_element_decorators, { kind: "getter", name: "element", static: false, private: false, access: { has: obj => "element" in obj, get: obj => obj.element }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _type_decorators, { kind: "accessor", name: "type", static: false, private: false, access: { has: obj => "type" in obj, get: obj => obj.type, set: (obj, value) => { obj.type = value; } }, metadata: _metadata }, _type_initializers, _type_extraInitializers);
+                __esDecorate(this, null, _placeholder_decorators, { kind: "accessor", name: "placeholder", static: false, private: false, access: { has: obj => "placeholder" in obj, get: obj => obj.placeholder, set: (obj, value) => { obj.placeholder = value; } }, metadata: _metadata }, _placeholder_initializers, _placeholder_extraInitializers);
+                __esDecorate(this, null, _pattern_decorators, { kind: "accessor", name: "pattern", static: false, private: false, access: { has: obj => "pattern" in obj, get: obj => obj.pattern, set: (obj, value) => { obj.pattern = value; } }, metadata: _metadata }, _pattern_initializers, _pattern_extraInitializers);
+                __esDecorate(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
+                __esDecorate(this, null, _get_value_decorators, { kind: "getter", name: "value", static: false, private: false, access: { has: obj => "value" in obj, get: obj => obj.value }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_rawValue_decorators, { kind: "getter", name: "rawValue", static: false, private: false, access: { has: obj => "rawValue" in obj, get: obj => obj.rawValue }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _locked_decorators, { kind: "field", name: "locked", static: false, private: false, access: { has: obj => "locked" in obj, get: obj => obj.locked, set: (obj, value) => { obj.locked = value; } }, metadata: _metadata }, _locked_initializers, _locked_extraInitializers);
+                __esDecorate(null, null, _selectTextOnFocus_decorators, { kind: "field", name: "selectTextOnFocus", static: false, private: false, access: { has: obj => "selectTextOnFocus" in obj, get: obj => obj.selectTextOnFocus, set: (obj, value) => { obj.selectTextOnFocus = value; } }, metadata: _metadata }, _selectTextOnFocus_initializers, _selectTextOnFocus_extraInitializers);
+                __esDecorate(null, null, _dynamicVerticalResize_decorators, { kind: "field", name: "dynamicVerticalResize", static: false, private: false, access: { has: obj => "dynamicVerticalResize" in obj, get: obj => obj.dynamicVerticalResize, set: (obj, value) => { obj.dynamicVerticalResize = value; } }, metadata: _metadata }, _dynamicVerticalResize_initializers, _dynamicVerticalResize_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                inputTag: "input",
+                interactors: TurboInputInputInteractor
+            };
+            static customCreate(properties) {
+                const element = properties.input ?? {};
+                const elementTag = properties.inputTag ?? "input";
+                const value = properties.value;
+                const input = super.customCreate({ ...properties, elementTag, element,
+                    value: undefined, input: undefined, inputTag: undefined });
+                if (value !== undefined && value !== null)
+                    input.value = value;
+                return input;
+            }
+            locked = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _locked_initializers, false));
+            selectTextOnFocus = (__runInitializers(this, _locked_extraInitializers), __runInitializers(this, _selectTextOnFocus_initializers, false));
+            dynamicVerticalResize = (__runInitializers(this, _selectTextOnFocus_extraInitializers), __runInitializers(this, _dynamicVerticalResize_initializers, false));
+            inputRegexCheck = __runInitializers(this, _dynamicVerticalResize_extraInitializers);
+            blurRegexCheck;
+            lastValidForInput = "";
+            lastValidForBlur = "";
+            onFocus = new Delegate();
+            onBlur = new Delegate();
+            onInput = new Delegate();
+            get input() {
+                return this.element;
+            }
+            set input(value) {
+                this.element = value;
+            }
+            get element() {
+                return super.element;
+            }
+            set element(value) {
+                if (!(value instanceof Node) && typeof value === "object") {
+                    if (!value.name)
+                        value.name = randomId();
+                    if (this.elementTag === "input" && !value.type)
+                        value.type = "text";
+                }
+                super.element = value;
+            }
+            #type_accessor_storage = __runInitializers(this, _type_initializers, void 0);
+            get type() { return this.#type_accessor_storage; }
+            set type(value) { this.#type_accessor_storage = value; }
+            #placeholder_accessor_storage = (__runInitializers(this, _type_extraInitializers), __runInitializers(this, _placeholder_initializers, void 0));
+            get placeholder() { return this.#placeholder_accessor_storage; }
+            set placeholder(value) { this.#placeholder_accessor_storage = value; }
+            #pattern_accessor_storage = (__runInitializers(this, _placeholder_extraInitializers), __runInitializers(this, _pattern_initializers, void 0));
+            get pattern() { return this.#pattern_accessor_storage; }
+            set pattern(value) { this.#pattern_accessor_storage = value; }
+            #size_accessor_storage = (__runInitializers(this, _pattern_extraInitializers), __runInitializers(this, _size_initializers, void 0));
+            get size() { return this.#size_accessor_storage; }
+            set size(value) { this.#size_accessor_storage = value; }
+            setupChangedCallbacks() {
+                super.setupChangedCallbacks();
+                this.emitter?.add("processValue", () => this.processInputValue());
+            }
+            setupUIListeners() {
+                super.setupUIListeners();
+                turbo(this).on(DefaultEventName.click, () => {
+                    if (!this.locked)
+                        this.element?.focus();
+                    return exports.Propagation.propagate;
+                });
+            }
+            get value() {
+                const value = this.rawValue;
+                if (!value)
+                    return undefined;
+                try {
+                    const num = parseFloat(value);
+                    if (!isNaN(num))
+                        return num;
+                }
+                catch { }
+                try {
+                    const current = this.value;
+                    if (current && typeof current === "object" && "fromString" in current
+                        && typeof current.fromString === "function")
+                        return current.fromString(value);
+                }
+                catch { }
+                try {
+                    return JSON.parse(value);
+                }
+                catch { }
+                return value;
+            }
+            set value(value) {
+                this.rawValue = value.toString();
+            }
+            get rawValue() {
+                return this.element?.value ?? "";
+            }
+            set rawValue(value) {
+                if (!(this.element instanceof HTMLInputElement) && !(this.element instanceof HTMLTextAreaElement))
+                    return;
+                let strValue = value.toString();
+                if (this.blurRegexCheck) {
+                    const re = new RegExp(this.blurRegexCheck);
+                    if (!re.test(strValue))
+                        strValue = this.lastValidForBlur;
+                }
+                this.element.value = strValue;
+                this.emitter.fire("valueSet");
+            }
+            setValueSilently(value) {
+                if (!(this.element instanceof HTMLInputElement) && !(this.element instanceof HTMLTextAreaElement))
+                    return;
+                this.element.value = typeof value?.toString === "function" ? value.toString() : String(value);
+            }
+            processInputValue(value = this.element.value) {
+                if (this.inputRegexCheck) {
+                    const re = new RegExp(this.inputRegexCheck);
+                    if (!re.test(value)) {
+                        const attemptSanitize = this.sanitizeByRegex(value, this.inputRegexCheck);
+                        if (re.test(attemptSanitize))
+                            value = attemptSanitize;
+                        else
+                            value = this.lastValidForInput;
+                    }
+                }
+                this.lastValidForInput = value.toString();
+                if (this.blurRegexCheck) {
+                    const re = new RegExp(this.blurRegexCheck);
+                    if (re.test(value.toString()))
+                        this.lastValidForBlur = value;
+                }
+                else {
+                    this.lastValidForBlur = value;
+                }
+                if (this.element instanceof HTMLInputElement || this.element instanceof HTMLTextAreaElement)
+                    this.element.value = value;
+                markDirty(this, "rawValue");
+                this.onInput.fire();
+            }
+            sanitizeByRegex(value, rule) {
+                const src = typeof rule === "string" ? rule : rule.source;
+                const flags = typeof rule === "string" ? "" : rule.flags.replace("g", "");
+                const re = new RegExp(src, flags);
+                let out = "";
+                for (const ch of value) {
+                    const candidate = out + ch;
+                    re.lastIndex = 0;
+                    if (re.test(candidate))
+                        out = candidate;
+                }
+                return out;
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _size_extraInitializers);
+            }
+        };
+    })();
+    define(TurboInput);
+
+    /**
+     * @group Components
+     * @category TurboNumericalInput
+     */
+    class TurboNumericalInput extends TurboInput {
+        static defaultProperties = {
+            inputRegexCheck: /^(?!-0?(\.0+)?$)-?(0|[1-9]\d*)?(\.\d+)?\.?$|^-$|^$/,
+            blurRegexCheck: /^(?!-0?(\.0+)?$)-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)$/,
+        };
+        multiplier = 1;
+        decimalPlaces;
+        min;
+        max;
+        get value() {
+            return this.element ? Number.parseFloat(this.element.value) / this.multiplier : undefined;
+        }
+        set value(value) {
+            if (!value || value == "")
+                value = 0;
+            if (typeof value == "string")
+                value = Number.parseFloat(value);
+            value *= this.multiplier;
+            if (this.min != undefined && value < this.min)
+                value = this.min;
+            if (this.max != undefined && value > this.max)
+                value = this.max;
+            if (this.decimalPlaces != undefined) {
+                value = Math.round(value * Math.pow(10, this.decimalPlaces)) / Math.pow(10, this.decimalPlaces);
+            }
+            super.value = value;
+        }
+    }
+    define(TurboNumericalInput);
+
+    /**
+     * @group Event Handling
+     * @category TurboEvents
+     */
+    class TurboSelectInputEvent extends TurboEvent {
+        toggledEntry;
+        values;
+        constructor(properties) {
+            super(properties);
+            this.toggledEntry = properties.toggledEntry;
+            this.values = properties.values;
+        }
+    }
+
+    /**
+     * @class TurboSelect
+     * @group Components
+     * @category TurboSelect
+     *
+     * @description Base class for creating a selection menu
+
+     * @extends TurboElement
+     */
+    let TurboSelect = (() => {
+        let _classSuper = TurboBaseElement;
+        let _instanceExtraInitializers = [];
+        let _set_parent_decorators;
+        let _getValue_decorators;
+        let _getValue_initializers = [];
+        let _getValue_extraInitializers = [];
+        let _getSecondaryValue_decorators;
+        let _getSecondaryValue_initializers = [];
+        let _getSecondaryValue_extraInitializers = [];
+        let _createEntry_decorators;
+        let _createEntry_initializers = [];
+        let _createEntry_extraInitializers = [];
+        let _set_multiSelection_decorators;
+        let _forceSelection_decorators;
+        let _forceSelection_initializers = [];
+        let _forceSelection_extraInitializers = [];
+        let _selectedEntriesClasses_decorators;
+        let _selectedEntriesClasses_initializers = [];
+        let _selectedEntriesClasses_extraInitializers = [];
+        let _entriesClasses_decorators;
+        let _entriesClasses_initializers = [];
+        let _entriesClasses_extraInitializers = [];
+        return class TurboSelect extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _set_parent_decorators = [auto()];
+                _getValue_decorators = [auto({
+                        defaultValue: (entry) => entry instanceof TurboRichElement ? entry.text
+                            : entry instanceof HTMLElement ? entry.textContent
+                                : entry instanceof Element ? entry.innerHTML
+                                    : undefined
+                    })];
+                _getSecondaryValue_decorators = [auto({ defaultValue: () => "" })];
+                _createEntry_decorators = [auto({
+                        defaultValue: (value) => TurboRichElement.create({ text: stringify(value) })
+                    })];
+                _set_multiSelection_decorators = [auto({ defaultValue: false })];
+                _forceSelection_decorators = [auto({
+                        defaultValueCallback: function () {
+                            return !this.multiSelection;
+                        }
+                    })];
+                _selectedEntriesClasses_decorators = [auto({
+                        callBefore: function () {
+                            this.selectedEntries?.forEach(entry => turbo(entry).removeClass(this.selectedEntryClasses));
+                        },
+                        callAfter: function () {
+                            this.selectedEntries?.forEach(entry => turbo(entry).addClass(this.selectedEntryClasses));
+                        },
+                    })];
+                _entriesClasses_decorators = [auto({
+                        callBefore: function (value) {
+                            this.entries.forEach(entry => turbo(entry).removeClass(value));
+                        },
+                        callAfter: function (value) {
+                            this.entries.forEach(entry => turbo(entry).addClass(value));
+                        }
+                    })];
+                __esDecorate(this, null, _set_parent_decorators, { kind: "setter", name: "parent", static: false, private: false, access: { has: obj => "parent" in obj, set: (obj, value) => { obj.parent = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_multiSelection_decorators, { kind: "setter", name: "multiSelection", static: false, private: false, access: { has: obj => "multiSelection" in obj, set: (obj, value) => { obj.multiSelection = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _getValue_decorators, { kind: "field", name: "getValue", static: false, private: false, access: { has: obj => "getValue" in obj, get: obj => obj.getValue, set: (obj, value) => { obj.getValue = value; } }, metadata: _metadata }, _getValue_initializers, _getValue_extraInitializers);
+                __esDecorate(null, null, _getSecondaryValue_decorators, { kind: "field", name: "getSecondaryValue", static: false, private: false, access: { has: obj => "getSecondaryValue" in obj, get: obj => obj.getSecondaryValue, set: (obj, value) => { obj.getSecondaryValue = value; } }, metadata: _metadata }, _getSecondaryValue_initializers, _getSecondaryValue_extraInitializers);
+                __esDecorate(null, null, _createEntry_decorators, { kind: "field", name: "createEntry", static: false, private: false, access: { has: obj => "createEntry" in obj, get: obj => obj.createEntry, set: (obj, value) => { obj.createEntry = value; } }, metadata: _metadata }, _createEntry_initializers, _createEntry_extraInitializers);
+                __esDecorate(null, null, _forceSelection_decorators, { kind: "field", name: "forceSelection", static: false, private: false, access: { has: obj => "forceSelection" in obj, get: obj => obj.forceSelection, set: (obj, value) => { obj.forceSelection = value; } }, metadata: _metadata }, _forceSelection_initializers, _forceSelection_extraInitializers);
+                __esDecorate(null, null, _selectedEntriesClasses_decorators, { kind: "field", name: "selectedEntriesClasses", static: false, private: false, access: { has: obj => "selectedEntriesClasses" in obj, get: obj => obj.selectedEntriesClasses, set: (obj, value) => { obj.selectedEntriesClasses = value; } }, metadata: _metadata }, _selectedEntriesClasses_initializers, _selectedEntriesClasses_extraInitializers);
+                __esDecorate(null, null, _entriesClasses_decorators, { kind: "field", name: "entriesClasses", static: false, private: false, access: { has: obj => "entriesClasses" in obj, get: obj => obj.entriesClasses, set: (obj, value) => { obj.entriesClasses = value; } }, metadata: _metadata }, _entriesClasses_initializers, _entriesClasses_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                selectedEntriesClasses: "selected",
+                onEnabled: (b, entry) => {
+                    if (!(entry instanceof HTMLElement))
+                        return;
+                    turbo(entry).setStyle("visibility", b ? "" : "hidden");
+                }
+            };
+            _inputField = __runInitializers(this, _instanceExtraInitializers);
+            _entries = [];
+            _entriesData = new WeakMap();
+            parentObserver;
+            _onSelect = new Delegate();
+            get onSelect() {
+                return this._onSelect;
+            }
+            set onSelect(value) {
+                if (value)
+                    this._onSelect.add(value);
+            }
+            _onEnabled = new Delegate();
+            get onEnabled() {
+                return this._onEnabled;
+            }
+            set onEnabled(value) {
+                if (value)
+                    this._onEnabled.add(value);
+            }
+            _onEntryAdded = new Delegate();
+            get onEntryAdded() {
+                return this._onEntryAdded;
+            }
+            set onEntryAdded(value) {
+                if (value)
+                    this.onEntryAdded.add(value);
+            }
+            _onEntryRemoved = new Delegate();
+            get onEntryRemoved() {
+                return this._onEntryRemoved;
+            }
+            set onEntryRemoved(value) {
+                if (value)
+                    this.onEntryRemoved.add(value);
+            }
+            _onEntryClicked = new Delegate();
+            get onEntryClicked() {
+                return this._onEntryClicked;
+            }
+            set onEntryClicked(value) {
+                if (value)
+                    this.onEntryClicked.add(value);
+            }
+            /**
+             * The dropdown's entries.
+             */
+            get entries() {
+                return this._entries;
+            }
+            set entries(value) {
+                this.enableObserver(false);
+                const previouslySelectedValues = this.selectedValues;
+                this.clear(false);
+                this._entries = (Array.isArray(value) ? value : Array.from(value))
+                    .filter(entry => entry !== this.inputField);
+                if (value instanceof HTMLCollection && value.item(0))
+                    this.parent = value.item(0).parentElement;
+                const array = this.entries;
+                for (let i = 0; i < array.length; i++) {
+                    this.onEntryAdded.fire(array[i], i);
+                    turbo(array[i]).addClass(this.entriesClasses);
+                }
+                this.deselectAll();
+                for (let i = 0; i < array.length; i++) {
+                    if (previouslySelectedValues.includes(this.getValue(array[i])))
+                        this.select(array[i]);
+                }
+                if (this.selectedEntries.length === 0)
+                    this.initializeSelection();
+                this.refreshInputField();
+                this.enableObserver(true);
+            }
+            /**
+             * @description The dropdown's values. Setting it will update the dropdown accordingly.
+             */
+            get values() {
+                return this.entries.map(entry => this.getValue(entry));
+            }
+            set values(values) {
+                const entries = [];
+                values.forEach(value => {
+                    const entry = this.createEntry(value);
+                    if (entry instanceof Node && this.parent)
+                        turbo(this.parent).addChild(entry);
+                    entries.push(entry);
+                });
+                this.entries = entries;
+            }
+            get selectedEntries() {
+                return this.entries.filter(entry => this.getEntryData(entry).selected);
+            }
+            set selectedEntries(value) {
+                this.deselectAll();
+                if (!value)
+                    return;
+                value.forEach(entry => this.select(entry));
+            }
+            set parent(value) {
+                if (!(value instanceof Element))
+                    return;
+                turbo(value).addChild(this.entries.filter(entry => entry instanceof Node));
+                if (this.inputField)
+                    value.appendChild(this.inputField);
+                this.setupParentObserver();
+            }
+            getValue = __runInitializers(this, _getValue_initializers, void 0);
+            getSecondaryValue = (__runInitializers(this, _getValue_extraInitializers), __runInitializers(this, _getSecondaryValue_initializers, void 0));
+            createEntry = (__runInitializers(this, _getSecondaryValue_extraInitializers), __runInitializers(this, _createEntry_initializers, void 0));
+            /**
+             * The dropdown's underlying hidden input. Might be undefined.
+             */
+            get inputName() {
+                return this.inputField?.name;
+            }
+            set inputName(value) {
+                if (!this._inputField)
+                    this._inputField = input({
+                        value: this.stringSelectedValue,
+                        type: "hidden",
+                        parent: this.parent ?? document.body
+                    });
+                this.inputField.name = value;
+            }
+            get inputField() {
+                return this._inputField;
+            }
+            set multiSelection(value) {
+                this.forceSelection = !value;
+            }
+            forceSelection = (__runInitializers(this, _createEntry_extraInitializers), __runInitializers(this, _forceSelection_initializers, void 0));
+            //TODO FIX
+            selectedEntriesClasses = (__runInitializers(this, _forceSelection_extraInitializers), __runInitializers(this, _selectedEntriesClasses_initializers, void 0));
+            entriesClasses = (__runInitializers(this, _selectedEntriesClasses_extraInitializers), __runInitializers(this, _entriesClasses_initializers, void 0));
+            static customCreate(properties) {
+                const { selectedValues, parent } = properties;
+                const obj = super.customCreate({ ...properties, selectedValues: undefined, parent: undefined });
+                obj.parent = parent;
+                obj.selectedValues = selectedValues || [];
+                return obj;
+            }
+            /**
+             * @description Dropdown constructor
+             */
+            constructor() {
+                super();
+                __runInitializers(this, _entriesClasses_extraInitializers);
+                this.onEntryClicked.add((entry) => this.select(entry, !this.isSelected(entry)));
+                this.onEntryAdded.add((entry) => {
+                    this.initializeSelection();
+                    turbo(entry).on(DefaultEventName.click, (e) => {
+                        this.onEntryClicked.fire(entry, e);
+                        return exports.Propagation.stopPropagation;
+                    });
+                });
+            }
+            getEntryData(entry) {
+                if (!entry)
+                    return {};
+                let data = this._entriesData.get(entry);
+                if (!data) {
+                    data = { selected: false, enabled: true };
+                    this._entriesData.set(entry, data);
+                }
+                return data;
+            }
+            clearEntryData(entry) {
+                this._entriesData.delete(entry);
+                const index = this.entries.indexOf(entry);
+                if (index >= 0)
+                    this.entries.splice(index, 1);
+            }
+            addEntry(entry, index = this.entries.length) {
+                if (index === undefined || typeof index !== "number" || index > this.entries.length)
+                    index = this.entries.length;
+                if (index < 0)
+                    index = 0;
+                this.enableObserver(false);
+                this.onEntryAdded.fire(entry, index);
+                turbo(entry).addClass(this.entriesClasses);
+                if (Array.isArray(this.entries) && !this.entries.includes(entry))
+                    this.entries.splice(index, 0, entry);
+                if (entry instanceof Node && !entry.parentElement && this.parent)
+                    turbo(this.parent).addChild(entry, index);
+                this.enableObserver(true);
+                requestAnimationFrame(() => this.select(this.selectedEntry));
+            }
+            removeEntry(value) {
+                const entry = this.getEntry(value);
+                if (!entry)
+                    return this;
+                this.enableObserver(false);
+                if (this.getEntryData(entry).selected && this.forceSelection) {
+                    const fallback = this.enabledEntries.find(e => e !== entry);
+                    if (fallback)
+                        this.select(fallback);
+                }
+                this.onEntryRemoved.fire(entry);
+                if (entry instanceof Node && entry.parentElement)
+                    entry.parentElement.removeChild(entry);
+                this.clearEntryData(entry);
+                this.refreshInputField();
+                this.enableObserver(true);
+                return this;
+            }
+            getEntryFromSecondaryValue(value) {
+                return this.entries.find((entry) => this.getSecondaryValue(entry) === value);
+            }
+            isSelected(entry) {
+                return this.selectedEntries.includes(entry);
+            }
+            getEntry(value) {
+                let entry;
+                try {
+                    const fromValue = this.find(value);
+                    if (fromValue)
+                        entry = fromValue;
+                    else {
+                        const isEntry = this.entries.find(entry => entry === value);
+                        if (isEntry)
+                            entry = isEntry;
+                    }
+                }
+                catch {
+                }
+                return entry;
+            }
+            /**
+             * @description Select an entry.
+             * @param {string | EntryType} value - The DropdownEntry (or its string value) to select.
+             * @param selected
+             * @return {TurboSelect} - This Dropdown for chaining.
+             */
+            select(value, selected = true) {
+                if (isNull(value) || isUndefined(value))
+                    return this;
+                let entry;
+                try {
+                    const fromValue = this.getEntry(value);
+                    if (fromValue)
+                        entry = fromValue;
+                    else {
+                        const isEntry = this.entries.find(entry => entry === value);
+                        if (isEntry)
+                            entry = isEntry;
+                    }
+                }
+                catch {
+                }
+                if (!entry)
+                    return this;
+                const wasSelected = this.isSelected(entry);
+                if (selected === wasSelected)
+                    return this;
+                if (!selected && wasSelected && this.selectedEntries.length <= 1 && this.forceSelection)
+                    return this;
+                if (!this.multiSelection)
+                    this.deselectAll();
+                this.getEntryData(entry).selected = selected;
+                if (entry instanceof HTMLElement)
+                    turbo(entry).toggleClass(this.selectedEntriesClasses, selected);
+                this.initializeSelection();
+                this.refreshInputField();
+                this.onSelect.fire(selected, entry, this.getIndex(entry));
+                (this.parent ?? document).dispatchEvent(new TurboSelectInputEvent({
+                    toggledEntry: entry,
+                    values: this.selectedValues
+                }));
+                return this;
+            }
+            /**
+             * @description Select an entry.
+             * @param {number} index - The index of the entry to select
+             * @param {(index: number, entriesCount: number, zero?: number) => number} [preprocess=trim] - Callback to execute
+             * on the index to preprocess it. Defaults to trim().
+             * @return {TurboSelect} - This Dropdown for chaining.
+             */
+            selectByIndex(index, preprocess = trim) {
+                index = preprocess(index, this.entries.length - 1, 0);
+                return this.select(this.entries[index]);
+            }
+            getIndex(entry) {
+                return this.entries.indexOf(entry);
+            }
+            deselectAll() {
+                this.selectedEntries.forEach(entry => {
+                    if (entry instanceof HTMLElement)
+                        turbo(entry).toggleClass(this.selectedEntriesClasses, false);
+                    this.getEntryData(entry).selected = false;
+                });
+                this.refreshInputField();
+            }
+            reset() {
+                this.deselectAll();
+                // todo this.onEntryClick(this.enabledEntries[0]);
+            }
+            get enabledEntries() {
+                return this.entries.filter(entry => this.getEntryData(entry).enabled);
+            }
+            get enabledValues() {
+                return this.enabledEntries.map(entry => this.getValue(entry));
+            }
+            get enabledSecondaryValues() {
+                return this.enabledEntries.map(entry => this.getSecondaryValue(entry));
+            }
+            find(value) {
+                return this.entries.find((entry) => this.getValue(entry) === value);
+            }
+            findBySecondaryValue(value) {
+                return this.entries.find((entry) => this.getSecondaryValue(entry) === value);
+            }
+            findAll(...values) {
+                return this.entries.filter(entry => values.includes(this.getValue(entry)));
+            }
+            findAllBySecondaryValue(...values) {
+                return this.entries.filter((entry) => values.includes(this.getSecondaryValue(entry)));
+            }
+            enable(b, ...entries) {
+                if (!entries || entries.length === 0)
+                    entries = this.entries;
+                entries.forEach(value => {
+                    const entry = this.getEntry(value);
+                    if (!entry)
+                        return;
+                    this.getEntryData(entry).enabled = b;
+                    this.onEnabled.fire(b, entry, this.getIndex(entry));
+                });
+            }
+            /**
+             * @description The dropdown's currently selected entries
+             */
+            get selectedEntry() {
+                return this.selectedEntries[0];
+            }
+            get selectedIndex() {
+                return this.getIndex(this.selectedEntry);
+            }
+            set selectedIndex(value) {
+                this.selectByIndex(value);
+            }
+            get selectedIndices() {
+                return this.selectedEntries.map(entry => this.getIndex(entry));
+            }
+            set selectedValues(values) {
+                if (!this.forceSelection)
+                    this.deselectAll();
+                this.entries.forEach(entry => {
+                    if (values.includes(this.getValue(entry)))
+                        this.select(entry);
+                });
+            }
+            /**
+             * @description The dropdown's currently selected values
+             */
+            get selectedValues() {
+                return this.selectedEntries.map(entry => this.getValue(entry));
+            }
+            get selectedValue() {
+                const selectedEntry = this.selectedEntry;
+                if (!selectedEntry)
+                    return;
+                return this.getValue(selectedEntry);
+            }
+            get selectedSecondaryValues() {
+                return this.selectedEntries.map(entry => this.getSecondaryValue(entry));
+            }
+            get selectedSecondaryValue() {
+                const selectedEntry = this.selectedEntry;
+                if (!selectedEntry)
+                    return;
+                return this.getSecondaryValue(selectedEntry);
+            }
+            get stringSelectedValue() {
+                return this.selectedEntries.map(entry => stringify(this.getValue(entry))).join(", ");
+            }
+            clear(disableObserver = true) {
+                if (disableObserver)
+                    this.enableObserver(false);
+                for (let index = this.entries.length - 1; index >= 0; index--) {
+                    const entry = this.entries[index];
+                    this.onEntryRemoved.fire(entry);
+                    if (this.parent && entry instanceof HTMLElement)
+                        entry.remove();
+                }
+                this._entries = [];
+                this.refreshInputField();
+                if (disableObserver)
+                    this.enableObserver(true);
+            }
+            refreshInputField() {
+                if (this.inputField)
+                    this.inputField.value = this.stringSelectedValue;
+            }
+            destroy() {
+                this.enableObserver(false);
+                this.parentObserver = null;
+                return this;
+            }
+            enableObserver(value) {
+                if (!value)
+                    return this.parentObserver?.disconnect();
+                if (this.parent instanceof Element && this.parentObserver)
+                    this.parentObserver.observe(this.parent, { childList: true });
+            }
+            initializeSelection() {
+                if (this.forceSelection && this.enabledEntries.length && this.selectedEntries.length === 0) {
+                    const fallback = this.enabledEntries[0];
+                    if (fallback)
+                        this.select(fallback);
+                }
+            }
+            setupParentObserver() {
+                this.enableObserver(false);
+                this.parentObserver = new MutationObserver(records => {
+                    for (const record of records) {
+                        for (const node of record.addedNodes) {
+                            if (!(node instanceof Element) || node.parentElement !== this.parent)
+                                continue;
+                            if (node === this.inputField)
+                                continue;
+                            const entry = node;
+                            const children = Array.from(this.parent.children)
+                                .filter(el => el !== this.inputField)
+                                .filter(el => this.entries.includes(el) || el === entry);
+                            const targetIndex = children.indexOf(entry);
+                            if (targetIndex < 0)
+                                continue;
+                            if (targetIndex === 0)
+                                this.entries.splice(targetIndex, 0, entry);
+                            else {
+                                const previousIndex = this.entries.indexOf(children[targetIndex - 1]);
+                                this.entries.splice(previousIndex + 1, 0, entry);
+                            }
+                            this.getEntryData(entry);
+                            this.onEntryAdded.fire(entry, this.getIndex(entry));
+                            turbo(entry).addClass(this.entriesClasses);
+                        }
+                        for (const node of record.removedNodes) {
+                            if (!(node instanceof Element))
+                                continue;
+                            if (node === this.inputField)
+                                continue;
+                            queueMicrotask(() => {
+                                if (node.isConnected)
+                                    return;
+                                const data = this.getEntryData(node);
+                                if (data.selected && this.forceSelection && this.enabledEntries.length) {
+                                    const fallback = this.enabledEntries[0];
+                                    if (fallback)
+                                        this.select(fallback);
+                                }
+                                data.selected = false;
+                                this.onEntryRemoved.fire(node);
+                                this.clearEntryData(node);
+                            });
+                        }
+                    }
+                });
+                this.enableObserver(true);
+            }
+        };
+    })();
+    define(TurboSelect);
+
+    /**
+     * @class TurboSelectElement
+     * @group Components
+     * @category TurboSelectElement
+     *
+     * @description Select element class for creating Turbo button elements.
+     * @extends TurboElement
+     */
+    let TurboSelectElement = (() => {
+        let _classSuper = TurboElement;
+        let _instanceExtraInitializers = [];
+        let _values_decorators;
+        let _values_initializers = [];
+        let _values_extraInitializers = [];
+        let _selectedEntries_decorators;
+        let _selectedEntries_initializers = [];
+        let _selectedEntries_extraInitializers = [];
+        let _selectedEntry_decorators;
+        let _selectedEntry_initializers = [];
+        let _selectedEntry_extraInitializers = [];
+        let _selectedIndex_decorators;
+        let _selectedIndex_initializers = [];
+        let _selectedIndex_extraInitializers = [];
+        let _selectedIndices_decorators;
+        let _selectedIndices_initializers = [];
+        let _selectedIndices_extraInitializers = [];
+        let _entriesClasses_decorators;
+        let _entriesClasses_initializers = [];
+        let _entriesClasses_extraInitializers = [];
+        let _selectedEntriesClasses_decorators;
+        let _selectedEntriesClasses_initializers = [];
+        let _selectedEntriesClasses_extraInitializers = [];
+        let _inputName_decorators;
+        let _inputName_initializers = [];
+        let _inputName_extraInitializers = [];
+        let _inputField_decorators;
+        let _inputField_initializers = [];
+        let _inputField_extraInitializers = [];
+        let _multiSelection_decorators;
+        let _multiSelection_initializers = [];
+        let _multiSelection_extraInitializers = [];
+        let _forceSelection_decorators;
+        let _forceSelection_initializers = [];
+        let _forceSelection_extraInitializers = [];
+        let _enabledEntries_decorators;
+        let _enabledEntries_initializers = [];
+        let _enabledEntries_extraInitializers = [];
+        let _enabledValues_decorators;
+        let _enabledValues_initializers = [];
+        let _enabledValues_extraInitializers = [];
+        let _enabledSecondaryValues_decorators;
+        let _enabledSecondaryValues_initializers = [];
+        let _enabledSecondaryValues_extraInitializers = [];
+        let _selectedValue_decorators;
+        let _selectedValue_initializers = [];
+        let _selectedValue_extraInitializers = [];
+        let _selectedValues_decorators;
+        let _selectedValues_initializers = [];
+        let _selectedValues_extraInitializers = [];
+        let _selectedSecondaryValues_decorators;
+        let _selectedSecondaryValues_initializers = [];
+        let _selectedSecondaryValues_extraInitializers = [];
+        let _selectedSecondaryValue_decorators;
+        let _selectedSecondaryValue_initializers = [];
+        let _selectedSecondaryValue_extraInitializers = [];
+        let _stringSelectedValue_decorators;
+        let _stringSelectedValue_initializers = [];
+        let _stringSelectedValue_extraInitializers = [];
+        let _set_transitionReifect_decorators;
+        return class TurboSelectElement extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _values_decorators = [expose("select")];
+                _selectedEntries_decorators = [expose("select")];
+                _selectedEntry_decorators = [expose("select", false)];
+                _selectedIndex_decorators = [expose("select")];
+                _selectedIndices_decorators = [expose("select", false)];
+                _entriesClasses_decorators = [expose("select")];
+                _selectedEntriesClasses_decorators = [expose("select")];
+                _inputName_decorators = [expose("select")];
+                _inputField_decorators = [expose("select", false)];
+                _multiSelection_decorators = [expose("select")];
+                _forceSelection_decorators = [expose("select")];
+                _enabledEntries_decorators = [expose("select", false)];
+                _enabledValues_decorators = [expose("select", false)];
+                _enabledSecondaryValues_decorators = [expose("select", false)];
+                _selectedValue_decorators = [expose("select", false)];
+                _selectedValues_decorators = [expose("select", false)];
+                _selectedSecondaryValues_decorators = [expose("select", false)];
+                _selectedSecondaryValue_decorators = [expose("select", false)];
+                _stringSelectedValue_decorators = [expose("select", false)];
+                _set_transitionReifect_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (!value)
+                                return;
+                            if (value instanceof Reifect)
+                                return value;
+                            return new Reifect(value);
+                        }
+                    })];
+                __esDecorate(this, null, _selectedEntries_decorators, { kind: "accessor", name: "selectedEntries", static: false, private: false, access: { has: obj => "selectedEntries" in obj, get: obj => obj.selectedEntries, set: (obj, value) => { obj.selectedEntries = value; } }, metadata: _metadata }, _selectedEntries_initializers, _selectedEntries_extraInitializers);
+                __esDecorate(this, null, _selectedEntry_decorators, { kind: "accessor", name: "selectedEntry", static: false, private: false, access: { has: obj => "selectedEntry" in obj, get: obj => obj.selectedEntry, set: (obj, value) => { obj.selectedEntry = value; } }, metadata: _metadata }, _selectedEntry_initializers, _selectedEntry_extraInitializers);
+                __esDecorate(this, null, _selectedIndex_decorators, { kind: "accessor", name: "selectedIndex", static: false, private: false, access: { has: obj => "selectedIndex" in obj, get: obj => obj.selectedIndex, set: (obj, value) => { obj.selectedIndex = value; } }, metadata: _metadata }, _selectedIndex_initializers, _selectedIndex_extraInitializers);
+                __esDecorate(this, null, _selectedIndices_decorators, { kind: "accessor", name: "selectedIndices", static: false, private: false, access: { has: obj => "selectedIndices" in obj, get: obj => obj.selectedIndices, set: (obj, value) => { obj.selectedIndices = value; } }, metadata: _metadata }, _selectedIndices_initializers, _selectedIndices_extraInitializers);
+                __esDecorate(this, null, _inputName_decorators, { kind: "accessor", name: "inputName", static: false, private: false, access: { has: obj => "inputName" in obj, get: obj => obj.inputName, set: (obj, value) => { obj.inputName = value; } }, metadata: _metadata }, _inputName_initializers, _inputName_extraInitializers);
+                __esDecorate(this, null, _inputField_decorators, { kind: "accessor", name: "inputField", static: false, private: false, access: { has: obj => "inputField" in obj, get: obj => obj.inputField, set: (obj, value) => { obj.inputField = value; } }, metadata: _metadata }, _inputField_initializers, _inputField_extraInitializers);
+                __esDecorate(this, null, _multiSelection_decorators, { kind: "accessor", name: "multiSelection", static: false, private: false, access: { has: obj => "multiSelection" in obj, get: obj => obj.multiSelection, set: (obj, value) => { obj.multiSelection = value; } }, metadata: _metadata }, _multiSelection_initializers, _multiSelection_extraInitializers);
+                __esDecorate(this, null, _forceSelection_decorators, { kind: "accessor", name: "forceSelection", static: false, private: false, access: { has: obj => "forceSelection" in obj, get: obj => obj.forceSelection, set: (obj, value) => { obj.forceSelection = value; } }, metadata: _metadata }, _forceSelection_initializers, _forceSelection_extraInitializers);
+                __esDecorate(this, null, _enabledEntries_decorators, { kind: "accessor", name: "enabledEntries", static: false, private: false, access: { has: obj => "enabledEntries" in obj, get: obj => obj.enabledEntries, set: (obj, value) => { obj.enabledEntries = value; } }, metadata: _metadata }, _enabledEntries_initializers, _enabledEntries_extraInitializers);
+                __esDecorate(this, null, _enabledValues_decorators, { kind: "accessor", name: "enabledValues", static: false, private: false, access: { has: obj => "enabledValues" in obj, get: obj => obj.enabledValues, set: (obj, value) => { obj.enabledValues = value; } }, metadata: _metadata }, _enabledValues_initializers, _enabledValues_extraInitializers);
+                __esDecorate(this, null, _enabledSecondaryValues_decorators, { kind: "accessor", name: "enabledSecondaryValues", static: false, private: false, access: { has: obj => "enabledSecondaryValues" in obj, get: obj => obj.enabledSecondaryValues, set: (obj, value) => { obj.enabledSecondaryValues = value; } }, metadata: _metadata }, _enabledSecondaryValues_initializers, _enabledSecondaryValues_extraInitializers);
+                __esDecorate(this, null, _selectedValue_decorators, { kind: "accessor", name: "selectedValue", static: false, private: false, access: { has: obj => "selectedValue" in obj, get: obj => obj.selectedValue, set: (obj, value) => { obj.selectedValue = value; } }, metadata: _metadata }, _selectedValue_initializers, _selectedValue_extraInitializers);
+                __esDecorate(this, null, _selectedValues_decorators, { kind: "accessor", name: "selectedValues", static: false, private: false, access: { has: obj => "selectedValues" in obj, get: obj => obj.selectedValues, set: (obj, value) => { obj.selectedValues = value; } }, metadata: _metadata }, _selectedValues_initializers, _selectedValues_extraInitializers);
+                __esDecorate(this, null, _selectedSecondaryValues_decorators, { kind: "accessor", name: "selectedSecondaryValues", static: false, private: false, access: { has: obj => "selectedSecondaryValues" in obj, get: obj => obj.selectedSecondaryValues, set: (obj, value) => { obj.selectedSecondaryValues = value; } }, metadata: _metadata }, _selectedSecondaryValues_initializers, _selectedSecondaryValues_extraInitializers);
+                __esDecorate(this, null, _selectedSecondaryValue_decorators, { kind: "accessor", name: "selectedSecondaryValue", static: false, private: false, access: { has: obj => "selectedSecondaryValue" in obj, get: obj => obj.selectedSecondaryValue, set: (obj, value) => { obj.selectedSecondaryValue = value; } }, metadata: _metadata }, _selectedSecondaryValue_initializers, _selectedSecondaryValue_extraInitializers);
+                __esDecorate(this, null, _stringSelectedValue_decorators, { kind: "accessor", name: "stringSelectedValue", static: false, private: false, access: { has: obj => "stringSelectedValue" in obj, get: obj => obj.stringSelectedValue, set: (obj, value) => { obj.stringSelectedValue = value; } }, metadata: _metadata }, _stringSelectedValue_initializers, _stringSelectedValue_extraInitializers);
+                __esDecorate(this, null, _set_transitionReifect_decorators, { kind: "setter", name: "transitionReifect", static: false, private: false, access: { has: obj => "transitionReifect" in obj, set: (obj, value) => { obj.transitionReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _values_decorators, { kind: "field", name: "values", static: false, private: false, access: { has: obj => "values" in obj, get: obj => obj.values, set: (obj, value) => { obj.values = value; } }, metadata: _metadata }, _values_initializers, _values_extraInitializers);
+                __esDecorate(null, null, _entriesClasses_decorators, { kind: "field", name: "entriesClasses", static: false, private: false, access: { has: obj => "entriesClasses" in obj, get: obj => obj.entriesClasses, set: (obj, value) => { obj.entriesClasses = value; } }, metadata: _metadata }, _entriesClasses_initializers, _entriesClasses_extraInitializers);
+                __esDecorate(null, null, _selectedEntriesClasses_decorators, { kind: "field", name: "selectedEntriesClasses", static: false, private: false, access: { has: obj => "selectedEntriesClasses" in obj, get: obj => obj.selectedEntriesClasses, set: (obj, value) => { obj.selectedEntriesClasses = value; } }, metadata: _metadata }, _selectedEntriesClasses_initializers, _selectedEntriesClasses_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                entriesTag: "turbo-rich-element"
+            };
+            _sizeTransitionTimeout = __runInitializers(this, _instanceExtraInitializers);
+            select = TurboSelect.create();
+            entriesTag;
+            get entries() {
+                return this.select.entries;
+            }
+            set entries(value) {
+                this.select.entries = value;
+            }
+            values = __runInitializers(this, _values_initializers, void 0);
+            #selectedEntries_accessor_storage = (__runInitializers(this, _values_extraInitializers), __runInitializers(this, _selectedEntries_initializers, void 0));
+            get selectedEntries() { return this.#selectedEntries_accessor_storage; }
+            set selectedEntries(value) { this.#selectedEntries_accessor_storage = value; }
+            #selectedEntry_accessor_storage = (__runInitializers(this, _selectedEntries_extraInitializers), __runInitializers(this, _selectedEntry_initializers, void 0));
+            get selectedEntry() { return this.#selectedEntry_accessor_storage; }
+            set selectedEntry(value) { this.#selectedEntry_accessor_storage = value; }
+            #selectedIndex_accessor_storage = (__runInitializers(this, _selectedEntry_extraInitializers), __runInitializers(this, _selectedIndex_initializers, void 0));
+            get selectedIndex() { return this.#selectedIndex_accessor_storage; }
+            set selectedIndex(value) { this.#selectedIndex_accessor_storage = value; }
+            #selectedIndices_accessor_storage = (__runInitializers(this, _selectedIndex_extraInitializers), __runInitializers(this, _selectedIndices_initializers, void 0));
+            get selectedIndices() { return this.#selectedIndices_accessor_storage; }
+            set selectedIndices(value) { this.#selectedIndices_accessor_storage = value; }
+            entriesClasses = (__runInitializers(this, _selectedIndices_extraInitializers), __runInitializers(this, _entriesClasses_initializers, void 0));
+            selectedEntriesClasses = (__runInitializers(this, _entriesClasses_extraInitializers), __runInitializers(this, _selectedEntriesClasses_initializers, void 0));
+            #inputName_accessor_storage = (__runInitializers(this, _selectedEntriesClasses_extraInitializers), __runInitializers(this, _inputName_initializers, void 0));
+            get inputName() { return this.#inputName_accessor_storage; }
+            set inputName(value) { this.#inputName_accessor_storage = value; }
+            #inputField_accessor_storage = (__runInitializers(this, _inputName_extraInitializers), __runInitializers(this, _inputField_initializers, void 0));
+            get inputField() { return this.#inputField_accessor_storage; }
+            set inputField(value) { this.#inputField_accessor_storage = value; }
+            #multiSelection_accessor_storage = (__runInitializers(this, _inputField_extraInitializers), __runInitializers(this, _multiSelection_initializers, void 0));
+            get multiSelection() { return this.#multiSelection_accessor_storage; }
+            set multiSelection(value) { this.#multiSelection_accessor_storage = value; }
+            #forceSelection_accessor_storage = (__runInitializers(this, _multiSelection_extraInitializers), __runInitializers(this, _forceSelection_initializers, void 0));
+            get forceSelection() { return this.#forceSelection_accessor_storage; }
+            set forceSelection(value) { this.#forceSelection_accessor_storage = value; }
+            #enabledEntries_accessor_storage = (__runInitializers(this, _forceSelection_extraInitializers), __runInitializers(this, _enabledEntries_initializers, void 0));
+            get enabledEntries() { return this.#enabledEntries_accessor_storage; }
+            set enabledEntries(value) { this.#enabledEntries_accessor_storage = value; }
+            #enabledValues_accessor_storage = (__runInitializers(this, _enabledEntries_extraInitializers), __runInitializers(this, _enabledValues_initializers, void 0));
+            get enabledValues() { return this.#enabledValues_accessor_storage; }
+            set enabledValues(value) { this.#enabledValues_accessor_storage = value; }
+            #enabledSecondaryValues_accessor_storage = (__runInitializers(this, _enabledValues_extraInitializers), __runInitializers(this, _enabledSecondaryValues_initializers, void 0));
+            get enabledSecondaryValues() { return this.#enabledSecondaryValues_accessor_storage; }
+            set enabledSecondaryValues(value) { this.#enabledSecondaryValues_accessor_storage = value; }
+            #selectedValue_accessor_storage = (__runInitializers(this, _enabledSecondaryValues_extraInitializers), __runInitializers(this, _selectedValue_initializers, void 0));
+            get selectedValue() { return this.#selectedValue_accessor_storage; }
+            set selectedValue(value) { this.#selectedValue_accessor_storage = value; }
+            #selectedValues_accessor_storage = (__runInitializers(this, _selectedValue_extraInitializers), __runInitializers(this, _selectedValues_initializers, void 0));
+            get selectedValues() { return this.#selectedValues_accessor_storage; }
+            set selectedValues(value) { this.#selectedValues_accessor_storage = value; }
+            #selectedSecondaryValues_accessor_storage = (__runInitializers(this, _selectedValues_extraInitializers), __runInitializers(this, _selectedSecondaryValues_initializers, void 0));
+            get selectedSecondaryValues() { return this.#selectedSecondaryValues_accessor_storage; }
+            set selectedSecondaryValues(value) { this.#selectedSecondaryValues_accessor_storage = value; }
+            #selectedSecondaryValue_accessor_storage = (__runInitializers(this, _selectedSecondaryValues_extraInitializers), __runInitializers(this, _selectedSecondaryValue_initializers, void 0));
+            get selectedSecondaryValue() { return this.#selectedSecondaryValue_accessor_storage; }
+            set selectedSecondaryValue(value) { this.#selectedSecondaryValue_accessor_storage = value; }
+            #stringSelectedValue_accessor_storage = (__runInitializers(this, _selectedSecondaryValue_extraInitializers), __runInitializers(this, _stringSelectedValue_initializers, void 0));
+            get stringSelectedValue() { return this.#stringSelectedValue_accessor_storage; }
+            set stringSelectedValue(value) { this.#stringSelectedValue_accessor_storage = value; }
+            initialize() {
+                this.select.onSelect.add(() => this.applyTransition());
+                super.initialize();
+                if (!this.select.parent)
+                    this.select.parent = this;
+            }
+            _transitionDuration = (__runInitializers(this, _stringSelectedValue_extraInitializers), 0);
+            get transitionDuration() {
+                return this._transitionDuration;
+            }
+            /**
+             * @description Duration of the container size transition in seconds. Kept in sync with
+             * `switchTransitionReifect` — set this to change both at once.
+             */
+            set transitionDuration(value) {
+                this._transitionDuration = value;
+                if (value <= 0)
+                    return;
+                if (!this.transitionReifect)
+                    this.transitionReifect = new Reifect({});
+                this.transitionReifect.styles = `transition: width ${value}s ease-in-out, height ${value}s ease-in-out`;
+            }
+            set transitionReifect(value) {
+                if (!value)
+                    return;
+                value.attach(this);
+            }
+            get transitionReifect() { return; }
+            /**
+             * @description Animates the container from its current size to the selected entry's natural
+             * size. Subclasses should call `super.applyTransition()` then add their own entry-level logic.
+             *
+             * The sequence:
+             * 1. Freeze container at current px size (gives CSS transition a `from` value)
+             * 2. Call `beforeResize()` — subclass hook to prepare entries before the frame
+             * 3. Next frame: read selected entry's natural size, animate container to it
+             * 4. After `transitionDuration`ms: release explicit container size
+             */
+            applyTransition() {
+                if (this.transitionDuration <= 0 || !this.transitionReifect)
+                    return;
+                const selectedEntry = this.selectedEntry;
+                if (!selectedEntry)
+                    return;
+                this.transitionReifect.unapply(this);
+                turbo(this).setStyles({ width: `${this.offsetWidth}px`, height: `${this.offsetHeight}px` }, true);
+                this.transitionReifect.apply(this);
+                this.beforeResize(selectedEntry);
+                requestAnimationFrame(() => turbo(this).setStyles({
+                    width: `${selectedEntry.offsetWidth}px`,
+                    height: `${selectedEntry.offsetHeight}px`
+                }));
+                clearTimeout(this._sizeTransitionTimeout);
+                this._sizeTransitionTimeout = setTimeout(() => {
+                    turbo(this).setStyles({ width: "", height: "" });
+                    this.afterResize(selectedEntry);
+                }, this.transitionDuration * 1000);
+            }
+            /**
+             * @description Called synchronously inside `applyTransition`, before the rAF that reads the
+             * selected entry's new size. Use this to reposition/reflow entries so the size read is correct.
+             * @param selectedEntry - The newly selected entry.
+             */
+            beforeResize(selectedEntry) { }
+            /**
+             * @description Called after the container size transition completes.
+             * @param selectedEntry - The selected entry.
+             */
+            afterResize(selectedEntry) { }
+        };
+    })();
+    define(TurboSelectElement);
+
+    var css_248z$3 = "turbo-content-switch{align-items:flex-start;display:flex;flex-direction:column;overflow:hidden;position:relative}turbo-content-switch>*{box-sizing:border-box;left:0;position:absolute;top:0}";
+    styleInject(css_248z$3);
+
+    exports.ContentSwitchMode = void 0;
+    (function (ContentSwitchMode) {
+        ContentSwitchMode["fadeLeft"] = "fadeLeft";
+        ContentSwitchMode["fadeRight"] = "fadeRight";
+        ContentSwitchMode["carousel"] = "carousel";
+    })(exports.ContentSwitchMode || (exports.ContentSwitchMode = {}));
+
+    let TurboContentSwitch = (() => {
+        let _classSuper = TurboSelectElement;
+        let _instanceExtraInitializers = [];
+        let _set_mode_decorators;
+        let _set_entryTransitionReifect_decorators;
+        let _set_movementReifect_decorators;
+        let _set_transitionDuration_decorators;
+        return class TurboContentSwitch extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _set_mode_decorators = [auto({ defaultValue: exports.ContentSwitchMode.fadeRight })];
+                _set_entryTransitionReifect_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (!value)
+                                return;
+                            if (value instanceof Reifect)
+                                return value;
+                            return new Reifect(value);
+                        }
+                    })];
+                _set_movementReifect_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (!value)
+                                return;
+                            if (value instanceof Reifect)
+                                return value;
+                            return new Reifect(value);
+                        }
+                    })];
+                _set_transitionDuration_decorators = [auto({ override: true })];
+                __esDecorate(this, null, _set_mode_decorators, { kind: "setter", name: "mode", static: false, private: false, access: { has: obj => "mode" in obj, set: (obj, value) => { obj.mode = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_entryTransitionReifect_decorators, { kind: "setter", name: "entryTransitionReifect", static: false, private: false, access: { has: obj => "entryTransitionReifect" in obj, set: (obj, value) => { obj.entryTransitionReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_movementReifect_decorators, { kind: "setter", name: "movementReifect", static: false, private: false, access: { has: obj => "movementReifect" in obj, set: (obj, value) => { obj.movementReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_transitionDuration_decorators, { kind: "setter", name: "transitionDuration", static: false, private: false, access: { has: obj => "transitionDuration" in obj, set: (obj, value) => { obj.transitionDuration = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = { transitionDuration: 0.3 };
+            set mode(value) {
+                this.reloadMovementReifect();
+            }
+            set entryTransitionReifect(value) {
+                if (!value)
+                    return;
+                if (this.entries.length > 0)
+                    value.attach(...this.entries);
+            }
+            get entryTransitionReifect() { return; }
+            set movementReifect(value) {
+                if (value && this.entries.length > 0)
+                    value.attach(...this.entries);
+            }
+            get movementReifect() { return; }
+            set transitionDuration(value) {
+                if (value <= 0)
+                    return;
+                if (!this.entryTransitionReifect)
+                    this.entryTransitionReifect = new Reifect({});
+                this.entryTransitionReifect.styles = `transition: transform ${value}s ease-in-out, opacity ${value}s ease-in-out`;
+            }
+            initialize() {
+                this.select.onEntryAdded.add(entry => this.setupEntry(entry));
+                this.select.onEntryRemoved.add(entry => {
+                    this.entryTransitionReifect?.detach(entry);
+                    this.movementReifect?.detach(entry);
+                });
+                super.initialize();
+                this.reloadMovementReifect();
+            }
+            setupEntry(entry) {
+                turbo(entry).setStyles({ position: "relative", width: "", height: "", top: "0", left: "0" }, true);
+                this.entryTransitionReifect?.attach(entry);
+                this.movementReifect?.attach(entry);
+                requestAnimationFrame(() => {
+                    if (entry !== this.selectedEntry)
+                        this.freezeAndHide(entry);
+                });
+            }
+            freezeAndHide(entry, isRelative = false) {
+                turbo(entry).setStyles({
+                    width: isRelative ? "" : `${entry.offsetWidth}px`,
+                    height: isRelative ? "" : `${entry.offsetHeight}px`,
+                    position: isRelative ? "relative" : "absolute",
+                    top: "0",
+                    left: "0",
+                }, true);
+            }
+            reloadMovementReifect() {
+                if (!this.movementReifect)
+                    this.movementReifect = new Reifect({});
+                this.movementReifect.styles = (index) => {
+                    const offset = index - this.selectedIndex;
+                    if (offset === 0)
+                        return "transform: translateX(0); opacity: 1; pointer-events: all;";
+                    if (this.mode === exports.ContentSwitchMode.carousel)
+                        return `transform: translateX(${offset > 0 ? "100%" : "-100%"}); opacity: 0; pointer-events: none;`;
+                    const dx = this.mode === exports.ContentSwitchMode.fadeLeft ? "-100%" : "100%";
+                    return `transform: translateX(${dx}); opacity: 0; pointer-events: none;`;
+                };
+            }
+            beforeResize(selectedEntry) {
+                this.select.entries.forEach(entry => this.freezeAndHide(entry, entry === selectedEntry));
+                this.movementReifect?.apply(this.select.entries, { recomputeProperties: true });
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _instanceExtraInitializers);
+            }
+        };
+    })();
+    define(TurboContentSwitch, "turbo-content-switch");
+
+    var css_248z$2 = ".turbo-drawer{align-items:center;direction:ltr;display:inline-flex}.turbo-drawer-panel-container{align-items:center;display:flex;overflow:hidden;position:relative}.turbo-drawer-thumb{display:inline-block;position:relative}.top-drawer .turbo-drawer-panel-container,.turbo-drawer.top-drawer{flex-direction:column}.bottom-drawer .turbo-drawer-panel-container,.turbo-drawer.bottom-drawer{flex-direction:column-reverse}.left-drawer .turbo-drawer-panel-container,.turbo-drawer.left-drawer{flex-direction:row}.right-drawer .turbo-drawer-panel-container,.turbo-drawer.right-drawer{flex-direction:row-reverse}";
+    styleInject(css_248z$2);
+
+    //TODO TRY TO SEE IF HIDDEN OVERFLOW ELEMENT CAN CONTAIN ELEMENT THAT OVERFLOWS PAST PARENT
+    /**
+     * @group Components
+     * @category TurboDrawer
+     */
+    let TurboDrawer = (() => {
+        let _classSuper = TurboElement;
+        let _instanceExtraInitializers = [];
+        let _set_thumb_decorators;
+        let _set_panel_decorators;
+        let _set_icon_decorators;
+        let _set_hideOverflow_decorators;
+        let _set_attachSideToIconName_decorators;
+        let _set_rotateIconBasedOnSide_decorators;
+        let _set_side_decorators;
+        let _set_offset_decorators;
+        let _set_open_decorators;
+        let _set_translation_decorators;
+        let _transition_decorators;
+        let _transition_initializers = [];
+        let _transition_extraInitializers = [];
+        return class TurboDrawer extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _set_thumb_decorators = [auto({
+                        setIfUndefined: true,
+                        callBefore: function () { if (this.thumb)
+                            turbo(this).remChild(this.thumb); },
+                        preprocessValue: (value) => value instanceof HTMLElement ? value : div(value)
+                    })];
+                _set_panel_decorators = [auto({
+                        setIfUndefined: true,
+                        callBefore: function () { if (this.panel)
+                            turbo(this).remChild(this.panel); },
+                        preprocessValue: (value) => value instanceof HTMLElement ? value : div(value)
+                    })];
+                _set_icon_decorators = [auto({
+                        callBefore: function () { if (this.icon?.parentElement === this.thumb)
+                            this.thumb.removeChild(this.icon); },
+                        preprocessValue: function (value) {
+                            if (value instanceof Element)
+                                return value;
+                            if (typeof value === "string" && !this.attachSideToIconName && !this.rotateIconBasedOnSide)
+                                this.attachSideToIconName = true;
+                            return TurboIconSwitch.create(typeof value === "object" ? value : {
+                                icon: value,
+                                switchReifect: { states: Object.values(exports.Side) },
+                                defaultState: this.open ? this.getOppositeSide() : this.side,
+                                appendStateToIconName: this.attachSideToIconName,
+                            });
+                        }
+                    })];
+                _set_hideOverflow_decorators = [auto({ defaultValue: false })];
+                _set_attachSideToIconName_decorators = [auto({ defaultValue: false })];
+                _set_rotateIconBasedOnSide_decorators = [auto({ defaultValue: false })];
+                _set_side_decorators = [auto({ defaultValue: exports.Side.bottom, cancelIfUnchanged: false })];
+                _set_offset_decorators = [auto({
+                        defaultValue: { open: 0, closed: 0 },
+                        preprocessValue: (value) => typeof value === "number" ? { open: value, closed: value } : {
+                            open: value?.open || 0,
+                            closed: value?.closed || 0
+                        }
+                    })];
+                _set_open_decorators = [auto({ defaultValue: false })];
+                _set_translation_decorators = [auto()];
+                _transition_decorators = [auto({
+                        defaultValueCallback: function () {
+                            return new Reifect({
+                                transitionProperties: ["transform", this.isVertical ? "height" : "width"],
+                                transitionDuration: 0.2,
+                                transitionTimingFunction: "ease-out",
+                            });
+                        },
+                        callAfter: function () { this.transition.attach(this, this.panelContainer); },
+                    })];
+                __esDecorate(this, null, _set_thumb_decorators, { kind: "setter", name: "thumb", static: false, private: false, access: { has: obj => "thumb" in obj, set: (obj, value) => { obj.thumb = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_panel_decorators, { kind: "setter", name: "panel", static: false, private: false, access: { has: obj => "panel" in obj, set: (obj, value) => { obj.panel = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_icon_decorators, { kind: "setter", name: "icon", static: false, private: false, access: { has: obj => "icon" in obj, set: (obj, value) => { obj.icon = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_hideOverflow_decorators, { kind: "setter", name: "hideOverflow", static: false, private: false, access: { has: obj => "hideOverflow" in obj, set: (obj, value) => { obj.hideOverflow = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_attachSideToIconName_decorators, { kind: "setter", name: "attachSideToIconName", static: false, private: false, access: { has: obj => "attachSideToIconName" in obj, set: (obj, value) => { obj.attachSideToIconName = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_rotateIconBasedOnSide_decorators, { kind: "setter", name: "rotateIconBasedOnSide", static: false, private: false, access: { has: obj => "rotateIconBasedOnSide" in obj, set: (obj, value) => { obj.rotateIconBasedOnSide = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_side_decorators, { kind: "setter", name: "side", static: false, private: false, access: { has: obj => "side" in obj, set: (obj, value) => { obj.side = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_offset_decorators, { kind: "setter", name: "offset", static: false, private: false, access: { has: obj => "offset" in obj, set: (obj, value) => { obj.offset = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_open_decorators, { kind: "setter", name: "open", static: false, private: false, access: { has: obj => "open" in obj, set: (obj, value) => { obj.open = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_translation_decorators, { kind: "setter", name: "translation", static: false, private: false, access: { has: obj => "translation" in obj, set: (obj, value) => { obj.translation = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _transition_decorators, { kind: "field", name: "transition", static: false, private: false, access: { has: obj => "transition" in obj, get: obj => obj.transition, set: (obj, value) => { obj.transition = value; } }, metadata: _metadata }, _transition_initializers, _transition_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            _panelContainer = __runInitializers(this, _instanceExtraInitializers);
+            get panelContainer() { return this._panelContainer; }
+            dragging = false;
+            resizeObserver;
+            set thumb(value) {
+                turbo(value).addClass("turbo-drawer-thumb");
+                if (this.initialized)
+                    this.setupUILayout();
+            }
+            get thumb() { return; }
+            set panel(value) {
+                turbo(value).addClass("turbo-drawer-panel");
+                if (this.initialized)
+                    this.setupUILayout();
+            }
+            get panel() { return; }
+            set icon(_value) {
+                if (this.initialized)
+                    this.setupUILayout();
+            }
+            get icon() { return; }
+            set hideOverflow(value) {
+                turbo(this.panelContainer).setStyle("overflow", value ? "hidden" : "");
+            }
+            set attachSideToIconName(value) {
+                if (this.icon instanceof TurboIconSwitch)
+                    this.icon.appendStateToIconName = value;
+                if (value)
+                    this.rotateIconBasedOnSide = false;
+            }
+            set rotateIconBasedOnSide(value) {
+                if (value)
+                    this.attachSideToIconName = false;
+                if (this.icon instanceof TurboIconSwitch)
+                    this.icon.switchReifect.styles = {
+                        top: "transform: rotate(180deg)",
+                        bottom: "transform: rotate(0deg)",
+                        left: "transform: rotate(90deg)",
+                        right: "transform: rotate(270deg)",
+                    };
+            }
+            set side(value) {
+                turbo(this).toggleClass("top-drawer", value == exports.Side.top)
+                    .toggleClass("bottom-drawer", value == exports.Side.bottom)
+                    .toggleClass("left-drawer", value == exports.Side.left)
+                    .toggleClass("right-drawer", value == exports.Side.right);
+                this.refresh();
+            }
+            set offset(value) { }
+            get offset() { return; }
+            get isVertical() {
+                return this.side == exports.Side.top || this.side == exports.Side.bottom;
+            }
+            set open(value) {
+                if (value)
+                    this.resizeObserver?.observe(this.panel, { box: "border-box" });
+                else
+                    this.resizeObserver?.unobserve(this.panel);
+                this.refresh();
+            }
+            set translation(value) {
+                switch (this.side) {
+                    case exports.Side.top:
+                        if (this.hideOverflow)
+                            turbo(this.panelContainer).setStyle("height", value + "px");
+                        else
+                            turbo(this).setStyle("transform", `translateY(${-value}px)`);
+                        break;
+                    case exports.Side.bottom:
+                        if (this.hideOverflow)
+                            turbo(this.panelContainer).setStyle("height", value + "px");
+                        else
+                            turbo(this).setStyle("transform", `translateY(${-value}px)`);
+                        break;
+                    case exports.Side.left:
+                        if (this.hideOverflow)
+                            turbo(this.panelContainer).setStyle("width", value + "px");
+                        else
+                            turbo(this).setStyle("transform", `translateX(${-value}px)`);
+                        break;
+                    case exports.Side.right:
+                        if (this.hideOverflow)
+                            turbo(this.panelContainer).setStyle("width", value + "px");
+                        else
+                            turbo(this).setStyle("transform", `translateX(${-value}px)`);
+                        break;
+                }
+            }
+            transition = __runInitializers(this, _transition_initializers, void 0);
+            get translation() { return; }
+            initialize() {
+                super.initialize();
+                turbo(this).show(false);
+                this.enableTransition(false);
+                this.setupResizeObserver();
+                this.open = false;
+                requestAnimationFrame(() => {
+                    turbo(this).show(true);
+                    this.enableTransition(true);
+                });
+            }
+            setupUIElements() {
+                super.setupUIElements();
+                this._panelContainer = div({ classes: "turbo-drawer-panel-container" });
+            }
+            setupUILayout() {
+                super.setupUILayout();
+                turbo(this).childHandler = this;
+                const panelChildren = turbo(this).childrenArray.filter(el => el !== this.panelContainer && el !== this.thumb);
+                turbo(this).addChild([this.thumb, this.panelContainer]);
+                turbo(this.panel).addChild(panelChildren);
+                turbo(this.panelContainer).addChild(this.panel);
+                turbo(this.thumb).addChild(this.icon);
+                turbo(this).childHandler = this.panel;
+            }
+            setupUIListeners() {
+                turbo(this.thumb).on(DefaultEventName.click, (e) => {
+                    this.open = !this.open;
+                    return exports.Propagation.stopPropagation;
+                }).on(TurboEventName.dragStart, (e) => {
+                    this.dragging = true;
+                    this.enableTransition(false);
+                    return exports.Propagation.stopPropagation;
+                }).on(TurboEventName.drag, (e) => {
+                    if (!this.dragging)
+                        return;
+                    this.translation += this.isVertical ? e.scaledDeltaPosition.y : e.scaledDeltaPosition.x;
+                    return exports.Propagation.stopPropagation;
+                }).on(TurboEventName.dragEnd, (e) => {
+                    if (!this.dragging)
+                        return;
+                    this.dragging = false;
+                    const delta = e.positions.first.sub(e.origins.first);
+                    switch (this.side) {
+                        case exports.Side.top:
+                            if (this.open && delta.y > 100)
+                                this.open = false;
+                            else if (!this.open && delta.y < -100)
+                                this.open = true;
+                            break;
+                        case exports.Side.bottom:
+                            if (this.open && delta.y < -100)
+                                this.open = false;
+                            else if (!this.open && delta.y > 100)
+                                this.open = true;
+                            break;
+                        case exports.Side.left:
+                            if (this.open && delta.x > 100)
+                                this.open = false;
+                            else if (!this.open && delta.x < -100)
+                                this.open = true;
+                            break;
+                        case exports.Side.right:
+                            if (this.open && delta.x < -100)
+                                this.open = false;
+                            else if (!this.open && delta.x > 100)
+                                this.open = true;
+                            break;
+                    }
+                    this.enableTransition(true);
+                    this.refresh();
+                    return true;
+                });
+            }
+            getOppositeSide(side = this.side) {
+                switch (side) {
+                    case exports.Side.top:
+                        return exports.Side.bottom;
+                    case exports.Side.bottom:
+                        return exports.Side.top;
+                    case exports.Side.left:
+                        return exports.Side.right;
+                    case exports.Side.right:
+                        return exports.Side.left;
+                }
+            }
+            getAdjacentSide(side = this.side) {
+                switch (side) {
+                    case exports.Side.top:
+                        return exports.Side.right;
+                    case exports.Side.bottom:
+                        return exports.Side.left;
+                    case exports.Side.left:
+                        return exports.Side.top;
+                    case exports.Side.right:
+                        return exports.Side.bottom;
+                }
+            }
+            refresh() {
+                if (this.hideOverflow)
+                    turbo(this.panel).setStyle("position", "absolute", true);
+                if (this.icon instanceof TurboIconSwitch)
+                    this.icon.switchReifect.apply(this.open ? this.getOppositeSide() : this.side);
+                requestAnimationFrame(() => {
+                    this.translation = (this.open ? this.offset.open : this.offset.closed)
+                        + (this.open ? (this.isVertical ? this.panel.offsetHeight : this.panel.offsetWidth) : 0);
+                    if (this.hideOverflow)
+                        turbo(this.panel).setStyle("position", "relative", true);
+                });
+            }
+            enableTransition(b) {
+                this.transition.enabled = b;
+                this.transition.apply();
+            }
+            setupResizeObserver() {
+                let mutex = 0;
+                let initializationLock = true;
+                turbo(this).on("transitionstart", () => mutex++)
+                    .on("transitionend", () => { mutex--; initializationLock = false; });
+                turbo(this.panelContainer).on("transitionstart", () => mutex++)
+                    .on("transitionend", () => mutex--);
+                this.resizeObserver = new ResizeObserver(entries => {
+                    if (!this.open || this.dragging || mutex > 0 || initializationLock)
+                        return;
+                    const entry = Array.isArray(entries[0].borderBoxSize) ? entries[0].borderBoxSize[0] : entries[0].borderBoxSize;
+                    const size = entry[this.isVertical ? "blockSize" : "inlineSize"];
+                    this.translation = (this.open ? this.offset.open : this.offset.closed) + size;
+                });
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _transition_extraInitializers);
+            }
+        };
+    })();
+    /**
+     * @group Components
+     * @category TurboDrawer
+     */
+    function drawer(properties) {
+        // if (!properties.tag) properties.tag = "turbo-drawer";
+        return TurboDrawer.create(properties);
+    }
+    define(TurboDrawer);
+
+    /**
+     * @group Components
+     * @category TurboPopup
+     */
+    exports.PopupFallbackMode = void 0;
+    (function (PopupFallbackMode) {
+        PopupFallbackMode["invert"] = "invert";
+        PopupFallbackMode["offset"] = "offset";
+        PopupFallbackMode["none"] = "none";
+    })(exports.PopupFallbackMode || (exports.PopupFallbackMode = {}));
+
+    var css_248z$1 = "#turbo-popup-parent-element{display:block;left:0;position:fixed;top:0;z-index:1000}.turbo-popup{display:block;inset:auto;overflow:auto;position:fixed}";
+    styleInject(css_248z$1);
+
+    /**
+     * @group Components
+     * @category TurboPopup
+     */
+    let TurboPopup = (() => {
+        let _classSuper = TurboElement;
+        let _instanceExtraInitializers = [];
+        let _static_parentElement_decorators;
+        let _static_parentElement_initializers = [];
+        let _static_parentElement_extraInitializers = [];
+        let _anchor_decorators;
+        let _anchor_initializers = [];
+        let _anchor_extraInitializers = [];
+        let _set_popupPosition_decorators;
+        let _set_anchorPosition_decorators;
+        let _set_viewportMargin_decorators;
+        let _set_offsetFromAnchor_decorators;
+        let _set_fallbackModes_decorators;
+        let _get_rect_decorators;
+        let _get_anchorRect_decorators;
+        let _get_computedStyle_decorators;
+        let _get_anchorComputedStyle_decorators;
+        let _get_computedMargins_decorators;
+        let _recomputePosition_decorators;
+        return class TurboPopup extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _static_parentElement_decorators = [auto({ defaultValue: div({ parent: document.body, id: "turbo-popup-parent-element" }) })];
+                _anchor_decorators = [signal];
+                _set_popupPosition_decorators = [auto({ preprocessValue: (value) => new Point(value).bound(0, 100) })];
+                _set_anchorPosition_decorators = [auto({ preprocessValue: (value) => new Point(value).bound(0, 100) })];
+                _set_viewportMargin_decorators = [auto({ preprocessValue: (value) => new Point(value) })];
+                _set_offsetFromAnchor_decorators = [auto({ preprocessValue: (value) => new Point(value) })];
+                _set_fallbackModes_decorators = [auto({ preprocessValue: (value) => typeof value !== "object" ? { x: value, y: value } : value })];
+                _get_rect_decorators = [cache({ clearOnNextFrame: true })];
+                _get_anchorRect_decorators = [cache({ clearOnNextFrame: true })];
+                _get_computedStyle_decorators = [cache({ clearOnNextFrame: true })];
+                _get_anchorComputedStyle_decorators = [cache({ clearOnNextFrame: true })];
+                _get_computedMargins_decorators = [cache({ clearOnNextFrame: true })];
+                _recomputePosition_decorators = [effect];
+                __esDecorate(this, null, _set_popupPosition_decorators, { kind: "setter", name: "popupPosition", static: false, private: false, access: { has: obj => "popupPosition" in obj, set: (obj, value) => { obj.popupPosition = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_anchorPosition_decorators, { kind: "setter", name: "anchorPosition", static: false, private: false, access: { has: obj => "anchorPosition" in obj, set: (obj, value) => { obj.anchorPosition = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_viewportMargin_decorators, { kind: "setter", name: "viewportMargin", static: false, private: false, access: { has: obj => "viewportMargin" in obj, set: (obj, value) => { obj.viewportMargin = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_offsetFromAnchor_decorators, { kind: "setter", name: "offsetFromAnchor", static: false, private: false, access: { has: obj => "offsetFromAnchor" in obj, set: (obj, value) => { obj.offsetFromAnchor = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_fallbackModes_decorators, { kind: "setter", name: "fallbackModes", static: false, private: false, access: { has: obj => "fallbackModes" in obj, set: (obj, value) => { obj.fallbackModes = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_rect_decorators, { kind: "getter", name: "rect", static: false, private: false, access: { has: obj => "rect" in obj, get: obj => obj.rect }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_anchorRect_decorators, { kind: "getter", name: "anchorRect", static: false, private: false, access: { has: obj => "anchorRect" in obj, get: obj => obj.anchorRect }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_computedStyle_decorators, { kind: "getter", name: "computedStyle", static: false, private: false, access: { has: obj => "computedStyle" in obj, get: obj => obj.computedStyle }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_anchorComputedStyle_decorators, { kind: "getter", name: "anchorComputedStyle", static: false, private: false, access: { has: obj => "anchorComputedStyle" in obj, get: obj => obj.anchorComputedStyle }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _get_computedMargins_decorators, { kind: "getter", name: "computedMargins", static: false, private: false, access: { has: obj => "computedMargins" in obj, get: obj => obj.computedMargins }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _recomputePosition_decorators, { kind: "method", name: "recomputePosition", static: false, private: false, access: { has: obj => "recomputePosition" in obj, get: obj => obj.recomputePosition }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _static_parentElement_decorators, { kind: "field", name: "parentElement", static: true, private: false, access: { has: obj => "parentElement" in obj, get: obj => obj.parentElement, set: (obj, value) => { obj.parentElement = value; } }, metadata: _metadata }, _static_parentElement_initializers, _static_parentElement_extraInitializers);
+                __esDecorate(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                popupPosition: { x: 0, y: -100 },
+                anchorPosition: { x: 0, y: 100 },
+                viewportMargin: 4,
+                offsetFromAnchor: { x: 0, y: 4 },
+                fallbackModes: { x: exports.PopupFallbackMode.offset, y: exports.PopupFallbackMode.invert }
+            };
+            static parentElement = __runInitializers(this, _static_parentElement_initializers, void 0);
+            anchor = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _anchor_initializers, document.body));
+            set popupPosition(value) { }
+            get popupPosition() { return; }
+            set anchorPosition(value) { }
+            get anchorPosition() { return; }
+            set viewportMargin(value) { }
+            get viewportMargin() { return; }
+            set offsetFromAnchor(value) { }
+            get offsetFromAnchor() { return; }
+            set fallbackModes(value) { }
+            get fallbackModes() { return; }
+            get rect() {
+                return this.getBoundingClientRect();
+            }
+            get anchorRect() {
+                return this.anchor.getBoundingClientRect();
+            }
+            get computedStyle() {
+                return window.getComputedStyle(this);
+            }
+            get anchorComputedStyle() {
+                return window.getComputedStyle(this.anchor);
+            }
+            get computedMargins() {
+                return {
+                    x: parseFloat(this.computedStyle.marginLeft) + parseFloat(this.computedStyle.marginRight),
+                    y: parseFloat(this.computedStyle.marginTop) + parseFloat(this.computedStyle.marginBottom)
+                };
+            }
+            initialize() {
+                super.initialize();
+                this.show(false);
+                if (!this.parentElement)
+                    turbo(this).addToParent(TurboPopup.parentElement);
+            }
+            setupUIListeners() {
+                super.setupUIListeners();
+                document.addEventListener(DefaultEventName.scroll, () => this.show(false), { capture: true, passive: true });
+                window.addEventListener(DefaultEventName.resize, () => { if (turbo(this).isShown)
+                    this.recomputePosition(); }, { passive: true });
+                turbo(document.body).on(DefaultEventName.click, e => {
+                    if (!turbo(this).isShown)
+                        return;
+                    const t = e.target;
+                    if (this.contains(t))
+                        return;
+                    if (this.anchor instanceof Node && this.anchor.contains(t))
+                        return;
+                    this.show(false);
+                }, { capture: true });
+            }
+            recomputePosition() {
+                if (!this.anchor)
+                    return;
+                turbo(this).setStyles({ maxHeight: "", maxWidth: "" }, true);
+                const left = this.computeAxis(exports.Direction.horizontal);
+                const top = this.computeAxis(exports.Direction.vertical);
+                turbo(this).setStyles({ left: `${left}px`, top: `${top}px` });
+                const maxWidth = Math.max(0, Math.min(window.innerWidth - 2 * this.viewportMargin.x, window.innerWidth - 2 * this.viewportMargin.x - this.computedMargins.x));
+                const maxHeight = Math.max(0, Math.min(window.innerHeight - 2 * this.viewportMargin.y, window.innerHeight - 2 * this.viewportMargin.y - this.computedMargins.y));
+                turbo(this).setStyle("maxWidth", `${maxWidth}px`);
+                turbo(this).setStyle("maxHeight", `${maxHeight}px`);
+            }
+            computeAxis(direction) {
+                const axis = direction === exports.Direction.horizontal ? "x" : "y";
+                const sizeAxis = direction === exports.Direction.horizontal ? "width" : "height";
+                const viewportSize = direction === exports.Direction.horizontal ? window.innerWidth : window.innerHeight;
+                const parentStart = this.anchorRect[direction === exports.Direction.horizontal ? "left" : "top"];
+                const popupSize = this.rect[sizeAxis] + this.computedMargins[axis];
+                const min = this.viewportMargin[axis];
+                const max = viewportSize - this.viewportMargin[axis] - popupSize;
+                const base = parentStart + (this.anchorRect[sizeAxis] * this.anchorPosition[axis] / 100)
+                    - (popupSize * this.popupPosition[axis] / 100) + this.offsetFromAnchor[axis];
+                const fitsBase = base >= min && base <= max;
+                if (fitsBase || this.fallbackModes[axis] === exports.PopupFallbackMode.offset) {
+                    return Math.min(Math.max(base, min), max);
+                }
+                const flipped = parentStart + this.anchorRect[sizeAxis] * (1 - this.anchorPosition[axis] / 100)
+                    - popupSize * (1 - this.popupPosition[axis] / 100) - this.offsetFromAnchor[axis];
+                const fitsFlip = flipped >= min && flipped <= max;
+                let finalOffset;
+                if (fitsFlip)
+                    finalOffset = flipped;
+                else if (fitsBase)
+                    finalOffset = base;
+                else {
+                    const pick = Math.abs(base - Math.min(Math.max(base, min), max)) <=
+                        Math.abs(flipped - Math.min(Math.max(flipped, min), max)) ? base : flipped;
+                    finalOffset = Math.min(Math.max(pick, min), max);
+                }
+                return finalOffset;
+            }
+            show(b) {
+                if (b) {
+                    this.style.visibility = "hidden";
+                    this.style.display = "";
+                    this.recomputePosition();
+                    this.style.visibility = "";
+                    turbo(this).show(true);
+                }
+                else {
+                    turbo(this).setStyles({ maxHeight: "", maxWidth: "" }, true).show(false);
+                }
+                return this;
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _anchor_extraInitializers);
+            }
+            static {
+                __runInitializers(this, _static_parentElement_extraInitializers);
+            }
+        };
+    })();
+    define(TurboPopup);
+
+    /**
+     * @class AnchorPoint
+     * @group Components
+     * @category AnchorPoint
+     */
+    let AnchorPoint = (() => {
+        let _instanceExtraInitializers = [];
+        let _set_value_decorators;
+        return class AnchorPoint {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _set_value_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (typeof value === "object" && value instanceof Point)
+                                return value;
+                            if (Object.values(exports.Anchor).includes(value))
+                                return AnchorPoint.enumToPoint(value);
+                            return this._value;
+                        }
+                    })];
+                __esDecorate(this, null, _set_value_decorators, { kind: "setter", name: "value", static: false, private: false, access: { has: obj => "value" in obj, set: (obj, value) => { obj.value = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            constructor(anchor) {
+                __runInitializers(this, _instanceExtraInitializers);
+                this.value = anchor;
+            }
+            set value(value) { }
+            get value() { return; }
+            get enum() {
+                return AnchorPoint.pointToEnum(this.value);
+            }
+            static pointToEnum(value) {
+                if (!value)
+                    return exports.Anchor.Center;
+                const snapAxis = (n) => n < -50 ? -100 : n > 50 ? 100 : 0;
+                const x = snapAxis(value.x);
+                const y = snapAxis(value.y);
+                if (y === -100) {
+                    if (x === -100)
+                        return exports.Anchor.TopLeft;
+                    if (x === 0)
+                        return exports.Anchor.TopMiddle;
+                    return exports.Anchor.TopRight;
+                }
+                if (y === 0) {
+                    if (x === -100)
+                        return exports.Anchor.CenterLeft;
+                    if (x === 0)
+                        return exports.Anchor.Center;
+                    return exports.Anchor.CenterRight;
+                }
+                if (x === -100)
+                    return exports.Anchor.BottomLeft;
+                if (x === 0)
+                    return exports.Anchor.BottomMiddle;
+                return exports.Anchor.BottomRight;
+            }
+            static enumToPoint(value) {
+                if (!value)
+                    return new Point();
+                switch (value) {
+                    case exports.Anchor.TopLeft:
+                        return new Point(-100, -100);
+                    case exports.Anchor.TopMiddle:
+                        return new Point(0, -100);
+                    case exports.Anchor.TopRight:
+                        return new Point(100, -100);
+                    case exports.Anchor.CenterLeft:
+                        return new Point(-100, 0);
+                    case exports.Anchor.Center:
+                        return new Point(0, 0);
+                    case exports.Anchor.CenterRight:
+                        return new Point(100, 0);
+                    case exports.Anchor.BottomLeft:
+                        return new Point(-100, 100);
+                    case exports.Anchor.BottomMiddle:
+                        return new Point(0, 100);
+                    case exports.Anchor.BottomRight:
+                        return new Point(100, 100);
+                }
+            }
+        };
+    })();
+
+    /**
+     * @group Utilities
+     * @category Geometry
+     */
+    function closestPointOnSegment(p, a, b) {
+        const ab = b.sub(a);
+        const ap = p.sub(a);
+        const abLen2 = ab.x * ab.x + ab.y * ab.y;
+        if (abLen2 <= 1e-12)
+            return a;
+        let t = (ap.x * ab.x + ap.y * ab.y) / abLen2;
+        t = Math.max(0, Math.min(1, t));
+        return new Point(a.x + ab.x * t, a.y + ab.y * t);
+    }
+    /**
+     * @group Utilities
+     * @category Geometry
+     */
+    function intersectSegments(a, b, c, d) {
+        const r = b.sub(a);
+        const s = d.sub(c);
+        const rxs = r.x * s.y - r.y * s.x;
+        if (Math.abs(rxs) < 1e-12)
+            return null; // parallel (ignore collinear)
+        const q_p = c.sub(a);
+        const t = (q_p.x * s.y - q_p.y * s.x) / rxs;
+        const u = (q_p.x * r.y - q_p.y * r.x) / rxs;
+        if (t >= 0 && t <= 1 && u >= 0 && u <= 1)
+            return new Point(a.x + t * r.x, a.y + t * r.y);
+        return null;
+    }
+
+    /**
+     * @group Utilities
+     * @category Geometry
+     */
+    function isPointInConvexPolygon(p, poly) {
+        let sign = 0;
+        for (let i = 0; i < poly.length; i++) {
+            const a = poly[i];
+            const b = poly[(i + 1) % poly.length];
+            const ab = b.sub(a);
+            const ap = p.sub(a);
+            const z = ab.x * ap.y - ab.y * ap.x;
+            if (Math.abs(z) < 1e-12)
+                continue;
+            const s = z > 0 ? 1 : -1;
+            if (sign === 0)
+                sign = s;
+            else if (sign !== s)
+                return false;
+        }
+        return true;
+    }
+    /**
+     * @group Utilities
+     * @category Geometry
+     */
+    function segmentIntersectsPolygon(a, b, poly) {
+        for (let i = 0; i < poly.length; i++) {
+            const c = poly[i];
+            const d = poly[(i + 1) % poly.length];
+            const hit = intersectSegments(a, b, c, d);
+            if (hit)
+                return hit;
+        }
+        if (isPointInConvexPolygon(a, poly))
+            return a;
+        if (isPointInConvexPolygon(b, poly))
+            return b;
+        return null;
+    }
+    /**
+     * @group Utilities
+     * @category Geometry
+     */
+    function projectPolygonOntoAxis(points, axis) {
+        const len = Math.hypot(axis.x, axis.y) || 1;
+        const ux = axis.x / len, uy = axis.y / len;
+        let min = Infinity, max = -Infinity;
+        for (const p of points) {
+            const v = p.x * ux + p.y * uy;
+            if (v < min)
+                min = v;
+            if (v > max)
+                max = v;
+        }
+        return [min, max];
+    }
+    /**
+     * @group Utilities
+     * @category Geometry
+     */
+    function hasSeparatingAxisForPolygons(polyA, polyB) {
+        for (let i = 0; i < polyA.length; i++) {
+            const p1 = polyA[i];
+            const p2 = polyA[(i + 1) % polyA.length];
+            const edge = p2.sub(p1);
+            const axis = new Point(-edge.y, edge.x);
+            const [aMin, aMax] = projectPolygonOntoAxis(polyA, axis);
+            const [bMin, bMax] = projectPolygonOntoAxis(polyB, axis);
+            if (aMax < bMin || bMax < aMin)
+                return true;
+        }
+        return false;
+    }
+    /**
+     * @group Utilities
+     * @category Geometry
+     */
+    function polygonsIntersect(a, b) {
+        return !hasSeparatingAxisForPolygons(a, b) && !hasSeparatingAxisForPolygons(b, a);
+    }
+
+    /**
+     * @group Utilities
+     * @category Geometry
+     */
+    function aabbCorners(r) {
+        const x0 = r.x, y0 = r.y;
+        const x1 = r.x + r.width, y1 = r.y + r.height;
+        return [new Point(x0, y0), new Point(x1, y0), new Point(x1, y1), new Point(x0, y1)];
+    }
+    /**
+     * @group Utilities
+     * @category Geometry
+     */
+    function closestPointOnAabb(p, r) {
+        const x0 = r.x, y0 = r.y;
+        const x1 = r.x + r.width, y1 = r.y + r.height;
+        const x = Math.max(x0, Math.min(x1, p.x));
+        const y = Math.max(y0, Math.min(y1, p.y));
+        return new Point(x, y);
+    }
+
+    /**
+     * @group Utilities
+     * @category CSS
+     * @description Constructs a single CSS string from a template literal containing CSS rules.
+     */
+    function css(strings, ...values) {
+        let str = "";
+        strings.forEach((string, i) => {
+            str += string + (values[i] || '');
+        });
+        return str;
+    }
+
+    /**
+     * @class TurboRect
+     * @group Components
+     * @category TurboRect
+     */
+    class TurboRect extends DOMRect {
+        angleRad = 0;
+        anchor;
+        constructor(properties = {}) {
+            super(properties.x ?? 0, properties.y ?? 0, properties.width ?? 0, properties.height ?? 0);
+            if (properties.angleRad !== undefined)
+                this.angleRad = properties.angleRad;
+            else if (properties.angleDeg !== undefined)
+                this.angleDeg = properties.angleDeg;
+            this.anchor = properties.anchor instanceof AnchorPoint ? properties.anchor : new AnchorPoint(properties.anchor);
+        }
+        static fromSegment(a, b, thickness = 1, properties = {}) {
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const length = Math.hypot(dx, dy);
+            const angleRad = Math.atan2(dy, dx);
+            const mid = new Point((a.x + b.x) / 2, (a.y + b.y) / 2);
+            const x = mid.x - length / 2;
+            const y = mid.y - thickness / 2;
+            return new TurboRect({ x, y, width: length, height: thickness, ...properties, angleRad });
+        }
+        static fromDOMRect(rect, properties = {}) {
+            return new TurboRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height, ...properties });
+        }
+        render() {
+            return element({ tag: "div", style: css `position: absolute; 
+                width: ${this.width}px; height: ${this.height}px; 
+                top: ${this.y}px; left: ${this.x}px; background-color: red; pointer-events: none; opacity: 0.4;
+                transform: rotate(${this.angleRad}rad)` });
+        }
+        get angleDeg() {
+            return (this.angleRad * 180) / Math.PI;
+        }
+        set angleDeg(value) {
+            this.angleRad = (value * Math.PI) / 180;
+        }
+        get center() {
+            return new Point(this.x + this.width / 2, this.y + this.height / 2);
+        }
+        get xAxis() {
+            return new Point(Math.cos(this.angleRad), Math.sin(this.angleRad));
+        }
+        get yAxis() {
+            return new Point(-Math.sin(this.angleRad), Math.cos(this.angleRad));
+        }
+        get half() {
+            return new Point(this.width / 2, this.height / 2);
+        }
+        /** Corners in world/screen coords (clockwise) */
+        get points() {
+            const c = this.center;
+            const ux = this.xAxis;
+            const uy = this.yAxis;
+            const half = this.half;
+            const ex = new Point(ux.x * half.x, ux.y * half.x);
+            const ey = new Point(uy.x * half.y, uy.y * half.y);
+            return [c.sub(ex).sub(ey), c.add(ex).sub(ey), c.add(ex).add(ey), c.sub(ex).add(ey)];
+        }
+        closestPoint(...args) {
+            // (1) Point -> Closest point ON THIS rect to that point
+            if (args.length === 1 && args[0] instanceof Point) {
+                const point = args[0];
+                const c = this.center;
+                const ux = this.xAxis;
+                const uy = this.yAxis;
+                const d = point.sub(c);
+                const lx = d.x * ux.x + d.y * ux.y;
+                const ly = d.x * uy.x + d.y * uy.y;
+                const cx = trim(lx, this.width / 2, -this.width / 2);
+                const cy = trim(ly, this.height / 2, -this.height / 2);
+                return c.add(new Point(ux.x * cx, ux.y * cx)).add(new Point(uy.x * cy, uy.y * cy));
+            }
+            // (2) Segment AB -> Closest point ON THIS rect to segment AB
+            if (args.length === 2 && args[0] instanceof Point && args[1] instanceof Point) {
+                const a = args[0];
+                const b = args[1];
+                const thisPoly = this.points;
+                // If segment intersects this rect, distance is 0.
+                const hit = segmentIntersectsPolygon(a, b, thisPoly);
+                if (hit)
+                    return hit;
+                // Candidates on THIS rect:
+                // - closest points to endpoints
+                // - corners of this rect
+                let best = this.closestPoint(a);
+                let bestDist = Point.dist(best, a);
+                const pb = this.closestPoint(b);
+                const db = Point.dist(pb, b);
+                if (db < bestDist) {
+                    bestDist = db;
+                    best = pb;
+                }
+                for (const corner of thisPoly) {
+                    const q = closestPointOnSegment(corner, a, b);
+                    const d = Point.dist(corner, q);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        best = corner;
+                    }
+                }
+                return best;
+            }
+            // (3) Rect (AABB DOMRect or TurboRect)
+            if (args.length === 1 && (args[0] instanceof DOMRect || args[0] instanceof TurboRect)) {
+                const other = args[0];
+                const thisPoly = this.points;
+                const otherPoly = other instanceof TurboRect ? other.points : aabbCorners(other);
+                // If intersects, any point with distance 0 is fine
+                if (polygonsIntersect(thisPoly, otherPoly)) {
+                    const oc = other instanceof TurboRect ? other.center
+                        : new Point(other.x + other.width / 2, other.y + other.height / 2);
+                    return this.closestPoint(oc);
+                }
+                // Otherwise pick the point ON THIS rect that minimizes distance to the other shape
+                let best = thisPoly[0];
+                let bestDist = Infinity;
+                // distance from a point p to the other rect
+                const distToOther = (p) => {
+                    const q = other instanceof TurboRect ? other.closestPoint(p) : closestPointOnAabb(p, other);
+                    return Point.dist(p, q);
+                };
+                // 1) corners of THIS rect
+                for (const p of thisPoly) {
+                    const d = distToOther(p);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        best = p;
+                    }
+                }
+                // 2) closest points on THIS rect to corners of OTHER rect
+                for (const p of otherPoly) {
+                    const q = this.closestPoint(p); // ON THIS rect
+                    const d = distToOther(q);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        best = q;
+                    }
+                }
+                return best;
+            }
+            return;
+        }
+        distanceTo(...args) {
+            // Point
+            if (args.length === 1 && args[0] instanceof Point) {
+                const p = args[0];
+                const q = this.closestPoint(p);
+                return Point.dist(p, q);
+            }
+            // Segment AB
+            if (args.length === 2 && args[0] instanceof Point && args[1] instanceof Point) {
+                const a = args[0];
+                const b = args[1];
+                const pr = this.closestPoint(a, b);
+                const ps = closestPointOnSegment(pr, a, b);
+                return Point.dist(pr, ps);
+            }
+            // Rect
+            if (args.length === 1 && (args[0] instanceof DOMRect || args[0] instanceof TurboRect)) {
+                const other = args[0];
+                const pr = this.closestPoint(other);
+                const po = other instanceof TurboRect ? other.closestPoint(pr) : closestPointOnAabb(pr, other);
+                return Point.dist(pr, po);
+            }
+            return NaN;
+        }
+        overlaps(...args) {
+            // (1) Point
+            if (args.length === 1 && args[0] instanceof Point) {
+                const p = args[0];
+                const q = this.closestPoint(p);
+                return Point.dist(p, q) <= 1e-6;
+            }
+            // (2) Segment AB
+            if (args.length === 2 && args[0] instanceof Point && args[1] instanceof Point) {
+                const a = args[0];
+                const b = args[1];
+                return segmentIntersectsPolygon(a, b, this.points) !== null;
+            }
+            // (3) Rect (DOMRect or TurboRect)
+            if (args.length === 1 && (args[0] instanceof TurboRect || args[0] instanceof DOMRect)) {
+                const other = args[0];
+                const polyA = this.points;
+                const polyB = other instanceof TurboRect ? other.points : aabbCorners(other);
+                return polygonsIntersect(polyA, polyB);
+            }
+            return false;
+        }
+    }
+
+    var css_248z = "turbo-dropdown{display:inline-block;position:relative}turbo-dropdown>.turbo-popup{background-color:#fff;border:.1em solid #5e5e5e;border-radius:.4em;display:flex;flex-direction:column;overflow:hidden}turbo-dropdown>.turbo-popup>turbo-select-entry{padding:.5em}turbo-dropdown>.turbo-popup>turbo-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}turbo-dropdown>turbo-select-entry{padding:.5em .7em;width:100%}turbo-dropdown>turbo-select-entry:hover{background-color:#d7d7d7}turbo-dropdown>turbo-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}";
+    styleInject(css_248z);
+
+    /**
+     * @class TurboDropdown
+     * @group Components
+     * @category TurboDropdown
+     *
+     * @description Dropdown class for creating Turbo button elements.
+     * @extends TurboElement
+     */
+    let TurboDropdown = (() => {
+        let _classSuper = TurboSelectElement;
+        let _instanceExtraInitializers = [];
+        let _selectorClasses_decorators;
+        let _selectorClasses_initializers = [];
+        let _selectorClasses_extraInitializers = [];
+        let _popupClasses_decorators;
+        let _popupClasses_initializers = [];
+        let _popupClasses_extraInitializers = [];
+        let _set_selector_decorators;
+        let _set_popup_decorators;
+        return class TurboDropdown extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _selectorClasses_decorators = [auto({
+                        callBefore: function () { turbo(this.selector).removeClass(this.selectorClasses); },
+                        callAfter: function () { turbo(this.selector).addClass(this.selectorClasses); }
+                    })];
+                _popupClasses_decorators = [auto({
+                        callBefore: function () { turbo(this.popup).removeClass(this.popupClasses); },
+                        callAfter: function () { turbo(this.popup).addClass(this.popupClasses); }
+                    })];
+                _set_selector_decorators = [auto({
+                        setIfUndefined: true,
+                        preprocessValue: function (value) {
+                            if (value instanceof HTMLElement)
+                                return value;
+                            const text = typeof value === "string" ? value : stringify(this.select.getValue(this.entries[0]));
+                            if (this.selector instanceof TurboButton)
+                                this.selector.text = text;
+                            else
+                                return TurboButton.create({ text, elementTag: this.selectorTag });
+                        }
+                    })];
+                _set_popup_decorators = [auto({ defaultValueCallback: () => TurboPopup.create() })];
+                __esDecorate(this, null, _set_selector_decorators, { kind: "setter", name: "selector", static: false, private: false, access: { has: obj => "selector" in obj, set: (obj, value) => { obj.selector = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_popup_decorators, { kind: "setter", name: "popup", static: false, private: false, access: { has: obj => "popup" in obj, set: (obj, value) => { obj.popup = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _selectorClasses_decorators, { kind: "field", name: "selectorClasses", static: false, private: false, access: { has: obj => "selectorClasses" in obj, get: obj => obj.selectorClasses, set: (obj, value) => { obj.selectorClasses = value; } }, metadata: _metadata }, _selectorClasses_initializers, _selectorClasses_extraInitializers);
+                __esDecorate(null, null, _popupClasses_decorators, { kind: "field", name: "popupClasses", static: false, private: false, access: { has: obj => "popupClasses" in obj, get: obj => obj.popupClasses, set: (obj, value) => { obj.popupClasses = value; } }, metadata: _metadata }, _popupClasses_initializers, _popupClasses_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                selectorTag: "h4",
+            };
+            select = (__runInitializers(this, _instanceExtraInitializers), TurboSelect.create({
+                onEntryClicked: () => this.openPopup(false)
+            }));
+            popupOpen = false;
+            selectorTag;
+            selectorClasses = __runInitializers(this, _selectorClasses_initializers, void 0);
+            popupClasses = (__runInitializers(this, _selectorClasses_extraInitializers), __runInitializers(this, _popupClasses_initializers, void 0));
+            /**
+             * The dropdown's selector element.
+             */
+            set selector(value) {
+                if (!(value instanceof HTMLElement))
+                    return;
+                turbo(value)
+                    .addClass(this.selectorClasses)
+                    .on(DefaultEventName.click, (e) => {
+                    this.openPopup(!this.popupOpen);
+                    return exports.Propagation.stopPropagation;
+                });
+                if (this.popup instanceof TurboPopup)
+                    this.popup.anchor = value;
+                turbo(this).addChild(value);
+                if (value instanceof TurboButton)
+                    this.select.onSelect = () => value.text = this.stringSelectedValue;
+            }
+            get selector() { return; }
+            /**
+             * The dropdown's popup element.
+             */
+            set popup(value) {
+                if (value instanceof TurboPopup)
+                    value.anchor = this.selector;
+                turbo(value).addClass(this.popupClasses);
+                this.select.parent = value;
+            }
+            initialize() {
+                super.initialize();
+                this.selector;
+                turbo(document.body).on(DefaultEventName.click, () => e => {
+                    if (this.popupOpen && !this.contains(e.target))
+                        this.openPopup(false);
+                }, { capture: true });
+            }
+            openPopup(b) {
+                if (this.popupOpen == b)
+                    return;
+                this.popupOpen = b;
+                if ("show" in this.popup && typeof this.popup.show === "function")
+                    this.popup.show(b);
+                else
+                    turbo(this.popup).show(b);
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _popupClasses_extraInitializers);
+            }
+        };
+    })();
+    define(TurboDropdown);
+
+    /**
+     * @group Components
+     * @category TurboMarkingMenu
+     */
+    let TurboMarkingMenu = (() => {
+        let _classSuper = TurboElement;
+        let _startAngle_decorators;
+        let _startAngle_initializers = [];
+        let _startAngle_extraInitializers = [];
+        let _endAngle_decorators;
+        let _endAngle_initializers = [];
+        let _endAngle_extraInitializers = [];
+        return class TurboMarkingMenu extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _startAngle_decorators = [auto({
+                        initialValue: 0,
+                        preprocessValue: (value) => value - Math.PI / 2
+                    })];
+                _endAngle_decorators = [auto({
+                        initialValue: Math.PI * 2,
+                        preprocessValue: (value) => value - Math.PI / 2
+                    })];
+                __esDecorate(null, null, _startAngle_decorators, { kind: "field", name: "startAngle", static: false, private: false, access: { has: obj => "startAngle" in obj, get: obj => obj.startAngle, set: (obj, value) => { obj.startAngle = value; } }, metadata: _metadata }, _startAngle_initializers, _startAngle_extraInitializers);
+                __esDecorate(null, null, _endAngle_decorators, { kind: "field", name: "endAngle", static: false, private: false, access: { has: obj => "endAngle" in obj, get: obj => obj.endAngle, set: (obj, value) => { obj.endAngle = value; } }, metadata: _metadata }, _endAngle_initializers, _endAngle_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            transition;
+            currentOrigin;
+            minDragDistance = 20;
+            semiMajor = 50;
+            semiMinor = 45;
+            startAngle = __runInitializers(this, _startAngle_initializers, void 0);
+            endAngle = (__runInitializers(this, _startAngle_extraInitializers), __runInitializers(this, _endAngle_initializers, void 0));
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _endAngle_extraInitializers);
+            }
+        };
+    })();
+    define(TurboMarkingMenu);
+
+    /**
+     * @group Utilities
+     * @category Interpolation
+     *
+     * @description Interpolates x linearly between (x1, y1) and (x2, y2). If strict is true, then x will not be allowed
+     * to go beyond [x1, x2].
+     * @param x
+     * @param x1
+     * @param x2
+     * @param y1
+     * @param y2
+     * @param strict
+     */
+    function linearInterpolation(x, x1, x2, y1, y2, strict = true) {
+        if (strict) {
+            const xMax = Math.max(x1, x2);
+            const xMin = Math.min(x1, x2);
+            if (x > xMax)
+                x = xMax;
+            if (x < xMin)
+                x = xMin;
+        }
+        return y1 + ((x - x1) * (y2 - y1)) / (x2 - x1);
+    }
+
+    /**
+     * @class TurboSelectWheel
+     * @group Components
+     * @category TurboSelectWheel
+     *
+     * @extends TurboSelectElement
+     * @description A swipeable selection wheel. Entries are always position absolute, fanned out by a
+     * continuous pixel offset. Dragging moves all entries in real time; releasing snaps to the nearest.
+     * The container sizes to the selected entry. Visual state is driven by `entryTransitionReifect`
+     * (CSS transitions) and `computeAndApplyStyling` (per-entry opacity/scale/transform).
+     */
+    let TurboSelectWheel = (() => {
+        let _classSuper = TurboSelectElement;
+        let _instanceExtraInitializers = [];
+        let _opacity_decorators;
+        let _opacity_initializers = [];
+        let _opacity_extraInitializers = [];
+        let _set_size_decorators;
+        let _set_entryTransitionReifect_decorators;
+        let _set_transitionDuration_decorators;
+        let _set_customReifect_decorators;
+        let _set_alwaysOpen_decorators;
+        let _set_open_decorators;
+        return class TurboSelectWheel extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _opacity_decorators = [auto({
+                        defaultValue: { max: 1, min: 0 },
+                        preprocessValue: (value) => ({
+                            max: trim(value?.max ?? 1, 1),
+                            min: trim(value?.min ?? 0, 1),
+                        }),
+                    })];
+                _set_size_decorators = [auto({
+                        defaultValue: { max: 100, min: -100 },
+                        preprocessValue: (value) => typeof value === "object" ? value : { max: value ?? 100, min: -(value ?? 100) },
+                    })];
+                _set_entryTransitionReifect_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (!value)
+                                return;
+                            if (value instanceof Reifect)
+                                return value;
+                            return new Reifect(value);
+                        }
+                    })];
+                _set_transitionDuration_decorators = [auto({ override: true })];
+                _set_customReifect_decorators = [auto({
+                        preprocessValue: function (value) {
+                            if (!value)
+                                return null;
+                            if (value instanceof Reifect)
+                                return value;
+                            return new Reifect(value);
+                        },
+                    })];
+                _set_alwaysOpen_decorators = [auto({ defaultValue: false })];
+                _set_open_decorators = [auto()];
+                __esDecorate(this, null, _set_size_decorators, { kind: "setter", name: "size", static: false, private: false, access: { has: obj => "size" in obj, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_entryTransitionReifect_decorators, { kind: "setter", name: "entryTransitionReifect", static: false, private: false, access: { has: obj => "entryTransitionReifect" in obj, set: (obj, value) => { obj.entryTransitionReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_transitionDuration_decorators, { kind: "setter", name: "transitionDuration", static: false, private: false, access: { has: obj => "transitionDuration" in obj, set: (obj, value) => { obj.transitionDuration = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_customReifect_decorators, { kind: "setter", name: "customReifect", static: false, private: false, access: { has: obj => "customReifect" in obj, set: (obj, value) => { obj.customReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_alwaysOpen_decorators, { kind: "setter", name: "alwaysOpen", static: false, private: false, access: { has: obj => "alwaysOpen" in obj, set: (obj, value) => { obj.alwaysOpen = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _set_open_decorators, { kind: "setter", name: "open", static: false, private: false, access: { has: obj => "open" in obj, set: (obj, value) => { obj.open = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _opacity_decorators, { kind: "field", name: "opacity", static: false, private: false, access: { has: obj => "opacity" in obj, get: obj => obj.opacity, set: (obj, value) => { obj.opacity = value; } }, metadata: _metadata }, _opacity_initializers, _opacity_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = { transitionDuration: 0.3 };
+            _currentPosition = (__runInitializers(this, _instanceExtraInitializers), 0);
+            _index = 0;
+            sizePerEntry = [];
+            positionPerEntry = [];
+            totalSize = 0;
+            dragLimitOffset = 30;
+            openTimeout = 3000;
+            direction = exports.Direction.horizontal;
+            scale = { max: 1, min: 0.5 };
+            generateCustomStyling;
+            dragging = false;
+            openTimer;
+            initialize() {
+                const initEntry = (entry) => {
+                    turbo(entry).setStyles({ position: "absolute", whiteSpace: "nowrap" }, true);
+                    this.entryTransitionReifect?.attach(entry);
+                    this.customReifect?.attach(entry);
+                    turbo(entry)
+                        .on(DefaultEventName.dragStart, () => {
+                        this.clearOpenTimer();
+                        this.open = true;
+                        this.dragging = true;
+                        // Remove transitions instantly so the first drag frame isn't animated.
+                        if (this.entryTransitionReifect)
+                            this.entryTransitionReifect.unapply(undefined, { applyStylesInstantly: true });
+                        this.reloadEntrySizes();
+                        return exports.Propagation.stopImmediatePropagation;
+                    })
+                        .on(DefaultEventName.drag, (e) => {
+                        if (!this.dragging)
+                            return;
+                        this.currentPosition += this.computeDragDelta(e.scaledDeltaPosition);
+                        return exports.Propagation.stopImmediatePropagation;
+                    })
+                        .on(DefaultEventName.dragEnd, () => {
+                        if (!this.dragging)
+                            return;
+                        this.dragging = false;
+                        // recomputeProperties is required because unapplyStyles() clears resolvedValues.styles,
+                        // so apply() without it finds styles["default"] === undefined and returns early,
+                        // never calling reloadReifectsChainableStyles — leaving transition: "none" stuck.
+                        if (this.entryTransitionReifect)
+                            this.entryTransitionReifect.apply(undefined, { recomputeProperties: true });
+                        this.snapToNearest();
+                        if (!this.alwaysOpen)
+                            this.setOpenTimer();
+                        return exports.Propagation.stopImmediatePropagation;
+                    });
+                    requestAnimationFrame(() => this.reloadEntrySizes());
+                };
+                this.select.onEntryAdded.add(initEntry);
+                this.select.onEntryRemoved.add(entry => {
+                    this.entryTransitionReifect?.detach(entry);
+                    this.customReifect?.detach(entry);
+                    requestAnimationFrame(() => this.reloadEntrySizes());
+                });
+                super.initialize();
+                turbo(this).setStyles({ display: "inline-block", position: "relative", overflow: "hidden" });
+                // Entries set via create({values: [...]}) fire onEntryAdded before initialize() has a
+                // chance to add the callback above. Replay initEntry for any such pre-existing entries.
+                this.entries.forEach(initEntry);
+            }
+            opacity = __runInitializers(this, _opacity_initializers, void 0);
+            set size(value) {
+            }
+            get size() {
+                return;
+            }
+            set entryTransitionReifect(value) {
+                if (!value)
+                    return;
+                if (this.entries.length > 0)
+                    value.attach(...this.entries);
+            }
+            get entryTransitionReifect() {
+                return;
+            }
+            set transitionDuration(value) {
+                if (value <= 0)
+                    return;
+                if (!this.entryTransitionReifect)
+                    this.entryTransitionReifect = new Reifect({});
+                this.entryTransitionReifect.styles = `transition: transform ${value}s ease-in-out, opacity ${value}s ease-in-out`;
+            }
+            set customReifect(value) {
+                if (this.customReifect && this.entries.length > 0)
+                    this.customReifect.attach(...this.entries);
+            }
+            get customReifect() {
+                return;
+            }
+            _closeOnClick = (__runInitializers(this, _opacity_extraInitializers), () => this.open = false);
+            set alwaysOpen(value) {
+                if (value)
+                    turbo(document.body).removeListener(DefaultEventName.click, this._closeOnClick);
+                else
+                    turbo(document.body).on(DefaultEventName.click, this._closeOnClick);
+                this.open = value;
+            }
+            set open(value) {
+                turbo(this).setStyle("overflow", value ? "visible" : "hidden");
+                // When opening, entries may have had zero layout size if the wheel was off-screen or
+                // hidden when first populated. Reload now that the wheel is visible.
+                if (value)
+                    requestAnimationFrame(() => this.reloadEntrySizes());
+            }
+            get isVertical() {
+                return this.direction === exports.Direction.vertical;
+            }
+            /** Fractional index — integer when snapped, fractional mid-drag. */
+            get index() {
+                return this._index;
+            }
+            set index(value) {
+                this._index = value;
+                this.select.selectByIndex(trim(Math.round(value), this.entries.length - 1));
+            }
+            // -------------------------------------------------------------------------
+            // Position
+            // -------------------------------------------------------------------------
+            get currentPosition() {
+                return this._currentPosition;
+            }
+            set currentPosition(value) {
+                if (!this.sizePerEntry.length)
+                    return;
+                const min = -this.dragLimitOffset - this.sizePerEntry[0] / 2;
+                const max = this.totalSize + this.dragLimitOffset - this.sizePerEntry[this.sizePerEntry.length - 1] / 2;
+                this._currentPosition = Math.min(Math.max(value, min), max);
+                this._index = this.positionToIndex(this._currentPosition);
+                this.applyAllEntryStyles();
+            }
+            computeDragDelta(delta) {
+                return -delta[this.isVertical ? "y" : "x"];
+            }
+            // -------------------------------------------------------------------------
+            // Layout
+            // -------------------------------------------------------------------------
+            reloadEntrySizes() {
+                this.sizePerEntry.length = 0;
+                this.positionPerEntry.length = 0;
+                this.totalSize = 0;
+                this.entries.forEach(entry => {
+                    const size = entry[this.isVertical ? "offsetHeight" : "offsetWidth"];
+                    this.sizePerEntry.push(size);
+                    this.positionPerEntry.push(this.totalSize);
+                    this.totalSize += size;
+                });
+                if (!this.sizePerEntry.length) {
+                    this._currentPosition = 0;
+                    return;
+                }
+                // If the wheel or its ancestors weren't in layout yet (e.g. off-screen, hidden, or
+                // added to the DOM after entries were created), all sizes read as 0. Retry next frame
+                // so the browser has time to perform layout.
+                if (this.totalSize === 0) {
+                    requestAnimationFrame(() => this.reloadEntrySizes());
+                    return;
+                }
+                this._currentPosition = this.indexToPosition(this._index);
+                this.applyAllEntryStyles();
+                if (this.selectedIndex >= 0)
+                    this.applyTransition();
+            }
+            indexToPosition(index) {
+                if (!this.sizePerEntry.length)
+                    return 0;
+                if (index < 0)
+                    return -Math.abs(index) * this.sizePerEntry[0];
+                if (index >= this.sizePerEntry.length)
+                    return this.totalSize - this.sizePerEntry[this.sizePerEntry.length - 1] / 2;
+                const floor = trim(Math.floor(index), this.sizePerEntry.length - 1);
+                return this.positionPerEntry[floor] + this.sizePerEntry[floor] * (index - Math.floor(index));
+            }
+            positionToIndex(position) {
+                if (!this.positionPerEntry.length)
+                    return 0;
+                let i = 0;
+                while (i < this.positionPerEntry.length - 1 && this.positionPerEntry[i + 1] <= position)
+                    i++;
+                if (i >= this.sizePerEntry.length - 1)
+                    return i;
+                return i + Math.min((position - this.positionPerEntry[i]) / (this.sizePerEntry[i] || 1), 1);
+            }
+            snapToNearest() {
+                const nearest = trim(Math.round(this.positionToIndex(this._currentPosition)), this.entries.length - 1);
+                this.index = nearest;
+                this._currentPosition = this.indexToPosition(nearest);
+                this.applyAllEntryStyles();
+            }
+            // -------------------------------------------------------------------------
+            // Transition (overrides TurboSelectElement — wheel sizes to selected entry directly)
+            // -------------------------------------------------------------------------
+            applyTransition() {
+                const i = this.selectedIndex;
+                if (i < 0)
+                    return;
+                this._index = i;
+                this._currentPosition = this.indexToPosition(i);
+                this.applyAllEntryStyles();
+                // Size container to selected entry
+                if (this.sizePerEntry.length) {
+                    const entry = this.entries[i];
+                    const w = this.isVertical ? entry.offsetWidth : this.sizePerEntry[i];
+                    const h = this.isVertical ? this.sizePerEntry[i] : entry.offsetHeight;
+                    $(this).setStyles({ width: `${w}px`, height: `${h}px` });
+                }
+            }
+            // -------------------------------------------------------------------------
+            // Styling
+            // -------------------------------------------------------------------------
+            applyAllEntryStyles() {
+                // Apply instantly during drag so transforms aren't queued behind a rAF while a CSS
+                // transition is still active on the element, which would cause visual lag.
+                const instant = this.dragging;
+                this.entries.forEach((el, i) => {
+                    const translationValue = (this.positionPerEntry[i] ?? 0) - this._currentPosition;
+                    if (this.customReifect) {
+                        this.customReifect.apply(el, { recomputeProperties: true });
+                    }
+                    else {
+                        this.computeAndApplyStyling(el, translationValue, undefined, instant);
+                    }
+                });
+            }
+            computeAndApplyStyling(element, translationValue, size = this.size, instant = false) {
+                const bound = translationValue > 0 ? size.max : size.min;
+                const opacityValue = linearInterpolation(translationValue, 0, bound, this.opacity.max, this.opacity.min);
+                const scaleValue = linearInterpolation(translationValue, 0, bound, this.scale.max, this.scale.min);
+                // `transition` is a "chainable style field" — Reifect.unapply() clears its own
+                // resolved state but reloadReifectsChainableStyles() only writes keys that still
+                // have an active contribution, so the old inline transition is never explicitly
+                // removed. Writing "none" here overrides it every drag frame.
+                let styles = {
+                    left: "50%",
+                    top: "50%",
+                    opacity: opacityValue,
+                    ...(instant && { transition: "none" }),
+                    transform: `translate3d(
+                calc(${!this.isVertical ? translationValue : 0}px - 50%),
+                calc(${this.isVertical ? translationValue : 0}px - 50%),
+                0) scale3d(${scaleValue}, ${scaleValue}, 1)`,
+                };
+                if (this.generateCustomStyling)
+                    styles = this.generateCustomStyling({
+                        element, translationValue, opacityValue, scaleValue, size, defaultComputedStyles: styles,
+                    });
+                $(element).setStyles(styles, instant);
+            }
+            // -------------------------------------------------------------------------
+            // Timer helpers
+            // -------------------------------------------------------------------------
+            clearOpenTimer() {
+                if (this.openTimer)
+                    clearTimeout(this.openTimer);
+            }
+            setOpenTimer() {
+                this.clearOpenTimer();
+                if (typeof this.openTimeout !== "number" || this.openTimeout < 0)
+                    return;
+                this.openTimer = setTimeout(() => this.open = false, this.openTimeout);
+            }
+        };
+    })();
+    define(TurboSelectWheel);
+
+    /**
+     * @class TurboButtonPopup
+     * @group Components
+     * @category TurboButton
+     *
+     * @description Button class for creating Turbo button elements.
+     * @extends TurboElement
+     */
+    let TurboButtonPopup = (() => {
+        let _classSuper = TurboButton;
+        let _instanceExtraInitializers = [];
+        let _popupClasses_decorators;
+        let _popupClasses_initializers = [];
+        let _popupClasses_extraInitializers = [];
+        let _set_popup_decorators;
+        return class TurboButtonPopup extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _popupClasses_decorators = [auto({
+                        callBefore: function () { turbo(this.popup).removeClass(this.popupClasses); },
+                        callAfter: function () { turbo(this.popup).addClass(this.popupClasses); }
+                    })];
+                _set_popup_decorators = [auto({ defaultValueCallback: () => TurboPopup.create() })];
+                __esDecorate(this, null, _set_popup_decorators, { kind: "setter", name: "popup", static: false, private: false, access: { has: obj => "popup" in obj, set: (obj, value) => { obj.popup = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _popupClasses_decorators, { kind: "field", name: "popupClasses", static: false, private: false, access: { has: obj => "popupClasses" in obj, get: obj => obj.popupClasses, set: (obj, value) => { obj.popupClasses = value; } }, metadata: _metadata }, _popupClasses_initializers, _popupClasses_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            popupOpen = (__runInitializers(this, _instanceExtraInitializers), false);
+            popupClasses = __runInitializers(this, _popupClasses_initializers, void 0);
+            /**
+             * The dropdown's popup element.
+             */
+            set popup(value) {
+                if (value instanceof TurboPopup)
+                    value.anchor = this;
+                turbo(value).addClass(this.popupClasses);
+            }
+            setupUIListeners() {
+                super.setupUIListeners();
+                turbo(document.body).on(DefaultEventName.click, () => e => {
+                    if (this.popupOpen && !this.contains(e.target))
+                        this.openPopup(false);
+                }, { capture: true });
+                turbo(this).on(DefaultEventName.click, (e) => {
+                    this.openPopup(!this.popupOpen);
+                    return exports.Propagation.stopPropagation;
+                });
+            }
+            openPopup(b) {
+                if (this.popupOpen == b)
+                    return;
+                this.popupOpen = b;
+                if ("show" in this.popup && typeof this.popup.show === "function")
+                    this.popup.show(b);
+                else
+                    turbo(this.popup).show(b);
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _popupClasses_extraInitializers);
+            }
+        };
+    })();
+    define(TurboButtonPopup);
+
+    class TurboGrid extends TurboElement {
+    }
+
+    /**
+     * @group Utilities
+     * @category Hash
+     */
+    async function hashString(input) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(input);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        return Array.from(new Uint8Array(hashBuffer))
+            .map(byte => byte.toString(16).padStart(2, "0"))
+            .join("");
+    }
+    /**
+     * @group Utilities
+     * @category Hash
+     */
+    async function hashBySize(input, chars = 12) {
+        const bytes = Math.ceil((chars * 6) / 8);
+        const enc = new TextEncoder();
+        const digest = await crypto.subtle.digest("SHA-256", enc.encode(input));
+        const slice = new Uint8Array(digest).slice(0, bytes);
+        return (typeof btoa === "function"
+            ? btoa(String.fromCharCode(...slice))
+            : Buffer.from(slice).toString("base64"))
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/g, "")
+            .slice(0, chars);
+    }
+
+    function replaceUrlParams(...params) {
+        const url = new URL(window.location.href);
+        params.forEach(({ name, value }) => url.searchParams.set(name, value));
+        history.replaceState(null, "", url);
+    }
+    function getUrlParam(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+    }
+    function pushUrlParams(...params) {
+        const url = new URL(window.location.href);
+        params.forEach(({ name, value }) => url.searchParams.set(name, value));
+        history.pushState(null, "", url);
+    }
+    function clearUrlParams() {
+        const url = new URL(window.location.href);
+        url.searchParams.forEach((_, name) => url.searchParams.delete(name));
+        history.replaceState(null, "", url);
+    }
+
+    /**
+     * @description Formats the given number of seconds as "MM:SS". The ":" can be replaced and specified in the separator
+     * parameter.
+     * @param seconds
+     * @param separator
+     */
+    function formatMMSS(seconds, separator = ":") {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        const formattedMinutes = String(minutes).padStart(2, "0");
+        const formattedSeconds = String(remainingSeconds).padStart(2, "0");
+        return formattedMinutes + separator + formattedSeconds;
+    }
+    /**
+     * @description Formats the given number of seconds as "HH:MM:SS". The ":" can be replaced and specified in the separator
+     * parameter.
+     * @param seconds
+     * @param separator
+     */
+    function formatHHMMSS(seconds, separator = ":") {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        const formattedHours = String(hours).padStart(2, "0");
+        const formattedMinutes = String(minutes).padStart(2, "0");
+        const formattedSeconds = String(remainingSeconds).padStart(2, "0");
+        return formattedHours + separator + formattedMinutes + separator + formattedSeconds;
+    }
+    function formatMmSs(seconds, separator = "") {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return (minutes > 0 ? (minutes + "m" + separator) : "") + remainingSeconds + "s";
+    }
+
+    function blobToUrl(blob) {
+        return new Promise((resolve) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result);
+            r.readAsDataURL(blob);
+        });
+    }
+    function urlToBlob(url) {
+        return new Promise((resolve) => {
+            fetch(url).then(res => resolve(res.blob()));
+        });
+    }
+
+    async function getVideoDuration(input) {
+        const el = video({ preload: "metadata" });
+        return new Promise((resolve, reject) => {
+            let objectUrl = null;
+            const cleanup = () => {
+                el.removeAttribute("src");
+                el.load();
+                if (objectUrl)
+                    URL.revokeObjectURL(objectUrl);
+            };
+            el.onerror = () => {
+                cleanup();
+                reject(new Error("Failed to load video metadata"));
+            };
+            el.onloadedmetadata = () => {
+                if (el.duration === Infinity) {
+                    el.currentTime = 1e101;
+                    el.ontimeupdate = () => {
+                        el.ontimeupdate = null;
+                        const d = el.duration;
+                        cleanup();
+                        resolve(d);
+                    };
+                }
+                else {
+                    const d = el.duration;
+                    cleanup();
+                    resolve(d);
+                }
+            };
+            if (typeof input === "string") {
+                el.crossOrigin = "anonymous";
+                el.src = input;
+            }
+            else {
+                objectUrl = URL.createObjectURL(input);
+                el.src = objectUrl;
+            }
+        });
+    }
+
+    /**
+     * @function createYDoc
+     * @group Utilities
+     * @category Yjs
+     *
+     * @static
+     * @description Creates a new YDoc with a default map and populates it with optional data.
+     * @param {string} [mapKey="content"] - The key of the default map to setup. Defaults to "content".
+     * @param {object} [data] - Optional data to set inside the default map.
+     * @returns {{doc: YDoc, map: YMap}} - An object containing the YDoc and the default YMap.
+     */
+    function createYDoc(mapKey = "content", data) {
+        const doc = new yjs.Doc();
+        const map = doc.getMap(mapKey);
+        if (data)
+            for (const [key, value] of Object.entries(data))
+                map.set(key, value);
+        return { doc, map };
+    }
+    /**
+     * @function createYMap
+     * @group Utilities
+     * @category Yjs
+     *
+     * @static
+     * @description Creates a YMap and populates it with key-value pairs from a plain object.
+     * @param {object} data - The initial data to populate the YMap with.
+     * @returns {YMap} A new YMap instance.
+     */
+    function createYMap(data) {
+        const map = new yjs.Map();
+        for (const [key, value] of Object.entries(data))
+            map.set(key, value);
+        return map;
+    }
+    /**
+     * @function createYArray
+     * @group Utilities
+     * @category Yjs
+     *
+     * @static
+     * @template DataType - The type of the array's content.
+     * @description Creates a YArray and populates it with elements from a plain array.
+     * @param {DataType[]} data - The array of data to populate the YArray with.
+     * @returns {YArray} A new YArray instance.
+     */
+    function createYArray(data) {
+        const array = new yjs.Array();
+        array.push(data);
+        return array;
+    }
+    /**
+     * @function jsonToYjs
+     * @group Utilities
+     * @category Yjs
+     *
+     * @description Attempts to deep-convert a JSON structure into Yjs data.
+     * @param {object} data - The JSON data to convert.
+     * @return {YAbstractType} - The Yjs data.
+     */
+    function jsonToYjs(data) {
+        if (Array.isArray(data)) {
+            const arr = new yjs.Array();
+            arr.push(data.map(jsonToYjs));
+            return arr;
+        }
+        if (data && typeof data === "object") {
+            const map = new yjs.Map();
+            for (const [key, value] of Object.entries(data))
+                map.set(key, jsonToYjs(value));
+            return map;
+        }
+        return data;
+    }
+    /**
+     * @function addInYMap
+     * @group Utilities
+     * @category Yjs
+     *
+     * @static
+     * @async
+     * @description Adds the provided data in the provided parent in the Yjs document, with a unique ID as its field name.
+     * @param {object} data - The data to append to the Yjs document.
+     * @param {YMap} parentYMap - The YMap to add the data to.
+     * @param {string} [id] - Optional ID to use. If not provided, a unique ID is generated.
+     * @returns {Promise<string>} The ID of the inserted data.
+     */
+    async function addInYMap(data, parentYMap, id) {
+        const generateId = async () => await hashBySize(parentYMap?.doc?.clientID?.toString(32) + randomId());
+        if (!id) {
+            id = await generateId();
+            while (parentYMap?.get(id) !== undefined)
+                id = await generateId();
+        }
+        parentYMap.set(id, data);
+        return id;
+    }
+    /**
+     * @function addInYArray
+     * @group Utilities
+     * @category Yjs
+     *
+     * @static
+     * @description Adds the provided data in the provided parent array in the Yjs document.
+     * @param {object} data - The data to append to the Yjs document.
+     * @param {YArray} parentYArray - The YArray to which the data should be appended.
+     * @param {number} [index] - The index to insert the data at. If omitted or invalid, it is appended at the end.
+     * @returns {number} The index where the data was inserted.
+     */
+    function addInYArray(data, parentYArray, index) {
+        if (index == undefined || index > parentYArray.length) {
+            index = parentYArray.length;
+            parentYArray.push([data]);
+        }
+        else {
+            if (index < 0)
+                index = 0;
+            parentYArray.insert(index, [data]);
+        }
+        return index;
+    }
+    /**
+     * @function removeFromYArray
+     * @group Utilities
+     * @category Yjs
+     *
+     * @static
+     * @description Removes the first occurrence of the given entry from the YArray.
+     * @param {unknown} entry - The entry to remove.
+     * @param {YArray} parentYArray - The parent YArray.
+     * @returns {boolean} True if removed, false otherwise.
+     */
+    function removeFromYArray(entry, parentYArray) {
+        for (const [index, child] of parentYArray.toArray()) {
+            if (entry != child)
+                continue;
+            parentYArray.delete(index);
+            return true;
+        }
+        return false;
+    }
+    /**
+     * @function deepObserveAny
+     * @group Utilities
+     * @category Yjs
+     *
+     * @static
+     * @description Observes deeply for changes to any of the specified fields and invokes callback when any field
+     * changes.
+     * @param {YAbstractType} data - The Yjs type to observe.
+     * @param {(fieldChanged: string | null, event: YEvent, target: YAbstractType) => void} callback - The function to
+     * call when a matching field changes. `fieldChanged` is `null` for direct insertions/deletions on `data` itself.
+     * @param {...string} fieldNames - List of field names to observe.
+     */
+    function deepObserveAny(data, callback, ...fieldNames) {
+        if (!data)
+            return;
+        const fields = new Set(fieldNames);
+        data.observeDeep((events) => {
+            for (const event of events) {
+                const target = event.target;
+                if (event.target === data && event instanceof yjs.YArrayEvent) {
+                    callback(null, event, target);
+                    return;
+                }
+                const parentMap = target._item?.parent;
+                const key = target._item?.parentSub;
+                for (const field of fields) {
+                    if ((event instanceof yjs.YMapEvent && event.changes.keys.has(field)) ||
+                        (event instanceof yjs.YArrayEvent && parentMap instanceof yjs.Map && key === field) ||
+                        (event.path?.some(segment => segment === field))) {
+                        callback(field, event, target);
+                        return;
+                    }
+                }
+            }
+        });
+    }
+    /**
+     * @function deepObserveAll
+     * @group Utilities
+     * @category Yjs
+     *
+     * @static
+     * @description Observes deeply for changes to all specified fields and invokes callback only when all fields
+     * have changed.
+     * @param {YAbstractType} data - The Yjs type to observe.
+     * @param {(event: YEvent, target: YAbstractType) => void} callback - The function to call when all fields change.
+     * @param {...string} fieldNames - List of field names to observe.
+     */
+    function deepObserveAll(data, callback, ...fieldNames) {
+        if (!data)
+            return;
+        const fields = new Set(fieldNames);
+        data.observeDeep(events => {
+            const changedFields = new Set();
+            for (const event of events) {
+                const target = event.target;
+                const parentMap = target._item?.parent;
+                const key = target._item?.parentSub;
+                for (const field of fields) {
+                    if ((event instanceof yjs.YMapEvent && event.changes.keys.has(field)) ||
+                        (event instanceof yjs.YArrayEvent && parentMap instanceof yjs.Map && key === field) ||
+                        (event.path?.some(segment => segment === field)))
+                        changedFields.add(field);
+                }
+                if (changedFields.size === fields.size) {
+                    callback(event, target);
+                    return;
+                }
+            }
+        });
+    }
+
+    /**
+     * @group Utilities
+     * @category Event
+     * @param e
+     */
+    function getEventPosition(e) {
+        if (e instanceof TurboEvent)
+            return e.scaledPosition;
+        if (e instanceof PointerEvent)
+            return new Point(e.clientX, e.clientY);
+        return;
+    }
+
+    function closestPointOnEdge(pointer, rect) {
+        const closestPoint = {
+            x: trim(pointer.x, rect.right, rect.left),
+            y: trim(pointer.y, rect.bottom, rect.top)
+        };
+        const axisFromSide = (side) => {
+            if (side === exports.Side.top || side === exports.Side.bottom)
+                return "y";
+            if (side === exports.Side.left || side === exports.Side.right)
+                return "x";
+        };
+        let closestSide = exports.Side.top;
+        Object.values(exports.Side).forEach(side => {
+            if (Math.abs(closestPoint[axisFromSide(side)] - rect[side])
+                < Math.abs(closestPoint[axisFromSide(closestSide)] - rect[closestSide]))
+                closestSide = side;
+        });
+        closestPoint[axisFromSide(closestSide)] = rect[closestSide];
+        return new Point(closestPoint);
+    }
+    function pointInsideRect(point, rect, margin = 5) {
+        return (point.x < rect.right + margin && point.x > rect.left - margin)
+            && (point.y < rect.bottom + margin && point.y > rect.top - margin);
+    }
+
+    /**
+     * @internal
+     * @description Default font weights, sub-names, and styles when loading a font family.
+     */
+    const defaultFamilyWeights = {
+        900: { "Black": "normal", "BlackItalic": "italic" },
+        800: { "ExtraBold": "normal", "ExtraBoldItalic": "italic" },
+        700: { "Bold": "normal", "BoldItalic": "italic" },
+        600: { "SemiBold": "normal", "SemiBoldItalic": "italic" },
+        500: { "Medium": "normal", "MediumItalic": "italic" },
+        400: { "Regular": "normal", "Italic": "italic" },
+        300: { "Light": "normal", "LightItalic": "italic" },
+        200: { "ExtraLight": "normal", "ExtraLightItalic": "italic" },
+        100: { "Thin": "normal", "ThinItalic": "italic" },
+    };
+    /**
+     * @internal
+     * @param name
+     * @param path
+     * @param format
+     * @param weight
+     * @param style
+     */
+    function createFontFace(name, path, format, weight, style) {
+        return css `
+        @font-face {
+            font-family: "${name}";
+            src: url("${path}") format("${format}"), 
+            url("${path}") format("woff"),
+            url("${path}") format("truetype");
+            font-weight: ${typeof weight == "string" ? "\"" + weight + "\"" : weight};
+            font-style: "${style}";
+        }`;
+    }
+    /**
+     * @group Utilities
+     * @category Font
+     * @description Loads a local font file, or a family of fonts from a directory.
+     * @param {FontProperties} font - The font properties
+     */
+    function loadLocalFont(font) {
+        if (!font.name || !font.pathOrDirectory)
+            console.error("Please specify font name and path/directory");
+        const isFamily = getFileExtension(font.pathOrDirectory).length == 0;
+        if (!font.stylesPerWeights)
+            font.stylesPerWeights = isFamily ? defaultFamilyWeights : { "normal": "normal" };
+        if (!font.format)
+            font.format = "woff2";
+        if (!font.extension)
+            font.extension = ".ttf";
+        if (font.extension[0] != ".")
+            font.extension = "." + font.extension;
+        stylesheet(Object.entries(font.stylesPerWeights).map(([weight, value]) => {
+            const weightNumber = Number.parseInt(weight);
+            const typedWeight = weightNumber ? weightNumber : weight;
+            if (typeof value == "string")
+                return createFontFace(font.name, font.pathOrDirectory, font.format, typedWeight, value);
+            return Object.entries(value).map(([weightName, style]) => createFontFace(font.name, `${font.pathOrDirectory}/${font.name}-${weightName}${font.extension}`, font.format, typedWeight, style)).join("\n");
+        }).join("\n"));
+    }
+
+    Object.defineProperty(exports, "YAbstractType", {
+        enumerable: true,
+        get: function () { return yjs.AbstractType; }
+    });
+    Object.defineProperty(exports, "YArray", {
+        enumerable: true,
+        get: function () { return yjs.Array; }
+    });
+    Object.defineProperty(exports, "YArrayEvent", {
+        enumerable: true,
+        get: function () { return yjs.YArrayEvent; }
+    });
+    Object.defineProperty(exports, "YDoc", {
+        enumerable: true,
+        get: function () { return yjs.Doc; }
+    });
+    Object.defineProperty(exports, "YEvent", {
+        enumerable: true,
+        get: function () { return yjs.YEvent; }
+    });
+    Object.defineProperty(exports, "YMap", {
+        enumerable: true,
+        get: function () { return yjs.Map; }
+    });
+    Object.defineProperty(exports, "YMapEvent", {
+        enumerable: true,
+        get: function () { return yjs.YMapEvent; }
+    });
+    Object.defineProperty(exports, "YText", {
+        enumerable: true,
+        get: function () { return yjs.Text; }
+    });
+    exports.$ = $;
+    exports.AnchorPoint = AnchorPoint;
+    exports.ApplyDefaultsMergeProperties = ApplyDefaultsMergeProperties;
+    exports.BasicInputEvents = BasicInputEvents;
+    exports.Color = Color;
+    exports.DefaultClickEventName = DefaultClickEventName;
+    exports.DefaultDragEventName = DefaultDragEventName;
+    exports.DefaultEventName = DefaultEventName;
+    exports.DefaultKeyEventName = DefaultKeyEventName;
+    exports.DefaultMoveEventName = DefaultMoveEventName;
+    exports.DefaultWheelEventName = DefaultWheelEventName;
+    exports.Delegate = Delegate;
+    exports.Listener = Listener;
+    exports.ListenerSet = ListenerSet;
+    exports.MathMLNamespace = MathMLNamespace;
+    exports.MathMLTags = MathMLTags;
+    exports.NonPassiveEvents = NonPassiveEvents;
+    exports.Point = Point;
+    exports.Reifect = Reifect;
+    exports.StatefulReifect = StatefulReifect;
+    exports.SvgNamespace = SvgNamespace;
+    exports.SvgTags = SvgTags;
+    exports.TurboBaseElement = TurboBaseElement;
+    exports.TurboButton = TurboButton;
+    exports.TurboButtonPopup = TurboButtonPopup;
+    exports.TurboClickEventName = TurboClickEventName;
+    exports.TurboConstrainer = TurboConstrainer;
+    exports.TurboContentSwitch = TurboContentSwitch;
+    exports.TurboDragEvent = TurboDragEvent;
+    exports.TurboDragEventName = TurboDragEventName;
+    exports.TurboDrawer = TurboDrawer;
+    exports.TurboDropdown = TurboDropdown;
+    exports.TurboElement = TurboElement;
+    exports.TurboEmitter = TurboEmitter;
+    exports.TurboEvent = TurboEvent;
+    exports.TurboEventManager = TurboEventManager;
+    exports.TurboEventName = TurboEventName;
+    exports.TurboGrid = TurboGrid;
+    exports.TurboHandler = TurboHandler;
+    exports.TurboHeadlessElement = TurboHeadlessElement;
+    exports.TurboIcon = TurboIcon;
+    exports.TurboIconSwitch = TurboIconSwitch;
+    exports.TurboIconToggle = TurboIconToggle;
+    exports.TurboInput = TurboInput;
+    exports.TurboInteractor = TurboInteractor;
+    exports.TurboKeyEvent = TurboKeyEvent;
+    exports.TurboKeyEventName = TurboKeyEventName;
+    exports.TurboLabelElement = TurboLabelElement;
+    exports.TurboMap = TurboMap;
+    exports.TurboMarkingMenu = TurboMarkingMenu;
+    exports.TurboModel = TurboModel;
+    exports.TurboMovable = TurboMovable;
+    exports.TurboMoveEventName = TurboMoveEventName;
+    exports.TurboNestedMap = TurboNestedMap;
+    exports.TurboNodeList = TurboNodeList;
+    exports.TurboNumericalInput = TurboNumericalInput;
+    exports.TurboObserver = TurboObserver;
+    exports.TurboOperator = TurboOperator;
+    exports.TurboPopup = TurboPopup;
+    exports.TurboProxiedElement = TurboProxiedElement;
+    exports.TurboQueue = TurboQueue;
+    exports.TurboRect = TurboRect;
+    exports.TurboRichElement = TurboRichElement;
+    exports.TurboSelect = TurboSelect;
+    exports.TurboSelectElement = TurboSelectElement;
+    exports.TurboSelectInputEvent = TurboSelectInputEvent;
+    exports.TurboSelectWheel = TurboSelectWheel;
+    exports.TurboSelector = TurboSelector;
+    exports.TurboTool = TurboTool;
+    exports.TurboView = TurboView;
+    exports.TurboWeakSet = TurboWeakSet;
+    exports.TurboWheelEvent = TurboWheelEvent;
+    exports.TurboWheelEventName = TurboWheelEventName;
+    exports.TurboYModel = TurboYModel;
+    exports.a = a;
+    exports.aabbCorners = aabbCorners;
+    exports.addInYArray = addInYArray;
+    exports.addInYMap = addInYMap;
+    exports.addRegistryCategory = addRegistryCategory;
+    exports.alphabeticalSorting = alphabeticalSorting;
+    exports.areEqual = areEqual;
+    exports.areSimilar = areSimilar;
+    exports.attachListenersAndBehaviors = attachListenersAndBehaviors;
+    exports.auto = auto;
+    exports.behavior = behavior;
+    exports.blindElement = blindElement;
+    exports.blobToUrl = blobToUrl;
+    exports.button = button;
+    exports.cache = cache;
+    exports.callOnce = callOnce;
+    exports.callOncePerInstance = callOncePerInstance;
+    exports.camelToKebabCase = camelToKebabCase;
+    exports.canvas = canvas;
+    exports.checker = checker;
+    exports.clearCache = clearCache;
+    exports.clearCacheEntry = clearCacheEntry;
+    exports.clearUrlParams = clearUrlParams;
+    exports.closestPointOnAabb = closestPointOnAabb;
+    exports.closestPointOnEdge = closestPointOnEdge;
+    exports.closestPointOnSegment = closestPointOnSegment;
+    exports.constrainer = constrainer;
+    exports.createProxy = createProxy;
+    exports.createYArray = createYArray;
+    exports.createYDoc = createYDoc;
+    exports.createYMap = createYMap;
+    exports.css = css;
+    exports.deepObserveAll = deepObserveAll;
+    exports.deepObserveAny = deepObserveAny;
+    exports.define = define;
+    exports.disposeEffect = disposeEffect;
+    exports.div = div;
+    exports.drawer = drawer;
+    exports.eachEqualToAny = eachEqualToAny;
+    exports.effect = effect;
+    exports.element = element;
+    exports.equalToAny = equalToAny;
+    exports.expose = expose;
+    exports.fetchSvg = fetchSvg;
+    exports.findRegistered = findRegistered;
+    exports.flexCol = flexCol;
+    exports.flexColCenter = flexColCenter;
+    exports.flexRow = flexRow;
+    exports.flexRowCenter = flexRowCenter;
+    exports.form = form;
+    exports.formatHHMMSS = formatHHMMSS;
+    exports.formatMMSS = formatMMSS;
+    exports.formatMmSs = formatMmSs;
+    exports.generateTagFunction = generateTagFunction;
+    exports.getAllRegistered = getAllRegistered;
+    exports.getConstructorChain = getConstructorChain;
+    exports.getEventPosition = getEventPosition;
+    exports.getFileExtension = getFileExtension;
+    exports.getFirstDescriptorInChain = getFirstDescriptorInChain;
+    exports.getFirstPrototypeInChainWith = getFirstPrototypeInChainWith;
+    exports.getPrototypeChain = getPrototypeChain;
+    exports.getRegisteredByCategories = getRegisteredByCategories;
+    exports.getRegisteredElements = getRegisteredElements;
+    exports.getRegisteredEntry = getRegisteredEntry;
+    exports.getRegisteredMvc = getRegisteredMvc;
+    exports.getSignal = getSignal;
+    exports.getSuperDescriptor = getSuperDescriptor;
+    exports.getSuperMethod = getSuperMethod;
+    exports.getUrlParam = getUrlParam;
+    exports.getVideoDuration = getVideoDuration;
+    exports.h1 = h1;
+    exports.h2 = h2;
+    exports.h3 = h3;
+    exports.h4 = h4;
+    exports.h5 = h5;
+    exports.h6 = h6;
+    exports.handler = handler;
+    exports.hasPropertyInChain = hasPropertyInChain;
+    exports.hasSeparatingAxisForPolygons = hasSeparatingAxisForPolygons;
+    exports.hashBySize = hashBySize;
+    exports.hashString = hashString;
+    exports.img = img;
+    exports.initializeEffects = initializeEffects;
+    exports.input = input;
+    exports.interactor = interactor;
+    exports.intersectSegments = intersectSegments;
+    exports.isNull = isNull;
+    exports.isPointInConvexPolygon = isPointInConvexPolygon;
+    exports.isUndefined = isUndefined;
+    exports.isolatedModelSignal = isolatedModelSignal;
+    exports.jsonToYjs = jsonToYjs;
+    exports.kebabToCamelCase = kebabToCamelCase;
+    exports.linearInterpolation = linearInterpolation;
+    exports.link = link;
+    exports.listener = listener;
+    exports.loadLocalFont = loadLocalFont;
+    exports.markDirty = markDirty;
+    exports.markDirtyPath = markDirtyPath;
+    exports.mod = mod;
+    exports.modelSignal = modelSignal;
+    exports.mutator = mutator;
+    exports.nestedModelSignal = nestedModelSignal;
+    exports.observe = observe;
+    exports.operator = operator;
+    exports.p = p;
+    exports.parse = parse$1;
+    exports.pointInsideRect = pointInsideRect;
+    exports.polygonsIntersect = polygonsIntersect;
+    exports.projectPolygonOntoAxis = projectPolygonOntoAxis;
+    exports.pushUrlParams = pushUrlParams;
+    exports.randomFromRange = randomFromRange;
+    exports.randomId = randomId;
+    exports.randomString = randomString;
+    exports.removeFromYArray = removeFromYArray;
+    exports.replaceUrlParams = replaceUrlParams;
+    exports.segmentIntersectsPolygon = segmentIntersectsPolygon;
+    exports.setSignal = setSignal;
+    exports.signal = signal;
+    exports.solver = solver;
+    exports.spacer = spacer;
+    exports.span = span;
+    exports.stringify = stringify;
+    exports.style = style;
+    exports.stylesheet = stylesheet;
+    exports.t = t;
+    exports.textToElement = textToElement;
+    exports.textarea = textarea;
+    exports.tool = tool;
+    exports.trim = trim;
+    exports.tu = tu;
+    exports.turbo = turbo;
+    exports.turbofy = turbofy;
+    exports.untrack = untrack;
+    exports.urlToBlob = urlToBlob;
+    exports.video = video;
+
+    return exports;
+
+})({}, yjs);

@@ -1,0 +1,36 @@
+import {ReifectInterpolator} from "../statefulReifect/statefulReifect.types";
+import {StylesType} from "../../../turboFunctions/style/style.types";
+
+/**
+ * @group Components
+ * @category Reifect
+ *
+ * @description A configuration type for properties based on states or interpolated values.
+ *
+ * @template Type
+ * @template State
+ * @template ClassType
+ */
+type StatelessPropertyConfig<Type, ClassType extends object = Element> = Type | ReifectInterpolator<Type, ClassType>;
+
+/**
+ * @group Components
+ * @category Reifect
+ */
+type StatelessReifectCoreProperties<ClassType extends object = Element> = {
+    styles?: StatelessPropertyConfig<StylesType, ClassType>,
+    classes?: StatelessPropertyConfig<string | string[], ClassType>,
+    replaceWith?: StatelessPropertyConfig<ClassType, ClassType>,
+    [k: PropertyKey]: StatelessPropertyConfig<any, ClassType>,
+};
+
+/**
+ * @group Components
+ * @category Reifect
+ */
+type StatelessReifectProperties<ClassType extends object = Element> =
+    StatelessReifectCoreProperties<ClassType> & {
+    attachedObjects?: ClassType[],
+};
+
+export {StatelessReifectCoreProperties, StatelessReifectProperties, StatelessPropertyConfig};

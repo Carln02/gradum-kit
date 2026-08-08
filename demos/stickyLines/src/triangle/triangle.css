@@ -1,0 +1,7 @@
+.demo-triangle {
+    width: 0;
+    height: 0;
+    border-left: 40px solid transparent;
+    border-right: 40px solid transparent;
+    border-bottom: 70px solid currentColor;
+}

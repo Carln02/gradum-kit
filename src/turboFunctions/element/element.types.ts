@@ -1,0 +1,167 @@
+import {
+    ElementTagDefinition,
+    HTMLElementMutableFields,
+    ValidElement,
+    ValidTag
+} from "../../types/element.types";
+import {TurboElementProperties} from "../../turboElement/turboElement.types";
+
+/**
+ * @group Types
+ * @category Element
+ */
+type CloneElementOptions = {
+    exclude?: PropertyKey[],
+    forceInclude?: PropertyKey[],
+    deepClone?: PropertyKey[],
+    copyReference?: PropertyKey[],
+
+    copyNodes?: boolean,
+    deepCloneObjects?: boolean,
+    deepCloneNodes?: boolean,
+
+    /**
+     * When true, the clone's model receives a detached snapshot of the origin's data
+     * (via `toJSON()` when available — e.g. Y.js types — else `structuredClone`) instead
+     * of a live reference. Required for previews of MVC/synced elements: a reference copy
+     * would make the clone a live twin whose field writes go through the shared model.
+     */
+    snapshotData?: boolean,
+};
+
+/**
+ * @group Types
+ * @category Element
+ */
+type FeedforwardProperties = TurboElementProperties & {
+    removeOnPointerRelease?: boolean,
+    type?: string,
+    cloneOptions?: CloneElementOptions,
+
+    /**
+     * When true, the clone is placed inside a `TurboMovable` positioning wrapper and the wrapper
+     * is returned instead of the clone. The wrapper exposes `position` (alias `translation`) and
+     * `rotation` accessors that apply pure CSS transforms to the wrapper — callers position the
+     * preview without ever touching the clone's semantic fields. The clone's own `transform` is
+     * neutralized via an injected `!important` stylesheet rule (an MVC clone's view keeps
+     * rendering its snapshot transform otherwise, overriding any caller positioning). The
+     * original clone remains accessible on the wrapper's `content` / `feedforwardClone` properties.
+     */
+    wrap?: boolean,
+};
+
+/**
+ * @group Types
+ * @category Element
+ *
+ * @type {TurboProperties}
+ * @template {ValidTag} Tag - The HTML (or other) tag of the element, if passing it as a property. Defaults to "div".
+ * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {object} DataType - The element's data type, if any.
+ * @template {TurboModel<DataType>} ModelType - The element's model type, if any.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description Object containing properties for configuring an Element. A tag (and
+ * possibly a namespace) can be provided for element creation. Already-created elements will ignore these
+ * properties if set.
+ * Any HTML attribute can be passed as key to be processed by the class/function. The type has the following
+ * described custom properties:
+ *
+ * @property {string} [id] - The ID of the element.
+ * @property {string | string[]} [classes] - The CSS class(es) to apply to the element (either a string of
+ * space-separated classes or an array of class names).
+ * @property {string} [style] - The inline style of the element. Use the css literal function for autocompletion.
+ * @property {string} [stylesheet] - The associated stylesheet (if any) with the element. Declaring this property will
+ * generate automatically a new style element in the element's corresponding root. Use the css literal function
+ * for autocompletion.
+ * @property {Record<string, EventListenerOrEventListenerObject | ((e: Event, el: Element) => boolean)>} [listeners]
+ * - An object containing event listeners to be applied to this element.
+ * @property {(e: Event, el: Element) => boolean} [onClick] - Click event listener.
+ * @property {(e: Event, el: Element) => boolean} [onDrag] - Drag event listener.
+ * @property {Element | Element[]} [children] - An array of child wrappers or elements to append to
+ * the created element.
+ * @property {Element} [parent] - The parent element to which the created element will be appended.
+ * @property {string | Element} [out] - If defined, declares (or sets) the element in the parent as a field with the
+ * given value as key.
+ * @property {string} [text] - The text content of the element (if any).
+ * @property {boolean} [shadowDOM] - If true, indicate that the element will be created under a shadow root.
+ */
+type TurboProperties<Tag extends ValidTag = "div"> = ElementTagDefinition<Tag> &
+    Omit<HTMLElementMutableFields<Tag>, "tag" | "namespace"> & {
+        id?: string;
+        classes?: string | string[];
+
+        style?: string;
+        stylesheet?: string;
+        shadowDOM?: boolean;
+
+        parent?: Element;
+        children?: Element | Element[];
+        text?: string;
+
+        listeners?: Record<string, ((e: Event, el: ValidElement<Tag>) => boolean | any)>,
+        onClick?: (e: Event, el: ValidElement<Tag>) => boolean | any,
+        onDrag?: (e: Event, el: ValidElement<Tag>) => boolean | any,
+
+        out?: string | Node;
+        [key: string]: any;
+    };
+
+declare module "../turboSelector" {
+    interface TurboSelector<Type extends object = Node> {
+        /**
+         * @function setProperties
+         * @template {ValidTag} Tag - The HTML tag of the element (for accurate autocompletion of available properties).
+         * @description Sets the declared properties to the element (if possible).
+         * @param {TurboProperties<Tag>} properties - The properties object.
+         * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base turbo properties (classes,
+         * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in TurboProperties.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        setProperties<Tag extends ValidTag>(properties: TurboProperties<Tag>, setOnlyBaseProperties?: boolean): this;
+
+        getFields(): Record<string, any>;
+
+        clone(options?: CloneElementOptions): Type;
+
+        /**
+         * @description Destroys the element by removing it from the document and removing all its bound listeners.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        destroy(): this;
+
+        /**
+         * @description Sets the value of an attribute on the element.
+         * @param {string} name The name of the attribute.
+         * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent
+         * a true boolean.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        setAttribute(name: string, value?: string | number | boolean): this;
+
+        /**
+         * @description Removes an attribute from the element.
+         * @param {string} name The name of the attribute to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeAttribute(name: string): this;
+
+        /**
+         * @description Causes the element to lose focus.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        blur(): this;
+
+        /**
+         * @description Sets focus on the element.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        focus(): this;
+
+        feedforward(options?: FeedforwardProperties): Type;
+
+        defaultFeedforwardProperties: TurboElementProperties;
+    }
+}
+
+export {TurboProperties, CloneElementOptions, FeedforwardProperties};

@@ -1,0 +1,23 @@
+import {Toolbar} from "./toolbar/toolbar";
+import {TurboButton, ClickMode, TurboEventManager, TurboIcon} from "../../../build/gradum-kit.esm";
+import {SelectTool} from "./tools/select.tool";
+import {Bucket} from "./tools/bucket/bucket";
+import {Canvas} from "./canvas/canvas";
+import {AddSquareTool} from "./tools/addSquare.tool";
+import {EditObject} from "./editObject/editObject";
+import {ImportedFiles} from "./importedFiles/importedFiles";
+
+TurboIcon.defaultProperties.directory = "assets/icons";
+
+Canvas.create({parent: document.body});
+Toolbar.create({
+    parent: document.body,
+    entries: [
+        ImportedFiles.create({leftIcon: "files"}),
+        TurboButton.create({text: "Select", tools: SelectTool, classes: "demo-button"}),
+        TurboButton.create({text: "Add Square", tools: AddSquareTool, classes: "demo-button"}),
+        Bucket.create({text: "Bucket", classes: "demo-button"}),
+    ]
+});
+
+TurboEventManager.instance.setTool(EditObject.create(), ClickMode.right);

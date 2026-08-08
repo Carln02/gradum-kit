@@ -1,0 +1,57 @@
+import {Reifect} from "../../wrappers/reifect/reifect";
+import {StatelessReifectProperties} from "../../wrappers/reifect/reifect.types";
+import {TurboView} from "../../../mvc/view/view";
+import {TurboModel} from "../../../mvc/model/model";
+import {TurboElementProperties} from "../../../turboElement/turboElement.types";
+import {Direction, Range} from "../../../types/enums.types";
+import {PartialRecord} from "../../../types/basic.types";
+import {TurboEmitter} from "../../../mvc/emitter/emitter";
+import {TurboSelectWheel} from "./selectWheel";
+
+/**
+ * @group Components
+ * @category TurboSelectWheel
+ */
+type TurboSelectWheelProperties<
+    ValueType = string,
+    SecondaryValueType = string,
+    EntryType extends HTMLElement = HTMLElement,
+    ViewType extends TurboView = TurboView,
+    DataType extends object = object,
+    ModelType extends TurboModel = TurboModel,
+    EmitterType extends TurboEmitter = TurboEmitter
+> = TurboElementProperties<ViewType, DataType, ModelType, EmitterType> & {
+    direction?: Direction,
+    reifect?: Reifect | StatelessReifectProperties,
+
+    generateCustomStyling?: (properties: TurboSelectWheelStylingProperties)
+        => string | PartialRecord<keyof CSSStyleDeclaration, string | number>;
+
+    size?: number | Record<Range, number>,
+    opacity?: Record<Range, number>,
+    scale?: Record<Range, number>,
+
+    alwaysOpen?: boolean,
+}
+
+/**
+ * @group Components
+ * @category TurboSelectWheel
+ */
+type TurboSelectWheelStylingProperties = {
+    element: HTMLElement,
+    translationValue: number,
+    scaleValue: number,
+    opacityValue: number,
+    size: Record<Range, number>,
+    defaultComputedStyles: PartialRecord<keyof CSSStyleDeclaration, string | number>
+};
+
+
+declare module "../../../types/element.types" {
+    interface TurboElementTagNameMap {
+        "turbo-select-wheel": TurboSelectWheel
+    }
+}
+
+export {TurboSelectWheelProperties, TurboSelectWheelStylingProperties};

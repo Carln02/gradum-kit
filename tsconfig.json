@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "outDir": "./dist-temp",
+    "declaration": true,
+    "declarationDir": "./build/types",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "stripInternal": false,
+    "experimentalDecorators": false,
+    "emitDecoratorMetadata": false,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "removeComments": false,
+  },
+  "include": ["./src/**/*"]
+}

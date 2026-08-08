@@ -1,0 +1,381 @@
+import {TurboOperator} from "../../mvc/operator/operator";
+import {TurboHandler} from "../../mvc/handler/handler";
+import {TurboInteractor} from "../../mvc/interactor/interactor";
+import {TurboTool} from "../../mvc/tool/tool";
+import {TurboConstrainer} from "../../mvc/constrainer/constrainer";
+import {TurboView} from "../../mvc/view/view";
+import {TurboModel} from "../../mvc/model/model";
+import {TurboEmitter} from "../../mvc/emitter/emitter";
+import {TurboViewProperties} from "../../mvc/view/view.types";
+import {TurboOperatorProperties} from "../../mvc/operator/operator.types";
+import {TurboInteractorProperties} from "../../mvc/interactor/interactor.types";
+import {TurboToolProperties} from "../../mvc/tool/tool.types";
+import {TurboConstrainerProperties} from "../../mvc/constrainer/constrainer.types";
+
+/**
+ * @group MVC
+ * @category MVC
+ *
+ * @type {MvcInstanceOrConstructor}
+ * @template Type
+ * @template PropertiesType
+ * @description Type representing the constructor of a certain `Type` (which takes a single parameter), or an
+ * instance of `Type`.
+ */
+export type MvcInstanceOrConstructor<Type, PropertiesType = any> = Type | (new (properties: PropertiesType) => Type);
+
+/**
+ * @group MVC
+ * @category MVC
+ *
+ * @type {MvcManyInstancesOrConstructors}
+ * @template Type
+ * @template PropertiesType
+ * @description Type representing a single entry or an array of {@link MvcInstanceOrConstructor}.
+ */
+export type MvcManyInstancesOrConstructors<Type, PropertiesType = any> = MvcInstanceOrConstructor<Type, PropertiesType>
+    | MvcInstanceOrConstructor<Type, PropertiesType>[];
+
+/**
+ * @type {MvcGenerationProperties}
+ * @group MVC
+ * @category MVC
+ *
+ * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {object} DataType - The element's data type, if any.
+ * @template {TurboModel<DataType>} ModelType - The element's model type, if any.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description Type representing a configuration object for an {@link Mvc} instance.
+ * @property {MvcInstanceOrConstructor<ViewType, TurboViewProperties>} [view] - The view (or view constructor) to attach.
+ * @property {ModelType | (new (data?: any, dataBlocksType?: "map" | "array") => ModelType)} [model] - The model
+ * (or model constructor) to attach.
+ * @property {MvcInstanceOrConstructor<EmitterType, ModelType>} [emitter] - The emitter (or emitter constructor) to
+ * attach. If not defined, a default TurboEmitter will be created.
+ * @property {MvcManyInstancesOrConstructors<TurboOperator, TurboOperatorProperties>} [operators] - The
+ * operator, constructor of operator, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<TurboHandler, ModelType>} [handlers] - The
+ * handler, constructor of handler, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<TurboInteractor, TurboInteractorProperties>} [interactors] - The
+ * interactor, constructor of interactor, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<TurboTool, TurboToolProperties>} [tools] - The
+ * tool, constructor of tool, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<TurboConstrainer, TurboConstrainerProperties>} [constrainers] - The
+ * constrainer, constructor of constrainer, or array of the latter, to attach.
+ */
+type MvcProperties<
+    ViewType extends TurboView = TurboView<any, any>,
+    ModelType extends TurboModel = TurboModel,
+    EmitterType extends TurboEmitter = TurboEmitter
+> = {
+    view?: MvcInstanceOrConstructor<ViewType, TurboViewProperties>,
+    model?: ModelType | (new (data?: any, dataBlocksType?: "map" | "array") => ModelType),
+    emitter?: MvcInstanceOrConstructor<EmitterType, ModelType>,
+
+    operators?: MvcManyInstancesOrConstructors<TurboOperator, TurboOperatorProperties>,
+    handlers?: MvcManyInstancesOrConstructors<TurboHandler, ModelType>,
+
+    interactors?: MvcManyInstancesOrConstructors<TurboInteractor, TurboInteractorProperties>,
+    tools?: MvcManyInstancesOrConstructors<TurboTool, TurboToolProperties>,
+    constrainers?: MvcManyInstancesOrConstructors<TurboConstrainer, TurboConstrainerProperties>,
+};
+
+/**
+ * @type {MvcGenerationProperties}
+ * @group MVC
+ * @category MVC
+ *
+ * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {object} DataType - The element's data type, if any.
+ * @template {TurboModel<DataType>} ModelType - The element's model type, if any.
+ * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @extends {MvcProperties}
+ * @description Type representing a configuration object for an {@link Mvc} instance.
+ * @property {DataType} [data] - The data to attach to the model.
+ * @property {boolean} [initialize] - Whether to initialize the MVC pieces after setting them or not. Defaults to true.
+ */
+type MvcGenerationProperties<
+    ViewType extends TurboView = TurboView<any, any>,
+    DataType extends object = object,
+    ModelType extends TurboModel = TurboModel,
+    EmitterType extends TurboEmitter = TurboEmitter
+> = MvcProperties<ViewType, ModelType, EmitterType> & {
+    data?: DataType,
+    initialize?: boolean,
+};
+
+declare module "../turboSelector" {
+    interface TurboSelector<Type extends object = Node> {
+
+        readonly mvc: MvcProperties;
+
+        // -------------------------------------------------------------------------
+        // Singular pieces
+        // -------------------------------------------------------------------------
+
+        /**
+         * @description The model of the element's MVC structure.
+         */
+        model: any;
+
+        /**
+         * @description The view of the element's MVC structure.
+         */
+        view: any;
+
+        /**
+         * @description The emitter of the element's MVC structure.
+         */
+        emitter: any;
+
+        // -------------------------------------------------------------------------
+        // Data
+        // -------------------------------------------------------------------------
+
+        /**
+         * @description The main data block attached to the element's model.
+         */
+        data: any;
+
+        readonly metadata: TurboModel<object>;
+
+        /**
+         * @description The ID of the main data block of the element's model.
+         */
+        dataId: string;
+
+        /**
+         * @description The numerical index of the main data block of the element's model.
+         */
+        dataIndex: number;
+
+        /**
+         * @description The size (number) of the main data block of the element's model.
+         */
+        readonly dataSize: number;
+
+        // -------------------------------------------------------------------------
+        // Collections
+        // -------------------------------------------------------------------------
+
+        /**
+         * @description The operators of the element's MVC structure.
+         */
+        operators: TurboOperator[];
+
+        /**
+         * @description The handlers attached to the element's model.
+         * Returns an empty array if no model is set.
+         */
+        handlers: TurboHandler[];
+
+        /**
+         * @description The interactors of the element's MVC structure.
+         */
+        interactors: TurboInteractor[];
+
+        /**
+         * @description The tools of the element's MVC structure.
+         */
+        tools: TurboTool[];
+
+        /**
+         * @description The constrainers of the element's MVC structure.
+         */
+        constrainers: TurboConstrainer[];
+
+        // -------------------------------------------------------------------------
+        // MVC setup
+        // -------------------------------------------------------------------------
+
+        /**
+         * @function setMvc
+         * @description Configures the MVC structure for the element. Sets the provided MVC pieces (model, view,
+         * emitter, operators, handlers, interactors, tools, constrainers) on the element, initializes a default
+         * emitter if none is provided, and initializes all MVC pieces unless explicitly disabled.
+         * @param {MvcGenerationProperties} properties - The properties to configure the MVC structure.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        setMvc(properties: MvcGenerationProperties): this;
+
+        /**
+         * @function initializeMvc
+         * @description Initializes all MVC pieces attached to the element, in the following order: view,
+         * operators, interactors, tools, constrainers, and model. The model is initialized last to allow
+         * the view and operators to set up their change callbacks first.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        initializeMvc(): this;
+
+        /**
+         * @function getMvcDifference
+         * @template {TurboView} ViewType - The element's view type.
+         * @template {object} DataType - The element's data type.
+         * @template {TurboModel<DataType>} ModelType - The element's model type.
+         * @template {TurboEmitter} EmitterType - The element's emitter type.
+         * @description Computes the structural difference between the element's current MVC configuration
+         * and a provided configuration description. The comparison is constructor-based (not instance-based):
+         * - For singular fields (`view`, `model`, `emitter`), the constructors are compared.
+         * - For collection fields (`operators`, `handlers`, `interactors`, `tools`, `constrainers`),
+         *   the result contains constructors present in the current MVC but absent from the provided configuration.
+         * @param {MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>} [properties={}] -
+         *  The configuration to compare against.
+         * @returns {MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>}
+         *  A partial configuration of constructors describing pieces present in the current MVC
+         *  but not in the provided configuration.
+         */
+        getMvcDifference<
+            ViewType extends TurboView = TurboView<any, any>,
+            DataType extends object = object,
+            ModelType extends TurboModel = TurboModel,
+            EmitterType extends TurboEmitter = TurboEmitter<any>
+        >(properties?: MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>
+        ): MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>;
+
+        // -------------------------------------------------------------------------
+        // Operators
+        // -------------------------------------------------------------------------
+
+        /**
+         * @function getOperator
+         * @description Retrieves the attached MVC operator with the given key.
+         * @param {string} key - The operator's key.
+         * @returns {TurboOperator} - The operator.
+         */
+        getOperator(key: string): TurboOperator;
+
+        /**
+         * @function addOperator
+         * @description Adds the given operator to the element's MVC structure.
+         * @param {TurboOperator} operator - The operator to add.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addOperator(operator: TurboOperator): this;
+
+        /**
+         * @function removeOperator
+         * @description Removes the given operator from the element's MVC structure and unlinks it.
+         * @param {string | TurboOperator} keyOrInstance - The operator's key or instance to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeOperator(keyOrInstance: string | TurboOperator): this;
+
+        // -------------------------------------------------------------------------
+        // Handlers
+        // -------------------------------------------------------------------------
+
+        /**
+         * @function getHandler
+         * @description Retrieves the attached MVC handler with the given key.
+         * Returns undefined if no model is set.
+         * @param {string} key - The handler's key.
+         * @returns {TurboHandler} - The handler.
+         */
+        getHandler(key: string): TurboHandler;
+
+        /**
+         * @function addHandler
+         * @description Adds the given handler to the element's model.
+         * If no model is set, this operation is a no-op.
+         * @param {TurboHandler} handler - The handler to add.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addHandler(handler: TurboHandler): this;
+
+        /**
+         * @function removeHandler
+         * @description Removes the given handler from the element's model and unlinks it.
+         * If no model is set, this operation is a no-op.
+         * @param {string | TurboHandler} keyOrInstance - The handler's key or instance to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeHandler(keyOrInstance: string | TurboHandler): this;
+
+        // -------------------------------------------------------------------------
+        // Interactors
+        // -------------------------------------------------------------------------
+
+        /**
+         * @function getInteractor
+         * @description Retrieves the attached MVC interactor with the given key.
+         * @param {string} key - The interactor's key.
+         * @returns {TurboInteractor} - The interactor.
+         */
+        getInteractor(key: string): TurboInteractor;
+
+        /**
+         * @function addInteractor
+         * @description Adds the given interactor to the element's MVC structure.
+         * @param {TurboInteractor} interactor - The interactor to add.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addInteractor(interactor: TurboInteractor): this;
+
+        /**
+         * @function removeInteractor
+         * @description Removes the given interactor from the element's MVC structure and unlinks it.
+         * @param {string | TurboInteractor} keyOrInstance - The interactor's key or instance to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeInteractor(keyOrInstance: string | TurboInteractor): this;
+
+        // -------------------------------------------------------------------------
+        // Tools
+        // -------------------------------------------------------------------------
+
+        /**
+         * @function getTool
+         * @description Retrieves the attached MVC tool with the given key.
+         * @param {string} key - The tool's key.
+         * @returns {TurboTool} - The tool.
+         */
+        getTool(key: string): TurboTool;
+
+        /**
+         * @function addTool
+         * @description Adds the given tool to the element's MVC structure.
+         * @param {TurboTool} tool - The tool to add.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addTool(tool: TurboTool): this;
+
+        /**
+         * @function removeTool
+         * @description Removes the given tool from the element's MVC structure and unlinks it.
+         * @param {string | TurboTool} keyOrInstance - The tool's key or instance to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeTool(keyOrInstance: string | TurboTool): this;
+
+        // -------------------------------------------------------------------------
+        // Constrainers
+        // -------------------------------------------------------------------------
+
+        /**
+         * @function getConstrainer
+         * @description Retrieves the attached MVC constrainer with the given key.
+         * @param {string} key - The constrainer's key.
+         * @returns {TurboConstrainer} - The constrainer.
+         */
+        getConstrainer(key: string): TurboConstrainer;
+
+        /**
+         * @function addConstrainer
+         * @description Adds the given constrainer to the element's MVC structure.
+         * @param {TurboConstrainer} constrainer - The constrainer to add.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addConstrainer(constrainer: TurboConstrainer): this;
+
+        /**
+         * @function removeConstrainer
+         * @description Removes the given constrainer from the element's MVC structure and unlinks it.
+         * @param {string | TurboConstrainer} keyOrInstance - The constrainer's key or instance to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeConstrainer(keyOrInstance: string | TurboConstrainer): this;
+    }
+}
+
+export {MvcProperties, MvcGenerationProperties};

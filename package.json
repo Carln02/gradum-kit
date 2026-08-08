@@ -1,0 +1,90 @@
+{
+  "name": "gradum-kit",
+  "version": "0.1.0",
+  "description": "A lightweight JavaScript library for quickly creating and appending DOM elements.",
+  "type": "module",
+  "main": "build/gradum-kit.cjs.js",
+  "module": "build/gradum-kit.esm.js",
+  "browser": "build/gradum-kit.js",
+  "types": "build/gradum-kit.d.ts",
+  "files": [
+    "build"
+  ],
+  "exports": {
+    ".": {
+      "types": "./build/gradum-kit.d.ts",
+      "import": "./build/gradum-kit.esm.js",
+      "require": "./build/gradum-kit.cjs.js"
+    }
+  },
+  "scripts": {
+    "test": "vitest",
+    "build": "gulp build",
+    "doc": "typedoc --options typedoc.json",
+    "doc:json": "npx typedoc --json docs/api.json",
+    "clean": "rm -rf dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Carln02/gradum-kit.git"
+  },
+  "keywords": [
+    "gradum",
+    "fast",
+    "DOM",
+    "builder",
+    "elements",
+    "JavaScript",
+    "library",
+    "simple"
+  ],
+  "author": "Carln02",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Carln02/gradum-kit/issues"
+  },
+  "homepage": "https://carln02.github.io/gradum-kit/",
+  "devDependencies": {
+    "@openmrs/typedoc-plugin-file-categories": "^8.0.0",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/ungap__structured-clone": "^1.2.0",
+    "autoprefixer": "^10.4.19",
+    "better-docs": "^2.7.3",
+    "css-loader": "^7.1.2",
+    "cssnano": "^6.1.2",
+    "del": "^7.1.0",
+    "gulp": "^5.0.0",
+    "gulp-insert": "^0.5.0",
+    "gulp-rename": "^2.1.0",
+    "jsdom": "^26.1.0",
+    "rollup": "4.59.0",
+    "rollup-plugin-dts": "^6.1.0",
+    "rollup-plugin-postcss": "^4.0.2",
+    "style-loader": "^4.0.0",
+    "through2": "^4.0.2",
+    "ts-loader": "^9.5.1",
+    "ts-morph": "^27.0.0",
+    "tslib": "^2.6.2",
+    "typedoc": "^0.28.13",
+    "typedoc-plugin-extras": "^4.0.1",
+    "typedoc-plugin-mdn-links": "^5.0.9",
+    "typescript": "^5.4.3",
+    "unplugin-swc": "^1.5.7",
+    "vite": "^6.0.0",
+    "vitest": "^3.2.4",
+    "webpack": "5.104.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2",
+    "yjs": "^13.6.27"
+  },
+  "peerDependencies": {
+    "@ungap/structured-clone": "^1.2.0",
+    "yjs": "^13.6.27"
+  },
+  "dependencies": {
+    "esbuild-wasm": "^0.28.0"
+  }
+}
