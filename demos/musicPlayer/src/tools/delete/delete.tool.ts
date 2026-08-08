@@ -1,6 +1,6 @@
-import {TurboTool} from "../../../../../build/gradum-kit.esm";
+import {GradumTool} from "../../../../../build/gradum-kit.esm";
 
-export class DeleteTool extends TurboTool {
+export class DeleteTool extends GradumTool {
     public toolName = "delete";
 
     public click(e: Event, target: Node): boolean {

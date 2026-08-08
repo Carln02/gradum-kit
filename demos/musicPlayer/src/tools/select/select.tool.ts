@@ -1,17 +1,17 @@
-import {Coordinate, turbo, TurboDragEvent, TurboTool} from "../../../../../build/gradum-kit.esm";
+import {Coordinate, gradum, GradumDragEvent, GradumTool} from "../../../../../build/gradum-kit.esm";
 
-export class SelectTool extends TurboTool {
+export class SelectTool extends GradumTool {
     public toolName = "select";
 
     public onActivation() {
-        turbo(this).toggleClass("selected", true);
+        gradum(this).toggleClass("selected", true);
     }
 
     public onDeactivation() {
-        turbo(this).toggleClass("selected", false);
+        gradum(this).toggleClass("selected", false);
     }
 
-    public drag(e: TurboDragEvent, target: Node): boolean {
+    public drag(e: GradumDragEvent, target: Node): boolean {
         if ("origin" in target && typeof target.origin === "object") {
             target.origin = e.scaledDeltaPosition.add(target.origin as Coordinate).object;
             return true;

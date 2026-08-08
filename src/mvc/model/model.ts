@@ -1,13 +1,13 @@
 import {initializeEffects, markDirtyPath, signal} from "../../decorators/reactivity/reactivity";
-import {TurboModelProperties, TurboModelProxy, TurboObserverProperties} from "./model.types";
+import {GradumModelProperties, GradumModelProxy, GradumObserverProperties} from "./model.types";
 import {SignalBox} from "../../decorators/reactivity/reactivity.types";
 import {auto} from "../../decorators/auto/auto";
-import {TurboWeakSet} from "../../turboComponents/datatypes/weakSet/weakSet";
-import {Delegate} from "../../turboComponents/datatypes/delegate/delegate";
-import {TurboObserver} from "./observer";
+import {GradumWeakSet} from "../../gradumComponents/datatypes/weakSet/weakSet";
+import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
+import {GradumObserver} from "./observer";
 import {isUndefined} from "../../utils/dataManipulation/misc";
-import {turbo} from "../../turboFunctions/turboFunctions";
-import {TurboHandler} from "../handler/handler";
+import {gradum} from "../../gradumFunctions/gradumFunctions";
+import {GradumHandler} from "../handler/handler";
 import {FlatKeyType, KeyType} from "../../types/basic.types";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 import {areEqual} from "../../utils/computations/equity";
@@ -19,7 +19,7 @@ type ObserverData<
     ComponentType extends object = any,
     DataKeyType extends KeyType = KeyType,
 > = {
-    observer: TurboObserver<DataType, ComponentType, DataKeyType>,
+    observer: GradumObserver<DataType, ComponentType, DataKeyType>,
     keys: KeyType[],
     deep?: boolean,
 };
@@ -30,9 +30,9 @@ type ListenerData = {
 };
 
 /**
- * @class TurboModel
+ * @class GradumModel
  * @group MVC
- * @category TurboModel
+ * @category GradumModel
  *
  * @template DataType - The type of the data held in the model.
  * @template {KeyType} KeyType - The type of the data's keys.
@@ -41,9 +41,9 @@ type ListenerData = {
  * @template DataEntryType - The type of data associated with each observer instance.
  *
  * @description Wrapper around a plain JS container (object, Array, or Map) that exposes a
- * consistent API for reads/writes, signals, and {@link TurboObserver}s.
+ * consistent API for reads/writes, signals, and {@link GradumObserver}s.
  */
-class TurboModel<
+class GradumModel<
     DataType = any,
     DataKeyType extends KeyType = any,
     IdType extends KeyType = any,
@@ -59,8 +59,8 @@ class TurboModel<
     public static from<
         DataType extends object = any,
         IdType extends KeyType = any
-    >(data: DataType = {} as any, id?: IdType): TurboModelProxy<DataType, IdType> {
-        const model = TurboModel.create({data, id, initialize: true, makeSignals: true});
+    >(data: DataType = {} as any, id?: IdType): GradumModelProxy<DataType, IdType> {
+        const model = GradumModel.create({data, id, initialize: true, makeSignals: true});
         return new Proxy(data, {
             get(target, key) {
                 if (key === "$model") return model;
@@ -71,7 +71,7 @@ class TurboModel<
                 model.set(value, key as any);
                 return true;
             }
-        }) as TurboModelProxy<DataType, IdType>;
+        }) as GradumModelProxy<DataType, IdType>;
     }
 
     public static create<
@@ -80,27 +80,27 @@ class TurboModel<
         IdType extends KeyType = any,
         ComponentType extends object = any,
         DataEntryType = any
-    >(properties: TurboModelProperties = {}): TurboModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
+    >(properties: GradumModelProperties = {}): GradumModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
         const model = new this(properties);
         if (properties.initialize) model.initialize();
-        if (properties.makeSignals) model.makeSignals(TurboModel.ALL);
+        if (properties.makeSignals) model.makeSignals(GradumModel.ALL);
         return model;
     }
 
     /**
-     * @description The default constructor used to create nested {@link TurboModel} instances.
+     * @description The default constructor used to create nested {@link GradumModel} instances.
      */
-    public modelConstructor: new (...args: any[]) => TurboModel = TurboModel;
+    public modelConstructor: new (...args: any[]) => GradumModel = GradumModel;
 
     /**
-     * @description The default constructor used to create {@link TurboObserver} instances via {@link generateObserver}.
+     * @description The default constructor used to create {@link GradumObserver} instances via {@link generateObserver}.
      */
-    public observerConstructor: new (...args: any[]) => TurboObserver = TurboObserver;
+    public observerConstructor: new (...args: any[]) => GradumObserver = GradumObserver;
 
     /**
      * @description Map of MVC handlers bound to this model.
      */
-    public handlers: Map<string, TurboHandler> = new Map();
+    public handlers: Map<string, GradumHandler> = new Map();
 
     /**
      * @description Whether change callbacks and observer notifications are enabled.
@@ -128,7 +128,7 @@ class TurboModel<
 
     protected readonly changeObservers: Set<ObserverData<DataEntryType, ComponentType, DataKeyType>> = new Set();
 
-    protected readonly nestedModels: Map<DataKeyType, TurboModel> = new Map();
+    protected readonly nestedModels: Map<DataKeyType, GradumModel> = new Map();
     protected nestedListeners: Set<ListenerData> = new Set();
 
     /**
@@ -163,16 +163,16 @@ class TurboModel<
     /**
      * @description The metadata held by this model. Separate from this model's data.
      */
-    public get meta(): TurboModel<object> {
+    public get meta(): GradumModel<object> {
         return this.nest(META);
     }
 
     /**
      * @constructor
-     * @description Create a new TurboModel.
-     * @param {TurboModelProperties} [properties] - Optional initialization properties.
+     * @description Create a new GradumModel.
+     * @param {GradumModelProperties} [properties] - Optional initialization properties.
      */
-    public constructor(properties: TurboModelProperties = {}) {
+    public constructor(properties: GradumModelProperties = {}) {
         this.id = properties.id;
         this._data = properties.data ?? {};
         if (typeof properties.enabledCallbacks === "boolean") this.enabledCallbacks = properties.enabledCallbacks;
@@ -341,13 +341,13 @@ class TurboModel<
      * @function internalSet
      * @description Write a value at a key, propagating the change to a nested model if one exists,
      * and firing {@link keyChanged} if the value actually changed.
-     * @param {TurboModel} model - The owning model (used for nested model lookup and change notification),
+     * @param {GradumModel} model - The owning model (used for nested model lookup and change notification),
      * or `undefined` if operating on a non-root container.
      * @param {any} data - The container to write to.
      * @param {KeyType} key - The key to write.
      * @param {any} value - The value to set.
      */
-    protected internalSet(model: TurboModel, data: any, value: any, key: KeyType): boolean {
+    protected internalSet(model: GradumModel, data: any, value: any, key: KeyType): boolean {
         if (isUndefined(key)) {
             if (!model || areEqual(model.data, value)) return false;
             model.data = value;
@@ -417,13 +417,13 @@ class TurboModel<
      * @protected
      * @function internalAdd
      * @description Insert a value into a container via {@link addAction} and fire {@link keyChanged}.
-     * @param {TurboModel} model - The owning model for change notification, or `undefined` for non-root containers.
+     * @param {GradumModel} model - The owning model for change notification, or `undefined` for non-root containers.
      * @param {any} data - The container to insert into.
      * @param {any} value - The value to insert.
      * @param {KeyType} key - The target index or key.
      * @returns {KeyType} The index or key where the value was stored.
      */
-    protected internalAdd(model: TurboModel, data: any, value: any, key: KeyType): KeyType {
+    protected internalAdd(model: GradumModel, data: any, value: any, key: KeyType): KeyType {
         if (!data || typeof data !== "object") return;
         return this.addAction(model, data, value, key);
     }
@@ -432,13 +432,13 @@ class TurboModel<
      * @protected
      * @function addAction
      * @description Perform the raw insertion. Override this method to support other datatypes.
-     * @param {TurboModel} model - The owning model.
+     * @param {GradumModel} model - The owning model.
      * @param {any} data - The container to insert into.
      * @param {any} value - The value to insert.
      * @param {KeyType} key - The target index or key. Clamped to valid array bounds for array containers.
      * @returns {KeyType} The index or key where the value was stored.
      */
-    protected addAction(model: TurboModel, data: any, value: any, key: KeyType): KeyType {
+    protected addAction(model: GradumModel, data: any, value: any, key: KeyType): KeyType {
         if (Array.isArray(data)) {
             let index = key as number;
             if (isUndefined(index) || typeof index !== "number" || index > data.length) index = data.length;
@@ -503,7 +503,7 @@ class TurboModel<
     public addFlat(value: unknown, flatKey: FlatKeyType, depth?: number): KeyType {
         const keys = this.scopeKey(flatKey as any, depth);
         if (!keys?.length) throw new Error(
-            `TurboModel.addFlat: could not resolve flat key "${String(flatKey)}" to a key path.`);
+            `GradumModel.addFlat: could not resolve flat key "${String(flatKey)}" to a key path.`);
         return this.add(value, ...keys);
     }
 
@@ -585,12 +585,12 @@ class TurboModel<
      * @function internalDelete
      * @description Remove a key from a container, clearing any associated nested model, and firing {@link keyChanged}.
      * No-op if the key does not exist.
-     * @param {TurboModel} model - The owning model for nested model cleanup and change notification,
+     * @param {GradumModel} model - The owning model for nested model cleanup and change notification,
      * or `undefined` for non-root containers.
      * @param {any} data - The container to remove from.
      * @param {KeyType} key - The key to remove.
      */
-    protected internalDelete(model: TurboModel, data: any, key: KeyType) {
+    protected internalDelete(model: GradumModel, data: any, key: KeyType) {
         if (!data || !this.hasAction(data, key)) return;
         if (model) {
             const nested = model.getNested(key);
@@ -688,7 +688,7 @@ class TurboModel<
      * @returns {number}
      */
     public flatSize(depth: number): number {
-        return TurboModel.flattenSize(this.data, depth);
+        return GradumModel.flattenSize(this.data, depth);
     }
 
     /*
@@ -720,7 +720,7 @@ class TurboModel<
 
         for (const key of oldKeys) {
             // Deletions pass undefined by convention (nested-child onKeyChanged listeners
-            // rely on it to clear their data). TurboObserver recovers the old value for
+            // rely on it to clear their data). GradumObserver recovers the old value for
             // onDeleted from its own prevData tracking.
             if (!newKeys.has(key)) this.keyChanged([key], undefined, true);
             else {
@@ -858,14 +858,14 @@ class TurboModel<
     /**
      * @function makeSignals
      * @description Return reactive {@link SignalBox} instances for multiple keys at the given path.
-     * Pass {@link TurboModel.ALL} at any level of the path to expand all entries at that level.
+     * Pass {@link GradumModel.ALL} at any level of the path to expand all entries at that level.
      * @template Type - The type of the signals' values.
      * @param {...KeyType[]} keys - Key path to the signal targets. Use `ALL` at any level to target all entries there.
      * @returns {SignalBox<Type>[]}
      */
     public makeSignals<Type = any>(...keys: KeyType[]): SignalBox<Type>[] {
-        if (keys.length === 0) keys = [TurboModel.ALL];
-        const maker = (key: KeyType, model: TurboModel) => {
+        if (keys.length === 0) keys = [GradumModel.ALL];
+        const maker = (key: KeyType, model: GradumModel) => {
             if (model.signals.has(key)) return model.signals.get(key);
             const sig = signal(() => model.get(key), (value) => model.set(value, key), this, key);
             model.signals.set(key, sig);
@@ -875,7 +875,7 @@ class TurboModel<
         const pathKeys = keys.slice(0, -1);
         const signalKey = keys[keys.length - 1] as DataKeyType;
         const models = this.nestAll(...pathKeys);
-        if (signalKey === TurboModel.ALL) return models.flatMap(model => model.keys.map(k => maker(k, model)));
+        if (signalKey === GradumModel.ALL) return models.flatMap(model => model.keys.map(k => maker(k, model)));
         return models.map(model => maker(signalKey, model));
     }
 
@@ -914,40 +914,40 @@ class TurboModel<
 
     /**
      * @function nestAll
-     * @description Create or retrieve nested {@link TurboModel} instances at each entry under the given key path.
-     * Use {@link TurboModel.ALL} in the path to expand all entries at that level.
+     * @description Create or retrieve nested {@link GradumModel} instances at each entry under the given key path.
+     * Use {@link GradumModel.ALL} in the path to expand all entries at that level.
      * @param {...KeyType[]} keys - Key path to the subtree to expand.
-     * @returns {TurboModel[]} Array of nested models.
+     * @returns {GradumModel[]} Array of nested models.
      */
     public nestAll<NestedDataType = any, NestedKeyType extends KeyType = any>(
         ...keys: KeyType[]
-    ): TurboModel<NestedDataType, NestedKeyType>[];
+    ): GradumModel<NestedDataType, NestedKeyType>[];
 
     /**
      * @function nestAll
-     * @description Create or retrieve nested {@link TurboModel} instances at each entry under the given key path,
+     * @description Create or retrieve nested {@link GradumModel} instances at each entry under the given key path,
      * with custom initialization properties for the nested models.
-     * Use {@link TurboModel.ALL} in the path to expand all entries at that level.
-     * @param {...[...KeyType[], TurboModelProperties]} keysAndProperties - Key path followed by optional properties.
-     * @returns {TurboModel[]} Array of nested models.
+     * Use {@link GradumModel.ALL} in the path to expand all entries at that level.
+     * @param {...[...KeyType[], GradumModelProperties]} keysAndProperties - Key path followed by optional properties.
+     * @returns {GradumModel[]} Array of nested models.
      */
     public nestAll<NestedDataType = any, NestedKeyType extends KeyType = any>(
-        ...keysAndProperties: [...KeyType[], TurboModelProperties]
-    ): TurboModel<NestedDataType, NestedKeyType>[];
+        ...keysAndProperties: [...KeyType[], GradumModelProperties]
+    ): GradumModel<NestedDataType, NestedKeyType>[];
     public nestAll<NestedDataType = any, NestedKeyType extends KeyType = any>(
-        ...args: (KeyType | TurboModelProperties)[]
-    ): TurboModel<NestedDataType, NestedKeyType>[] {
+        ...args: (KeyType | GradumModelProperties)[]
+    ): GradumModel<NestedDataType, NestedKeyType>[] {
         const lastEntry = args[args.length - 1];
         const properties: any = lastEntry !== null && typeof lastEntry === "object" ? lastEntry : {};
         const keys = args.slice(0, lastEntry !== null && typeof lastEntry === "object" ? -1 : undefined) as KeyType[];
-        if (keys.length === 0) return [this] as TurboModel[];
-        turbo(properties).applyDefaults({bubbleChanges: this.bubbleChanges, enabledCallbacks: this.enabledCallbacks});
+        if (keys.length === 0) return [this] as GradumModel[];
+        gradum(properties).applyDefaults({bubbleChanges: this.bubbleChanges, enabledCallbacks: this.enabledCallbacks});
         return this.nestRecur(keys, properties);
     }
 
-    private nestRecur(keys: KeyType[], properties: any): TurboModel[] {
+    private nestRecur(keys: KeyType[], properties: any): GradumModel[] {
         if (keys.length === 0) return [this];
-        if (keys[0] === TurboModel.ALL) {
+        if (keys[0] === GradumModel.ALL) {
             this.nestedListeners.add({
                 listener: (selfKeys) =>
                     this.createNestedChild(this, selfKeys[0], properties).nestRecur(keys.slice(1), properties),
@@ -960,66 +960,66 @@ class TurboModel<
 
     /**
      * @function nest
-     * @description Create or retrieve a single nested {@link TurboModel} at the given key.
+     * @description Create or retrieve a single nested {@link GradumModel} at the given key.
      * @param {KeyType} key - The key of the nested model.
-     * @returns {TurboModel}
+     * @returns {GradumModel}
      */
     public nest<NestedDataType = any, NestedKeyType extends KeyType = any>(
         key: DataKeyType
-    ): TurboModel<NestedDataType, NestedKeyType>;
+    ): GradumModel<NestedDataType, NestedKeyType>;
 
     /**
      * @function nest
-     * @description Create or retrieve a single nested {@link TurboModel} at the given key path.
+     * @description Create or retrieve a single nested {@link GradumModel} at the given key path.
      * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
-     * @returns {TurboModel}
+     * @returns {GradumModel}
      */
     public nest<NestedDataType = any, NestedKeyType extends KeyType = any>(
         ...keys: KeyType[]
-    ): TurboModel<NestedDataType, NestedKeyType>;
+    ): GradumModel<NestedDataType, NestedKeyType>;
 
     /**
      * @function nest
-     * @description Create or retrieve a single nested {@link TurboModel} at the given key path,
+     * @description Create or retrieve a single nested {@link GradumModel} at the given key path,
      * with custom initialization properties.
-     * @param {...[...KeyType[], TurboModelProperties]} keysAndProperties - Key path followed by optional properties.
-     * @returns {TurboModel}
+     * @param {...[...KeyType[], GradumModelProperties]} keysAndProperties - Key path followed by optional properties.
+     * @returns {GradumModel}
      */
     public nest<NestedDataType = any, NestedKeyType extends KeyType = any>(
-        ...keysAndProperties: [...KeyType[], TurboModelProperties]
-    ): TurboModel<NestedDataType, NestedKeyType>;
+        ...keysAndProperties: [...KeyType[], GradumModelProperties]
+    ): GradumModel<NestedDataType, NestedKeyType>;
     public nest<NestedDataType = any, NestedKeyType extends KeyType = any>(
-        ...keysAndProperties: (KeyType | TurboModelProperties)[]
-    ): TurboModel<NestedDataType, NestedKeyType> {
+        ...keysAndProperties: (KeyType | GradumModelProperties)[]
+    ): GradumModel<NestedDataType, NestedKeyType> {
         return this.nestAll(...keysAndProperties as any)[0];
     }
 
     /**
      * @function getNested
      * @description Return `this`.
-     * @returns {TurboModel}
+     * @returns {GradumModel}
      */
-    public getNested(): TurboModel;
+    public getNested(): GradumModel;
 
     /**
      * @function getNested
      * @description Retrieve an already-created nested model at the given key, or `undefined` if none exists.
      * @param {KeyType} key - The key of the nested model.
-     * @returns {TurboModel | undefined}
+     * @returns {GradumModel | undefined}
      */
-    public getNested(key: DataKeyType): TurboModel;
+    public getNested(key: DataKeyType): GradumModel;
 
     /**
      * @function getNested
      * @description Retrieve an already-created nested model at the given key path, or `undefined` if none exists.
      * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
-     * @returns {TurboModel | undefined}
+     * @returns {GradumModel | undefined}
      */
-    public getNested(...keys: KeyType[]): TurboModel;
-    public getNested(...keys: KeyType[]): TurboModel {
+    public getNested(...keys: KeyType[]): GradumModel;
+    public getNested(...keys: KeyType[]): GradumModel {
         if (keys.length === 0) return this;
         const nested = this.nestedModels.get(keys[0] as any);
-        if (keys.length > 1 && nested instanceof TurboModel) return nested.getNested(...keys.slice(1));
+        if (keys.length > 1 && nested instanceof GradumModel) return nested.getNested(...keys.slice(1));
         return nested;
     }
 
@@ -1031,24 +1031,24 @@ class TurboModel<
 
     /**
      * @function generateObserver
-     * @description Create and attach a {@link TurboObserver} to this model.
+     * @description Create and attach a {@link GradumObserver} to this model.
      * If a key path is provided, the observer is attached to the nested model(s) at that path instead.
-     * Pass {@link TurboModel.ALL} at any level of the path to process all entries at that level,
+     * Pass {@link GradumModel.ALL} at any level of the path to process all entries at that level,
      * allowing a single observer to track multiple subtrees simultaneously.
-     * @param {TurboObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
+     * @param {GradumObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
      * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe. Use `ALL` at
      * any level to process all entries there.
-     * @returns {TurboObserver<DataEntryType, ComponentType, KeyType>}
+     * @returns {GradumObserver<DataEntryType, ComponentType, KeyType>}
      */
     public generateObserver(
-        properties: TurboObserverProperties<DataEntryType, ComponentType, DataKeyType> = {},
+        properties: GradumObserverProperties<DataEntryType, ComponentType, DataKeyType> = {},
         ...keys: KeyType[]
-    ): TurboObserver<DataEntryType, ComponentType, DataKeyType> {
+    ): GradumObserver<DataEntryType, ComponentType, DataKeyType> {
         const initialize = (this.isInitialized && isUndefined(properties.initialize)) || properties.initialize === true;
         const observer = new (
             properties.customConstructor
             ?? this.observerConstructor
-            ?? TurboObserver<DataEntryType, ComponentType, DataKeyType>
+            ?? GradumObserver<DataEntryType, ComponentType, DataKeyType>
         )({
             ...properties,
             initialize: false,
@@ -1062,7 +1062,7 @@ class TurboModel<
                 this.initializeObserverOnPath(this.data, self, keys, []);
                 properties.onInitialize?.(self);
             }
-        }) as TurboObserver<DataEntryType, ComponentType, DataKeyType>;
+        }) as GradumObserver<DataEntryType, ComponentType, DataKeyType>;
 
         this.changeObservers.add({keys, observer});
         if (initialize) observer.initialize();
@@ -1072,22 +1072,22 @@ class TurboModel<
     /**
      * @function generateDeepObserver
      * @description Like {@link generateObserver}, but fires for the registered depth **and all deeper levels**.
-     * Whereas `generateObserver(..., TurboModel.ALL)` only notifies at depth-2, `generateDeepObserver(..., TurboModel.ALL)`
+     * Whereas `generateObserver(..., GradumModel.ALL)` only notifies at depth-2, `generateDeepObserver(..., GradumModel.ALL)`
      * also notifies for depth-3, depth-4, etc. — passing the full key path to `onAdded`/`onUpdated`/`onDeleted`.
      * Use when you need to react to any nested change regardless of depth.
-     * @param {TurboObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
+     * @param {GradumObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
      * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe.
-     * @returns {TurboObserver<DataEntryType, ComponentType, KeyType>}
+     * @returns {GradumObserver<DataEntryType, ComponentType, KeyType>}
      */
     public generateDeepObserver(
-        properties: TurboObserverProperties<DataEntryType, ComponentType, DataKeyType> = {},
+        properties: GradumObserverProperties<DataEntryType, ComponentType, DataKeyType> = {},
         ...keys: KeyType[]
-    ): TurboObserver<DataEntryType, ComponentType, DataKeyType> {
+    ): GradumObserver<DataEntryType, ComponentType, DataKeyType> {
         const initialize = (this.isInitialized && isUndefined(properties.initialize)) || properties.initialize === true;
         const observer = new (
             properties.customConstructor
             ?? this.observerConstructor
-            ?? TurboObserver<DataEntryType, ComponentType, DataKeyType>
+            ?? GradumObserver<DataEntryType, ComponentType, DataKeyType>
         )({
             ...properties,
             initialize: false,
@@ -1101,14 +1101,14 @@ class TurboModel<
                 this.initializeObserverOnPath(this.data, self, keys, [], true);
                 properties.onInitialize?.(self);
             }
-        }) as TurboObserver<DataEntryType, ComponentType, DataKeyType>;
+        }) as GradumObserver<DataEntryType, ComponentType, DataKeyType>;
 
         this.changeObservers.add({keys, observer, deep: true});
         if (initialize) observer.initialize();
         return observer;
     }
 
-    protected initializeObserverOnPath(data: any, observer: TurboObserver, keys: KeyType[], prefixKeys: KeyType[], deep: boolean = false) {
+    protected initializeObserverOnPath(data: any, observer: GradumObserver, keys: KeyType[], prefixKeys: KeyType[], deep: boolean = false) {
         if (keys.length === 0) {
             if (!this.isInitialized) return;
             for (const key of this.getKeysAction(data)) {
@@ -1117,7 +1117,7 @@ class TurboModel<
                 if (deep && value !== null && typeof value === "object")
                     this.initializeObserverOnPath(value, observer, [], [...prefixKeys, key], deep);
             }
-        } else if (keys[0] === TurboModel.ALL) for (const key of this.getKeysAction(data)) {
+        } else if (keys[0] === GradumModel.ALL) for (const key of this.getKeysAction(data)) {
             this.initializeObserverOnPath(this.getAction(data, key), observer, keys.slice(1), [...prefixKeys, key], deep);
         }
         else this.initializeObserverOnPath(this.getAction(data, keys[0]), observer,
@@ -1156,7 +1156,7 @@ class TurboModel<
             this.matchObserverAndNotify(observer, keys, pattern, [], value, deleted, deep));
     }
 
-    private matchObserverAndNotify(observer: TurboObserver, incomingKeys: KeyType[], pattern: KeyType[],
+    private matchObserverAndNotify(observer: GradumObserver, incomingKeys: KeyType[], pattern: KeyType[],
                            prefixKeys: KeyType[], value: unknown, deleted: boolean, deep: boolean = false) {
         if (!observer.isInitialized) return;
 
@@ -1186,7 +1186,7 @@ class TurboModel<
 
         const [head, ...tail] = incomingKeys;
         const [patternHead, ...patternTail] = pattern;
-        if (patternHead === TurboModel.ALL || patternHead === head)
+        if (patternHead === GradumModel.ALL || patternHead === head)
             this.matchObserverAndNotify(observer, tail, patternTail, [...prefixKeys, head], value, deleted, deep);
     }
 
@@ -1228,7 +1228,7 @@ class TurboModel<
             const key = keys[i] as number;
             for (let sibling = 0; sibling < key; sibling++) {
                 const siblingData = current[sibling];
-                index += TurboModel.flattenSize(siblingData, keys.length - i - 1);
+                index += GradumModel.flattenSize(siblingData, keys.length - i - 1);
             }
             current = current[key];
         }
@@ -1278,7 +1278,7 @@ class TurboModel<
             const getItem = Array.isArray(current) ? (j: number) => current[j] : (j: number) => current.get(j);
 
             for (let j = 0; j < current.length; j++) {
-                const size = TurboModel.flattenSize(getItem(j), remainingDepth);
+                const size = GradumModel.flattenSize(getItem(j), remainingDepth);
                 if (remaining < size) {
                     keys.push(j);
                     current = getItem(j);
@@ -1303,18 +1303,18 @@ class TurboModel<
      * By default, unless manually defined in the handler, if the element's class name is MyElement
      * and the handler's class name is MyElementSomethingHandler, the key would be "something".
      * @param {string} key - The handler's key.
-     * @return {TurboHandler} - The handler.
+     * @return {GradumHandler} - The handler.
      */
-    public getHandler(key: string): TurboHandler {
+    public getHandler(key: string): GradumHandler {
         return this.handlers?.get(key);
     }
 
     /**
      * @function addHandler
-     * @description Registers a TurboHandler for the given key.
-     * @param {TurboHandler} handler - The handler instance to register.
+     * @description Registers a GradumHandler for the given key.
+     * @param {GradumHandler} handler - The handler instance to register.
      */
-    public addHandler(handler: TurboHandler) {
+    public addHandler(handler: GradumHandler) {
         if (!handler.keyName) return;
         this.handlers?.set(handler.keyName, handler);
     }
@@ -1328,7 +1328,7 @@ class TurboModel<
         this.fireCallbackHook?.(key, ...values);
     }
 
-    private createNestedChild(model: TurboModel, key: KeyType, properties: TurboModelProperties): TurboModel {
+    private createNestedChild(model: GradumModel, key: KeyType, properties: GradumModelProperties): GradumModel {
         if (model.nestedModels.has(key)) return model.nestedModels.get(key);
 
         const child = (this.modelConstructor as any).create({...properties, data: model.get(key), initialize: this.isInitialized});
@@ -1346,6 +1346,6 @@ class TurboModel<
     };
 }
 
-addRegistryCategory(TurboModel);
-define(TurboModel);
-export {TurboModel};
+addRegistryCategory(GradumModel);
+define(GradumModel);
+export {GradumModel};

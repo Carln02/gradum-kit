@@ -18,7 +18,7 @@ export default [
         output: [
             {file: outDir + "/" + outName + ".esm.js", format: "esm"},
             {file: outDir + "/" + outName + ".cjs.js", format: "cjs"},
-            {file: outDir + "/" + outName + ".js", format: "iife", name: "Turbo"}
+            {file: outDir + "/" + outName + ".js", format: "iife", name: "Gradum"}
         ],
         external: ['yjs', '@ungap/structured-clone'],
         plugins: [
@@ -35,7 +35,7 @@ export default [
         output: [
             {file: outDir + "/" + outName + ".esm.min.js", format: "esm"},
             {file: outDir + "/" + outName + ".cjs.min.js", format: "cjs"},
-            {file: outDir + "/" + outName + ".min.js", format: "iife", name: "Turbo"}
+            {file: outDir + "/" + outName + ".min.js", format: "iife", name: "Gradum"}
         ],
         plugins: terser()
     },

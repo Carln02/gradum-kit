@@ -1,5 +1,5 @@
-import {TurboElementProperties} from "../../../../build/gradum-kit.esm";
+import {GradumElementProperties} from "../../../../build/gradum-kit.esm";
 
-export type ToolbarProperties = TurboElementProperties & {
+export type ToolbarProperties = GradumElementProperties & {
     entries?: HTMLElement[],
 };

@@ -1,11 +1,11 @@
-import {define, TurboElement, Point, expose, auto, turbo, p} from "../../../../build/gradum-kit.esm";
+import {define, GradumElement, Point, expose, auto, gradum, p} from "../../../../build/gradum-kit.esm";
 import {SquareModel} from "./square.model";
 import {SquareView} from "./square.view";
 import "./square.css";
 
 //Custom square element, defined as a custom element
 @define("demo-square")
-export class Square extends TurboElement<SquareView, any, SquareModel> {
+export class Square extends GradumElement<SquareView, any, SquareModel> {
     //Expose fields from the model
     @expose("model") color: string;
     @expose("model") size: number;
@@ -21,14 +21,14 @@ export class Square extends TurboElement<SquareView, any, SquareModel> {
 
     @auto({defaultValue: false}) public set isPusher(value: boolean) {
         if (value) this.isSpacer = false;
-        turbo(this).removeAllChildren();
-        if (value) turbo(this).addChild(p({text: "Pusher"}));
+        gradum(this).removeAllChildren();
+        if (value) gradum(this).addChild(p({text: "Pusher"}));
     }
 
     @auto({defaultValue: false}) public set isSpacer(value: boolean) {
         if (value) this.isPusher = false;
-        turbo(this).removeAllChildren();
-        if (value) turbo(this).addChild(p({text: "Spacer"}));
+        gradum(this).removeAllChildren();
+        if (value) gradum(this).addChild(p({text: "Spacer"}));
     }
 
     public move(delta: Point) {

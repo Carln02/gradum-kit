@@ -1,0 +1,14 @@
+gradum-content-switch {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    overflow: hidden;
+}
+
+gradum-content-switch > * {
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+    position: absolute;
+}

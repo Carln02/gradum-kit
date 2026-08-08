@@ -1,6 +1,6 @@
 import {style} from "./basicElements";
-import {StylesRoot} from "../turboFunctions/style/style.types";
-import {$} from "../turboFunctions/turboFunctions";
+import {StylesRoot} from "../gradumFunctions/style/style.types";
+import {$} from "../gradumFunctions/gradumFunctions";
 
 /**
  * @group Element Creation

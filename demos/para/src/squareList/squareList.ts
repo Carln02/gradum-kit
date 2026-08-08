@@ -3,13 +3,13 @@ import {
     effect,
     Reifect,
     Point,
-    TurboBaseElement,
+    GradumBaseElement,
     Color,
     define
 } from "../../../../build/gradum-kit.esm";
 import {Square} from "../square/square";
 
-export class SquareList extends TurboBaseElement {
+export class SquareList extends GradumBaseElement {
     @signal public count: number = 10;
 
     private squares: Square[] = [];

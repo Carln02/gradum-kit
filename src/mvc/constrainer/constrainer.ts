@@ -1,37 +1,37 @@
-import {TurboView} from "../view/view";
-import {TurboConstrainerProperties} from "./constrainer.types";
-import {turbo} from "../../turboFunctions/turboFunctions";
+import {GradumView} from "../view/view";
+import {GradumConstrainerProperties} from "./constrainer.types";
+import {gradum} from "../../gradumFunctions/gradumFunctions";
 import {
     ConstrainerSolver,
     ConstrainerCallbackProperties,
     ConstrainerAddCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties
-} from "../../turboFunctions/constrainer/constrainer.types";
-import {TurboQueue} from "../../turboComponents/datatypes/queue/queue";
-import {Delegate} from "../../turboComponents/datatypes/delegate/delegate";
-import {TurboNodeList} from "../../turboComponents/datatypes/nodeList/nodeList";
-import {TurboModel} from "../model/model";
-import {TurboEmitter} from "../emitter/emitter";
-import {TurboOperator} from "../operator/operator";
+} from "../../gradumFunctions/constrainer/constrainer.types";
+import {GradumQueue} from "../../gradumComponents/datatypes/queue/queue";
+import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
+import {GradumNodeList} from "../../gradumComponents/datatypes/nodeList/nodeList";
+import {GradumModel} from "../model/model";
+import {GradumEmitter} from "../emitter/emitter";
+import {GradumOperator} from "../operator/operator";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 
 /**
- * @class TurboConstrainer
+ * @class GradumConstrainer
  * @group MVC
  * @category Constrainer
  *
- * @extends TurboOperator
+ * @extends GradumOperator
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  * @description Class representing an constrainer in MVC, bound to the provided element.
  */
-class TurboConstrainer<
+class GradumConstrainer<
     ElementType extends object = object,
-    ViewType extends TurboView = TurboView<any, any>,
-    ModelType extends TurboModel = TurboModel,
-    EmitterType extends TurboEmitter = TurboEmitter
-> extends TurboOperator<ElementType, ViewType, ModelType, EmitterType> {
+    ViewType extends GradumView = GradumView<any, any>,
+    ModelType extends GradumModel = GradumModel,
+    EmitterType extends GradumEmitter = GradumEmitter
+> extends GradumOperator<ElementType, ViewType, ModelType, EmitterType> {
     /**
      * @description The key of the constrainer. Used to retrieve it in the main component. If not set, if the element's
      * class name is MyElement and the constrainer's class name is MyElementSomethingConstrainer, the key would
@@ -66,23 +66,23 @@ class TurboConstrainer<
     public priority: number;
 
     /**
-     * @description The list of objects constrained by the constrainer. To manipulate, check {@link TurboNodeList}.
+     * @description The list of objects constrained by the constrainer. To manipulate, check {@link GradumNodeList}.
      * Defaults to the children of the element the constrainer is attached to.
      */
-    public objectList: TurboNodeList;
+    public objectList: GradumNodeList;
 
     /**
      * @description The list of objects that trigger the constrainer to resolve.
      * Interacting with any of these objects would typically lead to the solving of the given constrainer.
-     * To manipulate, check {@link TurboNodeList}. Defaults to the objects in this.objectList.
+     * To manipulate, check {@link GradumNodeList}. Defaults to the objects in this.objectList.
      */
-    public triggerList: TurboNodeList;
+    public triggerList: GradumNodeList;
 
     /**
      * @description The default queue template for the constrainer, used when starting a new resolving pass.
      * It defaults to the constrainer's object list.
      */
-    public defaultQueue: object[] | TurboQueue<object>;
+    public defaultQueue: object[] | GradumQueue<object>;
 
     /**
      * @description The maximum number of passes allowed per object for this constrainer during resolving.
@@ -94,28 +94,28 @@ class TurboConstrainer<
      * @description Whether the constrainer is active. Defaults to true.
      */
     public get active(): boolean {
-        return turbo(this).activeConstrainers.includes(this.constrainerName);
+        return gradum(this).activeConstrainers.includes(this.constrainerName);
     }
 
     public set active(value: boolean) {
-        turbo(this).toggleConstrainer(this.constrainerName, value);
+        gradum(this).toggleConstrainer(this.constrainerName, value);
     }
 
     /**
      * @description Delegate fired whenever an object is added to or removed from the constrainer's object list.
      */
     public get onObjectListChange(): Delegate<(object: object, status: "added" | "removed") => void> {
-        return turbo(this).onConstrainerObjectListChange(this.constrainerName);
+        return gradum(this).onConstrainerObjectListChange(this.constrainerName);
     }
 
     /**
      * @description The current queue to be processed by the constrainer while resolving.
      */
-    public get queue(): TurboQueue<object> {
-        return turbo(this).getConstrainerQueue(this.constrainerName);
+    public get queue(): GradumQueue<object> {
+        return gradum(this).getConstrainerQueue(this.constrainerName);
     }
 
-    public constructor(properties: TurboConstrainerProperties<ElementType, ViewType, ModelType, EmitterType>) {
+    public constructor(properties: GradumConstrainerProperties<ElementType, ViewType, ModelType, EmitterType>) {
         super(properties);
 
         this.constrainerName = properties.constrainerName ?? this.constrainerName ?? undefined;
@@ -124,11 +124,11 @@ class TurboConstrainer<
         if (properties.active !== undefined) this.active = properties.active;
         if (typeof properties.priority === "number") this.priority = properties.priority;
 
-        if (!this.objectList) this.objectList = new TurboNodeList(
+        if (!this.objectList) this.objectList = new GradumNodeList(
             this.element instanceof Element ? this.element.children
                 : this.element instanceof Node ? this.element.childNodes
                     : []);
-        if (!this.triggerList) this.triggerList = new TurboNodeList(this.objectList);
+        if (!this.triggerList) this.triggerList = new GradumNodeList(this.objectList);
 
         this.setup();
     }
@@ -143,7 +143,7 @@ class TurboConstrainer<
         super.initialize();
         if (!this.constrainerName) return;
 
-        turbo(this).makeConstrainer(this.constrainerName, {
+        gradum(this).makeConstrainer(this.constrainerName, {
             onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
             onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
             attachedInstance: this
@@ -151,7 +151,7 @@ class TurboConstrainer<
 
         this.solversMetadata.forEach(metadata => {
             if (!metadata.name) return;
-            turbo(this).addSolver({
+            gradum(this).addSolver({
                 name: metadata.name,
                 constrainer: this.constrainerName,
                 priority: metadata.priority,
@@ -161,7 +161,7 @@ class TurboConstrainer<
 
         this.checkersMetadata.forEach(metadata => {
             if (!metadata.name) return;
-            turbo(this).addChecker({
+            gradum(this).addChecker({
                 name: metadata.name,
                 constrainer: this.constrainerName,
                 priority: metadata.priority,
@@ -171,7 +171,7 @@ class TurboConstrainer<
 
         this.mutatorsMetadata.forEach(metadata => {
             if (!metadata.name) return;
-            turbo(this).addMutator({
+            gradum(this).addMutator({
                 name: metadata.name,
                 constrainer: this.constrainerName,
                 priority: metadata.priority,
@@ -188,7 +188,7 @@ class TurboConstrainer<
      * @return {number} - Number of passes already performed on this object.
      */
     public getObjectPasses(object: object): number {
-        return turbo(this).getObjectPassesForConstrainer(object, this.constrainerName);
+        return gradum(this).getObjectPassesForConstrainer(object, this.constrainerName);
     }
 
     /**
@@ -199,7 +199,7 @@ class TurboConstrainer<
      * @return {Record<string, any>} - The stored data object (or an empty object if none).
      */
     public getObjectData(object: object): Record<string, any> {
-        return turbo(this).getObjectDataForConstrainer(object, this.constrainerName);
+        return gradum(this).getObjectDataForConstrainer(object, this.constrainerName);
     }
 
     /**
@@ -210,7 +210,7 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public setObjectData(object: object, data?: Record<string, any>): this {
-        return turbo(this).setObjectDataForConstrainer(object, data, this.constrainerName);
+        return gradum(this).setObjectDataForConstrainer(object, data, this.constrainerName);
     }
 
     /**
@@ -223,7 +223,7 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public addChecker(properties: ConstrainerAddCallbackProperties<ConstrainerChecker>): this {
-        turbo(this).addChecker({...properties, constrainer: this.constrainerName});
+        gradum(this).addChecker({...properties, constrainer: this.constrainerName});
         return this;
     }
 
@@ -234,7 +234,7 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public removeChecker(name: string): this {
-        turbo(this).removeChecker(name, this.constrainerName);
+        gradum(this).removeChecker(name, this.constrainerName);
         return this;
     }
 
@@ -244,7 +244,7 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public clearCheckers(): this {
-        turbo(this).clearCheckers(this.constrainerName);
+        gradum(this).clearCheckers(this.constrainerName);
         return this;
     }
 
@@ -255,7 +255,7 @@ class TurboConstrainer<
      * @return {boolean} - Whether the constrainer passes all checks.
      */
     public check(properties?: ConstrainerCallbackProperties): boolean {
-        return turbo(this).checkConstrainer({...properties, constrainer: this.constrainerName});
+        return gradum(this).checkConstrainer({...properties, constrainer: this.constrainerName});
     }
 
     /**
@@ -266,7 +266,7 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public addMutator(properties: ConstrainerAddCallbackProperties<ConstrainerMutator>): this {
-        turbo(this).addMutator({...properties, constrainer: this.constrainerName});
+        gradum(this).addMutator({...properties, constrainer: this.constrainerName});
         return this;
     }
 
@@ -277,7 +277,7 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public removeMutator(name: string): this {
-        turbo(this).removeMutator(name, this.constrainerName);
+        gradum(this).removeMutator(name, this.constrainerName);
         return this;
     }
 
@@ -287,7 +287,7 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public clearMutators(): this {
-        turbo(this).clearMutators(this.constrainerName);
+        gradum(this).clearMutators(this.constrainerName);
         return this;
     }
 
@@ -300,7 +300,7 @@ class TurboConstrainer<
      * @return {Type} - The mutated result.
      */
     public mutate<Type = any>(properties?: ConstrainerMutatorProperties<Type>): Type {
-        return turbo(this).mutate<Type>({...properties, constrainer: this.constrainerName});
+        return gradum(this).mutate<Type>({...properties, constrainer: this.constrainerName});
     }
 
     /**
@@ -313,7 +313,7 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public addSolver(properties: ConstrainerAddCallbackProperties<ConstrainerSolver>): this {
-        turbo(this).addSolver({...properties, constrainer: this.constrainerName});
+        gradum(this).addSolver({...properties, constrainer: this.constrainerName});
         return this;
     }
 
@@ -324,7 +324,7 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public removeSolver(name: string): this {
-        turbo(this).removeSolver(name, this.constrainerName);
+        gradum(this).removeSolver(name, this.constrainerName);
         return this;
     }
 
@@ -334,7 +334,7 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public clearSolvers(): this {
-        turbo(this).clearSolvers(this.constrainerName);
+        gradum(this).clearSolvers(this.constrainerName);
         return this;
     }
 
@@ -346,11 +346,11 @@ class TurboConstrainer<
      * @return {this} - Itself for chaining.
      */
     public solve(properties: ConstrainerCallbackProperties = {}): this {
-        turbo(this).solveConstrainer({...properties, constrainer: this.constrainerName});
+        gradum(this).solveConstrainer({...properties, constrainer: this.constrainerName});
         return this;
     }
 }
 
-addRegistryCategory(TurboConstrainer);
-define(TurboConstrainer);
-export {TurboConstrainer};
+addRegistryCategory(GradumConstrainer);
+define(GradumConstrainer);
+export {GradumConstrainer};

@@ -15,7 +15,7 @@ type ValidHTMLElement<Tag extends HTMLTag = HTMLTag> = HTMLElementTagNameMap[Tag
 
 declare global {
     interface HTMLElement extends Element {}
-    interface TurboElement extends HTMLElement {}
+    interface GradumElement extends HTMLElement {}
 
     interface HTMLAnchorElement extends HTMLElement {}
     interface HTMLAreaElement extends HTMLElement {}

@@ -1,33 +1,33 @@
-import {Delegate} from "../../turboComponents/datatypes/delegate/delegate";
-import {TurboNestedMap} from "../../turboComponents/datatypes/nestedMap/nestedMap";
-import {TurboObserverProperties} from "./model.types";
-import {TurboModel} from "./model";
+import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
+import {GradumNestedMap} from "../../gradumComponents/datatypes/nestedMap/nestedMap";
+import {GradumObserverProperties} from "./model.types";
+import {GradumModel} from "./model";
 import {KeyType} from "../../types/basic.types";
 import {areEqual} from "../../utils/computations/equity";
 
 /**
- * @class TurboObserver
+ * @class GradumObserver
  * @group MVC
- * @category TurboModel
+ * @category GradumModel
  *
- * @extends TurboNestedMap
+ * @extends GradumNestedMap
  * @description Generic observer that keeps a set of component instances organized by key path.
  * Useful to maintain UI components or other per-entry objects synchronized with a data source
- * ({@link TurboModel}).
+ * ({@link GradumModel}).
  *
  * @template DataType - The type of data handled by the observer.
  * @template {object} ComponentType - The instance type created/managed by the observer.
  * @template {string | number | symbol} KeyType - The key type used at each level of the path.
  */
-class TurboObserver<
+class GradumObserver<
     DataType = any,
     ComponentType extends object = any,
     DataKeyType extends KeyType = KeyType,
-> extends TurboNestedMap<ComponentType, DataKeyType> {
+> extends GradumNestedMap<ComponentType, DataKeyType> {
     protected _isInitialized = false;
 
-    private readonly prevData: TurboNestedMap<DataType, DataKeyType> = new TurboNestedMap();
-    private replaceOnUpdate: TurboObserverProperties<DataType, ComponentType, DataKeyType>["replaceOnUpdate"];
+    private readonly prevData: GradumNestedMap<DataType, DataKeyType> = new GradumNestedMap();
+    private replaceOnUpdate: GradumObserverProperties<DataType, ComponentType, DataKeyType>["replaceOnUpdate"];
 
     /**
      * @property onAdded
@@ -36,7 +36,7 @@ class TurboObserver<
      * `onUpdated` calls.
      */
     public readonly onAdded: Delegate<
-        (data: DataType, self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => ComponentType | void
+        (data: DataType, self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => ComponentType | void
     > = new Delegate();
 
     /**
@@ -45,7 +45,7 @@ class TurboObserver<
      */
     public readonly onUpdated: Delegate<
         (data: DataType, instance: ComponentType,
-         self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => void
+         self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => void
     > = new Delegate();
 
     /**
@@ -54,30 +54,30 @@ class TurboObserver<
      */
     public readonly onDeleted: Delegate<
         (data: DataType, instance: ComponentType,
-         self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => void
+         self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => void
     > = new Delegate();
 
     /**
      * @property onInitialize
      * @description Delegate fired once when the observer is initialized. Useful for initial population.
      */
-    public readonly onInitialize: Delegate<(self: TurboObserver<DataType, ComponentType, DataKeyType>) => void> = new Delegate();
+    public readonly onInitialize: Delegate<(self: GradumObserver<DataType, ComponentType, DataKeyType>) => void> = new Delegate();
 
     /**
      * @property onDestroy
      * @description Delegate fired when the observer is destroyed.
      */
-    public readonly onDestroy: Delegate<(self: TurboObserver<DataType, ComponentType, DataKeyType>) => void> = new Delegate();
+    public readonly onDestroy: Delegate<(self: GradumObserver<DataType, ComponentType, DataKeyType>) => void> = new Delegate();
 
     /**
      * @constructor
-     * @description Create a TurboObserver.
-     * By default, `onUpdated` updates the data of the mapped instance if it exposes a {@link TurboModel} model,
+     * @description Create a GradumObserver.
+     * By default, `onUpdated` updates the data of the mapped instance if it exposes a {@link GradumModel} model,
      * or `data` / `dataId` fields. `onDeleted` removes the instance from the map and the DOM.
-     * @param {TurboObserverProperties<DataType, ComponentType, KeyType>} [properties] - Initialization
+     * @param {GradumObserverProperties<DataType, ComponentType, KeyType>} [properties] - Initialization
      * options and lifecycle callbacks.
      */
-    public constructor(properties: TurboObserverProperties<DataType, ComponentType, DataKeyType> = {}) {
+    public constructor(properties: GradumObserverProperties<DataType, ComponentType, DataKeyType> = {}) {
         super();
 
         if (properties.onAdded) this.onAdded.add((data, self, ...keys) =>
@@ -218,4 +218,4 @@ class TurboObserver<
     }
 }
 
-export {TurboObserver};
+export {GradumObserver};

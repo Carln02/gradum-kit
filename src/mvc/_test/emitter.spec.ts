@@ -1,11 +1,11 @@
 import {describe, it, expect} from "vitest";
-import {TurboEmitter} from "../emitter/emitter";
-import {TurboModel} from "../model/model";
+import {GradumEmitter} from "../emitter/emitter";
+import {GradumModel} from "../model/model";
 
-describe("TurboEmitter", () => {
+describe("GradumEmitter", () => {
     describe("custom event add / fire / remove", () => {
         it("registers and fires callbacks for an event", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             let called = 0;
             let lastArgs: any[] = [];
 
@@ -24,7 +24,7 @@ describe("TurboEmitter", () => {
         });
 
         it("multiple callbacks on same event all fire", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             const results: number[] = [];
 
             emitter.add("tick", () => results.push(1));
@@ -35,7 +35,7 @@ describe("TurboEmitter", () => {
         });
 
         it("removes a specific callback", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             let a = 0, b = 0;
             const cbA = () => (a++);
             const cbB = () => (b++);
@@ -54,7 +54,7 @@ describe("TurboEmitter", () => {
         });
 
         it("remove with no callback clears all callbacks for that event", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             let count = 0;
 
             emitter.add("evt", () => count++);
@@ -69,14 +69,14 @@ describe("TurboEmitter", () => {
         });
 
         it("firing an unregistered event does not throw", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             expect(() => emitter.fire("unknown")).not.toThrow();
         });
     });
 
     describe("model-key scoped callbacks: addKey / fireKey / removeKey", () => {
         it("addKey / fireKey invokes callbacks with value and keys", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             const seen: Array<{value: any; keys: any[]}> = [];
 
             emitter.addKey((value, ...keys) => seen.push({value, keys}), "name");
@@ -87,7 +87,7 @@ describe("TurboEmitter", () => {
         });
 
         it("addKey callbacks are scoped to their key path", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             const seenA: any[] = [];
             const seenB: any[] = [];
 
@@ -103,7 +103,7 @@ describe("TurboEmitter", () => {
         });
 
         it("nested key paths are scoped independently", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             const top: any[] = [];
             const nested: any[] = [];
 
@@ -118,7 +118,7 @@ describe("TurboEmitter", () => {
         });
 
         it("removeKey removes a specific callback", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             let count = 0;
             const cb = () => count++;
 
@@ -132,7 +132,7 @@ describe("TurboEmitter", () => {
         });
 
         it("removeKey with no callback clears all callbacks for that key path", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             let count = 0;
             emitter.addKey(() => count++, "x");
             emitter.addKey(() => count++, "x");
@@ -146,21 +146,21 @@ describe("TurboEmitter", () => {
         });
 
         it("firing an unregistered key path does not throw", () => {
-            const emitter = new TurboEmitter();
+            const emitter = new GradumEmitter();
             expect(() => emitter.fireKey(42, "no-such-key")).not.toThrow();
         });
     });
 
     describe("model integration", () => {
         it("accepts a model reference", () => {
-            const model = new TurboModel({data: {x: 1}});
-            const emitter = new TurboEmitter(model);
+            const model = new GradumModel({data: {x: 1}});
+            const emitter = new GradumEmitter(model);
             expect(emitter.model).toBe(model);
         });
 
         it("model can be set after construction", () => {
-            const emitter = new TurboEmitter();
-            const model = new TurboModel({data: {}});
+            const emitter = new GradumEmitter();
+            const model = new GradumModel({data: {}});
             emitter.model = model;
             expect(emitter.model).toBe(model);
         });

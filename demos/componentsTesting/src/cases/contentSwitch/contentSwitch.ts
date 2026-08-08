@@ -1,5 +1,5 @@
 import {
-    div, p, h2, span, TurboButton, TurboContentSwitch, ContentSwitchMode
+    div, p, h2, span, GradumButton, GradumContentSwitch, ContentSwitchMode
 } from "../../../../../build/gradum-kit.esm";
 import {box} from "../../demoBox/demoBox";
 
@@ -43,14 +43,14 @@ function makePanel(label: string, color: string, content: {
 }
 
 function makeSwitch(mode?: ContentSwitchMode) {
-    const cs = TurboContentSwitch.create({mode} as any);
+    const cs = GradumContentSwitch.create({mode} as any);
     cs.select.forceSelection = false;
     return cs;
 }
 
-function navButtons(cs: TurboContentSwitch, panels: HTMLElement[], label = "") {
+function navButtons(cs: GradumContentSwitch, panels: HTMLElement[], label = "") {
     return panels.map((p, i) =>
-        TurboButton.create({text: `→ ${label || i + 1}`, onClick: () => cs.select.select(p)})
+        GradumButton.create({text: `→ ${label || i + 1}`, onClick: () => cs.select.select(p)})
     );
 }
 
@@ -68,7 +68,7 @@ function csTest1() {
     box("ContentSwitch — Same size panels (fadeRight)")
         .addSubBox("switch", cs)
         .addContent(...panels.map((_, i) =>
-            TurboButton.create({text: `→ Panel ${["A","B","C"][i]}`, onClick: () => cs.select.select(panels[i])})
+            GradumButton.create({text: `→ Panel ${["A","B","C"][i]}`, onClick: () => cs.select.select(panels[i])})
         ));
 }
 
@@ -86,7 +86,7 @@ function csTest2() {
     box("ContentSwitch — Varying widths")
         .addSubBox("switch", cs)
         .addContent(...["Narrow","Normal","Wide"].map((label, i) =>
-            TurboButton.create({text: `→ ${label}`, onClick: () => cs.select.select(panels[i])})
+            GradumButton.create({text: `→ ${label}`, onClick: () => cs.select.select(panels[i])})
         ));
 }
 
@@ -111,7 +111,7 @@ function csTest3() {
     box("ContentSwitch — Varying heights (fadeLeft)")
         .addSubBox("switch", cs)
         .addContent(...["Short","Tall","Medium"].map((label, i) =>
-            TurboButton.create({text: `→ ${label}`, onClick: () => cs.select.select(panels[i])})
+            GradumButton.create({text: `→ ${label}`, onClick: () => cs.select.select(panels[i])})
         ));
 }
 
@@ -132,17 +132,17 @@ function csTest4() {
     box("ContentSwitch — Carousel + varying sizes")
         .addSubBox("switch", cs)
         .addContent(
-            TurboButton.create({text: "← Prev", onClick: () => { if (idx > 0) cs.select.select(panels[--idx]); }}),
-            TurboButton.create({text: "Next →", onClick: () => { if (idx < panels.length - 1) cs.select.select(panels[++idx]); }}),
+            GradumButton.create({text: "← Prev", onClick: () => { if (idx > 0) cs.select.select(panels[--idx]); }}),
+            GradumButton.create({text: "Next →", onClick: () => { if (idx < panels.length - 1) cs.select.select(panels[++idx]); }}),
             ...panels.map((_, i) =>
-                TurboButton.create({text: `→ ${i + 1}`, onClick: () => { idx = i; cs.select.select(panels[i]); }})
+                GradumButton.create({text: `→ ${i + 1}`, onClick: () => { idx = i; cs.select.select(panels[i]); }})
             )
         );
 }
 
 /* 5) Slow transition to inspect size animation clearly */
 function csTest5() {
-    const cs = TurboContentSwitch.create({transitionDuration: 1.2} as any);
+    const cs = GradumContentSwitch.create({transitionDuration: 1.2} as any);
     cs.select.forceSelection = false;
     const panels = [
         makePanel("Slow A", palette[4], {narrow: true, subtitle: "Small start"}),
@@ -155,7 +155,7 @@ function csTest5() {
     box("ContentSwitch — Slow transition (1.2s) for visual inspection")
         .addSubBox("switch", cs)
         .addContent(...["A","B","C"].map((label, i) =>
-            TurboButton.create({text: `→ Slow ${label}`, onClick: () => cs.select.select(panels[i])})
+            GradumButton.create({text: `→ Slow ${label}`, onClick: () => cs.select.select(panels[i])})
         ));
 }
 

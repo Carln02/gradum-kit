@@ -2,7 +2,7 @@ import {
     ConstrainerAddCallbackProperties,
     ConstrainerChecker, ConstrainerMutator,
     ConstrainerSolver
-} from "../turboFunctions/constrainer/constrainer.types";
+} from "../gradumFunctions/constrainer/constrainer.types";
 
 /**
  * @decorator

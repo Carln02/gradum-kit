@@ -1,4 +1,4 @@
-import {Point} from "../../turboComponents/datatypes/point/point";
+import {Point} from "../../gradumComponents/datatypes/point/point";
 import {intersectSegments} from "./segment";
 
 /**

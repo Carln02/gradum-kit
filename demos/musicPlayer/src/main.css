@@ -48,13 +48,13 @@ body {
     font-family: var(--font-family), sans-serif;
 }
 
-.turbo-icon {
+.gradum-icon {
     display: block;
     width: 1.5rem;
     height: 1.5rem;
 }
 
-.turbo-icon > svg {
+.gradum-icon > svg {
     fill: var(--text);
     width: 100%;
     height: 100%;

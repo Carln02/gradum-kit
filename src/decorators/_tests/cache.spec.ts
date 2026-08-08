@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach, afterEach} from "vitest";
 import {cache, clearCache, clearCacheEntry} from "../cache/cache";
-import {turbo} from "../../turboFunctions/turboFunctions";
+import {gradum} from "../../gradumFunctions/gradumFunctions";
 
 describe("@cache", () => {
     beforeEach(() => vi.useFakeTimers());
@@ -172,7 +172,7 @@ describe("@cache", () => {
         expect(e.v).toBe("X");
         expect(e.calls).toBe(1);
 
-        turbo(e).executeAction("boom", undefined, new Event("boom"));
+        gradum(e).executeAction("boom", undefined, new Event("boom"));
         expect(e.v).toBe("X");
         expect(e.calls).toBe(2); //todo
     });

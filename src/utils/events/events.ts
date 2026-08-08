@@ -1,5 +1,5 @@
-import {TurboEvent} from "../../eventHandling/events/turboEvent";
-import {Point} from "../../turboComponents/datatypes/point/point";
+import {GradumEvent} from "../../eventHandling/events/gradumEvent";
+import {Point} from "../../gradumComponents/datatypes/point/point";
 
 /**
  * @group Utilities
@@ -7,7 +7,7 @@ import {Point} from "../../turboComponents/datatypes/point/point";
  * @param e
  */
 function getEventPosition(e: Event): Point {
-    if (e instanceof TurboEvent) return e.scaledPosition;
+    if (e instanceof GradumEvent) return e.scaledPosition;
     if (e instanceof PointerEvent) return new Point(e.clientX, e.clientY);
     return;
 }

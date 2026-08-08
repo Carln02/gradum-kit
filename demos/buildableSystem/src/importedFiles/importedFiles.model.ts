@@ -1,8 +1,8 @@
-import {TurboModel, handler} from "../../../../build/gradum-kit.esm";
+import {GradumModel, handler} from "../../../../build/gradum-kit.esm";
 import {PluginEntry} from "./importedFiles.types";
 import {ImportedFilesFilesHandler} from "./importedFiles.filesHandler";
 
-export class ImportedFilesModel extends TurboModel<Map<string, PluginEntry>> {
+export class ImportedFilesModel extends GradumModel<Map<string, PluginEntry>> {
     @handler() public filesHandler: ImportedFilesFilesHandler;
 
     public clear(clearData: boolean = true) {

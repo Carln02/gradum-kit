@@ -1,19 +1,19 @@
-import {TurboModel} from "../model/model";
-import {Delegate} from "../../turboComponents/datatypes/delegate/delegate";
+import {GradumModel} from "../model/model";
+import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
 import {FlatKeyType, KeyType} from "../../types/basic.types";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 
 /**
- * @class TurboEmitter
+ * @class GradumEmitter
  * @group MVC
  * @category Emitter
  *
- * @template {TurboModel} ModelType - The element's MVC model type.
+ * @template {GradumModel} ModelType - The element's MVC model type.
  * @template {KeyType} DataKeyType - The key type of the MVC's model.
  * @description The base MVC emitter class. Its role is basically an event bus. It allows the different parts of the
  * MVC structure to fire events or listen to some, with various methods.
  */
-class TurboEmitter<ModelType extends TurboModel = TurboModel, DataKeyType extends KeyType = KeyType> {
+class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKeyType extends KeyType = KeyType> {
     /**
      * @description Map containing all custom callbacks.
      * @protected
@@ -118,6 +118,6 @@ class TurboEmitter<ModelType extends TurboModel = TurboModel, DataKeyType extend
     }
 }
 
-addRegistryCategory(TurboEmitter);
-define(TurboEmitter);
-export {TurboEmitter};
+addRegistryCategory(GradumEmitter);
+define(GradumEmitter);
+export {GradumEmitter};

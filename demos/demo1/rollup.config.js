@@ -11,7 +11,7 @@ export default [
     {
         input: "src/script.js",
         output: [
-            {file: "dist.js", format: "iife", name: "Turbo"}
+            {file: "dist.js", format: "iife", name: "Gradum"}
         ],
         plugins: [
             nodeResolve(),

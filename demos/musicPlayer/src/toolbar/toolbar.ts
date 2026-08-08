@@ -1,14 +1,14 @@
 import "./toolbar.css";
-import {define, element, turbo, TurboElement, TurboElementProperties} from "../../../../build/gradum-kit.esm";
+import {define, element, gradum, GradumElement, GradumElementProperties} from "../../../../build/gradum-kit.esm";
 
-@define("turbo-toolbar")
-export class Toolbar extends TurboElement {
+@define("gradum-toolbar")
+export class Toolbar extends GradumElement {
     public addTool(tool: HTMLElement) {
-        turbo(this).addChild(tool);
+        gradum(this).addChild(tool);
     }
 }
 
-export function toolbar(properties: TurboElementProperties) {
-    if (!properties.tag) properties.tag = "turbo-toolbar";
+export function toolbar(properties: GradumElementProperties) {
+    if (!properties.tag) properties.tag = "gradum-toolbar";
     return element({...properties}) as Toolbar;
 }

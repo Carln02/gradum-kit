@@ -1,5 +1,5 @@
-import {TurboModel} from "../model/model";
-import {TurboEmitter} from "../emitter/emitter";
+import {GradumModel} from "../model/model";
+import {GradumEmitter} from "../emitter/emitter";
 
 /**
  * @group MVC
@@ -26,14 +26,14 @@ type MvcFlatKeyType<B extends "array" | "map"> = B extends "array" ? number : st
  * @group MVC
  * @category View
  */
-type TurboViewProperties<
+type GradumViewProperties<
     ElementType extends object = object,
-    ModelType extends TurboModel = TurboModel,
-    EmitterType extends TurboEmitter = TurboEmitter,
+    ModelType extends GradumModel = GradumModel,
+    EmitterType extends GradumEmitter = GradumEmitter,
 > = {
     element: ElementType,
     model?: ModelType,
     emitter?: EmitterType,
 };
 
-export {TurboViewProperties, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType};
+export {GradumViewProperties, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType};

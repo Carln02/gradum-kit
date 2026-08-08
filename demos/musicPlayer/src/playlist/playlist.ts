@@ -1,4 +1,4 @@
-import {Coordinate, define, element, expose, isUndefined, TurboElement, substrate} from "../../../../build/gradum-kit.esm";
+import {Coordinate, define, element, expose, isUndefined, GradumElement, substrate} from "../../../../build/gradum-kit.esm";
 import {PlaylistView} from "./playlist.view";
 import {PlaylistData, PlaylistProperties} from "./playlist.types";
 import {PlaylistModel} from "./playlist.model";
@@ -6,8 +6,8 @@ import "./playlist.css";
 import {Song} from "../song/song";
 import {PlaylistSubstrate} from "./playlist.substrate";
 
-@define("turbo-playlist")
-export class Playlist extends TurboElement<PlaylistView, PlaylistData, PlaylistModel> {
+@define("gradum-playlist")
+export class Playlist extends GradumElement<PlaylistView, PlaylistData, PlaylistModel> {
     @expose("model") public origin: Coordinate;
     @substrate("substrate") private substrate: PlaylistSubstrate;
 
@@ -46,7 +46,7 @@ export class Playlist extends TurboElement<PlaylistView, PlaylistData, PlaylistM
 }
 
 export function playlist(properties: PlaylistProperties = {}): Playlist {
-    if (!properties.tag) properties.tag = "turbo-playlist";
+    if (!properties.tag) properties.tag = "gradum-playlist";
     if (!properties.view) properties.view = PlaylistView;
     if (!properties.model) properties.model = PlaylistModel;
     if (!properties.substrates) properties.substrates = PlaylistSubstrate;

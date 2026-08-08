@@ -1,5 +1,5 @@
 import {element} from "./element";
-import {TurboProperties} from "../turboFunctions/element/element.types";
+import {GradumProperties} from "../gradumFunctions/element/element.types";
 import {ValidElement} from "../types/element.types";
 
 /**
@@ -7,10 +7,10 @@ import {ValidElement} from "../types/element.types";
  * @category Base Elements
  *
  * @description Creates an "a" element with the specified properties.
- * @param {TurboProperties<"a">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"a">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"a">} The created element.
  */
-function a(properties: TurboProperties<"a"> = {}): ValidElement<"a"> {
+function a(properties: GradumProperties<"a"> = {}): ValidElement<"a"> {
     return element({...properties, tag: "a"});
 }
 
@@ -19,10 +19,10 @@ function a(properties: TurboProperties<"a"> = {}): ValidElement<"a"> {
  * @category Base Elements
  *
  * @description Creates a "canvas" element with the specified properties.
- * @param {TurboProperties<"canvas">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"canvas">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"canvas">} The created element.
  */
-function canvas(properties: TurboProperties<"canvas"> = {}): ValidElement<"canvas"> {
+function canvas(properties: GradumProperties<"canvas"> = {}): ValidElement<"canvas"> {
     return element({...properties, tag: "canvas"});
 }
 
@@ -32,10 +32,10 @@ function canvas(properties: TurboProperties<"canvas"> = {}): ValidElement<"canva
  * @category Base Elements
  *
  * @description Creates a "div" element with the specified properties.
- * @param {TurboProperties<"div">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"div">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"div">} The created element.
  */
-function div(properties: TurboProperties = {}): ValidElement<"div"> {
+function div(properties: GradumProperties = {}): ValidElement<"div"> {
     return element({...properties, tag: "div"});
 }
 
@@ -44,10 +44,10 @@ function div(properties: TurboProperties = {}): ValidElement<"div"> {
  * @category Base Elements
  *
  * @description Creates a "form" element with the specified properties.
- * @param {TurboProperties<"form">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"form">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"form">} The created element.
  */
-function form(properties: TurboProperties<"form"> = {}): ValidElement<"form"> {
+function form(properties: GradumProperties<"form"> = {}): ValidElement<"form"> {
     return element({...properties, tag: "form"});
 }
 
@@ -56,10 +56,10 @@ function form(properties: TurboProperties<"form"> = {}): ValidElement<"form"> {
  * @category Base Elements
  *
  * @description Creates a "h1" element with the specified properties.
- * @param {TurboProperties<"h1">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h1">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h1">} The created element.
  */
-function h1(properties: TurboProperties<"h1"> = {}): ValidElement<"h1"> {
+function h1(properties: GradumProperties<"h1"> = {}): ValidElement<"h1"> {
     return element({...properties, tag: "h1"});
 }
 
@@ -68,10 +68,10 @@ function h1(properties: TurboProperties<"h1"> = {}): ValidElement<"h1"> {
  * @category Base Elements
  *
  * @description Creates a "h2" element with the specified properties.
- * @param {TurboProperties<"h2">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h2">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h2">} The created element.
  */
-function h2(properties: TurboProperties<"h2"> = {}): ValidElement<"h2"> {
+function h2(properties: GradumProperties<"h2"> = {}): ValidElement<"h2"> {
     return element({...properties, tag: "h2"});
 }
 
@@ -80,10 +80,10 @@ function h2(properties: TurboProperties<"h2"> = {}): ValidElement<"h2"> {
  * @category Base Elements
  *
  * @description Creates a "h3" element with the specified properties.
- * @param {TurboProperties<"h3">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h3">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h3">} The created element.
  */
-function h3(properties: TurboProperties<"h3"> = {}): ValidElement<"h3"> {
+function h3(properties: GradumProperties<"h3"> = {}): ValidElement<"h3"> {
     return element({...properties, tag: "h3"});
 }
 
@@ -92,10 +92,10 @@ function h3(properties: TurboProperties<"h3"> = {}): ValidElement<"h3"> {
  * @category Base Elements
  *
  * @description Creates a "h4" element with the specified properties.
- * @param {TurboProperties<"h4">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h4">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h4">} The created element.
  */
-function h4(properties: TurboProperties<"h4"> = {}): ValidElement<"h4"> {
+function h4(properties: GradumProperties<"h4"> = {}): ValidElement<"h4"> {
     return element({...properties, tag: "h4"});
 }
 
@@ -104,10 +104,10 @@ function h4(properties: TurboProperties<"h4"> = {}): ValidElement<"h4"> {
  * @category Base Elements
  *
  * @description Creates a "h5" element with the specified properties.
- * @param {TurboProperties<"h5">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h5">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h5">} The created element.
  */
-function h5(properties: TurboProperties<"h5"> = {}): ValidElement<"h5"> {
+function h5(properties: GradumProperties<"h5"> = {}): ValidElement<"h5"> {
     return element({...properties, tag: "h5"});
 }
 
@@ -116,10 +116,10 @@ function h5(properties: TurboProperties<"h5"> = {}): ValidElement<"h5"> {
  * @category Base Elements
  *
  * @description Creates a "h6" element with the specified properties.
- * @param {TurboProperties<"h6">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h6">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h6">} The created element.
  */
-function h6(properties: TurboProperties<"h6"> = {}): ValidElement<"h6"> {
+function h6(properties: GradumProperties<"h6"> = {}): ValidElement<"h6"> {
     return element({...properties, tag: "h6"}) as ValidElement<"h6">;
 }
 
@@ -128,10 +128,10 @@ function h6(properties: TurboProperties<"h6"> = {}): ValidElement<"h6"> {
  * @category Base Elements
  *
  * @description Creates an "img" element with the specified properties.
- * @param {TurboProperties<"img">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"img">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"img">} The created element.
  */
-function img(properties: TurboProperties<"img"> = {}): ValidElement<"img"> {
+function img(properties: GradumProperties<"img"> = {}): ValidElement<"img"> {
     return element({...properties, tag: "img"});
 }
 
@@ -140,10 +140,10 @@ function img(properties: TurboProperties<"img"> = {}): ValidElement<"img"> {
  * @category Base Elements
  *
  * @description Creates an "input" element with the specified properties.
- * @param {TurboProperties<"input">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"input">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"input">} The created element.
  */
-function input(properties: TurboProperties<"input"> = {}): ValidElement<"input"> {
+function input(properties: GradumProperties<"input"> = {}): ValidElement<"input"> {
     return element({...properties, tag: "input"});
 }
 
@@ -152,10 +152,10 @@ function input(properties: TurboProperties<"input"> = {}): ValidElement<"input">
  * @category Base Elements
  *
  * @description Creates a "link" element with the specified properties.
- * @param {TurboProperties<"link">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"link">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"link">} The created element.
  */
-function link(properties: TurboProperties<"link"> = {}): ValidElement<"link"> {
+function link(properties: GradumProperties<"link"> = {}): ValidElement<"link"> {
     return element({...properties, tag: "link"});
 }
 
@@ -164,10 +164,10 @@ function link(properties: TurboProperties<"link"> = {}): ValidElement<"link"> {
  * @category Base Elements
  *
  * @description Creates a "p" element with the specified properties.
- * @param {TurboProperties<"p">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"p">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"p">} The created element.
  */
-function p(properties: TurboProperties<"p"> = {}): ValidElement<"p"> {
+function p(properties: GradumProperties<"p"> = {}): ValidElement<"p"> {
     return element({...properties, tag: "p"});
 }
 
@@ -176,10 +176,10 @@ function p(properties: TurboProperties<"p"> = {}): ValidElement<"p"> {
  * @category Base Elements
  *
  * @description Creates a "span" element with the specified properties.
- * @param {TurboProperties<"span">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"span">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"span">} The created element.
  */
-function span(properties: TurboProperties<"span"> = {}): ValidElement<"span"> {
+function span(properties: GradumProperties<"span"> = {}): ValidElement<"span"> {
     return element({...properties, tag: "span"});
 }
 
@@ -188,10 +188,10 @@ function span(properties: TurboProperties<"span"> = {}): ValidElement<"span"> {
  * @category Base Elements
  *
  * @description Creates a "style" element with the specified properties.
- * @param {TurboProperties<"style">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"style">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"style">} The created element.
  */
-function style(properties: TurboProperties<"style"> = {}): ValidElement<"style"> {
+function style(properties: GradumProperties<"style"> = {}): ValidElement<"style"> {
     return element({...properties, tag: "style"});
 }
 
@@ -200,10 +200,10 @@ function style(properties: TurboProperties<"style"> = {}): ValidElement<"style">
  * @category Base Elements
  *
  * @description Creates a "textarea" element with the specified properties.
- * @param {TurboProperties<"textarea">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"textarea">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"textarea">} The created element.
  */
-function textarea(properties: TurboProperties<"textarea"> = {}): ValidElement<"textarea"> {
+function textarea(properties: GradumProperties<"textarea"> = {}): ValidElement<"textarea"> {
     return element({...properties, tag: "textarea"});
 }
 
@@ -212,10 +212,10 @@ function textarea(properties: TurboProperties<"textarea"> = {}): ValidElement<"t
  * @category Base Elements
  *
  * @description Creates a "video" element with the specified properties.
- * @param {TurboProperties<"video">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"video">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"video">} The created element.
  */
-function video(properties: TurboProperties<"video"> = {}): ValidElement<"video"> {
+function video(properties: GradumProperties<"video"> = {}): ValidElement<"video"> {
     return element({...properties, tag: "video"});
 }
 
@@ -224,10 +224,10 @@ function video(properties: TurboProperties<"video"> = {}): ValidElement<"video">
  * @category Base Elements
  *
  * @description Creates a "button" element with the specified properties.
- * @param {TurboProperties<"button">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"button">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"button">} The created element.
  */
-function button(properties: TurboProperties<"button"> = {}): ValidElement<"button"> {
+function button(properties: GradumProperties<"button"> = {}): ValidElement<"button"> {
     return element({...properties, tag: "button"});
 }
 

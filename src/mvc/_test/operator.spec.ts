@@ -1,10 +1,10 @@
 import {describe, it, expect} from "vitest";
-import {TurboView} from "../view/view";
-import {TurboOperator} from "../operator/operator";
-import {TurboModel} from "../model/model";
-import {TurboEmitter} from "../emitter/emitter";
+import {GradumView} from "../view/view";
+import {GradumOperator} from "../operator/operator";
+import {GradumModel} from "../model/model";
+import {GradumEmitter} from "../emitter/emitter";
 
-class TrackingOperator extends TurboOperator {
+class TrackingOperator extends GradumOperator {
     public setupCalls = 0;
     public listenerCalls = 0;
 
@@ -21,12 +21,12 @@ class TrackingOperator extends TurboOperator {
     }
 }
 
-describe("TurboOperator", () => {
+describe("GradumOperator", () => {
     it("constructor assigns element, view, model, and emitter from properties", () => {
         const element = {id: 1};
-        const model = new TurboModel({data: {foo: 1}});
-        const emitter = new TurboEmitter(model);
-        const view = new TurboView({element, model, emitter} as any);
+        const model = new GradumModel({data: {foo: 1}});
+        const emitter = new GradumEmitter(model);
+        const view = new GradumView({element, model, emitter} as any);
 
         const ctrl = new TrackingOperator({element, view, model, emitter} as any);
 
@@ -48,9 +48,9 @@ describe("TurboOperator", () => {
 
     it("view, model, emitter can be assigned after construction", () => {
         const element = {};
-        const model = new TurboModel({data: {}});
-        const emitter = new TurboEmitter();
-        const view = new TurboView({element} as any);
+        const model = new GradumModel({data: {}});
+        const emitter = new GradumEmitter();
+        const view = new GradumView({element} as any);
 
         const ctrl = new TrackingOperator({element} as any);
         ctrl.view = view;
@@ -93,7 +93,7 @@ describe("TurboOperator", () => {
         // Use a closure instead of a class field to avoid re-initialization after super()
         let setupCalled = false;
 
-        class SetupTrackingOperator extends TurboOperator {
+        class SetupTrackingOperator extends GradumOperator {
             protected override setup(): void { setupCalled = true; }
         }
 

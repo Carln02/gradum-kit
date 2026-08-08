@@ -4,10 +4,10 @@ import {
     drawer, effect,
     richElement,
     Side,
-    turbo,
-    TurboDrawer,
-    TurboRichElement,
-    TurboView,
+    gradum,
+    GradumDrawer,
+    GradumRichElement,
+    GradumView,
     EventPropagation
 } from "../../../../build/gradum-kit.esm";
 import {Playlist} from "./playlist";
@@ -15,9 +15,9 @@ import {PlaylistModel} from "./playlist.model";
 import {Song, song} from "../song/song";
 import {DataHandler} from "../dataHandler";
 
-export class PlaylistView extends TurboView<Playlist, PlaylistModel> {
-    private drawer: TurboDrawer;
-    private toggle: TurboRichElement;
+export class PlaylistView extends GradumView<Playlist, PlaylistModel> {
+    private drawer: GradumDrawer;
+    private toggle: GradumRichElement;
     private emptyDrawer: HTMLElement;
 
     public songElements: Song[] = [];
@@ -35,13 +35,13 @@ export class PlaylistView extends TurboView<Playlist, PlaylistModel> {
 
     protected setupUILayout() {
         super.setupUILayout();
-        turbo(this).addChild([this.toggle, this.drawer]);
+        gradum(this).addChild([this.toggle, this.drawer]);
         this.drawer.thumb.style.display = "none";
     }
 
     protected setupUIListeners() {
         super.setupUIListeners();
-        turbo(this).on(DefaultEventName.click, () => {
+        gradum(this).on(DefaultEventName.click, () => {
             this.drawer.open = !this.drawer.open;
             return EventPropagation.stopPropagation;
         });
@@ -52,8 +52,8 @@ export class PlaylistView extends TurboView<Playlist, PlaylistModel> {
         this.toggle.element = this.model.name;
         if (newEl) {
             (this.toggle.element as HTMLElement).contentEditable = "true";
-            turbo(this.toggle.element).bypassManagerOn = () => true;
-            turbo(this.toggle.element).on(DefaultEventName.click, () => {
+            gradum(this.toggle.element).bypassManagerOn = () => true;
+            gradum(this.toggle.element).on(DefaultEventName.click, () => {
                 this.toggle.element.focus();
                 return EventPropagation.stopPropagation;
             });
@@ -61,7 +61,7 @@ export class PlaylistView extends TurboView<Playlist, PlaylistModel> {
     }
 
     @effect private updatePosition() {
-        turbo(this).setStyle("transform", css`translate(
+        gradum(this).setStyle("transform", css`translate(
             calc(${this.model.origin.x}px - 50%), 
             calc(${this.model.origin.y}px - 50%)
         )`);
@@ -69,11 +69,11 @@ export class PlaylistView extends TurboView<Playlist, PlaylistModel> {
 
     @effect public updateSongs() {
         if (!this.model.songs || !this.model.songs.length) {
-            turbo(this.drawer.panel).removeAllChildren().addChild(this.emptyDrawer);
+            gradum(this.drawer.panel).removeAllChildren().addChild(this.emptyDrawer);
             return;
         }
 
-        turbo(this.drawer.panel).removeAllChildren();
+        gradum(this.drawer.panel).removeAllChildren();
         this.songElements.forEach(song => song.remove());
         this.songElements = [];
 

@@ -1,14 +1,14 @@
-import {TurboView, TurboSelect, div, turbo, h3, untrack, effect, TurboInput, getRegisteredEntry, TurboRichElement} from "../../../../build/gradum-kit.esm";
+import {GradumView, GradumSelect, div, gradum, h3, untrack, effect, GradumInput, getRegisteredEntry, GradumRichElement} from "../../../../build/gradum-kit.esm";
 import {EditObject} from "./editObject";
 
-export class EditObjectView extends TurboView<EditObject> {
+export class EditObjectView extends GradumView<EditObject> {
     private readonly tabs: Map<string, HTMLElement> = new Map();
 
     private tagName: HTMLElement;
-    private tabSelector: TurboSelect;
+    private tabSelector: GradumSelect;
     private tabsParent: HTMLElement;
 
-    private panelSelector: TurboSelect;
+    private panelSelector: GradumSelect;
     private panelsParent: HTMLElement;
 
     protected setupUIElements() {
@@ -20,8 +20,8 @@ export class EditObjectView extends TurboView<EditObject> {
 
         this.tabsParent = div({classes: "tabs"});
         this.panelsParent = div({classes: "panels"});
-        this.panelSelector = TurboSelect.create<any>({entries: Array.from(this.tabs.values()), parent: this.panelsParent});
-        this.tabSelector = TurboSelect.create<any>({values: Array.from(this.tabs.keys()), parent: this.tabsParent});
+        this.panelSelector = GradumSelect.create<any>({entries: Array.from(this.tabs.values()), parent: this.panelsParent});
+        this.tabSelector = GradumSelect.create<any>({values: Array.from(this.tabs.keys()), parent: this.tabsParent});
 
         this.tabSelector.onSelect.add((b, entry) => {
             if (!b) return;
@@ -33,7 +33,7 @@ export class EditObjectView extends TurboView<EditObject> {
 
     protected setupUILayout() {
         super.setupUILayout();
-        turbo(this).addChild([div({children: this.tagName}), this.tabsParent, this.panelsParent]);
+        gradum(this).addChild([div({children: this.tagName}), this.tabsParent, this.panelsParent]);
     }
 
     @effect updateTag() {
@@ -45,13 +45,13 @@ export class EditObjectView extends TurboView<EditObject> {
         if (!anchor) return;
         const panel = this.tabs.get("Properties");
         if (!panel) return;
-        turbo(panel).removeAllChildren();
+        gradum(panel).removeAllChildren();
 
         untrack(() => {
-            const properties = turbo(anchor).getFields();
+            const properties = gradum(anchor).getFields();
             for (const [key, value] of Object.entries(properties)) {
 
-                const input = TurboInput.create({label: key, parent: panel, value});
+                const input = GradumInput.create({label: key, parent: panel, value});
                 let timer: number;
                 input.onInput.add(() => {
                     cancelAnimationFrame(timer);
@@ -64,8 +64,8 @@ export class EditObjectView extends TurboView<EditObject> {
     @effect updateMVC() {
         const panel = this.tabs.get("MVC");
         if (!panel) return;
-        turbo(panel).removeAllChildren();
-        const mvc = turbo(this.element.anchor).mvc;
+        gradum(panel).removeAllChildren();
+        const mvc = gradum(this.element.anchor).mvc;
         for (const value of Object.values(mvc)) {
             if (value === undefined) continue;
             if (Array.isArray(value)) {
@@ -79,7 +79,7 @@ export class EditObjectView extends TurboView<EditObject> {
     private createEntry(value: any, parent: HTMLElement) {
         const registryEntry = getRegisteredEntry(value);
         if (!registryEntry) return;
-        const element = TurboRichElement.create({
+        const element = GradumRichElement.create({
             leftIcon: registryEntry.category,
             text: registryEntry.name,
             rightIcon: "trash",

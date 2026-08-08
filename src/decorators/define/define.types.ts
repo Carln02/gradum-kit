@@ -22,23 +22,23 @@ type DefineOptions = {
  * how {@link inferCategory} resolves ambiguous inheritance chains.
  *
  * **Gradum Kit elements** (most to least specific):
- * - `TurboProxiedElement`, `TurboElement`, `TurboBaseElement`, `TurboHeadlessElement`
+ * - `GradumProxiedElement`, `GradumElement`, `GradumBaseElement`, `GradumHeadlessElement`
  *
  * **Native DOM elements** (most to least specific):
  * - `SVGElement`, `MathMLElement`, `HTMLElement`, `Element`, `Node`
  *
  * **MVC pieces:**
- * - `TurboOperator`, `TurboHandler`, `TurboInteractor`, `TurboTool`, `TurboConstrainer`,
- *   `TurboView`, `TurboEmitter`, `TurboModel`
+ * - `GradumOperator`, `GradumHandler`, `GradumInteractor`, `GradumTool`, `GradumConstrainer`,
+ *   `GradumView`, `GradumEmitter`, `GradumModel`
  *
  * **Fallback:**
  * - `Other` — for classes that do not match any recognized base type.
  */
 enum RegistryCategory {
-    TurboElement = "TurboElement",
-    TurboBaseElement = "TurboBaseElement",
-    TurboHeadlessElement = "TurboHeadlessElement",
-    TurboProxiedElement = "TurboProxiedElement",
+    GradumElement = "GradumElement",
+    GradumBaseElement = "GradumBaseElement",
+    GradumHeadlessElement = "GradumHeadlessElement",
+    GradumProxiedElement = "GradumProxiedElement",
 
     HTMLElement = "HTMLElement",
     SVGElement = "SVGElement",
@@ -46,14 +46,14 @@ enum RegistryCategory {
     Element = "Element",
     Node = "Node",
 
-    TurboModel = "TurboModel",
-    TurboView = "TurboView",
-    TurboEmitter = "TurboEmitter",
-    TurboOperator = "TurboOperator",
-    TurboHandler = "TurboHandler",
-    TurboInteractor = "TurboInteractor",
-    TurboTool = "TurboTool",
-    TurboConstrainer = "TurboConstrainer",
+    GradumModel = "GradumModel",
+    GradumView = "GradumView",
+    GradumEmitter = "GradumEmitter",
+    GradumOperator = "GradumOperator",
+    GradumHandler = "GradumHandler",
+    GradumInteractor = "GradumInteractor",
+    GradumTool = "GradumTool",
+    GradumConstrainer = "GradumConstrainer",
 
     Other = "Other",
 }

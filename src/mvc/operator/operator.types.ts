@@ -1,29 +1,29 @@
-import {TurboView} from "../view/view";
-import {TurboModel} from "../model/model";
-import {TurboEmitter} from "../emitter/emitter";
-import {TurboViewProperties} from "../view/view.types";
+import {GradumView} from "../view/view";
+import {GradumModel} from "../model/model";
+import {GradumEmitter} from "../emitter/emitter";
+import {GradumViewProperties} from "../view/view.types";
 
 /**
- * @type {TurboOperatorProperties}
+ * @type {GradumOperatorProperties}
  * @group MVC
  * @category Operator
  *
- * @extends {TurboViewProperties}
+ * @extends {GradumViewProperties}
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
- * @description  Options used to create a new {@link TurboOperator} attached to an element.
+ * @description  Options used to create a new {@link GradumOperator} attached to an element.
  * @property {ViewType} [view] - The MVC view.
  */
-type TurboOperatorProperties<
+type GradumOperatorProperties<
     ElementType extends object = object,
-    ViewType extends TurboView = TurboView,
-    ModelType extends TurboModel = TurboModel,
-    EmitterType extends TurboEmitter = TurboEmitter
-> = TurboViewProperties<ElementType, ModelType, EmitterType> & {
+    ViewType extends GradumView = GradumView,
+    ModelType extends GradumModel = GradumModel,
+    EmitterType extends GradumEmitter = GradumEmitter
+> = GradumViewProperties<ElementType, ModelType, EmitterType> & {
     view?: ViewType
 };
 
-export {TurboOperatorProperties};
+export {GradumOperatorProperties};

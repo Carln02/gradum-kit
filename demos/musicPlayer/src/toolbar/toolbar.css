@@ -1,4 +1,4 @@
-turbo-toolbar {
+gradum-toolbar {
     display: flex;
     flex-direction: row;
     gap: var(--gap-small);
@@ -14,21 +14,21 @@ turbo-toolbar {
     backdrop-filter: blur(10px);
 }
 
-turbo-toolbar > * {
+gradum-toolbar > * {
     padding: var(--gap-tiny);
     border-radius: var(--radius-tiny);
     transition: all 0.1s ease-in-out;
 }
 
-turbo-toolbar > *:hover, turbo-toolbar > .selected:hover {
+gradum-toolbar > *:hover, gradum-toolbar > .selected:hover {
     scale: 1.2;
 }
 
-turbo-toolbar > .selected {
+gradum-toolbar > .selected {
     background-color: var(--surface);
     scale: 1.1;
 }
 
-turbo-toolbar svg {
+gradum-toolbar svg {
     fill: white;
 }

@@ -1,11 +1,11 @@
-import {TurboTool, TurboDragEvent, Coordinate, Propagation, behavior} from "../../../../build/gradum-kit.esm";
+import {GradumTool, GradumDragEvent, Coordinate, Propagation, behavior} from "../../../../build/gradum-kit.esm";
 
 //Move tool
-export class MoveTool extends TurboTool {
+export class MoveTool extends GradumTool {
     public toolName = "move"; //Define the tool name
 
-    //Equivalent to turbo(tool).addToolBehavior("turbo-drag", "move", (e, el) => {...});
-    @behavior() public drag(e: TurboDragEvent, el: Node) {
+    //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "move", (e, el) => {...});
+    @behavior() public drag(e: GradumDragEvent, el: Node) {
         try {
             if ("move" in el && typeof el.move === "function") el.move(e.deltaPosition);
             else if ("translate" in el && typeof el.translate === "function") el.translate(e.deltaPosition);

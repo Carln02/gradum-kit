@@ -1,11 +1,11 @@
 import {describe, it, expect} from "vitest";
 import {observe} from "../observe/observe";
 import {define} from "../define/define";
-import {TurboElement} from "../../turboElement/turboElement";
+import {GradumElement} from "../../gradumElement/gradumElement";
 
 describe("@observe", () => {
     it("reflects a field to an attribute + publishes observedAttributes", () => {
-        class X extends TurboElement {
+        class X extends GradumElement {
             @observe fooBar = 10;
         }
         define(X, "obs-x")

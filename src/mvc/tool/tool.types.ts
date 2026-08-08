@@ -1,47 +1,47 @@
-import {TurboView} from "../view/view";
-import {MakeToolOptions} from "../../turboFunctions/tool/tool.types";
-import {TurboModel} from "../model/model";
-import {TurboEmitter} from "../emitter/emitter";
-import {TurboOperatorProperties} from "../operator/operator.types";
-import {TurboEventManager} from "../../eventHandling/turboEventManager/turboEventManager";
+import {GradumView} from "../view/view";
+import {MakeToolOptions} from "../../gradumFunctions/tool/tool.types";
+import {GradumModel} from "../model/model";
+import {GradumEmitter} from "../emitter/emitter";
+import {GradumOperatorProperties} from "../operator/operator.types";
+import {GradumEventManager} from "../../eventHandling/gradumEventManager/gradumEventManager";
 
 /**
- * @type {TurboToolProperties}
+ * @type {GradumToolProperties}
  * @group MVC
  * @category Tool
  *
- * @extends TurboOperatorProperties
+ * @extends GradumOperatorProperties
  * @extends MakeToolOptions
  *
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
- * @description Options used to create a new {@link TurboTool} attached to an element.
+ * @description Options used to create a new {@link GradumTool} attached to an element.
  * @property {string} [toolName] - The name of the tool.
  * @property {Node} [embeddedTarget] - If the tool is embedded, its target.
  */
-type TurboToolProperties<
+type GradumToolProperties<
     ElementType extends object = object,
-    ViewType extends TurboView = TurboView,
-    ModelType extends TurboModel = TurboModel,
-    EmitterType extends TurboEmitter = TurboEmitter
-> = TurboOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & MakeToolOptions & {
+    ViewType extends GradumView = GradumView,
+    ModelType extends GradumModel = GradumModel,
+    EmitterType extends GradumEmitter = GradumEmitter
+> = GradumOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & MakeToolOptions & {
     toolName?: string,
     embeddedTarget?: Node
 };
 
 declare module "./tool" {
-    interface TurboTool<ElementType extends object = object> {
+    interface GradumTool<ElementType extends object = object> {
         /**
          * @function customActivation
          * @description Custom activation function.
-         * @param {Turbo<Element>} element - The tool element itself.
-         * @param {TurboEventManager} [manager] - The event manager instance this tool should register against. Defaults
-         * to `TurboEventManager.instance`.
+         * @param {Gradum<Element>} element - The tool element itself.
+         * @param {GradumEventManager} [manager] - The event manager instance this tool should register against. Defaults
+         * to `GradumEventManager.instance`.
          */
-        customActivation(element: ElementType, manager?: TurboEventManager): void;
+        customActivation(element: ElementType, manager?: GradumEventManager): void;
 
         /**
          * @function onActivate
@@ -57,4 +57,4 @@ declare module "./tool" {
     }
 }
 
-export {TurboToolProperties};
+export {GradumToolProperties};

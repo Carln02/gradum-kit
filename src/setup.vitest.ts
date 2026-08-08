@@ -1,7 +1,7 @@
 import {beforeAll, beforeEach} from "vitest";
-import {turbofy} from "./turboFunctions/turboFunctions";
+import {gradumify} from "./gradumFunctions/gradumFunctions";
 
-beforeAll(() => turbofy());
+beforeAll(() => gradumify());
 beforeEach(() => {
     document.head.innerHTML = "";
     document.body.innerHTML = "";

@@ -1,17 +1,17 @@
 import {
-    TurboConstrainer,
+    GradumConstrainer,
     solver,
     ConstrainerCallbackProperties,
     Point,
     DefaultEventName,
-    turbo,
+    gradum,
     closestPointOnSegment
 } from "../../../../build/gradum-kit.esm";
 import {StickyLine} from "./stickyLine";
 import {StickyLineView} from "./stickyLine.view";
 import {StickyLineModel} from "./stickyLine.model";
 
-export class StickyLineConstrainer extends TurboConstrainer<StickyLine, StickyLineView, StickyLineModel> {
+export class StickyLineConstrainer extends GradumConstrainer<StickyLine, StickyLineView, StickyLineModel> {
     public constrainerName = "stickyLine";
 
     protected objectData: WeakMap<object, number> = new WeakMap();
@@ -23,7 +23,7 @@ export class StickyLineConstrainer extends TurboConstrainer<StickyLine, StickyLi
         this.onObjectListChange.add((object: object, status) => {
             if (object === this.element) return;
             if (status === "added") return;
-            (turbo(object).feedforward() as any)?.remove();
+            (gradum(object).feedforward() as any)?.remove();
         });
     }
 
@@ -55,7 +55,7 @@ export class StickyLineConstrainer extends TurboConstrainer<StickyLine, StickyLi
         if (Point.dist(center, destination) < EPS) return;
 
         let toMove = target;
-        if (isFeedforward) toMove = turbo(target).feedforward({
+        if (isFeedforward) toMove = gradum(target).feedforward({
             removeOnPointerRelease: true,
             parent: target.parentElement
         });

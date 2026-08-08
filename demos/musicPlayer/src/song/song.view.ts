@@ -1,9 +1,9 @@
-import {effect, flexCol, h3, h4, img, spacer, turbo, TurboView} from "../../../../build/gradum-kit.esm";
+import {effect, flexCol, h3, h4, img, spacer, gradum, GradumView} from "../../../../build/gradum-kit.esm";
 import {Song} from "./song";
 import {SongModel} from "./song.model";
 import {SongState} from "./song.types";
 
-export class SongView extends TurboView<Song, SongModel> {
+export class SongView extends GradumView<Song, SongModel> {
     private cover: HTMLImageElement;
     private title: HTMLElement;
     private artist: HTMLElement;
@@ -19,7 +19,7 @@ export class SongView extends TurboView<Song, SongModel> {
 
     protected setupUILayout() {
         super.setupUILayout();
-        turbo(this).addChild([
+        gradum(this).addChild([
             this.cover,
             flexCol({children: [this.title, this.artist]}),
             spacer(),
@@ -49,6 +49,6 @@ export class SongView extends TurboView<Song, SongModel> {
     }
 
     @effect private stateChange() {
-        turbo(this).setStyle("opacity", this.model.state === SongState.moving ? 0.5 : 1);
+        gradum(this).setStyle("opacity", this.model.state === SongState.moving ? 0.5 : 1);
     }
 }

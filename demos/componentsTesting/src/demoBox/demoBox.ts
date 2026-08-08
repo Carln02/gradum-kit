@@ -1,5 +1,5 @@
 import {
-    TurboElement,
+    GradumElement,
     $,
     auto,
     define,
@@ -14,7 +14,7 @@ import {
 import "./demoBox.css";
 
 @define("demo-box")
-export class DemoBox extends TurboElement {
+export class DemoBox extends GradumElement {
     private labelElement: HTMLElement;
     private contentBox: HTMLElement;
 

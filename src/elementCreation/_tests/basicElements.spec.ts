@@ -2,7 +2,7 @@ import {describe, it, expect, vi} from "vitest";
 import {
     a, canvas, div, form, h1, h2, h3, h4, h5, h6, img, input, link, p, span, style, textarea, video
 } from "../basicElements";
-import {TurboSelector} from "../../turboFunctions/turboSelector";
+import {GradumSelector} from "../../gradumFunctions/gradumSelector";
 import {generateTagFunction} from "../element";
 
 function isHtmlNS(ns?: string | null) {
@@ -32,7 +32,7 @@ describe("HTML tag helpers", () => {
             [video, "video", "video"],
         ];
 
-        const spy = vi.spyOn(TurboSelector.prototype as any, "setProperties");
+        const spy = vi.spyOn(GradumSelector.prototype as any, "setProperties");
 
         for (const [fn, expectedTag, name] of cases) {
             const props: any = {id: `#${name}`, className: "x"};
@@ -59,7 +59,7 @@ describe("generateTagFunction", () => {
     });
 
     it("calls setProperties with the provided props (including overridden tag)", () => {
-        const spy = vi.spyOn(TurboSelector.prototype as any, "setProperties");
+        const spy = vi.spyOn(GradumSelector.prototype as any, "setProperties");
         const makeP = generateTagFunction("p" as any);
         const props: any = {className: "para"};
 

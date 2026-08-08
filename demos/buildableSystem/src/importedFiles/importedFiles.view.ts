@@ -1,10 +1,10 @@
-import {TurboView, TurboButton, input, turbo, div, TurboRichElement, span} from "../../../../build/gradum-kit.esm";
+import {GradumView, GradumButton, input, gradum, div, GradumRichElement, span} from "../../../../build/gradum-kit.esm";
 import {ImportedFiles} from "./importedFiles";
 import {PluginEntry} from "./importedFiles.types";
 import {ImportedFilesModel} from "./importedFiles.model";
 
-export class ImportedFilesView extends TurboView<ImportedFiles, ImportedFilesModel> {
-    private addFilesButton: TurboButton;
+export class ImportedFilesView extends GradumView<ImportedFiles, ImportedFilesModel> {
+    private addFilesButton: GradumButton;
     private addFilesInput: HTMLInputElement;
     private dropZone: HTMLElement;
     private pluginList: HTMLElement;
@@ -18,14 +18,14 @@ export class ImportedFilesView extends TurboView<ImportedFiles, ImportedFilesMod
     protected setupUIElements() {
         super.setupUIElements();
         this.addFilesInput = input({type: "file", multiple: true, accept: ".ts,.js", hidden: true});
-        this.addFilesButton = TurboButton.create({leftIcon: "add", text: "Add", onClick: () => this.addFilesInput.click()});
+        this.addFilesButton = GradumButton.create({leftIcon: "add", text: "Add", onClick: () => this.addFilesInput.click()});
         this.dropZone = div({classes: "drop-zone", children: span({text: "Drop .ts / .js files here"})});
         this.pluginList = div({classes: "plugin-list"});
     }
 
     protected setupUILayout() {
         super.setupUILayout();
-        turbo(this.element.popup).addChild([this.dropZone, this.addFilesButton, this.addFilesInput, this.pluginList]);
+        gradum(this.element.popup).addChild([this.dropZone, this.addFilesButton, this.addFilesInput, this.pluginList]);
     }
 
     protected setupUIListeners() {
@@ -58,7 +58,7 @@ export class ImportedFilesView extends TurboView<ImportedFiles, ImportedFilesMod
     }
 
     private createPluginItem(name: string, entry: PluginEntry): HTMLElement {
-        const removeBtn = TurboButton.create({
+        const removeBtn = GradumButton.create({
             text: "✕",
             classes: "imported-files-remove",
             onClick: () => this.model.delete(name),
@@ -76,7 +76,7 @@ export class ImportedFilesView extends TurboView<ImportedFiles, ImportedFilesMod
                 ...classTags,
             ]});
 
-        return TurboRichElement.create({text: name});
+        return GradumRichElement.create({text: name});
         // return element({tag: "li", classes: "imported-files-item", children: [
         //         span({text: name, classes: "imported-files-name"}),
         //         meta,

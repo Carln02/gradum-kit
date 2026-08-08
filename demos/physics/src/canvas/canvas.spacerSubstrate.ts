@@ -6,7 +6,7 @@ import {CanvasSubstrate} from "./canvas.mainSubstrate";
 
 //Pusher substrate
 export class CanvasSpacerSubstrate extends CanvasSubstrate {
-    //Define the substrate's name. Equivalent to turbo(canvas).makeSubstrate("pusher").
+    //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("pusher").
     public substrateName = "spacer";
 
     public initialize() {

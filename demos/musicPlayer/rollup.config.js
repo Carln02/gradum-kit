@@ -9,7 +9,7 @@ export default [
     {
         input: "src/index.ts",
         output: [
-            {file: "public/dist.bundle.js", format: "iife", name: "Turbo", sourcemap: true}
+            {file: "public/dist.bundle.js", format: "iife", name: "Gradum", sourcemap: true}
         ],
         plugins: [
             nodeResolve(),

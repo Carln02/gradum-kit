@@ -1,0 +1,444 @@
+import {
+    ClickMode,
+    InputDevice,
+    SetToolOptions,
+    GradumEventManagerProperties,
+    GradumEventManagerStateProperties
+} from "./gradumEventManager.types";
+import {$, gradum} from "../../gradumFunctions/gradumFunctions";
+import {auto} from "../../decorators/auto/auto";
+import {GradumEventManagerModel} from "./gradumEventManager.model";
+import {GradumEventManagerKeyOperator} from "./operators/gradumEventManager.keyOperator";
+import {GradumEventManagerWheelOperator} from "./operators/gradumEventManager.wheelOperator";
+import {GradumEventManagerPointerOperator} from "./operators/gradumEventManager.pointerOperator";
+import {GradumEventManagerDispatchOperator} from "./operators/gradumEventManager.dispatchOperator";
+import {GradumEventManagerUtilsHandler} from "./handlers/gradumEventManager.utilsHandler";
+import {operator} from "../../decorators/mvc";
+import {isUndefined} from "../../utils/dataManipulation/misc";
+import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
+import {Point} from "../../gradumComponents/datatypes/point/point";
+import {GradumWeakSet} from "../../gradumComponents/datatypes/weakSet/weakSet";
+import {
+    DefaultClickEventName,
+    DefaultDragEventName,
+    DefaultKeyEventName,
+    DefaultMoveEventName,
+    DefaultWheelEventName,
+    GradumClickEventName,
+    GradumDragEventName,
+    GradumEventNameEntry,
+    GradumKeyEventName,
+    GradumMoveEventName,
+    GradumWheelEventName
+} from "../../types/eventNaming.types";
+import {expose} from "../../decorators/expose";
+import {GradumBaseElement} from "../../gradumElement/gradumBaseElement/gradumBaseElement";
+import {define} from "../../decorators/define/define";
+
+//TODO Create merged events maybe --> fire event x when "mousedown" | "touchstart" | "mousemove" etc.
+//ToDO Create "interaction" event --> when element interacted with
+
+/**
+ * @class GradumEventManager
+ * @group Event Handling
+ * @category GradumEventManager
+ *
+ * @description Class that manages default mouse, trackpad, and touch events, and accordingly fires custom events for
+ * easier management of input.
+ */
+class GradumEventManager<ToolType extends string = string> extends GradumBaseElement {
+    protected static managers: GradumEventManager[] = [];
+
+    public static get instance(): GradumEventManager {
+        if (GradumEventManager.managers.length == 0) this.managers.push(GradumEventManager.create());
+        return GradumEventManager.managers[0];
+    }
+
+    public static get allManagers(): GradumEventManager[] {
+        return [...this.managers];
+    }
+
+    public static set allManagers(managers: GradumEventManager[]) {
+        this.managers = managers;
+    }
+
+    public get model(): GradumEventManagerModel {
+        return gradum(this).model;
+    }
+
+    public declare readonly properties: GradumEventManagerProperties;
+
+    public static defaultProperties: GradumEventManagerProperties = {
+        model: GradumEventManagerModel,
+        operators: [
+            GradumEventManagerKeyOperator,
+            GradumEventManagerWheelOperator,
+            GradumEventManagerPointerOperator,
+            GradumEventManagerDispatchOperator
+        ],
+        handlers: GradumEventManagerUtilsHandler,
+
+        keyEventsEnabled: true,
+        wheelEventsEnabled: true,
+        mouseEventsEnabled: true,
+        touchEventsEnabled: true,
+        clickEventsEnabled: true,
+        dragEventsEnabled: true,
+        moveEventsEnabled: true,
+    };
+
+    @operator() protected keyOperator: GradumEventManagerKeyOperator;
+    @operator() protected wheelOperator: GradumEventManagerWheelOperator;
+    @operator() protected pointerOperator: GradumEventManagerPointerOperator;
+    @operator() protected dispatchOperator: GradumEventManagerDispatchOperator;
+
+    /**
+     * @description The currently identified input device. It is not 100% accurate, especially when differentiating
+     * between mouse and trackpad.
+     */
+    @expose("model", false) public inputDevice: InputDevice;
+    @expose("model", false) public onInputDeviceChange: Delegate<(device: InputDevice) => void>;
+    @expose("model", false) public currentClick: ClickMode;
+    @expose("model", false) public currentKeys: string[];
+
+    /**
+     * @description Delegate fired when a tool is changed on a certain click button/mode
+     */
+    @expose("model", false) public onToolChange: Delegate<(oldTool: Node, newTool: Node, type: ClickMode) => void>;
+
+    @expose("model") public authorizeEventScaling: boolean | (() => boolean);
+    @expose("model") public scaleEventPosition: (position: Point) => Point;
+    @expose("model") public moveThreshold: number;
+    @expose("model") public longPressDuration: number;
+
+    public constructor() {
+        super();
+        GradumEventManager.managers.push(this);
+    }
+
+    public initialize() {
+        super.initialize();
+        this.unlock();
+        document.addEventListener("pointerdown", this.pointerOperator.pointerDown, {passive: false});
+        document.addEventListener("pointermove", this.pointerOperator.pointerMove, {passive: false});
+        document.addEventListener("pointerup", this.pointerOperator.pointerUp, {passive: false});
+        document.addEventListener("pointercancel", this.pointerOperator.pointerCancel, {passive: false});
+        //TODO
+        this.dispatchOperator.setupCustomDispatcher("pointerdown");
+    }
+
+    @auto() public set keyEventsEnabled(value: boolean) {
+        if (value) {
+            document.addEventListener("keydown", this.keyOperator.keyDown);
+            document.addEventListener("keyup", this.keyOperator.keyUp);
+        } else {
+            document.removeEventListener("keydown", this.keyOperator.keyDown);
+            document.removeEventListener("keyup", this.keyOperator.keyUp);
+        }
+        this.applyAndHookEvents(GradumKeyEventName, DefaultKeyEventName, value);
+    }
+
+    @auto() public set wheelEventsEnabled(value: boolean) {
+        if (value) document.body.addEventListener("wheel", this.wheelOperator.wheel, {passive: false});
+        else document.body.removeEventListener("wheel", this.wheelOperator.wheel);
+        this.applyAndHookEvents(GradumWheelEventName, DefaultWheelEventName, value);
+    }
+
+    @auto() public set moveEventsEnabled(value: boolean) {
+        this.applyAndHookEvents(GradumMoveEventName, DefaultMoveEventName, value);
+    }
+
+    @auto() public set mouseEventsEnabled(value: boolean) {
+        //TODO
+
+        // if (value) {
+        //     doc.on("pointerdown", this.pointerOperator.pointerDown, {passive: false, propagate: true});
+        //     doc.on("pointermove", this.pointerOperator.pointerMove, {passive: false, propagate: true});
+        //     doc.on("pointerup", this.pointerOperator.pointerUp, {passive: false, propagate: true});
+        //     doc.on("pointercancel", this.pointerOperator.pointerCancel, {passive: false, propagate: true});
+        // } else {
+        //     doc.removeListener("mousedown", this.pointerOperator.pointerDown);
+        //     doc.removeListener("mousemove", this.pointerOperator.pointerMove);
+        //     doc.removeListener("mouseup", this.pointerOperator.pointerUp);
+        //     doc.removeListener("mouseleave", this.pointerOperator.pointerLeave);
+        // }
+    }
+
+    @auto() public set touchEventsEnabled(value: boolean) {
+        // if (value) {
+        //     doc.on("touchstart", this.pointerOperator.pointerDown, {passive: false, propagate: true});
+        //     doc.on("touchmove", this.pointerOperator.pointerMove, {passive: false, propagate: true});
+        //     doc.on("touchend", this.pointerOperator.pointerUp, {passive: false, propagate: true});
+        //     doc.on("touchcancel", this.pointerOperator.pointerUp, {passive: false, propagate: true});
+        // } else {
+        //     doc.removeListener("touchstart", this.pointerOperator.pointerDown);
+        //     doc.removeListener("touchmove", this.pointerOperator.pointerMove);
+        //     doc.removeListener("touchend", this.pointerOperator.pointerUp);
+        //     doc.removeListener("touchcancel", this.pointerOperator.pointerUp);
+        // }
+    }
+
+    @auto() public set clickEventsEnabled(value: boolean) {
+        this.applyAndHookEvents(GradumClickEventName, DefaultClickEventName, value);
+    }
+
+    @auto() public set dragEventsEnabled(value: boolean) {
+        this.applyAndHookEvents(GradumDragEventName, DefaultDragEventName, value);
+    }
+
+    /*
+     *
+     *
+     * State and lock management
+     *
+     *
+     *
+     */
+
+    /**
+     * @description Sets the lock state for the event manager.
+     * @param origin - The element that initiated the lock state.
+     * @param value - The state properties to set.
+     */
+    public lock(origin: Node, value: GradumEventManagerStateProperties) {
+        this.unlock();
+        this.model.lockState.lockOrigin = origin;
+        for (const key in value) this.model.lockState[key] = value[key];
+    }
+
+    /**
+     * @description Resets the lock state to the default values.
+     */
+    public unlock() {
+        this.model.lockState = {lockOrigin: document.body};
+    }
+
+    public get enabled() {
+        return this.model.state.enabled && (this.model.lockState.enabled ?? true);
+    }
+
+    public set enabled(value: boolean) {
+        this.model.state.enabled = value;
+    }
+
+    public get preventDefaultWheel() {
+        return this.model.state.preventDefaultWheel && (this.model.lockState.preventDefaultWheel ?? true);
+    }
+
+    public set preventDefaultWheel(value: boolean) {
+        this.model.state.preventDefaultWheel = value;
+    }
+
+    public get preventDefaultMouse() {
+        return this.model.state.preventDefaultMouse && (this.model.lockState.preventDefaultMouse ?? true);
+    }
+
+    public set preventDefaultMouse(value: boolean) {
+        this.model.state.preventDefaultMouse = value;
+    }
+
+    public get preventDefaultTouch() {
+        return this.model.state.preventDefaultTouch && (this.model.lockState.preventDefaultTouch ?? true);
+    }
+
+    public set preventDefaultTouch(value: boolean) {
+        this.model.state.preventDefaultTouch = value;
+    }
+
+    public get preventDefaults(): boolean {
+        return this.preventDefaultMouse || this.preventDefaultTouch || this.preventDefaultWheel;
+    }
+
+    public set preventDefaults(value: boolean) {
+        this.model.state.preventDefaultWheel = value;
+        this.model.state.preventDefaultMouse = value;
+        this.model.state.preventDefaultTouch = value;
+    }
+
+    /*
+     *
+     *
+     * Tool management
+     *
+     *
+     *
+     */
+
+    /**
+     * @description All attached tools in an array
+     */
+    public get toolsArray(): Node[] {
+        const array: Node[] = [];
+        for (const tools of this.model.tools.values()) array.push(...tools.toArray());
+        return array;
+    }
+
+    public getCurrentTool(mode: ClickMode = this.model.currentClick): Node {
+        return this.model.currentTools.get(mode);
+    }
+
+    /**
+     * @description Returns the instances of the tool currently held by the provided click mode
+     * @param mode
+     */
+    public getCurrentTools(mode: ClickMode = this.model.currentClick): Node[] {
+        return this.getToolsByName(this.getCurrentToolName(mode));
+    }
+
+    /**
+     * @description Returns the name of the tool currently held by the provided click mode
+     * @param mode
+     */
+    public getCurrentToolName(mode: ClickMode = this.model.currentClick): ToolType {
+        return this.getToolName(this.getCurrentTool(mode));
+    }
+
+    public getToolName(tool: Node): ToolType {
+        for (const [toolName, weakSet] of this.model.tools.entries()) {
+            if (weakSet.has(tool)) return toolName as ToolType;
+        }
+    }
+
+
+    public getSimilarTools(tool: Node): Node[] {
+        for (const [toolName, weakSet] of this.model.tools.entries()) {
+            if (weakSet.has(tool)) return weakSet.toArray();
+        }
+        return [];
+    }
+
+    /**
+     * @description Returns the tool with the given name (or undefined)
+     * @param name
+     */
+    public getToolsByName(name: ToolType): Node[] {
+        return this.model.tools.get(name)?.toArray() || [];
+    }
+
+
+    /**
+     * @description Returns the first tool with the given name (or undefined)
+     * @param name
+     * @param predicate
+     */
+    public getToolByName(name: ToolType, predicate?: (tool: Node) => boolean): Node {
+        const tools = this.getToolsByName(name);
+        return predicate ? tools?.find(predicate) : tools?.[0];
+    }
+
+    /**
+     * @description Returns the tools associated with the given key
+     * @param key
+     */
+    public getToolsByKey(key: string): Node[] {
+        const toolName = this.model.mappedKeysToTool.get(key) as ToolType;
+        if (!toolName) return [];
+        return this.getToolsByName(toolName);
+    }
+
+    /**
+     * @description Returns the first tool associated with the given key
+     * @param key
+     * @param predicate
+     */
+    public getToolByKey(key: string, predicate?: (tool: Element) => boolean): Node {
+        const tools = this.getToolsByKey(key);
+        return predicate ? tools?.find(predicate) : tools?.[0];
+    }
+
+    /**
+     * @description Adds a tool to the tools map, identified by its name. Optionally, provide a key to bind the tool to.
+     * @param toolName
+     * @param tool
+     * @param key
+     */
+    public addTool(toolName: ToolType, tool: Node, key?: string) {
+        if (!this.model.tools.has(toolName)) this.model.tools.set(toolName, new GradumWeakSet());
+        const tools = this.model.tools.get(toolName);
+        if (!tools.has(tool)) tools.add(tool);
+        if (key) this.model.mappedKeysToTool.set(key, toolName);
+    }
+
+    /**
+     * @description Sets the provided tool as a current tool associated with the provided type
+     * @param tool
+     * @param type
+     * @param options
+     */
+    public setTool(tool: Node, type: ClickMode, options: SetToolOptions = {}) {
+        if (!isUndefined(tool) && !$(tool).isTool(this)) return;
+        gradum(options).applyDefaults({select: true, activate: true, setAsNoAction: type == ClickMode.left});
+
+        //Get previous tool
+        const previousTool = this.model.currentTools.get(type);
+        if (previousTool) {
+            //Return if it's the same
+            if (previousTool === tool) return;
+
+            //Deselect and deactivate previous tool
+            this.getSimilarTools(previousTool).forEach(element => {
+                if (options.select) gradum(element).selected = false;
+                if (options.activate) this.model.utils.activateTool(element, this.getToolName(previousTool), false);
+            });
+        }
+
+        //Select new tool (and maybe set it as the tool for no click mode)
+        this.model.currentTools.set(type, tool);
+        if (options.setAsNoAction) this.model.currentTools.set(ClickMode.none, tool);
+
+        //Select and activate the tool
+        this.getSimilarTools(tool).forEach(element => {
+            if (options.activate) this.model.utils.activateTool(element, this.getToolName(tool), true);
+            if (options.select) gradum(element).selected = true;
+        });
+
+        //Fire tool changed
+        this.onToolChange.fire(previousTool, tool, type);
+    }
+
+    /**
+     * @description Sets tool associated with the provided key as the current tool for the key mode
+     * @param key
+     */
+    public setToolByKey(key: string): boolean {
+        const toolName = this.model.mappedKeysToTool.get(key) as ToolType;
+        if (!toolName) return false;
+        this.setTool(this.getToolByName(toolName), ClickMode.key, {select: false});
+        return true;
+    }
+
+    /*
+     *
+     *
+     * Utils
+     *
+     *
+     */
+
+    public setupCustomDispatcher(type: string) {
+        return this.dispatchOperator.setupCustomDispatcher(type);
+    }
+
+    protected applyAndHookEvents(gradumEventNames: Record<string, string>,
+                                 defaultEventNames: Record<string, string>, applyGradumEvents: boolean) {
+        this.model.utils.applyEventNames(applyGradumEvents ? gradumEventNames : defaultEventNames);
+        for (const name of Object.values(applyGradumEvents ? gradumEventNames : defaultEventNames)) {
+            if (applyGradumEvents) this.dispatchOperator.setupCustomDispatcher(name as GradumEventNameEntry);
+            else this.dispatchOperator.removeCustomDispatcher(name as GradumEventNameEntry);
+        }
+    }
+
+    public destroy() {
+        this.keyEventsEnabled = false;
+        this.wheelEventsEnabled = false;
+        this.mouseEventsEnabled = false;
+        this.touchEventsEnabled = false;
+        this.dragEventsEnabled = false;
+        this.clickEventsEnabled = false;
+        this.onToolChange.clear();
+        return this;
+    }
+}
+
+define(GradumEventManager);
+export {GradumEventManager};

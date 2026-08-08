@@ -1,5 +1,5 @@
 import {songsPanel} from "./songsPanel/songsPanel";
-import {div, icon, TurboEventManager, TurboIcon} from "../../../build/gradum-kit.esm";
+import {div, icon, GradumEventManager, GradumIcon} from "../../../build/gradum-kit.esm";
 import "./main.css";
 import "./scrollbar.css";
 import {toolbar} from "./toolbar/toolbar";
@@ -9,8 +9,8 @@ import {SelectTool} from "./tools/select/select.tool";
 import {DataHandler} from "./dataHandler";
 import {DeleteTool} from "./tools/delete/delete.tool";
 
-TurboIcon.config.defaultDirectory = "assets";
-TurboEventManager.instance.preventDefaultWheel = false;
+GradumIcon.config.defaultDirectory = "assets";
+GradumEventManager.instance.preventDefaultWheel = false;
 
 const canvasEl = div({id: "canvas", parent: document.body});
 const toolbarEl = toolbar({parent: document.body});

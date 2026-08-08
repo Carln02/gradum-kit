@@ -1,8 +1,8 @@
-import {ListenerProperties} from "../../turboComponents/datatypes/listener/listener.types";
+import {ListenerProperties} from "../../gradumComponents/datatypes/listener/listener.types";
 import {camelToKebabCase} from "../../utils/conversions/string";
 import {DefaultEventName} from "../../types/eventNaming.types";
-import {TurboEventManager} from "../../eventHandling/turboEventManager/turboEventManager";
-import {turbo} from "../../turboFunctions/turboFunctions";
+import {GradumEventManager} from "../../eventHandling/gradumEventManager/gradumEventManager";
+import {gradum} from "../../gradumFunctions/gradumFunctions";
 import {ListenerUtils} from "./listener.utils";
 
 const utils = new ListenerUtils();
@@ -22,7 +22,7 @@ const utils = new ListenerUtils();
  * @example ```ts
  * class MyElement {
  *   @listener() click(e: Event) { ... }
- *   //Equivalent to: turbo(this).on(DefaultEventName.click, (e: Event) => { ... });
+ *   //Equivalent to: gradum(this).on(DefaultEventName.click, (e: Event) => { ... });
  * }
  * ```
  */
@@ -32,11 +32,11 @@ function listener(properties: Partial<Omit<ListenerProperties, "callback">> = {}
         context: ClassMethodDecoratorContext<T>
     ) {
         //TODO FIX
-        TurboEventManager.instance;
+        GradumEventManager.instance;
         let type = properties.type;
         if (!type) {
             const kebab = camelToKebabCase(String(context.name));
-            type = Object.values(DefaultEventName).includes("turbo-" + kebab) ? "turbo-" + kebab : kebab;
+            type = Object.values(DefaultEventName).includes("gradum-" + kebab) ? "gradum-" + kebab : kebab;
         }
 
         context.addInitializer(function (this: any) {
@@ -62,7 +62,7 @@ function listener(properties: Partial<Omit<ListenerProperties, "callback">> = {}
  * @example ```ts
  * class MyElement {
  *   @behavior() click(e: Event) { ... }
- *   //Equivalent to: turbo(this).addToolBehavior(DefaultEventName.click, (e: Event) => { ... });
+ *   //Equivalent to: gradum(this).addToolBehavior(DefaultEventName.click, (e: Event) => { ... });
  * }
  * ```
  */
@@ -72,11 +72,11 @@ function behavior(properties: Partial<Omit<ListenerProperties, "callback" | "opt
         context: ClassMethodDecoratorContext<T>
     ) {
         //TODO FIX
-        TurboEventManager.instance;
+        GradumEventManager.instance;
         let type = properties.type;
         if (!type) {
             const kebab = camelToKebabCase(String(context.name));
-            type = Object.values(DefaultEventName).includes("turbo-" + kebab) ? "turbo-" + kebab : kebab;
+            type = Object.values(DefaultEventName).includes("gradum-" + kebab) ? "gradum-" + kebab : kebab;
         }
 
         context.addInitializer(function (this: any) {
@@ -95,7 +95,7 @@ function behavior(properties: Partial<Omit<ListenerProperties, "callback" | "opt
  *
  * @description Attach all previously-decorated listeners and behaviors recorded on the given `context`. It attempts to
  * resolve defaults from the latter, such as the `target`, `toolName`, `options`, and `manager`. This method is called
- * automatically in the TurboElement lifecycle.
+ * automatically in the GradumElement lifecycle.
  * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
  */
 function attachListenersAndBehaviors(context: any) {
@@ -110,7 +110,7 @@ function attachListenersAndBehaviors(context: any) {
 
     const defaultTool = typeof context.toolName === "string" ? context.toolName : undefined;
     const defaultOptions = typeof context.options === "object" ? context.options : undefined;
-    const defaultManager = context.manager instanceof TurboEventManager ? context.manager : undefined;
+    const defaultManager = context.manager instanceof GradumEventManager ? context.manager : undefined;
 
     for (const [, listener] of listeners) {
         const method = context[listener.methodName];
@@ -122,11 +122,11 @@ function attachListenersAndBehaviors(context: any) {
 
         if (listener.kind === "behavior") {
             if (!tool) continue;
-            turbo(context).addToolBehavior(listener.type, (e, el) => method.call(context, e, el),
+            gradum(context).addToolBehavior(listener.type, (e, el) => method.call(context, e, el),
                 tool, manager);
         } else if (listener.kind === "listener") {
             if (!(target instanceof Node)) continue;
-            turbo(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el),
+            gradum(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el),
                 listener.options ?? defaultOptions, manager);
         }
     }

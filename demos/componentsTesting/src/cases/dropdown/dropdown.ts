@@ -1,13 +1,13 @@
-import {$, div, span, TurboDropdown, PopupFallbackMode, TurboPopup, TurboButton, TurboRichElement} from "../../../../../build/gradum-kit.esm";
+import {$, div, span, GradumDropdown, PopupFallbackMode, GradumPopup, GradumButton, GradumRichElement} from "../../../../../build/gradum-kit.esm";
 import {box} from "../../demoBox/demoBox";
 
-TurboDropdown.defaultProperties.popupClasses = "select-parent";
+GradumDropdown.defaultProperties.popupClasses = "select-parent";
 
 function ddTest1() {
-    const dd = TurboDropdown.create({values: ["Alpha", "Beta", "Gamma", "Delta"]});
-    box("TurboDropdown — Basics")
+    const dd = GradumDropdown.create({values: ["Alpha", "Beta", "Gamma", "Delta"]});
+    box("GradumDropdown — Basics")
         .addSubBox("click selector to open", dd)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Log selected",
             onClick: () => {
                 console.log("[dd1] selected:", dd.selectedValue, dd.selectedValues)
@@ -16,20 +16,20 @@ function ddTest1() {
 }
 
 function ddTest2() {
-    const dd = TurboDropdown.create({
+    const dd = GradumDropdown.create({
         values: ["Small", "Medium", "Large", "XL"],
         selectorTag: "h5" as any,
         selectorClasses: ["btn", "btn--ghost"],
         popupClasses: ["popup-surface", "popup--elevated"]
     });
 
-    box("TurboDropdown — custom selector / popup")
+    box("GradumDropdown — custom selector / popup")
         .addSubBox("custom tag & classes", dd)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Open",
             onClick: () => (dd as any).popup.show(true)
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Close",
             onClick: () => (dd as any).popup.show(false)
         }));
@@ -37,31 +37,31 @@ function ddTest2() {
 
 function ddTest3() {
     const entries = [
-        TurboRichElement.create({text: "Home", leftIcon: "link"}),
-        TurboRichElement.create({text: "Profile", leftIcon: "chevron-left"}),
-        TurboRichElement.create({text: "Settings", leftIcon: "chevron-top"}),
-        TurboRichElement.create({text: "Logout", leftIcon: "share"}),
+        GradumRichElement.create({text: "Home", leftIcon: "link"}),
+        GradumRichElement.create({text: "Profile", leftIcon: "chevron-left"}),
+        GradumRichElement.create({text: "Settings", leftIcon: "chevron-top"}),
+        GradumRichElement.create({text: "Logout", leftIcon: "share"}),
     ];
 
-    box("TurboDropdown — element entries")
-        .addSubBox("rich entries", TurboDropdown.create({entries}))
+    box("GradumDropdown — element entries")
+        .addSubBox("rich entries", GradumDropdown.create({entries}))
         .addContent(span({text: "Selected: "}))
         .addContent(span({text: "(watch selector text update on click)"}));
 }
 
 function ddTest4() {
-    const dd = TurboDropdown.create({values: ["One", "Two"]});
+    const dd = GradumDropdown.create({values: ["One", "Two"]});
 
-    box("TurboDropdown — dynamic entries")
+    box("GradumDropdown — dynamic entries")
         .addSubBox("start", dd)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Add entry: Three",
             onClick: () => {
-                const entry = TurboRichElement.create({text: "Three", leftIcon: "chevron-left"});
+                const entry = GradumRichElement.create({text: "Three", leftIcon: "chevron-left"});
                 (dd.select as any).addEntry(entry);
             }
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Remove last entry",
             onClick: () => {
                 const list = dd.select.entries;
@@ -70,80 +70,80 @@ function ddTest4() {
                 //TODO MAKE A REMOVE ENTRY FN
             }
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Log values",
             onClick: () => console.log("[dd4] values:", dd.select.values)
         }));
 }
 
 function ddTest5() {
-    const dd = TurboDropdown.create({values: ["Red", "Green", "Blue", "Yellow"]});
+    const dd = GradumDropdown.create({values: ["Red", "Green", "Blue", "Yellow"]});
 
     // Configure the underlying select for multi
     dd.select.multiSelection = true;
     dd.select.forceSelection = false;
 
-    box("TurboDropdown — multi selection")
+    box("GradumDropdown — multi selection")
         .addSubBox("click multiple entries", dd)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Select All",
             onClick: () => dd.select.selectedEntries = dd.select.entries
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Clear",
             onClick: () => dd.select.deselectAll()
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Log selected",
             onClick: () => console.log("[dd5] selected:", dd.selectedValues)
         }));
 }
 
 function ddTest6() {
-    const dd = TurboDropdown.create({
+    const dd = GradumDropdown.create({
         values: ["Top", "Middle", "Bottom", "Custom"]
     });
 
-    const p = dd.popup as TurboPopup;
+    const p = dd.popup as GradumPopup;
 
-    box("TurboDropdown — popup anchors & fallback")
+    box("GradumDropdown — popup anchors & fallback")
         .addSubBox("dropdown", dd)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "ParentAnchor: top (50,0)", onClick: () => {
                 p.anchorPosition = {x: 50, y: 0};
                 p.show(true);
                 return true;
             }
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "ParentAnchor: bottom (50,100)", onClick: () => {
                 p.anchorPosition = {x: 50, y: 100};
                 p.show(true);
                 return true;
             }
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "PopupAnchor: top (50,0)", onClick: () => {
                 p.popupPosition = {x: 50, y: 0};
                 p.show(true);
                 return true;
             }
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "PopupAnchor: bottom (50,100)", onClick: () => {
                 p.popupPosition = {x: 50, y: 100};
                 p.show(true);
                 return true;
             }
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Fallback: invert", onClick: () => {
                 p.fallbackModes = PopupFallbackMode.invert;
                 p.show(true);
                 return true;
             }
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Fallback: offset", onClick: () => {
                 p.fallbackModes = PopupFallbackMode.offset;
                 p.show(true);
@@ -153,51 +153,51 @@ function ddTest6() {
 }
 
 function ddTest7() {
-    const dd = TurboDropdown.create({values: ["A", "B", "C", "D"]});
+    const dd = GradumDropdown.create({values: ["A", "B", "C", "D"]});
 
-    box("TurboDropdown — programmatic")
+    box("GradumDropdown — programmatic")
         .addSubBox("start", dd)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Open",
             onClick: () => (dd as any).popup.show(true)
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Close",
             onClick: () => (dd as any).popup.show(false)
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Select 'C'",
             onClick: () => dd.select.select("C")
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Replace values",
             onClick: () => dd.values = ["Epsilon", "Zeta", "Eta"]
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Log selected",
             onClick: () => console.log("[dd7] value:", dd.selectedValue)
         }));
 }
 
 function ddTestCustomSelector() {
-    const customSel = TurboRichElement.create({
+    const customSel = GradumRichElement.create({
         text: "Pick one ▾",
         leftIcon: "chevron-left",
     });
 
-    const dd = TurboDropdown.create({
+    const dd = GradumDropdown.create({
         values: ["North", "South", "East", "West"],
         selector: customSel,
     });
 
-    // Not a TurboButton, so wire the display text update manually
+    // Not a GradumButton, so wire the display text update manually
     dd.select.onSelect = () => {
         customSel.text = String(dd.selectedValue) + " ▾";
     };
 
-    box("TurboDropdown — custom selector element")
+    box("GradumDropdown — custom selector element")
         .addSubBox("RichElement as selector", dd)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Log selected",
             onClick: () => console.log("[dd-custom] selected:", dd.selectedValue)
         }));
@@ -211,10 +211,10 @@ function ddTestTabs() {
     ];
 
     const entries = tabs.map(t =>
-        TurboRichElement.create({text: t.label, leftIcon: "chevron-left"})
+        GradumRichElement.create({text: t.label, leftIcon: "chevron-left"})
     );
 
-    const dd = TurboDropdown.create({entries});
+    const dd = GradumDropdown.create({entries});
 
     const contentWrap = div({
         classes: "tab-content",
@@ -227,10 +227,10 @@ function ddTestTabs() {
         const tab = tabs.find(t => t.label === label);
         if (!tab) return;
         $(contentWrap).addChild([tab.content]);
-        if ((dd.selector as any)?.text !== label) (dd.selector as any).text = label; // extra safety for non-TurboButton selectors
+        if ((dd.selector as any)?.text !== label) (dd.selector as any).text = label; // extra safety for non-GradumButton selectors
     };
 
-    box("TurboDropdown — Tabbed menu")
+    box("GradumDropdown — Tabbed menu")
         .addSubBox("tabs (select to switch)", dd)
         .addSubBox("panel", contentWrap);
 }

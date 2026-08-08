@@ -1,10 +1,10 @@
-turbo-select-wheel {
+gradum-select-wheel {
     display: block;
     position: relative;
     height: var(2rem);
 }
 
-turbo-select-wheel > * {
+gradum-select-wheel > * {
     position: absolute;
     top: 50%;
     left: 50%;

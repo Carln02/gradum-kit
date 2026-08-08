@@ -2,27 +2,27 @@ import {auto} from "../../decorators/auto/auto";
 import {trim} from "../../utils/computations/misc";
 import {YAbstractType, YArray, YMap, YArrayEvent, YEvent, YMapEvent} from "../../types/yjs.types";
 import {isUndefined} from "../../utils/dataManipulation/misc";
-import {TurboModel} from "./model";
+import {GradumModel} from "./model";
 import {KeyType} from "../../types/basic.types";
 
 /**
  * @group MVC
- * @category TurboModel
+ * @category GradumModel
  */
-class TurboYModel<
+class GradumYModel<
     DataType = any,
     DataKeyType extends KeyType = any,
     IdType extends KeyType = any,
     ComponentType extends object = any,
     DataEntryType = any
-> extends TurboModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
+> extends GradumModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
     private readonly observer = (event: any, transaction: any) => this.observeChanges(event, transaction);
     private readonly observedYTypes = new WeakSet<object>();
 
     /**
      * @inheritDoc
      */
-    public modelConstructor: new (...args: any[]) => TurboModel = TurboYModel;
+    public modelConstructor: new (...args: any[]) => GradumModel = GradumYModel;
 
     /**
      * @inheritDoc
@@ -77,7 +77,7 @@ class TurboYModel<
     /**
      * @inheritDoc
      */
-    protected addAction(model: TurboModel, data: any, value: any, key: KeyType): KeyType {
+    protected addAction(model: GradumModel, data: any, value: any, key: KeyType): KeyType {
         if (data instanceof YArray) {
             let index = key as number;
             if (isUndefined(index) || typeof index !== "number" || index > data.length) {
@@ -281,4 +281,4 @@ class TurboYModel<
     }
 }
 
-export {TurboYModel};
+export {GradumYModel};

@@ -62,7 +62,7 @@ demo-box .case-entry:hover {
     box-shadow: 0 10px 24px rgba(0, 0, 0, .25);
 }
 
-demo-box > :last-child > *:not(.turbo-popup):hover {
+demo-box > :last-child > *:not(.gradum-popup):hover {
     transform: translateY(-1px);
     transition: transform var(--trans);
 }

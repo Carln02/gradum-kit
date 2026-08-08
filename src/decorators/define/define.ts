@@ -2,8 +2,8 @@ import {parse, stringify} from "../../utils/dataManipulation/string";
 import {DefineOptions, RegistryCategory, RegistryEntry} from "./define.types";
 import {DefineDecoratorUtils} from "./define.utils";
 import {getSuperMethod} from "../../utils/dataManipulation/prototype";
-import {TurboElementProperties} from "../../turboElement/turboElement.types";
-import {turbo} from "../../turboFunctions/turboFunctions";
+import {GradumElementProperties} from "../../gradumElement/gradumElement.types";
+import {gradum} from "../../gradumFunctions/gradumFunctions";
 import {camelToKebabCase, kebabToCamelCase} from "../../utils/conversions/string";
 
 const utils = new DefineDecoratorUtils();
@@ -36,13 +36,13 @@ const utils = new DefineDecoratorUtils();
  * @example
  * ```ts
  * @define("MyEl")           // tag inferred as "my-el"
- * class MyEl extends TurboElement { ... }
+ * class MyEl extends GradumElement { ... }
  *
  * @define("MyEl", "my-el") // explicit tag name
- * class MyEl extends TurboElement { ... }
+ * class MyEl extends GradumElement { ... }
  *
  * @define("MyModel")        // non-element: only registered in Gradum Kit registry
- * class MyModel extends TurboModel { ... }
+ * class MyModel extends GradumModel { ... }
  * ```
  */
 function define(className: string, elementName?: string, options?: DefineOptions): any;
@@ -76,12 +76,12 @@ function define(className: string, elementName?: string, options?: DefineOptions
  *
  * @example
  * ```ts
- * class MyEl extends TurboElement { ... }
+ * class MyEl extends GradumElement { ... }
  * define(MyEl);                    // className → "MyEl", tag → "my-el"
  * define(MyEl, "my-el");           // explicit tag, className inferred
  * define(MyEl, "my-el", "MyEl");   // both explicit
  *
- * class MyModel extends TurboModel { ... }
+ * class MyModel extends GradumModel { ... }
  * define(MyModel, undefined, "MyModel"); // non-element, registry only
  * ```
  */
@@ -127,8 +127,8 @@ function applyDefine<T extends { new(...args: any[]): HTMLElement }>(
             configurable: true,
             enumerable: false,
             writable: true,
-            value: function (this: any, properties: TurboElementProperties = {}) {
-                turbo(properties).applyDefaults({tag: elementName, ...(this.defaultProperties ?? {})});
+            value: function (this: any, properties: GradumElementProperties = {}) {
+                gradum(properties).applyDefaults({tag: elementName, ...(this.defaultProperties ?? {})});
                 return originalCreate.call(this, properties);
             }
         });
@@ -256,14 +256,14 @@ function getAllRegistered(): RegistryEntry[] {
  * @category Registry, Attributes & DOM
  *
  * @description Returns all registered entries belonging to MVC-related categories:
- * `TurboOperator`, `TurboEmitter`, `TurboHandler`, `TurboInteractor`, `TurboModel`,
- * `TurboConstrainer`, `TurboTool`, and `TurboView`.
+ * `GradumOperator`, `GradumEmitter`, `GradumHandler`, `GradumInteractor`, `GradumModel`,
+ * `GradumConstrainer`, `GradumTool`, and `GradumView`.
  * @returns {RegistryEntry[]} An array of all MVC registry entries.
  */
 function getRegisteredMvc(): RegistryEntry[] {
-    return getRegisteredByCategories(RegistryCategory.TurboOperator, RegistryCategory.TurboEmitter,
-        RegistryCategory.TurboHandler, RegistryCategory.TurboInteractor, RegistryCategory.TurboModel,
-        RegistryCategory.TurboConstrainer, RegistryCategory.TurboTool, RegistryCategory.TurboView);
+    return getRegisteredByCategories(RegistryCategory.GradumOperator, RegistryCategory.GradumEmitter,
+        RegistryCategory.GradumHandler, RegistryCategory.GradumInteractor, RegistryCategory.GradumModel,
+        RegistryCategory.GradumConstrainer, RegistryCategory.GradumTool, RegistryCategory.GradumView);
 }
 
 /**
@@ -272,11 +272,11 @@ function getRegisteredMvc(): RegistryEntry[] {
  * @category Registry, Attributes & DOM
  *
  * @description Returns all registered entries belonging to element-related categories:
- * `TurboElement`, `TurboProxiedElement`, `Element`, `HTMLElement`, `SVGElement`, and `MathMLElement`.
+ * `GradumElement`, `GradumProxiedElement`, `Element`, `HTMLElement`, `SVGElement`, and `MathMLElement`.
  * @returns {RegistryEntry[]} An array of all element registry entries.
  */
 function getRegisteredElements(): RegistryEntry[] {
-    return getRegisteredByCategories(RegistryCategory.TurboElement, RegistryCategory.TurboProxiedElement,
+    return getRegisteredByCategories(RegistryCategory.GradumElement, RegistryCategory.GradumProxiedElement,
         RegistryCategory.Element, RegistryCategory.HTMLElement, RegistryCategory.SVGElement,
         RegistryCategory.MathMLElement);
 }
@@ -301,12 +301,12 @@ function getRegisteredElements(): RegistryEntry[] {
  *
  * @example
  * ```ts
- * // At the bottom of turboModel.ts, after class definition:
- * addRegistryCategory(TurboModel, RegistryCategory.TurboModel);
+ * // At the bottom of gradumModel.ts, after class definition:
+ * addRegistryCategory(GradumModel, RegistryCategory.GradumModel);
  *
  * // Later, when a subclass is defined:
- * class MyModel extends TurboModel { ... }
- * define(MyModel, "MyModel"); // infers RegistryCategory.TurboModel automatically
+ * class MyModel extends GradumModel { ... }
+ * define(MyModel, "MyModel"); // infers RegistryCategory.GradumModel automatically
  * ```
  */
 function addRegistryCategory(type: new (...args: any[]) => object, category?: RegistryCategory) {

@@ -1,15 +1,15 @@
-turbo-playlist {
+gradum-playlist {
     position: absolute;
 }
 
-turbo-playlist > .turbo-rich-element {
+gradum-playlist > .gradum-rich-element {
     display: flex;
     flex-direction: column;
     gap: var(--gap-tiny);
     align-items: center;
 }
 
-turbo-playlist > .turbo-rich-element .turbo-icon {
+gradum-playlist > .gradum-rich-element .gradum-icon {
     width: 56px;
     height: 56px;
     border-radius: var(--radius-small);
@@ -17,18 +17,18 @@ turbo-playlist > .turbo-rich-element .turbo-icon {
     backdrop-filter: blur(10px);
 }
 
-turbo-playlist > .turbo-rich-element > * {
+gradum-playlist > .gradum-rich-element > * {
     text-wrap: nowrap;
 }
 
-turbo-playlist > .turbo-drawer {
+gradum-playlist > .gradum-drawer {
     position: absolute;
     min-width: 300px;
     left: 50%;
     transform: translateX(-50%);
 }
 
-turbo-playlist > .turbo-drawer .turbo-drawer-panel {
+gradum-playlist > .gradum-drawer .gradum-drawer-panel {
     padding: var(--gap-medium);
     border-radius: var(--radius-small);
 
@@ -43,7 +43,7 @@ turbo-playlist > .turbo-drawer .turbo-drawer-panel {
     backdrop-filter: blur(10px);
 }
 
-turbo-playlist .empty-playlist-placeholder {
+gradum-playlist .empty-playlist-placeholder {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -55,7 +55,7 @@ turbo-playlist .empty-playlist-placeholder {
     padding: var(--gap-medium);
 }
 
-turbo-playlist .empty-playlist-placeholder .turbo-icon {
+gradum-playlist .empty-playlist-placeholder .gradum-icon {
     width: 32px;
     height: 32px;
 }

@@ -1,0 +1,36 @@
+gradum-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+gradum-dropdown > .gradum-popup {
+    background-color: white;
+
+    display: flex;
+    flex-direction: column;
+    border: solid 0.1em #5e5e5e;
+    border-radius: 0.4em;
+
+    overflow: hidden;
+}
+
+gradum-dropdown > .gradum-popup > gradum-select-entry {
+    padding: 0.5em;
+}
+
+gradum-dropdown > .gradum-popup > gradum-select-entry:not(:last-child) {
+    border-bottom: solid 0.1em #bdbdbd;
+}
+
+gradum-dropdown > gradum-select-entry {
+    width: 100%;
+    padding: 0.5em 0.7em;
+}
+
+gradum-dropdown > gradum-select-entry:hover {
+    background-color: #d7d7d7;
+}
+
+gradum-dropdown > gradum-select-entry:not(:last-child) {
+    border-bottom: solid 0.1em #bdbdbd;
+}

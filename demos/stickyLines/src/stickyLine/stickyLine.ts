@@ -1,11 +1,11 @@
-import {define, TurboElement, expose, Point, TurboRect} from "../../../../build/gradum-kit.esm";
+import {define, GradumElement, expose, Point, GradumRect} from "../../../../build/gradum-kit.esm";
 import {StickyLineView} from "./stickyLine.view";
 import {StickyLineModel} from "./stickyLine.model";
 import "./stickyLine.css";
 import {Square} from "../square/square";
 import {StickyLineConstrainer} from "./stickyLine.constrainer";
 
-export class StickyLine extends TurboElement<StickyLineView, any, StickyLineModel> {
+export class StickyLine extends GradumElement<StickyLineView, any, StickyLineModel> {
     @expose("view", false) public accessor startHandle: Square;
     @expose("view", false) public accessor endHandle: Square;
 
@@ -30,7 +30,7 @@ export class StickyLine extends TurboElement<StickyLineView, any, StickyLineMode
     }
 
     public getBoundingClientRect() {
-        return TurboRect.fromSegment(this.startHandle.position, this.endHandle.position, 10);
+        return GradumRect.fromSegment(this.startHandle.position, this.endHandle.position, 10);
     }
 }
 

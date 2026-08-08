@@ -1,7 +1,7 @@
 import {describe, it, expect, vi} from "vitest";
 import * as Y from "yjs";
-import {TurboYModel} from "../model/yModel";
-import {TurboModel} from "../model/model";
+import {GradumYModel} from "../model/yModel";
+import {GradumModel} from "../model/model";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -15,7 +15,7 @@ describe("YModel", () => {
         const doc = new Y.Doc();
         const ymap = doc.getMap("root");
         for (const [k, v] of Object.entries(init)) ymap.set(k, v);
-        const model = TurboYModel.create({data: ymap as any, initialize: true});
+        const model = GradumYModel.create({data: ymap as any, initialize: true});
         return {doc, ymap, model};
     }
 
@@ -24,7 +24,7 @@ describe("YModel", () => {
         const doc = new Y.Doc();
         const yarray = doc.getArray<T>("root");
         if (init.length) yarray.push(init);
-        const model = TurboYModel.create({data: yarray as any, initialize: true});
+        const model = GradumYModel.create({data: yarray as any, initialize: true});
         return {doc, yarray, model};
     }
 
@@ -35,15 +35,15 @@ describe("YModel", () => {
         const row0 = new Y.Map([["x", 1], ["y", 2]] as [string, any][]);
         const row1 = new Y.Map([["x", 3], ["y", 4]] as [string, any][]);
         yarray.push([row0, row1]);
-        const model = TurboYModel.create({data: yarray as any, initialize: true});
+        const model = GradumYModel.create({data: yarray as any, initialize: true});
         return {doc, yarray, row0, row1, model};
     }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TurboYModel — YMap basics
+// GradumYModel — YMap basics
 // ─────────────────────────────────────────────────────────────────────────────
 
-    describe("TurboYModel — YMap", () => {
+    describe("GradumYModel — YMap", () => {
 
         describe("get / set / has / delete", () => {
             it("get reads from a YMap", () => {
@@ -158,7 +158,7 @@ describe("YModel", () => {
                 doc1.on("update", (update: Uint8Array) => Y.applyUpdate(doc2, update));
                 doc2.on("update", (update: Uint8Array) => Y.applyUpdate(doc1, update));
 
-                const model2 = TurboYModel.create({data: map2 as any, initialize: true});
+                const model2 = GradumYModel.create({data: map2 as any, initialize: true});
                 const received: any[] = [];
                 model2.onKeyChanged.add((value, ...keys) => received.push({value, key: keys[0]}));
 
@@ -178,10 +178,10 @@ describe("YModel", () => {
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TurboYModel — YArray basics
+// GradumYModel — YArray basics
 // ─────────────────────────────────────────────────────────────────────────────
 
-    describe("TurboYModel — YArray", () => {
+    describe("GradumYModel — YArray", () => {
 
         describe("get / set / add / delete / has", () => {
             it("get reads by numeric index", () => {
@@ -307,10 +307,10 @@ describe("YModel", () => {
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TurboYModel — nested YArray of YMaps
+// GradumYModel — nested YArray of YMaps
 // ─────────────────────────────────────────────────────────────────────────────
 
-    describe("TurboYModel — nested YArray<YMap>", () => {
+    describe("GradumYModel — nested YArray<YMap>", () => {
 
         describe("get / set across levels", () => {
             it("get reads nested YMap values", () => {
@@ -385,7 +385,7 @@ describe("YModel", () => {
                         return {};
                     },
                     initialize: true,
-                }, TurboModel.ALL);
+                }, GradumModel.ALL);
                 expect(added).toContain("x");
                 expect(added).toContain("y");
             });
@@ -396,7 +396,7 @@ describe("YModel", () => {
                 model.generateObserver({
                     onAdded: (_d, _s, ...keys) => added.push(keys[1] as string),
                     initialize: true,
-                }, TurboModel.ALL);
+                }, GradumModel.ALL);
                 const initialCount = added.length;
                 row0.set("z", 7);
                 expect(added.length).toBeGreaterThan(initialCount);
@@ -417,7 +417,7 @@ describe("YModel", () => {
                 const row = new Y.Map([["score", 0]] as [string, any][]);
                 arr1.push([row]);
 
-                const model2 = TurboYModel.create({data: arr2 as any, initialize: true});
+                const model2 = GradumYModel.create({data: arr2 as any, initialize: true});
                 const updated: any[] = [];
                 model2.generateObserver({
                     onAdded: () => ({}),
@@ -433,10 +433,10 @@ describe("YModel", () => {
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TurboYModel — mixed nested structure
+// GradumYModel — mixed nested structure
 // ─────────────────────────────────────────────────────────────────────────────
 
-    describe("TurboYModel — mixed YArray / YMap / plain nesting", () => {
+    describe("GradumYModel — mixed YArray / YMap / plain nesting", () => {
         function makeMixedModel() {
             const doc = new Y.Doc();
             // Root is a YMap with a "teams" YArray, each element is a YMap
@@ -459,7 +459,7 @@ describe("YModel", () => {
             teams.push([team1, team2]);
             root.set("teams", teams);
 
-            const model = TurboYModel.create({data: root as any, initialize: true});
+            const model = GradumYModel.create({data: root as any, initialize: true});
             return {doc, root, teams, team1, team2, members1, members2, model};
         }
 
@@ -491,7 +491,7 @@ describe("YModel", () => {
             const added: string[] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => added.push(keys[3] as string),
-            }, "teams", TurboModel.ALL, "members");
+            }, "teams", GradumModel.ALL, "members");
             expect(added).toContain("alice");
             expect(added).toContain("bob");
             expect(added).toContain("carol");
@@ -503,7 +503,7 @@ describe("YModel", () => {
             model.generateObserver({
                 onAdded: () => ({}),
                 onUpdated: (data) => updated.push(data),
-            }, "teams", TurboModel.ALL, "members");
+            }, "teams", GradumModel.ALL, "members");
             members1.set("alice", 999);
             expect(updated).toContain(999);
         });
@@ -513,7 +513,7 @@ describe("YModel", () => {
             const added: string[] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => added.push(keys[3] as string),
-            }, "teams", TurboModel.ALL, "members");
+            }, "teams", GradumModel.ALL, "members");
             const initialCount = added.length;
             members2.set("dave", 72);
             expect(added.length).toBeGreaterThan(initialCount);
@@ -527,7 +527,7 @@ describe("YModel", () => {
                 onAdded: () => ({}),
                 onDeleted: (_d, _i, _s, ...keys) => deleted.push(keys[3] as string),
                 initialize: true,
-            }, "teams", TurboModel.ALL, "members");
+            }, "teams", GradumModel.ALL, "members");
             members1.delete("bob");
             expect(deleted).toContain("bob");
         });
@@ -556,7 +556,7 @@ describe("YModel", () => {
                 onAdded: () => ({}),
                 onUpdated: (data) => updated.push(data),
                 initialize: true,
-            }, "teams", TurboModel.ALL, "members");
+            }, "teams", GradumModel.ALL, "members");
             obs.destroy();
             members1.set("alice", 777);
             expect(updated).not.toContain(777);
@@ -564,10 +564,10 @@ describe("YModel", () => {
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TurboYModel — signals
+// GradumYModel — signals
 // ─────────────────────────────────────────────────────────────────────────────
 
-    describe("TurboYModel — signals", () => {
+    describe("GradumYModel — signals", () => {
         it("makeSignal emits when value changes via model.set", async () => {
             const {model} = makeYMapModel({count: 0});
             const sig = model.makeSignal("count");
@@ -600,16 +600,16 @@ describe("YModel", () => {
 
         it("makeSignals with ALL creates signals for every YMap key", () => {
             const {model} = makeYMapModel({x: 1, y: 2, z: 3});
-            const sigs = model.makeSignals(TurboModel.ALL);
+            const sigs = model.makeSignals(GradumModel.ALL);
             expect(sigs).toHaveLength(3);
         });
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TurboYModel — clear / initialize lifecycle
+// GradumYModel — clear / initialize lifecycle
 // ─────────────────────────────────────────────────────────────────────────────
 
-    describe("TurboYModel — lifecycle", () => {
+    describe("GradumYModel — lifecycle", () => {
         it("clear(true) stops observing Yjs changes", () => {
             const {ymap, model} = makeYMapModel({a: 1});
             const calls: any[] = [];
@@ -656,7 +656,7 @@ describe("YModel", () => {
             const content3 = makeContent();
 
             // Nest content under a plain-JS-object model (mimics ClipRendererModel.text.data)
-            const model = TurboYModel.create({data: {content: content1} as any, initialize: true});
+            const model = GradumYModel.create({data: {content: content1} as any, initialize: true});
 
             // First re-assignment: old = content1 (observed), new = content2
             model.set(content2 as any, "content");
@@ -676,7 +676,7 @@ describe("YModel", () => {
             const map2 = doc.getMap("m2");
             map2.set("y", 2);
 
-            const model = TurboYModel.create({data: map1 as any, initialize: true});
+            const model = GradumYModel.create({data: map1 as any, initialize: true});
             const added: string[] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => added.push(keys[0] as string),
@@ -690,10 +690,10 @@ describe("YModel", () => {
     });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TurboObserver — standalone tests with YModel
+// GradumObserver — standalone tests with YModel
 // ─────────────────────────────────────────────────────────────────────────────
 
-    describe("TurboObserver — integration with TurboYModel", () => {
+    describe("GradumObserver — integration with GradumYModel", () => {
         it("observer.get retrieves instance by key after onAdded", () => {
             const {model} = makeYMapModel({a: 1, b: 2});
             const obs = model.generateObserver({
@@ -763,7 +763,7 @@ describe("YModel", () => {
             const obs = model.generateObserver({
                 onAdded: (_d, _s, ...keys) => ({path: keys.join(".")}),
                 initialize: true,
-            }, TurboModel.ALL);
+            }, GradumModel.ALL);
 
             // Should have instances for keys inside each row
             expect(obs.values.length).toBeGreaterThan(0);
@@ -798,7 +798,7 @@ describe("YModel", () => {
     });
 
 
-    describe("TurboYModel — ProjectModel-like usage", () => {
+    describe("GradumYModel — ProjectModel-like usage", () => {
         function makeProjectModel() {
             const doc = new Y.Doc();
             const root = doc.getMap("document_content");
@@ -809,14 +809,14 @@ describe("YModel", () => {
             }
             root.set("counters", new Y.Map([["cards", 0], ["flows", 0]] as [string, any][]));
 
-            const model = TurboYModel.create({data: root as any, initialize: true});
+            const model = GradumYModel.create({data: root as any, initialize: true});
             return {doc, root, model};
         }
 
-        it("nested model at 'cards' is a TurboYModel", () => {
+        it("nested model at 'cards' is a GradumYModel", () => {
             const {model} = makeProjectModel();
             const cards = model.nest("cards");
-            expect(cards).toBeInstanceOf(TurboYModel);
+            expect(cards).toBeInstanceOf(GradumYModel);
         });
 
         it("generateObserver on nested 'cards' model fires onAdded for existing cards", () => {
@@ -826,7 +826,7 @@ describe("YModel", () => {
             cardsMap.set("card-2", new Y.Map([["title", "Card 2"]] as [string, any][]));
 
             // Re-initialize so model sees the cards
-            const model2 = TurboYModel.create({data: root as any, initialize: true});
+            const model2 = GradumYModel.create({data: root as any, initialize: true});
             const added: string[] = [];
             model2.generateObserver({
                 onAdded: (_d, _s, ...keys) => { added.push(keys[1] as string); return {}; },
@@ -900,7 +900,7 @@ describe("YModel", () => {
             const root2 = doc2.getMap("document_content");
             root1.set("cards", new Y.Map());
 
-            const model2 = TurboYModel.create({data: root2 as any, initialize: true});
+            const model2 = GradumYModel.create({data: root2 as any, initialize: true});
             const added: string[] = [];
             model2.generateObserver({
                 onAdded: (_d, _s, ...keys) => added.push(keys[1] as string)
@@ -923,9 +923,9 @@ describe("YModel", () => {
             cardsMap.set("card-2", new Y.Map([["title", "Card 2"]]));
             projectMap.set("cards", cardsMap);
 
-            const model = TurboYModel.create({data: projectMap});
+            const model = GradumYModel.create({data: projectMap});
             const nestedCards = model.nest("cards");
-            expect(nestedCards).toBeInstanceOf(TurboYModel);
+            expect(nestedCards).toBeInstanceOf(GradumYModel);
 
             const added: string[] = [];
             nestedCards.generateObserver({
@@ -946,7 +946,7 @@ describe("YModel", () => {
             const emptyRoot = new Y.Map<any>();
             doc.getMap("doc").set("root", emptyRoot);
 
-            const model = TurboYModel.create({data: emptyRoot as any});
+            const model = GradumYModel.create({data: emptyRoot as any});
 
             // Create nested model and observer before data arrives
             const nestedCards = model.nest("cards");
@@ -994,14 +994,14 @@ describe("YModel", () => {
             ymap.set("B", arrB);
             ymap.set("C", arrC);
 
-            const model = TurboYModel.create({data: ymap as any, initialize: true});
+            const model = GradumYModel.create({data: ymap as any, initialize: true});
             return {doc, ymap, arrA, arrB, arrC, model};
         }
 
-        function makeObs(model: TurboYModel) {
+        function makeObs(model: GradumYModel) {
             return model.generateObserver<any, {id: string}>({
                 onAdded: (_d, _s, ...keys) => ({id: keys.join(".")}),
-            }, TurboModel.ALL);
+            }, GradumModel.ALL);
         }
 
         it("outer-key delete (Bug 2 cascade) via ymap.delete does not remove sibling entries", () => {
@@ -1078,7 +1078,7 @@ describe("YModel", () => {
 
             root.set("vP", flowMap);
 
-            const model = TurboYModel.create({data: root as any, initialize: true});
+            const model = GradumYModel.create({data: root as any, initialize: true});
 
             const deleted: string[] = [];
             const updated: string[] = [];
@@ -1107,7 +1107,7 @@ describe("YModel", () => {
             const flowMap = new Y.Map<any>();
             root.set("vP", flowMap);
 
-            const model = TurboYModel.create({data: root as any, initialize: true});
+            const model = GradumYModel.create({data: root as any, initialize: true});
             const deleted: string[] = [];
             model.generateObserver<any, {id: string}>({
                 onAdded: (_d, _s, ...keys) => ({id: keys[0] as string}),

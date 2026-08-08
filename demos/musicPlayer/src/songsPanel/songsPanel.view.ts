@@ -1,22 +1,22 @@
-import {DefaultEventName, div, turbo, turboInput, TurboInput, TurboSelect, TurboView} from "../../../../build/gradum-kit.esm";
+import {DefaultEventName, div, gradum, gradumInput, GradumInput, GradumSelect, GradumView} from "../../../../build/gradum-kit.esm";
 import {SongsPanel} from "./songsPanel";
 import {Song, song} from "../song/song";
 
-export class SongsPanelView extends TurboView<SongsPanel> {
-    private search: TurboInput;
+export class SongsPanelView extends GradumView<SongsPanel> {
+    private search: GradumInput;
     private panel: HTMLElement;
-    private select: TurboSelect<string, string, Song>;
+    private select: GradumSelect<string, string, Song>;
 
     protected setupUIElements() {
         super.setupUIElements();
-        this.search = turboInput({rightIcon: "search", input: {type: "search", placeholder: "Search..."}});
+        this.search = gradumInput({rightIcon: "search", input: {type: "search", placeholder: "Search..."}});
         this.panel = div({classes: "songs-panel-container"});
 
-        this.select = new TurboSelect({
+        this.select = new GradumSelect({
             parent: this.panel,
             getValue: entry => entry.title,
             getSecondaryValue: entry => entry.artist,
-            onEnabled: (b, entry) => turbo(entry).setStyle("display", b ? "" : "none"),
+            onEnabled: (b, entry) => gradum(entry).setStyle("display", b ? "" : "none"),
         });
 
         this.model.data
@@ -26,12 +26,12 @@ export class SongsPanelView extends TurboView<SongsPanel> {
 
     protected setupUILayout() {
         super.setupUILayout();
-        turbo(this).addChild([this.search, this.panel]);
+        gradum(this).addChild([this.search, this.panel]);
     }
 
     protected setupUIListeners() {
         super.setupUIListeners();
-        turbo(this.search).on(DefaultEventName.input, () => {
+        gradum(this.search).on(DefaultEventName.input, () => {
             const value = this.search.value.toLowerCase();
             this.select.entries.forEach(entry => {
                 const enable = entry.title.toLowerCase().includes(value)

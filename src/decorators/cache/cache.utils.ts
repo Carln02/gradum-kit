@@ -1,5 +1,5 @@
 import {CacheOptions} from "./cache.types";
-import {$} from "../../turboFunctions/turboFunctions";
+import {$} from "../../gradumFunctions/gradumFunctions";
 import {getFirstDescriptorInChain} from "../../utils/dataManipulation/prototype";
 
 /**

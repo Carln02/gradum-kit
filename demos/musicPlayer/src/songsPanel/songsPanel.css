@@ -1,4 +1,4 @@
-turbo-songs-panel {
+gradum-songs-panel {
     display: flex;
     flex-direction: column;
     gap: var(--gap-big);
@@ -15,26 +15,26 @@ turbo-songs-panel {
     backdrop-filter: blur(10px);
 }
 
-turbo-songs-panel > .turbo-rich-element {
+gradum-songs-panel > .gradum-rich-element {
     background-color: var(--surface);
     border-radius: 1000px;
     border: 1px solid var(--border);
 }
 
-turbo-songs-panel > .turbo-rich-element > div {
+gradum-songs-panel > .gradum-rich-element > div {
     display: flex;
     flex-direction: row;
     gap: var(--gap-medium);
     padding: var(--gap-small) calc(1.5 * var(--gap-small));
 }
 
-turbo-songs-panel > .turbo-rich-element input {
+gradum-songs-panel > .gradum-rich-element input {
     flex-grow: 1;
     background-color: transparent;
     border: none;
 }
 
-turbo-songs-panel > .songs-panel-container {
+gradum-songs-panel > .songs-panel-container {
     display: flex;
     flex-direction: column;
     overflow: auto;

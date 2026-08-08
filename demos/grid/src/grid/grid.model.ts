@@ -1,16 +1,16 @@
-import {TurboModel, TurboDataBlock, Point, blockSignal, Delegate} from "../../../../build/gradum-kit.esm";
+import {GradumModel, GradumDataBlock, Point, blockSignal, Delegate} from "../../../../build/gradum-kit.esm";
 
-class TurboGridModel<
+class GradumGridModel<
     DataType = any,
     KeyType extends string | number | symbol = any,
     IdType extends string | number | symbol = any,
-    BlockType extends TurboDataBlock<DataType, KeyType, IdType> = TurboDataBlock<DataType, KeyType, IdType>
-> extends TurboModel<DataType, KeyType, IdType, "map", BlockType> {
-    @blockSignal() protected objectPositions: TurboDataBlock<Map<string, Point>, string>;
-    @blockSignal() protected columnWidthsBlock: TurboDataBlock<Array<number>, number>;
-    @blockSignal() protected rowHeightsBlock: TurboDataBlock<Array<number>, number>;
+    BlockType extends GradumDataBlock<DataType, KeyType, IdType> = GradumDataBlock<DataType, KeyType, IdType>
+> extends GradumModel<DataType, KeyType, IdType, "map", BlockType> {
+    @blockSignal() protected objectPositions: GradumDataBlock<Map<string, Point>, string>;
+    @blockSignal() protected columnWidthsBlock: GradumDataBlock<Array<number>, number>;
+    @blockSignal() protected rowHeightsBlock: GradumDataBlock<Array<number>, number>;
 
-    protected objectsAtCell: TurboDataBlock<Map<string, string[]>, string>;
+    protected objectsAtCell: GradumDataBlock<Map<string, string[]>, string>;
 
     public defaultRowHeight: number = 20;
     public defaultColumnWidth: number = 20;
@@ -24,7 +24,7 @@ class TurboGridModel<
         this.setBlock([10, 20, 30, 30, 40, 50, 60] as any, undefined, "rowHeights");
         this.setBlock(new Map() as any, undefined, "objectPositions");
 
-        this.objectsAtCell = new TurboDataBlock(new Map() as any);
+        this.objectsAtCell = new GradumDataBlock(new Map() as any);
 
         this.objectPositions.onKeyChanged.add((objectId: string, position: Point, deleted?: boolean) =>
             this.updateObjectCellOnPositionChanged(objectId, position, deleted));
@@ -148,4 +148,4 @@ class TurboGridModel<
     }
 }
 
-export {TurboGridModel};
+export {GradumGridModel};

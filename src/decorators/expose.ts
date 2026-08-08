@@ -11,12 +11,12 @@ import {getFirstDescriptorInChain} from "../utils/dataManipulation/prototype";
  *
  * @example
  * ```ts
- * protected model: TurboModel;
+ * protected model: GradumModel;
  * @expose("model") public color: string;
  * ```
  * Is equivalent to:
  * ```ts
- * protected model: TurboModel;
+ * protected model: GradumModel;
  *
  * public get color(): string {
  *     return this.model.color;

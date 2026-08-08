@@ -1,12 +1,12 @@
-import {TurboEmitter, TurboView, div, turbo} from "../../../../build/gradum-kit.esm";
-import {TurboGrid} from "./grid";
-import {TurboGridModel} from "./grid.model";
+import {GradumEmitter, GradumView, div, gradum} from "../../../../build/gradum-kit.esm";
+import {GradumGrid} from "./grid";
+import {GradumGridModel} from "./grid.model";
 
-class TurboGridView<
-    ElementType extends TurboGrid = TurboGrid,
-    ModelType extends TurboGridModel = TurboGridModel,
-    EmitterType extends TurboEmitter = TurboEmitter
-> extends TurboView<ElementType, ModelType, EmitterType> {
+class GradumGridView<
+    ElementType extends GradumGrid = GradumGrid,
+    ModelType extends GradumGridModel = GradumGridModel,
+    EmitterType extends GradumEmitter = GradumEmitter
+> extends GradumView<ElementType, ModelType, EmitterType> {
     protected gridPanel: HTMLElement;
     protected cells: HTMLElement[] = [];
 
@@ -17,7 +17,7 @@ class TurboGridView<
 
     protected setupUILayout() {
         super.setupUILayout();
-        turbo(this).addChild(this.gridPanel);
+        gradum(this).addChild(this.gridPanel);
     }
 
     public initialize() {
@@ -27,9 +27,9 @@ class TurboGridView<
     }
 
     protected updateGridGeometry() {
-        turbo(this.gridPanel).setStyle("gridTemplateColumns",
+        gradum(this.gridPanel).setStyle("gridTemplateColumns",
             this.model.columnWidths.map(width => width + "px").join(" "));
-        turbo(this.gridPanel).setStyle("gridTemplateRows",
+        gradum(this.gridPanel).setStyle("gridTemplateRows",
             this.model.rowHeights.map(height => height + "px").join(" "));
         this.ensureCells();
     }
@@ -46,4 +46,4 @@ class TurboGridView<
     }
 }
 
-export {TurboGridView};
+export {GradumGridView};

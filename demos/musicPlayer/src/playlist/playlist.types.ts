@@ -1,4 +1,4 @@
-import {Coordinate, TurboElementProperties} from "../../../../build/gradum-kit.esm";
+import {Coordinate, GradumElementProperties} from "../../../../build/gradum-kit.esm";
 import {PlaylistView} from "./playlist.view";
 import {PlaylistModel} from "./playlist.model";
 
@@ -8,4 +8,4 @@ export type PlaylistData = {
     origin: Coordinate
 }
 
-export type PlaylistProperties = TurboElementProperties<PlaylistView, PlaylistData, PlaylistModel>;
+export type PlaylistProperties = GradumElementProperties<PlaylistView, PlaylistData, PlaylistModel>;

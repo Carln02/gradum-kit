@@ -1,9 +1,9 @@
-import {define, TurboButtonPopup} from "../../../../build/gradum-kit.esm";
+import {define, GradumButtonPopup} from "../../../../build/gradum-kit.esm";
 import {ImportedFilesView} from "./importedFiles.view";
 import {ImportedFilesFilesHandler} from "./importedFiles.filesHandler";
 import {ImportedFilesModel} from "./importedFiles.model";
 
-export class ImportedFiles extends TurboButtonPopup {
+export class ImportedFiles extends GradumButtonPopup {
     public static defaultProperties = {
         view: ImportedFilesView,
         handlers: ImportedFilesFilesHandler,

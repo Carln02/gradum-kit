@@ -1,4 +1,4 @@
-import {button, turbo} from "../../../build/gradum-kit.esm";
+import {button, gradum} from "../../../build/gradum-kit.esm";
 import {SelectTool} from "./tools/select.tool";
 import {PusherSubstrateTool} from "./tools/pusherSubstrate.tool";
 import {AddSquareTool} from "./tools/addSquare.tool";
@@ -8,9 +8,9 @@ import {MakeSpacerTool} from "./tools/makeSpacer.tool";
 import {SpacerSubstrateTool} from "./tools/spacerSubstrate.tool";
 import {Toolbar} from "./toolbar/toolbar";
 import {Bucket} from "./tools/bucket/bucket";
-import {TurboGrid} from "./grid/grid";
+import {GradumGrid} from "./grid/grid";
 
-TurboGrid.create({parent: document.body});
+GradumGrid.create({parent: document.body});
 
 // Canvas.create({parent: document.body});
 // Toolbar.create({

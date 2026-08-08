@@ -1,11 +1,11 @@
 import {describe, it, expect} from "vitest";
-import {TurboModel} from "../model/model";
-import {TurboYModel} from "../model/yModel";
+import {GradumModel} from "../model/model";
+import {GradumYModel} from "../model/yModel";
 
 // Regression: re-assigning model data wholesale with equivalent content must be a no-op
 // for observer values — not a teardown. (VideoClipper timeline bug, 2026-07-08.)
-describe("TurboObserver — wholesale data replacement", () => {
-    function setup(ModelCtor: typeof TurboModel = TurboModel) {
+describe("GradumObserver — wholesale data replacement", () => {
+    function setup(ModelCtor: typeof GradumModel = GradumModel) {
         const model = new ModelCtor({data: {}});
         const events: string[] = [];
         const observer = model.generateObserver({
@@ -36,8 +36,8 @@ describe("TurboObserver — wholesale data replacement", () => {
         expect(events).not.toContain("deleted:cardA");
     });
 
-    it("re-assigning an identical-content array on TurboYModel preserves observer values", () => {
-        const {model, observer, events} = setup(TurboYModel as any);
+    it("re-assigning an identical-content array on GradumYModel preserves observer values", () => {
+        const {model, observer, events} = setup(GradumYModel as any);
 
         model.data = ["cardA"];
         expect(observer.values.length).toBe(1);

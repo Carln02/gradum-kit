@@ -1,7 +1,7 @@
-import {TurboHandler} from "../../../../build/gradum-kit.esm";
+import {GradumHandler} from "../../../../build/gradum-kit.esm";
 import {ImportedFilesModel} from "./importedFiles.model";
 
-export class ImportedFilesFilesHandler extends TurboHandler<ImportedFilesModel> {
+export class ImportedFilesFilesHandler extends GradumHandler<ImportedFilesModel> {
     private esbuildReady: Promise<void>;
 
     protected setup() {

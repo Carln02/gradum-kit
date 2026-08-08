@@ -1,4 +1,4 @@
-import {TurboElementProperties} from "../../../../build/gradum-kit.esm";
+import {GradumElementProperties} from "../../../../build/gradum-kit.esm";
 import {SongModel} from "./song.model";
 import {SongView} from "./song.view";
 
@@ -11,7 +11,7 @@ export type SongData = {
     duration?: number
 };
 
-export type SongProperties = TurboElementProperties<SongView, SongData, SongModel>;
+export type SongProperties = GradumElementProperties<SongView, SongData, SongModel>;
 
 export enum SongState {
     default = "default",

@@ -536,20 +536,20 @@ declare class Delegate<CallbackType extends (...args: any[]) => any> extends Sim
     add(callback: CallbackType): void;
 }
 
-declare class TurboNestedMapNode<KeyType, ValueType> extends Map<KeyType, ValueType> {
+declare class GradumNestedMapNode<KeyType, ValueType> extends Map<KeyType, ValueType> {
 }
 /**
- * @class TurboNestedMap
+ * @class GradumNestedMap
  * @group Components
- * @category TurboNestedMap
+ * @category GradumNestedMap
  *
  * @description A map of arbitrary nesting depth, addressed via `...keys` paths.
  *
  * @template ValueType - The type of stored values.
  * @template KeyType - The type of keys at each level of the path. Defaults to `string | symbol | number`.
  */
-declare class TurboNestedMap<ValueType = any, KeyType = string | symbol | number> {
-    protected readonly nestedMap: TurboNestedMapNode<KeyType, any>;
+declare class GradumNestedMap<ValueType = any, KeyType = string | symbol | number> {
+    protected readonly nestedMap: GradumNestedMapNode<KeyType, any>;
     /**
      * @function get
      * @description Retrieve the value at the given key path.
@@ -730,20 +730,20 @@ declare class TurboNestedMap<ValueType = any, KeyType = string | symbol | number
 }
 
 /**
- * @class TurboObserver
+ * @class GradumObserver
  * @group MVC
- * @category TurboModel
+ * @category GradumModel
  *
- * @extends TurboNestedMap
+ * @extends GradumNestedMap
  * @description Generic observer that keeps a set of component instances organized by key path.
  * Useful to maintain UI components or other per-entry objects synchronized with a data source
- * ({@link TurboModel}).
+ * ({@link GradumModel}).
  *
  * @template DataType - The type of data handled by the observer.
  * @template {object} ComponentType - The instance type created/managed by the observer.
  * @template {string | number | symbol} KeyType - The key type used at each level of the path.
  */
-declare class TurboObserver<DataType = any, ComponentType extends object = any, DataKeyType extends KeyType = KeyType> extends TurboNestedMap<ComponentType, DataKeyType> {
+declare class GradumObserver<DataType = any, ComponentType extends object = any, DataKeyType extends KeyType = KeyType> extends GradumNestedMap<ComponentType, DataKeyType> {
     protected _isInitialized: boolean;
     private readonly prevData;
     private replaceOnUpdate;
@@ -753,36 +753,36 @@ declare class TurboObserver<DataType = any, ComponentType extends object = any, 
      * Handlers may return a newly-created component instance, which will be stored and passed to subsequent
      * `onUpdated` calls.
      */
-    readonly onAdded: Delegate<(data: DataType, self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => ComponentType | void>;
+    readonly onAdded: Delegate<(data: DataType, self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => ComponentType | void>;
     /**
      * @property onUpdated
      * @description Delegate called when a change is reported at a key path that already has an associated instance.
      */
-    readonly onUpdated: Delegate<(data: DataType, instance: ComponentType, self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => void>;
+    readonly onUpdated: Delegate<(data: DataType, instance: ComponentType, self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => void>;
     /**
      * @property onDeleted
      * @description Delegate called when a key path is reported as deleted.
      */
-    readonly onDeleted: Delegate<(data: DataType, instance: ComponentType, self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => void>;
+    readonly onDeleted: Delegate<(data: DataType, instance: ComponentType, self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: DataKeyType[]) => void>;
     /**
      * @property onInitialize
      * @description Delegate fired once when the observer is initialized. Useful for initial population.
      */
-    readonly onInitialize: Delegate<(self: TurboObserver<DataType, ComponentType, DataKeyType>) => void>;
+    readonly onInitialize: Delegate<(self: GradumObserver<DataType, ComponentType, DataKeyType>) => void>;
     /**
      * @property onDestroy
      * @description Delegate fired when the observer is destroyed.
      */
-    readonly onDestroy: Delegate<(self: TurboObserver<DataType, ComponentType, DataKeyType>) => void>;
+    readonly onDestroy: Delegate<(self: GradumObserver<DataType, ComponentType, DataKeyType>) => void>;
     /**
      * @constructor
-     * @description Create a TurboObserver.
-     * By default, `onUpdated` updates the data of the mapped instance if it exposes a {@link TurboModel} model,
+     * @description Create a GradumObserver.
+     * By default, `onUpdated` updates the data of the mapped instance if it exposes a {@link GradumModel} model,
      * or `data` / `dataId` fields. `onDeleted` removes the instance from the map and the DOM.
-     * @param {TurboObserverProperties<DataType, ComponentType, KeyType>} [properties] - Initialization
+     * @param {GradumObserverProperties<DataType, ComponentType, KeyType>} [properties] - Initialization
      * options and lifecycle callbacks.
      */
-    constructor(properties?: TurboObserverProperties<DataType, ComponentType, DataKeyType>);
+    constructor(properties?: GradumObserverProperties<DataType, ComponentType, DataKeyType>);
     /**
      * @function remove
      * @description Remove the instance at the given key path from the map and call `instance.remove()` if available.
@@ -832,23 +832,23 @@ declare class TurboObserver<DataType = any, ComponentType extends object = any, 
     keyChanged(keys: DataKeyType[], value: DataType, deleted?: boolean): void;
 }
 
-type TurboModelProxy<DataType extends object = any, IdType extends KeyType = any> = DataType & {
-    readonly $model: TurboModel<DataType, KeyType, IdType>;
+type GradumModelProxy<DataType extends object = any, IdType extends KeyType = any> = DataType & {
+    readonly $model: GradumModel<DataType, KeyType, IdType>;
 };
 /**
- * @type TurboModelProperties
+ * @type GradumModelProperties
  * @group MVC
- * @category TurboModel
+ * @category GradumModel
  *
- * @description Configuration object used when creating a {@link TurboModel}.
+ * @description Configuration object used when creating a {@link GradumModel}.
  * @template DataType - The type of data stored in the model.
  * @template IdType - The type of the data's ID.
  * @property {IdType} [id] - Optional ID attached to the model. Useful to reference the data in a nested structure.
  * @property {DataType} [data] - Initial data.
- * @property {boolean} [initialize] - If true, {@link TurboModel.initialize} is called immediately after
+ * @property {boolean} [initialize] - If true, {@link GradumModel.initialize} is called immediately after
  * construction.
  */
-type TurboModelProperties<DataType = any, IdType extends KeyType = any> = {
+type GradumModelProperties<DataType = any, IdType extends KeyType = any> = {
     id?: IdType;
     data?: DataType;
     initialize?: boolean;
@@ -857,19 +857,19 @@ type TurboModelProperties<DataType = any, IdType extends KeyType = any> = {
     makeSignals?: boolean;
 };
 /**
- * @type TurboObserverProperties
+ * @type GradumObserverProperties
  * @group Components
- * @category TurboDataBlock
+ * @category GradumDataBlock
  *
- * @description Configuration object to create a new {@link TurboObserver}.
+ * @description Configuration object to create a new {@link GradumObserver}.
  *
  * @template DataType - The type of data handled by the observer.
  * @template {object} ComponentType - The instance type created/managed by the observer.
  * @template {string | number | symbol} KeyType - The per-item key type.
  * @template {string | number} BlockKeyType - The block-grouping key type.
  *
- * @property {new(...args:any[]) => TurboObserver<DataType, ComponentType, KeyType, BlockKeyType>} [customConstructor] -
- * Optional custom observer constructor to instantiate instead of the default `TurboObserver`.
+ * @property {new(...args:any[]) => GradumObserver<DataType, ComponentType, KeyType, BlockKeyType>} [customConstructor] -
+ * Optional custom observer constructor to instantiate instead of the default `GradumObserver`.
  * @property {boolean} [initialize] - If true, the observer is initialized immediately.
  * @property {(data, id, self, blockKey?) => ComponentType | void} [onAdded] - Called when a new item appears.
  * @property {(data, instance, id, self, blockKey?) => void} [onUpdated] - Called when an existing item changes.
@@ -877,16 +877,16 @@ type TurboModelProperties<DataType = any, IdType extends KeyType = any> = {
  * @property {(self) => void} [onInitialize] - Called when the observer is initialized.
  * @property {(self) => void} [onDestroy] - Called when the observer is destroyed.
  */
-type TurboObserverProperties<DataType = any, ComponentType extends object = any, DataKeyType extends KeyType = KeyType> = {
-    customConstructor?: new (...args: any[]) => TurboObserver<DataType, ComponentType, DataKeyType>;
+type GradumObserverProperties<DataType = any, ComponentType extends object = any, DataKeyType extends KeyType = KeyType> = {
+    customConstructor?: new (...args: any[]) => GradumObserver<DataType, ComponentType, DataKeyType>;
     depth?: number;
     initialize?: boolean;
-    onAdded?: (data: DataType, self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => ComponentType | void;
-    onUpdated?: (data: DataType, instance: ComponentType, self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => void;
-    onDeleted?: (data: DataType, instance: ComponentType, self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => void;
-    replaceOnUpdate?: (prevData: DataType, newData: DataType, instance: ComponentType, self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => boolean;
-    onInitialize?: (self: TurboObserver<DataType, ComponentType, DataKeyType>) => void;
-    onDestroy?: (self: TurboObserver<DataType, ComponentType, DataKeyType>) => void;
+    onAdded?: (data: DataType, self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => ComponentType | void;
+    onUpdated?: (data: DataType, instance: ComponentType, self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => void;
+    onDeleted?: (data: DataType, instance: ComponentType, self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => void;
+    replaceOnUpdate?: (prevData: DataType, newData: DataType, instance: ComponentType, self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => boolean;
+    onInitialize?: (self: GradumObserver<DataType, ComponentType, DataKeyType>) => void;
+    onDestroy?: (self: GradumObserver<DataType, ComponentType, DataKeyType>) => void;
 };
 
 type SignalSubscriber = () => void;
@@ -970,15 +970,15 @@ type SignalBox<Type> = Type & SignalEntry<Type> & {
 };
 
 /**
- * @class TurboHandler
+ * @class GradumHandler
  * @group MVC
  * @category Handler
  *
  * @description The MVC base handler class. It's an extension of the model, and its main job is to provide some utility
  * functions to manipulate some of (or all of) the model's data.
- * @template {TurboModel} ModelType - The element's MVC model type.
+ * @template {GradumModel} ModelType - The element's MVC model type.
  */
-declare class TurboHandler<ModelType extends TurboModel = TurboModel> {
+declare class GradumHandler<ModelType extends GradumModel = GradumModel> {
     /**
      * @description The key of the handler. Used to retrieve it in the main component. If not set, if the element's
      * class name is MyElement and the handler's class name is MyElementSomethingHandler, the key would
@@ -1001,7 +1001,7 @@ declare class TurboHandler<ModelType extends TurboModel = TurboModel> {
 }
 
 type ObserverData<DataType = any, ComponentType extends object = any, DataKeyType extends KeyType = KeyType> = {
-    observer: TurboObserver<DataType, ComponentType, DataKeyType>;
+    observer: GradumObserver<DataType, ComponentType, DataKeyType>;
     keys: KeyType[];
     deep?: boolean;
 };
@@ -1010,9 +1010,9 @@ type ListenerData = {
     keys: KeyType[];
 };
 /**
- * @class TurboModel
+ * @class GradumModel
  * @group MVC
- * @category TurboModel
+ * @category GradumModel
  *
  * @template DataType - The type of the data held in the model.
  * @template {KeyType} KeyType - The type of the data's keys.
@@ -1021,28 +1021,28 @@ type ListenerData = {
  * @template DataEntryType - The type of data associated with each observer instance.
  *
  * @description Wrapper around a plain JS container (object, Array, or Map) that exposes a
- * consistent API for reads/writes, signals, and {@link TurboObserver}s.
+ * consistent API for reads/writes, signals, and {@link GradumObserver}s.
  */
-declare class TurboModel<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any> {
+declare class GradumModel<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any> {
     /**
      * @description Symbol used in {@link nestAll}, {@link makeSignals}, and {@link generateObserver}
      * to target all entries at a certain level inside the data.
      */
     static readonly ALL: unique symbol;
-    static from<DataType extends object = any, IdType extends KeyType = any>(data?: DataType, id?: IdType): TurboModelProxy<DataType, IdType>;
-    static create<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any>(properties?: TurboModelProperties): TurboModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType>;
+    static from<DataType extends object = any, IdType extends KeyType = any>(data?: DataType, id?: IdType): GradumModelProxy<DataType, IdType>;
+    static create<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any>(properties?: GradumModelProperties): GradumModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType>;
     /**
-     * @description The default constructor used to create nested {@link TurboModel} instances.
+     * @description The default constructor used to create nested {@link GradumModel} instances.
      */
-    modelConstructor: new (...args: any[]) => TurboModel;
+    modelConstructor: new (...args: any[]) => GradumModel;
     /**
-     * @description The default constructor used to create {@link TurboObserver} instances via {@link generateObserver}.
+     * @description The default constructor used to create {@link GradumObserver} instances via {@link generateObserver}.
      */
-    observerConstructor: new (...args: any[]) => TurboObserver;
+    observerConstructor: new (...args: any[]) => GradumObserver;
     /**
      * @description Map of MVC handlers bound to this model.
      */
-    handlers: Map<string, TurboHandler>;
+    handlers: Map<string, GradumHandler>;
     /**
      * @description Whether change callbacks and observer notifications are enabled.
      */
@@ -1061,7 +1061,7 @@ declare class TurboModel<DataType = any, DataKeyType extends KeyType = any, IdTy
     protected isInitialized: boolean;
     private readonly signals;
     protected readonly changeObservers: Set<ObserverData<DataEntryType, ComponentType, DataKeyType>>;
-    protected readonly nestedModels: Map<DataKeyType, TurboModel>;
+    protected readonly nestedModels: Map<DataKeyType, GradumModel>;
     protected nestedListeners: Set<ListenerData>;
     /**
      * @description The ID of the data held by this model.
@@ -1076,13 +1076,13 @@ declare class TurboModel<DataType = any, DataKeyType extends KeyType = any, IdTy
     /**
      * @description The metadata held by this model. Separate from this model's data.
      */
-    get meta(): TurboModel<object>;
+    get meta(): GradumModel<object>;
     /**
      * @constructor
-     * @description Create a new TurboModel.
-     * @param {TurboModelProperties} [properties] - Optional initialization properties.
+     * @description Create a new GradumModel.
+     * @param {GradumModelProperties} [properties] - Optional initialization properties.
      */
-    constructor(properties?: TurboModelProperties);
+    constructor(properties?: GradumModelProperties);
     /**
      * @function setup
      * @description Called in the constructor. Use for setup that should happen at instantiation,
@@ -1163,13 +1163,13 @@ declare class TurboModel<DataType = any, DataKeyType extends KeyType = any, IdTy
      * @function internalSet
      * @description Write a value at a key, propagating the change to a nested model if one exists,
      * and firing {@link keyChanged} if the value actually changed.
-     * @param {TurboModel} model - The owning model (used for nested model lookup and change notification),
+     * @param {GradumModel} model - The owning model (used for nested model lookup and change notification),
      * or `undefined` if operating on a non-root container.
      * @param {any} data - The container to write to.
      * @param {KeyType} key - The key to write.
      * @param {any} value - The value to set.
      */
-    protected internalSet(model: TurboModel, data: any, value: any, key: KeyType): boolean;
+    protected internalSet(model: GradumModel, data: any, value: any, key: KeyType): boolean;
     /**
      * @function set
      * @description Set a value at the given key and notify observers and signals if the value changed.
@@ -1196,24 +1196,24 @@ declare class TurboModel<DataType = any, DataKeyType extends KeyType = any, IdTy
      * @protected
      * @function internalAdd
      * @description Insert a value into a container via {@link addAction} and fire {@link keyChanged}.
-     * @param {TurboModel} model - The owning model for change notification, or `undefined` for non-root containers.
+     * @param {GradumModel} model - The owning model for change notification, or `undefined` for non-root containers.
      * @param {any} data - The container to insert into.
      * @param {any} value - The value to insert.
      * @param {KeyType} key - The target index or key.
      * @returns {KeyType} The index or key where the value was stored.
      */
-    protected internalAdd(model: TurboModel, data: any, value: any, key: KeyType): KeyType;
+    protected internalAdd(model: GradumModel, data: any, value: any, key: KeyType): KeyType;
     /**
      * @protected
      * @function addAction
      * @description Perform the raw insertion. Override this method to support other datatypes.
-     * @param {TurboModel} model - The owning model.
+     * @param {GradumModel} model - The owning model.
      * @param {any} data - The container to insert into.
      * @param {any} value - The value to insert.
      * @param {KeyType} key - The target index or key. Clamped to valid array bounds for array containers.
      * @returns {KeyType} The index or key where the value was stored.
      */
-    protected addAction(model: TurboModel, data: any, value: any, key: KeyType): KeyType;
+    protected addAction(model: GradumModel, data: any, value: any, key: KeyType): KeyType;
     /**
      * @function add
      * @description Push a value to the end of an array-backed model. For non-array models, forwards to {@link set}.
@@ -1292,12 +1292,12 @@ declare class TurboModel<DataType = any, DataKeyType extends KeyType = any, IdTy
      * @function internalDelete
      * @description Remove a key from a container, clearing any associated nested model, and firing {@link keyChanged}.
      * No-op if the key does not exist.
-     * @param {TurboModel} model - The owning model for nested model cleanup and change notification,
+     * @param {GradumModel} model - The owning model for nested model cleanup and change notification,
      * or `undefined` for non-root containers.
      * @param {any} data - The container to remove from.
      * @param {KeyType} key - The key to remove.
      */
-    protected internalDelete(model: TurboModel, data: any, key: KeyType): void;
+    protected internalDelete(model: GradumModel, data: any, key: KeyType): void;
     /**
      * @function delete
      * @description Remove the entry at the given key and notify observers.
@@ -1400,7 +1400,7 @@ declare class TurboModel<DataType = any, DataKeyType extends KeyType = any, IdTy
     /**
      * @function makeSignals
      * @description Return reactive {@link SignalBox} instances for multiple keys at the given path.
-     * Pass {@link TurboModel.ALL} at any level of the path to expand all entries at that level.
+     * Pass {@link GradumModel.ALL} at any level of the path to expand all entries at that level.
      * @template Type - The type of the signals' values.
      * @param {...KeyType[]} keys - Key path to the signal targets. Use `ALL` at any level to target all entries there.
      * @returns {SignalBox<Type>[]}
@@ -1429,88 +1429,88 @@ declare class TurboModel<DataType = any, DataKeyType extends KeyType = any, IdTy
     nestAll(): [this];
     /**
      * @function nestAll
-     * @description Create or retrieve nested {@link TurboModel} instances at each entry under the given key path.
-     * Use {@link TurboModel.ALL} in the path to expand all entries at that level.
+     * @description Create or retrieve nested {@link GradumModel} instances at each entry under the given key path.
+     * Use {@link GradumModel.ALL} in the path to expand all entries at that level.
      * @param {...KeyType[]} keys - Key path to the subtree to expand.
-     * @returns {TurboModel[]} Array of nested models.
+     * @returns {GradumModel[]} Array of nested models.
      */
-    nestAll<NestedDataType = any, NestedKeyType extends KeyType = any>(...keys: KeyType[]): TurboModel<NestedDataType, NestedKeyType>[];
+    nestAll<NestedDataType = any, NestedKeyType extends KeyType = any>(...keys: KeyType[]): GradumModel<NestedDataType, NestedKeyType>[];
     /**
      * @function nestAll
-     * @description Create or retrieve nested {@link TurboModel} instances at each entry under the given key path,
+     * @description Create or retrieve nested {@link GradumModel} instances at each entry under the given key path,
      * with custom initialization properties for the nested models.
-     * Use {@link TurboModel.ALL} in the path to expand all entries at that level.
-     * @param {...[...KeyType[], TurboModelProperties]} keysAndProperties - Key path followed by optional properties.
-     * @returns {TurboModel[]} Array of nested models.
+     * Use {@link GradumModel.ALL} in the path to expand all entries at that level.
+     * @param {...[...KeyType[], GradumModelProperties]} keysAndProperties - Key path followed by optional properties.
+     * @returns {GradumModel[]} Array of nested models.
      */
-    nestAll<NestedDataType = any, NestedKeyType extends KeyType = any>(...keysAndProperties: [...KeyType[], TurboModelProperties]): TurboModel<NestedDataType, NestedKeyType>[];
+    nestAll<NestedDataType = any, NestedKeyType extends KeyType = any>(...keysAndProperties: [...KeyType[], GradumModelProperties]): GradumModel<NestedDataType, NestedKeyType>[];
     private nestRecur;
     /**
      * @function nest
-     * @description Create or retrieve a single nested {@link TurboModel} at the given key.
+     * @description Create or retrieve a single nested {@link GradumModel} at the given key.
      * @param {KeyType} key - The key of the nested model.
-     * @returns {TurboModel}
+     * @returns {GradumModel}
      */
-    nest<NestedDataType = any, NestedKeyType extends KeyType = any>(key: DataKeyType): TurboModel<NestedDataType, NestedKeyType>;
+    nest<NestedDataType = any, NestedKeyType extends KeyType = any>(key: DataKeyType): GradumModel<NestedDataType, NestedKeyType>;
     /**
      * @function nest
-     * @description Create or retrieve a single nested {@link TurboModel} at the given key path.
+     * @description Create or retrieve a single nested {@link GradumModel} at the given key path.
      * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
-     * @returns {TurboModel}
+     * @returns {GradumModel}
      */
-    nest<NestedDataType = any, NestedKeyType extends KeyType = any>(...keys: KeyType[]): TurboModel<NestedDataType, NestedKeyType>;
+    nest<NestedDataType = any, NestedKeyType extends KeyType = any>(...keys: KeyType[]): GradumModel<NestedDataType, NestedKeyType>;
     /**
      * @function nest
-     * @description Create or retrieve a single nested {@link TurboModel} at the given key path,
+     * @description Create or retrieve a single nested {@link GradumModel} at the given key path,
      * with custom initialization properties.
-     * @param {...[...KeyType[], TurboModelProperties]} keysAndProperties - Key path followed by optional properties.
-     * @returns {TurboModel}
+     * @param {...[...KeyType[], GradumModelProperties]} keysAndProperties - Key path followed by optional properties.
+     * @returns {GradumModel}
      */
-    nest<NestedDataType = any, NestedKeyType extends KeyType = any>(...keysAndProperties: [...KeyType[], TurboModelProperties]): TurboModel<NestedDataType, NestedKeyType>;
+    nest<NestedDataType = any, NestedKeyType extends KeyType = any>(...keysAndProperties: [...KeyType[], GradumModelProperties]): GradumModel<NestedDataType, NestedKeyType>;
     /**
      * @function getNested
      * @description Return `this`.
-     * @returns {TurboModel}
+     * @returns {GradumModel}
      */
-    getNested(): TurboModel;
+    getNested(): GradumModel;
     /**
      * @function getNested
      * @description Retrieve an already-created nested model at the given key, or `undefined` if none exists.
      * @param {KeyType} key - The key of the nested model.
-     * @returns {TurboModel | undefined}
+     * @returns {GradumModel | undefined}
      */
-    getNested(key: DataKeyType): TurboModel;
+    getNested(key: DataKeyType): GradumModel;
     /**
      * @function getNested
      * @description Retrieve an already-created nested model at the given key path, or `undefined` if none exists.
      * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
-     * @returns {TurboModel | undefined}
+     * @returns {GradumModel | undefined}
      */
-    getNested(...keys: KeyType[]): TurboModel;
+    getNested(...keys: KeyType[]): GradumModel;
     /**
      * @function generateObserver
-     * @description Create and attach a {@link TurboObserver} to this model.
+     * @description Create and attach a {@link GradumObserver} to this model.
      * If a key path is provided, the observer is attached to the nested model(s) at that path instead.
-     * Pass {@link TurboModel.ALL} at any level of the path to process all entries at that level,
+     * Pass {@link GradumModel.ALL} at any level of the path to process all entries at that level,
      * allowing a single observer to track multiple subtrees simultaneously.
-     * @param {TurboObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
+     * @param {GradumObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
      * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe. Use `ALL` at
      * any level to process all entries there.
-     * @returns {TurboObserver<DataEntryType, ComponentType, KeyType>}
+     * @returns {GradumObserver<DataEntryType, ComponentType, KeyType>}
      */
-    generateObserver(properties?: TurboObserverProperties<DataEntryType, ComponentType, DataKeyType>, ...keys: KeyType[]): TurboObserver<DataEntryType, ComponentType, DataKeyType>;
+    generateObserver(properties?: GradumObserverProperties<DataEntryType, ComponentType, DataKeyType>, ...keys: KeyType[]): GradumObserver<DataEntryType, ComponentType, DataKeyType>;
     /**
      * @function generateDeepObserver
      * @description Like {@link generateObserver}, but fires for the registered depth **and all deeper levels**.
-     * Whereas `generateObserver(..., TurboModel.ALL)` only notifies at depth-2, `generateDeepObserver(..., TurboModel.ALL)`
+     * Whereas `generateObserver(..., GradumModel.ALL)` only notifies at depth-2, `generateDeepObserver(..., GradumModel.ALL)`
      * also notifies for depth-3, depth-4, etc. — passing the full key path to `onAdded`/`onUpdated`/`onDeleted`.
      * Use when you need to react to any nested change regardless of depth.
-     * @param {TurboObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
+     * @param {GradumObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
      * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe.
-     * @returns {TurboObserver<DataEntryType, ComponentType, KeyType>}
+     * @returns {GradumObserver<DataEntryType, ComponentType, KeyType>}
      */
-    generateDeepObserver(properties?: TurboObserverProperties<DataEntryType, ComponentType, DataKeyType>, ...keys: KeyType[]): TurboObserver<DataEntryType, ComponentType, DataKeyType>;
-    protected initializeObserverOnPath(data: any, observer: TurboObserver, keys: KeyType[], prefixKeys: KeyType[], deep?: boolean): void;
+    generateDeepObserver(properties?: GradumObserverProperties<DataEntryType, ComponentType, DataKeyType>, ...keys: KeyType[]): GradumObserver<DataEntryType, ComponentType, DataKeyType>;
+    protected initializeObserverOnPath(data: any, observer: GradumObserver, keys: KeyType[], prefixKeys: KeyType[], deep?: boolean): void;
     /**
      * @protected
      * @function keyChanged
@@ -1555,31 +1555,31 @@ declare class TurboModel<DataType = any, DataKeyType extends KeyType = any, IdTy
      * By default, unless manually defined in the handler, if the element's class name is MyElement
      * and the handler's class name is MyElementSomethingHandler, the key would be "something".
      * @param {string} key - The handler's key.
-     * @return {TurboHandler} - The handler.
+     * @return {GradumHandler} - The handler.
      */
-    getHandler(key: string): TurboHandler;
+    getHandler(key: string): GradumHandler;
     /**
      * @function addHandler
-     * @description Registers a TurboHandler for the given key.
-     * @param {TurboHandler} handler - The handler instance to register.
+     * @description Registers a GradumHandler for the given key.
+     * @param {GradumHandler} handler - The handler instance to register.
      */
-    addHandler(handler: TurboHandler): void;
+    addHandler(handler: GradumHandler): void;
     setDataWithoutInitializing(data: DataType): void;
     fireCallback(key: string, ...values: any[]): void;
     private createNestedChild;
 }
 
 /**
- * @class TurboEmitter
+ * @class GradumEmitter
  * @group MVC
  * @category Emitter
  *
- * @template {TurboModel} ModelType - The element's MVC model type.
+ * @template {GradumModel} ModelType - The element's MVC model type.
  * @template {KeyType} DataKeyType - The key type of the MVC's model.
  * @description The base MVC emitter class. Its role is basically an event bus. It allows the different parts of the
  * MVC structure to fire events or listen to some, with various methods.
  */
-declare class TurboEmitter<ModelType extends TurboModel = TurboModel, DataKeyType extends KeyType = KeyType> {
+declare class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKeyType extends KeyType = KeyType> {
     /**
      * @description Map containing all custom callbacks.
      * @protected
@@ -1670,24 +1670,24 @@ type MvcFlatKeyType<B extends "array" | "map"> = B extends "array" ? number : st
  * @group MVC
  * @category View
  */
-type TurboViewProperties<ElementType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = {
+type GradumViewProperties<ElementType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = {
     element: ElementType;
     model?: ModelType;
     emitter?: EmitterType;
 };
 
 /**
- * @class TurboView
+ * @class GradumView
  * @group MVC
  * @category View
  *
  * @template {object} ElementType - The type of the element attached to the view.
- * @template {TurboModel} ModelType - The model type used in this view.
- * @template {TurboEmitter} EmitterType - The emitter type used in this view.
+ * @template {GradumModel} ModelType - The model type used in this view.
+ * @template {GradumEmitter} EmitterType - The emitter type used in this view.
  * @description A base view class for MVC elements, providing structure for initializing and managing UI setup and
  * event listeners. Designed to be devoid of logic and only handle direct UI changes.
  */
-declare class TurboView<ElementType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> {
+declare class GradumView<ElementType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> {
     /**
      * @description The main component this view is attached to.
      */
@@ -1702,9 +1702,9 @@ declare class TurboView<ElementType extends object = object, ModelType extends T
     emitter?: EmitterType;
     /**
      * @constructor
-     * @param {TurboViewProperties<ElementType, ModelType, EmitterType>} properties - Properties to initialize the view with.
+     * @param {GradumViewProperties<ElementType, ModelType, EmitterType>} properties - Properties to initialize the view with.
      */
-    constructor(properties: TurboViewProperties<ElementType, ModelType, EmitterType>);
+    constructor(properties: GradumViewProperties<ElementType, ModelType, EmitterType>);
     /**
      * @function setup
      * @description Called in the constructor. Use for setup that should happen at instantiation,
@@ -1744,25 +1744,25 @@ declare class TurboView<ElementType extends object = object, ModelType extends T
 }
 
 /**
- * @type {TurboOperatorProperties}
+ * @type {GradumOperatorProperties}
  * @group MVC
  * @category Operator
  *
- * @extends {TurboViewProperties}
+ * @extends {GradumViewProperties}
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
- * @description  Options used to create a new {@link TurboOperator} attached to an element.
+ * @description  Options used to create a new {@link GradumOperator} attached to an element.
  * @property {ViewType} [view] - The MVC view.
  */
-type TurboOperatorProperties<ElementType extends object = object, ViewType extends TurboView = TurboView, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboViewProperties<ElementType, ModelType, EmitterType> & {
+type GradumOperatorProperties<ElementType extends object = object, ViewType extends GradumView = GradumView, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumViewProperties<ElementType, ModelType, EmitterType> & {
     view?: ViewType;
 };
 
 /**
- * @class TurboOperator
+ * @class GradumOperator
  * @group MVC
  * @category Operator
  *
@@ -1771,11 +1771,11 @@ type TurboOperatorProperties<ElementType extends object = object, ViewType exten
  * emitter to listen for changes in the model or any other internal events. It can only communicate with other
  * operators via the emitter (by firing or listening for changes on a certain key).
  * @template {object} ElementType - The type of the main component.
- * @template {TurboView} ViewType - The element's MVC view type.
- * @template {TurboModel} ModelType - The element's MVC model type.
- * @template {TurboEmitter} EmitterType - The element's MVC emitter type.
+ * @template {GradumView} ViewType - The element's MVC view type.
+ * @template {GradumModel} ModelType - The element's MVC model type.
+ * @template {GradumEmitter} EmitterType - The element's MVC emitter type.
  */
-declare class TurboOperator<ElementType extends object = object, ViewType extends TurboView = TurboView<any, any>, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> {
+declare class GradumOperator<ElementType extends object = object, ViewType extends GradumView = GradumView<any, any>, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> {
     /**
      * @description The key of the operator. Used to retrieve it in the main component. If not set, if the element's
      * class name is MyElement and the operator's class name is MyElementSomethingOperator, the key would
@@ -1798,7 +1798,7 @@ declare class TurboOperator<ElementType extends object = object, ViewType extend
      * @description The MVC emitter.
      */
     emitter: EmitterType;
-    constructor(properties: TurboOperatorProperties<ElementType, ViewType, ModelType, EmitterType>);
+    constructor(properties: GradumOperatorProperties<ElementType, ViewType, ModelType, EmitterType>);
     /**
      * @function setup
      * @description Called in the constructor. Use for setup that should happen at instantiation,
@@ -1851,7 +1851,7 @@ declare class Listener<TargetType extends Node = Node, CallbackType extends List
     /** @description Listener options used for registration and additional behaviors.*/
     readonly options: ListenerOptions;
     /** @description Associated event manager used to coordinate listener execution. */
-    readonly manager: TurboEventManager;
+    readonly manager: GradumEventManager;
     /** @description Last animation frame index during which this listener executed. */
     lastExecutionFrame: number;
     /** @description Last timestamp (ms) at which this listener executed. */
@@ -1975,7 +1975,7 @@ declare enum Propagation {
  * @group Types
  * @category Event
  *
- * @description Options for {@link TurboSelector.preventDefault}, which prevents default browser behaviors for
+ * @description Options for {@link GradumSelector.preventDefault}, which prevents default browser behaviors for
  * selected event types and can optionally stop propagation.
  *
  * @property {string[]} [types] - List of event types to affect. If omitted, defaults to {@link BasicInputEvents}.
@@ -1988,7 +1988,7 @@ declare enum Propagation {
  * call `preventDefault`. Return `true` to prevent default for that event.
  * @property {boolean} [clearPreviousListeners] - If true, clears previously installed prevent-default listeners
  * before installing new ones.
- * @property {TurboEventManager} [manager] - Event manager to use. Defaults to {@link TurboEventManager.instance}.
+ * @property {GradumEventManager} [manager] - Event manager to use. Defaults to {@link GradumEventManager.instance}.
  */
 type PreventDefaultOptions = {
     types?: string[];
@@ -1996,12 +1996,12 @@ type PreventDefaultOptions = {
     stop?: false | "stop" | "immediate";
     preventDefaultOn?: (type: string, e: Event) => boolean;
     clearPreviousListeners?: boolean;
-    manager?: TurboEventManager;
+    manager?: GradumEventManager;
 };
 /**
  * @group Types
  * @category Event
- * @description Default set of basic input event types typically handled by {@link TurboSelector.preventDefault}.
+ * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
  */
 declare const BasicInputEvents: readonly ["mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu", "dragstart", "selectstart", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "wheel"];
 /**
@@ -2025,7 +2025,7 @@ declare const NonPassiveEvents: readonly ["wheel", "touchstart", "touchmove", "t
  * @property {TargetType} [target] - Target node.
  * @property {string} [toolName] - Tool name to bind this listener to (if applicable).
  * @property {ListenerOptions} [options] - Options controlling registration and execution behaviors.
- * @property {TurboEventManager} [manager] - Event manager to use. Defaults to {@link TurboEventManager.instance}.
+ * @property {GradumEventManager} [manager] - Event manager to use. Defaults to {@link GradumEventManager.instance}.
  */
 type ListenerProperties<TargetType extends Node = Node, CallbackType extends ListenerCallback<TargetType> = ListenerCallback<TargetType>> = {
     type: string;
@@ -2033,7 +2033,7 @@ type ListenerProperties<TargetType extends Node = Node, CallbackType extends Lis
     target?: TargetType;
     toolName?: string;
     options?: ListenerOptions;
-    manager?: TurboEventManager;
+    manager?: GradumEventManager;
 };
 /**
  * @type {MatchListenerProperties}
@@ -2083,45 +2083,45 @@ type ListenerOptions = AddEventListenerOptions & {
 };
 
 /**
- * @type {TurboInteractorProperties}
+ * @type {GradumInteractorProperties}
  * @group MVC
  * @category Interactor
  *
- * @extends {TurboOperatorProperties}
+ * @extends {GradumOperatorProperties}
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
- * @description  Options used to create a new {@link TurboInteractor} attached to an element.
+ * @description  Options used to create a new {@link GradumInteractor} attached to an element.
  * @property {string} [toolName] - The name of the tool (if any) that the event listeners will listen for.
  * @property {Node} [target] - The target that will listen for the events. Defaults to `this.element`.
  * @property {PartialRecord<DefaultEventNameKey, ListenerOptions>} [listenerOptions] - Custom default options to define
  * for all listeners.
- * @property {TurboEventManager} [manager] - The event manager instance the listeners should register against. Defaults
- * to `TurboEventManager.instance`.
+ * @property {GradumEventManager} [manager] - The event manager instance the listeners should register against. Defaults
+ * to `GradumEventManager.instance`.
  */
-type TurboInteractorProperties<ElementType extends object = object, ViewType extends TurboView = TurboView, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & {
-    manager?: TurboEventManager;
+type GradumInteractorProperties<ElementType extends object = object, ViewType extends GradumView = GradumView, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & {
+    manager?: GradumEventManager;
     toolName?: string;
     target?: Node;
     listenerOptions?: ListenerOptions;
 };
 
 /**
- * @class TurboInteractor
+ * @class GradumInteractor
  * @group MVC
  * @category Interactor
  *
- * @extends TurboOperator
+ * @extends GradumOperator
  * @template {object} ElementType - The type of the main component.
- * @template {TurboView} ViewType - The element's MVC view type.
- * @template {TurboModel} ModelType - The element's MVC model type.
- * @template {TurboEmitter} EmitterType - The element's MVC emitter type.
+ * @template {GradumView} ViewType - The element's MVC view type.
+ * @template {GradumModel} ModelType - The element's MVC model type.
+ * @template {GradumEmitter} EmitterType - The element's MVC emitter type.
  * @description Class representing an MVC interactor. It holds event listeners to set up on the element itself, or
  * the custom defined target.
  */
-declare class TurboInteractor<ElementType extends object = object, ViewType extends TurboView = TurboView<any, any>, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboOperator<ElementType, ViewType, ModelType, EmitterType> {
+declare class GradumInteractor<ElementType extends object = object, ViewType extends GradumView = GradumView<any, any>, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumOperator<ElementType, ViewType, ModelType, EmitterType> {
     /**
      * @description The key of the interactor. Used to retrieve it in the main component. If not set, if the element's
      * class name is MyElement and the interactor's class name is MyElementSomethingInteractor, the key would
@@ -2139,25 +2139,25 @@ declare class TurboInteractor<ElementType extends object = object, ViewType exte
     readonly toolName: string;
     /**
      * @readonly
-     * @description The associated event manager. Defaults to `TurboEventManager.instance`.
+     * @description The associated event manager. Defaults to `GradumEventManager.instance`.
      */
-    readonly manager: TurboEventManager;
+    readonly manager: GradumEventManager;
     /**
      *
      * @readonly
      * @description Optional custom options to define per event type.
      */
     readonly options: ListenerOptions;
-    constructor(properties: TurboInteractorProperties<ElementType, ViewType, ModelType, EmitterType>);
+    constructor(properties: GradumInteractorProperties<ElementType, ViewType, ModelType, EmitterType>);
 }
 
 /**
  * @group Types
  * @category Event Names
  */
-declare const TurboKeyEventName: {
-    readonly keyPressed: "turbo-key-pressed";
-    readonly keyReleased: "turbo-key-released";
+declare const GradumKeyEventName: {
+    readonly keyPressed: "gradum-key-pressed";
+    readonly keyReleased: "gradum-key-released";
 };
 /**
  * @group Types
@@ -2171,11 +2171,11 @@ declare const DefaultKeyEventName: {
  * @group Types
  * @category Event Names
  */
-declare const TurboClickEventName: {
-    readonly click: "turbo-click";
-    readonly clickStart: "turbo-click-start";
-    readonly clickEnd: "turbo-click-end";
-    readonly longPress: "turbo-long-press";
+declare const GradumClickEventName: {
+    readonly click: "gradum-click";
+    readonly clickStart: "gradum-click-start";
+    readonly clickEnd: "gradum-click-end";
+    readonly longPress: "gradum-long-press";
 };
 /**
  * @group Types
@@ -2185,14 +2185,14 @@ declare const DefaultClickEventName: {
     readonly click: "click";
     readonly clickStart: "mousedown";
     readonly clickEnd: "mouseup";
-    readonly longPress: "turbo-long-press";
+    readonly longPress: "gradum-long-press";
 };
 /**
  * @group Types
  * @category Event Names
  */
-declare const TurboMoveEventName: {
-    readonly move: "turbo-move";
+declare const GradumMoveEventName: {
+    readonly move: "gradum-move";
 };
 /**
  * @group Types
@@ -2205,27 +2205,27 @@ declare const DefaultMoveEventName: {
  * @group Types
  * @category Event Names
  */
-declare const TurboDragEventName: {
-    readonly drag: "turbo-drag";
-    readonly dragStart: "turbo-drag-start";
-    readonly dragEnd: "turbo-drag-end";
+declare const GradumDragEventName: {
+    readonly drag: "gradum-drag";
+    readonly dragStart: "gradum-drag-start";
+    readonly dragEnd: "gradum-drag-end";
 };
 /**
  * @group Types
  * @category Event Names
  */
 declare const DefaultDragEventName: {
-    readonly drag: "turbo-drag";
-    readonly dragStart: "turbo-drag-start";
-    readonly dragEnd: "turbo-drag-end";
+    readonly drag: "gradum-drag";
+    readonly dragStart: "gradum-drag-start";
+    readonly dragEnd: "gradum-drag-end";
 };
 /**
  * @group Types
  * @category Event Names
  */
-declare const TurboWheelEventName: {
-    readonly scroll: "turbo-scroll";
-    readonly pinch: "turbo-pinch";
+declare const GradumWheelEventName: {
+    readonly scroll: "gradum-scroll";
+    readonly pinch: "gradum-pinch";
 };
 /**
  * @group Types
@@ -2239,27 +2239,27 @@ declare const DefaultWheelEventName: {
  * @group Types
  * @category Event Names
  */
-declare const TurboEventName: {
-    readonly selectInput: "turbo-select-input";
-    readonly scroll: "turbo-scroll";
-    readonly pinch: "turbo-pinch";
-    readonly drag: "turbo-drag";
-    readonly dragStart: "turbo-drag-start";
-    readonly dragEnd: "turbo-drag-end";
-    readonly move: "turbo-move";
-    readonly keyPressed: "turbo-key-pressed";
-    readonly keyReleased: "turbo-key-released";
-    readonly click: "turbo-click";
-    readonly clickStart: "turbo-click-start";
-    readonly clickEnd: "turbo-click-end";
-    readonly longPress: "turbo-long-press";
+declare const GradumEventName: {
+    readonly selectInput: "gradum-select-input";
+    readonly scroll: "gradum-scroll";
+    readonly pinch: "gradum-pinch";
+    readonly drag: "gradum-drag";
+    readonly dragStart: "gradum-drag-start";
+    readonly dragEnd: "gradum-drag-end";
+    readonly move: "gradum-move";
+    readonly keyPressed: "gradum-key-pressed";
+    readonly keyReleased: "gradum-key-released";
+    readonly click: "gradum-click";
+    readonly clickStart: "gradum-click-start";
+    readonly clickEnd: "gradum-click-end";
+    readonly longPress: "gradum-long-press";
 };
 /**
  * @group Types
  * @category Event Names
  *
- * @description Object containing the names of events fired by default by the turboComponents. Modifying it (prior to
- * setting up new turbo components) will subsequently alter the events that the instantiated components will listen for.
+ * @description Object containing the names of events fired by default by the gradumComponents. Modifying it (prior to
+ * setting up new gradum components) will subsequently alter the events that the instantiated components will listen for.
  */
 declare const DefaultEventName: {
     wheel: string;
@@ -2274,14 +2274,14 @@ declare const DefaultEventName: {
     compositionStart: string;
     compositionEnd: string;
     pinch: "wheel";
-    drag: "turbo-drag";
-    dragStart: "turbo-drag-start";
-    dragEnd: "turbo-drag-end";
+    drag: "gradum-drag";
+    dragStart: "gradum-drag-start";
+    dragEnd: "gradum-drag-end";
     move: "mousemove";
     click: "click";
     clickStart: "mousedown";
     clickEnd: "mouseup";
-    longPress: "turbo-long-press";
+    longPress: "gradum-long-press";
     keyPressed: "keydown";
     keyReleased: "keyup";
 };
@@ -2299,12 +2299,12 @@ type DefaultEventNameEntry = typeof DefaultEventName[DefaultEventNameKey];
  * @group Types
  * @category Event Names
  */
-type TurboEventNameKey = keyof typeof TurboEventName;
+type GradumEventNameKey = keyof typeof GradumEventName;
 /**
  * @group Types
  * @category Event Names
  */
-type TurboEventNameEntry = typeof TurboEventName[TurboEventNameKey];
+type GradumEventNameEntry = typeof GradumEventName[GradumEventNameKey];
 
 /**
  * @type {MakeToolOptions}
@@ -2317,20 +2317,20 @@ type TurboEventNameEntry = typeof TurboEventName[TurboEventNameKey];
  * @property {DefaultEventNameEntry} [activationEvent] - Custom activation event to listen to. Defaults to the
  * default click event name.
  * @property {ClickMode} [clickMode] -  Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
- * @property {(element: Turbo<Element>, manager: TurboEventManager) => void} [customActivation] - Custom activation
+ * @property {(element: Gradum<Element>, manager: GradumEventManager) => void} [customActivation] - Custom activation
  * function. If provided, is called with `(el, manager)` to define when the tool is activated.
  * @property {string} [key] - Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
- * @property {TurboEventManager} [manager] - The event manager instance this tool should register against. Defaults
- * to `TurboEventManager.instance`.
+ * @property {GradumEventManager} [manager] - The event manager instance this tool should register against. Defaults
+ * to `GradumEventManager.instance`.
  */
 type MakeToolOptions<ElementType extends object = object> = {
     onActivate?: () => void;
     onDeactivate?: () => void;
     activationEvent?: DefaultEventNameEntry;
     clickMode?: ClickMode;
-    customActivation?: (element: ElementType, manager?: TurboEventManager) => void;
+    customActivation?: (element: ElementType, manager?: GradumEventManager) => void;
     key?: string;
-    manager?: TurboEventManager;
+    manager?: GradumEventManager;
 };
 /**
  * @type {ToolBehaviorCallback}
@@ -2339,7 +2339,7 @@ type MakeToolOptions<ElementType extends object = object> = {
  *
  * @description Function signature for a tool behavior. Returning `true` marks the behavior as handled/consumed,
  * leading to stopping the propagation of the event.
- * @param {Event} event - The original DOM/Turbo event.
+ * @param {Event} event - The original DOM/Gradum event.
  * @param {Node} target - The node the behavior should operate on (the object or its embedded target).
  * @param {ToolBehaviorOptions} [options] - Additional info (embedded context, etc.).
  * @return {boolean} - Whether to stop the propagation.
@@ -2359,40 +2359,40 @@ type ToolBehaviorOptions = {
     embeddedTarget?: Node;
 };
 /**
- * @type {TurboToolProperties}
+ * @type {GradumToolProperties}
  * @group MVC
  * @category Tool
  *
- * @extends TurboOperatorProperties
+ * @extends GradumOperatorProperties
  * @extends MakeToolOptions
  *
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
- * @description Options used to create a new {@link TurboTool} attached to an element.
+ * @description Options used to create a new {@link GradumTool} attached to an element.
  * @property {string} [toolName] - The name of the tool.
  * @property {Node} [embeddedTarget] - If the tool is embedded, its target.
  */
-type TurboToolProperties<ElementType extends object = object, ViewType extends TurboView = TurboView, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & MakeToolOptions & {
+type GradumToolProperties<ElementType extends object = object, ViewType extends GradumView = GradumView, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & MakeToolOptions & {
     toolName?: string;
     embeddedTarget?: Node;
 };
 
 /**
- * @class TurboTool
+ * @class GradumTool
  * @group MVC
  * @category Tool
  *
- * @extends TurboOperator
+ * @extends GradumOperator
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  * @description Class representing a tool in MVC, bound to the provided element.
  */
-declare class TurboTool<ElementType extends object = object, ViewType extends TurboView = TurboView<any, any>, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboOperator<ElementType, ViewType, ModelType, EmitterType> {
+declare class GradumTool<ElementType extends object = object, ViewType extends GradumView = GradumView<any, any>, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumOperator<ElementType, ViewType, ModelType, EmitterType> {
     /**
      * @description The key of the tool. Used to retrieve it in the main component. If not set, if the element's
      * class name is MyElement and the tool's class name is MyElementSomethingTool, the key would
@@ -2410,9 +2410,9 @@ declare class TurboTool<ElementType extends object = object, ViewType extends Tu
     readonly embeddedTarget: Node;
     /**
      * @readonly
-     * @description The associated event manager. Defaults to `TurboEventManager.instance`.
+     * @description The associated event manager. Defaults to `GradumEventManager.instance`.
      */
-    readonly manager: TurboEventManager;
+    readonly manager: GradumEventManager;
     /**
      * @readonly
      * @description Custom activation event to listen to. Defaults to the default click event name.
@@ -2428,7 +2428,7 @@ declare class TurboTool<ElementType extends object = object, ViewType extends Tu
      * @description Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
      */
     readonly key: string;
-    constructor(properties: TurboToolProperties<ElementType, ViewType, ModelType, EmitterType>);
+    constructor(properties: GradumToolProperties<ElementType, ViewType, ModelType, EmitterType>);
     /**
      * @function initialize
      * @override
@@ -2439,31 +2439,31 @@ declare class TurboTool<ElementType extends object = object, ViewType extends Tu
 }
 
 /**
- * @type {TurboConstrainerProperties}
+ * @type {GradumConstrainerProperties}
  * @group MVC
  * @category Constrainer
  *
- * @extends TurboOperatorProperties
+ * @extends GradumOperatorProperties
  * @extends MakeConstrainerOptions
  *
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
- * @description Options used to create a new {@link TurboConstrainer} attached to an element.
+ * @description Options used to create a new {@link GradumConstrainer} attached to an element.
  * @property {string} [constrainerName] - The name of the constrainer.
  */
-type TurboConstrainerProperties<ElementType extends object = object, ViewType extends TurboView = TurboView, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & MakeConstrainerOptions & {
+type GradumConstrainerProperties<ElementType extends object = object, ViewType extends GradumView = GradumView, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & MakeConstrainerOptions & {
     constrainerName?: string;
 };
 
 /**
- * @class TurboQueue
+ * @class GradumQueue
  * @group Components
- * @category TurboQueue
+ * @category GradumQueue
  */
-declare class TurboQueue<Type = any> {
+declare class GradumQueue<Type = any> {
     private items;
     private head;
     push(...values: Type[]): this;
@@ -2476,43 +2476,43 @@ declare class TurboQueue<Type = any> {
     removeDuplicates(entry?: Type): this;
     clear(): this;
     toArray(): Type[];
-    clone(): TurboQueue<Type>;
+    clone(): GradumQueue<Type>;
     remove(value: Type): boolean;
 }
 
 /**
  * @type {NodeListType}
  * @group Components
- * @category TurboNodeList
+ * @category GradumNodeList
  *
  * @description Union type representing any value that can be added to or removed from a
- * {@link TurboNodeList}. Accepts a {@link TurboNodeList}, a live DOM {@link HTMLCollection},
+ * {@link GradumNodeList}. Accepts a {@link GradumNodeList}, a live DOM {@link HTMLCollection},
  * a {@link NodeListOf}, a {@link Set}, or a plain array.
  *
  * @template {object} EntryType - The type of the nodes held in the collection.
  */
-type NodeListType<EntryType extends object = object> = TurboNodeList<EntryType> | HTMLCollection | NodeListOf<EntryType & Node> | Set<EntryType> | EntryType[];
-type NodeListSlot<EntryType extends object = object> = TurboNodeList<EntryType> | HTMLCollection | NodeListOf<EntryType & Node> | EntryType;
+type NodeListType<EntryType extends object = object> = GradumNodeList<EntryType> | HTMLCollection | NodeListOf<EntryType & Node> | Set<EntryType> | EntryType[];
+type NodeListSlot<EntryType extends object = object> = GradumNodeList<EntryType> | HTMLCollection | NodeListOf<EntryType & Node> | EntryType;
 
 /**
- * @class TurboNodeList
+ * @class GradumNodeList
  * @group Components
- * @category TurboNodeList
+ * @category GradumNodeList
  *
  * @description A composable, Set-like collection for managing nodes. Supports individual nodes, live DOM
- * collections ({@link HTMLCollection} or {@link NodeListOf}), and nested {@link TurboNodeList} instances as
+ * collections ({@link HTMLCollection} or {@link NodeListOf}), and nested {@link GradumNodeList} instances as
  * sub-lists. Changes to sub-lists and live DOM collections propagate automatically on iteration.
  *
  * @template {object} Type - The type of the nodes held in the list.
  */
-declare class TurboNodeList<Type extends object = object> {
+declare class GradumNodeList<Type extends object = object> {
     private slots;
     private ignoredMap;
     private domListObservers;
     private subNodeListHandlers;
     /**
      * @description Delegate fired whenever an entry is added to or removed from the list, including entries
-     * from nested {@link TurboNodeList}s, {@link HTMLCollection}s, and {@link NodeListOf} instances.
+     * from nested {@link GradumNodeList}s, {@link HTMLCollection}s, and {@link NodeListOf} instances.
      */
     onChanged: Delegate<(entry: Type, state: "added" | "removed") => void>;
     /**
@@ -2541,18 +2541,18 @@ declare class TurboNodeList<Type extends object = object> {
     get size(): number;
     /**
      * @description The number of slots in this list. Individual entries, {@link HTMLCollection}s,
-     * {@link NodeListOf} instances, and nested {@link TurboNodeList}s each count as one slot, regardless
+     * {@link NodeListOf} instances, and nested {@link GradumNodeList}s each count as one slot, regardless
      * of how many entries they contain. For the number of resolved entries, see {@link size}.
      */
     get slotCount(): number;
     /**
-     * @function isTurboNodeList
+     * @function isGradumNodeList
      * @protected
-     * @description Type guard — returns true if the given value is a {@link TurboNodeList}.
+     * @description Type guard — returns true if the given value is a {@link GradumNodeList}.
      * @param {any} entry - The value to check.
-     * @returns {boolean} Whether the value is a {@link TurboNodeList}.
+     * @returns {boolean} Whether the value is a {@link GradumNodeList}.
      */
-    protected isTurboNodeList(entry: any): entry is TurboNodeList<Type>;
+    protected isGradumNodeList(entry: any): entry is GradumNodeList<Type>;
     /**
      * @function isDomList
      * @protected
@@ -2574,7 +2574,7 @@ declare class TurboNodeList<Type extends object = object> {
      * @function isEntry
      * @protected
      * @description Type guard — returns true if the given value is an individual node entry (i.e. not a
-     * {@link TurboNodeList}, DOM list, Set, array, or {@link WeakRef}).
+     * {@link GradumNodeList}, DOM list, Set, array, or {@link WeakRef}).
      * @param {any} entry - The value to check.
      * @returns {boolean} Whether the value is an individual entry.
      */
@@ -2597,7 +2597,7 @@ declare class TurboNodeList<Type extends object = object> {
      * @function add
      * @description Adds one or more entries to the end of the list. Entries may be individual nodes,
      * arrays, {@link Set}s, {@link HTMLCollection}s, {@link NodeListOf} instances, or nested
-     * {@link TurboNodeList}s.
+     * {@link GradumNodeList}s.
      * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
      * @returns {this} Itself, allowing for method chaining.
      */
@@ -2625,7 +2625,7 @@ declare class TurboNodeList<Type extends object = object> {
      * @function remove
      * @description Removes one or more entries from the list. Entries may be individual nodes, arrays,
      * {@link Set}s, {@link HTMLCollection}s, {@link NodeListOf} instances, or nested
-     * {@link TurboNodeList}s.
+     * {@link GradumNodeList}s.
      * @param {...(NodeListType<Type> | Type)[]} entries - The entries to remove.
      * @returns {this} Itself, allowing for method chaining.
      */
@@ -2633,7 +2633,7 @@ declare class TurboNodeList<Type extends object = object> {
     /**
      * @function removeAtSlot
      * @description Removes one or more slots starting at the given slot index. Each slot removed may
-     * correspond to an individual entry, a DOM list, or a nested {@link TurboNodeList}.
+     * correspond to an individual entry, a DOM list, or a nested {@link GradumNodeList}.
      * @param {number} index - The slot index to start removing from.
      * @param {number} [count=1] - The number of consecutive slots to remove.
      * @returns {this} Itself, allowing for method chaining.
@@ -2642,7 +2642,7 @@ declare class TurboNodeList<Type extends object = object> {
     /**
      * @function move
      * @description Moves an existing entry to the given resolved size index. If the entry is a member of a
-     * nested {@link TurboNodeList}, it is moved within that sub-list. If it belongs to a DOM list, it is
+     * nested {@link GradumNodeList}, it is moved within that sub-list. If it belongs to a DOM list, it is
      * repositioned in the DOM accordingly.
      * @param {Type} entry - The entry to move.
      * @param {number} index - The resolved entry index to move the entry to.
@@ -2660,7 +2660,7 @@ declare class TurboNodeList<Type extends object = object> {
     /**
      * @function has
      * @description Checks whether the given entry or entries are present in the list.
-     * - For {@link TurboNodeList}s and DOM lists, checks if they belong to this list.
+     * - For {@link GradumNodeList}s and DOM lists, checks if they belong to this list.
      * - For arrays and {@link Set}s, returns true only if every item is present.
      * @param {Type | NodeListType<Type>} entry - The entry or entries to check.
      * @returns {boolean} Whether the entry or entries are present in the list.
@@ -2714,7 +2714,7 @@ declare class TurboNodeList<Type extends object = object> {
      * @function findContainingSlot
      * @protected
      * @description Finds the slot that directly contains or resolves to the given entry.
-     * Returns the slot itself if the entry is a direct slot, the nested {@link TurboNodeList}
+     * Returns the slot itself if the entry is a direct slot, the nested {@link GradumNodeList}
      * that contains it, or the DOM list that contains it.
      * @param {Type} entry - The entry to locate.
      * @returns {NodeListSlot<Type> | undefined} The containing slot, or undefined if not found.
@@ -2723,18 +2723,18 @@ declare class TurboNodeList<Type extends object = object> {
 }
 
 /**
- * @class TurboConstrainer
+ * @class GradumConstrainer
  * @group MVC
  * @category Constrainer
  *
- * @extends TurboOperator
+ * @extends GradumOperator
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  * @description Class representing an constrainer in MVC, bound to the provided element.
  */
-declare class TurboConstrainer<ElementType extends object = object, ViewType extends TurboView = TurboView<any, any>, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboOperator<ElementType, ViewType, ModelType, EmitterType> {
+declare class GradumConstrainer<ElementType extends object = object, ViewType extends GradumView = GradumView<any, any>, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumOperator<ElementType, ViewType, ModelType, EmitterType> {
     /**
      * @description The key of the constrainer. Used to retrieve it in the main component. If not set, if the element's
      * class name is MyElement and the constrainer's class name is MyElementSomethingConstrainer, the key would
@@ -2763,21 +2763,21 @@ declare class TurboConstrainer<ElementType extends object = object, ViewType ext
      */
     priority: number;
     /**
-     * @description The list of objects constrained by the constrainer. To manipulate, check {@link TurboNodeList}.
+     * @description The list of objects constrained by the constrainer. To manipulate, check {@link GradumNodeList}.
      * Defaults to the children of the element the constrainer is attached to.
      */
-    objectList: TurboNodeList;
+    objectList: GradumNodeList;
     /**
      * @description The list of objects that trigger the constrainer to resolve.
      * Interacting with any of these objects would typically lead to the solving of the given constrainer.
-     * To manipulate, check {@link TurboNodeList}. Defaults to the objects in this.objectList.
+     * To manipulate, check {@link GradumNodeList}. Defaults to the objects in this.objectList.
      */
-    triggerList: TurboNodeList;
+    triggerList: GradumNodeList;
     /**
      * @description The default queue template for the constrainer, used when starting a new resolving pass.
      * It defaults to the constrainer's object list.
      */
-    defaultQueue: object[] | TurboQueue<object>;
+    defaultQueue: object[] | GradumQueue<object>;
     /**
      * @description The maximum number of passes allowed per object for this constrainer during resolving.
      * This helps prevent infinite cycles in constraint propagation. Defaults to 5.
@@ -2795,8 +2795,8 @@ declare class TurboConstrainer<ElementType extends object = object, ViewType ext
     /**
      * @description The current queue to be processed by the constrainer while resolving.
      */
-    get queue(): TurboQueue<object>;
-    constructor(properties: TurboConstrainerProperties<ElementType, ViewType, ModelType, EmitterType>);
+    get queue(): GradumQueue<object>;
+    constructor(properties: GradumConstrainerProperties<ElementType, ViewType, ModelType, EmitterType>);
     /**
      * @function initialize
      * @override
@@ -2924,7 +2924,7 @@ declare class TurboConstrainer<ElementType extends object = object, ViewType ext
 /**
  * @internal
  */
-interface TurboElementMvcInterface<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> {
+interface GradumElementMvcInterface<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> {
     /**
      * @description The view (if any) of the element.
      */
@@ -2956,24 +2956,24 @@ interface TurboElementMvcInterface<ViewType extends TurboView = TurboView<any, a
     /**
      * @description The operators (if any) attached to the element's MVC structure.
      */
-    operators: TurboOperator[];
+    operators: GradumOperator[];
     /**
      * @description The handlers (if any) attached to the element's model.
      * Returns an empty array if no model is set.
      */
-    handlers: TurboHandler[];
+    handlers: GradumHandler[];
     /**
      * @description The interactors (if any) attached to the element's MVC structure.
      */
-    interactors: TurboInteractor[];
+    interactors: GradumInteractor[];
     /**
      * @description The tools (if any) attached to the element's MVC structure.
      */
-    tools: TurboTool[];
+    tools: GradumTool[];
     /**
      * @description The constrainers (if any) attached to the element's MVC structure.
      */
-    constrainers: TurboConstrainer[];
+    constrainers: GradumConstrainer[];
 }
 
 /**
@@ -3183,7 +3183,7 @@ type ValidHTMLElement<Tag extends HTMLTag = HTMLTag> = HTMLElementTagNameMap[Tag
 declare global {
     interface HTMLElement extends Element {
     }
-    interface TurboElement extends HTMLElement {
+    interface GradumElement extends HTMLElement {
     }
     interface HTMLAnchorElement extends HTMLElement {
     }
@@ -3415,7 +3415,7 @@ declare global {
  * @category Element
  * @description A type that represents a union of HTML, SVG, and MathML tag name maps.`
  */
-type ElementTagMap = HTMLElementTagNameMap & SVGTagMap & MathMLElementTagNameMap & TurboElementTagNameMap;
+type ElementTagMap = HTMLElementTagNameMap & SVGTagMap & MathMLElementTagNameMap & GradumElementTagNameMap;
 /**
  * @group Types
  * @category Element
@@ -3463,9 +3463,9 @@ type ElementTagDefinition<Tag extends ValidTag = "div"> = {
     tag?: Tag;
     namespace?: string;
 };
-interface TurboElementTagNameMap {
+interface GradumElementTagNameMap {
 }
-interface TurboElementPropertiesMap {
+interface GradumElementPropertiesMap {
 }
 declare global {
     interface Document extends Node {
@@ -3528,12 +3528,12 @@ type CloneElementOptions = {
  * @group Types
  * @category Element
  */
-type FeedforwardProperties = TurboElementProperties & {
+type FeedforwardProperties = GradumElementProperties & {
     removeOnPointerRelease?: boolean;
     type?: string;
     cloneOptions?: CloneElementOptions;
     /**
-     * When true, the clone is placed inside a `TurboMovable` positioning wrapper and the wrapper
+     * When true, the clone is placed inside a `GradumMovable` positioning wrapper and the wrapper
      * is returned instead of the clone. The wrapper exposes `position` (alias `translation`) and
      * `rotation` accessors that apply pure CSS transforms to the wrapper — callers position the
      * preview without ever touching the clone's semantic fields. The clone's own `transform` is
@@ -3547,12 +3547,12 @@ type FeedforwardProperties = TurboElementProperties & {
  * @group Types
  * @category Element
  *
- * @type {TurboProperties}
+ * @type {GradumProperties}
  * @template {ValidTag} Tag - The HTML (or other) tag of the element, if passing it as a property. Defaults to "div".
- * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
  * @template {object} DataType - The element's data type, if any.
- * @template {TurboModel<DataType>} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
  * @description Object containing properties for configuring an Element. A tag (and
  * possibly a namespace) can be provided for element creation. Already-created elements will ignore these
@@ -3579,7 +3579,7 @@ type FeedforwardProperties = TurboElementProperties & {
  * @property {string} [text] - The text content of the element (if any).
  * @property {boolean} [shadowDOM] - If true, indicate that the element will be created under a shadow root.
  */
-type TurboProperties<Tag extends ValidTag = "div"> = ElementTagDefinition<Tag> & Omit<HTMLElementMutableFields<Tag>, "tag" | "namespace"> & {
+type GradumProperties<Tag extends ValidTag = "div"> = ElementTagDefinition<Tag> & Omit<HTMLElementMutableFields<Tag>, "tag" | "namespace"> & {
     id?: string;
     classes?: string | string[];
     style?: string;
@@ -3598,7 +3598,7 @@ type TurboProperties<Tag extends ValidTag = "div"> = ElementTagDefinition<Tag> &
 /**
  * @internal
  */
-interface TurboElementUiInterface {
+interface GradumElementUiInterface {
     /**
      * @description Whether to set the default CSS classes defined in the static config on the element or not. Setting
      * it will accordingly add/remove the CSS classes from the element.
@@ -3609,35 +3609,35 @@ interface TurboElementUiInterface {
 }
 
 /**
- * @group TurboElement
- * @category TurboProxiedElement
+ * @group GradumElement
+ * @category GradumProxiedElement
  */
-type TurboProxiedProperties<Tag extends ValidTag = "div", ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboProperties<Tag> & TurboHeadlessProperties<ViewType, DataType, ModelType, EmitterType> & {
+type GradumProxiedProperties<Tag extends ValidTag = "div", ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumProperties<Tag> & GradumHeadlessProperties<ViewType, DataType, ModelType, EmitterType> & {
     unsetDefaultClasses?: boolean;
     shadowDOM?: boolean;
     defaultSelectedClasses?: string | string[];
     defaultClasses?: string | string[];
 };
 /**
- * @type {TurboElementProperties}
- * @group TurboElement
- * @category TurboElement
+ * @type {GradumElementProperties}
+ * @group GradumElement
+ * @category GradumElement
  *
- * @extends TurboProperties
- * @template {TurboView} ViewType - The element's view type, if any.
+ * @extends GradumProperties
+ * @template {GradumView} ViewType - The element's view type, if any.
  * @template {object} DataType - The element's data type, if any.
- * @template {TurboModel<DataType>} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
- * @description Object containing properties for configuring a custom HTML element. Is basically TurboProperties
+ * @description Object containing properties for configuring a custom HTML element. Is basically GradumProperties
  * without the tag.
  */
-type TurboElementProperties<ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboProxiedProperties<"div", ViewType, DataType, ModelType, EmitterType>;
+type GradumElementProperties<ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumProxiedProperties<"div", ViewType, DataType, ModelType, EmitterType>;
 
 /**
  * @internal
  */
-interface TurboElementDefaultInterface {
+interface GradumElementDefaultInterface {
     readonly properties: object;
     /**
      * @function destroy
@@ -3658,7 +3658,7 @@ interface TurboElementDefaultInterface {
      * @description Whether the element was initialized already or not.
      */
     readonly initialized: boolean;
-    defaultFeedforwardProperties: TurboElementProperties;
+    defaultFeedforwardProperties: GradumElementProperties;
     feedforward(properties?: FeedforwardProperties): this;
     clone(options?: CloneElementOptions): this;
 }
@@ -3689,74 +3689,74 @@ type MvcManyInstancesOrConstructors<Type, PropertiesType = any> = MvcInstanceOrC
  * @group MVC
  * @category MVC
  *
- * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
  * @template {object} DataType - The element's data type, if any.
- * @template {TurboModel<DataType>} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
  * @description Type representing a configuration object for an {@link Mvc} instance.
- * @property {MvcInstanceOrConstructor<ViewType, TurboViewProperties>} [view] - The view (or view constructor) to attach.
+ * @property {MvcInstanceOrConstructor<ViewType, GradumViewProperties>} [view] - The view (or view constructor) to attach.
  * @property {ModelType | (new (data?: any, dataBlocksType?: "map" | "array") => ModelType)} [model] - The model
  * (or model constructor) to attach.
  * @property {MvcInstanceOrConstructor<EmitterType, ModelType>} [emitter] - The emitter (or emitter constructor) to
- * attach. If not defined, a default TurboEmitter will be created.
- * @property {MvcManyInstancesOrConstructors<TurboOperator, TurboOperatorProperties>} [operators] - The
+ * attach. If not defined, a default GradumEmitter will be created.
+ * @property {MvcManyInstancesOrConstructors<GradumOperator, GradumOperatorProperties>} [operators] - The
  * operator, constructor of operator, or array of the latter, to attach.
- * @property {MvcManyInstancesOrConstructors<TurboHandler, ModelType>} [handlers] - The
+ * @property {MvcManyInstancesOrConstructors<GradumHandler, ModelType>} [handlers] - The
  * handler, constructor of handler, or array of the latter, to attach.
- * @property {MvcManyInstancesOrConstructors<TurboInteractor, TurboInteractorProperties>} [interactors] - The
+ * @property {MvcManyInstancesOrConstructors<GradumInteractor, GradumInteractorProperties>} [interactors] - The
  * interactor, constructor of interactor, or array of the latter, to attach.
- * @property {MvcManyInstancesOrConstructors<TurboTool, TurboToolProperties>} [tools] - The
+ * @property {MvcManyInstancesOrConstructors<GradumTool, GradumToolProperties>} [tools] - The
  * tool, constructor of tool, or array of the latter, to attach.
- * @property {MvcManyInstancesOrConstructors<TurboConstrainer, TurboConstrainerProperties>} [constrainers] - The
+ * @property {MvcManyInstancesOrConstructors<GradumConstrainer, GradumConstrainerProperties>} [constrainers] - The
  * constrainer, constructor of constrainer, or array of the latter, to attach.
  */
-type MvcProperties<ViewType extends TurboView = TurboView<any, any>, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = {
-    view?: MvcInstanceOrConstructor<ViewType, TurboViewProperties>;
+type MvcProperties<ViewType extends GradumView = GradumView<any, any>, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = {
+    view?: MvcInstanceOrConstructor<ViewType, GradumViewProperties>;
     model?: ModelType | (new (data?: any, dataBlocksType?: "map" | "array") => ModelType);
     emitter?: MvcInstanceOrConstructor<EmitterType, ModelType>;
-    operators?: MvcManyInstancesOrConstructors<TurboOperator, TurboOperatorProperties>;
-    handlers?: MvcManyInstancesOrConstructors<TurboHandler, ModelType>;
-    interactors?: MvcManyInstancesOrConstructors<TurboInteractor, TurboInteractorProperties>;
-    tools?: MvcManyInstancesOrConstructors<TurboTool, TurboToolProperties>;
-    constrainers?: MvcManyInstancesOrConstructors<TurboConstrainer, TurboConstrainerProperties>;
+    operators?: MvcManyInstancesOrConstructors<GradumOperator, GradumOperatorProperties>;
+    handlers?: MvcManyInstancesOrConstructors<GradumHandler, ModelType>;
+    interactors?: MvcManyInstancesOrConstructors<GradumInteractor, GradumInteractorProperties>;
+    tools?: MvcManyInstancesOrConstructors<GradumTool, GradumToolProperties>;
+    constrainers?: MvcManyInstancesOrConstructors<GradumConstrainer, GradumConstrainerProperties>;
 };
 /**
  * @type {MvcGenerationProperties}
  * @group MVC
  * @category MVC
  *
- * @template {TurboView} ViewType - The element's view type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
  * @template {object} DataType - The element's data type, if any.
- * @template {TurboModel<DataType>} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
  * @extends {MvcProperties}
  * @description Type representing a configuration object for an {@link Mvc} instance.
  * @property {DataType} [data] - The data to attach to the model.
  * @property {boolean} [initialize] - Whether to initialize the MVC pieces after setting them or not. Defaults to true.
  */
-type MvcGenerationProperties<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = MvcProperties<ViewType, ModelType, EmitterType> & {
+type MvcGenerationProperties<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = MvcProperties<ViewType, ModelType, EmitterType> & {
     data?: DataType;
     initialize?: boolean;
 };
 /**
- * @type {TurboHeadlessProperties}
- * @group TurboElement
- * @category TurboHeadlessElement
+ * @type {GradumHeadlessProperties}
+ * @group GradumElement
+ * @category GradumHeadlessElement
  *
- * @template {TurboView} ViewType - The element's view type, if initializing MVC.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
  * @description Object containing properties for configuring a headless (non-HTML) element, with possibly MVC properties.
  */
-type TurboHeadlessProperties<ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType> & {
+type GradumHeadlessProperties<ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType> & {
     out?: string | Node;
     [key: string]: any;
 };
 
-declare class TurboEventManagerUtilsHandler extends TurboHandler<TurboEventManagerModel> {
+declare class GradumEventManagerUtilsHandler extends GradumHandler<GradumEventManagerModel> {
     keyName: string;
     setClickMode(button: number, isTouch?: boolean): ClickMode;
     applyEventNames(eventNames: Record<string, string>): void;
@@ -3767,9 +3767,9 @@ declare class TurboEventManagerUtilsHandler extends TurboHandler<TurboEventManag
 
 /**
  * @group Components
- * @category TurboMap
+ * @category GradumMap
  */
-declare class TurboMap<KeyType, ValueType> extends Map<KeyType, ValueType> {
+declare class GradumMap<KeyType, ValueType> extends Map<KeyType, ValueType> {
     enforceImmutability: boolean;
     set(key: KeyType, value: ValueType): any;
     get(key: KeyType): ValueType;
@@ -3778,17 +3778,17 @@ declare class TurboMap<KeyType, ValueType> extends Map<KeyType, ValueType> {
     keysArray(): KeyType[];
     valuesArray(): ValueType[];
     private copy;
-    mapKeys<C>(callback: (key: KeyType, value: ValueType) => C): TurboMap<C, ValueType>;
-    mapValues<C>(callback: (key: KeyType, value: ValueType) => C): TurboMap<KeyType, C>;
-    filter(callback: (key: KeyType, value: ValueType) => boolean): TurboMap<KeyType, ValueType>;
-    merge(map: Map<KeyType, ValueType>): TurboMap<KeyType, ValueType>;
+    mapKeys<C>(callback: (key: KeyType, value: ValueType) => C): GradumMap<C, ValueType>;
+    mapValues<C>(callback: (key: KeyType, value: ValueType) => C): GradumMap<KeyType, C>;
+    filter(callback: (key: KeyType, value: ValueType) => boolean): GradumMap<KeyType, ValueType>;
+    merge(map: Map<KeyType, ValueType>): GradumMap<KeyType, ValueType>;
 }
 
 /**
  * @group Components
- * @category TurboWeakSet
+ * @category GradumWeakSet
  */
-declare class TurboWeakSet<Type extends object = object> {
+declare class GradumWeakSet<Type extends object = object> {
     private readonly _weakRefs;
     constructor();
     add(obj: Type): this;
@@ -3802,10 +3802,10 @@ declare class TurboWeakSet<Type extends object = object> {
     [Symbol.iterator](): IterableIterator<Type>;
 }
 
-declare class TurboEventManagerModel extends TurboModel {
-    utils: TurboEventManagerUtilsHandler;
-    readonly state: TurboEventManagerStateProperties;
-    lockState: TurboEventManagerLockStateProperties;
+declare class GradumEventManagerModel extends GradumModel {
+    utils: GradumEventManagerUtilsHandler;
+    readonly state: GradumEventManagerStateProperties;
+    lockState: GradumEventManagerLockStateProperties;
     readonly onInputDeviceChange: Delegate<(device: InputDevice) => void>;
     /**
      * @description Delegate fired when a tool is changed on a certain click button/mode
@@ -3820,12 +3820,12 @@ declare class TurboEventManagerModel extends TurboModel {
     authorizeEventScaling: boolean | (() => boolean);
     scaleEventPosition: (position: Point) => Point;
     activePointers: Set<number>;
-    readonly origins: TurboMap<number, Point>;
-    readonly previousPositions: TurboMap<number, Point>;
-    positions: TurboMap<number, Point>;
+    readonly origins: GradumMap<number, Point>;
+    readonly previousPositions: GradumMap<number, Point>;
+    positions: GradumMap<number, Point>;
     lastTargetOrigin: Node;
-    readonly timerMap: TurboMap<string, NodeJS.Timeout>;
-    readonly tools: Map<string, TurboWeakSet<Node>>;
+    readonly timerMap: GradumMap<string, NodeJS.Timeout>;
+    readonly tools: Map<string, GradumWeakSet<Node>>;
     readonly mappedKeysToTool: Map<string, string>;
     readonly currentTools: Map<ClickMode, Node>;
     set inputDevice(value: InputDevice);
@@ -3833,9 +3833,9 @@ declare class TurboEventManagerModel extends TurboModel {
 
 /**
  * @group Event Handling
- * @category TurboEventManager
+ * @category GradumEventManager
  */
-type TurboEventManagerStateProperties = {
+type GradumEventManagerStateProperties = {
     enabled?: boolean;
     preventDefaultWheel?: boolean;
     preventDefaultMouse?: boolean;
@@ -3843,9 +3843,9 @@ type TurboEventManagerStateProperties = {
 };
 /**
  * @group Event Handling
- * @category TurboEventManager
+ * @category GradumEventManager
  */
-type EnabledTurboEventTypes = {
+type EnabledGradumEventTypes = {
     keyEventsEnabled?: boolean;
     wheelEventsEnabled?: boolean;
     mouseEventsEnabled?: boolean;
@@ -3856,9 +3856,9 @@ type EnabledTurboEventTypes = {
 };
 /**
  * @group Event Handling
- * @category TurboEventManager
+ * @category GradumEventManager
  */
-type TurboEventManagerProperties<ModelType extends TurboEventManagerModel = TurboEventManagerModel> = TurboHeadlessProperties<any, any, ModelType> & TurboEventManagerStateProperties & EnabledTurboEventTypes & {
+type GradumEventManagerProperties<ModelType extends GradumEventManagerModel = GradumEventManagerModel> = GradumHeadlessProperties<any, any, ModelType> & GradumEventManagerStateProperties & EnabledGradumEventTypes & {
     moveThreshold?: number;
     longPressDuration?: number;
     authorizeEventScaling?: boolean | (() => boolean);
@@ -3866,14 +3866,14 @@ type TurboEventManagerProperties<ModelType extends TurboEventManagerModel = Turb
 };
 /**
  * @group Event Handling
- * @category TurboEventManager
+ * @category GradumEventManager
  */
-type TurboEventManagerLockStateProperties = TurboEventManagerStateProperties & {
+type GradumEventManagerLockStateProperties = GradumEventManagerStateProperties & {
     lockOrigin?: Node;
 };
 /**
  * @group Event Handling
- * @category TurboEventManager
+ * @category GradumEventManager
  *
  * @description Object representing options passed to the ToolManager's setTool() function.
  * @property select - Indicate whether to visually select the tool on all toolbars, defaults to true
@@ -3919,7 +3919,7 @@ declare enum InputDevice {
     touch = 3
 }
 
-declare class TurboEventManagerKeyOperator extends TurboOperator<TurboEventManager, any, TurboEventManagerModel> {
+declare class GradumEventManagerKeyOperator extends GradumOperator<GradumEventManager, any, GradumEventManagerModel> {
     keyName: string;
     keyDown: (e: KeyboardEvent) => void;
     protected keyDownFn(e: KeyboardEvent): void;
@@ -3927,12 +3927,12 @@ declare class TurboEventManagerKeyOperator extends TurboOperator<TurboEventManag
     protected keyUpFn(e: KeyboardEvent): void;
 }
 
-declare class TurboEventManagerWheelOperator extends TurboOperator<TurboEventManager, any, TurboEventManagerModel> {
+declare class GradumEventManagerWheelOperator extends GradumOperator<GradumEventManager, any, GradumEventManagerModel> {
     keyName: string;
     wheel: (e: WheelEvent) => void;
 }
 
-declare class TurboEventManagerPointerOperator extends TurboOperator<TurboEventManager, any, TurboEventManagerModel> {
+declare class GradumEventManagerPointerOperator extends GradumOperator<GradumEventManager, any, GradumEventManagerModel> {
     keyName: string;
     pointerDown: (e: PointerEvent) => void;
     pointerMove: (e: PointerEvent) => void;
@@ -3945,14 +3945,14 @@ declare class TurboEventManagerPointerOperator extends TurboOperator<TurboEventM
     protected pointerCancelFn(e: PointerEvent): void;
     protected lostPointerCaptureFn(e: PointerEvent): void;
     /**
-     * @description Fires a custom Turbo click event at the click target with the click position
+     * @description Fires a custom Gradum click event at the click target with the click position
      * @param p
      * @param eventName
      * @private
      */
     private fireClick;
     /**
-     * @description Fires a custom Turbo drag event at the target with the origin of the drag, the last drag position, and the current position
+     * @description Fires a custom Gradum drag event at the target with the origin of the drag, the last drag position, and the current position
      * @param positions
      * @param eventName
      * @private
@@ -3971,14 +3971,14 @@ declare enum ClosestOrigin {
 }
 /**
  * @group Event Handling
- * @category TurboEvents
+ * @category GradumEvents
  */
-type TurboRawEventProperties = {
+type GradumRawEventProperties = {
     clickMode?: ClickMode;
     inputDevice?: InputDevice;
     keys?: string[];
-    eventName?: TurboEventNameEntry;
-    eventManager?: TurboEventManager;
+    eventName?: GradumEventNameEntry;
+    eventManager?: GradumEventManager;
     toolName?: string;
     authorizeScaling?: boolean | (() => boolean);
     scalePosition?: (position: Point) => Point;
@@ -3986,47 +3986,47 @@ type TurboRawEventProperties = {
 };
 /**
  * @group Event Handling
- * @category TurboEvents
+ * @category GradumEvents
  */
-type TurboEventProperties = TurboRawEventProperties & {
+type GradumEventProperties = GradumRawEventProperties & {
     position?: Point;
 };
 /**
  * @group Event Handling
- * @category TurboEvents
+ * @category GradumEvents
  */
-type TurboDragEventProperties = TurboRawEventProperties & {
-    origins?: TurboMap<number, Point>;
-    previousPositions?: TurboMap<number, Point>;
-    positions?: TurboMap<number, Point>;
+type GradumDragEventProperties = GradumRawEventProperties & {
+    origins?: GradumMap<number, Point>;
+    previousPositions?: GradumMap<number, Point>;
+    positions?: GradumMap<number, Point>;
 };
 /**
  * @group Event Handling
- * @category TurboEvents
+ * @category GradumEvents
  */
-type TurboKeyEventProperties = TurboRawEventProperties & {
+type GradumKeyEventProperties = GradumRawEventProperties & {
     keyPressed?: string;
     keyReleased?: string;
 };
 /**
  * @group Event Handling
- * @category TurboEvents
+ * @category GradumEvents
  */
-type TurboWheelEventProperties = TurboRawEventProperties & {
+type GradumWheelEventProperties = GradumRawEventProperties & {
     delta?: Point;
 };
 
 /**
- * @class TurboEvent
+ * @class GradumEvent
  * @group Event Handling
- * @category TurboEvents
- * @description Generic turbo event.
+ * @category GradumEvents
+ * @description Generic gradum event.
  */
-declare class TurboEvent extends Event {
+declare class GradumEvent extends Event {
     /**
      * @description The event manager that fired this event.
      */
-    readonly eventManager: TurboEventManager;
+    readonly eventManager: GradumEventManager;
     /**
      * @description The name of the tool (if any) associated with this event.
      */
@@ -4034,7 +4034,7 @@ declare class TurboEvent extends Event {
     /**
      * @description The name of the event.
      */
-    readonly eventName: TurboEventNameEntry;
+    readonly eventName: GradumEventNameEntry;
     /**
      * @description The click mode of the fired event
      */
@@ -4061,7 +4061,7 @@ declare class TurboEvent extends Event {
      * document space.
      */
     scalePosition: (position: Point) => Point;
-    constructor(properties: TurboEventProperties);
+    constructor(properties: GradumEventProperties);
     /**
      * @description The tool (if any) associated with this event.
      */
@@ -4102,59 +4102,59 @@ declare class TurboEvent extends Event {
      * @description Takes a map of points and returns a new map where each point is transformed accordingly.
      * @param positions
      */
-    protected scalePositionsMap(positions?: TurboMap<number, Point>): TurboMap<number, Point>;
+    protected scalePositionsMap(positions?: GradumMap<number, Point>): GradumMap<number, Point>;
 }
 
-declare class TurboEventManagerDispatchOperator extends TurboOperator<TurboEventManager, any, TurboEventManagerModel> {
+declare class GradumEventManagerDispatchOperator extends GradumOperator<GradumEventManager, any, GradumEventManagerModel> {
     keyName: string;
     private boundHooks;
     protected setupChangedCallbacks(): void;
-    protected dispatchEvent: <EventType extends TurboEvent = TurboEvent, PropertiesType extends TurboRawEventProperties = TurboRawEventProperties>(target: Node, eventType: new (properties: PropertiesType) => EventType, properties: Partial<PropertiesType>) => void;
+    protected dispatchEvent: <EventType extends GradumEvent = GradumEvent, PropertiesType extends GradumRawEventProperties = GradumRawEventProperties>(target: Node, eventType: new (properties: PropertiesType) => EventType, properties: Partial<PropertiesType>) => void;
     private getToolHandlingCallback;
     setupCustomDispatcher(type: string): void;
     removeCustomDispatcher(type: string): void;
 }
 
 /**
- * @class TurboBaseElement
- * @group TurboElement
- * @category TurboBaseElement
+ * @class GradumBaseElement
+ * @group GradumElement
+ * @category GradumBaseElement
  *
- * @description TurboHeadlessElement class, similar to TurboElement but without extending HTMLElement.
- * @template {TurboView} ViewType - The element's view type, if initializing MVC.
+ * @description GradumHeadlessElement class, similar to GradumElement but without extending HTMLElement.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
  */
-declare class TurboBaseElement {
+declare class GradumBaseElement {
     /**
      * @description Default properties assigned to a new instance.
      */
     static defaultProperties: object;
-    static create<Type extends new (...args: any[]) => TurboBaseElement>(this: Type, properties?: InstanceType<Type>["properties"]): InstanceType<Type>;
+    static create<Type extends new (...args: any[]) => GradumBaseElement>(this: Type, properties?: InstanceType<Type>["properties"]): InstanceType<Type>;
     protected static customCreate(properties: object): object;
 }
 
 /**
- * @class TurboEventManager
+ * @class GradumEventManager
  * @group Event Handling
- * @category TurboEventManager
+ * @category GradumEventManager
  *
  * @description Class that manages default mouse, trackpad, and touch events, and accordingly fires custom events for
  * easier management of input.
  */
-declare class TurboEventManager<ToolType extends string = string> extends TurboBaseElement {
-    protected static managers: TurboEventManager[];
-    static get instance(): TurboEventManager;
-    static get allManagers(): TurboEventManager[];
-    static set allManagers(managers: TurboEventManager[]);
-    get model(): TurboEventManagerModel;
-    readonly properties: TurboEventManagerProperties;
-    static defaultProperties: TurboEventManagerProperties;
-    protected keyOperator: TurboEventManagerKeyOperator;
-    protected wheelOperator: TurboEventManagerWheelOperator;
-    protected pointerOperator: TurboEventManagerPointerOperator;
-    protected dispatchOperator: TurboEventManagerDispatchOperator;
+declare class GradumEventManager<ToolType extends string = string> extends GradumBaseElement {
+    protected static managers: GradumEventManager[];
+    static get instance(): GradumEventManager;
+    static get allManagers(): GradumEventManager[];
+    static set allManagers(managers: GradumEventManager[]);
+    get model(): GradumEventManagerModel;
+    readonly properties: GradumEventManagerProperties;
+    static defaultProperties: GradumEventManagerProperties;
+    protected keyOperator: GradumEventManagerKeyOperator;
+    protected wheelOperator: GradumEventManagerWheelOperator;
+    protected pointerOperator: GradumEventManagerPointerOperator;
+    protected dispatchOperator: GradumEventManagerDispatchOperator;
     /**
      * @description The currently identified input device. It is not 100% accurate, especially when differentiating
      * between mouse and trackpad.
@@ -4185,7 +4185,7 @@ declare class TurboEventManager<ToolType extends string = string> extends TurboB
      * @param origin - The element that initiated the lock state.
      * @param value - The state properties to set.
      */
-    lock(origin: Node, value: TurboEventManagerStateProperties): void;
+    lock(origin: Node, value: GradumEventManagerStateProperties): void;
     /**
      * @description Resets the lock state to the default values.
      */
@@ -4259,7 +4259,7 @@ declare class TurboEventManager<ToolType extends string = string> extends TurboB
      */
     setToolByKey(key: string): boolean;
     setupCustomDispatcher(type: string): void;
-    protected applyAndHookEvents(turboEventNames: Record<string, string>, defaultEventNames: Record<string, string>, applyTurboEvents: boolean): void;
+    protected applyAndHookEvents(gradumEventNames: Record<string, string>, defaultEventNames: Record<string, string>, applyGradumEvents: boolean): void;
     destroy(): this;
 }
 
@@ -4274,14 +4274,14 @@ declare class TurboEventManager<ToolType extends string = string> extends TurboB
  * @property {number} [priority] - The priority of the constrainer. Higher priority constrainers (lower number) should
  * be resolved first. Defaults to 10.
  * @property {boolean} [active] - Whether the constrainer is active. Defaults to true.
- * @property {TurboConstrainer} [attachedInstance] - The optional TurboConstrainer instance to attach to the constrainer.
+ * @property {GradumConstrainer} [attachedInstance] - The optional GradumConstrainer instance to attach to the constrainer.
  */
 type MakeConstrainerOptions = {
     onActivate?: () => void;
     onDeactivate?: () => void;
     priority?: number;
     active?: boolean;
-    attachedInstance?: TurboConstrainer;
+    attachedInstance?: GradumConstrainer;
 };
 /**
  * @type {ConstrainerCallbackProperties}
@@ -4299,7 +4299,7 @@ type MakeConstrainerOptions = {
  * @property {Node} [eventTarget] - The target of the event.
  * @property {string} [toolName] - The name of the active tool when the event was fired.
  * @property {ListenerOptions} [eventOptions] - The options of the event.
- * @property {TurboEventManager} [manager] - The event manager that captured the event. Defaults to the first
+ * @property {GradumEventManager} [manager] - The event manager that captured the event. Defaults to the first
  * instantiated event manager.
  */
 type ConstrainerCallbackProperties = {
@@ -4311,7 +4311,7 @@ type ConstrainerCallbackProperties = {
     eventTarget?: Node;
     toolName?: string;
     eventOptions?: ListenerOptions;
-    manager?: TurboEventManager;
+    manager?: GradumEventManager;
 };
 /**
  * @type {ConstrainerMutatorProperties}
@@ -4461,36 +4461,36 @@ type DefineOptions = {
  * how {@link inferCategory} resolves ambiguous inheritance chains.
  *
  * **Gradum Kit elements** (most to least specific):
- * - `TurboProxiedElement`, `TurboElement`, `TurboBaseElement`, `TurboHeadlessElement`
+ * - `GradumProxiedElement`, `GradumElement`, `GradumBaseElement`, `GradumHeadlessElement`
  *
  * **Native DOM elements** (most to least specific):
  * - `SVGElement`, `MathMLElement`, `HTMLElement`, `Element`, `Node`
  *
  * **MVC pieces:**
- * - `TurboOperator`, `TurboHandler`, `TurboInteractor`, `TurboTool`, `TurboConstrainer`,
- *   `TurboView`, `TurboEmitter`, `TurboModel`
+ * - `GradumOperator`, `GradumHandler`, `GradumInteractor`, `GradumTool`, `GradumConstrainer`,
+ *   `GradumView`, `GradumEmitter`, `GradumModel`
  *
  * **Fallback:**
  * - `Other` — for classes that do not match any recognized base type.
  */
 declare enum RegistryCategory {
-    TurboElement = "TurboElement",
-    TurboBaseElement = "TurboBaseElement",
-    TurboHeadlessElement = "TurboHeadlessElement",
-    TurboProxiedElement = "TurboProxiedElement",
+    GradumElement = "GradumElement",
+    GradumBaseElement = "GradumBaseElement",
+    GradumHeadlessElement = "GradumHeadlessElement",
+    GradumProxiedElement = "GradumProxiedElement",
     HTMLElement = "HTMLElement",
     SVGElement = "SVGElement",
     MathMLElement = "MathMLElement",
     Element = "Element",
     Node = "Node",
-    TurboModel = "TurboModel",
-    TurboView = "TurboView",
-    TurboEmitter = "TurboEmitter",
-    TurboOperator = "TurboOperator",
-    TurboHandler = "TurboHandler",
-    TurboInteractor = "TurboInteractor",
-    TurboTool = "TurboTool",
-    TurboConstrainer = "TurboConstrainer",
+    GradumModel = "GradumModel",
+    GradumView = "GradumView",
+    GradumEmitter = "GradumEmitter",
+    GradumOperator = "GradumOperator",
+    GradumHandler = "GradumHandler",
+    GradumInteractor = "GradumInteractor",
+    GradumTool = "GradumTool",
+    GradumConstrainer = "GradumConstrainer",
     Other = "Other"
 }
 /**
@@ -4543,13 +4543,13 @@ type RegistryEntry = {
  * @example
  * ```ts
  * @define("MyEl")           // tag inferred as "my-el"
- * class MyEl extends TurboElement { ... }
+ * class MyEl extends GradumElement { ... }
  *
  * @define("MyEl", "my-el") // explicit tag name
- * class MyEl extends TurboElement { ... }
+ * class MyEl extends GradumElement { ... }
  *
  * @define("MyModel")        // non-element: only registered in Gradum Kit registry
- * class MyModel extends TurboModel { ... }
+ * class MyModel extends GradumModel { ... }
  * ```
  */
 declare function define(className: string, elementName?: string, options?: DefineOptions): any;
@@ -4582,12 +4582,12 @@ declare function define(className: string, elementName?: string, options?: Defin
  *
  * @example
  * ```ts
- * class MyEl extends TurboElement { ... }
+ * class MyEl extends GradumElement { ... }
  * define(MyEl);                    // className → "MyEl", tag → "my-el"
  * define(MyEl, "my-el");           // explicit tag, className inferred
  * define(MyEl, "my-el", "MyEl");   // both explicit
  *
- * class MyModel extends TurboModel { ... }
+ * class MyModel extends GradumModel { ... }
  * define(MyModel, undefined, "MyModel"); // non-element, registry only
  * ```
  */
@@ -4629,8 +4629,8 @@ declare function getAllRegistered(): RegistryEntry[];
  * @category Registry, Attributes & DOM
  *
  * @description Returns all registered entries belonging to MVC-related categories:
- * `TurboOperator`, `TurboEmitter`, `TurboHandler`, `TurboInteractor`, `TurboModel`,
- * `TurboConstrainer`, `TurboTool`, and `TurboView`.
+ * `GradumOperator`, `GradumEmitter`, `GradumHandler`, `GradumInteractor`, `GradumModel`,
+ * `GradumConstrainer`, `GradumTool`, and `GradumView`.
  * @returns {RegistryEntry[]} An array of all MVC registry entries.
  */
 declare function getRegisteredMvc(): RegistryEntry[];
@@ -4640,7 +4640,7 @@ declare function getRegisteredMvc(): RegistryEntry[];
  * @category Registry, Attributes & DOM
  *
  * @description Returns all registered entries belonging to element-related categories:
- * `TurboElement`, `TurboProxiedElement`, `Element`, `HTMLElement`, `SVGElement`, and `MathMLElement`.
+ * `GradumElement`, `GradumProxiedElement`, `Element`, `HTMLElement`, `SVGElement`, and `MathMLElement`.
  * @returns {RegistryEntry[]} An array of all element registry entries.
  */
 declare function getRegisteredElements(): RegistryEntry[];
@@ -4664,12 +4664,12 @@ declare function getRegisteredElements(): RegistryEntry[];
  *
  * @example
  * ```ts
- * // At the bottom of turboModel.ts, after class definition:
- * addRegistryCategory(TurboModel, RegistryCategory.TurboModel);
+ * // At the bottom of gradumModel.ts, after class definition:
+ * addRegistryCategory(GradumModel, RegistryCategory.GradumModel);
  *
  * // Later, when a subclass is defined:
- * class MyModel extends TurboModel { ... }
- * define(MyModel, "MyModel"); // infers RegistryCategory.TurboModel automatically
+ * class MyModel extends GradumModel { ... }
+ * define(MyModel, "MyModel"); // infers RegistryCategory.GradumModel automatically
  * ```
  */
 declare function addRegistryCategory(type: new (...args: any[]) => object, category?: RegistryCategory): void;
@@ -4698,12 +4698,12 @@ declare function getRegisteredEntry(instance: object): RegistryEntry;
  *
  * @example
  * ```ts
- * protected model: TurboModel;
+ * protected model: GradumModel;
  * @expose("model") public color: string;
  * ```
  * Is equivalent to:
  * ```ts
- * protected model: TurboModel;
+ * protected model: GradumModel;
  *
  * public get color(): string {
  *     return this.model.color;
@@ -4749,7 +4749,7 @@ declare function expose(host: object, rootKey: string, key: string, exposeSetter
  * @example ```ts
  * class MyElement {
  *   @listener() click(e: Event) { ... }
- *   //Equivalent to: turbo(this).on(DefaultEventName.click, (e: Event) => { ... });
+ *   //Equivalent to: gradum(this).on(DefaultEventName.click, (e: Event) => { ... });
  * }
  * ```
  */
@@ -4769,7 +4769,7 @@ declare function listener(properties?: Partial<Omit<ListenerProperties, "callbac
  * @example ```ts
  * class MyElement {
  *   @behavior() click(e: Event) { ... }
- *   //Equivalent to: turbo(this).addToolBehavior(DefaultEventName.click, (e: Event) => { ... });
+ *   //Equivalent to: gradum(this).addToolBehavior(DefaultEventName.click, (e: Event) => { ... });
  * }
  * ```
  */
@@ -4782,7 +4782,7 @@ declare function behavior(properties?: Partial<Omit<ListenerProperties, "callbac
  *
  * @description Attach all previously-decorated listeners and behaviors recorded on the given `context`. It attempts to
  * resolve defaults from the latter, such as the `target`, `toolName`, `options`, and `manager`. This method is called
- * automatically in the TurboElement lifecycle.
+ * automatically in the GradumElement lifecycle.
  * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
  */
 declare function attachListenersAndBehaviors(context: any): void;
@@ -4800,11 +4800,11 @@ declare function attachListenersAndBehaviors(context: any): void;
  *
  * @example
  * ```ts
- * @operator() protected textOperator: TurboOperator;
+ * @operator() protected textOperator: GradumOperator;
  * ```
  * Is equivalent to:
  * ```ts
- * protected get textOperator(): TurboOperator {
+ * protected get textOperator(): GradumOperator {
  *    if (this.mvc instanceof Mvc) return this.mvc.getOperator("text");
  *    if (typeof this.getOperator === "function") return this.getOperator("text");
  * }
@@ -4824,11 +4824,11 @@ declare function operator(name?: string): (_unused: unknown, context: ClassField
  *
  * @example
  * ```ts
- * @handler() protected textHandler: TurboHandler;
+ * @handler() protected textHandler: GradumHandler;
  * ```
  * Is equivalent to:
  * ```ts
- * protected get textHandler(): TurboHandler {
+ * protected get textHandler(): GradumHandler {
  *    if (this.mvc instanceof Mvc) return this.mvc.getHandler("text");
  *    if (typeof this.getHandler === "function") return this.getHandler("text");
  * }
@@ -4848,11 +4848,11 @@ declare function handler(name?: string): (_unused: unknown, context: ClassFieldD
  *
  * @example
  * ```ts
- * @interactor() protected textInteractor: TurboInteractor;
+ * @interactor() protected textInteractor: GradumInteractor;
  * ```
  * Is equivalent to:
  * ```ts
- * protected get textInteractor(): TurboInteractor {
+ * protected get textInteractor(): GradumInteractor {
  *    if (this.mvc instanceof Mvc) return this.mvc.getInteractor("text");
  *    if (typeof this.getInteractor === "function") return this.getInteractor("text");
  * }
@@ -4872,11 +4872,11 @@ declare function interactor(name?: string): (_unused: unknown, context: ClassFie
  *
  * @example
  * ```ts
- * @tool() protected textTool: TurboTool;
+ * @tool() protected textTool: GradumTool;
  * ```
  * Is equivalent to:
  * ```ts
- * protected get textTool(): TurboTool {
+ * protected get textTool(): GradumTool {
  *    if (this.mvc instanceof Mvc) return this.mvc.getTool("text");
  *    if (typeof this.getTool === "function") return this.getTool("text");
  * }
@@ -4896,11 +4896,11 @@ declare function tool(name?: string): (_unused: unknown, context: ClassFieldDeco
  *
  * @example
  * ```ts
- * @tool() protected textConstrainer: TurboConstrainer;
+ * @tool() protected textConstrainer: GradumConstrainer;
  * ```
  * Is equivalent to:
  * ```ts
- * protected get textConstrainer(): TurboConstrainer {
+ * protected get textConstrainer(): GradumConstrainer {
  *    if (this.mvc instanceof Mvc) return this.mvc.getConstrainer("text");
  *    if (typeof this.getConstrainer === "function") return this.getConstrainer("text");
  * }
@@ -5028,14 +5028,14 @@ declare function signal<Type extends object, Value>(value: ((initial: Value) => 
  *
  * @example
  * ```ts
- * class TodoModel extends TurboModel {
+ * class TodoModel extends GradumModel {
  *   @modelSignal() title = "";
  *   @modelSignal("meta", "author") author = "";
  * }
  * ```
  * Is equivalent to:
  * ```ts
- * class TodoModel extends TurboModel {
+ * class TodoModel extends GradumModel {
  *   @signal get title() { return this.get("title"); }
  *   set title(value) { this.set(value, "title"); }
  *
@@ -5054,7 +5054,7 @@ declare function modelSignal(...keys: KeyType[]): <Type extends object, Value>(v
  * @group Decorators
  * @category Signal
  *
- * @description Decorator that binds a reactive signal to a nested {@link TurboModel} instance at the given key path.
+ * @description Decorator that binds a reactive signal to a nested {@link GradumModel} instance at the given key path.
  * - Getter returns the nested model instance via `this.getNested(...keys)`.
  * - Setter assigns the new value to the nested model's root data via `this.getNested(...keys).data = value`.
  *
@@ -5062,13 +5062,13 @@ declare function modelSignal(...keys: KeyType[]): <Type extends object, Value>(v
  *
  * @example
  * ```ts
- * class AppModel extends TurboModel {
+ * class AppModel extends GradumModel {
  *   @nestedModelSignal("users", "42") user = undefined;
  * }
  * ```
  * Is equivalent to:
  * ```ts
- * class AppModel extends TurboModel {
+ * class AppModel extends GradumModel {
  *   @signal get user() { return this.getNested("users", "42"); }
  *   set user(value) { this.getNested("users", "42").data = value; }
  * }
@@ -5084,7 +5084,7 @@ declare function nestedModelSignal(...keys: string[]): <Type extends object, Val
  * @group Decorators
  * @category Signal
  *
- * @description Decorator that binds a reactive signal to a nested {@link TurboModel} at the given key path,
+ * @description Decorator that binds a reactive signal to a nested {@link GradumModel} at the given key path,
  * where the nested model's data is **not** stored inside the parent model's data container.
  *
  * Use this when the nested model holds data that lives outside the parent's data tree — for example,
@@ -5097,7 +5097,7 @@ declare function nestedModelSignal(...keys: string[]): <Type extends object, Val
  * - Setter assigns directly to `nestedModel.data = value`, leaving the parent's data untouched.
  *
  * **Limitation:** `@modelSignal("myField", "subKey")` will **not** work for a field backed by
- * `@isolatedModelSignal`, because `TurboModel.get()` reads through the parent's data container
+ * `@isolatedModelSignal`, because `GradumModel.get()` reads through the parent's data container
  * rather than routing through registered nested models. Access sub-keys directly through the
  * nested model instead: `(this.myField as MyNestedModel).subKey`.
  *
@@ -5106,7 +5106,7 @@ declare function nestedModelSignal(...keys: string[]): <Type extends object, Val
  *
  * @example
  * ```ts
- * class CardModel extends TurboYModel {
+ * class CardModel extends GradumYModel {
  *   // Foreign YMap managed elsewhere in the Y.js document — must not be written into this
  *   // model's data tree.
  *   @isolatedModelSignal() cardData: CardDataModel;
@@ -5114,7 +5114,7 @@ declare function nestedModelSignal(...keys: string[]): <Type extends object, Val
  * ```
  * Is equivalent to:
  * ```ts
- * class CardModel extends TurboYModel {
+ * class CardModel extends GradumYModel {
  *   @signal get cardData() { return this.nest("cardData"); }
  *   set cardData(value) { this.nest("cardData").data = value; }
  * }
@@ -5262,254 +5262,254 @@ declare function untrack<T>(fn: () => T): T;
  * @category Base Elements
  *
  * @description Creates an "a" element with the specified properties.
- * @param {TurboProperties<"a">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"a">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"a">} The created element.
  */
-declare function a(properties?: TurboProperties<"a">): ValidElement<"a">;
+declare function a(properties?: GradumProperties<"a">): ValidElement<"a">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "canvas" element with the specified properties.
- * @param {TurboProperties<"canvas">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"canvas">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"canvas">} The created element.
  */
-declare function canvas(properties?: TurboProperties<"canvas">): ValidElement<"canvas">;
+declare function canvas(properties?: GradumProperties<"canvas">): ValidElement<"canvas">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "div" element with the specified properties.
- * @param {TurboProperties<"div">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"div">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"div">} The created element.
  */
-declare function div(properties?: TurboProperties): ValidElement<"div">;
+declare function div(properties?: GradumProperties): ValidElement<"div">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "form" element with the specified properties.
- * @param {TurboProperties<"form">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"form">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"form">} The created element.
  */
-declare function form(properties?: TurboProperties<"form">): ValidElement<"form">;
+declare function form(properties?: GradumProperties<"form">): ValidElement<"form">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "h1" element with the specified properties.
- * @param {TurboProperties<"h1">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h1">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h1">} The created element.
  */
-declare function h1(properties?: TurboProperties<"h1">): ValidElement<"h1">;
+declare function h1(properties?: GradumProperties<"h1">): ValidElement<"h1">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "h2" element with the specified properties.
- * @param {TurboProperties<"h2">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h2">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h2">} The created element.
  */
-declare function h2(properties?: TurboProperties<"h2">): ValidElement<"h2">;
+declare function h2(properties?: GradumProperties<"h2">): ValidElement<"h2">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "h3" element with the specified properties.
- * @param {TurboProperties<"h3">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h3">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h3">} The created element.
  */
-declare function h3(properties?: TurboProperties<"h3">): ValidElement<"h3">;
+declare function h3(properties?: GradumProperties<"h3">): ValidElement<"h3">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "h4" element with the specified properties.
- * @param {TurboProperties<"h4">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h4">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h4">} The created element.
  */
-declare function h4(properties?: TurboProperties<"h4">): ValidElement<"h4">;
+declare function h4(properties?: GradumProperties<"h4">): ValidElement<"h4">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "h5" element with the specified properties.
- * @param {TurboProperties<"h5">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h5">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h5">} The created element.
  */
-declare function h5(properties?: TurboProperties<"h5">): ValidElement<"h5">;
+declare function h5(properties?: GradumProperties<"h5">): ValidElement<"h5">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "h6" element with the specified properties.
- * @param {TurboProperties<"h6">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"h6">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"h6">} The created element.
  */
-declare function h6(properties?: TurboProperties<"h6">): ValidElement<"h6">;
+declare function h6(properties?: GradumProperties<"h6">): ValidElement<"h6">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates an "img" element with the specified properties.
- * @param {TurboProperties<"img">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"img">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"img">} The created element.
  */
-declare function img(properties?: TurboProperties<"img">): ValidElement<"img">;
+declare function img(properties?: GradumProperties<"img">): ValidElement<"img">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates an "input" element with the specified properties.
- * @param {TurboProperties<"input">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"input">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"input">} The created element.
  */
-declare function input(properties?: TurboProperties<"input">): ValidElement<"input">;
+declare function input(properties?: GradumProperties<"input">): ValidElement<"input">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "link" element with the specified properties.
- * @param {TurboProperties<"link">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"link">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"link">} The created element.
  */
-declare function link(properties?: TurboProperties<"link">): ValidElement<"link">;
+declare function link(properties?: GradumProperties<"link">): ValidElement<"link">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "p" element with the specified properties.
- * @param {TurboProperties<"p">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"p">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"p">} The created element.
  */
-declare function p(properties?: TurboProperties<"p">): ValidElement<"p">;
+declare function p(properties?: GradumProperties<"p">): ValidElement<"p">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "span" element with the specified properties.
- * @param {TurboProperties<"span">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"span">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"span">} The created element.
  */
-declare function span(properties?: TurboProperties<"span">): ValidElement<"span">;
+declare function span(properties?: GradumProperties<"span">): ValidElement<"span">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "style" element with the specified properties.
- * @param {TurboProperties<"style">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"style">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"style">} The created element.
  */
-declare function style(properties?: TurboProperties<"style">): ValidElement<"style">;
+declare function style(properties?: GradumProperties<"style">): ValidElement<"style">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "textarea" element with the specified properties.
- * @param {TurboProperties<"textarea">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"textarea">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"textarea">} The created element.
  */
-declare function textarea(properties?: TurboProperties<"textarea">): ValidElement<"textarea">;
+declare function textarea(properties?: GradumProperties<"textarea">): ValidElement<"textarea">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "video" element with the specified properties.
- * @param {TurboProperties<"video">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"video">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"video">} The created element.
  */
-declare function video(properties?: TurboProperties<"video">): ValidElement<"video">;
+declare function video(properties?: GradumProperties<"video">): ValidElement<"video">;
 /**
  * @group Element Creation
  * @category Base Elements
  *
  * @description Creates a "button" element with the specified properties.
- * @param {TurboProperties<"button">} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<"button">} [properties] - Object containing properties of the element.
  * @returns {ValidElement<"button">} The created element.
  */
-declare function button(properties?: TurboProperties<"button">): ValidElement<"button">;
+declare function button(properties?: GradumProperties<"button">): ValidElement<"button">;
 
 /**
  * @group Element Creation
  * @category Creation Functions
  *
- * @description returns a function that generates an HTML element with the provided tag that takes TurboProperties
+ * @description returns a function that generates an HTML element with the provided tag that takes GradumProperties
  * as input.
  * @param {keyof ElementTagMap} tag - The tag to generate the function from.
  * @return The function
  */
-declare function generateTagFunction<Tag extends ValidTag>(tag: Tag): (properties?: TurboProperties<Tag>) => ValidElement<Tag>;
+declare function generateTagFunction<Tag extends ValidTag>(tag: Tag): (properties?: GradumProperties<Tag>) => ValidElement<Tag>;
 /**
  * @group Element Creation
  * @category Creation Functions
  *
  * @description Create an element with the specified properties (and the specified namespace if applicable).
- * @param {TurboProperties<Tag>} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<Tag>} [properties] - Object containing properties of the element.
  * @returns {ValidElement<Tag>} The created element.
  * @template Tag
  */
-declare function element<Tag extends ValidTag>(properties?: TurboProperties<Tag>): ValidElement<Tag>;
+declare function element<Tag extends ValidTag>(properties?: GradumProperties<Tag>): ValidElement<Tag>;
 /**
  * @group Element Creation
  * @category Creation Functions
  *
  * @description Create an element with the specified properties. Supports SVG and MathML.
- * @param {TurboProperties<Tag>} [properties] - Object containing properties of the element.
+ * @param {GradumProperties<Tag>} [properties] - Object containing properties of the element.
  * @returns {ValidElement<Tag>} The created element.
  * @template Tag
  */
-declare function blindElement<Tag extends ValidTag>(properties?: TurboProperties<Tag>): ValidElement<Tag>;
+declare function blindElement<Tag extends ValidTag>(properties?: GradumProperties<Tag>): ValidElement<Tag>;
 
 /**
  * @group Element Creation
  * @category Flex Elements
  *
  * @description Create a flex column element.
- * @param {TurboProperties<Tag>} properties - Object containing properties of the element.
+ * @param {GradumProperties<Tag>} properties - Object containing properties of the element.
  * @returns {ValidHTMLElement<Tag>} The created flex element.
  * @template {HTMLTag} Tag
  */
-declare function flexCol<Tag extends HTMLTag>(properties?: TurboProperties<Tag>): ValidHTMLElement<Tag>;
+declare function flexCol<Tag extends HTMLTag>(properties?: GradumProperties<Tag>): ValidHTMLElement<Tag>;
 /**
  * @group Element Creation
  * @category Flex Elements
  *
  * @description Create a flex column element.
- * @param {TurboProperties<Tag>} properties - Object containing properties of the element.
+ * @param {GradumProperties<Tag>} properties - Object containing properties of the element.
  * @returns {ValidHTMLElement<Tag>} The created flex element.
  * @template {HTMLTag} Tag
  */
-declare function flexColCenter<Tag extends HTMLTag>(properties?: TurboProperties<Tag>): ValidHTMLElement<Tag>;
+declare function flexColCenter<Tag extends HTMLTag>(properties?: GradumProperties<Tag>): ValidHTMLElement<Tag>;
 /**
  * @group Element Creation
  * @category Flex Elements
  *
  * @description Create a flex row element.
- * @param {TurboProperties<Tag>} properties - Object containing properties of the element.
+ * @param {GradumProperties<Tag>} properties - Object containing properties of the element.
  * @returns {ValidHTMLElement<Tag>} The created flex element.
  * @template {HTMLTag} Tag
  */
-declare function flexRow<Tag extends HTMLTag>(properties?: TurboProperties<Tag>): ValidHTMLElement<Tag>;
+declare function flexRow<Tag extends HTMLTag>(properties?: GradumProperties<Tag>): ValidHTMLElement<Tag>;
 /**
  * @group Element Creation
  * @category Flex Elements
  *
  * @description Create a flex row element.
- * @param {TurboProperties<Tag>} properties - Object containing properties of the element.
+ * @param {GradumProperties<Tag>} properties - Object containing properties of the element.
  * @returns {ValidHTMLElement<Tag>} The created flex element.
  * @template {HTMLTag} Tag
  */
-declare function flexRowCenter<Tag extends HTMLTag>(properties?: TurboProperties<Tag>): ValidHTMLElement<Tag>;
+declare function flexRowCenter<Tag extends HTMLTag>(properties?: GradumProperties<Tag>): ValidHTMLElement<Tag>;
 /**
  * @group Element Creation
  * @category Flex Elements
  *
  * @description Create a spacer element.
- * @param {TurboProperties<Tag>} properties - Object containing properties of the element.
+ * @param {GradumProperties<Tag>} properties - Object containing properties of the element.
  * @returns {ValidHTMLElement<Tag>} The created spacer element.
  * @template {HTMLTag} Tag
  */
-declare function spacer<Tag extends HTMLTag>(properties?: TurboProperties<Tag>): ValidHTMLElement<Tag>;
+declare function spacer<Tag extends HTMLTag>(properties?: GradumProperties<Tag>): ValidHTMLElement<Tag>;
 
 /**
  * @type {StylesRoot}
@@ -5539,54 +5539,54 @@ type StylesType = string | number | PartialRecord<keyof CSSStyleDeclaration, str
 declare function stylesheet(styles?: string, root?: StylesRoot): void;
 
 /**
- * @class TurboDragEvent
+ * @class GradumDragEvent
  * @group Event Handling
- * @category TurboEvents
+ * @category GradumEvents
  *
- * @extends TurboEvent
- * @description Turbo drag event class, fired on turbo-drag, turbo-drag-start, turbo-drag-end, etc.
+ * @extends GradumEvent
+ * @description Gradum drag event class, fired on gradum-drag, gradum-drag-start, gradum-drag-end, etc.
  */
-declare class TurboDragEvent extends TurboEvent {
+declare class GradumDragEvent extends GradumEvent {
     /**
      * @description Map containing the origins of the dragging points
      */
-    readonly origins: TurboMap<number, Point>;
+    readonly origins: GradumMap<number, Point>;
     /**
      * @description Map containing the previous positions of the dragging points
      */
-    readonly previousPositions: TurboMap<number, Point>;
+    readonly previousPositions: GradumMap<number, Point>;
     /**
      * @description Map containing the positions of the dragging points
      */
-    readonly positions: TurboMap<number, Point>;
-    constructor(properties: TurboDragEventProperties);
+    readonly positions: GradumMap<number, Point>;
+    constructor(properties: GradumDragEventProperties);
     /**
      * @description Map of the origins mapped to the current canvas translation and scale
      */
-    get scaledOrigins(): TurboMap<number, Point>;
+    get scaledOrigins(): GradumMap<number, Point>;
     /**
      * @description Map of the previous positions mapped to the current canvas translation and scale
      */
-    get scaledPreviousPositions(): TurboMap<number, Point>;
+    get scaledPreviousPositions(): GradumMap<number, Point>;
     /**
      * @description Map of the positions mapped to the current canvas translation and scale
      */
-    get scaledPositions(): TurboMap<number, Point>;
-    get deltaPositions(): TurboMap<number, Point>;
+    get scaledPositions(): GradumMap<number, Point>;
+    get deltaPositions(): GradumMap<number, Point>;
     get deltaPosition(): Point;
-    get scaledDeltaPositions(): TurboMap<number, Point>;
+    get scaledDeltaPositions(): GradumMap<number, Point>;
     get scaledDeltaPosition(): Point;
 }
 
 /**
- * @class TurboKeyEvent
+ * @class GradumKeyEvent
  * @group Event Handling
- * @category TurboEvents
+ * @category GradumEvents
  *
- * @extends TurboEvent
+ * @extends GradumEvent
  * @description Custom key event
  */
-declare class TurboKeyEvent extends TurboEvent {
+declare class GradumKeyEvent extends GradumEvent {
     /**
      * @description The key pressed (if any) when the event was fired
      */
@@ -5595,122 +5595,45 @@ declare class TurboKeyEvent extends TurboEvent {
      * @description The key released (if any) when the event was fired
      */
     readonly keyReleased: string;
-    constructor(properties: TurboKeyEventProperties);
+    constructor(properties: GradumKeyEventProperties);
 }
 
 /**
- * @class TurboWheelEvent
+ * @class GradumWheelEvent
  * @group Event Handling
- * @category TurboEvents
+ * @category GradumEvents
  *
- * @extends TurboEvent
+ * @extends GradumEvent
  * @description Custom wheel event
  */
-declare class TurboWheelEvent extends TurboEvent {
+declare class GradumWheelEvent extends GradumEvent {
     /**
      * @description The delta amount of scrolling
      */
     readonly delta: Point;
-    constructor(properties: TurboWheelEventProperties);
-}
-
-declare module "yjs" {
-    interface Map<MapType = any> {
-    }
-    interface Array<T = any> {
-    }
-    interface AbstractType<EventType = any> {
-    }
-    interface YEvent<T = any, EventType = any> {
-    }
-    interface YMapEvent<T = any, EventType = any> {
-    }
-    interface YArrayEvent<T = any, EventType = any> {
-    }
-}
-/**
- * @group Types
- * @category Yjs
- */
-type YDocumentProperties<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboElementProperties<ViewType, DataType, ModelType, EmitterType> & {
-    document: Doc;
-};
-
-/**
- * @group MVC
- * @category TurboModel
- */
-declare class TurboYModel<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any> extends TurboModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
-    private readonly observer;
-    private readonly observedYTypes;
-    /**
-     * @inheritDoc
-     */
-    modelConstructor: new (...args: any[]) => TurboModel;
-    /**
-     * @inheritDoc
-     */
-    set enabledCallbacks(value: boolean);
-    /**
-     * @inheritDoc
-     */
-    protected getAction(data: any, key: KeyType): any;
-    /**
-     * @inheritDoc
-     */
-    protected setAction(data: any, value: any, key: KeyType): void;
-    /**
-     * @inheritDoc
-     */
-    protected addAction(model: TurboModel, data: any, value: any, key: KeyType): KeyType;
-    /**
-     * @inheritDoc
-     */
-    protected hasAction(data: any, key: KeyType): boolean;
-    /**
-     * @inheritDoc
-     */
-    protected deleteAction(data: any, key: KeyType): void;
-    /**
-     * @inheritDoc
-     */
-    protected getKeysAction(data: any): KeyType[];
-    /**
-     * @inheritDoc
-     */
-    initialize(): void;
-    /**
-     * @inheritDoc
-     */
-    clear(clearData?: boolean): void;
-    protected diffCheck(oldData: DataType, newData: DataType): boolean;
-    protected observeChanges(event: YEvent, transaction: any): void;
-    protected attachNestedObservers(value: any): void;
-    protected detachNestedObservers(value: any): void;
-    private shiftIndices;
-    private getPathToTarget;
+    constructor(properties: GradumWheelEventProperties);
 }
 
 /**
- * @class TurboElement
- * @group TurboElement
- * @category TurboElement
+ * @class GradumElement
+ * @group GradumElement
+ * @category GradumElement
  *
  * @extends HTMLElement
- * @description Base TurboElement class, extending the base HTML element with a few useful tools and functions.
- * @template {TurboView} ViewType - The element's view type, if initializing MVC.
+ * @description Base GradumElement class, extending the base HTML element with a few useful tools and functions.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
  * */
-declare class TurboElement<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter<any>> extends HTMLElement {
+declare class GradumElement<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>> extends HTMLElement {
     /**
      * @description Default properties assigned to a new instance.
      */
-    static defaultProperties: TurboElementProperties;
-    static create<Type extends new (...args: any[]) => TurboElement, PropertiesType extends InstanceType<Type>["properties"]>(this: Type, properties?: PropertiesType): InstanceType<Type>;
+    static defaultProperties: GradumElementProperties;
+    static create<Type extends new (...args: any[]) => GradumElement, PropertiesType extends InstanceType<Type>["properties"]>(this: Type, properties?: PropertiesType): InstanceType<Type>;
     protected static customCreate(properties: object): object;
-    readonly properties: TurboElementProperties;
+    readonly properties: GradumElementProperties;
     /**
      * @description Delegate fired when the element is attached to DOM.
      */
@@ -5947,12 +5870,12 @@ declare class Color {
 }
 
 /**
- * @type {TurboIconProperties}
+ * @type {GradumIconProperties}
  * @group Components
- * @category TurboIcon
+ * @category GradumIcon
  *
- * @description Properties object that extends TurboElementProperties with properties specific to icons.
- * @extends TurboProperties
+ * @description Properties object that extends GradumElementProperties with properties specific to icons.
+ * @extends GradumProperties
  *
  * @property {string} icon - The name of the icon.
  * @property {string} [iconColor] - The color of the icon.
@@ -5960,13 +5883,13 @@ declare class Color {
  * SVG icon (if it is one) once it is loaded. This property will be disregarded if the icon is not of type SVG.
  *
  * @property {string} [type] - Custom type of the icon, overrides the default type assigned to
- * TurboIcon.config.type (whose default value is "svgManipulation").
+ * GradumIcon.config.type (whose default value is "svgManipulation").
  * @property {string} [directory] - Custom directory to the icon, overrides the default directory assigned to
- * TurboIcon.config.directory.
+ * GradumIcon.config.directory.
  * @property {boolean} [unsetDefaultClasses] - Set to true to not add the default classes specified in
- * TurboIcon.config.defaultClasses to this instance of Icon.
+ * GradumIcon.config.defaultClasses to this instance of Icon.
  */
-type TurboIconProperties<ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboElementProperties<ViewType, DataType, ModelType, EmitterType> & {
+type GradumIconProperties<ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
     type?: string;
     directory?: string;
     icon: string;
@@ -5975,17 +5898,17 @@ type TurboIconProperties<ViewType extends TurboView = TurboView, DataType extend
 };
 
 /**
- * @class TurboIcon
+ * @class GradumIcon
  * @group Components
- * @category TurboIcon
+ * @category GradumIcon
  *
  * @description Icon class for creating icon elements.
- * @extends TurboElement
+ * @extends GradumElement
  */
-declare class TurboIcon<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboElement<ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboIconProperties;
+declare class GradumIcon<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumElement<ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumIconProperties;
     static readonly customLoaders: Record<string, (path: string) => (Element | Promise<Element>)>;
-    static defaultProperties: Partial<TurboIconProperties>;
+    static defaultProperties: Partial<GradumIconProperties>;
     private static imageTypes;
     private _element;
     private _loadToken;
@@ -6027,58 +5950,58 @@ declare class TurboIcon<ViewType extends TurboView = TurboView<any, any>, DataTy
 }
 
 /**
- * @type {TurboRichElementProperties}
+ * @type {GradumRichElementProperties}
  * @group Components
- * @category TurboRichElement
+ * @category GradumRichElement
  *
- * @description Properties object for configuring a Button. Extends TurboElementProperties.
- * @extends TurboProperties
+ * @description Properties object for configuring a Button. Extends GradumElementProperties.
+ * @extends GradumProperties
  *
  * @property {string} [text] - The text to set to the rich element's main element.
  *
  * @property {Element | Element[]} [leftCustomElements] - Custom elements
  * to be placed on the left side of the button (before the left icon).
- * @property {string | TurboIcon} [leftIcon] - An icon to be placed on the left side of the button text. Can be a
+ * @property {string | GradumIcon} [leftIcon] - An icon to be placed on the left side of the button text. Can be a
  * string (icon name/path) or an Icon instance.
- * @property {string | TurboProperties<ElementTag> | ValidElement<ElementTag>} [buttonText] - The text content of the button.
- * @property {string | TurboIcon} [rightIcon] - An icon to be placed on the right side of the button text. Can be a
+ * @property {string | GradumProperties<ElementTag> | ValidElement<ElementTag>} [buttonText] - The text content of the button.
+ * @property {string | GradumIcon} [rightIcon] - An icon to be placed on the right side of the button text. Can be a
  * string (icon name/path) or an Icon instance.
  * @property {Element | Element[]} [rightCustomElements] - Custom elements
  * to be placed on the right side of the button (after the right icon).
  *
  * @property {ValidTag} [customTextTag] - The HTML tag to be used for the buttonText element (if the latter is passed as
  * a string). If not specified, the default text tag specified in the Button class will be used.
- * @property {boolean} [unsetDefaultClasses] - Set to true to not add the default classes specified in TurboConfig.Button
+ * @property {boolean} [unsetDefaultClasses] - Set to true to not add the default classes specified in GradumConfig.Button
  * to this instance of Button.
  *
  * @template {ValidTag} ElementTag="p"
  */
-type TurboRichElementProperties<ElementTag extends ValidTag = any, ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboElementProperties<ViewType, DataType, ModelType, EmitterType> & {
+type GradumRichElementProperties<ElementTag extends ValidTag = any, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
     elementTag?: ElementTag;
     text?: string;
     leftCustomElements?: Element | Element[];
-    leftIcon?: string | TurboIcon;
+    leftIcon?: string | GradumIcon;
     prefixEntry?: string | HTMLElement;
-    element?: string | TurboProperties<ElementTag> | ValidElement<ElementTag>;
+    element?: string | GradumProperties<ElementTag> | ValidElement<ElementTag>;
     suffixEntry?: string | HTMLElement;
-    rightIcon?: string | TurboIcon;
+    rightIcon?: string | GradumIcon;
     rightCustomElements?: Element | Element[];
 };
 
 /**
- * @class TurboRichElement
+ * @class GradumRichElement
  * @group Components
- * @category TurboRichElement
+ * @category GradumRichElement
  *
- * @description Class for creating a rich turbo element (an element that is possibly accompanied by icons (or other elements) on
+ * @description Class for creating a rich gradum element (an element that is possibly accompanied by icons (or other elements) on
  * its left and/or right).
- * @extends TurboElement
+ * @extends GradumElement
  * @template {ValidTag} ElementTag - The tag of the main element to create the rich element from.
  */
-declare class TurboRichElement<ElementTag extends ValidTag = any, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboElement<ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboRichElementProperties;
-    static defaultProperties: TurboRichElementProperties;
-    protected static customCreate(properties: TurboRichElementProperties): object;
+declare class GradumRichElement<ElementTag extends ValidTag = any, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumElement<ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumRichElementProperties;
+    static defaultProperties: GradumRichElementProperties;
+    protected static customCreate(properties: GradumRichElementProperties): object;
     readonly childrenOrder: readonly ["leftCustomElements", "leftIcon", "prefixEntry", "element", "suffixEntry", "rightIcon", "rightCustomElements"];
     /**
      * @description Adds a given element or elements to the button at a specified position.
@@ -6096,13 +6019,13 @@ declare class TurboRichElement<ElementTag extends ValidTag = any, ViewType exten
     set leftCustomElements(value: Element | Element[]);
     /**
      * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-     * icon, or a Turbo/HTML element).
+     * icon, or a Gradum/HTML element).
      */
-    set leftIcon(value: string | TurboIcon);
-    get leftIcon(): TurboIcon;
+    set leftIcon(value: string | GradumIcon);
+    get leftIcon(): GradumIcon;
     /**
      * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-     * icon, or a Turbo/HTML element).
+     * icon, or a Gradum/HTML element).
      */
     set prefixEntry(value: string | HTMLElement);
     get prefixEntry(): HTMLElement;
@@ -6110,7 +6033,7 @@ declare class TurboRichElement<ElementTag extends ValidTag = any, ViewType exten
      * @description The text element. Can be set to a new element by a simple assignment. Setting the value to a new
      * string will update the text's textContent with the given string.
      */
-    set element(value: string | TurboProperties<ElementTag> | ValidElement<ElementTag>);
+    set element(value: string | GradumProperties<ElementTag> | ValidElement<ElementTag>);
     get element(): ValidElement<ElementTag>;
     /**
      * @description The text element. Can be set to a new element by a simple assignment. Setting the value to a new
@@ -6120,16 +6043,16 @@ declare class TurboRichElement<ElementTag extends ValidTag = any, ViewType exten
     set text(value: string);
     /**
      * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-     * icon, or a Turbo/HTML element).
+     * icon, or a Gradum/HTML element).
      */
     set suffixEntry(value: string | HTMLElement);
     get suffixEntry(): HTMLElement;
     /**
      * @description The right icon element. Can be set with a new icon by a simple assignment (the name/path of the
-     * icon, or a Turbo/HTML element).
+     * icon, or a Gradum/HTML element).
      */
-    set rightIcon(value: string | TurboIcon);
-    get rightIcon(): TurboIcon;
+    set rightIcon(value: string | GradumIcon);
+    get rightIcon(): GradumIcon;
     /**
      * @description The custom element(s) on the right. Can be set to new element(s) by a simple assignment.
      */
@@ -6137,14 +6060,14 @@ declare class TurboRichElement<ElementTag extends ValidTag = any, ViewType exten
 }
 
 /**
- * @class TurboButton
+ * @class GradumButton
  * @group Components
- * @category TurboButton
+ * @category GradumButton
  *
- * @description Button class for creating Turbo button elements.
- * @extends TurboElement
+ * @description Button class for creating Gradum button elements.
+ * @extends GradumElement
  */
-declare class TurboButton<ElementTag extends ValidTag = any, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboRichElement<ElementTag, ViewType, DataType, ModelType, EmitterType> {
+declare class GradumButton<ElementTag extends ValidTag = any, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumRichElement<ElementTag, ViewType, DataType, ModelType, EmitterType> {
 }
 
 /**
@@ -6289,7 +6212,7 @@ declare class StatefulReifect<State extends string | number | symbol = any, Clas
     protected static readonly chainableStyleFields: Set<string>;
     protected readonly timeRegex: RegExp;
     protected readonly attachedObjectsData: WeakMap<ClassType, ReifectObjectData<State, ClassType>>;
-    protected readonly attachedObjects: TurboNodeList<ClassType>;
+    protected readonly attachedObjects: GradumNodeList<ClassType>;
     /**
      * @description All possible states.
      */
@@ -6605,22 +6528,22 @@ declare enum Anchor {
 
 /**
  * @group Components
- * @category TurboIconSwitch
+ * @category GradumIconSwitch
  */
-type TurboIconSwitchProperties<State extends string | number | symbol, ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboIconProperties<ViewType, DataType, ModelType, EmitterType> & {
-    switchReifect?: StatefulReifect<State, TurboIcon> | StatefulReifectProperties<State, TurboIcon>;
+type GradumIconSwitchProperties<State extends string | number | symbol, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumIconProperties<ViewType, DataType, ModelType, EmitterType> & {
+    switchReifect?: StatefulReifect<State, GradumIcon> | StatefulReifectProperties<State, GradumIcon>;
     defaultState?: State;
     appendStateToIconName?: boolean;
 };
 
 /**
  * @group Components
- * @category TurboIconSwitch
+ * @category GradumIconSwitch
  */
-declare class TurboIconSwitch<State extends string | number | symbol = OnOff, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboIcon<ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboIconSwitchProperties<any>;
-    get switchReifect(): StatefulReifect<State, TurboIcon>;
-    set switchReifect(value: StatefulReifect<State, TurboIcon> | StatefulReifectProperties<State, TurboIcon>);
+declare class GradumIconSwitch<State extends string | number | symbol = OnOff, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumIcon<ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumIconSwitchProperties<any>;
+    get switchReifect(): StatefulReifect<State, GradumIcon>;
+    set switchReifect(value: StatefulReifect<State, GradumIcon> | StatefulReifectProperties<State, GradumIcon>);
     set defaultState(value: State);
     set appendStateToIconName(value: boolean);
     initialize(): void;
@@ -6628,23 +6551,23 @@ declare class TurboIconSwitch<State extends string | number | symbol = OnOff, Vi
 
 /**
  * @group Components
- * @category TurboIconToggle
+ * @category GradumIconToggle
  */
-type TurboIconToggleProperties<ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboIconProperties<ViewType, DataType, ModelType, EmitterType> & {
+type GradumIconToggleProperties<ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumIconProperties<ViewType, DataType, ModelType, EmitterType> & {
     toggled?: boolean;
     toggleOnClick?: boolean;
     stopPropagationOnClick?: boolean;
-    onToggle?: (value: boolean, el: TurboIconToggle) => void;
+    onToggle?: (value: boolean, el: GradumIconToggle) => void;
 };
 
 /**
  * @group Components
- * @category TurboIconToggle
+ * @category GradumIconToggle
  */
-declare class TurboIconToggle<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboIcon<ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboIconToggleProperties;
+declare class GradumIconToggle<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumIcon<ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumIconToggleProperties;
     stopPropagationOnClick: boolean;
-    onToggle: (value: boolean, el: TurboIconToggle) => void;
+    onToggle: (value: boolean, el: GradumIconToggle) => void;
     private clickListener;
     set toggled(value: boolean);
     set toggleOnClick(value: boolean);
@@ -6653,11 +6576,11 @@ declare class TurboIconToggle<ViewType extends TurboView = TurboView<any, any>, 
 
 /**
  * @group Components
- * @category TurboInput
+ * @category GradumInput
  */
-type TurboInputProperties<InputTag extends "input" | "textarea" = "input", ValueType = string, ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = Omit<TurboRichElementProperties<InputTag, ViewType, DataType, ModelType, EmitterType>, "element" | "elementTag"> & {
+type GradumInputProperties<InputTag extends "input" | "textarea" = "input", ValueType = string, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = Omit<GradumRichElementProperties<InputTag, ViewType, DataType, ModelType, EmitterType>, "element" | "elementTag"> & {
     inputTag?: InputTag;
-    input?: TurboProperties<InputTag> | ValidElement<InputTag>;
+    input?: GradumProperties<InputTag> | ValidElement<InputTag>;
     label?: string;
     locked?: boolean;
     dynamicVerticalResize?: boolean;
@@ -6672,22 +6595,22 @@ type TurboInputProperties<InputTag extends "input" | "textarea" = "input", Value
 };
 /**
  * @group Components
- * @category TurboLabelElement
+ * @category GradumLabelElement
  */
-type TurboLabelElementProperties<ElementTag extends ValidTag = any, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboRichElementProperties<ElementTag, ViewType, DataType, ModelType, EmitterType> & {
+type GradumLabelElementProperties<ElementTag extends ValidTag = any, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumRichElementProperties<ElementTag, ViewType, DataType, ModelType, EmitterType> & {
     label?: string;
     locked?: boolean;
 };
 
-declare class TurboLabelElement<ElementTag extends ValidTag = any, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboRichElement<ElementTag, ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboLabelElementProperties<ElementTag, ViewType, DataType, ModelType, EmitterType>;
+declare class GradumLabelElement<ElementTag extends ValidTag = any, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumRichElement<ElementTag, ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumLabelElementProperties<ElementTag, ViewType, DataType, ModelType, EmitterType>;
     defaultId: string;
     protected labelElement: HTMLLabelElement;
     content: HTMLElement;
     set label(value: string);
     get label(): string;
     get element(): ValidElement<ElementTag>;
-    set element(value: TurboProperties<ElementTag> | ValidElement<ElementTag>);
+    set element(value: GradumProperties<ElementTag> | ValidElement<ElementTag>);
     protected setupUIElements(): void;
     protected setupUILayout(): void;
     private updateId;
@@ -6695,12 +6618,12 @@ declare class TurboLabelElement<ElementTag extends ValidTag = any, ViewType exte
 
 /**
  * @group Components
- * @category TurboInput
+ * @category GradumInput
  */
-declare class TurboInput<InputTag extends "input" | "textarea" = "input", ValueType = string, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboLabelElement<InputTag, ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboInputProperties<InputTag, ValueType, ViewType, DataType, ModelType, EmitterType>;
-    static defaultProperties: TurboInputProperties;
-    protected static customCreate(properties: TurboInputProperties): object;
+declare class GradumInput<InputTag extends "input" | "textarea" = "input", ValueType = string, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumLabelElement<InputTag, ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumInputProperties<InputTag, ValueType, ViewType, DataType, ModelType, EmitterType>;
+    static defaultProperties: GradumInputProperties;
+    protected static customCreate(properties: GradumInputProperties): object;
     locked: boolean;
     selectTextOnFocus: boolean;
     dynamicVerticalResize: boolean;
@@ -6712,9 +6635,9 @@ declare class TurboInput<InputTag extends "input" | "textarea" = "input", ValueT
     readonly onBlur: Delegate<() => void>;
     readonly onInput: Delegate<() => void>;
     get input(): ValidElement<InputTag>;
-    set input(value: TurboProperties<InputTag> | ValidElement<InputTag>);
+    set input(value: GradumProperties<InputTag> | ValidElement<InputTag>);
     get element(): ValidElement<InputTag>;
-    set element(value: TurboProperties<InputTag> | ValidElement<InputTag>);
+    set element(value: GradumProperties<InputTag> | ValidElement<InputTag>);
     accessor type: string;
     accessor placeholder: string;
     accessor pattern: string;
@@ -6732,9 +6655,9 @@ declare class TurboInput<InputTag extends "input" | "textarea" = "input", ValueT
 
 /**
  * @group Components
- * @category TurboNumericalInput
+ * @category GradumNumericalInput
  */
-type TurboNumericalInputProperties<ValueType = string, ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboInputProperties<"input", ValueType, ViewType, DataType, ModelType, EmitterType> & {
+type GradumNumericalInputProperties<ValueType = string, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumInputProperties<"input", ValueType, ViewType, DataType, ModelType, EmitterType> & {
     multiplier?: number;
     decimalPlaces?: number;
     min?: number;
@@ -6743,11 +6666,11 @@ type TurboNumericalInputProperties<ValueType = string, ViewType extends TurboVie
 
 /**
  * @group Components
- * @category TurboNumericalInput
+ * @category GradumNumericalInput
  */
-declare class TurboNumericalInput<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboInput<"input", number, ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboNumericalInputProperties<number, ViewType, DataType, ModelType, EmitterType>;
-    static defaultProperties: TurboNumericalInputProperties;
+declare class GradumNumericalInput<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumInput<"input", number, ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumNumericalInputProperties<number, ViewType, DataType, ModelType, EmitterType>;
+    static defaultProperties: GradumNumericalInputProperties;
     multiplier: number;
     decimalPlaces: number;
     min: number;
@@ -6762,9 +6685,9 @@ type EntryData = {
 };
 /**
  * @group Components
- * @category TurboSelect
+ * @category GradumSelect
  */
-type TurboSelectProperties<ValueType = string, SecondaryValueType = string, EntryType extends object = HTMLElement> = {
+type GradumSelectProperties<ValueType = string, SecondaryValueType = string, EntryType extends object = HTMLElement> = {
     entriesClasses?: string | string[];
     selectedEntriesClasses?: string | string[];
     entries?: HTMLCollection | NodeList | EntryType[];
@@ -6785,25 +6708,25 @@ type TurboSelectProperties<ValueType = string, SecondaryValueType = string, Entr
 };
 /**
  * @group Components
- * @category TurboSelect
+ * @category GradumSelect
  */
-type TurboSelectInputEventProperties<ValueType = string, SecondaryValueType = string, EntryType extends object = HTMLElement> = TurboRawEventProperties & {
+type GradumSelectInputEventProperties<ValueType = string, SecondaryValueType = string, EntryType extends object = HTMLElement> = GradumRawEventProperties & {
     toggledEntry: EntryType;
     values: ValueType[];
 };
 
 /**
- * @class TurboSelect
+ * @class GradumSelect
  * @group Components
- * @category TurboSelect
+ * @category GradumSelect
  *
  * @description Base class for creating a selection menu
 
- * @extends TurboElement
+ * @extends GradumElement
  */
-declare class TurboSelect<ValueType = string, SecondaryValueType = string, EntryType extends object = HTMLElement> extends TurboBaseElement {
-    readonly properties: TurboSelectProperties<ValueType, SecondaryValueType, EntryType>;
-    static defaultProperties: TurboSelectProperties;
+declare class GradumSelect<ValueType = string, SecondaryValueType = string, EntryType extends object = HTMLElement> extends GradumBaseElement {
+    readonly properties: GradumSelectProperties<ValueType, SecondaryValueType, EntryType>;
+    static defaultProperties: GradumSelectProperties;
     private _inputField;
     private _entries;
     private readonly _entriesData;
@@ -6849,7 +6772,7 @@ declare class TurboSelect<ValueType = string, SecondaryValueType = string, Entry
     forceSelection: boolean;
     selectedEntriesClasses: string | string[];
     entriesClasses: string | string[];
-    protected static customCreate(properties: TurboSelectProperties): object;
+    protected static customCreate(properties: GradumSelectProperties): object;
     /**
      * @description Dropdown constructor
      */
@@ -6865,7 +6788,7 @@ declare class TurboSelect<ValueType = string, SecondaryValueType = string, Entry
      * @description Select an entry.
      * @param {string | EntryType} value - The DropdownEntry (or its string value) to select.
      * @param selected
-     * @return {TurboSelect} - This Dropdown for chaining.
+     * @return {GradumSelect} - This Dropdown for chaining.
      */
     select(value: ValueType | EntryType, selected?: boolean): this;
     /**
@@ -6873,7 +6796,7 @@ declare class TurboSelect<ValueType = string, SecondaryValueType = string, Entry
      * @param {number} index - The index of the entry to select
      * @param {(index: number, entriesCount: number, zero?: number) => number} [preprocess=trim] - Callback to execute
      * on the index to preprocess it. Defaults to trim().
-     * @return {TurboSelect} - This Dropdown for chaining.
+     * @return {GradumSelect} - This Dropdown for chaining.
      */
     selectByIndex(index: number, preprocess?: (index: number, entriesCount: number, zero?: number) => number): this;
     getIndex(entry: EntryType): number;
@@ -6913,26 +6836,26 @@ declare class TurboSelect<ValueType = string, SecondaryValueType = string, Entry
 
 /**
  * @group Event Handling
- * @category TurboEvents
+ * @category GradumEvents
  */
-declare class TurboSelectInputEvent<ValueType = string, SecondaryValueType = string, EntryType extends object = HTMLElement> extends TurboEvent {
+declare class GradumSelectInputEvent<ValueType = string, SecondaryValueType = string, EntryType extends object = HTMLElement> extends GradumEvent {
     readonly toggledEntry: EntryType;
     readonly values: ValueType[];
-    constructor(properties: TurboSelectInputEventProperties<ValueType, SecondaryValueType, EntryType>);
+    constructor(properties: GradumSelectInputEventProperties<ValueType, SecondaryValueType, EntryType>);
 }
 
 /**
- * @type {TurboSelectElementProperties}
+ * @type {GradumSelectElementProperties}
  * @group Components
- * @category TurboDropdown
+ * @category GradumDropdown
  *
  * @description Properties for configuring a Dropdown.
- * @extends TurboProperties
+ * @extends GradumProperties
  *
  * @property {string | string[]} [entriesClasses] - CSS class(es) for dropdown entries.
  * @property {string | string[]} [selectedEntriesClasses] - CSS class(es) for selected entries.
  */
-type TurboSelectElementProperties<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel<DataType>, EmitterType extends TurboEmitter = TurboEmitter> = TurboElementProperties<ViewType, DataType, ModelType, EmitterType> & TurboSelectProperties<ValueType, SecondaryValueType, EntryType> & {
+type GradumSelectElementProperties<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel<DataType>, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & GradumSelectProperties<ValueType, SecondaryValueType, EntryType> & {
     entriesClasses?: string | string[];
     selectedEntriesClasses?: string | string[];
 };
@@ -7036,18 +6959,18 @@ declare class Reifect<ClassType extends object = Node> extends StatefulReifect<"
 }
 
 /**
- * @class TurboSelectElement
+ * @class GradumSelectElement
  * @group Components
- * @category TurboSelectElement
+ * @category GradumSelectElement
  *
- * @description Select element class for creating Turbo button elements.
- * @extends TurboElement
+ * @description Select element class for creating Gradum button elements.
+ * @extends GradumElement
  */
-declare class TurboSelectElement<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboElement<ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboSelectElementProperties;
-    static defaultProperties: TurboSelectElementProperties;
+declare class GradumSelectElement<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumElement<ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumSelectElementProperties;
+    static defaultProperties: GradumSelectElementProperties;
     protected _sizeTransitionTimeout: ReturnType<typeof setTimeout>;
-    readonly select: TurboSelect<ValueType, SecondaryValueType, EntryType>;
+    readonly select: GradumSelect<ValueType, SecondaryValueType, EntryType>;
     entriesTag: ValidTag;
     get entries(): EntryType[];
     set entries(value: HTMLCollection | NodeList | EntryType[]);
@@ -7109,17 +7032,17 @@ declare enum ContentSwitchMode {
     fadeRight = "fadeRight",
     carousel = "carousel"
 }
-type TurboContentSwitchProperties<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboElementProperties<ViewType, DataType, ModelType, EmitterType> & {
+type GradumContentSwitchProperties<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
     mode?: ContentSwitchMode;
     transitionDuration?: number;
     transitionReifect?: StatefulReifect<Shown> | StatefulReifectProperties<Shown>;
 };
 
-declare class TurboContentSwitch<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboSelectElement<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> {
+declare class GradumContentSwitch<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumSelectElement<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> {
     static defaultProperties: {
         transitionDuration: number;
     };
-    readonly properties: TurboContentSwitchProperties<ViewType, DataType, ModelType, EmitterType>;
+    readonly properties: GradumContentSwitchProperties<ViewType, DataType, ModelType, EmitterType>;
     set mode(value: ContentSwitchMode);
     set entryTransitionReifect(value: Reifect | StatelessReifectProperties);
     get entryTransitionReifect(): Reifect;
@@ -7135,15 +7058,15 @@ declare class TurboContentSwitch<ValueType = string, SecondaryValueType = string
 
 /**
  * @group Components
- * @category TurboDrawer
+ * @category GradumDrawer
  */
-type TurboDrawerProperties<ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboElementProperties<ViewType, DataType, ModelType, EmitterType> & {
+type GradumDrawerProperties<ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
     side?: Side;
     offset?: number | PartialRecord<Open, number>;
     hideOverflow?: boolean;
-    panel?: TurboProperties | HTMLElement;
-    thumb?: TurboProperties | HTMLElement;
-    icon?: string | Element | TurboIconSwitchProperties<Side> | TurboIconSwitch<Side>;
+    panel?: GradumProperties | HTMLElement;
+    thumb?: GradumProperties | HTMLElement;
+    icon?: string | Element | GradumIconSwitchProperties<Side> | GradumIconSwitch<Side>;
     attachSideToIconName?: boolean;
     rotateIconBasedOnSide?: boolean;
     open?: boolean;
@@ -7152,20 +7075,20 @@ type TurboDrawerProperties<ViewType extends TurboView = TurboView, DataType exte
 
 /**
  * @group Components
- * @category TurboDrawer
+ * @category GradumDrawer
  */
-declare class TurboDrawer<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel, EMitterType extends TurboEmitter = TurboEmitter> extends TurboElement<ViewType, DataType, ModelType, EMitterType> {
-    readonly properties: TurboDrawerProperties;
+declare class GradumDrawer<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EMitterType extends GradumEmitter = GradumEmitter> extends GradumElement<ViewType, DataType, ModelType, EMitterType> {
+    readonly properties: GradumDrawerProperties;
     private _panelContainer;
     get panelContainer(): HTMLElement;
     private dragging;
     protected resizeObserver: ResizeObserver;
-    set thumb(value: TurboProperties | HTMLElement);
+    set thumb(value: GradumProperties | HTMLElement);
     get thumb(): HTMLElement;
-    set panel(value: TurboProperties | HTMLElement);
+    set panel(value: GradumProperties | HTMLElement);
     get panel(): HTMLElement;
-    set icon(_value: string | Element | TurboIconSwitchProperties<Side> | TurboIconSwitch<Side>);
-    get icon(): TurboIconSwitch<Side> | Element;
+    set icon(_value: string | Element | GradumIconSwitchProperties<Side> | GradumIconSwitch<Side>);
+    get icon(): GradumIconSwitch<Side> | Element;
     set hideOverflow(value: boolean);
     set attachSideToIconName(value: boolean);
     set rotateIconBasedOnSide(value: boolean);
@@ -7189,15 +7112,15 @@ declare class TurboDrawer<ViewType extends TurboView = TurboView<any, any>, Data
 }
 /**
  * @group Components
- * @category TurboDrawer
+ * @category GradumDrawer
  */
-declare function drawer<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter>(properties: TurboDrawerProperties<ViewType, DataType, ModelType, EmitterType>): TurboDrawer<ViewType, DataType, ModelType, EmitterType>;
+declare function drawer<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter>(properties: GradumDrawerProperties<ViewType, DataType, ModelType, EmitterType>): GradumDrawer<ViewType, DataType, ModelType, EmitterType>;
 
 /**
  * @group Components
- * @category TurboPopup
+ * @category GradumPopup
  */
-type TurboPopupProperties<ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboElementProperties<ViewType, DataType, ModelType, EmitterType> & {
+type GradumPopupProperties<ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
     anchor?: Element;
     popupPosition?: Coordinate;
     anchorPosition?: Coordinate;
@@ -7207,7 +7130,7 @@ type TurboPopupProperties<ViewType extends TurboView = TurboView, DataType exten
 };
 /**
  * @group Components
- * @category TurboPopup
+ * @category GradumPopup
  */
 declare enum PopupFallbackMode {
     invert = "invert",
@@ -7217,11 +7140,11 @@ declare enum PopupFallbackMode {
 
 /**
  * @group Components
- * @category TurboPopup
+ * @category GradumPopup
  */
-declare class TurboPopup<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboElement<ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboPopupProperties;
-    static defaultProperties: TurboPopupProperties;
+declare class GradumPopup<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumElement<ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumPopupProperties;
+    static defaultProperties: GradumPopupProperties;
     protected static parentElement: HTMLElement;
     anchor: Element;
     set popupPosition(value: Coordinate);
@@ -7263,7 +7186,7 @@ declare class AnchorPoint {
 /**
  * @type ScopedKey
  * @group Components
- * @category TurboNestedMap
+ * @category GradumNestedMap
  *
  * @template KeyType - The per-item key type.
  * @template BlockKeyType - The block-grouping key type.
@@ -7276,16 +7199,16 @@ type ScopedKey<KeyType = any, BlockKeyType = any> = {
 };
 /**
  * @group Components
- * @category TurboNestedStore
+ * @category GradumNestedStore
  */
 type BlockStoreType<Type extends "array" | "map" = "map", BlockType extends object = object> = Type extends "map" ? Map<string, BlockType> : BlockType[];
 
 /**
- * @type TurboRectProperties
+ * @type GradumRectProperties
  * @group Components
- * @category TurboRect
+ * @category GradumRect
  */
-type TurboRectProperties = {
+type GradumRectProperties = {
     x?: number;
     y?: number;
     width?: number;
@@ -7296,16 +7219,16 @@ type TurboRectProperties = {
 };
 
 /**
- * @class TurboRect
+ * @class GradumRect
  * @group Components
- * @category TurboRect
+ * @category GradumRect
  */
-declare class TurboRect extends DOMRect {
+declare class GradumRect extends DOMRect {
     angleRad: number;
     anchor: AnchorPoint;
-    constructor(properties?: TurboRectProperties);
-    static fromSegment(a: Point, b: Point, thickness?: number, properties?: TurboRectProperties): TurboRect;
-    static fromDOMRect(rect: DOMRect, properties?: TurboRectProperties): TurboRect;
+    constructor(properties?: GradumRectProperties);
+    static fromSegment(a: Point, b: Point, thickness?: number, properties?: GradumRectProperties): GradumRect;
+    static fromDOMRect(rect: DOMRect, properties?: GradumRectProperties): GradumRect;
     render(): HTMLElement;
     get angleDeg(): number;
     set angleDeg(value: number);
@@ -7328,12 +7251,12 @@ declare class TurboRect extends DOMRect {
 }
 
 /**
- * @type {TurboDropdownProperties}
+ * @type {GradumDropdownProperties}
  * @group Components
- * @category TurboDropdown
+ * @category GradumDropdown
  *
  * @description Properties for configuring a Dropdown.
- * @extends TurboProperties
+ * @extends GradumProperties
  *
  * @property {(string | HTMLElement)} [selector] - Element or descriptor used as the dropdown selector. If a
  * string is passed, a Button with the given string as text will be assigned as the selector.
@@ -7342,14 +7265,14 @@ declare class TurboRect extends DOMRect {
  * @property {boolean} [multiSelection=false] - Enables selection of multiple dropdown entries.
  *
  * @property {ValidTag} [selectorTag] - Custom HTML tag for the selector's text. Overrides the
- * default tag set in TurboConfig.Dropdown.
+ * default tag set in GradumConfig.Dropdown.
  *
  * @property {string | string[]} [selectorClasses] - Custom CSS class(es) for the selector. Overrides the default
- * classes set in TurboConfig.Dropdown.
+ * classes set in GradumConfig.Dropdown.
  * @property {string | string[]} [popupClasses] - Custom CSS class(es) for the popup container. Overrides the
- * default classes set in TurboConfig.Dropdown.
+ * default classes set in GradumConfig.Dropdown.
  */
-type TurboDropdownProperties<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel<DataType>, EmitterType extends TurboEmitter = TurboEmitter> = TurboSelectElementProperties<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> & {
+type GradumDropdownProperties<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel<DataType>, EmitterType extends GradumEmitter = GradumEmitter> = GradumSelectElementProperties<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> & {
     selector?: string | HTMLElement;
     popup?: HTMLElement;
     selectorTag?: HTMLTag;
@@ -7358,17 +7281,17 @@ type TurboDropdownProperties<ValueType = string, SecondaryValueType = string, En
 };
 
 /**
- * @class TurboDropdown
+ * @class GradumDropdown
  * @group Components
- * @category TurboDropdown
+ * @category GradumDropdown
  *
- * @description Dropdown class for creating Turbo button elements.
- * @extends TurboElement
+ * @description Dropdown class for creating Gradum button elements.
+ * @extends GradumElement
  */
-declare class TurboDropdown<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboSelectElement<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboDropdownProperties;
-    static defaultProperties: TurboDropdownProperties;
-    readonly select: TurboSelect<ValueType, SecondaryValueType, EntryType>;
+declare class GradumDropdown<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumSelectElement<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumDropdownProperties;
+    static defaultProperties: GradumDropdownProperties;
+    readonly select: GradumSelect<ValueType, SecondaryValueType, EntryType>;
     private popupOpen;
     selectorTag: HTMLTag;
     selectorClasses: string | string[];
@@ -7388,9 +7311,9 @@ declare class TurboDropdown<ValueType = string, SecondaryValueType = string, Ent
 
 /**
  * @group Components
- * @category TurboMarkingMenu
+ * @category GradumMarkingMenu
  */
-type TurboMarkingMenuProperties<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel> = TurboElementProperties<ViewType, DataType, ModelType> & {
+type GradumMarkingMenuProperties<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel> = GradumElementProperties<ViewType, DataType, ModelType> & {
     transition?: StatefulReifect<InOut> | StatefulReifectProperties<InOut>;
     startAngle?: number;
     endAngle?: number;
@@ -7401,10 +7324,10 @@ type TurboMarkingMenuProperties<ValueType = string, SecondaryValueType = string,
 
 /**
  * @group Components
- * @category TurboMarkingMenu
+ * @category GradumMarkingMenu
  */
-declare class TurboMarkingMenu<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel> extends TurboElement<ViewType, DataType, ModelType> {
-    readonly properties: TurboMarkingMenuProperties;
+declare class GradumMarkingMenu<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel> extends GradumElement<ViewType, DataType, ModelType> {
+    readonly properties: GradumMarkingMenuProperties;
     private readonly transition;
     private currentOrigin;
     minDragDistance: number;
@@ -7416,12 +7339,12 @@ declare class TurboMarkingMenu<ValueType = string, SecondaryValueType = string, 
 
 /**
  * @group Components
- * @category TurboSelectWheel
+ * @category GradumSelectWheel
  */
-type TurboSelectWheelProperties<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> = TurboElementProperties<ViewType, DataType, ModelType, EmitterType> & {
+type GradumSelectWheelProperties<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
     direction?: Direction;
     reifect?: Reifect | StatelessReifectProperties;
-    generateCustomStyling?: (properties: TurboSelectWheelStylingProperties) => string | PartialRecord<keyof CSSStyleDeclaration, string | number>;
+    generateCustomStyling?: (properties: GradumSelectWheelStylingProperties) => string | PartialRecord<keyof CSSStyleDeclaration, string | number>;
     size?: number | Record<Range, number>;
     opacity?: Record<Range, number>;
     scale?: Record<Range, number>;
@@ -7429,9 +7352,9 @@ type TurboSelectWheelProperties<ValueType = string, SecondaryValueType = string,
 };
 /**
  * @group Components
- * @category TurboSelectWheel
+ * @category GradumSelectWheel
  */
-type TurboSelectWheelStylingProperties = {
+type GradumSelectWheelStylingProperties = {
     element: HTMLElement;
     translationValue: number;
     scaleValue: number;
@@ -7441,21 +7364,21 @@ type TurboSelectWheelStylingProperties = {
 };
 
 /**
- * @class TurboSelectWheel
+ * @class GradumSelectWheel
  * @group Components
- * @category TurboSelectWheel
+ * @category GradumSelectWheel
  *
- * @extends TurboSelectElement
+ * @extends GradumSelectElement
  * @description A swipeable selection wheel. Entries are always position absolute, fanned out by a
  * continuous pixel offset. Dragging moves all entries in real time; releasing snaps to the nearest.
  * The container sizes to the selected entry. Visual state is driven by `entryTransitionReifect`
  * (CSS transitions) and `computeAndApplyStyling` (per-entry opacity/scale/transform).
  */
-declare class TurboSelectWheel<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboSelectElement<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> {
+declare class GradumSelectWheel<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumSelectElement<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> {
     static defaultProperties: {
         transitionDuration: number;
     };
-    readonly properties: TurboSelectWheelProperties<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType>;
+    readonly properties: GradumSelectWheelProperties<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType>;
     private _currentPosition;
     private _index;
     protected readonly sizePerEntry: number[];
@@ -7465,7 +7388,7 @@ declare class TurboSelectWheel<ValueType = string, SecondaryValueType = string, 
     openTimeout: number;
     direction: Direction;
     scale: Record<Range, number>;
-    generateCustomStyling: (properties: TurboSelectWheelStylingProperties) => string | PartialRecord<keyof CSSStyleDeclaration, string | number>;
+    generateCustomStyling: (properties: GradumSelectWheelStylingProperties) => string | PartialRecord<keyof CSSStyleDeclaration, string | number>;
     protected dragging: boolean;
     protected openTimer: ReturnType<typeof setTimeout>;
     initialize(): void;
@@ -7499,12 +7422,12 @@ declare class TurboSelectWheel<ValueType = string, SecondaryValueType = string, 
 }
 
 /**
- * @type {TurboDropdownProperties}
+ * @type {GradumDropdownProperties}
  * @group Components
- * @category TurboDropdown
+ * @category GradumDropdown
  *
  * @description Properties for configuring a Dropdown.
- * @extends TurboProperties
+ * @extends GradumProperties
  *
  * @property {(string | HTMLElement)} [selector] - Element or descriptor used as the dropdown selector. If a
  * string is passed, a Button with the given string as text will be assigned as the selector.
@@ -7513,28 +7436,28 @@ declare class TurboSelectWheel<ValueType = string, SecondaryValueType = string, 
  * @property {boolean} [multiSelection=false] - Enables selection of multiple dropdown entries.
  *
  * @property {ValidTag} [selectorTag] - Custom HTML tag for the selector's text. Overrides the
- * default tag set in TurboConfig.Dropdown.
+ * default tag set in GradumConfig.Dropdown.
  *
  * @property {string | string[]} [selectorClasses] - Custom CSS class(es) for the selector. Overrides the default
- * classes set in TurboConfig.Dropdown.
+ * classes set in GradumConfig.Dropdown.
  * @property {string | string[]} [popupClasses] - Custom CSS class(es) for the popup container. Overrides the
- * default classes set in TurboConfig.Dropdown.
+ * default classes set in GradumConfig.Dropdown.
  */
-type TurboButtonPopupProperties<ElementTag extends ValidTag = any, ViewType extends TurboView = TurboView, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel<DataType>, EmitterType extends TurboEmitter = TurboEmitter> = TurboRichElementProperties<ElementTag, ViewType, DataType, ModelType, EmitterType> & {
+type GradumButtonPopupProperties<ElementTag extends ValidTag = any, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel<DataType>, EmitterType extends GradumEmitter = GradumEmitter> = GradumRichElementProperties<ElementTag, ViewType, DataType, ModelType, EmitterType> & {
     popup?: HTMLElement;
     popupClasses?: string | string[];
 };
 
 /**
- * @class TurboButtonPopup
+ * @class GradumButtonPopup
  * @group Components
- * @category TurboButton
+ * @category GradumButton
  *
- * @description Button class for creating Turbo button elements.
- * @extends TurboElement
+ * @description Button class for creating Gradum button elements.
+ * @extends GradumElement
  */
-declare class TurboButtonPopup<ElementTag extends ValidTag = any, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel<DataType> = TurboModel, EmitterType extends TurboEmitter = TurboEmitter> extends TurboButton<ElementTag, ViewType, DataType, ModelType, EmitterType> {
-    readonly properties: TurboButtonPopupProperties;
+declare class GradumButtonPopup<ElementTag extends ValidTag = any, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumButton<ElementTag, ViewType, DataType, ModelType, EmitterType> {
+    readonly properties: GradumButtonPopupProperties;
     private popupOpen;
     popupClasses: string | string[];
     /**
@@ -7545,15 +7468,15 @@ declare class TurboButtonPopup<ElementTag extends ValidTag = any, ViewType exten
     private openPopup;
 }
 
-declare class TurboGrid<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter<any>> extends TurboElement<ViewType, DataType, ModelType, EmitterType> {
+declare class GradumGrid<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>> extends GradumElement<ViewType, DataType, ModelType, EmitterType> {
 }
 
 /**
- * @class TurboMovable
+ * @class GradumMovable
  * @group Components
- * @category TurboMovable
+ * @category GradumMovable
  *
- * @extends TurboElement
+ * @extends GradumElement
  * @description Positioning wrapper that places arbitrary content via pure CSS transforms.
  * Set {@link translation} (alias {@link position}) and {@link rotation} to move/rotate the
  * wrapper without touching the content's own fields — useful for previews (feedforwards),
@@ -7562,13 +7485,13 @@ declare class TurboGrid<ViewType extends TurboView = TurboView<any, any>, DataTy
  *
  * @example
  * ```ts
- * const movable = TurboMovable.create({content: myElement});
+ * const movable = GradumMovable.create({content: myElement});
  * movable.translation = new Point(120, 40);
  * movable.rotation = Math.PI / 6;
  * movable.translateBy(new Point(5, 0));
  * ```
  */
-declare class TurboMovable<ContentType extends Element = Element> extends TurboElement {
+declare class GradumMovable<ContentType extends Element = Element> extends GradumElement {
     /** @description The translation applied to the wrapper, in pixels. */
     translation: Point;
     /** @description The rotation applied to the wrapper, in radians. */
@@ -7592,45 +7515,45 @@ declare class TurboMovable<ContentType extends Element = Element> extends TurboE
 }
 
 /**
- * @class TurboHeadlessElement
- * @group TurboElement
- * @category TurboHeadlessElement
+ * @class GradumHeadlessElement
+ * @group GradumElement
+ * @category GradumHeadlessElement
  *
- * @description TurboHeadlessElement class, similar to TurboElement but without extending HTMLElement.
- * @template {TurboView} ViewType - The element's view type, if initializing MVC.
+ * @description GradumHeadlessElement class, similar to GradumElement but without extending HTMLElement.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
  */
-declare class TurboHeadlessElement<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter<any>> {
+declare class GradumHeadlessElement<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>> {
     /**
      * @description Default properties assigned to a new instance.
      */
-    static defaultProperties: TurboHeadlessProperties;
-    static create<Type extends new (...args: any[]) => TurboHeadlessElement>(this: Type, properties?: InstanceType<Type>["properties"]): InstanceType<Type>;
+    static defaultProperties: GradumHeadlessProperties;
+    static create<Type extends new (...args: any[]) => GradumHeadlessElement>(this: Type, properties?: InstanceType<Type>["properties"]): InstanceType<Type>;
     protected static customCreate(properties: object): object;
-    readonly properties: TurboHeadlessProperties<ViewType, DataType, ModelType, EmitterType>;
+    readonly properties: GradumHeadlessProperties<ViewType, DataType, ModelType, EmitterType>;
 }
 
 /**
- * @class TurboProxiedElement
- * @group TurboElement
- * @category TurboProxiedElement
+ * @class GradumProxiedElement
+ * @group GradumElement
+ * @category GradumProxiedElement
  *
- * @description TurboProxiedElement class, similar to TurboElement but containing an HTML element instead of being one.
- * @template {TurboView} ViewType - The element's view type, if initializing MVC.
+ * @description GradumProxiedElement class, similar to GradumElement but containing an HTML element instead of being one.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
  */
-declare class TurboProxiedElement<ElementTag extends ValidTag = ValidTag, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter<any>> {
+declare class GradumProxiedElement<ElementTag extends ValidTag = ValidTag, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>> {
     /**
      * @description Default properties assigned to a new instance.
      */
-    static defaultProperties: TurboElementProperties;
-    static create<Type extends new (...args: any[]) => TurboProxiedElement>(this: Type, properties?: InstanceType<Type>["properties"]): InstanceType<Type>;
+    static defaultProperties: GradumElementProperties;
+    static create<Type extends new (...args: any[]) => GradumProxiedElement>(this: Type, properties?: InstanceType<Type>["properties"]): InstanceType<Type>;
     protected static customCreate(properties: object): object;
-    readonly properties: TurboProxiedProperties<ElementTag, ViewType, DataType, ModelType, EmitterType>;
+    readonly properties: GradumProxiedProperties<ElementTag, ViewType, DataType, ModelType, EmitterType>;
     /**
      * @description The HTML (or other) element wrapped inside this instance.
      */
@@ -7665,43 +7588,14 @@ declare class TurboProxiedElement<ElementTag extends ValidTag = ValidTag, ViewTy
 }
 
 /**
- * @type {ChildHandler}
- * @group Types
- * @category Hierarchy
- *
- * @description A type that represents all entities that can hold and manage children (an element or a shadow root).
- */
-type ChildHandler = Node | ShadowRoot;
-/**
- * @constant
- * @group Types
- * @category Misc
- * @description Default array-like keys to merge when applying defaults with {@link TurboSelector.applyDefaults}.
- */
-declare const ApplyDefaultsMergeProperties: readonly ["interactors", "tools", "constrainers", "operators", "handlers"];
-/**
- * @type {ApplyDefaultsOptions}
- * @group Types
- * @category Misc
- *
- * @description Options for {@link TurboSelector.applyDefaults}.
- * @property {string[]} [mergeProperties] - Array-like keys to merge. Defaults to {@link ApplyDefaultsMergeProperties}.
- * @property {boolean} [removeDuplicates] - Whether to remove duplicates when merging arrays. Defaults to `true`.
- */
-type ApplyDefaultsOptions = {
-    mergeProperties?: string[];
-    removeDuplicates?: boolean;
-};
-
-/**
- * @class TurboSelector
- * @group TurboSelector
+ * @class GradumSelector
+ * @group GradumSelector
  *
  * @template {object} Type - The type of the object it wraps.
  * @description Selector class that wraps an object and augments it with useful functions to manipulate it. It also
  * proxies the object, so you can access properties and methods on the underlying object directly through the selector.
  */
-declare class TurboSelector<Type extends object = Node> {
+declare class GradumSelector<Type extends object = Node> {
     #private;
     /**
      * @description The underlying, wrapped object.
@@ -7711,13 +7605,13 @@ declare class TurboSelector<Type extends object = Node> {
 }
 
 /**
- * @group TurboSelector
+ * @group GradumSelector
  */
-type Turbo<Type extends object = Node> = TurboSelector<Type> & Type;
+type Gradum<Type extends object = Node> = GradumSelector<Type> & Type;
 /**
- * @group TurboSelector
+ * @group GradumSelector
  */
-type TurbofyOptions = {
+type GradumifyOptions = {
     excludeHierarchyFunctions?: boolean;
     excludeMvcFunctions?: boolean;
     excludeStyleFunctions?: boolean;
@@ -7731,168 +7625,274 @@ type TurbofyOptions = {
 };
 /**
  * @overload
- * @function turbo
- * @group TurboSelector
+ * @function gradum
+ * @group GradumSelector
  *
  * @template {ValidTag} Tag
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
- * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `tu()`,
- * `t()`, or `$()` for the same behavior.
+ * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `gr()`,
+ * `g()`, or `$()` for the same behavior.
  * @param {Tag} [tag="div"] - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Turbo<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
+ * @return {Gradum<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
  */
-declare function turbo<Tag extends ValidTag = "div">(tag?: Tag): Turbo<ValidElement<Tag>>;
+declare function gradum<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
 /**
  * @overload
- * @function turbo
- * @group TurboSelector
+ * @function gradum
+ * @group GradumSelector
  *
  * @template {object} Type
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
- * with useful functions for manipulating it. You can alternatively use `tu()`, `t()`, or `$()` for the same behavior.
+ * with useful functions for manipulating it. You can alternatively use `gr()`, `g()`, or `$()` for the same behavior.
  * @param {Type} object - The object to wrap.
  * @param {boolean} [raw=false] - If set to true, the selector will operate directly on the provided object, even
  * if it contains an inner `element` field. Useful when you want to set properties on a proxied wrapper itself rather
  * than its underlying DOM element.
- * @return {Turbo<Type>} - The wrapped, proxied object.
+ * @return {Gradum<Type>} - The wrapped, proxied object.
  */
-declare function turbo<Type extends object = Node>(object: Type, raw?: boolean): Turbo<Type>;
+declare function gradum<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type>;
 /**
  * @overload
- * @function turbo
- * @group TurboSelector
+ * @function gradum
+ * @group GradumSelector
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
- * `tu()`, `t()`, or `$()` for the same behavior.
+ * `gr()`, `g()`, or `$()` for the same behavior.
  * @param {string} tag - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Turbo<Element>} - The instantiated, wrapped, and proxied element.
+ * @return {Gradum<Element>} - The instantiated, wrapped, and proxied element.
  */
-declare function turbo(tag?: string): Turbo<Element>;
+declare function gradum(tag?: string): Gradum<Element>;
 /**
  * @overload
- * @function tu
- * @group TurboSelector
+ * @function gr
+ * @group GradumSelector
  *
  * @template {ValidTag} Tag
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
- * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `turbo()`,
- * `t()`, or `$()` for the same behavior.
+ * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `gradum()`,
+ * `g()`, or `$()` for the same behavior.
  * @param {Tag} [tag="div"] - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Turbo<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
+ * @return {Gradum<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
  */
-declare function tu<Tag extends ValidTag = "div">(tag?: Tag): Turbo<ValidElement<Tag>>;
+declare function gr<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
 /**
  * @overload
- * @function tu
- * @group TurboSelector
+ * @function gr
+ * @group GradumSelector
  *
  * @template {object} Type
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
- * with useful functions for manipulating it. You can alternatively use `turbo()`, `t()`, or `$()` for the same behavior.
+ * with useful functions for manipulating it. You can alternatively use `gradum()`, `g()`, or `$()` for the same behavior.
  * @param {Type} object - The object to wrap.
  * @param {boolean} [raw=false] - If set to true, the selector will operate directly on the provided object, even
  * if it contains an inner `element` field. Useful when you want to set properties on a proxied wrapper itself rather
  * than its underlying DOM element.
- * @return {Turbo<Type>} - The wrapped, proxied object.
+ * @return {Gradum<Type>} - The wrapped, proxied object.
  */
-declare function tu<Type extends object = Node>(object: Type, raw?: boolean): Turbo<Type>;
+declare function gr<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type>;
 /**
  * @overload
- * @function tu
- * @group TurboSelector
+ * @function gr
+ * @group GradumSelector
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
- * `turbo()`, `t()`, or `$()` for the same behavior.
+ * `gradum()`, `g()`, or `$()` for the same behavior.
  * @param {string} tag - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Turbo<Element>} - The instantiated, wrapped, and proxied element.
+ * @return {Gradum<Element>} - The instantiated, wrapped, and proxied element.
  */
-declare function tu(tag: string): Turbo<Element>;
+declare function gr(tag: string): Gradum<Element>;
 /**
  * @overload
- * @function t
- * @group TurboSelector
+ * @function g
+ * @group GradumSelector
  *
  * @template {ValidTag} Tag
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
- * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `turbo()`,
- * `tu()`, or `$()` for the same behavior.
+ * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `gradum()`,
+ * `gr()`, or `$()` for the same behavior.
  * @param {Tag} [tag="div"] - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Turbo<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
+ * @return {Gradum<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
  */
-declare function t<Tag extends ValidTag = "div">(tag?: Tag): Turbo<ValidElement<Tag>>;
+declare function g<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
 /**
  * @overload
- * @function t
- * @group TurboSelector
+ * @function g
+ * @group GradumSelector
  *
  * @template {object} Type
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
- * with useful functions for manipulating it. You can alternatively use `turbo()`, `tu()`, or `$()` for the same behavior.
+ * with useful functions for manipulating it. You can alternatively use `gradum()`, `gr()`, or `$()` for the same behavior.
  * @param {Type} object - The object to wrap.
  * @param {boolean} [raw=false] - If set to true, the selector will operate directly on the provided object, even
  * if it contains an inner `element` field. Useful when you want to set properties on a proxied wrapper itself rather
  * than its underlying DOM element.
- * @return {Turbo<Type>} - The wrapped, proxied object.
+ * @return {Gradum<Type>} - The wrapped, proxied object.
  */
-declare function t<Type extends object = Node>(object: Type, raw?: boolean): Turbo<Type>;
+declare function g<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type>;
 /**
  * @overload
- * @function t
- * @group TurboSelector
+ * @function g
+ * @group GradumSelector
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
- * `turbo()`, `tu()`, or `$()` for the same behavior.
+ * `gradum()`, `gr()`, or `$()` for the same behavior.
  * @param {string} tag - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Turbo<Element>} - The instantiated, wrapped, and proxied element.
+ * @return {Gradum<Element>} - The instantiated, wrapped, and proxied element.
  */
-declare function t(tag: string): Turbo<Element>;
+declare function g(tag: string): Gradum<Element>;
 /**
  * @overload
  * @function $
- * @group TurboSelector
+ * @group GradumSelector
  *
  * @template {ValidTag} Tag
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
- * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `turbo()`,
- * `tu()`, or `t()` for the same behavior.
+ * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `gradum()`,
+ * `gr()`, or `g()` for the same behavior.
  * @param {Tag} [tag="div"] - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Turbo<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
+ * @return {Gradum<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
  */
-declare function $<Tag extends ValidTag = "div">(tag?: Tag): Turbo<ValidElement<Tag>>;
+declare function $<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
 /**
  * @overload
  * @function $
- * @group TurboSelector
+ * @group GradumSelector
  *
  * @template {object} Type
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
- * with useful functions for manipulating it. You can alternatively use `turbo()`, `tu()`, or `t()` for the same behavior.
+ * with useful functions for manipulating it. You can alternatively use `gradum()`, `gr()`, or `g()` for the same behavior.
  * @param {Type} object - The object to wrap.
  * @param {boolean} [raw=false] - If set to true, the selector will operate directly on the provided object, even
  * if it contains an inner `element` field. Useful when you want to set properties on a proxied wrapper itself rather
  * than its underlying DOM element.
- * @return {Turbo<Type>} - The wrapped, proxied object.
+ * @return {Gradum<Type>} - The wrapped, proxied object.
  */
-declare function $<Type extends object = Node>(object: Type, raw?: boolean): Turbo<Type>;
+declare function $<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type>;
 /**
  * @overload
  * @function $
- * @group TurboSelector
+ * @group GradumSelector
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
- * `turbo()`, `tu()`, or `t()` for the same behavior.
+ * `gradum()`, `gr()`, or `g()` for the same behavior.
  * @param {string} tag - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Turbo<Element>} - The instantiated, wrapped, and proxied element.
+ * @return {Gradum<Element>} - The instantiated, wrapped, and proxied element.
  */
-declare function $(tag: string): Turbo<Element>;
+declare function $(tag: string): Gradum<Element>;
 /**
- * @group TurboSelector
+ * @group GradumSelector
  */
-declare const turbofy: (options?: TurbofyOptions) => void;
+declare const gradumify: (options?: GradumifyOptions) => void;
+
+/**
+ * @type {ChildHandler}
+ * @group Types
+ * @category Hierarchy
+ *
+ * @description A type that represents all entities that can hold and manage children (an element or a shadow root).
+ */
+type ChildHandler = Node | ShadowRoot;
+/**
+ * @constant
+ * @group Types
+ * @category Misc
+ * @description Default array-like keys to merge when applying defaults with {@link GradumSelector.applyDefaults}.
+ */
+declare const ApplyDefaultsMergeProperties: readonly ["interactors", "tools", "constrainers", "operators", "handlers"];
+/**
+ * @type {ApplyDefaultsOptions}
+ * @group Types
+ * @category Misc
+ *
+ * @description Options for {@link GradumSelector.applyDefaults}.
+ * @property {string[]} [mergeProperties] - Array-like keys to merge. Defaults to {@link ApplyDefaultsMergeProperties}.
+ * @property {boolean} [removeDuplicates] - Whether to remove duplicates when merging arrays. Defaults to `true`.
+ */
+type ApplyDefaultsOptions = {
+    mergeProperties?: string[];
+    removeDuplicates?: boolean;
+};
+
+declare module "yjs" {
+    interface Map<MapType = any> {
+    }
+    interface Array<T = any> {
+    }
+    interface AbstractType<EventType = any> {
+    }
+    interface YEvent<T = any, EventType = any> {
+    }
+    interface YMapEvent<T = any, EventType = any> {
+    }
+    interface YArrayEvent<T = any, EventType = any> {
+    }
+}
+/**
+ * @group Types
+ * @category Yjs
+ */
+type YDocumentProperties<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
+    document: Doc;
+};
+
+/**
+ * @group MVC
+ * @category GradumModel
+ */
+declare class GradumYModel<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any> extends GradumModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
+    private readonly observer;
+    private readonly observedYTypes;
+    /**
+     * @inheritDoc
+     */
+    modelConstructor: new (...args: any[]) => GradumModel;
+    /**
+     * @inheritDoc
+     */
+    set enabledCallbacks(value: boolean);
+    /**
+     * @inheritDoc
+     */
+    protected getAction(data: any, key: KeyType): any;
+    /**
+     * @inheritDoc
+     */
+    protected setAction(data: any, value: any, key: KeyType): void;
+    /**
+     * @inheritDoc
+     */
+    protected addAction(model: GradumModel, data: any, value: any, key: KeyType): KeyType;
+    /**
+     * @inheritDoc
+     */
+    protected hasAction(data: any, key: KeyType): boolean;
+    /**
+     * @inheritDoc
+     */
+    protected deleteAction(data: any, key: KeyType): void;
+    /**
+     * @inheritDoc
+     */
+    protected getKeysAction(data: any): KeyType[];
+    /**
+     * @inheritDoc
+     */
+    initialize(): void;
+    /**
+     * @inheritDoc
+     */
+    clear(clearData?: boolean): void;
+    protected diffCheck(oldData: DataType, newData: DataType): boolean;
+    protected observeChanges(event: YEvent, transaction: any): void;
+    protected attachNestedObservers(value: any): void;
+    protected detachNestedObservers(value: any): void;
+    private shiftIndices;
+    private getPathToTarget;
+}
 
 /**
  * @group Utilities
@@ -8332,11 +8332,11 @@ type FontProperties = {
  */
 declare function loadLocalFont(font: FontProperties): void;
 
-export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, TurboBaseElement, TurboButton, TurboButtonPopup, TurboClickEventName, TurboConstrainer, TurboContentSwitch, TurboDragEvent, TurboDragEventName, TurboDrawer, TurboDropdown, TurboElement, TurboEmitter, TurboEvent, TurboEventManager, TurboEventName, TurboGrid, TurboHandler, TurboHeadlessElement, TurboIcon, TurboIconSwitch, TurboIconToggle, TurboInput, TurboInteractor, TurboKeyEvent, TurboKeyEventName, TurboLabelElement, TurboMap, TurboMarkingMenu, TurboModel, TurboMovable, TurboMoveEventName, TurboNestedMap, TurboNodeList, TurboNumericalInput, TurboObserver, TurboOperator, TurboPopup, TurboProxiedElement, TurboQueue, TurboRect, TurboRichElement, TurboSelect, TurboSelectElement, TurboSelectInputEvent, TurboSelectWheel, TurboSelector, TurboTool, TurboView, TurboWeakSet, TurboWheelEvent, TurboWheelEventName, TurboYModel, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, deepObserveAll, deepObserveAny, define, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, generateTagFunction, getAllRegistered, getConstructorChain, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, modelSignal, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, t, textToElement, textarea, tool, trim, tu, turbo, turbofy, untrack, urlToBlob, video };
-export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledTurboEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, Turbo, TurboButtonPopupProperties, TurboConstrainerProperties, TurboContentSwitchProperties, TurboDragEventProperties, TurboDrawerProperties, TurboDropdownProperties, TurboElementDefaultInterface, TurboElementMvcInterface, TurboElementProperties, TurboElementPropertiesMap, TurboElementTagNameMap, TurboElementUiInterface, TurboEventManagerLockStateProperties, TurboEventManagerProperties, TurboEventManagerStateProperties, TurboEventNameEntry, TurboEventNameKey, TurboEventProperties, TurboHeadlessProperties, TurboIconProperties, TurboIconSwitchProperties, TurboIconToggleProperties, TurboInputProperties, TurboInteractorProperties, TurboKeyEventProperties, TurboLabelElementProperties, TurboMarkingMenuProperties, TurboModelProperties, TurboModelProxy, TurboNumericalInputProperties, TurboObserverProperties, TurboOperatorProperties, TurboPopupProperties, TurboProperties, TurboProxiedProperties, TurboRawEventProperties, TurboRectProperties, TurboRichElementProperties, TurboSelectElementProperties, TurboSelectInputEventProperties, TurboSelectProperties, TurboSelectWheelProperties, TurboSelectWheelStylingProperties, TurboToolProperties, TurboViewProperties, TurboWheelEventProperties, TurbofyOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
+export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, GradumBaseElement, GradumButton, GradumButtonPopup, GradumClickEventName, GradumConstrainer, GradumContentSwitch, GradumDragEvent, GradumDragEventName, GradumDrawer, GradumDropdown, GradumElement, GradumEmitter, GradumEvent, GradumEventManager, GradumEventName, GradumGrid, GradumHandler, GradumHeadlessElement, GradumIcon, GradumIconSwitch, GradumIconToggle, GradumInput, GradumInteractor, GradumKeyEvent, GradumKeyEventName, GradumLabelElement, GradumMap, GradumMarkingMenu, GradumModel, GradumMovable, GradumMoveEventName, GradumNestedMap, GradumNodeList, GradumNumericalInput, GradumObserver, GradumOperator, GradumPopup, GradumProxiedElement, GradumQueue, GradumRect, GradumRichElement, GradumSelect, GradumSelectElement, GradumSelectInputEvent, GradumSelectWheel, GradumSelector, GradumTool, GradumView, GradumWeakSet, GradumWheelEvent, GradumWheelEventName, GradumYModel, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, deepObserveAll, deepObserveAny, define, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, g, generateTagFunction, getAllRegistered, getConstructorChain, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, gr, gradum, gradumify, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, modelSignal, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, textToElement, textarea, tool, trim, untrack, urlToBlob, video };
+export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledGradumEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, Gradum, GradumButtonPopupProperties, GradumConstrainerProperties, GradumContentSwitchProperties, GradumDragEventProperties, GradumDrawerProperties, GradumDropdownProperties, GradumElementDefaultInterface, GradumElementMvcInterface, GradumElementProperties, GradumElementPropertiesMap, GradumElementTagNameMap, GradumElementUiInterface, GradumEventManagerLockStateProperties, GradumEventManagerProperties, GradumEventManagerStateProperties, GradumEventNameEntry, GradumEventNameKey, GradumEventProperties, GradumHeadlessProperties, GradumIconProperties, GradumIconSwitchProperties, GradumIconToggleProperties, GradumInputProperties, GradumInteractorProperties, GradumKeyEventProperties, GradumLabelElementProperties, GradumMarkingMenuProperties, GradumModelProperties, GradumModelProxy, GradumNumericalInputProperties, GradumObserverProperties, GradumOperatorProperties, GradumPopupProperties, GradumProperties, GradumProxiedProperties, GradumRawEventProperties, GradumRectProperties, GradumRichElementProperties, GradumSelectElementProperties, GradumSelectInputEventProperties, GradumSelectProperties, GradumSelectWheelProperties, GradumSelectWheelStylingProperties, GradumToolProperties, GradumViewProperties, GradumWheelEventProperties, GradumifyOptions, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
 
 // Flattened from relative module augmentations
-interface TurboSelector {
+interface GradumSelector {
         /**
          * @description Readonly set of listeners bound to this node.
          */
@@ -8346,7 +8346,7 @@ interface TurboSelector {
          * (in case you are preventing default events), you can set this field to a predicate that
          * defines when to bypass the manager according to the passed event.
          */
-        bypassManagerOn: (e: Event) => boolean | TurboEventManagerStateProperties;
+        bypassManagerOn: (e: Event) => boolean | GradumEventManagerStateProperties;
         /**
          * @function on
          * @description Adds an event listener to the element.
@@ -8355,11 +8355,11 @@ interface TurboSelector {
          * @param {ListenerCallback<Type>} listener - The function that receives a notification.
          * @param {ListenerOptions} [options] - An options object that specifies characteristics
          * about the event listener.
-         * @param {TurboEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
          * @returns {this} Itself, allowing for method chaining.
          */
-        on<Type extends Node>(type: string, listener: ListenerCallback<Type>, options?: ListenerOptions, manager?: TurboEventManager): this;
+        on<Type extends Node>(type: string, listener: ListenerCallback<Type>, options?: ListenerOptions, manager?: GradumEventManager): this;
         /**
          * @function onTool
          * @template {Node} Type - The type of the element.
@@ -8370,11 +8370,11 @@ interface TurboSelector {
          * @param {ListenerCallback<Type>} listener - The function that receives a notification.
          * @param {ListenerOptions} [options] - An options object that specifies characteristics
          * about the event listener.
-         * @param {TurboEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
          * @returns {this} Itself, allowing for method chaining.
          */
-        onTool<Type extends Node>(type: string, toolName: string, listener: ListenerCallback<Type>, options?: ListenerOptions, manager?: TurboEventManager): this;
+        onTool<Type extends Node>(type: string, toolName: string, listener: ListenerCallback<Type>, options?: ListenerOptions, manager?: GradumEventManager): this;
         /**
          * @function executeAction
          * @description Execute the listeners bound on this element for the given `type` and `toolName`. Simulates
@@ -8385,20 +8385,20 @@ interface TurboSelector {
          * @param {Event} event - The event to pass as parameter to the listeners.
          * @param {ListenerOptions} [options] - Options object that specifies characteristics
          * about the event listeners to fire.
-         * @param {TurboEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
          */
-        executeAction(type: string, toolName: string, event: Event, options?: ListenerOptions, manager?: TurboEventManager): Propagation;
+        executeAction(type: string, toolName: string, event: Event, options?: ListenerOptions, manager?: GradumEventManager): Propagation;
         /**
          * @function hasListener
          * @description Checks if the given event listener is bound to the element (in its boundListeners list).
          * @param {string} type - The type of the event. Set to null or undefined to get all event types.
          * @param {ListenerCallback} listener - The function that receives a notification.
-         * @param {TurboEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
          * @returns {boolean} - Whether the element has the given listener.
          */
-        hasListener(type: string, listener: ListenerCallback, manager?: TurboEventManager): boolean;
+        hasListener(type: string, listener: ListenerCallback, manager?: GradumEventManager): boolean;
         /**
          * @function hasToolListener
          * @description Checks if the given event listener is bound to the element (in its boundListeners list).
@@ -8406,32 +8406,32 @@ interface TurboSelector {
          * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
          * to check for listeners not bound to a tool.
          * @param {ListenerCallback} listener - The function that receives a notification.
-         * @param {TurboEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
          * @returns {boolean} - Whether the element has the given listener.
          */
-        hasToolListener(type: string, toolName: string, listener: ListenerCallback, manager?: TurboEventManager): boolean;
+        hasToolListener(type: string, toolName: string, listener: ListenerCallback, manager?: GradumEventManager): boolean;
         /**
          * @function hasListenersByType
          * @description Checks if the element has bound listeners of the given type (in its boundListeners list).
          * @param {string} type - The type of the event. Set to null or undefined to get all event types.
          * @param {string} toolName - The name of the tool to consider (if any). Set to null or undefined
          * to check for listeners not bound to a tool.
-         * @param {TurboEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
          * @returns {boolean} - Whether the element has a listener of this type.
          */
-        hasListenersByType(type: string, toolName?: string, manager?: TurboEventManager): boolean;
+        hasListenersByType(type: string, toolName?: string, manager?: GradumEventManager): boolean;
         /**
          * @function removeListener
          * @description Removes an event listener that is bound to the element (in its boundListeners list).
          * @param {string} type - The type of the event.
          * @param {ListenerCallback} listener - The function that receives a notification.
-         * @param {TurboEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
          * @returns {this} Itself, allowing for method chaining.
          */
-        removeListener(type: string, listener: ListenerCallback, manager?: TurboEventManager): this;
+        removeListener(type: string, listener: ListenerCallback, manager?: GradumEventManager): this;
         /**
          * @function removeToolListener
          * @description Removes an event listener that is bound to the element (in its boundListeners list).
@@ -8439,11 +8439,11 @@ interface TurboSelector {
          * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
          * to check for listeners not bound to a tool.
          * @param {ListenerCallback} listener - The function that receives a notification.
-         * @param {TurboEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
          * @returns {this} Itself, allowing for method chaining.
          */
-        removeToolListener(type: string, toolName: string, listener: ListenerCallback, manager?: TurboEventManager): this;
+        removeToolListener(type: string, toolName: string, listener: ListenerCallback, manager?: GradumEventManager): this;
         /**
          * @function removeListenersByType
          * @description Removes all event listeners bound to the element (in its boundListeners list) assigned to the
@@ -8451,19 +8451,19 @@ interface TurboSelector {
          * @param {string} type - The type of the event. Set to null or undefined to consider all types.
          * @param {string} [toolName] - The name of the tool associated (if any). Set to null or undefined
          * to check for listeners not bound to a tool.
-         * @param {TurboEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
          * @returns {this} Itself, allowing for method chaining.
          */
-        removeListenersByType(type: string, toolName?: string, manager?: TurboEventManager): this;
+        removeListenersByType(type: string, toolName?: string, manager?: GradumEventManager): this;
         /**
          * @function removeAllListeners
          * @description Removes all event listeners bound to the element (in its boundListeners list).
-         * @param {TurboEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
          * @returns {this} Itself, allowing for method chaining.
          */
-        removeAllListeners(manager?: TurboEventManager): this;
+        removeAllListeners(manager?: GradumEventManager): this;
         /**
          * @description Prevent default browser behavior on the provided event types. By default, all basic input events
          * will be processed.
@@ -8471,7 +8471,7 @@ interface TurboSelector {
          */
         preventDefault(options?: PreventDefaultOptions): this;
     }
-interface TurboSelector {
+interface GradumSelector {
         /**
          * @function makeTool
          * @description Turns the element into a tool identified by `toolName`, optionally wiring activation and
@@ -8486,113 +8486,113 @@ interface TurboSelector {
         /**
          * @function isTool
          * @description Whether this element is registered as a tool for the provided manager.
-         * @param {TurboEventManager} [manager] - The associated event manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @return {boolean} True if the element is a tool, false otherwise.
          */
-        isTool(manager?: TurboEventManager): boolean;
+        isTool(manager?: GradumEventManager): boolean;
         /**
          * @function getToolNames
          * @description Returns all tool names registered on this element for the provided manager.
-         * @param {TurboEventManager} [manager] - The associated event manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @return {string[]} The list of tool names.
          */
-        getToolNames(manager?: TurboEventManager): string[];
+        getToolNames(manager?: GradumEventManager): string[];
         /**
          * @function getToolName
          * @description Returns the first registered tool name on this element for the provided manager.
-         * @param {TurboEventManager} [manager] - The associated event manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @return {string} The first tool name, if any.
          */
-        getToolName(manager?: TurboEventManager): string;
+        getToolName(manager?: GradumEventManager): string;
         /**
          * @function onToolActivate
          * @description Retrieve the delegate fired when this tool is activated in the corresponding manager.
          * @param {string} [toolName=this.getToolName()] - The name of the tool.
-         * @param {TurboEventManager} [manager] - The associated event manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @return {Delegate<() => void} - The delegate.
          */
-        onToolActivate(toolName?: string, manager?: TurboEventManager): Delegate<() => void>;
+        onToolActivate(toolName?: string, manager?: GradumEventManager): Delegate<() => void>;
         /**
          * @function onToolDeactivate
          * @description Retrieve the delegate fired when this tool is deactivated in the corresponding manager.
          * @param {string} [toolName=this.getToolName()] - The name of the tool.
-         * @param {TurboEventManager} [manager] - The associated event manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @return {Delegate<() => void} - The delegate.
          */
-        onToolDeactivate(toolName?: string, manager?: TurboEventManager): Delegate<() => void>;
+        onToolDeactivate(toolName?: string, manager?: GradumEventManager): Delegate<() => void>;
         /**
          * @function addToolBehavior
          * @description Adds a behavior callback for a given tool and a given type. This callback will attempt to be
          * executed on the target element when a `type` event is fired and `toolName` is active. It is applied to
          * all instances of the tool.
-         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom turbo event).
+         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
          * @param {ToolBehaviorCallback} callback - The behavior function. Return `true` to stop propagation.
          * @param {string} [toolName=this.getToolName()] - Tool name to bind the behavior to. Defaults to this
          * element's first tool.
-         * @param {TurboEventManager} [manager] - The associated event manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @returns {this} Itself for chaining.
          */
-        addToolBehavior(type: string, callback: ToolBehaviorCallback, toolName?: string, manager?: TurboEventManager): this;
+        addToolBehavior(type: string, callback: ToolBehaviorCallback, toolName?: string, manager?: GradumEventManager): this;
         /**
          * @function hasToolBehavior
          * @description Checks whether there is at least one tool behavior for the pair "`type`, `toolName`."
-         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom turbo event).
+         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
          * @param {string} [toolName=this.getToolName()] - The tool name to check under. Defaults to this
          * element's first tool.
-         * @param {TurboEventManager} [manager] - The associated event manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @return {boolean} True if one or more behaviors are registered.
          */
-        hasToolBehavior(type: string, toolName?: string, manager?: TurboEventManager): boolean;
+        hasToolBehavior(type: string, toolName?: string, manager?: GradumEventManager): boolean;
         /**
          * @function removeToolBehaviors
          * @description Removes all behaviors for the pair "`type`, `toolName`" under the given manager.
-         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom turbo event).
+         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
          * @param {string} [toolName=this.getToolName()] - The tool name whose behaviors will be removed. Defaults to this
          * element's first tool.
-         * @param {TurboEventManager} [manager] - The associated event manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @returns {this} Itself for chaining.
          */
-        removeToolBehaviors(type: string, toolName?: string, manager?: TurboEventManager): this;
+        removeToolBehaviors(type: string, toolName?: string, manager?: GradumEventManager): this;
         /**
          * @function applyTool
          * @description Executes all behaviors registered for the pair "`type`, `toolName`" against this element.
          * @param {string} toolName - The name of the tool whose behaviors should run.
-         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom turbo event).
+         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
          * @param {Event} event - The triggering event instance.
-         * @param {TurboEventManager} [manager] - The associated event manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @return {boolean} True if at least one behavior returned `true` (to stop propagation of the event).
          */
-        applyTool(toolName: string, type: string, event: Event, manager?: TurboEventManager): Propagation;
+        applyTool(toolName: string, type: string, event: Event, manager?: GradumEventManager): Propagation;
         /**
          * @function clearToolBehaviors
          * @description Clears all registered behaviors for the tools attached to this element.
-         * @param {TurboEventManager} [manager] - The associated event manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @return {this} Itself for chaining.
          */
-        clearToolBehaviors(manager?: TurboEventManager): this;
+        clearToolBehaviors(manager?: GradumEventManager): this;
         /**
          * @function embedTool
          * @description Embeds this tool into a target node, so all interactions on the tool element apply to the
          * defined target.
          * @param {Node} target - The node to manipulate when interacting with the tool element itself.
-         * @param {TurboEventManager} [manager] - The associated manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
          * @returns {this} Itself for chaining.
          */
-        embedTool(target: Node, manager?: TurboEventManager): this;
+        embedTool(target: Node, manager?: GradumEventManager): this;
         /**
          * @function isEmbeddedTool
          * @description Whether this tool is embedded under the provided manager.
-         * @param {TurboEventManager} [manager] - The associated manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
          * @return {boolean} True if an embedded target is present.
          */
-        isEmbeddedTool(manager?: TurboEventManager): boolean;
+        isEmbeddedTool(manager?: GradumEventManager): boolean;
         /**
          * @function getEmbeddedToolTarget
          * @description Returns the target node for this embedded tool under the provided manager.
-         * @param {TurboEventManager} [manager] - The associated manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
          * @return {Node} The embedded tool's target node, if any.
          */
-        getEmbeddedToolTarget(manager?: TurboEventManager): Node;
+        getEmbeddedToolTarget(manager?: GradumEventManager): Node;
         /**
          * @function ignoreTool
          * @description Make the current element ignore the provided tool, so interacting with the tool on this
@@ -8600,38 +8600,38 @@ interface TurboSelector {
          * @param {string} toolName - The name of the tool to ignore.
          * @param {string} [type] - The type of the event. If undefined, all event types will be considered.
          * @param {boolean} [ignore] - Whether to ignore the tool. Defaults to true.
-         * @param {TurboEventManager} [manager] - The associated manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
          * @return {this} Itself for chaining.
          */
-        ignoreTool(toolName: string, type?: string, ignore?: boolean, manager?: TurboEventManager): this;
+        ignoreTool(toolName: string, type?: string, ignore?: boolean, manager?: GradumEventManager): this;
         /**
          * @function ignoreTool
          * @description Make the current element ignore all tools, so interacting with any tool on this
          * element will have no effect and propagate.
          * @param {boolean} [ignore] - Whether to ignore the tools. Defaults to true.
-         * @param {TurboEventManager} [manager] - The associated manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
          * @return {this} Itself for chaining.
          */
-        ignoreAllTools(ignore?: boolean, manager?: TurboEventManager): this;
+        ignoreAllTools(ignore?: boolean, manager?: GradumEventManager): this;
         /**
          * @function isToolIgnored
          * @description Whether the current element is ignoring the provided tool.
          * @param {string} toolName - The name of the tool to check for.
          * @param {string} [type] - The type of the event. If undefined, all event types will be considered.
-         * @param {TurboEventManager} [manager] - The associated manager (defaults to `TurboEventManager.instance`).
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
          * @return {boolean} Whether the tool is ignored for the provided event type.
          */
-        isToolIgnored(toolName: string, type?: string, manager?: TurboEventManager): boolean;
+        isToolIgnored(toolName: string, type?: string, manager?: GradumEventManager): boolean;
     }
-interface TurboTool<ElementType extends object = object> {
+interface GradumTool<ElementType extends object = object> {
         /**
          * @function customActivation
          * @description Custom activation function.
-         * @param {Turbo<Element>} element - The tool element itself.
-         * @param {TurboEventManager} [manager] - The event manager instance this tool should register against. Defaults
-         * to `TurboEventManager.instance`.
+         * @param {Gradum<Element>} element - The tool element itself.
+         * @param {GradumEventManager} [manager] - The event manager instance this tool should register against. Defaults
+         * to `GradumEventManager.instance`.
          */
-        customActivation(element: ElementType, manager?: TurboEventManager): void;
+        customActivation(element: ElementType, manager?: GradumEventManager): void;
         /**
          * @function onActivate
          * @description Function to execute when the tool is activated.
@@ -8643,7 +8643,7 @@ interface TurboTool<ElementType extends object = object> {
          */
         onDeactivate(): void;
     }
-interface TurboConstrainer {
+interface GradumConstrainer {
         /**
          * @function onActivate
          * @description Function to execute when the constrainer is activated.
@@ -8655,17 +8655,17 @@ interface TurboConstrainer {
          */
         onDeactivate(): void;
     }
-interface TurboSelector<Type extends object = Node> {
+interface GradumSelector<Type extends object = Node> {
         /**
          * @function setProperties
          * @template {ValidTag} Tag - The HTML tag of the element (for accurate autocompletion of available properties).
          * @description Sets the declared properties to the element (if possible).
-         * @param {TurboProperties<Tag>} properties - The properties object.
-         * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base turbo properties (classes,
-         * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in TurboProperties.
+         * @param {GradumProperties<Tag>} properties - The properties object.
+         * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
+         * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
          * @returns {this} Itself, allowing for method chaining.
          */
-        setProperties<Tag extends ValidTag>(properties: TurboProperties<Tag>, setOnlyBaseProperties?: boolean): this;
+        setProperties<Tag extends ValidTag>(properties: GradumProperties<Tag>, setOnlyBaseProperties?: boolean): this;
         getFields(): Record<string, any>;
         clone(options?: CloneElementOptions): Type;
         /**
@@ -8698,24 +8698,24 @@ interface TurboSelector<Type extends object = Node> {
          */
         focus(): this;
         feedforward(options?: FeedforwardProperties): Type;
-        defaultFeedforwardProperties: TurboElementProperties;
+        defaultFeedforwardProperties: GradumElementProperties;
     }
-interface TurboProxiedElement extends TurboElementDefaultInterface {
+interface GradumProxiedElement extends GradumElementDefaultInterface {
     }
-interface TurboProxiedElement<ElementTag extends ValidTag = ValidTag, ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel> extends TurboElementMvcInterface<ViewType, DataType, ModelType> {
+interface GradumProxiedElement<ElementTag extends ValidTag = ValidTag, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel> extends GradumElementMvcInterface<ViewType, DataType, ModelType> {
     }
-interface TurboProxiedElement extends TurboElementUiInterface {
+interface GradumProxiedElement extends GradumElementUiInterface {
     }
-interface TurboElement {
+interface GradumElement {
         readonly tagName: string;
     }
-interface TurboElement extends TurboElementDefaultInterface {
+interface GradumElement extends GradumElementDefaultInterface {
     }
-interface TurboElement<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel> extends TurboElementMvcInterface<ViewType, DataType, ModelType> {
+interface GradumElement<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel> extends GradumElementMvcInterface<ViewType, DataType, ModelType> {
     }
-interface TurboElement extends TurboElementUiInterface {
+interface GradumElement extends GradumElementUiInterface {
     }
-interface TurboSelector<Type extends object = Node> {
+interface GradumSelector<Type extends object = Node> {
         readonly mvc: MvcProperties;
         /**
          * @description The model of the element's MVC structure.
@@ -8733,7 +8733,7 @@ interface TurboSelector<Type extends object = Node> {
          * @description The main data block attached to the element's model.
          */
         data: any;
-        readonly metadata: TurboModel<object>;
+        readonly metadata: GradumModel<object>;
         /**
          * @description The ID of the main data block of the element's model.
          */
@@ -8749,24 +8749,24 @@ interface TurboSelector<Type extends object = Node> {
         /**
          * @description The operators of the element's MVC structure.
          */
-        operators: TurboOperator[];
+        operators: GradumOperator[];
         /**
          * @description The handlers attached to the element's model.
          * Returns an empty array if no model is set.
          */
-        handlers: TurboHandler[];
+        handlers: GradumHandler[];
         /**
          * @description The interactors of the element's MVC structure.
          */
-        interactors: TurboInteractor[];
+        interactors: GradumInteractor[];
         /**
          * @description The tools of the element's MVC structure.
          */
-        tools: TurboTool[];
+        tools: GradumTool[];
         /**
          * @description The constrainers of the element's MVC structure.
          */
-        constrainers: TurboConstrainer[];
+        constrainers: GradumConstrainer[];
         /**
          * @function setMvc
          * @description Configures the MVC structure for the element. Sets the provided MVC pieces (model, view,
@@ -8786,10 +8786,10 @@ interface TurboSelector<Type extends object = Node> {
         initializeMvc(): this;
         /**
          * @function getMvcDifference
-         * @template {TurboView} ViewType - The element's view type.
+         * @template {GradumView} ViewType - The element's view type.
          * @template {object} DataType - The element's data type.
-         * @template {TurboModel<DataType>} ModelType - The element's model type.
-         * @template {TurboEmitter} EmitterType - The element's emitter type.
+         * @template {GradumModel<DataType>} ModelType - The element's model type.
+         * @template {GradumEmitter} EmitterType - The element's emitter type.
          * @description Computes the structural difference between the element's current MVC configuration
          * and a provided configuration description. The comparison is constructor-based (not instance-based):
          * - For singular fields (`view`, `model`, `emitter`), the constructors are compared.
@@ -8801,121 +8801,121 @@ interface TurboSelector<Type extends object = Node> {
          *  A partial configuration of constructors describing pieces present in the current MVC
          *  but not in the provided configuration.
          */
-        getMvcDifference<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel, EmitterType extends TurboEmitter = TurboEmitter<any>>(properties?: MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>): MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>;
+        getMvcDifference<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>>(properties?: MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>): MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>;
         /**
          * @function getOperator
          * @description Retrieves the attached MVC operator with the given key.
          * @param {string} key - The operator's key.
-         * @returns {TurboOperator} - The operator.
+         * @returns {GradumOperator} - The operator.
          */
-        getOperator(key: string): TurboOperator;
+        getOperator(key: string): GradumOperator;
         /**
          * @function addOperator
          * @description Adds the given operator to the element's MVC structure.
-         * @param {TurboOperator} operator - The operator to add.
+         * @param {GradumOperator} operator - The operator to add.
          * @returns {this} Itself, allowing for method chaining.
          */
-        addOperator(operator: TurboOperator): this;
+        addOperator(operator: GradumOperator): this;
         /**
          * @function removeOperator
          * @description Removes the given operator from the element's MVC structure and unlinks it.
-         * @param {string | TurboOperator} keyOrInstance - The operator's key or instance to remove.
+         * @param {string | GradumOperator} keyOrInstance - The operator's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
          */
-        removeOperator(keyOrInstance: string | TurboOperator): this;
+        removeOperator(keyOrInstance: string | GradumOperator): this;
         /**
          * @function getHandler
          * @description Retrieves the attached MVC handler with the given key.
          * Returns undefined if no model is set.
          * @param {string} key - The handler's key.
-         * @returns {TurboHandler} - The handler.
+         * @returns {GradumHandler} - The handler.
          */
-        getHandler(key: string): TurboHandler;
+        getHandler(key: string): GradumHandler;
         /**
          * @function addHandler
          * @description Adds the given handler to the element's model.
          * If no model is set, this operation is a no-op.
-         * @param {TurboHandler} handler - The handler to add.
+         * @param {GradumHandler} handler - The handler to add.
          * @returns {this} Itself, allowing for method chaining.
          */
-        addHandler(handler: TurboHandler): this;
+        addHandler(handler: GradumHandler): this;
         /**
          * @function removeHandler
          * @description Removes the given handler from the element's model and unlinks it.
          * If no model is set, this operation is a no-op.
-         * @param {string | TurboHandler} keyOrInstance - The handler's key or instance to remove.
+         * @param {string | GradumHandler} keyOrInstance - The handler's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
          */
-        removeHandler(keyOrInstance: string | TurboHandler): this;
+        removeHandler(keyOrInstance: string | GradumHandler): this;
         /**
          * @function getInteractor
          * @description Retrieves the attached MVC interactor with the given key.
          * @param {string} key - The interactor's key.
-         * @returns {TurboInteractor} - The interactor.
+         * @returns {GradumInteractor} - The interactor.
          */
-        getInteractor(key: string): TurboInteractor;
+        getInteractor(key: string): GradumInteractor;
         /**
          * @function addInteractor
          * @description Adds the given interactor to the element's MVC structure.
-         * @param {TurboInteractor} interactor - The interactor to add.
+         * @param {GradumInteractor} interactor - The interactor to add.
          * @returns {this} Itself, allowing for method chaining.
          */
-        addInteractor(interactor: TurboInteractor): this;
+        addInteractor(interactor: GradumInteractor): this;
         /**
          * @function removeInteractor
          * @description Removes the given interactor from the element's MVC structure and unlinks it.
-         * @param {string | TurboInteractor} keyOrInstance - The interactor's key or instance to remove.
+         * @param {string | GradumInteractor} keyOrInstance - The interactor's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
          */
-        removeInteractor(keyOrInstance: string | TurboInteractor): this;
+        removeInteractor(keyOrInstance: string | GradumInteractor): this;
         /**
          * @function getTool
          * @description Retrieves the attached MVC tool with the given key.
          * @param {string} key - The tool's key.
-         * @returns {TurboTool} - The tool.
+         * @returns {GradumTool} - The tool.
          */
-        getTool(key: string): TurboTool;
+        getTool(key: string): GradumTool;
         /**
          * @function addTool
          * @description Adds the given tool to the element's MVC structure.
-         * @param {TurboTool} tool - The tool to add.
+         * @param {GradumTool} tool - The tool to add.
          * @returns {this} Itself, allowing for method chaining.
          */
-        addTool(tool: TurboTool): this;
+        addTool(tool: GradumTool): this;
         /**
          * @function removeTool
          * @description Removes the given tool from the element's MVC structure and unlinks it.
-         * @param {string | TurboTool} keyOrInstance - The tool's key or instance to remove.
+         * @param {string | GradumTool} keyOrInstance - The tool's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
          */
-        removeTool(keyOrInstance: string | TurboTool): this;
+        removeTool(keyOrInstance: string | GradumTool): this;
         /**
          * @function getConstrainer
          * @description Retrieves the attached MVC constrainer with the given key.
          * @param {string} key - The constrainer's key.
-         * @returns {TurboConstrainer} - The constrainer.
+         * @returns {GradumConstrainer} - The constrainer.
          */
-        getConstrainer(key: string): TurboConstrainer;
+        getConstrainer(key: string): GradumConstrainer;
         /**
          * @function addConstrainer
          * @description Adds the given constrainer to the element's MVC structure.
-         * @param {TurboConstrainer} constrainer - The constrainer to add.
+         * @param {GradumConstrainer} constrainer - The constrainer to add.
          * @returns {this} Itself, allowing for method chaining.
          */
-        addConstrainer(constrainer: TurboConstrainer): this;
+        addConstrainer(constrainer: GradumConstrainer): this;
         /**
          * @function removeConstrainer
          * @description Removes the given constrainer from the element's MVC structure and unlinks it.
-         * @param {string | TurboConstrainer} keyOrInstance - The constrainer's key or instance to remove.
+         * @param {string | GradumConstrainer} keyOrInstance - The constrainer's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
          */
-        removeConstrainer(keyOrInstance: string | TurboConstrainer): this;
+        removeConstrainer(keyOrInstance: string | GradumConstrainer): this;
     }
-interface TurboHeadlessElement extends TurboElementDefaultInterface {
+interface GradumHeadlessElement extends GradumElementDefaultInterface {
     }
-interface TurboHeadlessElement<ViewType extends TurboView = TurboView<any, any>, DataType extends object = object, ModelType extends TurboModel = TurboModel> extends TurboElementMvcInterface<ViewType, DataType, ModelType> {
+interface GradumHeadlessElement<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel> extends GradumElementMvcInterface<ViewType, DataType, ModelType> {
     }
-interface TurboSelector {
+interface GradumSelector {
         /**
          * @description Array of all the constrainers attached to this element.
          */
@@ -9010,9 +9010,9 @@ interface TurboSelector {
          * @function getConstrainerObjectList
          * @description Retrieve the list of objects that are constrained by the given constrainer.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @return {TurboNodeList} - The list of objects. To manipulate, check {@link TurboNodeList}.
+         * @return {GradumNodeList} - The list of objects. To manipulate, check {@link GradumNodeList}.
          */
-        getConstrainerObjectList(constrainer?: string): TurboNodeList;
+        getConstrainerObjectList(constrainer?: string): GradumNodeList;
         /**
          * @function onConstrainerObjectListChange
          * @description Get the delegate fired whenever an object is added to or removed from the constrainer's object list.
@@ -9027,32 +9027,32 @@ interface TurboSelector {
          * Interacting with any of these objects would typically lead to the solving of the given constrainer.
          * Defaults to the constrainer's object list.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @return {TurboNodeList} - The list of trigger objects. To manipulate, check {@link TurboNodeList}.
+         * @return {GradumNodeList} - The list of trigger objects. To manipulate, check {@link GradumNodeList}.
          */
-        getConstrainerTriggerList(constrainer?: string): TurboNodeList;
+        getConstrainerTriggerList(constrainer?: string): GradumNodeList;
         /**
          * @function getConstrainerQueue
          * @description Retrieve the current queue to be processed by the constrainer while resolving.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @return {TurboQueue<object>} - The current constrainer queue.
+         * @return {GradumQueue<object>} - The current constrainer queue.
          */
-        getConstrainerQueue(constrainer?: string): TurboQueue<object>;
+        getConstrainerQueue(constrainer?: string): GradumQueue<object>;
         /**
          * @function getDefaultConstrainerQueue
          * @description Retrieve the default queue template for the constrainer, used when starting a new resolving pass.
          * It defaults to the constrainer's object list.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @return {TurboQueue<object>} - The default constrainer queue.
+         * @return {GradumQueue<object>} - The default constrainer queue.
          */
-        getDefaultConstrainerQueue(constrainer?: string): TurboQueue<object>;
+        getDefaultConstrainerQueue(constrainer?: string): GradumQueue<object>;
         /**
          * @function setDefaultConstrainerQueue
          * @description Define the default queue template for the constrainer, used when starting a new resolving pass.
-         * @param {object[] | TurboQueue<object>} queue - The queue (or list to build a queue from).
+         * @param {object[] | GradumQueue<object>} queue - The queue (or list to build a queue from).
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @return {this} - Itself for chaining.
          */
-        setDefaultConstrainerQueue(queue: object[] | TurboQueue<object>, constrainer?: string): this;
+        setDefaultConstrainerQueue(queue: object[] | GradumQueue<object>, constrainer?: string): this;
         /**
          * @function getObjectPassesForConstrainer
          * @description Retrieve how many times the given object has been processed for the current resolving session
@@ -9211,7 +9211,7 @@ interface TurboSelector {
          */
         solveConstrainersForEvent(properties?: ConstrainerCallbackProperties): this;
     }
-interface TurboSelector {
+interface GradumSelector {
         /**
          * @description The closest root to the element in the document (the closest ShadowRoot, or the document's head).
          */
@@ -9254,52 +9254,52 @@ interface TurboSelector {
          */
         setStyles(styles: StylesType, instant?: boolean): this;
     }
-interface TurboElementTagNameMap {
-        "turbo-button": TurboButton;
+interface GradumElementTagNameMap {
+        "gradum-button": GradumButton;
     }
-interface TurboElementTagNameMap {
-        "turbo-icon": TurboIcon;
+interface GradumElementTagNameMap {
+        "gradum-icon": GradumIcon;
     }
-interface TurboElementTagNameMap {
-        "turbo-rich-element": TurboRichElement;
+interface GradumElementTagNameMap {
+        "gradum-rich-element": GradumRichElement;
     }
-interface TurboElementTagNameMap {
-        "turbo-icon-switch": TurboIconSwitch;
+interface GradumElementTagNameMap {
+        "gradum-icon-switch": GradumIconSwitch;
     }
-interface TurboElementTagNameMap {
-        "turbo-icon-toggle": TurboIconToggle;
+interface GradumElementTagNameMap {
+        "gradum-icon-toggle": GradumIconToggle;
     }
-interface TurboElementTagNameMap {
-        "turbo-inout": TurboInput;
+interface GradumElementTagNameMap {
+        "gradum-inout": GradumInput;
     }
-interface TurboElementTagNameMap {
-        "turbo-numerical-inout": TurboNumericalInput;
+interface GradumElementTagNameMap {
+        "gradum-numerical-inout": GradumNumericalInput;
     }
-interface TurboElementTagNameMap {
-        "turbo-select-element": TurboSelectElement;
+interface GradumElementTagNameMap {
+        "gradum-select-element": GradumSelectElement;
     }
-interface TurboElementTagNameMap {
-        "turbo-content-switch": TurboContentSwitch;
+interface GradumElementTagNameMap {
+        "gradum-content-switch": GradumContentSwitch;
     }
-interface TurboElementTagNameMap {
-        "turbo-drawer": TurboDrawer;
+interface GradumElementTagNameMap {
+        "gradum-drawer": GradumDrawer;
     }
-interface TurboElementTagNameMap {
-        "turbo-popup": TurboPopup;
+interface GradumElementTagNameMap {
+        "gradum-popup": GradumPopup;
     }
-interface TurboElementTagNameMap {
-        "turbo-dropdown": TurboDropdown;
+interface GradumElementTagNameMap {
+        "gradum-dropdown": GradumDropdown;
     }
-interface TurboElementTagNameMap {
-        "turbo-marking-menu": TurboMarkingMenu;
+interface GradumElementTagNameMap {
+        "gradum-marking-menu": GradumMarkingMenu;
     }
-interface TurboElementTagNameMap {
-        "turbo-select-wheel": TurboSelectWheel;
+interface GradumElementTagNameMap {
+        "gradum-select-wheel": GradumSelectWheel;
     }
-interface TurboElementTagNameMap {
-        "turbo-button-popup": TurboButtonPopup;
+interface GradumElementTagNameMap {
+        "gradum-button-popup": GradumButtonPopup;
     }
-interface TurboSelector {
+interface GradumSelector {
         /**
          * @description Add one or more CSS classes to the element.
          * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
@@ -9327,7 +9327,9 @@ interface TurboSelector {
          */
         hasClass(classes?: string | string[]): boolean;
     }
-interface TurboSelector {
+interface GradumSelector extends Node {
+    }
+interface GradumSelector {
         /**
          * @description The child handler object associated with the node. It is the node itself (if it is handling
          * its children) or its shadow root (if defined). Set it to change the node where the children are added/
@@ -9501,7 +9503,7 @@ interface TurboSelector {
          */
         closest<Type extends Element>(type: new (...args: any[]) => Type): Type;
     }
-interface TurboSelector {
+interface GradumSelector {
         /**
          * @description Execute a callback on the node while still benefiting from chaining.
          * @param {(el: this) => void} callback The function to execute, with 1 parameter representing the instance
@@ -9528,7 +9530,7 @@ interface TurboSelector {
          * @example
          * ```ts
          * const properties = {...};
-         * turbo(properties).applyDefaults({
+         * gradum(properties).applyDefaults({
          *   tag: "my-el",
          *   view: MyElementView,
          *   tools: [selectTool, panTool],
@@ -9538,7 +9540,7 @@ interface TurboSelector {
          */
         applyDefaults(defaults: Partial<this["element"]> & Record<string, any>, options?: ApplyDefaultsOptions): this;
     }
-interface TurboSelector {
+interface GradumSelector {
         /**
          * @description Readonly shallow set of the reifects attached to this object.
          */
@@ -9637,6 +9639,4 @@ interface TurboSelector {
          * @return {this} - Itself, allowing for method chaining.
          */
         enableReifect(value: boolean | ReifectEnabledObject, reifect?: StatefulReifect): this;
-    }
-interface TurboSelector extends Node {
     }

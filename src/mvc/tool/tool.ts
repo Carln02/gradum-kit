@@ -1,32 +1,32 @@
-import {TurboView} from "../view/view";
-import {TurboEventManager} from "../../eventHandling/turboEventManager/turboEventManager";
-import {TurboToolProperties} from "./tool.types";
-import {turbo} from "../../turboFunctions/turboFunctions";
-import {ClickMode} from "../../eventHandling/turboEventManager/turboEventManager.types";
+import {GradumView} from "../view/view";
+import {GradumEventManager} from "../../eventHandling/gradumEventManager/gradumEventManager";
+import {GradumToolProperties} from "./tool.types";
+import {gradum} from "../../gradumFunctions/gradumFunctions";
+import {ClickMode} from "../../eventHandling/gradumEventManager/gradumEventManager.types";
 import {DefaultEventName, DefaultEventNameEntry} from "../../types/eventNaming.types";
-import {TurboEmitter} from "../emitter/emitter";
-import {TurboModel} from "../model/model";
-import {TurboOperator} from "../operator/operator";
+import {GradumEmitter} from "../emitter/emitter";
+import {GradumModel} from "../model/model";
+import {GradumOperator} from "../operator/operator";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 
 /**
- * @class TurboTool
+ * @class GradumTool
  * @group MVC
  * @category Tool
  *
- * @extends TurboOperator
+ * @extends GradumOperator
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  * @description Class representing a tool in MVC, bound to the provided element.
  */
-class TurboTool<
+class GradumTool<
     ElementType extends object = object,
-    ViewType extends TurboView = TurboView<any, any>,
-    ModelType extends TurboModel = TurboModel,
-    EmitterType extends TurboEmitter = TurboEmitter
-> extends TurboOperator<ElementType, ViewType, ModelType, EmitterType> {
+    ViewType extends GradumView = GradumView<any, any>,
+    ModelType extends GradumModel = GradumModel,
+    EmitterType extends GradumEmitter = GradumEmitter
+> extends GradumOperator<ElementType, ViewType, ModelType, EmitterType> {
     /**
      * @description The key of the tool. Used to retrieve it in the main component. If not set, if the element's
      * class name is MyElement and the tool's class name is MyElementSomethingTool, the key would
@@ -47,9 +47,9 @@ class TurboTool<
 
     /**
      * @readonly
-     * @description The associated event manager. Defaults to `TurboEventManager.instance`.
+     * @description The associated event manager. Defaults to `GradumEventManager.instance`.
      */
-    public readonly manager: TurboEventManager;
+    public readonly manager: GradumEventManager;
 
     /**
      * @readonly
@@ -69,7 +69,7 @@ class TurboTool<
      */
     public readonly key: string;
 
-    public constructor(properties: TurboToolProperties<ElementType, ViewType, ModelType, EmitterType>) {
+    public constructor(properties: GradumToolProperties<ElementType, ViewType, ModelType, EmitterType>) {
         super(properties);
         this.toolName = properties.toolName ?? this.toolName ?? undefined;
         if (properties.embeddedTarget) this.embeddedTarget = properties.embeddedTarget;
@@ -80,7 +80,7 @@ class TurboTool<
         if (properties.clickMode) this.clickMode = properties.clickMode;
         if (properties.customActivation) this.customActivation = properties.customActivation;
         if (properties.key) this.key = properties.key;
-        this.manager = properties.manager ?? this.manager ?? TurboEventManager.instance;
+        this.manager = properties.manager ?? this.manager ?? GradumEventManager.instance;
         this.setup();
     }
 
@@ -91,7 +91,7 @@ class TurboTool<
      * all the defined tool behaviors.
      */
     public initialize(): void {
-        if (this.toolName) turbo(this).makeTool(this.toolName, {
+        if (this.toolName) gradum(this).makeTool(this.toolName, {
             onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
             onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
             activationEvent: this.activationEvent,
@@ -101,11 +101,11 @@ class TurboTool<
             manager: this.manager,
         });
 
-        if (this.embeddedTarget) turbo(this).embedTool(this.embeddedTarget, this.manager);
+        if (this.embeddedTarget) gradum(this).embedTool(this.embeddedTarget, this.manager);
         super.initialize();
     }
 }
 
-addRegistryCategory(TurboTool);
-define(TurboTool);
-export {TurboTool};
+addRegistryCategory(GradumTool);
+define(GradumTool);
+export {GradumTool};

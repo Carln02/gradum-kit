@@ -1,13 +1,13 @@
 import {
-    TurboConstrainer,
+    GradumConstrainer,
     solver, ConstrainerCallbackProperties,
-    turbo, TurboRect
+    gradum, GradumRect
 } from "../../../../build/gradum-kit.esm";
 import {StickyLine} from "../stickyLine/stickyLine";
 
 //Pusher substrate
-export class CanvasConstrainer extends TurboConstrainer {
-    //Define the substrate's name. Equivalent to turbo(canvas).makeSubstrate("main").
+export class CanvasConstrainer extends GradumConstrainer {
+    //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("main").
     public constrainerName = "main";
 
     public defaultQueue = [];
@@ -21,8 +21,8 @@ export class CanvasConstrainer extends TurboConstrainer {
 
         for (const stickyline of stickylines) {
             if (stickyline === target) continue;
-            if (overlaps.includes(stickyline)) turbo(stickyline).getConstrainerObjectList().add(target);
-            else if (properties.eventTarget !== stickyline) turbo(stickyline).getConstrainerObjectList().remove(target);
+            if (overlaps.includes(stickyline)) gradum(stickyline).getConstrainerObjectList().add(target);
+            else if (properties.eventTarget !== stickyline) gradum(stickyline).getConstrainerObjectList().remove(target);
         }
 
     }
@@ -60,8 +60,8 @@ export class CanvasConstrainer extends TurboConstrainer {
         const r2 = el2["getBoundingClientRect"]?.();
         if (!r1 || !r2 || !(r1 instanceof DOMRect) || !(r2 instanceof DOMRect)) return false;
 
-        if (r1 instanceof TurboRect) return r1.overlaps(r2);
-        if (r2 instanceof TurboRect) return r2.overlaps(r1);
+        if (r1 instanceof GradumRect) return r1.overlaps(r2);
+        if (r2 instanceof GradumRect) return r2.overlaps(r1);
 
         //If any dimension is 0 or undefined --> return.
         if (!r1.width || !r1.height || !r2.width || !r2.height) return false;

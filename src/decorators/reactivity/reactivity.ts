@@ -2,7 +2,7 @@ import {ReactivityUtils} from "./reactivity.utils";
 import {SignalBox, SignalEntry} from "./reactivity.types";
 import {SignalUtils} from "./reactivity.signal";
 import {EffectUtils} from "./reactivity.effect";
-import {TurboModel} from "../../mvc/model/model";
+import {GradumModel} from "../../mvc/model/model";
 import {KeyType} from "../../types/basic.types";
 
 const utils = new ReactivityUtils();
@@ -125,14 +125,14 @@ function signal(...args: any): any {
  *
  * @example
  * ```ts
- * class TodoModel extends TurboModel {
+ * class TodoModel extends GradumModel {
  *   @modelSignal() title = "";
  *   @modelSignal("meta", "author") author = "";
  * }
  * ```
  * Is equivalent to:
  * ```ts
- * class TodoModel extends TurboModel {
+ * class TodoModel extends GradumModel {
  *   @signal get title() { return this.get("title"); }
  *   set title(value) { this.set(value, "title"); }
  *
@@ -199,7 +199,7 @@ function modelSignal(...keys: KeyType[]) {
  * @group Decorators
  * @category Signal
  *
- * @description Decorator that binds a reactive signal to a nested {@link TurboModel} instance at the given key path.
+ * @description Decorator that binds a reactive signal to a nested {@link GradumModel} instance at the given key path.
  * - Getter returns the nested model instance via `this.getNested(...keys)`.
  * - Setter assigns the new value to the nested model's root data via `this.getNested(...keys).data = value`.
  *
@@ -207,13 +207,13 @@ function modelSignal(...keys: KeyType[]) {
  *
  * @example
  * ```ts
- * class AppModel extends TurboModel {
+ * class AppModel extends GradumModel {
  *   @nestedModelSignal("users", "42") user = undefined;
  * }
  * ```
  * Is equivalent to:
  * ```ts
- * class AppModel extends TurboModel {
+ * class AppModel extends GradumModel {
  *   @signal get user() { return this.getNested("users", "42"); }
  *   set user(value) { this.getNested("users", "42").data = value; }
  * }
@@ -255,7 +255,7 @@ function nestedModelSignal(...keys: string[]) {
  * @group Decorators
  * @category Signal
  *
- * @description Decorator that binds a reactive signal to a nested {@link TurboModel} at the given key path,
+ * @description Decorator that binds a reactive signal to a nested {@link GradumModel} at the given key path,
  * where the nested model's data is **not** stored inside the parent model's data container.
  *
  * Use this when the nested model holds data that lives outside the parent's data tree — for example,
@@ -268,7 +268,7 @@ function nestedModelSignal(...keys: string[]) {
  * - Setter assigns directly to `nestedModel.data = value`, leaving the parent's data untouched.
  *
  * **Limitation:** `@modelSignal("myField", "subKey")` will **not** work for a field backed by
- * `@isolatedModelSignal`, because `TurboModel.get()` reads through the parent's data container
+ * `@isolatedModelSignal`, because `GradumModel.get()` reads through the parent's data container
  * rather than routing through registered nested models. Access sub-keys directly through the
  * nested model instead: `(this.myField as MyNestedModel).subKey`.
  *
@@ -277,7 +277,7 @@ function nestedModelSignal(...keys: string[]) {
  *
  * @example
  * ```ts
- * class CardModel extends TurboYModel {
+ * class CardModel extends GradumYModel {
  *   // Foreign YMap managed elsewhere in the Y.js document — must not be written into this
  *   // model's data tree.
  *   @isolatedModelSignal() cardData: CardDataModel;
@@ -285,7 +285,7 @@ function nestedModelSignal(...keys: string[]) {
  * ```
  * Is equivalent to:
  * ```ts
- * class CardModel extends TurboYModel {
+ * class CardModel extends GradumYModel {
  *   @signal get cardData() { return this.nest("cardData"); }
  *   set cardData(value) { this.nest("cardData").data = value; }
  * }

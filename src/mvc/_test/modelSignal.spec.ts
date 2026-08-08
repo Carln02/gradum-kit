@@ -1,19 +1,19 @@
 import {describe, it, expect} from "vitest";
 import * as Y from "yjs";
-import {TurboModel} from "../model/model";
-import {TurboYModel} from "../model/yModel";
+import {GradumModel} from "../model/model";
+import {GradumYModel} from "../model/yModel";
 import {effect, modelSignal} from "../../decorators/reactivity/reactivity";
 
 async function flushMicrotasks(times = 4) {
     for (let i = 0; i < times; i++) await Promise.resolve();
 }
 
-class CardModel extends TurboModel {
+class CardModel extends GradumModel {
     @modelSignal() cardData: any;
     @modelSignal("cardData", "title") cardTitle: string;
 }
 
-class CardYModel extends TurboYModel {
+class CardYModel extends GradumYModel {
     @modelSignal() thumbnail: string;
     @modelSignal() cardData: any;
     @modelSignal("cardData", "title") cardTitle: string;
@@ -21,7 +21,7 @@ class CardYModel extends TurboYModel {
 
 describe("@modelSignal — path-bound invalidation", () => {
 
-    describe("plain TurboModel", () => {
+    describe("plain GradumModel", () => {
         it("re-runs an effect on a nested binding when the parent key is replaced", async () => {
             const model = new CardModel({data: {}});
 
@@ -100,7 +100,7 @@ describe("@modelSignal — path-bound invalidation", () => {
         });
     });
 
-    describe("TurboYModel", () => {
+    describe("GradumYModel", () => {
         it("re-runs effects on a second model instance bound to the same Y.Map", async () => {
             const doc = new Y.Doc();
             const ymap = doc.getMap("root");

@@ -1,5 +1,5 @@
 import {describe, it, expect, vi} from "vitest";
-import {TurboSelector} from "../../turboFunctions/turboSelector";
+import {GradumSelector} from "../../gradumFunctions/gradumSelector";
 import {element} from "../element";
 import {SvgNamespace} from "../../types/svgElement.types";
 import {MathMLNamespace} from "../../types/mathMlElement.types";
@@ -49,7 +49,7 @@ describe("element(properties)", () => {
     });
 
     it("invokes $(el).setProperties(props) with the object provided", () => {
-        const spy = vi.spyOn(TurboSelector.prototype as any, "setProperties");
+        const spy = vi.spyOn(GradumSelector.prototype as any, "setProperties");
         const props = {tag: "section", id: "hello", dataset: {a: "1"}} as any;
 
         const el = element(props);

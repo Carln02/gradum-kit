@@ -1,19 +1,19 @@
-import {TurboElement, TurboView, TurboEmitter, define} from "../../../../build/gradum-kit.esm";
+import {GradumElement, GradumView, GradumEmitter, define} from "../../../../build/gradum-kit.esm";
 import "./grid.css";
-import {TurboGridModel} from "./grid.model";
-import {TurboGridView} from "./grid.view";
+import {GradumGridModel} from "./grid.model";
+import {GradumGridView} from "./grid.view";
 
-@define("turbo-grid")
-class TurboGrid<
-    ViewType extends TurboView = TurboView<any, any>,
+@define("gradum-grid")
+class GradumGrid<
+    ViewType extends GradumView = GradumView<any, any>,
     DataType extends object = object,
-    ModelType extends TurboGridModel = TurboGridModel,
-    EmitterType extends TurboEmitter = TurboEmitter<any>
-> extends TurboElement<ViewType, DataType, ModelType, EmitterType> {
+    ModelType extends GradumGridModel = GradumGridModel,
+    EmitterType extends GradumEmitter = GradumEmitter<any>
+> extends GradumElement<ViewType, DataType, ModelType, EmitterType> {
     public static defaultProperties = {
-        model: TurboGridModel,
-        view: TurboGridView
+        model: GradumGridModel,
+        view: GradumGridView
     };
 }
 
-export {TurboGrid};
+export {GradumGrid};

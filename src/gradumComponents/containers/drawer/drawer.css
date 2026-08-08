@@ -1,0 +1,33 @@
+.gradum-drawer {
+    display: inline-flex;
+    align-items: center;
+    direction: ltr;
+}
+
+.gradum-drawer-panel-container {
+    overflow: hidden;
+    display: flex;
+    position: relative;
+    align-items: center;
+}
+
+.gradum-drawer-thumb {
+    display: inline-block;
+    position: relative;
+}
+
+.gradum-drawer.top-drawer, .top-drawer .gradum-drawer-panel-container {
+    flex-direction: column;
+}
+
+.gradum-drawer.bottom-drawer, .bottom-drawer .gradum-drawer-panel-container {
+    flex-direction: column-reverse;
+}
+
+.gradum-drawer.left-drawer, .left-drawer .gradum-drawer-panel-container {
+    flex-direction: row;
+}
+
+.gradum-drawer.right-drawer, .right-drawer .gradum-drawer-panel-container {
+    flex-direction: row-reverse;
+}

@@ -1,4 +1,4 @@
-import {button, turbo} from "../../../build/gradum-kit.esm";
+import {button, gradum} from "../../../build/gradum-kit.esm";
 import {SelectTool} from "./tools/select.tool";
 import {PusherSubstrateTool} from "./tools/pusherSubstrate.tool";
 import {AddSquareTool} from "./tools/addSquare.tool";

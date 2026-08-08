@@ -1,9 +1,9 @@
-import {define, TurboElement, turbo, effect, signal, element, auto} from "../../../../build/gradum-kit.esm";
+import {define, GradumElement, gradum, effect, signal, element, auto} from "../../../../build/gradum-kit.esm";
 import "./toolbar.css";
 import {ToolbarProperties} from "./toolbar.types";
 
 @define("demo-toolbar")
-export class Toolbar extends TurboElement {
+export class Toolbar extends GradumElement {
     @signal public color: string = "white";
 
     @auto() public set entries(value: HTMLElement[]) {
@@ -11,10 +11,10 @@ export class Toolbar extends TurboElement {
     }
 
     public addTool(tool: HTMLElement) {
-        turbo(this).addChild(tool);
+        gradum(this).addChild(tool);
     }
 
     @effect private updateBackground() {
-        turbo(this).setStyle("backgroundColor", this.color);
+        gradum(this).setStyle("backgroundColor", this.color);
     }
 }

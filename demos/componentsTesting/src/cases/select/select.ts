@@ -1,28 +1,28 @@
 import {
-    $, div, span, TurboButton,
-    TurboSelect, TurboRichElement
+    $, div, span, GradumButton,
+    GradumSelect, GradumRichElement
 } from "../../../../../build/gradum-kit.esm";
 import { box } from "../../demoBox/demoBox";
 import "./select.css";
 
 // Small helper to print the selection nicely
-const logSelection = (label: string, sel: TurboSelect<any, any, any>) => {
+const logSelection = (label: string, sel: GradumSelect<any, any, any>) => {
     console.log(`[${label}] values=`, sel.selectedValues, "secondary=", sel.selectedSecondaryValues);
 };
 
 /* 1) Basics: values[] -> single select, forceSelection default */
 function selectTest1() {
     const host = div({classes: "select-parent"});
-    const sel = TurboSelect.create({ values: ["Alpha", "Beta", "Gamma"], parent: host });
+    const sel = GradumSelect.create({ values: ["Alpha", "Beta", "Gamma"], parent: host });
     sel.onSelect = () => logSelection("basic", sel);
 
-    const b = box("TurboSelect — Basics");
+    const b = box("GradumSelect — Basics");
     b.addSubBox("host", host);
 }
 
 /* 2) Preselected via constructor + multiSelection */
 function selectTest2() {
-    const sel = TurboSelect.create({
+    const sel = GradumSelect.create({
         values: ["One", "Two", "Three", "Four"],
         selectedValues: ["Two", "Four"],
         multiSelection: true,
@@ -32,13 +32,13 @@ function selectTest2() {
     const host = div({classes: "select-parent"});
     sel.parent = host;
 
-    const b = box("TurboSelect — Multi selection");
+    const b = box("GradumSelect — Multi selection");
     b.addSubBox("multi", host)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Select One & Three (prog)",
             onClick: () => sel.selectedEntries = sel.findAll("One", "Three")
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Deselect all",
             onClick: () => sel.deselectAll()
         }));
@@ -46,7 +46,7 @@ function selectTest2() {
 
 /* 3) forceSelection = false (allow empty) + programmatic selectByIndex */
 function selectTest3() {
-    const sel = TurboSelect.create({
+    const sel = GradumSelect.create({
         values: ["A", "B", "C"],
         multiSelection: false,
     });
@@ -56,17 +56,17 @@ function selectTest3() {
     const host = div({classes: "select-parent"});
     sel.parent = host;
 
-    const b = box("TurboSelect — forceSelection=false");
+    const b = box("GradumSelect — forceSelection=false");
     b.addSubBox("host", host)
-        .addContent(TurboButton.create({ text: "selectByIndex(2)", onClick: () => sel.selectByIndex(2) }))
-        .addContent(TurboButton.create({ text: "Deselect all", onClick: () => sel.deselectAll() }));
+        .addContent(GradumButton.create({ text: "selectByIndex(2)", onClick: () => sel.selectByIndex(2) }))
+        .addContent(GradumButton.create({ text: "Deselect all", onClick: () => sel.deselectAll() }));
 }
 
 /* 4) Custom mapping: getValue / getSecondaryValue / createEntry */
 function selectTest4() {
     type Entry = HTMLElement;
 
-    const sel = TurboSelect.create({
+    const sel = GradumSelect.create({
         values: [10, 20, 30],
     });
 
@@ -78,7 +78,7 @@ function selectTest4() {
 
     // createEntry maps number -> custom element w/ data attributes
     sel.createEntry = (num: number) => {
-        const e = TurboRichElement.create({ text: `Item ${num}` }) as HTMLElement;
+        const e = GradumRichElement.create({ text: `Item ${num}` }) as HTMLElement;
         e.dataset.value = String(num);
         e.dataset.code = `code-${num}`;
         return e;
@@ -92,10 +92,10 @@ function selectTest4() {
     const host = div({classes: "select-parent"});
     sel.parent = host;
 
-    const b = box("TurboSelect — custom mapping");
+    const b = box("GradumSelect — custom mapping");
     b.addSubBox("host", host)
-        .addContent(TurboButton.create({ text: "Select value 40", onClick: () => sel.select(40) }))
-        .addContent(TurboButton.create({ text: "Select by secondary (code-50)", onClick: () => {
+        .addContent(GradumButton.create({ text: "Select value 40", onClick: () => sel.select(40) }))
+        .addContent(GradumButton.create({ text: "Select by secondary (code-50)", onClick: () => {
                 const entry = sel.findBySecondaryValue("code-50");
                 if (entry) sel.select(entry);
             }}));
@@ -104,20 +104,20 @@ function selectTest4() {
 /* 5) Parent DOM observation: add/remove entries dynamically */
 function selectTest5() {
     const host = div({classes: "select-parent"}); // container the select will watch
-    const sel = TurboSelect.create({parent: host});
+    const sel = GradumSelect.create({parent: host});
 
     // Start with two
-    $(host).addChild([TurboRichElement.create({text: "Live-1"}), TurboRichElement.create({text: "Live-2"})]);
+    $(host).addChild([GradumRichElement.create({text: "Live-1"}), GradumRichElement.create({text: "Live-2"})]);
     // (select will auto-wire via MutationObserver; clicking an entry selects it)
     sel.onSelect = () => logSelection("DOM-observed", sel);
 
-    const b = box("TurboSelect — DOM observation");
+    const b = box("GradumSelect — DOM observation");
     b.addSubBox("host", host)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Add node",
-            onClick: () => $(host).addChild(TurboRichElement.create({text: "Live-" + Math.floor(Math.random() * 100)}))
+            onClick: () => $(host).addChild(GradumRichElement.create({text: "Live-" + Math.floor(Math.random() * 100)}))
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Remove last node",
             onClick: () => {
                 const kids = host.children;
@@ -128,7 +128,7 @@ function selectTest5() {
 
 /* 6) Enable/Disable + callbacks */
 function selectTest6() {
-    const sel = TurboSelect.create({ values: ["Red", "Green", "Blue"] });
+    const sel = GradumSelect.create({ values: ["Red", "Green", "Blue"] });
     const host = div({classes: "select-parent"});
     sel.parent = host;
 
@@ -138,17 +138,17 @@ function selectTest6() {
     };
 
     const [r, g, bEl] = sel.entries;
-    const boxEl = box("TurboSelect — enable/disable");
+    const boxEl = box("GradumSelect — enable/disable");
     boxEl.addSubBox("host", host)
-        .addContent(TurboButton.create({ text: "Disable Green", onClick: () => sel.enable(false, g as any) }))
-        .addContent(TurboButton.create({ text: "Enable Green", onClick: () => sel.enable(true, g as any) }))
-        .addContent(TurboButton.create({ text: "Disable all", onClick: () => sel.enable(false) }))
-        .addContent(TurboButton.create({ text: "Enable all", onClick: () => sel.enable(true) }));
+        .addContent(GradumButton.create({ text: "Disable Green", onClick: () => sel.enable(false, g as any) }))
+        .addContent(GradumButton.create({ text: "Enable Green", onClick: () => sel.enable(true, g as any) }))
+        .addContent(GradumButton.create({ text: "Disable all", onClick: () => sel.enable(false) }))
+        .addContent(GradumButton.create({ text: "Enable all", onClick: () => sel.enable(true) }));
 }
 
 /* 7) Hidden input sync */
 function selectTest7() {
-    const sel = TurboSelect.create({ values: ["Cat", "Dog", "Bird"] });
+    const sel = GradumSelect.create({ values: ["Cat", "Dog", "Bird"] });
     const host = div({classes: "select-parent"});
     sel.parent = host;
     sel.inputName = "pet"; // creates a hidden input next to host’s children
@@ -158,33 +158,33 @@ function selectTest7() {
         console.log("[hidden input] name=", input?.name, " value=", input?.value);
     };
 
-    const b = box("TurboSelect — hidden input sync");
+    const b = box("GradumSelect — hidden input sync");
     b.addSubBox("host", host)
-        .addContent(TurboButton.create({ text: "Select Dog", onClick: () => sel.select("Dog") }))
-        .addContent(TurboButton.create({ text: "Select Bird", onClick: () => sel.select("Bird") }));
+        .addContent(GradumButton.create({ text: "Select Dog", onClick: () => sel.select("Dog") }))
+        .addContent(GradumButton.create({ text: "Select Bird", onClick: () => sel.select("Bird") }));
 }
 
 /* 8) Programmatic APIs & finders */
 function selectTest8() {
-    const sel = TurboSelect.create({ values: ["X", "Y", "Z"] });
+    const sel = GradumSelect.create({ values: ["X", "Y", "Z"] });
     const host = div({classes: "select-parent"});
     sel.parent = host;
 
-    const b = box("TurboSelect — API surface");
+    const b = box("GradumSelect — API surface");
     b.addSubBox("host", host)
-        .addContent(TurboButton.create({ text: "select('Y')", onClick: () => sel.select("Y") }))
-        .addContent(TurboButton.create({ text: "selectByIndex(0)", onClick: () => sel.selectByIndex(0) }))
-        .addContent(TurboButton.create({ text: "find('Z') & select", onClick: () => sel.select(sel.find("Z")) }))
-        .addContent(TurboButton.create({ text: "Log enabled values", onClick: () => console.log("enabled:", sel.enabledValues) }));
+        .addContent(GradumButton.create({ text: "select('Y')", onClick: () => sel.select("Y") }))
+        .addContent(GradumButton.create({ text: "selectByIndex(0)", onClick: () => sel.selectByIndex(0) }))
+        .addContent(GradumButton.create({ text: "find('Z') & select", onClick: () => sel.select(sel.find("Z")) }))
+        .addContent(GradumButton.create({ text: "Log enabled values", onClick: () => console.log("enabled:", sel.enabledValues) }));
 }
 
-/* 9) Tabbed menu (using TurboSelect as the tab controller) */
+/* 9) Tabbed menu (using GradumSelect as the tab controller) */
 function selectTestTabs() {
     type Entry = HTMLElement;
 
-    const tabSelect = TurboSelect.create<typeof TurboSelect<any, any, HTMLElement>>({
+    const tabSelect = GradumSelect.create<typeof GradumSelect<any, any, HTMLElement>>({
         createEntry: (label: string) => {
-            const e = TurboRichElement.create({text: label});
+            const e = GradumRichElement.create({text: label});
             e.dataset.key = label.toLowerCase();
             return e;
         },
@@ -219,14 +219,14 @@ function selectTestTabs() {
     // initialize visibility
     tabSelect.onSelect?.fire(true, tabSelect.selectedEntry, tabSelect.getIndex(tabSelect.selectedEntry));
 
-    const b = box("TurboSelect — Tabbed menu");
+    const b = box("GradumSelect — Tabbed menu");
     b.addSubBox("Tabs", tabBar);
     b.addSubBox("Panels", tabPanels);
 }
 
 /* 9) entriesClasses / selectedEntriesClasses styling */
 function selectTest9() {
-    const sel = TurboSelect.create({
+    const sel = GradumSelect.create({
         values: ["Alpha", "Beta", "Gamma"],
         entriesClasses: "entry-pill",
         selectedEntriesClasses: "entry-pill--active",
@@ -234,17 +234,17 @@ function selectTest9() {
     const host = div({classes: "select-parent"});
     sel.parent = host;
 
-    box("TurboSelect — entriesClasses / selectedEntriesClasses")
+    box("GradumSelect — entriesClasses / selectedEntriesClasses")
         .addSubBox("styled entries (check DevTools for classes)", host)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Change entriesClasses → 'entry-alt'",
             onClick: () => sel.entriesClasses = "entry-alt"
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Change selectedEntriesClasses → 'entry-alt--active'",
             onClick: () => sel.selectedEntriesClasses = "entry-alt--active"
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Log classes",
             onClick: () => sel.entries.forEach(e =>
                 console.log((e as HTMLElement).className, "selected:", sel.isSelected(e as any))
@@ -256,7 +256,7 @@ function selectTest9() {
 function selectTest10() {
     const log = span({text: "removed: (none)"});
 
-    const sel = TurboSelect.create({ values: ["P", "Q", "R", "S"] });
+    const sel = GradumSelect.create({ values: ["P", "Q", "R", "S"] });
     sel.onEntryRemoved = (entry) => {
         log.textContent = "removed: " + ((entry as HTMLElement).textContent?.trim() ?? "?");
     };
@@ -264,21 +264,21 @@ function selectTest10() {
     const host = div({classes: "select-parent"});
     sel.parent = host;
 
-    box("TurboSelect — clear() + onEntryRemoved")
+    box("GradumSelect — clear() + onEntryRemoved")
         .addSubBox("host", host)
         .addContent(log)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Remove last node",
             onClick: () => {
                 const last = host.lastElementChild;
                 if (last) last.remove();
             }
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "clear() all",
             onClick: () => sel.clear()
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Reset values",
             onClick: () => sel.values = ["P", "Q", "R", "S"]
         }));

@@ -1,23 +1,23 @@
-import {turbo, effect, TurboView} from "../../../../build/gradum-kit.esm";
+import {gradum, effect, GradumView} from "../../../../build/gradum-kit.esm";
 import {SquareModel} from "./square.model";
 import {Square} from "./square";
 
 //View of the square element
-export class SquareView extends TurboView<Square, SquareModel> {
+export class SquareView extends GradumView<Square, SquareModel> {
     //@effect methods will be called when the values of the signals they use change
     @effect private updatePosition() {
         const offset = this.model.centerAnchor ? this.model.size / 2 : 0;
-        turbo(this).setStyle("transform", `
+        gradum(this).setStyle("transform", `
         translate(${this.model.position.x - offset}px, ${this.model.position.y - offset}px)
         rotate(${this.model.rotation}rad)
         `);
     }
 
     @effect private updateColor() {
-        turbo(this).setStyle("backgroundColor", this.model.color);
+        gradum(this).setStyle("backgroundColor", this.model.color);
     }
 
     @effect private updateSize() {
-        turbo(this).setStyles({width: this.model.size + "px", height: this.model.size + "px"});
+        gradum(this).setStyles({width: this.model.size + "px", height: this.model.size + "px"});
     }
 }

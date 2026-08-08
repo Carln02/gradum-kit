@@ -1,17 +1,17 @@
 import {initializeEffects} from "../../decorators/reactivity/reactivity";
-import {TurboModel} from "../model/model";
+import {GradumModel} from "../model/model";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 
 /**
- * @class TurboHandler
+ * @class GradumHandler
  * @group MVC
  * @category Handler
  *
  * @description The MVC base handler class. It's an extension of the model, and its main job is to provide some utility
  * functions to manipulate some of (or all of) the model's data.
- * @template {TurboModel} ModelType - The element's MVC model type.
+ * @template {GradumModel} ModelType - The element's MVC model type.
  */
-class TurboHandler<ModelType extends TurboModel = TurboModel> {
+class GradumHandler<ModelType extends GradumModel = GradumModel> {
     /**
      * @description The key of the handler. Used to retrieve it in the main component. If not set, if the element's
      * class name is MyElement and the handler's class name is MyElementSomethingHandler, the key would
@@ -41,6 +41,6 @@ class TurboHandler<ModelType extends TurboModel = TurboModel> {
     }
 }
 
-addRegistryCategory(TurboHandler);
-define(TurboHandler);
-export {TurboHandler};
+addRegistryCategory(GradumHandler);
+define(GradumHandler);
+export {GradumHandler};

@@ -1,4 +1,4 @@
-.turbo-drawer {
+.gradum-drawer {
     position: relative;
     display: inline-flex;
     align-items: stretch;
@@ -8,7 +8,7 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-.turbo-drawer > .turbo-drawer-thumb:first-child {
+.gradum-drawer > .gradum-drawer-thumb:first-child {
     width: 32px;
     height: 32px;
     min-width: 32px;
@@ -28,26 +28,26 @@
     transition: background-color var(--trans), border-color var(--trans), transform 120ms ease;
 }
 
-.turbo-drawer-thumb:hover { background: color-mix(in hsl, var(--panel-2), white 4%); }
-.turbo-drawer-thumb:active { transform: scale(0.98); }
-.turbo-drawer-thumb:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.gradum-drawer-thumb:hover { background: color-mix(in hsl, var(--panel-2), white 4%); }
+.gradum-drawer-thumb:active { transform: scale(0.98); }
+.gradum-drawer-thumb:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
-.turbo-drawer-thumb svg [fill] { fill: currentColor !important; }
-.turbo-drawer-thumb svg [stroke] { stroke: currentColor !important; }
-.turbo-drawer-thumb svg { background: transparent !important; }
+.gradum-drawer-thumb svg [fill] { fill: currentColor !important; }
+.gradum-drawer-thumb svg [stroke] { stroke: currentColor !important; }
+.gradum-drawer-thumb svg { background: transparent !important; }
 
-.turbo-drawer-thumb > .turbo-icon {
+.gradum-drawer-thumb > .gradum-icon {
     width: 18px;
     height: 18px;
 }
 
-.turbo-drawer-panel-container {
+.gradum-drawer-panel-container {
     position: relative;
     overflow: hidden;
     border-radius: var(--radius);
 }
 
-.turbo-drawer-panel {
+.gradum-drawer-panel {
     position: relative;
     background-color: transparent;
     background: var(--panel);
@@ -60,7 +60,7 @@
     min-height: 84px;
 }
 
-.turbo-drawer-panel::after {
+.gradum-drawer-panel::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -70,21 +70,21 @@
 }
 
 /* compact variant if you want tighter UI */
-.turbo-drawer.is-compact .turbo-drawer-thumb {
+.gradum-drawer.is-compact .gradum-drawer-thumb {
     width: 28px; height: 28px; min-width: 28px; min-height: 28px;
     border-radius: var(--radius-xs);
 }
-.turbo-drawer.is-compact .turbo-drawer-panel { padding: 0.7rem; min-width: 200px; }
+.gradum-drawer.is-compact .gradum-drawer-panel { padding: 0.7rem; min-width: 200px; }
 
-.top-drawer .turbo-drawer-thumb {margin-bottom: 6px;}
-.bottom-drawer .turbo-drawer-thumb {margin-top: 6px;}
-.left-drawer .turbo-drawer-thumb {margin-right: 6px;}
-.right-drawer .turbo-drawer-thumb {margin-left: 6px;}
+.top-drawer .gradum-drawer-thumb {margin-bottom: 6px;}
+.bottom-drawer .gradum-drawer-thumb {margin-top: 6px;}
+.left-drawer .gradum-drawer-thumb {margin-right: 6px;}
+.right-drawer .gradum-drawer-thumb {margin-left: 6px;}
 
 /*!* nicer content defaults inside the panel (fixes white form controls) *!*/
-/*.turbo-drawer-panel input,*/
-/*.turbo-drawer-panel textarea,*/
-/*.turbo-drawer-panel select {*/
+/*.gradum-drawer-panel input,*/
+/*.gradum-drawer-panel textarea,*/
+/*.gradum-drawer-panel select {*/
 /*    background: var(--card);*/
 /*    color: var(--text);*/
 /*    border: 1px solid var(--border);*/
@@ -93,10 +93,10 @@
 /*    line-height: 1.2;*/
 /*    width: 100%;*/
 /*}*/
-/*.turbo-drawer-panel input::placeholder,*/
-/*.turbo-drawer-panel textarea::placeholder { color: var(--muted); }*/
+/*.gradum-drawer-panel input::placeholder,*/
+/*.gradum-drawer-panel textarea::placeholder { color: var(--muted); }*/
 
-/*.turbo-drawer-panel .turbo-rich-element {*/
+/*.gradum-drawer-panel .gradum-rich-element {*/
 /*    background: var(--card);*/
 /*    border: 1px solid var(--border);*/
 /*    border-radius: var(--radius-xs);*/
@@ -106,5 +106,5 @@
 
 /*!* reduce motion *!*/
 /*@media (prefers-reduced-motion: reduce) {*/
-/*    .turbo-drawer-thumb { transition: none; }*/
+/*    .gradum-drawer-thumb { transition: none; }*/
 /*}*/

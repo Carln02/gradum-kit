@@ -1,4 +1,4 @@
-import {turbo} from "../../../../build/gradum-kit.esm";
+import {gradum} from "../../../../build/gradum-kit.esm";
 import {SelectTool} from "./select.tool";
 import {Canvas} from "../canvas/canvas";
 
@@ -12,13 +12,13 @@ export class SpacerSubstrateTool extends SelectTool {
 
     public onActivate() {
         const canvas = this.canvas;
-        turbo(canvas).activateSubstrate("spacer");
-        turbo(canvas).deactivateSubstrate("pusher", "main");
+        gradum(canvas).activateSubstrate("spacer");
+        gradum(canvas).deactivateSubstrate("pusher", "main");
     }
 
     public onDeactivate() {
         const canvas = this.canvas;
-        turbo(canvas).deactivateSubstrate("spacer", "pusher");
-        turbo(canvas).activateSubstrate("main");
+        gradum(canvas).deactivateSubstrate("spacer", "pusher");
+        gradum(canvas).activateSubstrate("main");
     }
 }

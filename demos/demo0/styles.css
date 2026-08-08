@@ -8,7 +8,7 @@ body {
     gap: 0.5rem;
 }
 
-.turbo-button > * {
+.gradum-button > * {
     margin: 0;
 }
 
@@ -50,12 +50,12 @@ body {
     background-color: #1e2024;
 }
 
-.turbo-icon {
+.gradum-icon {
     width: 0.8rem;
     height: 0.8rem;
 }
 
-.turbo-icon > svg {
+.gradum-icon > svg {
     width: 100%;
     height: 100%;
 }

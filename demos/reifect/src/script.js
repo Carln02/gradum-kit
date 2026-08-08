@@ -1,4 +1,4 @@
-import {turbo, OnOff, TurboButton, StatefulReifect, element, flexRow, define} from "../../../build/gradum-kit.esm";
+import {gradum, OnOff, GradumButton, StatefulReifect, element, flexRow, define} from "../../../build/gradum-kit.esm";
 
 const heading = document.createElement("h1");
 heading.textContent = "Chainable Styles Test";
@@ -11,7 +11,7 @@ class Square extends HTMLElement {
         position.x -= 100;
         position.y -= 100;
         this.position = position;
-        turbo(this).addClass("square").addToParent(document.body);
+        gradum(this).addClass("square").addToParent(document.body);
         this.update();
     }
 
@@ -59,10 +59,10 @@ const scaleReifect = new StatefulReifect({
 
 flexRow({
     style: "gap: 0.5em", parent: document.body, children: [
-        TurboButton.create({text: "Toggle Position", onClick: () => positionReifect.toggle()}),
-        TurboButton.create({text: "Toggle Opacity", onClick: () => opacityReifect.toggle()}),
-        TurboButton.create({text: "Toggle Scale", onClick: () => scaleReifect.toggle()}),
-        TurboButton.create({
+        GradumButton.create({text: "Toggle Position", onClick: () => positionReifect.toggle()}),
+        GradumButton.create({text: "Toggle Opacity", onClick: () => opacityReifect.toggle()}),
+        GradumButton.create({text: "Toggle Scale", onClick: () => scaleReifect.toggle()}),
+        GradumButton.create({
             text: "Toggle All", onClick: () => {
                 positionReifect.toggle();
                 opacityReifect.toggle();

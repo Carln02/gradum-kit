@@ -1,4 +1,4 @@
-import {TurboElementProperties, Coordinate} from "../../../../build/gradum-kit.esm";
+import {GradumElementProperties, Coordinate} from "../../../../build/gradum-kit.esm";
 
-export type StickyLineProperties = TurboElementProperties & {
+export type StickyLineProperties = GradumElementProperties & {
 };

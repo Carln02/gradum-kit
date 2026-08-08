@@ -1,9 +1,9 @@
-import {define, TurboPopup} from "../../../../build/gradum-kit.esm";
+import {define, GradumPopup} from "../../../../build/gradum-kit.esm";
 import {EditObjectView} from "./editObject.view";
 import {EditObjectTool} from "./editObject.tool";
 import "./editObject.css";
 
-export class EditObject extends TurboPopup<EditObjectView> {
+export class EditObject extends GradumPopup<EditObjectView> {
     public static defaultProperties = {
         view: EditObjectView,
         tools: EditObjectTool

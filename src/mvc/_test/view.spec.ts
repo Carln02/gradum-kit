@@ -1,9 +1,9 @@
 import {describe, it, expect} from "vitest";
-import {TurboView} from "../view/view";
-import {TurboEmitter} from "../emitter/emitter";
-import {TurboModel} from "../model/model";
+import {GradumView} from "../view/view";
+import {GradumEmitter} from "../emitter/emitter";
+import {GradumModel} from "../model/model";
 
-class ProbeView extends TurboView {
+class ProbeView extends GradumView {
     public calls: string[] = [];
 
     protected override setupChangedCallbacks(): void { this.calls.push("changed"); }
@@ -12,13 +12,13 @@ class ProbeView extends TurboView {
     protected override setupUIListeners(): void { this.calls.push("listeners"); }
 }
 
-describe("TurboView", () => {
+describe("GradumView", () => {
     it("constructor assigns element, model, and emitter", () => {
         const element = {};
-        const model = new TurboModel({data: {a: 1}});
-        const emitter = new TurboEmitter(model);
+        const model = new GradumModel({data: {a: 1}});
+        const emitter = new GradumEmitter(model);
 
-        const view = new TurboView({element, model, emitter} as any);
+        const view = new GradumView({element, model, emitter} as any);
 
         expect(view.element).toBe(element);
         expect(view.model).toBe(model);
@@ -27,7 +27,7 @@ describe("TurboView", () => {
 
     it("constructor works with only element (model and emitter are optional)", () => {
         const element = {id: 42};
-        const view = new TurboView({element} as any);
+        const view = new GradumView({element} as any);
 
         expect(view.element).toBe(element);
         expect(view.model).toBeUndefined();
@@ -36,10 +36,10 @@ describe("TurboView", () => {
 
     it("model and emitter can be set after construction", () => {
         const element = {};
-        const model = new TurboModel({data: {}});
-        const emitter = new TurboEmitter();
+        const model = new GradumModel({data: {}});
+        const emitter = new GradumEmitter();
 
-        const view = new TurboView({element} as any);
+        const view = new GradumView({element} as any);
         view.model = model;
         view.emitter = emitter;
 
@@ -49,8 +49,8 @@ describe("TurboView", () => {
 
     it("initialize() calls setup methods in the correct order", () => {
         const element = {};
-        const model = new TurboModel({data: {}});
-        const emitter = new TurboEmitter(model);
+        const model = new GradumModel({data: {}});
+        const emitter = new GradumEmitter(model);
 
         const view = new ProbeView({element, model, emitter} as any);
         view.initialize();
@@ -74,7 +74,7 @@ describe("TurboView", () => {
         // Use a closure instead of a class field to avoid re-initialization after super()
         let setupCalled = false;
 
-        class SetupTrackingView extends TurboView {
+        class SetupTrackingView extends GradumView {
             protected override setup(): void { setupCalled = true; }
             protected override setupUIElements(): void {}
             protected override setupUILayout(): void {}

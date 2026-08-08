@@ -1,4 +1,4 @@
-import {TurboSelector} from "../../turboFunctions/turboSelector";
+import {GradumSelector} from "../../gradumFunctions/gradumSelector";
 import {RegistryCategory, RegistryEntry} from "./define.types";
 
 type DefineDataEntry = {
@@ -63,7 +63,7 @@ export class DefineDecoratorUtils {
     // -------------------------------------------------------------------------
 
     public data(element: Node): DefineDataEntry {
-        if (element instanceof TurboSelector) element = element.element;
+        if (element instanceof GradumSelector) element = element.element;
         if (!element) return {};
         if (!this.dataMap.has(element)) this.dataMap.set(element, {});
         return this.dataMap.get(element);

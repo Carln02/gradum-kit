@@ -3,13 +3,13 @@ import {
     Point,
     solver,
     SubstrateCallbackProperties,
-    TurboDragEvent,
-    TurboSubstrate
+    GradumDragEvent,
+    GradumSubstrate
 } from "../../../../build/gradum-kit.esm";
 
 //Pusher substrate
-export class CanvasSubstrate extends TurboSubstrate {
-    //Define the substrate's name. Equivalent to turbo(canvas).makeSubstrate("main").
+export class CanvasSubstrate extends GradumSubstrate {
+    //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("main").
     public substrateName = "main";
 
     //On initialize --> set default queue to be an empty array instead of all objects in the list
@@ -100,7 +100,7 @@ export class CanvasSubstrate extends TurboSubstrate {
             //Otherwise, if the target is also the event target
             (el === properties.eventTarget
                 //Use the event's delta position (if defined)
-                ? (properties.event as TurboDragEvent)?.deltaPosition
+                ? (properties.event as GradumDragEvent)?.deltaPosition
                 //Otherwise, undefined.
                 : undefined);
         //If delta is undefined --> return.

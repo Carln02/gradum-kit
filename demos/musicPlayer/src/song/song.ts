@@ -1,12 +1,12 @@
-import {define, element, expose, TurboElement} from "../../../../build/gradum-kit.esm";
+import {define, element, expose, GradumElement} from "../../../../build/gradum-kit.esm";
 import {SongView} from "./song.view";
 import {SongData, SongProperties} from "./song.types";
 import {SongModel} from "./song.model";
 import "./song.css";
 import {SongMoveInteractor} from "./song.moveInteractor";
 
-@define("turbo-song")
-export class Song extends TurboElement<SongView, SongData, SongModel> {
+@define("gradum-song")
+export class Song extends GradumElement<SongView, SongData, SongModel> {
     @expose("model") public accessor id: string;
     @expose("model") public accessor title: string;
     @expose("model") public accessor artist: string;
@@ -22,7 +22,7 @@ export class Song extends TurboElement<SongView, SongData, SongModel> {
 }
 
 export function song(properties: SongProperties = {}): Song {
-    if (!properties.tag) properties.tag = "turbo-song";
+    if (!properties.tag) properties.tag = "gradum-song";
     if (!properties.view) properties.view = SongView;
     if (!properties.model) properties.model = SongModel;
     if (!properties.interactors) properties.interactors = [SongMoveInteractor];

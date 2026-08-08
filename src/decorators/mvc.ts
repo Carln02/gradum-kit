@@ -1,5 +1,5 @@
-import {turbo} from "../turboFunctions/turboFunctions";
-import {TurboEventManager} from "../eventHandling/turboEventManager/turboEventManager";
+import {gradum} from "../gradumFunctions/gradumFunctions";
+import {GradumEventManager} from "../eventHandling/gradumEventManager/gradumEventManager";
 
 type FieldType = "Operator" | "Handler" | "Interactor" | "Tool" | "Constrainer";
 
@@ -48,7 +48,7 @@ function generateField(context: ClassFieldDecoratorContext, type: FieldType, nam
                 }
 
                 if (!functionName) return;
-                value = turbo(this)[functionName]?.(keyName);
+                value = gradum(this)[functionName]?.(keyName);
                 if (!value) throw new Error(`${type} "${keyName}" not found on ${this?.constructor?.name}.`);
                 this[cacheKey] = value;
                 return value;
@@ -71,11 +71,11 @@ function generateField(context: ClassFieldDecoratorContext, type: FieldType, nam
  *
  * @example
  * ```ts
- * @operator() protected textOperator: TurboOperator;
+ * @operator() protected textOperator: GradumOperator;
  * ```
  * Is equivalent to:
  * ```ts
- * protected get textOperator(): TurboOperator {
+ * protected get textOperator(): GradumOperator {
  *    if (this.mvc instanceof Mvc) return this.mvc.getOperator("text");
  *    if (typeof this.getOperator === "function") return this.getOperator("text");
  * }
@@ -100,11 +100,11 @@ function operator(name?: string) {
  *
  * @example
  * ```ts
- * @handler() protected textHandler: TurboHandler;
+ * @handler() protected textHandler: GradumHandler;
  * ```
  * Is equivalent to:
  * ```ts
- * protected get textHandler(): TurboHandler {
+ * protected get textHandler(): GradumHandler {
  *    if (this.mvc instanceof Mvc) return this.mvc.getHandler("text");
  *    if (typeof this.getHandler === "function") return this.getHandler("text");
  * }
@@ -129,11 +129,11 @@ function handler(name?: string) {
  *
  * @example
  * ```ts
- * @interactor() protected textInteractor: TurboInteractor;
+ * @interactor() protected textInteractor: GradumInteractor;
  * ```
  * Is equivalent to:
  * ```ts
- * protected get textInteractor(): TurboInteractor {
+ * protected get textInteractor(): GradumInteractor {
  *    if (this.mvc instanceof Mvc) return this.mvc.getInteractor("text");
  *    if (typeof this.getInteractor === "function") return this.getInteractor("text");
  * }
@@ -158,11 +158,11 @@ function interactor(name?: string) {
  *
  * @example
  * ```ts
- * @tool() protected textTool: TurboTool;
+ * @tool() protected textTool: GradumTool;
  * ```
  * Is equivalent to:
  * ```ts
- * protected get textTool(): TurboTool {
+ * protected get textTool(): GradumTool {
  *    if (this.mvc instanceof Mvc) return this.mvc.getTool("text");
  *    if (typeof this.getTool === "function") return this.getTool("text");
  * }
@@ -187,11 +187,11 @@ function tool(name?: string) {
  *
  * @example
  * ```ts
- * @tool() protected textConstrainer: TurboConstrainer;
+ * @tool() protected textConstrainer: GradumConstrainer;
  * ```
  * Is equivalent to:
  * ```ts
- * protected get textConstrainer(): TurboConstrainer {
+ * protected get textConstrainer(): GradumConstrainer {
  *    if (this.mvc instanceof Mvc) return this.mvc.getConstrainer("text");
  *    if (typeof this.getConstrainer === "function") return this.getConstrainer("text");
  * }

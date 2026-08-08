@@ -1,25 +1,25 @@
 import {initializeEffects} from "../../decorators/reactivity/reactivity";
 import {attachListenersAndBehaviors} from "../../decorators/listener/listener";
-import {TurboModel} from "../model/model";
-import {TurboEmitter} from "../emitter/emitter";
-import {TurboViewProperties} from "./view.types";
+import {GradumModel} from "../model/model";
+import {GradumEmitter} from "../emitter/emitter";
+import {GradumViewProperties} from "./view.types";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 
 /**
- * @class TurboView
+ * @class GradumView
  * @group MVC
  * @category View
  *
  * @template {object} ElementType - The type of the element attached to the view.
- * @template {TurboModel} ModelType - The model type used in this view.
- * @template {TurboEmitter} EmitterType - The emitter type used in this view.
+ * @template {GradumModel} ModelType - The model type used in this view.
+ * @template {GradumEmitter} EmitterType - The emitter type used in this view.
  * @description A base view class for MVC elements, providing structure for initializing and managing UI setup and
  * event listeners. Designed to be devoid of logic and only handle direct UI changes.
  */
-class TurboView<
+class GradumView<
     ElementType extends object = object,
-    ModelType extends TurboModel = TurboModel,
-    EmitterType extends TurboEmitter = TurboEmitter
+    ModelType extends GradumModel = GradumModel,
+    EmitterType extends GradumEmitter = GradumEmitter
 > {
     /**
      * @description The main component this view is attached to.
@@ -38,9 +38,9 @@ class TurboView<
 
     /**
      * @constructor
-     * @param {TurboViewProperties<ElementType, ModelType, EmitterType>} properties - Properties to initialize the view with.
+     * @param {GradumViewProperties<ElementType, ModelType, EmitterType>} properties - Properties to initialize the view with.
      */
-    public constructor(properties: TurboViewProperties<ElementType, ModelType, EmitterType>) {
+    public constructor(properties: GradumViewProperties<ElementType, ModelType, EmitterType>) {
         this.element = properties.element;
         if (properties.model) this.model = properties.model;
         if (properties.emitter) this.emitter = properties.emitter;
@@ -101,6 +101,6 @@ class TurboView<
     }
 }
 
-addRegistryCategory(TurboView);
-define(TurboView);
-export {TurboView};
+addRegistryCategory(GradumView);
+define(GradumView);
+export {GradumView};

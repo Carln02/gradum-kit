@@ -1,11 +1,11 @@
-import {define, TurboElement} from "../../../../build/gradum-kit.esm";
+import {define, GradumElement} from "../../../../build/gradum-kit.esm";
 import {CanvasPusherSubstrate} from "./canvas.pusherSubstrate";
 import "./canvas.css";
 import {CanvasSubstrate} from "./canvas.mainSubstrate";
 import {CanvasSpacerSubstrate} from "./canvas.spacerSubstrate";
 
 @define("my-canvas")
-export class Canvas extends TurboElement {
+export class Canvas extends GradumElement {
     public static defaultProperties = {
         substrates: [CanvasPusherSubstrate, CanvasSubstrate, CanvasSpacerSubstrate],
     }

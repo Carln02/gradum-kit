@@ -9,7 +9,7 @@ h1, h2, h3, h4, h5, h6, p, span {
     margin: 0;
 }
 
-.turbo-button {
+.gradum-button {
     background-color: lightcyan;
     border: 2px solid #8acccc;
     cursor: pointer;
@@ -17,22 +17,22 @@ h1, h2, h3, h4, h5, h6, p, span {
     justify-content: center;
 }
 
-.turbo-button:hover {
+.gradum-button:hover {
     scale: 1.05;
 }
 
-.turbo-button.selected {
+.gradum-button.selected {
     scale: 1.03;
     background-color: #89d5d5;
     border-color: #5ba1a1;
 }
 
-.turbo-icon {
+.gradum-icon {
     width: 0.8rem;
     height: 0.8rem;
 }
 
-.turbo-icon > svg {
+.gradum-icon > svg {
     width: 100%;
     height: 100%;
 }

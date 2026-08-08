@@ -1,7 +1,7 @@
-import {ClickMode, TurboTool, behavior, Propagation} from "../../../../build/gradum-kit.esm";
+import {ClickMode, GradumTool, behavior, Propagation} from "../../../../build/gradum-kit.esm";
 import {EditObject} from "./editObject";
 
-export class EditObjectTool extends TurboTool<EditObject> {
+export class EditObjectTool extends GradumTool<EditObject> {
     public toolName = "editObject";
     public clickMode = ClickMode.right;
 

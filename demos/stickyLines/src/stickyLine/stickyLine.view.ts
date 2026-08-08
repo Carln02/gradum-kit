@@ -1,9 +1,9 @@
-import {TurboView, element, SvgNamespace, turbo, effect} from "../../../../build/gradum-kit.esm";
+import {GradumView, element, SvgNamespace, gradum, effect} from "../../../../build/gradum-kit.esm";
 import {StickyLine} from "./stickyLine";
 import {StickyLineModel} from "./stickyLine.model";
 import {Square} from "../square/square";
 
-export class StickyLineView extends TurboView<StickyLine, StickyLineModel> {
+export class StickyLineView extends GradumView<StickyLine, StickyLineModel> {
     private svg: SVGSVGElement;
     public line: SVGLineElement;
     private hitLine: SVGLineElement;
@@ -13,7 +13,7 @@ export class StickyLineView extends TurboView<StickyLine, StickyLineModel> {
 
     public initialize(): void {
         super.initialize();
-        requestAnimationFrame(() => turbo(this).getConstrainerObjectList().add(this.line, this.startHandle, this.endHandle));
+        requestAnimationFrame(() => gradum(this).getConstrainerObjectList().add(this.line, this.startHandle, this.endHandle));
     }
 
     protected setupUIElements() {
@@ -21,7 +21,7 @@ export class StickyLineView extends TurboView<StickyLine, StickyLineModel> {
         this.svg = element({tag: "svg", namespace: SvgNamespace, width: "100%" as any, height: "100%" as any}) as SVGSVGElement;
         this.line = element({tag: "line", namespace: SvgNamespace}) as SVGLineElement;
         this.hitLine = element({tag: "line", namespace: SvgNamespace}) as SVGLineElement;
-        turbo(this.hitLine).setAttribute("stroke", "transparent").setAttribute("pointer-events", "stroke");
+        gradum(this.hitLine).setAttribute("stroke", "transparent").setAttribute("pointer-events", "stroke");
 
         this.startHandle = Square.create({elementSize: 20, color: "white", classes: "handle"});
         this.endHandle = Square.create({elementSize: 20, color: "white", classes: "handle"});
@@ -29,8 +29,8 @@ export class StickyLineView extends TurboView<StickyLine, StickyLineModel> {
 
     protected setupUILayout() {
         super.setupUILayout();
-        turbo(this.svg).addChild([this.line, this.hitLine]);
-        turbo(this).addChild([this.svg, this.startHandle, this.endHandle]);
+        gradum(this.svg).addChild([this.line, this.hitLine]);
+        gradum(this).addChild([this.svg, this.startHandle, this.endHandle]);
     }
 
     @effect private updateLines() {
@@ -39,18 +39,18 @@ export class StickyLineView extends TurboView<StickyLine, StickyLineModel> {
     }
 
     @effect private updateThickness() {
-        turbo(this.line).setAttribute("stroke-width", this.model.thickness);
+        gradum(this.line).setAttribute("stroke-width", this.model.thickness);
         this.startHandle.style.borderWidth = this.model.thickness + "px";
         this.endHandle.style.borderWidth = this.model.thickness + "px";
 
     }
 
     @effect private updateHitThickness() {
-        turbo(this.hitLine).setAttribute("stroke-width", this.model.hitThickness);
+        gradum(this.hitLine).setAttribute("stroke-width", this.model.hitThickness);
     }
 
     @effect private updateColor() {
-        turbo(this.line).setAttribute("stroke", this.model.color);
+        gradum(this.line).setAttribute("stroke", this.model.color);
         this.startHandle.style.borderColor = this.model.color;
         this.endHandle.style.borderColor = this.model.color;
     }

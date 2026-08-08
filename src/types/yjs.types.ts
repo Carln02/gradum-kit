@@ -8,10 +8,10 @@ import {
     YArrayEvent,
     YEvent
 } from "yjs";
-import {TurboElementProperties} from "../turboElement/turboElement.types";
-import {TurboView} from "../mvc/view/view";
-import {TurboModel} from "../mvc/model/model";
-import {TurboEmitter} from "../mvc/emitter/emitter";
+import {GradumElementProperties} from "../gradumElement/gradumElement.types";
+import {GradumView} from "../mvc/view/view";
+import {GradumModel} from "../mvc/model/model";
+import {GradumEmitter} from "../mvc/emitter/emitter";
 
 declare module "yjs" {
     interface Map<MapType = any> {}
@@ -28,11 +28,11 @@ declare module "yjs" {
  * @category Yjs
  */
 type YDocumentProperties<
-    ViewType extends TurboView = TurboView<any, any>,
+    ViewType extends GradumView = GradumView<any, any>,
     DataType extends object = object,
-    ModelType extends TurboModel<DataType> = TurboModel,
-    EmitterType extends TurboEmitter = TurboEmitter
-> = TurboElementProperties<ViewType, DataType, ModelType, EmitterType> & {
+    ModelType extends GradumModel<DataType> = GradumModel,
+    EmitterType extends GradumEmitter = GradumEmitter
+> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
     document: YDoc
 };
 

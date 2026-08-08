@@ -1,4 +1,4 @@
-import {turbo, randomColor, button} from "../../../build/gradum-kit.esm.js";
+import {gradum, randomColor, button} from "../../../build/gradum-kit.esm.js";
 
 //Creating an element in JS and adding it to the document
 const heading = document.createElement("h1");
@@ -22,7 +22,7 @@ class Square extends HTMLElement {
     init(position) {
         position.x -= 100; position.y -= 100; //Center the position (according to the size of the square - 200px)
         this.position = position; //Store the position
-        turbo(this).addClass("square").addToParent(document.body); //Assign CSS class and add to document
+        gradum(this).addClass("square").addToParent(document.body); //Assign CSS class and add to document
         this.update(); //Update position
     }
 
@@ -35,9 +35,9 @@ class Square extends HTMLElement {
 customElements.define("test-square", Square);
 
 //turn add square button into a tool
-turbo(addSquareButton).makeTool("addSquare");
+gradum(addSquareButton).makeTool("addSquare");
 
 //Define interaction with tool
-turbo(document.body).onTool("click", "addSquare", (e) => {
+gradum(document.body).onTool("click", "addSquare", (e) => {
     document.createElement("test-square").init({x: e.clientX, y: e.clientY});
 });

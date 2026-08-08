@@ -1,31 +1,31 @@
-import {TurboInteractorProperties} from "./interactor.types";
-import {TurboEventManager} from "../../eventHandling/turboEventManager/turboEventManager";
-import {TurboView} from "../view/view";
-import {ListenerOptions} from "../../turboComponents/datatypes/listener/listener.types";
-import {TurboEmitter} from "../emitter/emitter";
-import {TurboModel} from "../model/model";
-import {TurboOperator} from "../operator/operator";
+import {GradumInteractorProperties} from "./interactor.types";
+import {GradumEventManager} from "../../eventHandling/gradumEventManager/gradumEventManager";
+import {GradumView} from "../view/view";
+import {ListenerOptions} from "../../gradumComponents/datatypes/listener/listener.types";
+import {GradumEmitter} from "../emitter/emitter";
+import {GradumModel} from "../model/model";
+import {GradumOperator} from "../operator/operator";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 
 /**
- * @class TurboInteractor
+ * @class GradumInteractor
  * @group MVC
  * @category Interactor
  *
- * @extends TurboOperator
+ * @extends GradumOperator
  * @template {object} ElementType - The type of the main component.
- * @template {TurboView} ViewType - The element's MVC view type.
- * @template {TurboModel} ModelType - The element's MVC model type.
- * @template {TurboEmitter} EmitterType - The element's MVC emitter type.
+ * @template {GradumView} ViewType - The element's MVC view type.
+ * @template {GradumModel} ModelType - The element's MVC model type.
+ * @template {GradumEmitter} EmitterType - The element's MVC emitter type.
  * @description Class representing an MVC interactor. It holds event listeners to set up on the element itself, or
  * the custom defined target.
  */
-class TurboInteractor<
+class GradumInteractor<
     ElementType extends object = object,
-    ViewType extends TurboView = TurboView<any, any>,
-    ModelType extends TurboModel = TurboModel,
-    EmitterType extends TurboEmitter = TurboEmitter
-> extends TurboOperator<ElementType, ViewType, ModelType, EmitterType> {
+    ViewType extends GradumView = GradumView<any, any>,
+    ModelType extends GradumModel = GradumModel,
+    EmitterType extends GradumEmitter = GradumEmitter
+> extends GradumOperator<ElementType, ViewType, ModelType, EmitterType> {
     /**
      * @description The key of the interactor. Used to retrieve it in the main component. If not set, if the element's
      * class name is MyElement and the interactor's class name is MyElementSomethingInteractor, the key would
@@ -46,9 +46,9 @@ class TurboInteractor<
 
     /**
      * @readonly
-     * @description The associated event manager. Defaults to `TurboEventManager.instance`.
+     * @description The associated event manager. Defaults to `GradumEventManager.instance`.
      */
-    public readonly manager: TurboEventManager;
+    public readonly manager: GradumEventManager;
 
     /**
      *
@@ -57,9 +57,9 @@ class TurboInteractor<
      */
     public readonly options: ListenerOptions;
 
-    public constructor(properties: TurboInteractorProperties<ElementType, ViewType, ModelType, EmitterType>) {
+    public constructor(properties: GradumInteractorProperties<ElementType, ViewType, ModelType, EmitterType>) {
         super(properties);
-        this.manager = properties.manager ?? this.manager ?? TurboEventManager.instance;
+        this.manager = properties.manager ?? this.manager ?? GradumEventManager.instance;
         this.toolName = properties.toolName ?? this.toolName ?? undefined;
         this.options = properties.listenerOptions ?? {};
 
@@ -70,6 +70,6 @@ class TurboInteractor<
     }
 }
 
-addRegistryCategory(TurboInteractor);
-define(TurboInteractor);
-export {TurboInteractor};
+addRegistryCategory(GradumInteractor);
+define(GradumInteractor);
+export {GradumInteractor};

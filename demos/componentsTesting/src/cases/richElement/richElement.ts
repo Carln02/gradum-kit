@@ -1,11 +1,11 @@
-import {TurboIcon, div, span, TurboRichElement, TurboButton, Color
+import {GradumIcon, div, span, GradumRichElement, GradumButton, Color
 } from "../../../../../build/gradum-kit.esm";
 import {box} from "../../demoBox/demoBox";
 import "./richElement.css";
 
 function richTest1() {
     // Basics: element as text, left/right icons, prefix/suffix strings
-    const r1 = TurboRichElement.create({
+    const r1 = GradumRichElement.create({
         text: "Hello world",
         leftIcon: "chevron-left",
         rightIcon: "chevron-top",
@@ -19,7 +19,7 @@ function richTest1() {
 
 function richTest2() {
     // String→in-place update (prefix/suffix), icon string→instance reuse
-    const r = TurboRichElement.create({
+    const r = GradumRichElement.create({
         text: "Editable",
         leftIcon: "link",
         rightIcon: "share",
@@ -29,30 +29,30 @@ function richTest2() {
 
     box("RichElement — in-place updates")
         .addSubBox("start", r)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "prefix = 'PRE*'",
             onClick: () => r.prefixEntry = "PRE*"
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "suffix = 'SUF*'",
             onClick: () => r.suffixEntry = "SUF*"
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "leftIcon = 'chevron-top' (reuses instance)",
             onClick: () => r.leftIcon = "chevron-top"
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "rightIcon = 'chevron-left' (reuses instance)",
             onClick: () => r.rightIcon = "chevron-left"
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "text = 'Updated!'",
             onClick: () => r.text = "Updated!"
         }));
 }
 
 function richTest3() {
-    const r = TurboRichElement.create({
+    const r = GradumRichElement.create({
         text: "Clear parts",
         leftIcon: "link",
         rightIcon: "share",
@@ -62,23 +62,23 @@ function richTest3() {
 
     box("RichElement — clearing parts")
         .addSubBox("start (fully loaded)", r)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "leftIcon = null",
             onClick: () => r.leftIcon = null
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "rightIcon = null",
             onClick: () => r.rightIcon = null
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "prefixEntry = null",
             onClick: () => r.prefixEntry = null
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "suffixEntry = null",
             onClick: () => r.suffixEntry = null
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "restore all",
             onClick: () => {
                 r.leftIcon = "link";
@@ -91,19 +91,19 @@ function richTest3() {
 
 function richTest4() {
     // Replace center element with custom element; also provide via object props
-    const r = TurboRichElement.create({text: "Center text"});
+    const r = GradumRichElement.create({text: "Center text"});
 
     box("RichElement — center replacement")
         .addSubBox("start", r)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "element = pill('CENTER')",
             onClick: () => r.element = div({text: "CENTER", style: "background: " + Color.random().toString(), classes: "pill"})
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "element = { tag:'span', text:'from props' }",
             onClick: () => r.element = {tag: "span", text: "from props"}
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "element = 'Back to string'",
             onClick: () => r.element = "Back to string"
         }));
@@ -111,7 +111,7 @@ function richTest4() {
 
 function richTest5() {
     // Left/Right custom elements array + ordering check
-    const r = TurboRichElement.create({
+    const r = GradumRichElement.create({
         text: "Order matters",
         leftIcon: "link",
         rightIcon: "share",
@@ -119,14 +119,14 @@ function richTest5() {
 
     box("RichElement — custom elements & order")
         .addSubBox("base", r)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "leftCustomElements = [pill('L1'), pill('L2')]",
             onClick: () => r.leftCustomElements = [
                 div({text: "L1", style: "background: " + Color.random().toString(), classes: "pill"}),
                 div({text: "L2", style: "background: " + Color.random().toString(), classes: "pill"})
             ]
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "rightCustomElements = [pill('R1')]",
             onClick: () => r.rightCustomElements = div({
                 text: "R1",
@@ -134,14 +134,14 @@ function richTest5() {
                 classes: "pill"
             })
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "prefixEntry = 'P:'; suffixEntry = ':S'",
             onClick: () => {
                 r.prefixEntry = "P:";
                 r.suffixEntry = ":S";
             }
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Swap text",
             onClick: () => r.text = "Order still good?"
         }));
@@ -149,10 +149,10 @@ function richTest5() {
 
 function richTest6() {
     // Icon instances reuse & property updates on the instance
-    const left = TurboIcon.create({icon: "chevron-left", type: "svg"}) as TurboIcon;
-    const right = TurboIcon.create({icon: "chevron-top", type: "svg"}) as TurboIcon;
+    const left = GradumIcon.create({icon: "chevron-left", type: "svg"}) as GradumIcon;
+    const right = GradumIcon.create({icon: "chevron-top", type: "svg"}) as GradumIcon;
 
-    const r = TurboRichElement.create({
+    const r = GradumRichElement.create({
         text: "Reuse icon instances",
         leftIcon: left,
         rightIcon: right
@@ -160,19 +160,19 @@ function richTest6() {
 
     box("RichElement — icon instance reuse")
         .addSubBox("start", r)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "leftIcon.icon = 'link'",
             onClick: () => left.icon = "link"
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "rightIcon.icon = 'share'",
             onClick: () => right.icon = "share"
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "replace leftIcon with string (new)",
             onClick: () => r.leftIcon = "photo"
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "replace rightIcon with instance (back)",
             onClick: () => r.rightIcon = right
         }));
@@ -180,7 +180,7 @@ function richTest6() {
 
 function richTest7() {
     // Stress: rapid flips across all parts to smoke test addAtPosition & cleanup
-    const r = TurboRichElement.create({
+    const r = GradumRichElement.create({
         text: "Stress me",
         leftIcon: "link",
         rightIcon: "share",
@@ -190,7 +190,7 @@ function richTest7() {
 
     box("RichElement — stress / race-ish")
         .addSubBox("start", r)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "Rapid flip 12x",
             onClick: () => {
                 let i = 0;
@@ -208,23 +208,23 @@ function richTest7() {
 
 function richTest8() {
     // Transition between strings and HTMLElements for prefix/suffix
-    const r = TurboRichElement.create({text: "Hybrid prefix/suffix"});
+    const r = GradumRichElement.create({text: "Hybrid prefix/suffix"});
 
     box("RichElement — prefix/suffix hybrids")
         .addSubBox("start", r)
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "prefixEntry = pill('PILL')",
             onClick: () => r.prefixEntry = div({text: "PILL", style: "background: " + Color.random().toString(), classes: "pill"})
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "prefixEntry = 'pre again'",
             onClick: () => r.prefixEntry = "pre again"
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "suffixEntry = span('ok')",
             onClick: () => r.suffixEntry = span({text: "ok"})
         }))
-        .addContent(TurboButton.create({
+        .addContent(GradumButton.create({
             text: "suffixEntry = 'suf again'",
             onClick: () => r.suffixEntry = "suf again"
         }));

@@ -1,6 +1,6 @@
 import {Coordinate} from "../../types/basic.types";
 import {trim} from "../computations/misc";
-import {Point} from "../../turboComponents/datatypes/point/point";
+import {Point} from "../../gradumComponents/datatypes/point/point";
 import {Side} from "../../types/enums.types";
 
 function closestPointOnEdge(pointer: Coordinate, rect: DOMRect): Point {

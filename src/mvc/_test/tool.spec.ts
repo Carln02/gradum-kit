@@ -1,33 +1,33 @@
 import {describe, it, expect} from "vitest";
-import {TurboTool} from "../tool/tool";
-import {TurboOperator} from "../operator/operator";
-import {TurboView} from "../view/view";
+import {GradumTool} from "../tool/tool";
+import {GradumOperator} from "../operator/operator";
+import {GradumView} from "../view/view";
 import {div} from "../../elementCreation/basicElements";
-import {$, turbo} from "../../turboFunctions/turboFunctions";
+import {$, gradum} from "../../gradumFunctions/gradumFunctions";
 import {behavior} from "../../decorators/listener/listener";
-import {TurboModel} from "../model/model";
-import {TurboEmitter} from "../emitter/emitter";
+import {GradumModel} from "../model/model";
+import {GradumEmitter} from "../emitter/emitter";
 
-class DemoTool extends TurboTool {
+class DemoTool extends GradumTool {
     public rand = 0;
 
     @behavior() click(_e: any, _target: any): void { this.rand++; }
 }
 
-class MinimalTool extends TurboTool {}
+class MinimalTool extends GradumTool {}
 
-describe("TurboTool", () => {
-    it("is a subclass of TurboOperator", () => {
+describe("GradumTool", () => {
+    it("is a subclass of GradumOperator", () => {
         const element = div({parent: document.body});
         const tool = new MinimalTool({element});
-        expect(tool).toBeInstanceOf(TurboOperator);
+        expect(tool).toBeInstanceOf(GradumOperator);
     });
 
     it("constructor assigns element, view, model, emitter, toolName", () => {
         const element = div({parent: document.body});
-        const model = new TurboModel({data: {}});
-        const emitter = new TurboEmitter(model);
-        const view = new TurboView({element, model, emitter} as any);
+        const model = new GradumModel({data: {}});
+        const emitter = new GradumEmitter(model);
+        const view = new GradumView({element, model, emitter} as any);
 
         const tool = new MinimalTool({element, view, model, emitter, toolName: "brush"} as any);
 
@@ -58,9 +58,9 @@ describe("TurboTool", () => {
 
     it("initialize() does not throw when toolName is set", () => {
         const element = div({parent: document.body});
-        const model = new TurboModel({data: {}});
-        const emitter = new TurboEmitter(model);
-        const view = new TurboView({element, model, emitter} as any);
+        const model = new GradumModel({data: {}});
+        const emitter = new GradumEmitter(model);
+        const view = new GradumView({element, model, emitter} as any);
 
         const tool = new DemoTool({element, view, model, emitter, toolName: "brush"} as any);
         expect(() => tool.initialize()).not.toThrow();
@@ -68,15 +68,15 @@ describe("TurboTool", () => {
 
     it("@behavior decorator wires click events after initialize() with a toolName", () => {
         const element = div({parent: document.body});
-        const model = new TurboModel({data: {}});
-        const emitter = new TurboEmitter(model);
-        const view = new TurboView({element, model, emitter} as any);
+        const model = new GradumModel({data: {}});
+        const emitter = new GradumEmitter(model);
+        const view = new GradumView({element, model, emitter} as any);
 
         const tool = new DemoTool({element, view, model, emitter, toolName: "brush"} as any);
         tool.initialize();
 
         expect(tool.rand).toBe(0);
-        $(div()).executeAction("turbo-click", "brush", new Event("turbo-click"));
+        $(div()).executeAction("gradum-click", "brush", new Event("gradum-click"));
         expect(tool.rand).toBe(1);
     });
 

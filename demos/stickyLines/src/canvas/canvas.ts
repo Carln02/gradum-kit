@@ -1,8 +1,8 @@
-import {define, TurboElement} from "../../../../build/gradum-kit.esm";
+import {define, GradumElement} from "../../../../build/gradum-kit.esm";
 import "./canvas.css";
 import {CanvasConstrainer} from "./canvas.mainConstrainer";
 
-export class Canvas extends TurboElement {
+export class Canvas extends GradumElement {
     public static defaultProperties = {
         constrainers: [CanvasConstrainer]
     };

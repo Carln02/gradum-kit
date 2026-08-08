@@ -1,10 +1,10 @@
-import {define, TurboElement, Point, expose, TurboRect, Color} from "../../../../build/gradum-kit.esm";
+import {define, GradumElement, Point, expose, GradumRect, Color} from "../../../../build/gradum-kit.esm";
 import {SquareModel} from "./square.model";
 import {SquareView} from "./square.view";
 import "./square.css";
 
 //Custom square element, defined as a custom element
-export class Square extends TurboElement<SquareView, any, SquareModel> {
+export class Square extends GradumElement<SquareView, any, SquareModel> {
     public modifiable: boolean = true;
 
     //Expose fields from the model
@@ -34,7 +34,7 @@ export class Square extends TurboElement<SquareView, any, SquareModel> {
 
     public getBoundingClientRect(): DOMRect {
         const offset = this.model.centerAnchor ? this.model.elementSize / 2 : 0;
-        return new TurboRect({
+        return new GradumRect({
             x: this.model.position.x - offset,
             y: this.model.position.y - offset,
             width: this.elementSize,

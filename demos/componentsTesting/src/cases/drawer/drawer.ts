@@ -1,5 +1,5 @@
 import {
-    $, drawer, div, h4, p, Side, TurboButton
+    $, drawer, div, h4, p, Side, GradumButton
 } from "../../../../../build/gradum-kit.esm";
 import {box} from "../../demoBox/demoBox";
 import "./drawer.css";
@@ -35,11 +35,11 @@ function drawerTest1_Basics() {
         children: [p({text: "Bottom drawer content."})],
     });
 
-    box("TurboDrawer — Basics")
-        .addSubBox("Left", dLeft, TurboButton.create({text: "Toggle", onClick: () => (dLeft.open = !dLeft.open)}))
-        .addSubBox("Right", dRight, TurboButton.create({text: "Toggle", onClick: () => (dRight.open = !dRight.open)}))
-        .addSubBox("Top", dTop, TurboButton.create({text: "Toggle", onClick: () => (dTop.open = !dTop.open)}))
-        .addSubBox("Bottom", dBottom, TurboButton.create({text: "Toggle", onClick: () => (dBottom.open = !dBottom.open)}));
+    box("GradumDrawer — Basics")
+        .addSubBox("Left", dLeft, GradumButton.create({text: "Toggle", onClick: () => (dLeft.open = !dLeft.open)}))
+        .addSubBox("Right", dRight, GradumButton.create({text: "Toggle", onClick: () => (dRight.open = !dRight.open)}))
+        .addSubBox("Top", dTop, GradumButton.create({text: "Toggle", onClick: () => (dTop.open = !dTop.open)}))
+        .addSubBox("Bottom", dBottom, GradumButton.create({text: "Toggle", onClick: () => (dBottom.open = !dBottom.open)}));
 }
 
 function drawerTest2_OverflowVsTransform() {
@@ -57,14 +57,14 @@ function drawerTest2_OverflowVsTransform() {
         children: [div({text: "Transform mode\n(translateX/Y instead of resizing container)"})],
     });
 
-    box("TurboDrawer — hideOverflow vs transform")
+    box("GradumDrawer — hideOverflow vs transform")
         .addSubBox("hideOverflow = true", overflow,
-            TurboButton.create({text: "Open", onClick: () => (overflow.open = true)}),
-            TurboButton.create({text: "Close", onClick: () => (overflow.open = false)}),
+            GradumButton.create({text: "Open", onClick: () => (overflow.open = true)}),
+            GradumButton.create({text: "Close", onClick: () => (overflow.open = false)}),
         )
         .addSubBox("hideOverflow = false", transform,
-            TurboButton.create({text: "Open", onClick: () => (transform.open = true)}),
-            TurboButton.create({text: "Close", onClick: () => (transform.open = false)}),
+            GradumButton.create({text: "Open", onClick: () => (transform.open = true)}),
+            GradumButton.create({text: "Close", onClick: () => (transform.open = false)}),
         );
 }
 
@@ -85,9 +85,9 @@ function drawerTest3_Offsets() {
         children: [div({text: "offset: { open: 24, closed: 4 }"})],
     });
 
-    box("TurboDrawer — offset")
-        .addSubBox("Single number", fixed, TurboButton.create({text: "Toggle", onClick: () => (fixed.open = !fixed.open)}))
-        .addSubBox("Per-state", perState, TurboButton.create({text: "Toggle", onClick: () => (perState.open = !perState.open)}));
+    box("GradumDrawer — offset")
+        .addSubBox("Single number", fixed, GradumButton.create({text: "Toggle", onClick: () => (fixed.open = !fixed.open)}))
+        .addSubBox("Per-state", perState, GradumButton.create({text: "Toggle", onClick: () => (perState.open = !perState.open)}));
 }
 
 function drawerTest4_IconBehavior() {
@@ -105,10 +105,10 @@ function drawerTest4_IconBehavior() {
         children: [p({text: "rotateIconBasedOnSide = true"})],
     });
 
-    box("TurboDrawer — icon modes")
+    box("GradumDrawer — icon modes")
         .addSubBox("Append side to icon name", byName,
-            TurboButton.create({text: "Toggle", onClick: () => (byName.open = !byName.open)}),
-            TurboButton.create({
+            GradumButton.create({text: "Toggle", onClick: () => (byName.open = !byName.open)}),
+            GradumButton.create({
                 text: "Cycle side",
                 onClick: () => {
                     const order = [Side.left, Side.top, Side.right, Side.bottom];
@@ -118,8 +118,8 @@ function drawerTest4_IconBehavior() {
             }),
         )
         .addSubBox("Rotate icon based on side", byRotate,
-            TurboButton.create({text: "Toggle", onClick: () => (byRotate.open = !byRotate.open)}),
-            TurboButton.create({
+            GradumButton.create({text: "Toggle", onClick: () => (byRotate.open = !byRotate.open)}),
+            GradumButton.create({
                 text: "Cycle side",
                 onClick: () => {
                     const order = [Side.left, Side.top, Side.right, Side.bottom];
@@ -138,13 +138,13 @@ function drawerTest5_LiveSideChanges() {
         children: [div({text: "I move around as you change side"})],
     });
 
-    box("TurboDrawer — live side changes")
+    box("GradumDrawer — live side changes")
         .addSubBox("Drawer", d,
-            TurboButton.create({text: "Open/Close", onClick: () => (d.open = !d.open)}),
-            TurboButton.create({text: "Side: Left", onClick: () => (d.side = Side.left)}),
-            TurboButton.create({text: "Side: Right", onClick: () => (d.side = Side.right)}),
-            TurboButton.create({text: "Side: Top", onClick: () => (d.side = Side.top)}),
-            TurboButton.create({text: "Side: Bottom", onClick: () => (d.side = Side.bottom)}),
+            GradumButton.create({text: "Open/Close", onClick: () => (d.open = !d.open)}),
+            GradumButton.create({text: "Side: Left", onClick: () => (d.side = Side.left)}),
+            GradumButton.create({text: "Side: Right", onClick: () => (d.side = Side.right)}),
+            GradumButton.create({text: "Side: Top", onClick: () => (d.side = Side.top)}),
+            GradumButton.create({text: "Side: Bottom", onClick: () => (d.side = Side.bottom)}),
         );
 }
 
@@ -157,9 +157,9 @@ function drawerTest6_ResizeObserver() {
     });
 
     let lines = 1;
-    box("TurboDrawer — content resize")
+    box("GradumDrawer — content resize")
         .addSubBox("Resize on content change", d,
-            TurboButton.create({
+            GradumButton.create({
                 text: "Add line",
                 onClick: () => {
                     lines += 1;
@@ -167,14 +167,14 @@ function drawerTest6_ResizeObserver() {
                     // drawer.refresh() is not needed; ResizeObserver should adjust translation
                 },
             }),
-            TurboButton.create({
+            GradumButton.create({
                 text: "Remove last line",
                 onClick: () => {
                     const last = d.panel.lastElementChild;
                     if (last) last.remove();
                 },
             }),
-            TurboButton.create({text: "Open/Close", onClick: () => (d.open = !d.open)}),
+            GradumButton.create({text: "Open/Close", onClick: () => (d.open = !d.open)}),
         );
 }
 
@@ -199,11 +199,11 @@ function drawerTest7_Nested() {
         ],
     });
 
-    box("TurboDrawer — nested")
+    box("GradumDrawer — nested")
         .addSubBox("Outer + Inner",
             outer,
-            TurboButton.create({text: "Toggle outer", onClick: () => (outer.open = !outer.open)}),
-            TurboButton.create({text: "Toggle inner", onClick: () => (inner.open = !inner.open)}),
+            GradumButton.create({text: "Toggle outer", onClick: () => (outer.open = !outer.open)}),
+            GradumButton.create({text: "Toggle inner", onClick: () => (inner.open = !inner.open)}),
         );
 }
 
@@ -216,9 +216,9 @@ function drawerTest8_RaceProps() {
         children: [div({text: "Props change quickly; should stay consistent"})],
     });
 
-    box("TurboDrawer — stress/race")
+    box("GradumDrawer — stress/race")
         .addSubBox("Racer", racer,
-            TurboButton.create({
+            GradumButton.create({
                 text: "Go!",
                 onClick: () => {
                     const sides = [Side.left, Side.top, Side.right, Side.bottom];

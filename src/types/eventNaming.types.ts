@@ -3,9 +3,9 @@
  * @group Types
  * @category Event Names
  */
-const TurboKeyEventName = {
-    keyPressed: "turbo-key-pressed",
-    keyReleased: "turbo-key-released"
+const GradumKeyEventName = {
+    keyPressed: "gradum-key-pressed",
+    keyReleased: "gradum-key-released"
 } as const;
 
 /**
@@ -21,12 +21,12 @@ const DefaultKeyEventName = {
  * @group Types
  * @category Event Names
  */
-const TurboClickEventName = {
-    click: "turbo-click",
-    clickStart: "turbo-click-start",
-    clickEnd: "turbo-click-end",
+const GradumClickEventName = {
+    click: "gradum-click",
+    clickStart: "gradum-click-start",
+    clickEnd: "gradum-click-end",
 
-    longPress: "turbo-long-press"
+    longPress: "gradum-long-press"
 } as const;
 
 /**
@@ -38,15 +38,15 @@ const DefaultClickEventName = {
     clickStart: "mousedown",
     clickEnd: "mouseup",
 
-    longPress: TurboClickEventName.longPress
+    longPress: GradumClickEventName.longPress
 } as const;
 
 /**
  * @group Types
  * @category Event Names
  */
-const TurboMoveEventName = {
-    move: "turbo-move"
+const GradumMoveEventName = {
+    move: "gradum-move"
 } as const;
 
 /**
@@ -61,10 +61,10 @@ const DefaultMoveEventName = {
  * @group Types
  * @category Event Names
  */
-const TurboDragEventName = {
-    drag: "turbo-drag",
-    dragStart: "turbo-drag-start",
-    dragEnd: "turbo-drag-end"
+const GradumDragEventName = {
+    drag: "gradum-drag",
+    dragStart: "gradum-drag-start",
+    dragEnd: "gradum-drag-end"
 } as const;
 
 /**
@@ -72,18 +72,18 @@ const TurboDragEventName = {
  * @category Event Names
  */
 const DefaultDragEventName = {
-    drag: TurboDragEventName.drag,
-    dragStart: TurboDragEventName.dragStart,
-    dragEnd: TurboDragEventName.dragEnd,
+    drag: GradumDragEventName.drag,
+    dragStart: GradumDragEventName.dragStart,
+    dragEnd: GradumDragEventName.dragEnd,
 } as const;
 
 /**
  * @group Types
  * @category Event Names
  */
-const TurboWheelEventName = {
-    scroll: "turbo-scroll",
-    pinch: "turbo-pinch",
+const GradumWheelEventName = {
+    scroll: "gradum-scroll",
+    pinch: "gradum-pinch",
 } as const;
 
 /**
@@ -99,22 +99,22 @@ const DefaultWheelEventName = {
  * @group Types
  * @category Event Names
  */
-const TurboEventName = {
-    ...TurboClickEventName,
-    ...TurboKeyEventName,
-    ...TurboMoveEventName,
-    ...TurboDragEventName,
-    ...TurboWheelEventName,
+const GradumEventName = {
+    ...GradumClickEventName,
+    ...GradumKeyEventName,
+    ...GradumMoveEventName,
+    ...GradumDragEventName,
+    ...GradumWheelEventName,
 
-    selectInput: "turbo-select-input",
+    selectInput: "gradum-select-input",
 } as const;
 
 /**
  * @group Types
  * @category Event Names
  *
- * @description Object containing the names of events fired by default by the turboComponents. Modifying it (prior to
- * setting up new turbo components) will subsequently alter the events that the instantiated components will listen for.
+ * @description Object containing the names of events fired by default by the gradumComponents. Modifying it (prior to
+ * setting up new gradum components) will subsequently alter the events that the instantiated components will listen for.
  */
 const DefaultEventName = {
     ...DefaultKeyEventName,
@@ -153,12 +153,12 @@ type DefaultEventNameEntry = typeof DefaultEventName[DefaultEventNameKey];
  * @group Types
  * @category Event Names
  */
-type TurboEventNameKey = keyof typeof TurboEventName;
+type GradumEventNameKey = keyof typeof GradumEventName;
 /**
  * @group Types
  * @category Event Names
  */
-type TurboEventNameEntry = typeof TurboEventName[TurboEventNameKey];
+type GradumEventNameEntry = typeof GradumEventName[GradumEventNameKey];
 
 export {
     DefaultKeyEventName,
@@ -166,15 +166,15 @@ export {
     DefaultWheelEventName,
     DefaultClickEventName,
     DefaultDragEventName,
-    TurboKeyEventName,
-    TurboClickEventName,
-    TurboMoveEventName,
-    TurboDragEventName,
-    TurboWheelEventName,
+    GradumKeyEventName,
+    GradumClickEventName,
+    GradumMoveEventName,
+    GradumDragEventName,
+    GradumWheelEventName,
     DefaultEventName,
     DefaultEventNameEntry,
-    TurboEventName,
-    TurboEventNameEntry,
+    GradumEventName,
+    GradumEventNameEntry,
     DefaultEventNameKey,
-    TurboEventNameKey
+    GradumEventNameKey
 };

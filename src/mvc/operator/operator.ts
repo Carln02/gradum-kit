@@ -1,13 +1,13 @@
-import {TurboView} from "../view/view";
+import {GradumView} from "../view/view";
 import {initializeEffects} from "../../decorators/reactivity/reactivity";
 import {attachListenersAndBehaviors} from "../../decorators/listener/listener";
-import {TurboModel} from "../model/model";
-import {TurboEmitter} from "../emitter/emitter";
+import {GradumModel} from "../model/model";
+import {GradumEmitter} from "../emitter/emitter";
 import {addRegistryCategory, define} from "../../decorators/define/define";
-import {TurboOperatorProperties} from "./operator.types";
+import {GradumOperatorProperties} from "./operator.types";
 
 /**
- * @class TurboOperator
+ * @class GradumOperator
  * @group MVC
  * @category Operator
  *
@@ -16,15 +16,15 @@ import {TurboOperatorProperties} from "./operator.types";
  * emitter to listen for changes in the model or any other internal events. It can only communicate with other
  * operators via the emitter (by firing or listening for changes on a certain key).
  * @template {object} ElementType - The type of the main component.
- * @template {TurboView} ViewType - The element's MVC view type.
- * @template {TurboModel} ModelType - The element's MVC model type.
- * @template {TurboEmitter} EmitterType - The element's MVC emitter type.
+ * @template {GradumView} ViewType - The element's MVC view type.
+ * @template {GradumModel} ModelType - The element's MVC model type.
+ * @template {GradumEmitter} EmitterType - The element's MVC emitter type.
  */
-class TurboOperator<
+class GradumOperator<
     ElementType extends object = object,
-    ViewType extends TurboView = TurboView<any, any>,
-    ModelType extends TurboModel = TurboModel,
-    EmitterType extends TurboEmitter = TurboEmitter
+    ViewType extends GradumView = GradumView<any, any>,
+    ModelType extends GradumModel = GradumModel,
+    EmitterType extends GradumEmitter = GradumEmitter
 > {
     /**
      * @description The key of the operator. Used to retrieve it in the main component. If not set, if the element's
@@ -53,7 +53,7 @@ class TurboOperator<
      */
     public emitter: EmitterType;
 
-    public constructor(properties: TurboOperatorProperties<ElementType, ViewType, ModelType, EmitterType>) {
+    public constructor(properties: GradumOperatorProperties<ElementType, ViewType, ModelType, EmitterType>) {
         this.element = properties.element;
         if (properties.model) this.model = properties.model;
         if (properties.emitter) this.emitter = properties.emitter;
@@ -97,6 +97,6 @@ class TurboOperator<
     }
 }
 
-addRegistryCategory(TurboOperator);
-define(TurboOperator);
-export {TurboOperator};
+addRegistryCategory(GradumOperator);
+define(GradumOperator);
+export {GradumOperator};

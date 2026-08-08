@@ -1,7 +1,7 @@
-import {modelSignal, signal, TurboModel} from "../../../../build/gradum-kit.esm";
+import {modelSignal, signal, GradumModel} from "../../../../build/gradum-kit.esm";
 import {SongState} from "./song.types";
 
-export class SongModel extends TurboModel {
+export class SongModel extends GradumModel {
     @modelSignal() id: string;
     @modelSignal() title: string;
     @modelSignal() artist: string;

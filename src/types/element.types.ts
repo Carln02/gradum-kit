@@ -7,7 +7,7 @@ import {MathMLTag, ValidMathMLElement} from "./mathMlElement.types";
  * @category Element
  * @description A type that represents a union of HTML, SVG, and MathML tag name maps.`
  */
-type ElementTagMap = HTMLElementTagNameMap & SVGTagMap & MathMLElementTagNameMap & TurboElementTagNameMap;
+type ElementTagMap = HTMLElementTagNameMap & SVGTagMap & MathMLElementTagNameMap & GradumElementTagNameMap;
 
 /**
  * @group Types
@@ -67,10 +67,10 @@ type ElementTagDefinition<Tag extends ValidTag = "div"> = {
     namespace?: string;
 };
 
-interface TurboElementTagNameMap {
+interface GradumElementTagNameMap {
 }
 
-interface TurboElementPropertiesMap {
+interface GradumElementPropertiesMap {
 }
 
 declare global {
@@ -139,6 +139,6 @@ export {
     HTMLElementNonFunctions,
     HTMLElementMutableFields,
     ElementTagDefinition,
-    TurboElementTagNameMap,
-    TurboElementPropertiesMap,
+    GradumElementTagNameMap,
+    GradumElementPropertiesMap,
 };

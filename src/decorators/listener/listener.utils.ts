@@ -1,4 +1,4 @@
-import {ListenerProperties} from "../../turboComponents/datatypes/listener/listener.types";
+import {ListenerProperties} from "../../gradumComponents/datatypes/listener/listener.types";
 
 type ListenerConstructorType = {
     listeners: Map<PropertyKey, DecoratorListenerProperties>,

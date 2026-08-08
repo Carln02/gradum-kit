@@ -1,26 +1,26 @@
-import {TurboObserver} from "./observer";
+import {GradumObserver} from "./observer";
 import {KeyType} from "../../types/basic.types";
-import {TurboModel} from "./model";
+import {GradumModel} from "./model";
 
-type TurboModelProxy<
+type GradumModelProxy<
     DataType extends object = any,
     IdType extends KeyType = any
-> = DataType & {readonly $model: TurboModel<DataType, KeyType, IdType>};
+> = DataType & {readonly $model: GradumModel<DataType, KeyType, IdType>};
 
 /**
- * @type TurboModelProperties
+ * @type GradumModelProperties
  * @group MVC
- * @category TurboModel
+ * @category GradumModel
  *
- * @description Configuration object used when creating a {@link TurboModel}.
+ * @description Configuration object used when creating a {@link GradumModel}.
  * @template DataType - The type of data stored in the model.
  * @template IdType - The type of the data's ID.
  * @property {IdType} [id] - Optional ID attached to the model. Useful to reference the data in a nested structure.
  * @property {DataType} [data] - Initial data.
- * @property {boolean} [initialize] - If true, {@link TurboModel.initialize} is called immediately after
+ * @property {boolean} [initialize] - If true, {@link GradumModel.initialize} is called immediately after
  * construction.
  */
-type TurboModelProperties<
+type GradumModelProperties<
     DataType = any,
     IdType extends KeyType = any
 > = {
@@ -33,19 +33,19 @@ type TurboModelProperties<
 };
 
 /**
- * @type TurboObserverProperties
+ * @type GradumObserverProperties
  * @group Components
- * @category TurboDataBlock
+ * @category GradumDataBlock
  *
- * @description Configuration object to create a new {@link TurboObserver}.
+ * @description Configuration object to create a new {@link GradumObserver}.
  *
  * @template DataType - The type of data handled by the observer.
  * @template {object} ComponentType - The instance type created/managed by the observer.
  * @template {string | number | symbol} KeyType - The per-item key type.
  * @template {string | number} BlockKeyType - The block-grouping key type.
  *
- * @property {new(...args:any[]) => TurboObserver<DataType, ComponentType, KeyType, BlockKeyType>} [customConstructor] -
- * Optional custom observer constructor to instantiate instead of the default `TurboObserver`.
+ * @property {new(...args:any[]) => GradumObserver<DataType, ComponentType, KeyType, BlockKeyType>} [customConstructor] -
+ * Optional custom observer constructor to instantiate instead of the default `GradumObserver`.
  * @property {boolean} [initialize] - If true, the observer is initialized immediately.
  * @property {(data, id, self, blockKey?) => ComponentType | void} [onAdded] - Called when a new item appears.
  * @property {(data, instance, id, self, blockKey?) => void} [onUpdated] - Called when an existing item changes.
@@ -53,27 +53,27 @@ type TurboModelProperties<
  * @property {(self) => void} [onInitialize] - Called when the observer is initialized.
  * @property {(self) => void} [onDestroy] - Called when the observer is destroyed.
  */
-type TurboObserverProperties<
+type GradumObserverProperties<
     DataType = any,
     ComponentType extends object = any,
     DataKeyType extends KeyType = KeyType
 > = {
-    customConstructor?: new (...args: any[]) => TurboObserver<DataType, ComponentType, DataKeyType>,
+    customConstructor?: new (...args: any[]) => GradumObserver<DataType, ComponentType, DataKeyType>,
 
     depth?: number,
     initialize?: boolean,
 
-    onAdded?: (data: DataType, self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => ComponentType | void,
+    onAdded?: (data: DataType, self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => ComponentType | void,
     onUpdated?: (data: DataType, instance: ComponentType,
-                 self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => void,
+                 self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => void,
     onDeleted?: (data: DataType, instance: ComponentType,
-                 self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => void,
+                 self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => void,
 
     replaceOnUpdate?: (prevData: DataType, newData: DataType, instance: ComponentType,
-                       self: TurboObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => boolean,
+                       self: GradumObserver<DataType, ComponentType, DataKeyType>, ...keys: KeyType[]) => boolean,
 
-    onInitialize?: (self: TurboObserver<DataType, ComponentType, DataKeyType>) => void,
-    onDestroy?: (self: TurboObserver<DataType, ComponentType, DataKeyType>) => void,
+    onInitialize?: (self: GradumObserver<DataType, ComponentType, DataKeyType>) => void,
+    onDestroy?: (self: GradumObserver<DataType, ComponentType, DataKeyType>) => void,
 };
 
-export {TurboModelProperties, TurboObserverProperties, TurboModelProxy};
+export {GradumModelProperties, GradumObserverProperties, GradumModelProxy};

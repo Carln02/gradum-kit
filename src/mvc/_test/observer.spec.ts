@@ -1,23 +1,23 @@
 import {describe, it, expect} from "vitest";
-import {TurboObserver} from "../model/observer";
-import {TurboModel} from "../model/model";
+import {GradumObserver} from "../model/observer";
+import {GradumModel} from "../model/model";
 
 function makeInstance(id: string) {
     return {id, removed: false, remove() { this.removed = true; }};
 }
 
-describe("TurboObserver", () => {
+describe("GradumObserver", () => {
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     describe("lifecycle", () => {
         it("starts uninitialized", () => {
-            expect(new TurboObserver().isInitialized).toBe(false);
+            expect(new GradumObserver().isInitialized).toBe(false);
         });
 
         it("initialize() fires onInitialize and sets isInitialized", () => {
             let fired = false;
-            const obs = new TurboObserver({onInitialize: () => { fired = true; }});
+            const obs = new GradumObserver({onInitialize: () => { fired = true; }});
             obs.initialize();
             expect(obs.isInitialized).toBe(true);
             expect(fired).toBe(true);
@@ -25,7 +25,7 @@ describe("TurboObserver", () => {
 
         it("initialize() is a no-op when already initialized", () => {
             let count = 0;
-            const obs = new TurboObserver({onInitialize: () => count++});
+            const obs = new GradumObserver({onInitialize: () => count++});
             obs.initialize();
             obs.initialize();
             expect(count).toBe(1);
@@ -33,14 +33,14 @@ describe("TurboObserver", () => {
 
         it("initialize: true in properties initializes immediately", () => {
             let fired = false;
-            const obs = new TurboObserver({onInitialize: () => { fired = true; }, initialize: true});
+            const obs = new GradumObserver({onInitialize: () => { fired = true; }, initialize: true});
             expect(obs.isInitialized).toBe(true);
             expect(fired).toBe(true);
         });
 
         it("destroy() clears and fires onDestroy", () => {
             let destroyed = false;
-            const obs = new TurboObserver({onDestroy: () => { destroyed = true; }});
+            const obs = new GradumObserver({onDestroy: () => { destroyed = true; }});
             obs.destroy(false);
             expect(destroyed).toBe(true);
             expect(obs.isInitialized).toBe(false);
@@ -48,7 +48,7 @@ describe("TurboObserver", () => {
 
         it("clear(true) calls instance.remove() on all stored instances", () => {
             const inst = makeInstance("a");
-            const obs = new TurboObserver<string, typeof inst>({
+            const obs = new GradumObserver<string, typeof inst>({
                 onAdded: () => inst,
             });
             obs.keyChanged(["k"], "v");
@@ -58,7 +58,7 @@ describe("TurboObserver", () => {
 
         it("clear(false) does not call instance.remove()", () => {
             const inst = makeInstance("a");
-            const obs = new TurboObserver<string, typeof inst>({onAdded: () => inst});
+            const obs = new GradumObserver<string, typeof inst>({onAdded: () => inst});
             obs.keyChanged(["k"], "v");
             obs.clear(false);
             expect(inst.removed).toBe(false);
@@ -71,7 +71,7 @@ describe("TurboObserver", () => {
     describe("keyChanged", () => {
         it("fires onAdded and stores the returned instance", () => {
             const added: string[] = [];
-            const obs = new TurboObserver<string, {id: string}>({
+            const obs = new GradumObserver<string, {id: string}>({
                 onAdded: (_d, _s, ...keys) => { added.push(keys[0] as string); return {id: keys[0] as string}; },
             });
             obs.keyChanged(["item1"], "data");
@@ -81,7 +81,7 @@ describe("TurboObserver", () => {
 
         it("fires onUpdated after onAdded on first keyChanged", () => {
             const updated: string[] = [];
-            const obs = new TurboObserver<string, {id: string}>({
+            const obs = new GradumObserver<string, {id: string}>({
                 onAdded: (_d, _s, ...keys) => ({id: keys[0] as string}),
                 onUpdated: (_d, _i, _s, ...keys) => updated.push(keys[0] as string),
             });
@@ -92,7 +92,7 @@ describe("TurboObserver", () => {
         it("fires only onUpdated on subsequent keyChanged for same key", () => {
             const added: string[] = [];
             const updated: string[] = [];
-            const obs = new TurboObserver<string, {id: string}>({
+            const obs = new GradumObserver<string, {id: string}>({
                 onAdded: (_d, _s, ...keys) => { added.push("add"); return {id: keys[0] as string}; },
                 onUpdated: (_d, _i, _s, ...keys) => updated.push("update"),
             });
@@ -104,7 +104,7 @@ describe("TurboObserver", () => {
 
         it("fires onDeleted when deleted=true and instance exists", () => {
             const deleted: string[] = [];
-            const obs = new TurboObserver<string, {id: string}>({
+            const obs = new GradumObserver<string, {id: string}>({
                 onAdded: (_d, _s, ...keys) => ({id: keys[0] as string}),
                 onDeleted: (_d, _i, _s, ...keys) => deleted.push(keys[0] as string),
             });
@@ -114,7 +114,7 @@ describe("TurboObserver", () => {
         });
 
         it("default onDeleted removes the instance", () => {
-            const obs = new TurboObserver<string, {id: string}>({
+            const obs = new GradumObserver<string, {id: string}>({
                 onAdded: (_d, _s, ...keys) => ({id: keys[0] as string}),
             });
             obs.keyChanged(["item1"], "data");
@@ -124,14 +124,14 @@ describe("TurboObserver", () => {
 
         it("deleted=true with no existing instance is a no-op", () => {
             let called = false;
-            const obs = new TurboObserver<any>({onDeleted: () => { called = true; }});
+            const obs = new GradumObserver<any>({onDeleted: () => { called = true; }});
             obs.keyChanged(["ghost"], "data", true);
             expect(called).toBe(false);
         });
 
         it("onAdded returning void stores nothing and skips onUpdated", () => {
             const updated: any[] = [];
-            const obs = new TurboObserver<string, object>({
+            const obs = new GradumObserver<string, object>({
                 onUpdated: (_d, _i, _s, ...keys) => updated.push(keys[0]),
             });
             obs.keyChanged(["item"], "data");
@@ -141,7 +141,7 @@ describe("TurboObserver", () => {
 
         it("default onUpdated sets data on instance with .data field", () => {
             let instanceData: any = null;
-            const obs = new TurboObserver<string, {data: any}>({
+            const obs = new GradumObserver<string, {data: any}>({
                 onAdded: () => ({ data: null }),
             });
             obs.keyChanged(["k"], "initial");
@@ -151,7 +151,7 @@ describe("TurboObserver", () => {
         });
 
         it("default onUpdated sets dataId on instance with .dataId field", () => {
-            const obs = new TurboObserver<string, {dataId: any}>({
+            const obs = new GradumObserver<string, {dataId: any}>({
                 onAdded: () => ({dataId: null}),
             });
             obs.keyChanged(["myKey"], "v");
@@ -160,7 +160,7 @@ describe("TurboObserver", () => {
         });
 
         it("works with multi-level key paths", () => {
-            const obs = new TurboObserver<string, {label: string}>({
+            const obs = new GradumObserver<string, {label: string}>({
                 onAdded: (_d, _s, ...keys) => ({label: keys.join(".")}),
             });
             obs.keyChanged(["group1", "item1"], "data");
@@ -169,7 +169,7 @@ describe("TurboObserver", () => {
         });
 
         it("works with depth-3 key paths", () => {
-            const obs = new TurboObserver<string, {path: string}>({
+            const obs = new GradumObserver<string, {path: string}>({
                 onAdded: (_d, _s, ...keys) => ({path: keys.join("/")}),
             });
             obs.keyChanged(["a", "b", "c"], "deep");
@@ -183,7 +183,7 @@ describe("TurboObserver", () => {
     describe("remove / detach", () => {
         it("remove() deletes from the map and calls instance.remove()", () => {
             const inst = makeInstance("x");
-            const obs = new TurboObserver<string, typeof inst>({onAdded: () => inst});
+            const obs = new GradumObserver<string, typeof inst>({onAdded: () => inst});
             obs.keyChanged(["k"], "v");
             obs.remove("k" as any);
             expect(obs.get("k" as any)).toBeUndefined();
@@ -192,7 +192,7 @@ describe("TurboObserver", () => {
 
         it("detach() removes from the map without calling instance.remove()", () => {
             const inst = makeInstance("x");
-            const obs = new TurboObserver<string, typeof inst>({onAdded: () => inst});
+            const obs = new GradumObserver<string, typeof inst>({onAdded: () => inst});
             obs.keyChanged(["k"], "v");
             obs.detach("k" as any);
             expect(obs.get("k" as any)).toBeUndefined();
@@ -201,7 +201,7 @@ describe("TurboObserver", () => {
 
         it("removeValue() removes the first matching instance", () => {
             const inst = makeInstance("x");
-            const obs = new TurboObserver<string, typeof inst>({onAdded: () => inst});
+            const obs = new GradumObserver<string, typeof inst>({onAdded: () => inst});
             obs.keyChanged(["k"], "v");
             obs.removeValue(inst);
             expect(obs.get("k" as any)).toBeUndefined();
@@ -209,14 +209,14 @@ describe("TurboObserver", () => {
 
         it("hasValue() returns true when the instance is stored", () => {
             const inst = makeInstance("x");
-            const obs = new TurboObserver<string, typeof inst>({onAdded: () => inst});
+            const obs = new GradumObserver<string, typeof inst>({onAdded: () => inst});
             obs.keyChanged(["k"], "v");
             expect(obs.hasValue(inst)).toBe(true);
         });
 
         it("hasValue() returns false after removal", () => {
             const inst = makeInstance("x");
-            const obs = new TurboObserver<string, typeof inst>({onAdded: () => inst});
+            const obs = new GradumObserver<string, typeof inst>({onAdded: () => inst});
             obs.keyChanged(["k"], "v");
             obs.detach("k" as any);
             expect(obs.hasValue(inst)).toBe(false);
@@ -227,7 +227,7 @@ describe("TurboObserver", () => {
 
     describe("generateObserver paths", () => {
         it("ALL: fires onAdded for all existing children", () => {
-            const model = TurboModel.create({data: {a: 1, b: 2, c: 3}, initialize: true});
+            const model = GradumModel.create({data: {a: 1, b: 2, c: 3}, initialize: true});
             const added: string[] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => added.push(keys[0] as string)
@@ -236,7 +236,7 @@ describe("TurboObserver", () => {
         });
 
         it("ALL: fires onAdded for children added after observer creation", () => {
-            const model = TurboModel.create({data: {} as Record<string, number>, initialize: true});
+            const model = GradumModel.create({data: {} as Record<string, number>, initialize: true});
             const added: string[] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => { added.push(keys[0] as string); return {}; }
@@ -247,25 +247,25 @@ describe("TurboObserver", () => {
         });
 
         it("ALL, ALL: fires onAdded for all existing leaf entries", () => {
-            const model = TurboModel.create({
+            const model = GradumModel.create({
                 data: {row0: {a: 1, b: 2}, row1: {c: 3}},
                 initialize: true
             });
             const added: string[][] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => { added.push(keys as string[]); }
-            }, TurboModel.ALL);
+            }, GradumModel.ALL);
             expect(added).toHaveLength(3);
             expect(added.map(k => k.join(".")).sort()).toEqual(["row0.a", "row0.b", "row1.c"]);
         });
 
         it("ALL, ALL: fires onAdded for leaf entries added after observer creation", () => {
-            const model = TurboModel.create({data: {row0: {}}, initialize: true});
+            const model = GradumModel.create({data: {row0: {}}, initialize: true});
             model.bubbleChanges = true;
             const added: string[][] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => added.push(keys as string[])
-            }, TurboModel.ALL);
+            }, GradumModel.ALL);
 
             model.set(99, "row0", "x");
             model.set({"y": 42}, "row1");
@@ -274,18 +274,18 @@ describe("TurboObserver", () => {
         });
 
         it("ALL, ALL: fires onAdded when a new top-level row is added with existing children", () => {
-            const model = TurboModel.create({data: {}, initialize: true});
+            const model = GradumModel.create({data: {}, initialize: true});
             const added: string[][] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => added.push(keys as string[])
-            }, TurboModel.ALL);
+            }, GradumModel.ALL);
 
             model.set({p: 1, q: 2}, "row0");
             expect(added.map(k => k.join(".")).sort()).toEqual(["row0.p", "row0.q"]);
         });
 
         it("ALL, 5, 4, ALL: fires onAdded only for leaf entries at correct path", () => {
-            const model = TurboModel.create({
+            const model = GradumModel.create({
                 data: {
                     row0: {5: {4: {leaf0: "v0", leaf1: "v1"}}},
                     row1: {5: {4: {leaf2: "v2"}}},
@@ -295,7 +295,7 @@ describe("TurboObserver", () => {
             const added: string[][] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => added.push(keys as string[])
-            }, TurboModel.ALL, "5", "4");
+            }, GradumModel.ALL, "5", "4");
 
             expect(added).toHaveLength(3);
             expect(added.map(k => k.join(".")).sort()).toEqual([
@@ -304,18 +304,18 @@ describe("TurboObserver", () => {
         });
 
         it("ALL, 5, 4, ALL: fires onAdded for new leaf entries added after observer creation", () => {
-            const model = TurboModel.create({data: {row0: {5: {4: {}}}}, initialize: true});
+            const model = GradumModel.create({data: {row0: {5: {4: {}}}}, initialize: true});
             const added: string[][] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => added.push(keys as string[])
-            }, TurboModel.ALL, "5", "4");
+            }, GradumModel.ALL, "5", "4");
 
             model.set("newVal", "row0", "5", "4", "newLeaf");
             expect(added.map(k => k.join(".")).sort()).toEqual(["row0.5.4.newLeaf"]);
         });
 
         it("onUpdated fires with correct keys on subsequent change", () => {
-            const model = TurboModel.create({data: {a: 1}, initialize: true});
+            const model = GradumModel.create({data: {a: 1}, initialize: true});
             const updated: any[][] = [];
             model.generateObserver({
                 onAdded: (_d, _s, ...keys) => ({id: keys[0]}),
@@ -328,7 +328,7 @@ describe("TurboObserver", () => {
         });
 
         it("onDeleted fires and removes instance on delete", () => {
-            const model = TurboModel.create({data: {a: 1, b: 2}, initialize: true});
+            const model = GradumModel.create({data: {a: 1, b: 2}, initialize: true});
             const deleted: string[] = [];
             const obs = model.generateObserver({
                 onAdded: (_d, _s, ...keys) => ({id: keys[0]}),
@@ -341,11 +341,11 @@ describe("TurboObserver", () => {
         });
 
         it("destroy() unregisters the observer so future changes don't fire", () => {
-            const model = TurboModel.create({data: {}, initialize: true});
+            const model = GradumModel.create({data: {}, initialize: true});
             const added: string[] = [];
             const obs = model.generateObserver({
                 onAdded: (_d, _s, ...keys) => added.push(keys[0] as string)
-            }, TurboModel.ALL);
+            }, GradumModel.ALL);
 
             obs.destroy();
             model.set(1, "z");
@@ -360,7 +360,7 @@ describe("TurboObserver", () => {
 
 describe("flat observer — deep nested deletion fires onUpdated, not onDeleted", () => {
     it("deleting a depth-2 key fires onUpdated (not onDeleted) on the flat observer", () => {
-        const model = TurboModel.create({
+        const model = GradumModel.create({
             data: {flow: {entries: {a: "x", b: "y"}}},
             initialize: true,
         });
@@ -385,7 +385,7 @@ describe("flat observer — deep nested deletion fires onUpdated, not onDeleted"
     });
 
     it("deleting the actual top-level key correctly fires onDeleted", () => {
-        const model = TurboModel.create({
+        const model = GradumModel.create({
             data: {flow: {entries: {a: "x"}}},
             initialize: true,
         });
@@ -404,14 +404,14 @@ describe("flat observer — deep nested deletion fires onUpdated, not onDeleted"
 // These tests guard against the bug where deleting one inner/outer entry corrupts siblings.
 
 describe("cascade deletion with 3+ outer keys (ALL observer)", () => {
-    function makeObs(model: TurboModel) {
+    function makeObs(model: GradumModel) {
         return model.generateObserver<any, {id: string}>({
             onAdded: (_d, _s, ...keys) => ({id: keys.join(".")}),
-        }, TurboModel.ALL);
+        }, GradumModel.ALL);
     }
 
     it("depth-2 inner delete does not remove sibling entries", () => {
-        const model = TurboModel.create({
+        const model = GradumModel.create({
             data: {A: {0: "fa"}, B: {0: "fb"}, C: {0: "fc"}},
             initialize: true,
         });
@@ -427,7 +427,7 @@ describe("cascade deletion with 3+ outer keys (ALL observer)", () => {
     });
 
     it("outer key delete (Bug 2 cascade) does not remove sibling entries", () => {
-        const model = TurboModel.create({
+        const model = GradumModel.create({
             data: {A: {0: "fa"}, B: {0: "fb"}, C: {0: "fc"}},
             initialize: true,
         });
@@ -443,7 +443,7 @@ describe("cascade deletion with 3+ outer keys (ALL observer)", () => {
     });
 
     it("deleting in the middle does not corrupt remaining entries", () => {
-        const model = TurboModel.create({
+        const model = GradumModel.create({
             data: {A: {0: "fa"}, B: {0: "fb"}, C: {0: "fc"}},
             initialize: true,
         });

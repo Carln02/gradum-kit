@@ -1,19 +1,19 @@
-/* ---------- Turbo Input (dark-friendly) ---------- */
-.turbo-input {
+/* ---------- Gradum Input (dark-friendly) ---------- */
+.gradum-input {
     display: grid;
     gap: .5rem;
     color: var(--text);
 }
 
 /* label */
-.turbo-input > label {
+.gradum-input > label {
     font: 600 12.5px/1.2 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
     color: color-mix(in oklab, var(--text) 82%, #9ba7b6);
     letter-spacing: .2px;
 }
 
 /* field shell (your code wraps the element in a div) */
-.turbo-input > div {
+.gradum-input > div {
     display: grid;
     align-items: center;
 
@@ -30,7 +30,7 @@
     transform 200ms cubic-bezier(.2, .8, .2, 1);
 }
 
-.turbo-input > div:hover {
+.gradum-input > div:hover {
     transform: translateY(-1px);
     border-color: color-mix(in oklab, var(--ring) 36%, #2b3a55);
     box-shadow: 0 12px 26px rgba(0, 0, 0, .42),
@@ -38,8 +38,8 @@
 }
 
 /* actual input / textarea */
-.turbo-input input,
-.turbo-input textarea {
+.gradum-input input,
+.gradum-input textarea {
     width: 100%;
     color: var(--text);
     background: transparent;
@@ -50,25 +50,25 @@
     caret-color: var(--ring);
 }
 
-.turbo-input textarea {
+.gradum-input textarea {
     resize: none; /* dynamicVerticalResize handles height */
 }
 
 /* placeholder */
-.turbo-input input::placeholder,
-.turbo-input textarea::placeholder {
+.gradum-input input::placeholder,
+.gradum-input textarea::placeholder {
     color: color-mix(in oklab, var(--text) 45%, #7d8898);
     opacity: .7;
 }
 
 /* focus ring (when the inner control is focused) */
-.turbo-input:has(input:focus-visible),
-.turbo-input:has(textarea:focus-visible) {
+.gradum-input:has(input:focus-visible),
+.gradum-input:has(textarea:focus-visible) {
     outline: none;
 }
 
-.turbo-input:has(input:focus-visible) > div,
-.turbo-input:has(textarea:focus-visible) > div {
+.gradum-input:has(input:focus-visible) > div,
+.gradum-input:has(textarea:focus-visible) > div {
     border-color: color-mix(in oklab, var(--ring) 60%, #2b3a55);
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent),
     0 12px 26px rgba(0, 0, 0, .42),
@@ -76,22 +76,22 @@
 }
 
 /* disabled / readonly / locked */
-.turbo-input:has(input[disabled]),
-.turbo-input:has(textarea[disabled]),
-.turbo-input:has(input[readonly]),
-.turbo-input:has(textarea[readonly]) {
+.gradum-input:has(input[disabled]),
+.gradum-input:has(textarea[disabled]),
+.gradum-input:has(input[readonly]),
+.gradum-input:has(textarea[readonly]) {
     opacity: .7;
 }
 
-.turbo-input:has(input[disabled]) > div,
-.turbo-input:has(textarea[disabled]) > div {
+.gradum-input:has(input[disabled]) > div,
+.gradum-input:has(textarea[disabled]) > div {
     filter: grayscale(.1);
     cursor: not-allowed;
 }
 
-/* invalid (use aria-invalid or add .is-invalid on .turbo-input) */
-.turbo-input[aria-invalid="true"] > div,
-.turbo-input.is-invalid > div {
+/* invalid (use aria-invalid or add .is-invalid on .gradum-input) */
+.gradum-input[aria-invalid="true"] > div,
+.gradum-input.is-invalid > div {
     border-color: color-mix(in oklab, #fb7185 60%, #2b3a55);
     box-shadow: 0 0 0 3px color-mix(in oklab, #fb7185 25%, transparent),
     0 10px 22px rgba(0, 0, 0, .4),
@@ -99,27 +99,27 @@
 }
 
 /* quick compact variant (optional) */
-.turbo-input.ti-compact > div {
+.gradum-input.ti-compact > div {
     padding: .4rem .6rem;
 }
 
-.turbo-input.ti-compact > label {
+.gradum-input.ti-compact > label {
     font-size: 11.5px;
 }
 
 /* remove number spinners if you end up using type=number */
-.turbo-input input[type="number"] {
+.gradum-input input[type="number"] {
     -moz-appearance: textfield;
 }
 
-.turbo-input input[type="number"]::-webkit-outer-spin-button,
-.turbo-input input[type="number"]::-webkit-inner-spin-button {
+.gradum-input input[type="number"]::-webkit-outer-spin-button,
+.gradum-input input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .turbo-input > div {
+    .gradum-input > div {
         transition: none !important;
     }
 }

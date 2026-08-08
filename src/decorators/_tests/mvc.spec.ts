@@ -1,18 +1,18 @@
 import {describe, it, expect} from "vitest";
 import {operator, handler, interactor, tool, constrainer} from "../mvc";
-import {TurboOperator} from "../../mvc/operator/operator";
-import {TurboHandler} from "../../mvc/handler/handler";
-import {TurboInteractor} from "../../mvc/interactor/interactor";
-import {TurboTool} from "../../mvc/tool/tool";
-import {TurboConstrainer} from "../../mvc/constrainer/constrainer";
-import {TurboHeadlessElement} from "../../turboElement/turboHeadlessElement/turboHeadlessElement";
-import {TurboModel} from "../../mvc/model/model";
+import {GradumOperator} from "../../mvc/operator/operator";
+import {GradumHandler} from "../../mvc/handler/handler";
+import {GradumInteractor} from "../../mvc/interactor/interactor";
+import {GradumTool} from "../../mvc/tool/tool";
+import {GradumConstrainer} from "../../mvc/constrainer/constrainer";
+import {GradumHeadlessElement} from "../../gradumElement/gradumHeadlessElement/gradumHeadlessElement";
+import {GradumModel} from "../../mvc/model/model";
 
 describe("MVC decorators", () => {
     describe("operator decorator", () => {
         it("infers key from <name>Operator and fetches via getOperator()", () => {
-            class DispatchOperator extends TurboOperator {}
-            class Host extends TurboHeadlessElement {
+            class DispatchOperator extends GradumOperator {}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {operators: DispatchOperator};
                 @operator() dispatchOperator!: unknown;
             }
@@ -22,8 +22,8 @@ describe("MVC decorators", () => {
         });
 
         it("uses explicit name when provided", () => {
-            class MyOperator extends TurboOperator {keyName = "my"}
-            class Host extends TurboHeadlessElement {
+            class MyOperator extends GradumOperator {keyName = "my"}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {operators: MyOperator};
                 @operator("my") toolOperator!: unknown;
             }
@@ -33,7 +33,7 @@ describe("MVC decorators", () => {
         });
 
         it("throws helpful error when operator not found", () => {
-            class Host extends TurboHeadlessElement {
+            class Host extends GradumHeadlessElement {
                 @operator() missingOperator!: unknown;
             }
 
@@ -42,8 +42,8 @@ describe("MVC decorators", () => {
         });
 
         it("setter overrides cached value", () => {
-            class AOperator extends TurboOperator {}
-            class Host extends TurboHeadlessElement {
+            class AOperator extends GradumOperator {}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {operators: AOperator};
                 @operator() aOperator!: unknown;
             }
@@ -59,8 +59,8 @@ describe("MVC decorators", () => {
         });
 
         it("property is non-enumerable", () => {
-            class DemoOperator extends TurboOperator {}
-            class Host extends TurboHeadlessElement {
+            class DemoOperator extends GradumOperator {}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {operators: DemoOperator};
                 @operator() demoOperator!: unknown;
             }
@@ -73,9 +73,9 @@ describe("MVC decorators", () => {
 
     describe("handler decorator", () => {
         it("infers key from <name>Handler and fetches via getHandler()", () => {
-            class StateHandler extends TurboHandler {}
-            class MyModel extends TurboModel {}
-            class Host extends TurboHeadlessElement {
+            class StateHandler extends GradumHandler {}
+            class MyModel extends GradumModel {}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {
                     model: MyModel,
                     handlers: StateHandler
@@ -88,10 +88,10 @@ describe("MVC decorators", () => {
         });
 
         it("uses explicit name for handler", () => {
-            class CtxHandler extends TurboHandler {keyName = "ctx"}
-            class Host extends TurboHeadlessElement {
+            class CtxHandler extends GradumHandler {keyName = "ctx"}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {
-                    model: TurboModel,
+                    model: GradumModel,
                     handlers: CtxHandler
                 };
                 @handler("ctx") local!: unknown;
@@ -102,7 +102,7 @@ describe("MVC decorators", () => {
         });
 
         it("throws when handler not found", () => {
-            class Host extends TurboHeadlessElement {
+            class Host extends GradumHeadlessElement {
                 @handler() missingHandler!: unknown;
             }
 
@@ -113,8 +113,8 @@ describe("MVC decorators", () => {
 
     describe("interactor decorator", () => {
         it("infers key from <name>Interactor and fetches via getInteractor()", () => {
-            class DragInteractor extends TurboInteractor {}
-            class Host extends TurboHeadlessElement {
+            class DragInteractor extends GradumInteractor {}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {interactors: DragInteractor};
                 @interactor() dragInteractor!: unknown;
             }
@@ -124,8 +124,8 @@ describe("MVC decorators", () => {
         });
 
         it("uses explicit name for interactor", () => {
-            class MyInteractor extends TurboInteractor {keyName = "my"}
-            class Host extends TurboHeadlessElement {
+            class MyInteractor extends GradumInteractor {keyName = "my"}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {interactors: MyInteractor};
                 @interactor("my") local!: unknown;
             }
@@ -135,7 +135,7 @@ describe("MVC decorators", () => {
         });
 
         it("throws when interactor not found", () => {
-            class Host extends TurboHeadlessElement {
+            class Host extends GradumHeadlessElement {
                 @interactor() missingInteractor!: unknown;
             }
 
@@ -146,8 +146,8 @@ describe("MVC decorators", () => {
 
     describe("tool decorator", () => {
         it("infers key from <name>Tool and fetches via getTool()", () => {
-            class SelectTool extends TurboTool {}
-            class Host extends TurboHeadlessElement {
+            class SelectTool extends GradumTool {}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {tools: SelectTool};
                 @tool() selectTool!: unknown;
             }
@@ -157,8 +157,8 @@ describe("MVC decorators", () => {
         });
 
         it("uses explicit name for tool", () => {
-            class MyTool extends TurboTool {keyName = "my"}
-            class Host extends TurboHeadlessElement {
+            class MyTool extends GradumTool {keyName = "my"}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {tools: MyTool};
                 @tool("my") local!: unknown;
             }
@@ -168,7 +168,7 @@ describe("MVC decorators", () => {
         });
 
         it("throws when tool not found", () => {
-            class Host extends TurboHeadlessElement {
+            class Host extends GradumHeadlessElement {
                 @tool() missingTool!: unknown;
             }
 
@@ -179,8 +179,8 @@ describe("MVC decorators", () => {
 
     describe("constrainer decorator", () => {
         it("infers key from <name>Constrainer and fetches via getConstrainer()", () => {
-            class GridConstrainer extends TurboConstrainer {}
-            class Host extends TurboHeadlessElement {
+            class GridConstrainer extends GradumConstrainer {}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {constrainers: GridConstrainer};
                 @constrainer() gridConstrainer!: unknown;
             }
@@ -190,8 +190,8 @@ describe("MVC decorators", () => {
         });
 
         it("uses explicit name for constrainer", () => {
-            class MyConstrainer extends TurboConstrainer {keyName = "my"}
-            class Host extends TurboHeadlessElement {
+            class MyConstrainer extends GradumConstrainer {keyName = "my"}
+            class Host extends GradumHeadlessElement {
                 static defaultProperties = {constrainers: MyConstrainer};
                 @constrainer("my") local!: unknown;
             }
@@ -201,7 +201,7 @@ describe("MVC decorators", () => {
         });
 
         it("throws when constrainer not found", () => {
-            class Host extends TurboHeadlessElement {
+            class Host extends GradumHeadlessElement {
                 @constrainer() missingConstrainer!: unknown;
             }
 

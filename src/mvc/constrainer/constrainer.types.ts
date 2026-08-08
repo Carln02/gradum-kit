@@ -1,36 +1,36 @@
-import {MakeConstrainerOptions} from "../../turboFunctions/constrainer/constrainer.types";
-import {TurboModel} from "../model/model";
-import {TurboView} from "../view/view";
-import {TurboEmitter} from "../emitter/emitter";
-import {TurboOperatorProperties} from "../operator/operator.types";
+import {MakeConstrainerOptions} from "../../gradumFunctions/constrainer/constrainer.types";
+import {GradumModel} from "../model/model";
+import {GradumView} from "../view/view";
+import {GradumEmitter} from "../emitter/emitter";
+import {GradumOperatorProperties} from "../operator/operator.types";
 
 /**
- * @type {TurboConstrainerProperties}
+ * @type {GradumConstrainerProperties}
  * @group MVC
  * @category Constrainer
  *
- * @extends TurboOperatorProperties
+ * @extends GradumOperatorProperties
  * @extends MakeConstrainerOptions
  *
  * @template {object} ElementType - The type of the element.
- * @template {TurboView} ViewType - The element's view type, if any.
- * @template {TurboModel} ModelType - The element's model type, if any.
- * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
- * @description Options used to create a new {@link TurboConstrainer} attached to an element.
+ * @description Options used to create a new {@link GradumConstrainer} attached to an element.
  * @property {string} [constrainerName] - The name of the constrainer.
  */
-type TurboConstrainerProperties<
+type GradumConstrainerProperties<
     ElementType extends object = object,
-    ViewType extends TurboView = TurboView,
-    ModelType extends TurboModel = TurboModel,
-    EmitterType extends TurboEmitter = TurboEmitter
-> = TurboOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & MakeConstrainerOptions & {
+    ViewType extends GradumView = GradumView,
+    ModelType extends GradumModel = GradumModel,
+    EmitterType extends GradumEmitter = GradumEmitter
+> = GradumOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & MakeConstrainerOptions & {
     constrainerName?: string,
 };
 
 declare module "./constrainer" {
-    interface TurboConstrainer {
+    interface GradumConstrainer {
         /**
          * @function onActivate
          * @description Function to execute when the constrainer is activated.
@@ -45,4 +45,4 @@ declare module "./constrainer" {
     }
 }
 
-export {TurboConstrainerProperties}
+export {GradumConstrainerProperties}

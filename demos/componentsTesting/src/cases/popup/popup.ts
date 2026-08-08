@@ -1,10 +1,10 @@
-import {div, $, PopupFallbackMode, TurboPopupProperties, TurboPopup, TurboButton} from "../../../../../build/gradum-kit.esm";
+import {div, $, PopupFallbackMode, GradumPopupProperties, GradumPopup, GradumButton} from "../../../../../build/gradum-kit.esm";
 import {box} from "../../demoBox/demoBox";
 import "./popup.css";
 
-function makeTrigger(label: string = "Trigger", popupProperties: TurboPopupProperties = {}) {
-    const trg = TurboButton.create({text: label});
-    const tip = TurboPopup.create({
+function makeTrigger(label: string = "Trigger", popupProperties: GradumPopupProperties = {}) {
+    const trg = GradumButton.create({text: label});
+    const tip = GradumPopup.create({
         ...popupProperties,
         anchor: trg,
         children: [
@@ -20,7 +20,7 @@ function makeTrigger(label: string = "Trigger", popupProperties: TurboPopupPrope
 }
 
 function testBasics() {
-    box("TurboPopup — Basics")
+    box("GradumPopup — Basics")
         .addSubBox("Below", makeTrigger("Below", {
             anchorPosition: {x: 50, y: 100},
             popupPosition: {x: 50, y: 0},
@@ -44,7 +44,7 @@ function testBasics() {
 }
 
 function testFallbackModes() {
-    box("TurboPopup — Fallback: invert vs offset")
+    box("GradumPopup — Fallback: invert vs offset")
         .addSubBox("Near right viewport edge", makeTrigger("invert →", {
             anchorPosition: {x: 100, y: 50},
             popupPosition: {x: 0, y: 50},
@@ -59,7 +59,7 @@ function testFallbackModes() {
 }
 
 function testViewportMarginsAndMaxSize() {
-    const b = box("TurboPopup — viewport margin & max size");
+    const b = box("GradumPopup — viewport margin & max size");
 
     const {trigger, popup} = makeTrigger("Open tall", {
         anchorPosition: {x: 50, y: 100},
@@ -75,7 +75,7 @@ function testViewportMarginsAndMaxSize() {
     });
 
     b.addSubBox("Margin=16/24, tall content", trigger);
-    b.addContent(TurboButton.create({
+    b.addContent(GradumButton.create({
         text: "Shorten (20 rows)",
         onClick: () => {
             popup.innerHTML = "";
@@ -83,7 +83,7 @@ function testViewportMarginsAndMaxSize() {
             if ($(popup).isShown) popup["recomputePosition"]?.();
         }
     }));
-    b.addContent(TurboButton.create({
+    b.addContent(GradumButton.create({
         text: "Make taller (120 rows)",
         onClick: () => {
             popup.innerHTML = "";
@@ -94,7 +94,7 @@ function testViewportMarginsAndMaxSize() {
 }
 
 function testDynamicUpdates() {
-    const b = box("TurboPopup — dynamic updates");
+    const b = box("GradumPopup — dynamic updates");
 
     const {trigger, popup} = makeTrigger("Toggle props", {
         anchorPosition: {x: 50, y: 100},
@@ -104,7 +104,7 @@ function testDynamicUpdates() {
     });
 
     b.addSubBox("Start below", trigger);
-    b.addContent(TurboButton.create({
+    b.addContent(GradumButton.create({
         text: "Flip vertical (above/below)",
         onClick: () => {
             const isBelow = popup.anchorPosition.y === 100;
@@ -114,28 +114,28 @@ function testDynamicUpdates() {
             if ($(popup).isShown) popup["recomputePosition"]?.();
         }
     }));
-    b.addContent(TurboButton.create({
+    b.addContent(GradumButton.create({
         text: "Fallback = invert",
         onClick: () => {
             popup.fallbackModes = {x: PopupFallbackMode.invert, y: PopupFallbackMode.invert};
             if ($(popup).isShown) popup["recomputePosition"]?.();
         }
     }));
-    b.addContent(TurboButton.create({
+    b.addContent(GradumButton.create({
         text: "Fallback = offset",
         onClick: () => {
             popup.fallbackModes = {x: PopupFallbackMode.offset, y: PopupFallbackMode.offset};
             if ($(popup).isShown) popup["recomputePosition"]?.();
         }
     }));
-    b.addContent(TurboButton.create({
+    b.addContent(GradumButton.create({
         text: "vmargin = 32",
         onClick: () => {
             popup.viewportMargin = 32;
             if ($(popup).isShown) popup["recomputePosition"]?.();
         }
     }));
-    b.addContent(TurboButton.create({
+    b.addContent(GradumButton.create({
         text: "vmargin = 0",
         onClick: () => {
             popup.viewportMargin = 0;
@@ -145,7 +145,7 @@ function testDynamicUpdates() {
 }
 
 function testScrollScenario() {
-    const b = box("TurboPopup — window scroll scenario");
+    const b = box("GradumPopup — window scroll scenario");
 
     // Add big spacer to require scrolling
     const spacerTop = div({styles: {height: "40vh"}, text: ""});
@@ -166,12 +166,12 @@ function testScrollScenario() {
     b.addSubBox("Open after scrolling", region);
 
     // little helper buttons
-    b.addContent(TurboButton.create({
+    b.addContent(GradumButton.create({
         text: "Scroll to trigger",
         onClick: () => trigger.scrollIntoView({behavior: "smooth", block: "center"})
     }));
-    b.addContent(TurboButton.create({text: "Open popup", onClick: () => popup.show(true)}));
-    b.addContent(TurboButton.create({text: "Close popup", onClick: () => popup.show(false)}));
+    b.addContent(GradumButton.create({text: "Open popup", onClick: () => popup.show(true)}));
+    b.addContent(GradumButton.create({text: "Close popup", onClick: () => popup.show(false)}));
 }
 
 export function setupPopupTests() {
