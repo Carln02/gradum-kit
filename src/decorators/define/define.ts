@@ -100,6 +100,18 @@ function define(...args: any[]): any {
     };
 }
 
+/**
+ * @internal
+ * @function applyDefine
+ * @template {new (...args: any[]) => HTMLElement} T - The class being defined.
+ * @description The shared body behind {@link define} in both its decorator and imperative forms. Registers
+ * the class and, when it is an element, registers the custom element and installs its hooks.
+ * @param {T} Base - The class to define.
+ * @param {string} [className] - The name to register under. Defaults to the class' own name.
+ * @param {string} [elementName] - The custom element tag. Defaults to the kebab-cased class name.
+ * @param {DefineOptions} [options] - Options controlling the attribute bridge.
+ * @returns {T} The class, so callers can return it straight from a decorator.
+ */
 function applyDefine<T extends { new(...args: any[]): HTMLElement }>(
     Base: T,
     className?: string,

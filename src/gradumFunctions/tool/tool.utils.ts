@@ -6,6 +6,19 @@ import {Propagation} from "../event/event.types";
 import {ListenerSet} from "../../gradumComponents/datatypes/listener/listenerSet";
 import {Listener} from "../../gradumComponents/datatypes/listener/listener";
 
+/**
+ * @internal
+ * @type {ElementData}
+ * @description The tool state held against one element, per event manager: which tools it is, which it
+ * ignores, the target its tools act on when embedded, and the activation delegates. Distinct from the
+ * `ElementData` types in the constrainer and element utils, which track unrelated state.
+ * @property {Set<string>} tools - Names of the tools this element is.
+ * @property {boolean} ignoreAllTools - Whether every tool skips this element.
+ * @property {Map<string, "all" | Set<string>>} ignoredTools - Per-tool ignore rules.
+ * @property {Node} [embeddedTarget] - The node the element's tools act on, when embedded elsewhere.
+ * @property {Map<string, Delegate<() => void>>} activationDelegates - Fired when a named tool activates.
+ * @property {Map<string, Delegate<() => void>>} deactivationDelegates - Fired when a named tool deactivates.
+ */
 type ElementData = {
     tools: Set<string>,
     ignoreAllTools: boolean,
@@ -15,6 +28,12 @@ type ElementData = {
     deactivationDelegates: Map<string, Delegate<() => void>>
 };
 
+/**
+ * @internal
+ * @type {ToolData}
+ * @description The behaviors registered for one named tool on one event manager.
+ * @property {ListenerSet<Node, ToolBehaviorCallback>} behaviors - The tool's capture-phase behaviors.
+ */
 type ToolData = {
     behaviors: ListenerSet<Node, ToolBehaviorCallback>
 };

@@ -425,18 +425,33 @@ class Point {
     }
 
     /**
-     * @function fromString
+     * @function from
+     * @static
      * @description Parse a point from a JSON string produced by {@link Point.toString}.
      * @param {string} value - The string to parse.
      * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
      * `x` and `y` fields.
      */
-    public fromString(value: string): Point {
+    public static from(value: string): Point {
         try {
             const parsed = JSON.parse(value);
             if (typeof parsed.x === "number" && typeof parsed.y === "number")
                 return new Point(parsed.x, parsed.y);
-        } catch {new Point(0, 0);}
+        } catch { /* fall through to undefined */ }
+        return undefined;
+    }
+
+    /**
+     * @function fromString
+     * @description Parse a point from a JSON string produced by {@link Point.toString}. Delegates to
+     * {@link Point.from}; it exists as an instance method because {@link GradumInput} discovers a value's
+     * parser by looking for `fromString` on the value itself, which a static member would not satisfy.
+     * @param {string} value - The string to parse.
+     * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
+     * `x` and `y` fields.
+     */
+    public fromString(value: string): Point {
+        return Point.from(value);
     }
 }
 

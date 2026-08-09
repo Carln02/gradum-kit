@@ -5,6 +5,17 @@ import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
 import {GradumWeakSet} from "../../gradumComponents/datatypes/weakSet/weakSet";
 import {Shown} from "../../types/enums.types";
 
+/**
+ * @internal
+ * @type {ReifectDataEntry}
+ * @description The reifect state held against one element: the reifects attached to it, the transition
+ * backing `show`, whether reifects are enabled, and the transition lifecycle delegates.
+ * @property {GradumWeakSet<StatefulReifect>} reifects - Reifects attached to the element.
+ * @property {StatefulReifect<Shown>} [showTransition] - The transition used by `show`, if overridden.
+ * @property {ReifectEnabledObject} enabled - Which reifect features are currently enabled.
+ * @property {Delegate<() => void>} onTransitionStart - Fired when a transition begins.
+ * @property {Delegate<() => void>} onTransitionEnd - Fired when a transition completes.
+ */
 type ReifectDataEntry = {
     reifects: GradumWeakSet<StatefulReifect>,
     showTransition?: StatefulReifect<Shown>,

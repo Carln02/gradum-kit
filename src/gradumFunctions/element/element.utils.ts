@@ -1,6 +1,15 @@
 import {GradumSelector} from "../gradumSelector";
 import {GradumElementProperties} from "../../gradumElement/gradumElement.types";
 
+/**
+ * @internal
+ * @type {ElementData}
+ * @description The feedforward state held against one element: the descendants it seeds with shared
+ * defaults, and the defaults themselves. Distinct from the `ElementData` types in the constrainer and tool
+ * utils, which track unrelated state on the same elements.
+ * @property {Map<string, object>} feedforwardElements - Descendants receiving fed-forward properties, by key.
+ * @property {GradumElementProperties} defaultFeedforwardProperties - The properties passed down by default.
+ */
 type ElementData = {
     feedforwardElements: Map<string, object>,
     defaultFeedforwardProperties: GradumElementProperties

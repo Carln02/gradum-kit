@@ -26,20 +26,17 @@
 <li><span><span class="tsd-kind-parameter">parentYArray</span>: <span class="tsd-signature-type">YArray</span></span>
 <div class="tsd-comment tsd-typography"><p>The array to remove it from.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> if an entry was removed.</p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> if an entry was removed, <code>false</code> if it was not in the array.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-static">
 <h4 class="tsd-anchor-link" id="static">Static<a href="#static" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Intended to remove the first occurrence of an entry from a YArray.
-<em>Note: it is currently unusable — it reads each element as if it were an <code>[index, value]</code> pair, so it
-throws a <code>TypeError</code> on an array of objects, which is the normal case, and silently compares the wrong
-things on an array of strings. Locate the entry with <code>toArray().indexOf(...)</code> and call <code>delete</code> on the
-YArray directly until this is corrected.</em></p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the first occurrence of an entry from a YArray. Entries are matched by identity, so
+pass the same object the array holds rather than an equal copy.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/dataManipulation/yjs.ts:146</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/dataManipulation/yjs.ts:143</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

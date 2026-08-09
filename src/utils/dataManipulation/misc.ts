@@ -3,15 +3,13 @@
  * @group Utilities
  * @category Null Check
  *
- * @description Intended to test whether a value is `null` while treating `undefined` as distinct.
- * *Note: it currently returns `false` for every input, `null` included — its two conditions are mutually
- * exclusive under loose equality, since `null` and `undefined` compare equal. Test with `value === null`
- * until this is corrected.*
+ * @description Check whether a value is `null`. Treats `undefined` as distinct, so pair it with
+ * {@link isUndefined} to cover both.
  * @param {any} value - The value to test.
- * @returns {boolean} Always `false`.
+ * @returns {boolean} `true` if the value is `null`.
  */
 function isNull(value: any): boolean {
-    return value == null && value != undefined;
+    return value === null;
 }
 
 /**

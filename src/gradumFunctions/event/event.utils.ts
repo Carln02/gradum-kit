@@ -6,6 +6,15 @@ import {Listener} from "../../gradumComponents/datatypes/listener/listener";
 import {MatchListenerProperties} from "../../gradumComponents/datatypes/listener/listener.types";
 import {ListenerSet} from "../../gradumComponents/datatypes/listener/listenerSet";
 
+/**
+ * @internal
+ * @type {ObjectListeners}
+ * @description The listener state held against one node: everything bound through the selector, plus the
+ * per-type `preventDefault` handlers and the optional catch-all that decides for any type.
+ * @property {ListenerSet} boundListeners - Every listener bound to the node through the selector.
+ * @property {Record<string, (e: Event) => boolean>} preventDefaultListeners - Per-event-type decisions.
+ * @property {(type: string, e: Event) => boolean} [preventDefaultOn] - Catch-all decision for any type.
+ */
 type ObjectListeners = {
     boundListeners: ListenerSet,
     preventDefaultListeners: Record<string, (e: Event) => boolean>,

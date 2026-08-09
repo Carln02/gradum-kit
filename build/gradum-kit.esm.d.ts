@@ -585,8 +585,19 @@ declare class Point {
      */
     toString(): string;
     /**
-     * @function fromString
+     * @function from
+     * @static
      * @description Parse a point from a JSON string produced by {@link Point.toString}.
+     * @param {string} value - The string to parse.
+     * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
+     * `x` and `y` fields.
+     */
+    static from(value: string): Point;
+    /**
+     * @function fromString
+     * @description Parse a point from a JSON string produced by {@link Point.toString}. Delegates to
+     * {@link Point.from}; it exists as an instance method because {@link GradumInput} discovers a value's
+     * parser by looking for `fromString` on the value itself, which a static member would not satisfy.
      * @param {string} value - The string to parse.
      * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
      * `x` and `y` fields.
@@ -1157,8 +1168,7 @@ declare class GradumHandler<ModelType extends GradumModel = GradumModel> {
      * @constructor
      * @description Create a handler. Handlers are normally constructed without arguments — the MVC wiring
      * binds {@link GradumHandler.model} when the handler is registered on its model.
-     * @param {ModelType} [model] - The model to bind. *Note: this argument is currently ignored, because the
-     * assignment is guarded on the field rather than on the parameter.*
+     * @param {ModelType} [model] - The model to bind. Omit it to let the MVC wiring bind one on registration.
      */
     constructor(model?: ModelType);
     /**
@@ -6412,6 +6422,27 @@ declare function disposeEffect(target: object): void;
  * @param {PropertyKey} key - The key of the signal inside `target`.
  */
 declare function disposeEffect(target: object, key: PropertyKey): void;
+/**
+ * @function untrack
+ * @group Decorators
+ * @category Effect
+ *
+ * @template T - The type returned by the callback.
+ * @description Read signals without subscribing to them. Signals read inside the callback are not recorded
+ * as dependencies of the surrounding `@effect`, so changing them later will not re-run it. Use it when an
+ * effect needs a value to compute with but should not fire when that value changes — reading a current
+ * index or a configuration flag, say, while only tracking the data being rendered.
+ * @param {() => T} fn - The callback to run outside the tracking context.
+ * @returns {T} Whatever the callback returns.
+ *
+ * @example
+ * ```ts
+ * @effect private render() {
+ *    // re-runs when `items` changes, but not when `verbose` does
+ *    this.draw(this.model.items, untrack(() => this.model.verbose));
+ * }
+ * ```
+ */
 declare function untrack<T>(fn: () => T): T;
 
 /**
@@ -10605,13 +10636,13 @@ declare function trim(value: number, max: number, min?: number, fallback?: numbe
  *
  * @description Wrap a number into `[0, modValue)`, so negative inputs come back positive — unlike the `%`
  * operator, which keeps the sign of its left operand. Use it to cycle an index around a list.
- * *Note: `modValue` must be non-zero. The parameter declares a default of `0`, but relying on it loops
- * forever, so always pass one explicitly.*
  * @param {number} value - The value to wrap.
  * @param {number} modValue - The modulus. Must be non-zero.
  * @returns {number} The wrapped value, always in `[0, modValue)`.
+ * @throws {RangeError} If `modValue` is `0`, since no value can be wrapped into an empty range. Guard the
+ * call when the modulus comes from a length that may be zero.
  */
-declare function mod(value: number, modValue?: number): number;
+declare function mod(value: number, modValue: number): number;
 
 /**
  * @function randomId
@@ -10690,10 +10721,7 @@ declare function pushUrlParams(...params: {
  * @group Utilities
  * @category Misc
  *
- * @description Strip the query parameters from the current URL without adding a history entry.
- * *Note: only every other parameter is actually removed, because the parameters are deleted while being
- * iterated, which shifts the ones behind them. Call it repeatedly, or rebuild the URL, until
- * {@link getUrlParam} reports nothing left.*
+ * @description Strip every query parameter from the current URL without adding a history entry.
  */
 declare function clearUrlParams(): void;
 
@@ -10810,12 +10838,10 @@ declare function createProxy<SelfType extends object, ProxiedType extends object
  * @group Utilities
  * @category Null Check
  *
- * @description Intended to test whether a value is `null` while treating `undefined` as distinct.
- * *Note: it currently returns `false` for every input, `null` included — its two conditions are mutually
- * exclusive under loose equality, since `null` and `undefined` compare equal. Test with `value === null`
- * until this is corrected.*
+ * @description Check whether a value is `null`. Treats `undefined` as distinct, so pair it with
+ * {@link isUndefined} to cover both.
  * @param {any} value - The value to test.
- * @returns {boolean} Always `false`.
+ * @returns {boolean} `true` if the value is `null`.
  */
 declare function isNull(value: any): boolean;
 /**
@@ -11066,14 +11092,11 @@ declare function addInYArray(data: object, parentYArray: Array, index?: number):
  * @category Yjs
  *
  * @static
- * @description Intended to remove the first occurrence of an entry from a YArray.
- * *Note: it is currently unusable — it reads each element as if it were an `[index, value]` pair, so it
- * throws a `TypeError` on an array of objects, which is the normal case, and silently compares the wrong
- * things on an array of strings. Locate the entry with `toArray().indexOf(...)` and call `delete` on the
- * YArray directly until this is corrected.*
+ * @description Remove the first occurrence of an entry from a YArray. Entries are matched by identity, so
+ * pass the same object the array holds rather than an equal copy.
  * @param {unknown} entry - The entry to remove.
  * @param {YArray} parentYArray - The array to remove it from.
- * @returns {boolean} `true` if an entry was removed.
+ * @returns {boolean} `true` if an entry was removed, `false` if it was not in the array.
  */
 declare function removeFromYArray(entry: unknown, parentYArray: Array): boolean;
 /**

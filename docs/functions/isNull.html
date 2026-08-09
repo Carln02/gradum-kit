@@ -23,17 +23,15 @@
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">any</span></span>
 <div class="tsd-comment tsd-typography"><p>The value to test.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>Always <code>false</code>.</p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> if the value is <code>null</code>.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Intended to test whether a value is <code>null</code> while treating <code>undefined</code> as distinct.
-<em>Note: it currently returns <code>false</code> for every input, <code>null</code> included — its two conditions are mutually
-exclusive under loose equality, since <code>null</code> and <code>undefined</code> compare equal. Test with <code>value === null</code>
-until this is corrected.</em></p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether a value is <code>null</code>. Treats <code>undefined</code> as distinct, so pair it with
+<a href="isUndefined.html" class="tsd-kind-function">isUndefined</a> to cover both.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/dataManipulation/misc.ts:13</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/dataManipulation/misc.ts:11</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

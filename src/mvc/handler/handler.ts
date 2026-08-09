@@ -30,11 +30,10 @@ class GradumHandler<ModelType extends GradumModel = GradumModel> {
      * @constructor
      * @description Create a handler. Handlers are normally constructed without arguments — the MVC wiring
      * binds {@link GradumHandler.model} when the handler is registered on its model.
-     * @param {ModelType} [model] - The model to bind. *Note: this argument is currently ignored, because the
-     * assignment is guarded on the field rather than on the parameter.*
+     * @param {ModelType} [model] - The model to bind. Omit it to let the MVC wiring bind one on registration.
      */
     public constructor(model?: ModelType) {
-        if (this.model) this.model = model;
+        if (model) this.model = model;
         this.setup();
     }
 

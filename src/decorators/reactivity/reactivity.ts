@@ -515,6 +515,27 @@ function disposeEffect(target: object, key?: PropertyKey) {
     else for (const [, entry] of utils.data(target).propertyKeyMap) dispose(entry);
 }
 
+/**
+ * @function untrack
+ * @group Decorators
+ * @category Effect
+ *
+ * @template T - The type returned by the callback.
+ * @description Read signals without subscribing to them. Signals read inside the callback are not recorded
+ * as dependencies of the surrounding `@effect`, so changing them later will not re-run it. Use it when an
+ * effect needs a value to compute with but should not fire when that value changes — reading a current
+ * index or a configuration flag, say, while only tracking the data being rendered.
+ * @param {() => T} fn - The callback to run outside the tracking context.
+ * @returns {T} Whatever the callback returns.
+ *
+ * @example
+ * ```ts
+ * @effect private render() {
+ *    // re-runs when `items` changes, but not when `verbose` does
+ *    this.draw(this.model.items, untrack(() => this.model.verbose));
+ * }
+ * ```
+ */
 function untrack<T>(fn: () => T): T {
     const prev = utils.activeEffect;
     utils.activeEffect = null;

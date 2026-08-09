@@ -48,14 +48,11 @@ function pushUrlParams(...params: {name: string, value: string}[]) {
  * @group Utilities
  * @category Misc
  *
- * @description Strip the query parameters from the current URL without adding a history entry.
- * *Note: only every other parameter is actually removed, because the parameters are deleted while being
- * iterated, which shifts the ones behind them. Call it repeatedly, or rebuild the URL, until
- * {@link getUrlParam} reports nothing left.*
+ * @description Strip every query parameter from the current URL without adding a history entry.
  */
 function clearUrlParams() {
     const url = new URL(window.location.href);
-    url.searchParams.forEach((_, name) => url.searchParams.delete(name));
+    url.search = "";
     history.replaceState(null, "", url);
 }
 

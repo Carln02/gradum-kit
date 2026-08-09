@@ -134,22 +134,17 @@ function addInYArray(data: object, parentYArray: YArray, index?: number): number
  * @category Yjs
  *
  * @static
- * @description Intended to remove the first occurrence of an entry from a YArray.
- * *Note: it is currently unusable — it reads each element as if it were an `[index, value]` pair, so it
- * throws a `TypeError` on an array of objects, which is the normal case, and silently compares the wrong
- * things on an array of strings. Locate the entry with `toArray().indexOf(...)` and call `delete` on the
- * YArray directly until this is corrected.*
+ * @description Remove the first occurrence of an entry from a YArray. Entries are matched by identity, so
+ * pass the same object the array holds rather than an equal copy.
  * @param {unknown} entry - The entry to remove.
  * @param {YArray} parentYArray - The array to remove it from.
- * @returns {boolean} `true` if an entry was removed.
+ * @returns {boolean} `true` if an entry was removed, `false` if it was not in the array.
  */
 function removeFromYArray(entry: unknown, parentYArray: YArray): boolean {
-    for (const [index, child] of parentYArray.toArray()) {
-        if (entry != child) continue;
-        parentYArray.delete(index);
-        return true;
-    }
-    return false;
+    const index = parentYArray.toArray().indexOf(entry as never);
+    if (index < 0) return false;
+    parentYArray.delete(index, 1);
+    return true;
 }
 
 /**

@@ -57,6 +57,16 @@ function expose(...args: any[]): any {
     }
 }
 
+/**
+ * @internal
+ * @function applyExpose
+ * @description Install a single forwarding accessor on a host, reading and writing the same key on the
+ * instance found at `rootKey`. Backs both the `@expose` decorator and its imperative form.
+ * @param {any} host - The object to define the property on.
+ * @param {string} key - The property key to forward.
+ * @param {string} rootKey - Dot path to the inner instance to forward to, e.g. `"view.scrubber"`.
+ * @param {boolean} exposeSetter - Whether writes are forwarded. When `false` the property is read-only.
+ */
 function applyExpose(host: any, key: string, rootKey: string, exposeSetter: boolean) {
     const nestedRoots = rootKey.split(".").filter(Boolean);
     const getLowestRoot = (h: any) => nestedRoots.reduce((p, r) => p?.[r], h);
@@ -70,6 +80,18 @@ function applyExpose(host: any, key: string, rootKey: string, exposeSetter: bool
     });
 }
 
+/**
+ * @internal
+ * @function exposeDecorator
+ * @template {object} Type - The class carrying the decorated member.
+ * @template Value - The type of the exposed value.
+ * @description The decorator half of {@link expose}, deferring the actual wiring to `applyExpose` until the
+ * instance exists.
+ * @param {string} rootKey - Dot path to the inner instance to forward to.
+ * @param {boolean} exposeSetter - Whether writes are forwarded.
+ * @param {any} value - The decorated member, as handed over by the decorator protocol.
+ * @param {ClassFieldDecoratorContext | ClassAccessorDecoratorContext} context - The decorator context.
+ */
 function exposeDecorator<Type extends object, Value>(
     rootKey: string,
     exposeSetter: boolean,

@@ -10,6 +10,14 @@ import {Propagation} from "../event/event.types";
 import {GradumConstrainer} from "../../mvc/constrainer/constrainer";
 import {GradumNodeList} from "../../gradumComponents/datatypes/nodeList/nodeList";
 
+/**
+ * @internal
+ * @type {ConstrainerData}
+ * @description Everything one named constrainer owns on one element: its attached instance and active
+ * flag, the object and trigger lists it watches, its registered solvers/checkers/mutators, its solving
+ * queue with per-object pass counts and limits, its priority, its activation delegates, and the optional
+ * bridge that mirrors another element's object list. Created on first access and kept per element.
+ */
 type ConstrainerData = {
     attachedInstance?: GradumConstrainer,
 
@@ -41,15 +49,34 @@ type ConstrainerData = {
     sortedSolvers: string[]
 };
 
+/**
+ * @internal
+ * @type {ElementData}
+ * @description The constrainer-side state held against one element — every named {@link ConstrainerData}
+ * registered on it, plus the default solving queue. Distinct from the `ElementData` types in the tool and
+ * element utils, which track unrelated state on the same elements.
+ */
 type ElementData = {
     constrainers: Map<string, ConstrainerData>,
 };
 
+/**
+ * @internal
+ * @type {ConstrainerCallbackObject}
+ * @template {ConstrainerChecker | ConstrainerMutator | ConstrainerSolver} Type - The callback being wrapped.
+ * @description A registered constrainer callback together with the metadata used to order and filter it.
+ */
 type ConstrainerCallbackObject<Type extends ConstrainerChecker | ConstrainerMutator | ConstrainerSolver> = {
     callback: Type,
     priority: number,
 };
 
+/**
+ * @internal
+ * @type {ConstrainerDataWithId}
+ * @description A {@link ConstrainerData} paired with the name it is registered under, so lookups that scan
+ * every constrainer on an element can report which one matched.
+ */
 type ConstrainerDataWithId = {
     data: ConstrainerData,
     name: string,
