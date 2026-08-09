@@ -10,9 +10,16 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">GradumifyOptions</a></li></ul>
 <h1>Type Alias GradumifyOptions</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Which families of selector functions <a href="../functions/gradumify.html" class="tsd-kind-function">gradumify</a> should skip. Every family is installed
+by default; set a flag to leave that family off the <a href="../classes/GradumSelector.html" class="tsd-kind-class">GradumSelector</a> prototype. Excluding a family
+means its functions simply do not exist, so only do it if you know nothing in your app calls them.</p>
+</div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">GradumifyOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#excludehierarchyfunctions">excludeHierarchyFunctions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#excludemvcfunctions">excludeMvcFunctions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#excludestylefunctions">excludeStyleFunctions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#excludeclassfunctions">excludeClassFunctions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#excludeelementfunctions">excludeElementFunctions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#excludeeventfunctions">excludeEventFunctions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#excludetoolfunctions">excludeToolFunctions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#excludeconstrainerfunctions">excludeConstrainerFunctions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#excludemiscfunctions">excludeMiscFunctions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#excludereifectfunctions">excludeReifectFunctions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:11</li></ul></aside>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:32</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -36,54 +43,74 @@
 <section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="excludehierarchyfunctions"><code class="tsd-tag">Optional</code><span>exclude<wbr/>Hierarchy<wbr/>Functions</span><a href="#excludehierarchyfunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">excludeHierarchyFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">excludeHierarchyFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Skip <code>addChild</code>, <code>closest</code>, <code>childHandler</code>, and the rest of the DOM-hierarchy functions.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:12</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:33</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="excludemvcfunctions"><code class="tsd-tag">Optional</code><span>exclude<wbr/>Mvc<wbr/>Functions</span><a href="#excludemvcfunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">excludeMvcFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">excludeMvcFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Skip <code>model</code>, <code>view</code>, <code>emitter</code>, and the MVC add/get/remove methods.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:13</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:34</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="excludestylefunctions"><code class="tsd-tag">Optional</code><span>exclude<wbr/>Style<wbr/>Functions</span><a href="#excludestylefunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">excludeStyleFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">excludeStyleFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Skip <code>setStyle</code>, <code>setStyles</code>, <code>selected</code>, and <code>closestRoot</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:14</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:35</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="excludeclassfunctions"><code class="tsd-tag">Optional</code><span>exclude<wbr/>Class<wbr/>Functions</span><a href="#excludeclassfunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">excludeClassFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">excludeClassFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Skip <code>addClass</code>, <code>removeClass</code>, <code>toggleClass</code>, and <code>hasClass</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:15</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:36</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="excludeelementfunctions"><code class="tsd-tag">Optional</code><span>exclude<wbr/>Element<wbr/>Functions</span><a href="#excludeelementfunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">excludeElementFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">excludeElementFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Skip <code>setProperties</code>, <code>clone</code>, <code>destroy</code>, and <code>feedforward</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:16</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:37</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="excludeeventfunctions"><code class="tsd-tag">Optional</code><span>exclude<wbr/>Event<wbr/>Functions</span><a href="#excludeeventfunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">excludeEventFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">excludeEventFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Skip <code>on</code>, <code>onTool</code>, <code>executeAction</code>, and <code>preventDefault</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:17</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:38</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="excludetoolfunctions"><code class="tsd-tag">Optional</code><span>exclude<wbr/>Tool<wbr/>Functions</span><a href="#excludetoolfunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">excludeToolFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">excludeToolFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Skip <code>makeTool</code>, <code>applyTool</code>, and <code>embedTool</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:18</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:39</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="excludeconstrainerfunctions"><code class="tsd-tag">Optional</code><span>exclude<wbr/>Constrainer<wbr/>Functions</span><a href="#excludeconstrainerfunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">excludeConstrainerFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">excludeConstrainerFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Skip <code>makeConstrainer</code>, <code>solveConstrainer</code>, and <code>mutate</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:19</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:40</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="excludemiscfunctions"><code class="tsd-tag">Optional</code><span>exclude<wbr/>Misc<wbr/>Functions</span><a href="#excludemiscfunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">excludeMiscFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">excludeMiscFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Skip <code>apply</code>, <code>applyDefaults</code>, <code>extract</code>, and <code>getDifference</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:20</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:41</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="excludereifectfunctions"><code class="tsd-tag">Optional</code><span>exclude<wbr/>Reifect<wbr/>Functions</span><a href="#excludereifectfunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">excludeReifectFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">excludeReifectFunctions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Skip <code>show</code>, <code>applyReifect</code>, and <code>attachReifect</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:21</li></ul></aside></section></section></details></div>
+<li>Defined in src/gradumFunctions/gradumFunctions.types.ts:42</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

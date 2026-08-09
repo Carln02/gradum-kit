@@ -21,8 +21,8 @@ class ListenerSet<
     public readonly listeners: Map<string, Set<Listener<TargetType, CallbackType>>> = new Map();
 
     /**
-     * @readonly
      * @description Flattened array of all listeners in the set.
+     * @readonly
      */
     public get listenersArray(): Listener<TargetType, CallbackType>[] {
         const listeners: Listener<TargetType, CallbackType>[] = [];

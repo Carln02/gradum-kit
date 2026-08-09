@@ -12,13 +12,21 @@
 <h1>Class GradumQueue&lt;Type&gt;</h1></div>
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>GradumQueue</p>
-</div></section>
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A first-in, first-out queue. <a href="#push" class="tsd-kind-method">push</a> adds to the back, <a href="#pop" class="tsd-kind-method">pop</a> takes from the
+front, and <a href="#addontop" class="tsd-kind-method">addOnTop</a> jumps the line. Popping does not shift the backing array, so draining a
+long queue stays cheap.</p>
+</div></div></section>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="type"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span></li></ul></section><aside class="tsd-sources">
+<li><span id="type"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the queued values.</p>
+</div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:6</li></ul></aside>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:11</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -58,7 +66,9 @@
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="constructorgradumqueuetype"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span></li></ul></section>
+<li><span id="constructorgradumqueuetype"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the queued values.</p>
+</div></li></ul></section>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span></h4></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
@@ -69,18 +79,26 @@
 <li>
 <div class="tsd-signature" id="sizesize"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">size</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The number of values still waiting to be popped.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:43</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:76</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="isempty"><span>is<wbr/>Empty</span><a href="#isempty" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="isemptyisempty"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">isEmpty</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the queue has nothing left to pop.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:47</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:84</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -93,10 +111,17 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">values</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">values</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">[]</span></span>
+<div class="tsd-comment tsd-typography"><p>The values to enqueue, in order.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Add one or more values to the back of the queue.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:10</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:20</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addontop"><span>add<wbr/>On<wbr/>Top</span><a href="#addontop" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -106,28 +131,46 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">values</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">values</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">[]</span></span>
+<div class="tsd-comment tsd-typography"><p>The values to enqueue, in order.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Add one or more values to the front of the queue, so they are popped before
+everything already queued.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:15</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:31</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="pop"><span>pop</span><a href="#pop" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="pop-1"><span class="tsd-kind-call-signature">pop</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><a href="#pop-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></h4><p>The removed value, or <code>undefined</code> if the queue is empty.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Take the value at the front of the queue and remove it.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:20</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:40</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="peek"><span>peek</span><a href="#peek" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="peek-1"><span class="tsd-kind-call-signature">peek</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><a href="#peek-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></h4><p>The next value to be popped, or <code>undefined</code> if the queue is empty.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Read the value at the front of the queue without removing it.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:35</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:59</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="has"><span>has</span><a href="#has" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -137,10 +180,17 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">value</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">value</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></span>
+<div class="tsd-comment tsd-typography"><p>The value to look for, compared by identity.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>Whether the value is present.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether a value is queued.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:39</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:68</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removeduplicates"><span>remove<wbr/>Duplicates</span><a href="#removeduplicates" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -150,37 +200,63 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">entry</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">entry</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></span>
+<div class="tsd-comment tsd-typography"><p>Restrict deduplication to this value, leaving every other duplicate in
+place. Omit it to deduplicate the whole queue.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Drop repeated values, keeping the earliest occurrence of each so queue order is
+preserved. Mutates the queue.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:51</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:95</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clear"><span>clear</span><a href="#clear" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="clear-1"><span class="tsd-kind-call-signature">clear</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">this</span><a href="#clear-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Discard every queued value.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:64</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:112</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="toarray"><span>to<wbr/>Array</span><a href="#toarray" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="toarray-1"><span class="tsd-kind-call-signature">toArray</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">[]</span><a href="#toarray-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">[]</span></h4><p>A new array of the values still waiting to be popped, front first. Already
+popped values are excluded.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Snapshot the pending values.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:70</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:123</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clone"><span>clone</span><a href="#clone" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="clone-1"><span class="tsd-kind-call-signature">clone</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span><a href="#clone-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new queue holding the same pending values in the same order. The
+values themselves are shared, not copied.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Copy the queue.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:76</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:134</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="remove"><span>remove</span><a href="#remove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -190,10 +266,17 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">value</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">value</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></span>
+<div class="tsd-comment tsd-typography"><p>The value to remove, compared by identity.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>Whether a matching value was found and removed.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the first pending occurrence of a value, wherever it sits in the queue.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:82</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/gradumComponents/datatypes/queue/queue.ts:145</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -14,15 +14,29 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="mod"><span class="tsd-kind-call-signature">mod</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">modValue</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#mod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>mod</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">number</span></span></li>
-<li><span><span class="tsd-kind-parameter">modValue</span>: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>The value to wrap.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">modValue</span>: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></span>
+<div class="tsd-comment tsd-typography"><p>The modulus. Must be non-zero.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><p>The wrapped value, always in <code>[0, modValue)</code>.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Wrap a number into <code>[0, modValue)</code>, so negative inputs come back positive — unlike the <code>%</code>
+operator, which keeps the sign of its left operand. Use it to cycle an index around a list.
+<em>Note: <code>modValue</code> must be non-zero. The parameter declares a default of <code>0</code>, but relying on it loops
+forever, so always pass one explicitly.</em></p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/computations/misc.ts:16</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/computations/misc.ts:35</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

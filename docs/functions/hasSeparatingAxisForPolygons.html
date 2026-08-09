@@ -14,15 +14,28 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="hasseparatingaxisforpolygons"><span class="tsd-kind-call-signature">hasSeparatingAxisForPolygons</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">polyA</span><span class="tsd-signature-symbol">:</span> <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">polyB</span><span class="tsd-signature-symbol">:</span> <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#hasseparatingaxisforpolygons" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>hasSeparatingAxisForPolygons</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">polyA</span>: <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">[]</span></span></li>
-<li><span><span class="tsd-kind-parameter">polyB</span>: <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">polyA</span>: <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">[]</span></span>
+<div class="tsd-comment tsd-typography"><p>The polygon whose edges supply the candidate axes.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">polyB</span>: <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">[]</span></span>
+<div class="tsd-comment tsd-typography"><p>The polygon to test against.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> if a separating axis exists, meaning the polygons are apart.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether any edge of the first polygon yields an axis that separates the two, proving
+they cannot overlap. This is one half of the test — it must be run both ways round, which is what
+<a href="polygonsIntersect.html" class="tsd-kind-function">polygonsIntersect</a> does.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/geometry/polygon.ts:61</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/geometry/polygon.ts:92</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

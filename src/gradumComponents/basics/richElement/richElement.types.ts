@@ -12,27 +12,27 @@ import {ValidElement, ValidTag} from "../../../types/element.types";
  * @group Components
  * @category GradumRichElement
  *
- * @description Properties object for configuring a Button. Extends GradumElementProperties.
- * @extends GradumProperties
- *
- * @property {string} [text] - The text to set to the rich element's main element.
- *
- * @property {Element | Element[]} [leftCustomElements] - Custom elements
- * to be placed on the left side of the button (before the left icon).
- * @property {string | GradumIcon} [leftIcon] - An icon to be placed on the left side of the button text. Can be a
- * string (icon name/path) or an Icon instance.
- * @property {string | GradumProperties<ElementTag> | ValidElement<ElementTag>} [buttonText] - The text content of the button.
- * @property {string | GradumIcon} [rightIcon] - An icon to be placed on the right side of the button text. Can be a
- * string (icon name/path) or an Icon instance.
- * @property {Element | Element[]} [rightCustomElements] - Custom elements
- * to be placed on the right side of the button (after the right icon).
- *
- * @property {ValidTag} [customTextTag] - The HTML tag to be used for the buttonText element (if the latter is passed as
- * a string). If not specified, the default text tag specified in the Button class will be used.
- * @property {boolean} [unsetDefaultClasses] - Set to true to not add the default classes specified in GradumConfig.Button
- * to this instance of Button.
- *
- * @template {ValidTag} ElementTag="p"
+ * @extends GradumElementProperties
+ * @template {ValidTag} ElementTag - The tag of the main element.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumRichElement} — a main element flanked by up to
+ * four optional slots. They are laid out left to right in the order below.
+ * @property {ElementTag} [elementTag] - The HTML tag used for the main element when `element` is a string
+ * or a properties object.
+ * @property {string} [text] - Text content of the main element.
+ * @property {Element | Element[]} [leftCustomElements] - Elements placed leftmost, before `leftIcon`.
+ * @property {string | GradumIcon} [leftIcon] - Icon placed left of the main element. A string is treated as
+ * an icon name or path.
+ * @property {string | HTMLElement} [prefixEntry] - Content placed immediately before the main element.
+ * @property {string | GradumProperties<ElementTag> | ValidElement<ElementTag>} [element] - The main element:
+ * its text, the properties to build it from, or an existing element to adopt.
+ * @property {string | HTMLElement} [suffixEntry] - Content placed immediately after the main element.
+ * @property {string | GradumIcon} [rightIcon] - Icon placed right of the main element. A string is treated as
+ * an icon name or path.
+ * @property {Element | Element[]} [rightCustomElements] - Elements placed rightmost, after `rightIcon`.
  */
 type GradumRichElementProperties<
     ElementTag extends ValidTag = any,

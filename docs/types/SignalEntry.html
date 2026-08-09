@@ -13,10 +13,11 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type that represents a base signal object.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The read/write/subscribe surface shared by every signal. <a href="SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> adds
+the ergonomic wrappers on top of this.</p>
 </div>
 <div class="tsd-tag-example">
-<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-9">const</span><span class="hl-1"> </span><span class="hl-15">count</span><span class="hl-1">: </span><span class="hl-12">SignalEntry</span><span class="hl-1">&lt;</span><span class="hl-12">number</span><span class="hl-1">&gt; = </span><span class="hl-0">makeSignal</span><span class="hl-1">(</span><span class="hl-13">0</span><span class="hl-1">);</span><br/><span class="hl-9">const</span><span class="hl-1"> </span><span class="hl-15">unsub</span><span class="hl-1"> = </span><span class="hl-8">count</span><span class="hl-1">.</span><span class="hl-0">sub</span><span class="hl-1">(() </span><span class="hl-9">=&gt;</span><span class="hl-1"> </span><span class="hl-8">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-2">&quot;count:&quot;</span><span class="hl-1">, </span><span class="hl-8">count</span><span class="hl-1">.</span><span class="hl-0">get</span><span class="hl-1">()));</span><br/><span class="hl-8">count</span><span class="hl-1">.</span><span class="hl-0">set</span><span class="hl-1">(</span><span class="hl-13">1</span><span class="hl-1">); </span><span class="hl-14">// logs &quot;count: 1&quot;</span><br/><span class="hl-8">count</span><span class="hl-1">.</span><span class="hl-0">update</span><span class="hl-1">(</span><span class="hl-8">c</span><span class="hl-1"> </span><span class="hl-9">=&gt;</span><span class="hl-1"> </span><span class="hl-8">c</span><span class="hl-1">+</span><span class="hl-13">1</span><span class="hl-1">); </span><span class="hl-14">// logs &quot;count: 2&quot;</span><br/><span class="hl-0">unsub</span><span class="hl-1">();</span>
+<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-9">const</span><span class="hl-1"> </span><span class="hl-15">count</span><span class="hl-1">: </span><span class="hl-12">SignalEntry</span><span class="hl-1">&lt;</span><span class="hl-12">number</span><span class="hl-1">&gt; = </span><span class="hl-0">signal</span><span class="hl-1">(</span><span class="hl-13">0</span><span class="hl-1">);</span><br/><span class="hl-9">const</span><span class="hl-1"> </span><span class="hl-15">unsub</span><span class="hl-1"> = </span><span class="hl-8">count</span><span class="hl-1">.</span><span class="hl-0">sub</span><span class="hl-1">(() </span><span class="hl-9">=&gt;</span><span class="hl-1"> </span><span class="hl-8">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-2">&quot;count:&quot;</span><span class="hl-1">, </span><span class="hl-8">count</span><span class="hl-1">.</span><span class="hl-0">get</span><span class="hl-1">()));</span><br/><span class="hl-8">count</span><span class="hl-1">.</span><span class="hl-0">set</span><span class="hl-1">(</span><span class="hl-13">1</span><span class="hl-1">); </span><span class="hl-14">// logs &quot;count: 1&quot;</span><br/><span class="hl-8">count</span><span class="hl-1">.</span><span class="hl-0">update</span><span class="hl-1">(</span><span class="hl-8">c</span><span class="hl-1"> </span><span class="hl-9">=&gt;</span><span class="hl-1"> </span><span class="hl-8">c</span><span class="hl-1"> + </span><span class="hl-13">1</span><span class="hl-1">); </span><span class="hl-14">// logs &quot;count: 2&quot;</span><br/><span class="hl-0">unsub</span><span class="hl-1">();</span>
 </code><button type="button">Copy</button></pre>
 
 </div></div></section>
@@ -24,9 +25,11 @@
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="type"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span></li></ul></section><aside class="tsd-sources">
+<li><span id="type"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the value held by the signal.</p>
+</div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/reactivity/reactivity.types.ts:30</li></ul></aside>
+<li>Defined in src/decorators/reactivity/reactivity.types.ts:52</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -49,18 +52,18 @@
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="get-1"><span class="tsd-kind-call-signature">get</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><a href="#get-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Retrieve the signal value.</p>
+<div class="tsd-comment tsd-typography"><p>Read the current value.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/reactivity/reactivity.types.ts:31</li></ul></aside></div></li></ul></section>
+<li>Defined in src/decorators/reactivity/reactivity.types.ts:53</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="set"><span>set</span><a href="#set" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="set-1"><span class="tsd-kind-call-signature">set</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#set-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Set the signal value.</p>
+<div class="tsd-comment tsd-typography"><p>Store a new value. Subscribers run only if the value actually changed.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -68,15 +71,14 @@
 <li><span><span class="tsd-kind-parameter">value</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/reactivity/reactivity.types.ts:32</li></ul></aside></div></li></ul></section>
+<li>Defined in src/decorators/reactivity/reactivity.types.ts:54</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="update"><span>update</span><a href="#update" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="update-1"><span class="tsd-kind-call-signature">update</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">updater</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">previous</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#update-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Set the value using a pure updater based
-on the previous value.</p>
+<div class="tsd-comment tsd-typography"><p>Store a new value derived from the previous one.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -84,15 +86,15 @@ on the previous value.</p>
 <li><span><span class="tsd-kind-parameter">updater</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">previous</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/reactivity/reactivity.types.ts:33</li></ul></aside></div></li></ul></section>
+<li>Defined in src/decorators/reactivity/reactivity.types.ts:55</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="sub"><span>sub</span><a href="#sub" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="sub-1"><span class="tsd-kind-call-signature">sub</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">fn</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">SignalSubscriber</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><a href="#sub-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Subscribe to change notifications. Returns an unsubscribe
-function.</p>
+<div class="tsd-comment tsd-typography"><p>Subscribe to change notifications. Returns a function that
+unsubscribes.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -100,19 +102,19 @@ function.</p>
 <li><span><span class="tsd-kind-parameter">fn</span>: <span class="tsd-signature-type">SignalSubscriber</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/reactivity/reactivity.types.ts:34</li></ul></aside></div></li></ul></section>
+<li>Defined in src/decorators/reactivity/reactivity.types.ts:56</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="emit"><span>emit</span><a href="#emit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="emit-1"><span class="tsd-kind-call-signature">emit</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#emit-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Force a notification cycle without changing the value (useful after in-place
-mutation of structural data).</p>
+<div class="tsd-comment tsd-typography"><p>Notify subscribers without changing the value. Use it after mutating structural
+data in place, which <code>set</code> cannot detect.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/reactivity/reactivity.types.ts:35</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/decorators/reactivity/reactivity.types.ts:57</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

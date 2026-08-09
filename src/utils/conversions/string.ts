@@ -1,9 +1,11 @@
 /**
+ * @function camelToKebabCase
  * @group Utilities
  * @category String
  *
- * @description converts the provided string from camelCase to kebab-case.
- * @param {string} str - The string to convert
+ * @description Convert a camelCase string to kebab-case, the form HTML attributes and CSS properties use.
+ * @param {string} [str] - The string to convert.
+ * @returns {string} The kebab-case string, or `undefined` if the input was empty or missing.
  */
 function camelToKebabCase(str?: string): string {
     if (!str || str.length == 0) return;
@@ -11,11 +13,13 @@ function camelToKebabCase(str?: string): string {
 }
 
 /**
+ * @function kebabToCamelCase
  * @group Utilities
  * @category String
  *
- * @description converts the provided string from kebab-case to camelCase.
- * @param {string} str - The string to convert
+ * @description Convert a kebab-case string to camelCase, the form JavaScript properties use.
+ * @param {string} [str] - The string to convert.
+ * @returns {string} The camelCase string, or `undefined` if the input was empty or missing.
  */
 function kebabToCamelCase(str?: string): string {
     if (!str || str.length == 0) return;

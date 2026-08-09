@@ -1,13 +1,17 @@
 import {textToElement} from "./element";
 
 /**
+ * @function fetchSvg
  * @group Utilities
  * @category SVG
  *
- * @description Fetches an SVG from the given path
- * @param {string} path - The path to the SVG
- * @param logError
- * @returns An SVGElement promise
+ * @description Fetch an SVG file and parse it into a live element, ready to be inserted into the document.
+ * Because the markup is parsed rather than placed in an `<img>`, the result can be styled and scripted.
+ * @param {string} path - The path or URL to fetch the SVG from.
+ * @param {boolean} [logError=true] - Whether to also log failures to the console. The promise rejects either
+ * way.
+ * @returns {Promise<SVGElement>} The parsed SVG element. Rejects on an empty path, a failed request, or
+ * markup that does not parse.
  */
 function fetchSvg(path: string, logError: boolean = true): Promise<SVGElement> {
     return new Promise((resolve, reject) => {

@@ -14,20 +14,37 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="createproxy"><span class="tsd-kind-call-signature">createProxy</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyselftype">SelfType</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyproxiedtype">ProxiedType</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">self</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyselftype">SelfType</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">proxied</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyproxiedtype">ProxiedType</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyselftype">SelfType</a> <span class="tsd-signature-symbol">&amp;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyproxiedtype">ProxiedType</a><a href="#createproxy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>createProxy</p>
+</div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="createproxyselftype"><span class="tsd-kind-type-parameter">SelfType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span></span></li>
-<li><span id="createproxyproxiedtype"><span class="tsd-kind-type-parameter">ProxiedType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span></span></li></ul></section>
+<li><span id="createproxyselftype"><span class="tsd-kind-type-parameter">SelfType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the primary object.</p>
+</div></li>
+<li><span id="createproxyproxiedtype"><span class="tsd-kind-type-parameter">ProxiedType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the fallback object.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">self</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyselftype">SelfType</a></span></li>
-<li><span><span class="tsd-kind-parameter">proxied</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyproxiedtype">ProxiedType</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyselftype">SelfType</a> <span class="tsd-signature-symbol">&amp;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyproxiedtype">ProxiedType</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">self</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyselftype">SelfType</a></span>
+<div class="tsd-comment tsd-typography"><p>The primary object, consulted first.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">proxied</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyproxiedtype">ProxiedType</a></span>
+<div class="tsd-comment tsd-typography"><p>The fallback object, used for anything the primary lacks.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyselftype">SelfType</a> <span class="tsd-signature-symbol">&amp;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createproxyproxiedtype">ProxiedType</a></h4><p>A proxy exposing both objects as one.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Combine two objects into one, without copying anything. Reads and writes go to the first
+object when it already has the property, and fall through to the second otherwise — so the first shadows
+the second, and both stay live rather than being snapshotted.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/dataManipulation/element.ts:19</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/dataManipulation/element.ts:31</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -15,7 +15,10 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Gradum drag event class, fired on gradum-drag, gradum-drag-start, gradum-drag-end, etc.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The event fired for <code>gradum-drag</code>, <code>gradum-drag-start</code>, and <code>gradum-drag-end</code>. It tracks
+every active pointer at once, so a multi-touch drag reports one entry per finger: each map below is
+keyed by pointer id. Every position is available raw and scaled into document space, along with the
+per-event deltas.</p>
 </div></div></section>
 <section class="tsd-panel tsd-hierarchy" data-refl="644">
 <h4>Hierarchy (<a href="../hierarchy.html#GradumDragEvent">View Summary</a>)</h4>
@@ -24,7 +27,7 @@
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">GradumDragEvent</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:15</li></ul></aside>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:18</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -66,6 +69,7 @@
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-index-list"><a href="#closest" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>closest</span></a>
+<a href="#scalepositionsmap" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>scale<wbr/>Positions<wbr/>Map</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="constructors-1">Constructors<a href="#constructors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
@@ -79,11 +83,18 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumDragEventProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumDragEventProperties</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumDragEvent</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumDragEventProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumDragEventProperties</a></span>
+<div class="tsd-comment tsd-typography"><p>The per-pointer position maps and input context.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumDragEvent</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create a drag event. The event's single <code>position</code> is taken from the first entry of
+<code>positions</code>.</p>
+</div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:31</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:40</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -92,120 +103,122 @@
 <div class="tsd-signature"><span class="tsd-kind-property">origins</span><span class="tsd-signature-symbol">:</span> <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map containing the origins of the dragging points</p>
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Where each pointer started its drag, keyed by pointer id.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:19</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:22</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="previouspositions"><code class="tsd-tag">Readonly</code><span>previous<wbr/>Positions</span><a href="#previouspositions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">previousPositions</span><span class="tsd-signature-symbol">:</span> <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map containing the previous positions of the dragging points</p>
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Where each pointer was on the previous drag event, keyed by pointer id.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:24</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:27</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="positions"><code class="tsd-tag">Readonly</code><span>positions</span><a href="#positions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">positions</span><span class="tsd-signature-symbol">:</span> <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map containing the positions of the dragging points</p>
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Where each pointer is now, keyed by pointer id.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:29</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:32</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="eventmanager"><code class="tsd-tag">Readonly</code><span>event<wbr/>Manager</span><a href="#eventmanager" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">eventManager</span><span class="tsd-signature-symbol">:</span> <a href="GradumEventManager.html" class="tsd-signature-type tsd-kind-class">GradumEventManager</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The event manager that fired this event.</p>
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The event manager that fired this event.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#eventmanager">eventManager</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:19</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:25</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="toolname"><code class="tsd-tag">Readonly</code><span>tool<wbr/>Name</span><a href="#toolname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">toolName</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The name of the tool (if any) associated with this event.</p>
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The name of the tool this event is attributed to, or <code>undefined</code> when no tool was
+current. Resolve it to the tool itself with <a href="GradumEvent.html#tool" class="tsd-kind-accessor">GradumEvent.tool</a>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#toolname">toolName</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:24</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:31</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="eventname"><code class="tsd-tag">Readonly</code><span>event<wbr/>Name</span><a href="#eventname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">eventName</span><span class="tsd-signature-symbol">:</span> <a href="../types/GradumEventNameEntry.html" class="tsd-signature-type tsd-kind-type-alias">GradumEventNameEntry</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The name of the event.</p>
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The name this event was dispatched under, such as <code>gradum-click</code>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#eventname">eventName</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:29</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:36</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="clickmode"><code class="tsd-tag">Readonly</code><span>click<wbr/>Mode</span><a href="#clickmode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">clickMode</span><span class="tsd-signature-symbol">:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The click mode of the fired event</p>
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The pointer button or input mode this event belongs to.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#clickmode">clickMode</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:34</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:41</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="inputdevice"><code class="tsd-tag">Readonly</code><span>input<wbr/>Device</span><a href="#inputdevice" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">inputDevice</span><span class="tsd-signature-symbol">:</span> <a href="../enums/InputDevice.html" class="tsd-signature-type tsd-kind-enum">InputDevice</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The input device that fired this event</p>
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The device that produced this event.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#inputdevice">inputDevice</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:39</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:46</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="keys"><code class="tsd-tag">Readonly</code><span>keys</span><a href="#keys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">keys</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The keys pressed when the event was fired</p>
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The keys held down when the event fired.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#keys">keys</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:44</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:51</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="position"><code class="tsd-tag">Readonly</code><span>position</span><a href="#position" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">position</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The screen position from where the event was fired</p>
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The screen position the event was fired from.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#position">position</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:49</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:56</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="authorizescaling"><span>authorize<wbr/>Scaling</span><a href="#authorizescaling" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">authorizeScaling</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span>)</div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Callback function (or boolean) to be overridden to specify when to allow transformation
-and/or scaling.</p>
+<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether <a href="GradumEvent.html#scaledposition" class="tsd-kind-accessor">GradumEvent.scaledPosition</a> and its per-pointer equivalents actually
+scale, or hand back the raw position. Assign a callback to decide per read — useful when a canvas
+is only sometimes transformed. Defaults to <code>true</code>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#authorizescaling">authorizeScaling</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:55</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:63</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="scaleposition"><span>scale<wbr/>Position</span><a href="#scaleposition" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">scalePosition</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">position</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Callback function to be overridden to specify how to transform a position from screen to
-document space.</p>
+<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>How a screen position is mapped into document space. Assign it to make events aware of
+a panned or zoomed canvas. Defaults to returning the position unchanged.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#scaleposition">scalePosition</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:61</li></ul></aside></section></section></details>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:69</li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -218,10 +231,11 @@ document space.</p>
 <h4 class="tsd-returns-title">Returns <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map of the origins mapped to the current canvas translation and scale</p>
+<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p><a href="#origins" class="tsd-kind-property">GradumDragEvent.origins</a> in document space. Falls back to the raw origins when
+scaling is not authorized.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:42</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:53</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="scaledpreviouspositions"><span>scaled<wbr/>Previous<wbr/>Positions</span><a href="#scaledpreviouspositions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -231,10 +245,11 @@ document space.</p>
 <h4 class="tsd-returns-title">Returns <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map of the previous positions mapped to the current canvas translation and scale</p>
+<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p><a href="#previouspositions" class="tsd-kind-property">GradumDragEvent.previousPositions</a> in document space. Falls back to the raw
+positions when scaling is not authorized.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:51</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:64</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="scaledpositions"><span>scaled<wbr/>Positions</span><a href="#scaledpositions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -244,46 +259,67 @@ document space.</p>
 <h4 class="tsd-returns-title">Returns <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map of the positions mapped to the current canvas translation and scale</p>
+<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p><a href="#positions" class="tsd-kind-property">GradumDragEvent.positions</a> in document space. Falls back to the raw positions
+when scaling is not authorized.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:60</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:75</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="deltapositions"><span>delta<wbr/>Positions</span><a href="#deltapositions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="deltapositionsdeltapositions"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">deltaPositions</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>How far each pointer moved since the previous event, keyed by pointer id. A pointer
+with no previous position — on drag start, or when a finger has just joined — reports a zero delta
+rather than being left out, so a delta is always defined for every active pointer.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:66</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:87</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="deltaposition"><span>delta<wbr/>Position</span><a href="#deltaposition" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="deltapositiondeltaposition"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">deltaPosition</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The average movement across all pointers since the previous event. Use it to move
+something with the drag without caring how many fingers are down.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:76</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:102</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="scaleddeltapositions"><span>scaled<wbr/>Delta<wbr/>Positions</span><a href="#scaleddeltapositions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="scaleddeltapositionsscaleddeltapositions"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">scaledDeltaPositions</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p><a href="#deltapositions" class="tsd-kind-accessor">GradumDragEvent.deltaPositions</a> in document space, so the deltas match the
+coordinates of a panned or zoomed canvas.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:81</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:112</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="scaleddeltaposition"><span>scaled<wbr/>Delta<wbr/>Position</span><a href="#scaleddeltaposition" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="scaleddeltapositionscaleddeltaposition"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">scaledDeltaPosition</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The average movement across all pointers since the previous event, in document space.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumDragEvent.ts:89</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/events/gradumDragEvent.ts:124</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="tool"><span>tool</span><a href="#tool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -293,11 +329,11 @@ document space.</p>
 <h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The tool (if any) associated with this event.</p>
+<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The tool associated with this event, or <code>null</code> if the event carries no tool name.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumEvent.tool</p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:83</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:98</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="target"><span>target</span><a href="#target" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -307,11 +343,11 @@ document space.</p>
 <h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/API/Document" class="tsd-signature-type external" target="_blank">Document</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The target of the event (as an Element - or the document)</p>
+<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The element the event was fired on, or the document when there is no element target.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumEvent.target</p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:147</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:179</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="scaledposition"><span>scaled<wbr/>Position</span><a href="#scaledposition" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -321,11 +357,12 @@ document space.</p>
 <h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The position of the fired event transformed and/or scaled using the class's scalePosition().</p>
+<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The event position in document space, obtained by running <a href="GradumEvent.html#position" class="tsd-kind-property">GradumEvent.position</a>
+through <code>scalePosition</code>. Falls back to the raw position when scaling is not authorized.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumEvent.scaledPosition</p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:155</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:189</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="scalingauthorized"><span>scaling<wbr/>Authorized</span><a href="#scalingauthorized" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -335,11 +372,12 @@ document space.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Specifies whether to allow transformation and/or scaling.</p>
+<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether scaled positions are computed for this event. Resolves <code>authorizeScaling</code>,
+calling it first if it is a callback.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumEvent.scalingAuthorized</p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:163</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:199</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -348,64 +386,92 @@ document space.</p>
 <ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="closest-1"><span class="tsd-kind-call-signature">closest</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#closestt">T</a> <span class="tsd-signature-keyword">extends</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">type</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-keyword">new</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#closestt">T</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">strict</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">from</span><span class="tsd-signature-symbol">?:</span> <a href="../enums/ClosestOrigin.html" class="tsd-signature-type tsd-kind-enum">ClosestOrigin</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#closestt">T</a><a href="#closest-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>closest</p>
+</div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="closestt"><span class="tsd-kind-type-parameter">T</span> <span class="tsd-signature-keyword">extends</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a></span></li></ul></section>
+<li><span id="closestt"><span class="tsd-kind-type-parameter">T</span> <span class="tsd-signature-keyword">extends</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a></span>
+<div class="tsd-comment tsd-typography"><p>The type of element to look for.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">type</span>: <span class="tsd-signature-keyword">new</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#closestt">T</a></span>
-<div class="tsd-comment tsd-typography"><p>Constructor or custom-element tag name / CSS selector string.</p>
+<div class="tsd-comment tsd-typography"><p>The constructor to match against.</p>
 </div></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">strict</span>: <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a></span>
-<div class="tsd-comment tsd-typography"><p>When <code>true</code> (default) the matched element must contain the event position.
-Pass an <code>Element</code> to use that element's bounds as the containment check instead.</p>
+<div class="tsd-comment tsd-typography"><p>When <code>true</code>, the match must also contain the event
+position, so an ancestor the pointer has left is rejected. Pass an <code>Element</code> to test against that
+element's bounds instead, or <code>false</code> to skip the check.</p>
 </div></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">from</span>: <a href="../enums/ClosestOrigin.html" class="tsd-signature-type tsd-kind-enum">ClosestOrigin</a></span>
-<div class="tsd-comment tsd-typography"><p>Whether to start from the event target or from the elements under the pointer position.</p>
+<div class="tsd-comment tsd-typography"><p>Where to start searching from.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#closestt">T</a></h4>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#closestt">T</a></h4><p>The nearest matching element, or <code>null</code> if there is none.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Returns the closest ancestor (or the element itself) that matches the given type.
-Accepts a constructor (matched via <code>instanceof</code>) or a custom-element tag name string such as
-<code>&quot;my-component&quot;</code> (resolved to its registered constructor via <code>customElements</code>, then matched via
-<code>instanceof</code>). Falls back to a native CSS-selector walk when no custom element is registered for
-the given string.</p>
+<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the nearest element of the given class, starting from the event target or the
+event position and walking up. Matching is by <code>instanceof</code>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#closest">closest</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:99</li></ul></aside></div></li>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:115</li></ul></aside></div></li>
 <li class="tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="closest-2"><span class="tsd-kind-call-signature">closest</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">type</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">strict</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">from</span><span class="tsd-signature-symbol">?:</span> <a href="../enums/ClosestOrigin.html" class="tsd-signature-type tsd-kind-enum">ClosestOrigin</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><a href="#closest-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>closest</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">type</span>: <span class="tsd-signature-type">string</span></span>
-<div class="tsd-comment tsd-typography"><p>Constructor or custom-element tag name / CSS selector string.</p>
+<div class="tsd-comment tsd-typography"><p>A custom-element tag name, or a CSS selector.</p>
 </div></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">strict</span>: <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a></span>
-<div class="tsd-comment tsd-typography"><p>When <code>true</code> (default) the matched element must contain the event position.
-Pass an <code>Element</code> to use that element's bounds as the containment check instead.</p>
+<div class="tsd-comment tsd-typography"><p>When <code>true</code>, the match must also contain the event
+position. Pass an <code>Element</code> to test against that element's bounds instead, or <code>false</code> to skip it.</p>
 </div></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">from</span>: <a href="../enums/ClosestOrigin.html" class="tsd-signature-type tsd-kind-enum">ClosestOrigin</a></span>
-<div class="tsd-comment tsd-typography"><p>Whether to start from the event target or from the elements under the pointer position.</p>
+<div class="tsd-comment tsd-typography"><p>Where to start searching from.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a></h4>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a></h4><p>The nearest matching element, or <code>null</code> if there is none.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Returns the closest ancestor (or the element itself) that matches the given type.
-Accepts a constructor (matched via <code>instanceof</code>) or a custom-element tag name string such as
-<code>&quot;my-component&quot;</code> (resolved to its registered constructor via <code>customElements</code>, then matched via
-<code>instanceof</code>). Falls back to a native CSS-selector walk when no custom element is registered for
-the given string.</p>
+<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the nearest element matching the given string. A registered custom-element tag
+such as <code>&quot;my-component&quot;</code> is resolved to its constructor and matched by <code>instanceof</code>; anything else
+is treated as a CSS selector.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#closest">closest</a></p>
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.ts:101</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:129</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="scalepositionsmap"><code class="tsd-tag">Protected</code><span>scale<wbr/>Positions<wbr/>Map</span><a href="#scalepositionsmap" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
+<li class="tsd-is-protected tsd-is-inherited">
+<div class="tsd-signature tsd-anchor-link" id="scalepositionsmap-1"><span class="tsd-kind-call-signature">scalePositionsMap</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">positions</span><span class="tsd-signature-symbol">?:</span> <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span><a href="#scalepositionsmap-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>scalePositionsMap</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">positions</span>: <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Positions keyed by pointer id.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="GradumMap.html" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new map with each position scaled. The input is unchanged.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map every point in a per-pointer map into document space. Used by
+<a href="#" class="tsd-kind-class">GradumDragEvent</a> to expose scaled variants of its position maps.</p>
+</div></div><aside class="tsd-sources">
+<p>Inherited from <a href="GradumEvent.html">GradumEvent</a>.<a href="GradumEvent.html#scalepositionsmap">scalePositionsMap</a></p>
+<ul>
+<li>Defined in src/eventHandling/events/gradumEvent.ts:211</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -427,7 +493,7 @@ the given string.</p>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Accessors</summary>
 <div><a href="#scaledorigins"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>scaled<wbr/>Origins</span></a><a href="#scaledpreviouspositions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>scaled<wbr/>Previous<wbr/>Positions</span></a><a href="#scaledpositions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>scaled<wbr/>Positions</span></a><a href="#deltapositions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>delta<wbr/>Positions</span></a><a href="#deltaposition"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>delta<wbr/>Position</span></a><a href="#scaleddeltapositions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>scaled<wbr/>Delta<wbr/>Positions</span></a><a href="#scaleddeltaposition"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>scaled<wbr/>Delta<wbr/>Position</span></a><a href="#tool" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>tool</span></a><a href="#target" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>target</span></a><a href="#scaledposition" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>scaled<wbr/>Position</span></a><a href="#scalingauthorized" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>scaling<wbr/>Authorized</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#closest" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>closest</span></a></div></details></div></details></div>
+<div><a href="#closest" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>closest</span></a><a href="#scalepositionsmap" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>scale<wbr/>Positions<wbr/>Map</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">gradum-kit - v0.1.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

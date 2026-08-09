@@ -3,12 +3,14 @@ import {StylesRoot} from "../gradumFunctions/style/style.types";
 import {$} from "../gradumFunctions/gradumFunctions";
 
 /**
+ * @function stylesheet
  * @group Element Creation
- * @category Base Elements
+ * @category Creation Functions
  *
- * @description Adds the provided string as a new style element to the provided root.
- * @param {string} [styles] - The css string. Use the css literal function for autocompletion.
- * @param {StylesRoot} [root] - The root to which the style element will be added.
+ * @description Add a CSS string to the document as a new `<style>` element. Pass a shadow root to
+ * scope the styles to one component instead of the whole page. Does nothing if `styles` is empty.
+ * @param {string} [styles] - The CSS to add. Use the {@link css} literal function for autocompletion.
+ * @param {StylesRoot} [root=document.head] - The shadow root or document head to add the element to.
  */
 function stylesheet(styles?: string, root: StylesRoot = document.head) {
     if (!styles) return;

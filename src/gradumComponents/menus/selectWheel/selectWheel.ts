@@ -37,6 +37,10 @@ class GradumSelectWheel<
     ModelType extends GradumModel<DataType> = GradumModel,
     EmitterType extends GradumEmitter = GradumEmitter
 > extends GradumSelectElement<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> {
+    /**
+     * @static
+     * @description Default properties assigned to a new wheel. Entries animate over 0.3 seconds.
+     */
     public static defaultProperties = {transitionDuration: 0.3};
 
     public declare readonly properties: GradumSelectWheelProperties<ValueType, SecondaryValueType, EntryType,
@@ -45,21 +49,69 @@ class GradumSelectWheel<
     private _currentPosition: number = 0;
     private _index: number = 0;
 
+    /**
+     * @protected
+     * @readonly
+     * @description Each entry's measured size along the wheel's axis, indexed by entry position. Refreshed
+     * by {@link GradumSelectWheel.reloadEntrySizes}.
+     */
     protected readonly sizePerEntry: number[] = [];
+    /**
+     * @protected
+     * @readonly
+     * @description Each entry's offset from the start of the wheel, indexed by entry position.
+     */
     protected readonly positionPerEntry: number[] = [];
+    /**
+     * @protected
+     * @description The combined size of every entry along the wheel's axis.
+     */
     protected totalSize: number = 0;
 
+    /**
+     * @description How far past the first and last entries the wheel can be dragged, in pixels, before it
+     * springs back.
+     */
     public dragLimitOffset: number = 30;
+    /**
+     * @description How long the wheel stays open after the last interaction, in milliseconds, unless
+     * {@link GradumSelectWheel.alwaysOpen} is set.
+     */
     public openTimeout: number = 3000;
+    /**
+     * @description The axis the wheel scrolls along.
+     */
     public direction: Direction = Direction.horizontal;
+    /**
+     * @description The scale applied to entries at the centre of the wheel and at its edges. Entries in
+     * between are scaled proportionally, producing the wheel's depth effect.
+     */
     public scale: Record<Range, number> = {max: 1, min: 0.5};
 
+    /**
+     * @description An optional hook replacing the wheel's built-in entry styling. It receives the computed
+     * translation, opacity, and scale alongside the default styles, and returns the styles to apply instead.
+     */
     public generateCustomStyling: (properties: GradumSelectWheelStylingProperties)
         => string | PartialRecord<keyof CSSStyleDeclaration, string | number>;
 
+    /**
+     * @protected
+     * @description Whether the wheel is currently being dragged.
+     */
     protected dragging: boolean = false;
+    /**
+     * @protected
+     * @description The pending timer that will close the wheel once {@link GradumSelectWheel.openTimeout}
+     * elapses.
+     */
     protected openTimer: ReturnType<typeof setTimeout>;
 
+    /**
+     * @function initialize
+     * @description Set the wheel up and start tracking its entries, re-measuring them whenever an entry is
+     * added or removed.
+     */
     public initialize(): void {
         const initEntry = (entry: EntryType) => {
             gradum(entry).setStyles({position: "absolute", whiteSpace: "nowrap"}, true);
@@ -121,6 +173,10 @@ class GradumSelectWheel<
         }),
     }) public opacity: Record<Range, number>;
 
+    /**
+     * @description The wheel's extent on either side of its centre, in pixels. Assign a single number to
+     * use it symmetrically.
+     */
     @auto({
         defaultValue: {max: 100, min: -100},
         preprocessValue: (value) =>
@@ -132,6 +188,10 @@ class GradumSelectWheel<
         return;
     }
 
+    /**
+     * @description The reifect animating entries as they move through the wheel. Assign reifect properties
+     * to build one. It is attached to every existing entry on assignment.
+     */
     @auto({
         preprocessValue: function (value) {
             if (!value) return;
@@ -153,6 +213,10 @@ class GradumSelectWheel<
         this.entryTransitionReifect.styles = `transition: transform ${value}s ease-in-out, opacity ${value}s ease-in-out`;
     }
 
+    /**
+     * @description An extra reifect applied to entries alongside the built-in transition, for styling beyond
+     * position and scale. Assign reifect properties to build one, or `null` to remove it.
+     */
     @auto({
         preprocessValue: function (value) {
             if (!value) return null;
@@ -182,6 +246,10 @@ class GradumSelectWheel<
         if (value) requestAnimationFrame(() => this.reloadEntrySizes());
     }
 
+    /**
+     * @readonly
+     * @description Whether the wheel scrolls vertically.
+     */
     public get isVertical() {
         return this.direction === Direction.vertical;
     }
@@ -200,6 +268,10 @@ class GradumSelectWheel<
     // Position
     // -------------------------------------------------------------------------
 
+    /**
+     * @description How far the wheel is scrolled, in pixels from its start. Assigning clamps the value to
+     * the draggable range, updates the selected index, and restyles every entry.
+     */
     public get currentPosition(): number {
         return this._currentPosition;
     }
@@ -213,6 +285,14 @@ class GradumSelectWheel<
         this.applyAllEntryStyles();
     }
 
+    /**
+     * @function computeDragDelta
+     * @protected
+     * @description Convert a drag delta into movement along the wheel's axis, inverted so dragging one way
+     * scrolls the entries the other.
+     * @param {Point} delta - The pointer's movement.
+     * @returns {number} The distance to scroll, in pixels.
+     */
     protected computeDragDelta(delta: Point): number {
         return -delta[this.isVertical ? "y" : "x"];
     }
@@ -221,6 +301,12 @@ class GradumSelectWheel<
     // Layout
     // -------------------------------------------------------------------------
 
+    /**
+     * @function reloadEntrySizes
+     * @protected
+     * @description Re-measure every entry and rebuild the wheel's size and position tables. Call it after the
+     * entries change, or after the wheel becomes visible — entries laid out while hidden measure as zero.
+     */
     protected reloadEntrySizes() {
         this.sizePerEntry.length = 0;
         this.positionPerEntry.length = 0;
@@ -249,6 +335,13 @@ class GradumSelectWheel<
         if (this.selectedIndex >= 0) this.applyTransition();
     }
 
+    /**
+     * @function indexToPosition
+     * @protected
+     * @description Get the scroll position at which the given entry sits at the centre of the wheel.
+     * @param {number} index - The entry's index.
+     * @returns {number} The corresponding scroll position, in pixels.
+     */
     protected indexToPosition(index: number): number {
         if (!this.sizePerEntry.length) return 0;
         if (index < 0) return -Math.abs(index) * this.sizePerEntry[0];
@@ -258,6 +351,14 @@ class GradumSelectWheel<
         return this.positionPerEntry[floor] + this.sizePerEntry[floor] * (index - Math.floor(index));
     }
 
+    /**
+     * @function positionToIndex
+     * @protected
+     * @description Get the entry index a scroll position corresponds to. The result is fractional between
+     * entries, which is what drives the wheel's scaling mid-drag.
+     * @param {number} position - The scroll position, in pixels.
+     * @returns {number} The fractional entry index.
+     */
     protected positionToIndex(position: number): number {
         if (!this.positionPerEntry.length) return 0;
         let i = 0;
@@ -266,6 +367,12 @@ class GradumSelectWheel<
         return i + Math.min((position - this.positionPerEntry[i]) / (this.sizePerEntry[i] || 1), 1);
     }
 
+    /**
+     * @function snapToNearest
+     * @protected
+     * @description Settle the wheel on the entry nearest its current position and select it. Called when a
+     * drag ends.
+     */
     protected snapToNearest() {
         const nearest = trim(Math.round(this.positionToIndex(this._currentPosition)), this.entries.length - 1);
         this.index = nearest;
@@ -277,6 +384,12 @@ class GradumSelectWheel<
     // Transition (overrides GradumSelectElement — wheel sizes to selected entry directly)
     // -------------------------------------------------------------------------
 
+    /**
+     * @function applyTransition
+     * @protected
+     * @description Scroll the wheel to the selected entry and size the wheel to match it. Overrides the base
+     * selection behaviour, which sizes to the entry element instead.
+     */
     protected applyTransition() {
         const i = this.selectedIndex;
         if (i < 0) return;
@@ -298,6 +411,12 @@ class GradumSelectWheel<
     // Styling
     // -------------------------------------------------------------------------
 
+    /**
+     * @function applyAllEntryStyles
+     * @protected
+     * @description Restyle every entry for the current scroll position. Styles are applied instantly while
+     * dragging, so transforms are not queued behind a frame and left visibly lagging the pointer.
+     */
     protected applyAllEntryStyles() {
         // Apply instantly during drag so transforms aren't queued behind a rAF while a CSS
         // transition is still active on the element, which would cause visual lag.
@@ -312,6 +431,16 @@ class GradumSelectWheel<
         });
     }
 
+    /**
+     * @function computeAndApplyStyling
+     * @protected
+     * @description Compute an entry's opacity, scale, and transform from how far it sits from the wheel's
+     * centre, and apply them. Defers to {@link GradumSelectWheel.generateCustomStyling} when one is set.
+     * @param {HTMLElement} element - The entry to style.
+     * @param {number} translationValue - The entry's offset from the centre, in pixels.
+     * @param {Record<Range, number>} [size=this.size] - The wheel's extent, used to scale the falloff.
+     * @param {boolean} [instant=false] - Whether to set the styles directly, skipping the CSS transition.
+     */
     protected computeAndApplyStyling(
         element: HTMLElement,
         translationValue: number,
@@ -348,10 +477,20 @@ class GradumSelectWheel<
     // Timer helpers
     // -------------------------------------------------------------------------
 
+    /**
+     * @function clearOpenTimer
+     * @protected
+     * @description Cancel the pending timer that would close the wheel.
+     */
     protected clearOpenTimer() {
         if (this.openTimer) clearTimeout(this.openTimer);
     }
 
+    /**
+     * @function setOpenTimer
+     * @protected
+     * @description Restart the timer that closes the wheel once {@link GradumSelectWheel.openTimeout} elapses.
+     */
     protected setOpenTimer() {
         this.clearOpenTimer();
         if (typeof this.openTimeout !== "number" || this.openTimeout < 0) return;

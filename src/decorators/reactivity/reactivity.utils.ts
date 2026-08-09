@@ -4,16 +4,36 @@ import {KeyType} from "../../types/basic.types";
 
 /**
  * @internal
+ * @type {SignalConstructorType}
+ * @description Per-constructor bookkeeping, recording which property keys already had their signal
+ * accessor installed so a class is only patched once.
+ * @property {Map<PropertyKey, boolean>} installed - Property keys already installed on the prototype.
  */
 type SignalConstructorType = {
     installed: Map<PropertyKey, boolean>
 };
 
+/**
+ * @internal
+ * @type {ReactivityData}
+ * @description Per-instance reactivity state: the signals and effects attached to one object, indexed
+ * both by property key and by serialized key path.
+ * @property {Map<PropertyKey, ReactivityDataEntry>} propertyKeyMap - Entries indexed by property key.
+ * @property {Map<string, PropertyKey>} pathMap - Maps a serialized key path to the property key holding it,
+ * so path-bound signals such as {@link modelSignal} can be resolved back to their entry.
+ */
 type ReactivityData = {
     propertyKeyMap: Map<PropertyKey, ReactivityDataEntry>,
     pathMap: Map<string, PropertyKey>
 }
 
+/**
+ * @internal
+ * @type {ReactivityDataEntry}
+ * @description The signal and/or effect bound to a single property key.
+ * @property {SignalEntry} [signal] - The signal backing the property, if it is reactive.
+ * @property {Effect} [effect] - The effect attached to the property, if it is an `@effect` member.
+ */
 type ReactivityDataEntry = {
     signal?: SignalEntry,
     effect?: Effect
@@ -21,6 +41,10 @@ type ReactivityDataEntry = {
 
 /**
  * @internal
+ * @class ReactivityUtils
+ * @description Shared state store behind the reactivity decorators. Owns the per-constructor and
+ * per-instance maps that {@link SignalUtils} and {@link EffectUtils} read and write, and tracks which
+ * effect is currently running so signal reads can be attributed to it.
  */
 export class ReactivityUtils {
     private constructorMap = new WeakMap<object, SignalConstructorType>();

@@ -47,7 +47,6 @@ declare module "../gradumSelector" {
          * @description Apply default properties to the underlying object, with optional smart merging for
          * array-like keys. By default, merging will happen on all MVC properties that accept arrays (like
          * `operators`, `handlers`, `tools`, etc.) to allow for concatenation of such MVC pieces.
-         *
          * @param {Record<string, any>} defaults - Key/value map of defaults to apply on the object.
          * @param {ApplyDefaultsOptions} [options] - Optional configuration for merging keys.
          * @returns {this} The same selector instance for chaining.

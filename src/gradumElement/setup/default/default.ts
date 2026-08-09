@@ -2,6 +2,16 @@ import {gradum} from "../../../gradumFunctions/gradumFunctions";
 import {initializeEffects} from "../../../decorators/reactivity/reactivity";
 import {CloneElementOptions, FeedforwardProperties} from "../../../gradumFunctions/element/element.types";
 
+/**
+ * @internal
+ * @function defineDefaultProperties
+ * @template {new (...args: any[]) => any} Type - The class being set up.
+ * @description Install the shared element behaviour on a class prototype — `destroy`, `initialize`,
+ * `initialized`, `feedforward`, `clone`, and `defaultFeedforwardProperties`. This is what gives every
+ * element class the same lifecycle without inheriting from a common base. Called once per element class
+ * at definition time.
+ * @param {Type} constructor - The class whose prototype receives the behaviour.
+ */
 export function defineDefaultProperties<Type extends new (...args: any[]) => any>(constructor: Type) {
     const prototype = constructor.prototype;
     const initializedKey = Symbol("__initialized__");

@@ -15,36 +15,57 @@ class Color {
     private syncing: boolean = false;
 
     @auto({preprocessValue: (value) => trim(value, 255)})
+    /**
+     * @description The red channel, `0`–`255`. Assigning keeps every other representation in step.
+     */
     public set r(value: number) {
         this.syncFromRgb();
     }
 
     @auto({preprocessValue: (value) => trim(value, 255)})
+    /**
+     * @description The green channel, `0`–`255`. Assigning keeps every other representation in step.
+     */
     public set g(value: number) {
         this.syncFromRgb();
     }
 
     @auto({preprocessValue: (value) => trim(value, 255)})
+    /**
+     * @description The blue channel, `0`–`255`. Assigning keeps every other representation in step.
+     */
     public set b(value: number) {
         this.syncFromRgb();
     }
 
     @auto({preprocessValue: (value) => trim(value, 1)})
+    /**
+     * @description The alpha channel, `0`–`1`.
+     */
     public set a(value: number) {
         this.syncHex();
     }
 
     @auto({preprocessValue: (value) => ((value % 360) + 360) % 360})
+    /**
+     * @description The hue, in degrees, wrapped to `0`–`360`. Assigning keeps every other representation in step.
+     */
     public set h(value: number) {
         this.syncFromHsl();
     }
 
     @auto({preprocessValue: (value) => trim(value, 100)})
+    /**
+     * @description The saturation, `0`–`100`. Assigning keeps every other representation in step.
+     */
     public set s(value: number) {
         this.syncFromHsl();
     }
 
     @auto({preprocessValue: (value) => trim(value, 100)})
+    /**
+     * @description The lightness, `0`–`100`. Assigning keeps every other representation in step.
+     */
     public set l(value: number) {
         this.syncFromHsl();
     }
@@ -371,8 +392,15 @@ class Color {
     }
 
     /**
-     * @group Utilities
-     * @category Random
+     * @function random
+     * @description Generate a random color with a random hue, constrained to the given saturation and
+     * lightness. The defaults produce muted pastel tones rather than fully saturated ones.
+     * @param {number | [number, number]} [saturation=[50, 70]] - Saturation percentage, or a `[min, max]`
+     * range to pick one from.
+     * @param {number | [number, number]} [lightness=[70, 85]] - Lightness percentage, or a `[min, max]`
+     * range to pick one from.
+     * @returns {Color} The generated color.
+     * @static
      */
     public static random(saturation: number | [number, number] = [50, 70], lightness: number | [number, number] = [70, 85]): Color {
         if (typeof saturation != "number" && saturation.length >= 2) saturation = randomFromRange(saturation[0], saturation[1]);

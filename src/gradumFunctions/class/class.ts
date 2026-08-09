@@ -4,6 +4,13 @@ import {ClassFunctionsUtils} from "./class.utils";
 
 const utils = new ClassFunctionsUtils();
 
+/**
+ * @internal
+ * @function setupClassFunctions
+ * @description Install the CSS-class functions (`addClass`, `removeClass`, `toggleClass`, `hasClass`) onto the
+ * {@link GradumSelector} prototype. Called once by
+ * {@link gradumify}; the matching `exclude` option skips it.
+ */
 export function setupClassFunctions() {
     /**
      * @description Add one or more CSS classes to the element.
@@ -40,8 +47,8 @@ export function setupClassFunctions() {
 
     /**
      * @description Check if the element's class list contains the provided class(es).
-     * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings
-     * @return A boolean indicating whether the provided classes are included
+     * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
+     * @returns {boolean} Whether the element carries every one of the given classes.
      */
     GradumSelector.prototype.hasClass = function _hasClass(this: GradumSelector, classes?: string | string[]): boolean {
         if (!classes || !(this.element instanceof Element)) return false;

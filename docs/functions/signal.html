@@ -20,7 +20,9 @@
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="signalvalue"><span class="tsd-kind-type-parameter">Value</span></span></li></ul></section>
+<li><span id="signalvalue"><span class="tsd-kind-type-parameter">Value</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the value held by the signal.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -28,17 +30,16 @@
 <div class="tsd-comment tsd-typography"><p>Initial value stored by the signal.</p>
 </div></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">target</span>: <span class="tsd-signature-type">object</span></span>
-<div class="tsd-comment tsd-typography"><p>The target to which the signal is bound.</p>
+<div class="tsd-comment tsd-typography"><p>The object to bind the signal to. Omit it for a free-standing signal.</p>
 </div></li>
 <li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">keys</span>: <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">[]</span></span>
-<div class="tsd-comment tsd-typography"><p>The key path at which the signal will be stored in the target.</p>
+<div class="tsd-comment tsd-typography"><p>The key path at which the signal is stored in the target.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="../types/SignalBox.html" class="tsd-signature-type tsd-kind-type-alias">SignalBox</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue">Value</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A reactive box for reading/updating the value.</p>
+<h4 class="tsd-returns-title">Returns <a href="../types/SignalBox.html" class="tsd-signature-type tsd-kind-type-alias">SignalBox</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue">Value</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A reactive box for reading and updating the value.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create a standalone reactive signal box.
-Returns a <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> wrapping the initial value.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create a standalone reactive signal from an initial value.</p>
 </div>
 <div class="tsd-tag-example">
 <h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-9">const</span><span class="hl-1"> </span><span class="hl-15">count</span><span class="hl-1"> = </span><span class="hl-0">signal</span><span class="hl-1">(</span><span class="hl-13">0</span><span class="hl-1">);</span><br/><span class="hl-9">const</span><span class="hl-1"> </span><span class="hl-15">nested</span><span class="hl-1"> = </span><span class="hl-0">signal</span><span class="hl-1">(</span><span class="hl-13">0</span><span class="hl-1">, </span><span class="hl-8">target</span><span class="hl-1">, </span><span class="hl-2">&quot;users&quot;</span><span class="hl-1">, </span><span class="hl-2">&quot;42&quot;</span><span class="hl-1">, </span><span class="hl-2">&quot;score&quot;</span><span class="hl-1">);</span>
@@ -46,7 +47,7 @@ Returns a <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBo
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/reactivity/reactivity.ts:33</li></ul></aside></div></li>
+<li>Defined in src/decorators/reactivity/reactivity.ts:31</li></ul></aside></div></li>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="signal-1"><span class="tsd-kind-call-signature">signal</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-1">Value</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">get</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-1">Value</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">set</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-1">Value</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">target</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">keys</span><span class="tsd-signature-symbol">:</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/SignalBox.html" class="tsd-signature-type tsd-kind-type-alias">SignalBox</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-1">Value</a><span class="tsd-signature-symbol">&gt;</span><a href="#signal-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description"><code class="tsd-tag">Function</code>
@@ -55,7 +56,9 @@ Returns a <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBo
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="signalvalue-1"><span class="tsd-kind-type-parameter">Value</span></span></li></ul></section>
+<li><span id="signalvalue-1"><span class="tsd-kind-type-parameter">Value</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the value held by the signal.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -66,17 +69,17 @@ Returns a <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBo
 <div class="tsd-comment tsd-typography"><p>Setter that changes the value and emits the signal.</p>
 </div></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">target</span>: <span class="tsd-signature-type">object</span></span>
-<div class="tsd-comment tsd-typography"><p>The target to which the signal is bound.</p>
+<div class="tsd-comment tsd-typography"><p>The object to bind the signal to. Omit it for a free-standing signal.</p>
 </div></li>
 <li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">keys</span>: <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">[]</span></span>
-<div class="tsd-comment tsd-typography"><p>The key path at which the signal will be stored in the target.</p>
+<div class="tsd-comment tsd-typography"><p>The key path at which the signal is stored in the target.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="../types/SignalBox.html" class="tsd-signature-type tsd-kind-type-alias">SignalBox</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-1">Value</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A reactive box for reading/updating the value.</p>
+<h4 class="tsd-returns-title">Returns <a href="../types/SignalBox.html" class="tsd-signature-type tsd-kind-type-alias">SignalBox</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-1">Value</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A reactive box for reading and updating the value.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create a standalone reactive signal box that mirrors a getter and a setter.
-Returns a <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> wrapping the initial value.</p>
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create a standalone reactive signal backed by an existing getter and setter, rather than
+by its own storage. Use it to make a value that already lives somewhere else reactive.</p>
 </div>
 <div class="tsd-tag-example">
 <h4 class="tsd-anchor-link" id="example-1">Example<a href="#example-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-9">const</span><span class="hl-1"> </span><span class="hl-15">nested</span><span class="hl-1"> = </span><span class="hl-0">signal</span><span class="hl-1">(() </span><span class="hl-9">=&gt;</span><span class="hl-1"> </span><span class="hl-8">target</span><span class="hl-1">.</span><span class="hl-0">get</span><span class="hl-1">(</span><span class="hl-2">&quot;users&quot;</span><span class="hl-1">, </span><span class="hl-2">&quot;42&quot;</span><span class="hl-1">), </span><span class="hl-8">v</span><span class="hl-1"> </span><span class="hl-9">=&gt;</span><span class="hl-1"> </span><span class="hl-8">target</span><span class="hl-1">.</span><span class="hl-0">set</span><span class="hl-1">(</span><span class="hl-8">v</span><span class="hl-1">, </span><span class="hl-2">&quot;users&quot;</span><span class="hl-1">, </span><span class="hl-2">&quot;42&quot;</span><span class="hl-1">), </span><span class="hl-8">target</span><span class="hl-1">, </span><span class="hl-2">&quot;users&quot;</span><span class="hl-1">, </span><span class="hl-2">&quot;42&quot;</span><span class="hl-1">);</span>
@@ -84,7 +87,7 @@ Returns a <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBo
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/reactivity/reactivity.ts:56</li></ul></aside></div></li>
+<li>Defined in src/decorators/reactivity/reactivity.ts:53</li></ul></aside></div></li>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="signal-2"><span class="tsd-kind-call-signature">signal</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signaltype">Type</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span><br/>        <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">initial</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a>)<br/>        <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">this</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signaltype">Type</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a>)<br/>        <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">this</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signaltype">Type</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">v</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span>)<br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-symbol">{</span><br/>            <span class="tsd-kind-property">get</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">this</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signaltype">Type</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a><span class="tsd-signature-symbol">;</span><br/>            <span class="tsd-kind-property">set</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">this</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signaltype">Type</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">context</span><span class="tsd-signature-symbol">:</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ClassFieldDecoratorContext</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signaltype">Type</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a><span class="tsd-signature-symbol">&gt;</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ClassGetterDecoratorContext</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signaltype">Type</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a><span class="tsd-signature-symbol">&gt;</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ClassSetterDecoratorContext</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signaltype">Type</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a><span class="tsd-signature-symbol">&gt;</span><br/>        <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">ClassAccessorDecoratorContext</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#signaltype">Type</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#signalvalue-2">Value</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><a href="#signal-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description"><code class="tsd-tag">Function</code>
@@ -112,7 +115,7 @@ Returns a <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBo
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/reactivity/reactivity.ts:80</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/decorators/reactivity/reactivity.ts:77</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

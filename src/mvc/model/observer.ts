@@ -8,16 +8,16 @@ import {areEqual} from "../../utils/computations/equity";
 /**
  * @class GradumObserver
  * @group MVC
- * @category GradumModel
+ * @category Model
  *
  * @extends GradumNestedMap
+ * @template DataType - The type of data handled by the observer.
+ * @template {object} ComponentType - The instance type created/managed by the observer.
+ * @template {KeyType} DataKeyType - The key type used at each level of the path.
  * @description Generic observer that keeps a set of component instances organized by key path.
  * Useful to maintain UI components or other per-entry objects synchronized with a data source
  * ({@link GradumModel}).
  *
- * @template DataType - The type of data handled by the observer.
- * @template {object} ComponentType - The instance type created/managed by the observer.
- * @template {string | number | symbol} KeyType - The key type used at each level of the path.
  */
 class GradumObserver<
     DataType = any,
@@ -30,7 +30,7 @@ class GradumObserver<
     private replaceOnUpdate: GradumObserverProperties<DataType, ComponentType, DataKeyType>["replaceOnUpdate"];
 
     /**
-     * @property onAdded
+     * @readonly
      * @description Delegate called when a change is reported at a key path for which no component instance exists yet.
      * Handlers may return a newly-created component instance, which will be stored and passed to subsequent
      * `onUpdated` calls.
@@ -40,7 +40,7 @@ class GradumObserver<
     > = new Delegate();
 
     /**
-     * @property onUpdated
+     * @readonly
      * @description Delegate called when a change is reported at a key path that already has an associated instance.
      */
     public readonly onUpdated: Delegate<
@@ -49,7 +49,7 @@ class GradumObserver<
     > = new Delegate();
 
     /**
-     * @property onDeleted
+     * @readonly
      * @description Delegate called when a key path is reported as deleted.
      */
     public readonly onDeleted: Delegate<
@@ -58,13 +58,13 @@ class GradumObserver<
     > = new Delegate();
 
     /**
-     * @property onInitialize
+     * @readonly
      * @description Delegate fired once when the observer is initialized. Useful for initial population.
      */
     public readonly onInitialize: Delegate<(self: GradumObserver<DataType, ComponentType, DataKeyType>) => void> = new Delegate();
 
     /**
-     * @property onDestroy
+     * @readonly
      * @description Delegate fired when the observer is destroyed.
      */
     public readonly onDestroy: Delegate<(self: GradumObserver<DataType, ComponentType, DataKeyType>) => void> = new Delegate();
@@ -129,7 +129,7 @@ class GradumObserver<
     }
 
     /**
-     * @property isInitialized
+     * @readonly
      * @description Whether the observer has been initialized (i.e. {@link initialize} has been called).
      */
     public get isInitialized(): boolean {

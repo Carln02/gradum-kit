@@ -26,6 +26,12 @@ class GradumPopup<
     EmitterType extends GradumEmitter = GradumEmitter
 > extends GradumElement<ViewType, DataType, ModelType, EmitterType> {
     public declare readonly properties: GradumPopupProperties;
+    /**
+     * @static
+     * @description Default properties assigned to a new popup: anchored below its target, kept 4px inside
+     * the viewport, and falling back by offsetting horizontally or flipping vertically when it would
+     * overflow.
+     */
     public static defaultProperties: GradumPopupProperties = {
         popupPosition: {x: 0, y: -100},
         anchorPosition: {x: 0, y: 100},
@@ -34,27 +40,56 @@ class GradumPopup<
         fallbackModes: {x: PopupFallbackMode.offset, y: PopupFallbackMode.invert}
     }
 
+    /**
+     * @static
+     * @protected
+     * @description The shared container every popup is moved into, appended to the document body on first
+     * use. Reparenting popups here keeps them clear of any ancestor that clips or transforms them.
+     */
     @auto({defaultValue: div({parent: document.body, id: "gradum-popup-parent-element"})})
     protected static parentElement: HTMLElement;
 
+    /**
+     * @description The element this popup positions itself against. Defaults to the document body.
+     */
     @signal public anchor: Element = document.body;
 
+    /**
+     * @description Which point of the popup is pinned to the anchor, in percentages of its own size —
+     * `{x: 0, y: 0}` is its top-left, `{x: 100, y: 100}` its bottom-right. Values are clamped to `0`–`100`.
+     */
     @auto({preprocessValue: (value: Coordinate) => new Point(value).bound(0, 100)})
     public set popupPosition(value: Coordinate) {}
     public get popupPosition(): Point {return}
 
+    /**
+     * @description Which point of the anchor the popup is pinned to, in percentages of the anchor's size.
+     * Values are clamped to `0`–`100`.
+     */
     @auto({preprocessValue: (value: Coordinate) => new Point(value).bound(0, 100)})
     public set anchorPosition(value: Coordinate) {}
     public get anchorPosition(): Point {return}
 
+    /**
+     * @description The minimum gap in pixels kept between the popup and the viewport edges. Assign a
+     * single number to use it for both axes.
+     */
     @auto({preprocessValue: (value: Coordinate | number) => new Point(value)})
     public set viewportMargin(value: Coordinate | number) {}
     public get viewportMargin(): Point {return}
 
+    /**
+     * @description Extra pixel offset applied after the popup is aligned to its anchor. Assign a single
+     * number to use it for both axes.
+     */
     @auto({preprocessValue: (value: Coordinate | number) => new Point(value)})
     public set offsetFromAnchor(value: Coordinate | number) {}
     public get offsetFromAnchor(): Point {return}
 
+    /**
+     * @description What to do per axis when the popup would overflow the viewport — shift it back into
+     * view, or flip it to the anchor's other side. Assign a single mode to use it for both axes.
+     */
     @auto({preprocessValue: (value) => typeof value !== "object" ? {x: value, y: value} : value})
     public set fallbackModes(value: PopupFallbackMode | Coordinate<PopupFallbackMode>) {}
     public get fallbackModes(): Coordinate<PopupFallbackMode> {return}
@@ -82,12 +117,20 @@ class GradumPopup<
         };
     }
 
+    /**
+     * @function initialize
+     * @description Set the popup up hidden, and move it into the shared popup container so no ancestor can
+     * clip or transform it.
+     */
     public initialize() {
         super.initialize();
         this.show(false);
         if (!this.parentElement) gradum(this).addToParent(GradumPopup.parentElement);
     }
 
+    /**
+     * @inheritDoc
+     */
     protected setupUIListeners(): void {
         super.setupUIListeners();
 
@@ -158,6 +201,13 @@ class GradumPopup<
         return finalOffset;
     }
 
+    /**
+     * @function show
+     * @description Show or hide the popup. Showing it repositions it against its anchor first, while it is
+     * still invisible, so it never appears at a stale position.
+     * @param {boolean} b - Whether to show the popup.
+     * @returns {this} Itself, allowing for method chaining.
+     */
     public show(b: boolean): this {
         if (b) {
             this.style.visibility = "hidden";

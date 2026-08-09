@@ -17,10 +17,10 @@ import {signal} from "../../../decorators/reactivity/reactivity";
  * @group Components
  * @category GradumRichElement
  *
- * @description Class for creating a rich gradum element (an element that is possibly accompanied by icons (or other elements) on
- * its left and/or right).
  * @extends GradumElement
  * @template {ValidTag} ElementTag - The tag of the main element to create the rich element from.
+ * @description Class for creating a rich gradum element (an element that is possibly accompanied by icons (or other elements) on
+ * its left and/or right).
  */
 class GradumRichElement<
     ElementTag extends ValidTag = any,
@@ -30,10 +30,23 @@ class GradumRichElement<
     EmitterType extends GradumEmitter = GradumEmitter
 > extends GradumElement<ViewType, DataType, ModelType, EmitterType> {
      public declare readonly properties: GradumRichElementProperties;
+    /**
+     * @static
+     * @description Default properties assigned to a new rich element.
+     */
     public static defaultProperties: GradumRichElementProperties = {
         elementTag: "h4"
     };
 
+    /**
+     * @function customCreate
+     * @static
+     * @protected
+     * @description Build a rich element, resolving `text` and `elementTag` into the configuration of its inner
+     * element before construction.
+     * @param {GradumRichElementProperties} properties - The element's configuration.
+     * @returns {object} The created rich element.
+     */
     protected static customCreate(properties: GradumRichElementProperties): object {
         if (properties.text && !properties.element) {
             properties.element = properties.text;
@@ -45,11 +58,16 @@ class GradumRichElement<
         return super.customCreate(properties);
     }
 
+    /**
+     * @readonly
+     * @description The order the rich element's parts are laid out in, from left to right. Assigning a part
+     * inserts it at its place in this order rather than at the end.
+     */
     public readonly childrenOrder = ["leftCustomElements", "leftIcon",
         "prefixEntry", "element", "suffixEntry", "rightIcon", "rightCustomElements"] as const;
 
     /**
-     * @description Adds a given element or elements to the button at a specified position.
+     * @description Add one or more elements to this rich element at the given position.
      * @param {Element | Element[] | null} element - The element(s) to add.
      * @param {this["childrenOrder"][number]} type - The type of child element being added.
      */
@@ -67,7 +85,7 @@ class GradumRichElement<
     }
 
     /**
-     * @description The tag of the text element in the button
+     * @description The tag used for this rich element's text element
      */
     public elementTag: ElementTag;
 
@@ -103,8 +121,8 @@ class GradumRichElement<
     public get leftIcon(): GradumIcon {return}
 
     /**
-     * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-     * icon, or a Gradum/HTML element).
+     * @description The element shown before the text. Assigning a string sets its text content; assigning
+     * an element replaces it outright.
      */
     @auto({
         preprocessValue: function (value: string | HTMLElement) {
@@ -165,8 +183,8 @@ class GradumRichElement<
     }
 
     /**
-     * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-     * icon, or a Gradum/HTML element).
+     * @description The element shown after the text. Assigning a string sets its text content; assigning
+     * an element replaces it outright.
      */
     @auto({
         preprocessValue: function (value: string | HTMLElement) {

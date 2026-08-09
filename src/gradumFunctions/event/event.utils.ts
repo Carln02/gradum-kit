@@ -12,6 +12,11 @@ type ObjectListeners = {
     preventDefaultOn?: (type: string, e: Event) => boolean
 };
 
+/**
+ * @internal
+ * @class EventFunctionsUtils
+ * @description Shared helpers and per-element state behind the event functions on {@link GradumSelector}.
+ */
 export class EventFunctionsUtils {
     private dataMap = new WeakMap<Node, ObjectListeners>;
 

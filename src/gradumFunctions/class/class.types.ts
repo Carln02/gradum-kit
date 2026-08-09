@@ -26,7 +26,7 @@ declare module "../gradumSelector" {
         /**
          * @description Check if the element's class list contains the provided class(es).
          * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
-         * @return A boolean indicating whether the provided classes are included.
+         * @returns {boolean} Whether the element carries every one of the given classes.
          */
         hasClass(classes?: string | string[]): boolean;
     }

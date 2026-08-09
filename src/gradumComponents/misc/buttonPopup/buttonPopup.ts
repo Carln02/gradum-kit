@@ -14,10 +14,16 @@ import {GradumButtonPopupProperties} from "./buttonPopup.types";
 /**
  * @class GradumButtonPopup
  * @group Components
- * @category GradumButton
+ * @category GradumButtonPopup
  *
- * @description Button class for creating Gradum button elements.
- * @extends GradumElement
+ * @extends GradumButton
+ * @template {ValidTag} ElementTag - The tag of the button's main element.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description A button that toggles a {@link GradumPopup} anchored to itself. A popup is created on
+ * first use if none is assigned, so the button works without any extra setup.
  */
 class GradumButtonPopup<
     ElementTag extends ValidTag = any,

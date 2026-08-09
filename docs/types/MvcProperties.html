@@ -12,11 +12,11 @@
 <h1>Type Alias MvcProperties&lt;ViewType, ModelType, EmitterType&gt;</h1></div>
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography">
-<div class="tsd-tag-template">
-<h4 class="tsd-anchor-link" id="template-datatype">Template: DataType<a href="#template-datatype" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The element's data type, if any.</p>
-</div>
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type representing a configuration object for an Mvc instance.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The set of MVC pieces attached to an element. Pass one to <code>defaultProperties</code> or to
+<a href="../classes/GradumSelector.html#setmvc" class="tsd-kind-method">GradumSelector.setMvc</a> to declare which classes fill each role; read the assembled set back from
+<a href="../classes/GradumSelector.html#mvc" class="tsd-kind-property">GradumSelector.mvc</a>. Every role is optional, and each accepts either a ready-made instance or a
+constructor to build one from.</p>
 </div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">MvcProperties</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a> <span class="tsd-signature-keyword">extends</span> <a href="../classes/GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a> <span class="tsd-signature-symbol">=</span> <a href="../classes/GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a> <span class="tsd-signature-keyword">extends</span> <a href="../classes/GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a> <span class="tsd-signature-symbol">=</span> <a href="../classes/GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a> <span class="tsd-signature-keyword">extends</span> <a href="../classes/GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a> <span class="tsd-signature-symbol">=</span> <a href="../classes/GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#view">view</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcInstanceOrConstructor</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a href="GradumViewProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumViewProperties</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#model">model</a><span class="tsd-signature-symbol">?:</span><br/>        <span class="tsd-signature-symbol">|</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><br/>        <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-keyword">new</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">dataBlocksType</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;map&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;array&quot;</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a>)<span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#emitter">emitter</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcInstanceOrConstructor</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#operators">operators</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcManyInstancesOrConstructors</span><span class="tsd-signature-symbol">&lt;</span><br/>        <a href="../classes/GradumOperator.html" class="tsd-signature-type tsd-kind-class">GradumOperator</a><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumOperatorProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumOperatorProperties</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#handlers">handlers</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcManyInstancesOrConstructors</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/GradumHandler.html" class="tsd-signature-type tsd-kind-class">GradumHandler</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#interactors">interactors</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcManyInstancesOrConstructors</span><span class="tsd-signature-symbol">&lt;</span><br/>        <a href="../classes/GradumInteractor.html" class="tsd-signature-type tsd-kind-class">GradumInteractor</a><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumInteractorProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumInteractorProperties</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#tools">tools</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcManyInstancesOrConstructors</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/GradumTool.html" class="tsd-signature-type tsd-kind-class">GradumTool</a><span class="tsd-signature-symbol">,</span> <a href="GradumToolProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumToolProperties</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#constrainers">constrainers</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcManyInstancesOrConstructors</span><span class="tsd-signature-symbol">&lt;</span><br/>        <a href="../classes/GradumConstrainer.html" class="tsd-signature-type tsd-kind-class">GradumConstrainer</a><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumConstrainerProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumConstrainerProperties</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
 <section class="tsd-panel">
@@ -32,7 +32,7 @@
 <div class="tsd-comment tsd-typography"><p>The element's emitter type, if any.</p>
 </div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:66</li></ul></aside>
+<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:65</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -58,7 +58,7 @@
 <div class="tsd-comment tsd-typography"><p>The view (or view constructor) to attach.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:71</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:70</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="model"><code class="tsd-tag">Optional</code><span>model</span><a href="#model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">model</span><span class="tsd-signature-symbol">?:</span><br/>    <span class="tsd-signature-symbol">|</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><br/>    <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-keyword">new</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">dataBlocksType</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;map&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;array&quot;</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a>)</div>
@@ -66,7 +66,7 @@
 (or model constructor) to attach.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:72</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:71</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="emitter"><code class="tsd-tag">Optional</code><span>emitter</span><a href="#emitter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">emitter</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcInstanceOrConstructor</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">&gt;</span></div>
@@ -74,7 +74,7 @@
 attach. If not defined, a default GradumEmitter will be created.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:73</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:72</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="operators"><code class="tsd-tag">Optional</code><span>operators</span><a href="#operators" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">operators</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcManyInstancesOrConstructors</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a href="../classes/GradumOperator.html" class="tsd-signature-type tsd-kind-class">GradumOperator</a><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumOperatorProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumOperatorProperties</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span></div>
@@ -82,7 +82,7 @@ attach. If not defined, a default GradumEmitter will be created.</p>
 operator, constructor of operator, or array of the latter, to attach.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:75</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:74</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="handlers"><code class="tsd-tag">Optional</code><span>handlers</span><a href="#handlers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">handlers</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcManyInstancesOrConstructors</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/GradumHandler.html" class="tsd-signature-type tsd-kind-class">GradumHandler</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">&gt;</span></div>
@@ -90,7 +90,7 @@ operator, constructor of operator, or array of the latter, to attach.</p>
 handler, constructor of handler, or array of the latter, to attach.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:76</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:75</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="interactors"><code class="tsd-tag">Optional</code><span>interactors</span><a href="#interactors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">interactors</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcManyInstancesOrConstructors</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a href="../classes/GradumInteractor.html" class="tsd-signature-type tsd-kind-class">GradumInteractor</a><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumInteractorProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumInteractorProperties</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span></div>
@@ -98,7 +98,7 @@ handler, constructor of handler, or array of the latter, to attach.</p>
 interactor, constructor of interactor, or array of the latter, to attach.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:78</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:77</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="tools"><code class="tsd-tag">Optional</code><span>tools</span><a href="#tools" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">tools</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcManyInstancesOrConstructors</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/GradumTool.html" class="tsd-signature-type tsd-kind-class">GradumTool</a><span class="tsd-signature-symbol">,</span> <a href="GradumToolProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumToolProperties</a><span class="tsd-signature-symbol">&gt;</span></div>
@@ -106,7 +106,7 @@ interactor, constructor of interactor, or array of the latter, to attach.</p>
 tool, constructor of tool, or array of the latter, to attach.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:79</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:78</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="constrainers"><code class="tsd-tag">Optional</code><span>constrainers</span><a href="#constrainers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">constrainers</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">MvcManyInstancesOrConstructors</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a href="../classes/GradumConstrainer.html" class="tsd-signature-type tsd-kind-class">GradumConstrainer</a><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumConstrainerProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumConstrainerProperties</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span></div>
@@ -114,7 +114,7 @@ tool, constructor of tool, or array of the latter, to attach.</p>
 constrainer, constructor of constrainer, or array of the latter, to attach.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:80</li></ul></aside></section></section></details></div>
+<li>Defined in src/gradumFunctions/mvc/mvc.types.ts:79</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

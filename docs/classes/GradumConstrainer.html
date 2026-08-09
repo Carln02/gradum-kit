@@ -15,7 +15,11 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Class representing an constrainer in MVC, bound to the provided element.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Keeps a set of objects satisfying a constraint. Attach one to an element and it watches a
+list of objects, and whenever a trigger object is interacted with it runs the solvers declared with
+<code>@solver</code> until the constraint holds again — capped by <code>maxPasses</code> so propagation cannot cycle forever.
+Checkers (<code>@checker</code>) report whether the constraint already holds; mutators (<code>@mutator</code>) adjust values
+as part of resolving.</p>
 </div></div></section>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -32,14 +36,14 @@
 <li><span id="emittertype"><span class="tsd-kind-type-parameter">EmitterType</span> <span class="tsd-signature-keyword">extends</span> <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a> = <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a></span>
 <div class="tsd-comment tsd-typography"><p>The element's emitter type, if any.</p>
 </div></li></ul></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="6309">
+<section class="tsd-panel tsd-hierarchy" data-refl="6313">
 <h4>Hierarchy (<a href="../hierarchy.html#GradumConstrainer">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="GradumOperator.html" class="tsd-signature-type tsd-kind-class">GradumOperator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">&gt;</span>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">GradumConstrainer</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:29</li>
+<li>Defined in src/mvc/constrainer/constrainer.ts:33</li>
 <li>Defined in src/mvc/constrainer/constrainer.types.ts:33</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
@@ -124,11 +128,19 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumConstrainerProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumConstrainerProperties</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">&gt;</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumConstrainer</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumConstrainerProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumConstrainerProperties</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>The element to attach to, plus the constrainer name,
+priority, active state, and activation callbacks.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumConstrainer</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create a constrainer bound to an element. If no object list is supplied, it defaults to the
+element's children, and the trigger list defaults to that same object list.</p>
+</div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:118</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/mvc/constrainer/constrainer.ts:129</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -137,106 +149,106 @@
 <div class="tsd-signature"><span class="tsd-kind-property">keyName</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The key of the constrainer. Used to retrieve it in the main component. If not set, if the element's
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The key of the constrainer. Used to retrieve it in the main component. If not set, if the element's
 class name is MyElement and the constrainer's class name is MyElementSomethingConstrainer, the key would
 default to &quot;something&quot;.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#keyname">keyName</a></p>
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:40</li></ul></aside></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:44</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="constrainername"><code class="tsd-tag">Readonly</code><span>constrainer<wbr/>Name</span><a href="#constrainername" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">constrainerName</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The name of the constrainer.</p>
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The name of the constrainer.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:45</li></ul></aside></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:49</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="solversmetadata"><code class="tsd-tag">Readonly</code><span>solvers<wbr/>Metadata</span><a href="#solversmetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">solversMetadata</span><span class="tsd-signature-symbol">:</span> <a href="../types/ConstrainerAddCallbackProperties.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerAddCallbackProperties</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/ConstrainerSolver.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerSolver</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The property keys of the constrainer solvers defined in the instance.</p>
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The property keys of the constrainer solvers defined in the instance.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:50</li></ul></aside></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:54</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="checkersmetadata"><code class="tsd-tag">Readonly</code><span>checkers<wbr/>Metadata</span><a href="#checkersmetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">checkersMetadata</span><span class="tsd-signature-symbol">:</span> <a href="../types/ConstrainerAddCallbackProperties.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerAddCallbackProperties</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/ConstrainerChecker.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerChecker</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The property keys of the constrainer checkers defined in the instance.</p>
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The property keys of the constrainer checkers defined in the instance.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:55</li></ul></aside></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:59</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="mutatorsmetadata"><code class="tsd-tag">Readonly</code><span>mutators<wbr/>Metadata</span><a href="#mutatorsmetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">mutatorsMetadata</span><span class="tsd-signature-symbol">:</span> <a href="../types/ConstrainerAddCallbackProperties.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerAddCallbackProperties</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/ConstrainerMutator.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerMutator</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The property keys of the constrainer mutators defined in the instance.</p>
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The property keys of the constrainer mutators defined in the instance.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:60</li></ul></aside></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:64</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="priority"><span>priority</span><a href="#priority" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">priority</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The priority of the constrainer. Higher priority constrainers (lower number) should
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The priority of the constrainer. Higher priority constrainers (lower number) should
 be resolved first. Defaults to 10.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:66</li></ul></aside></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:70</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="objectlist"><span>object<wbr/>List</span><a href="#objectlist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">objectList</span><span class="tsd-signature-symbol">:</span> <a href="GradumNodeList.html" class="tsd-signature-type tsd-kind-class">GradumNodeList</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The list of objects constrained by the constrainer. To manipulate, check <a href="GradumNodeList.html" class="tsd-kind-class">GradumNodeList</a>.
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The list of objects constrained by the constrainer. To manipulate, check <a href="GradumNodeList.html" class="tsd-kind-class">GradumNodeList</a>.
 Defaults to the children of the element the constrainer is attached to.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:72</li></ul></aside></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:76</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="triggerlist"><span>trigger<wbr/>List</span><a href="#triggerlist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">triggerList</span><span class="tsd-signature-symbol">:</span> <a href="GradumNodeList.html" class="tsd-signature-type tsd-kind-class">GradumNodeList</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The list of objects that trigger the constrainer to resolve.
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The list of objects that trigger the constrainer to resolve.
 Interacting with any of these objects would typically lead to the solving of the given constrainer.
 To manipulate, check <a href="GradumNodeList.html" class="tsd-kind-class">GradumNodeList</a>. Defaults to the objects in this.objectList.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:79</li></ul></aside></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:83</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="defaultqueue"><span>default<wbr/>Queue</span><a href="#defaultqueue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">defaultQueue</span><span class="tsd-signature-symbol">:</span> <a href="GradumQueue.html" class="tsd-signature-type tsd-kind-class">GradumQueue</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The default queue template for the constrainer, used when starting a new resolving pass.
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The default queue template for the constrainer, used when starting a new resolving pass.
 It defaults to the constrainer's object list.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:85</li></ul></aside></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:89</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="maxpasses"><span>max<wbr/>Passes</span><a href="#maxpasses" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">maxPasses</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The maximum number of passes allowed per object for this constrainer during resolving.
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The maximum number of passes allowed per object for this constrainer during resolving.
 This helps prevent infinite cycles in constraint propagation. Defaults to 5.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:91</li></ul></aside></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:95</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="element"><span>element</span><a href="#element" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">element</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The element it is bound to.</p>
+<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The element it is bound to.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#element">element</a></p>
 <ul>
@@ -246,7 +258,7 @@ This helps prevent infinite cycles in constraint propagation. Defaults to 5.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">view</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC view.</p>
+<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC view.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#view">view</a></p>
 <ul>
@@ -256,7 +268,7 @@ This helps prevent infinite cycles in constraint propagation. Defaults to 5.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">model</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC model.</p>
+<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC model.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#model">model</a></p>
 <ul>
@@ -266,7 +278,7 @@ This helps prevent infinite cycles in constraint propagation. Defaults to 5.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">emitter</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC emitter.</p>
+<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC emitter.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#emitter">emitter</a></p>
 <ul>
@@ -283,10 +295,10 @@ This helps prevent infinite cycles in constraint propagation. Defaults to 5.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the constrainer is active. Defaults to true.</p>
+<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the constrainer is active. Defaults to true.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:96</li></ul></aside></div></li>
+<li>Defined in src/mvc/constrainer/constrainer.ts:100</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="activeactive-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">active</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -296,7 +308,7 @@ This helps prevent infinite cycles in constraint propagation. Defaults to 5.</p>
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:100</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:104</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="onobjectlistchange"><span>on<wbr/>Object<wbr/>List<wbr/>Change</span><a href="#onobjectlistchange" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -306,10 +318,10 @@ This helps prevent infinite cycles in constraint propagation. Defaults to 5.</p>
 <h4 class="tsd-returns-title">Returns <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">object</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">status</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;added&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;removed&quot;</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired whenever an object is added to or removed from the constrainer's object list.</p>
+<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired whenever an object is added to or removed from the constrainer's object list.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:107</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:111</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="queue"><span>queue</span><a href="#queue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -319,10 +331,10 @@ This helps prevent infinite cycles in constraint propagation. Defaults to 5.</p>
 <h4 class="tsd-returns-title">Returns <a href="GradumQueue.html" class="tsd-signature-type tsd-kind-class">GradumQueue</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The current queue to be processed by the constrainer while resolving.</p>
+<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The current queue to be processed by the constrainer while resolving.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:114</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/mvc/constrainer/constrainer.ts:118</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -337,12 +349,12 @@ This helps prevent infinite cycles in constraint propagation. Defaults to 5.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Initialization function that calls makeConstrainer on <code>this.element</code>, sets it up, and attaches
-all the defined solvers.</p>
+<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Initialization function that calls <a href="GradumSelector.html#makeconstrainer" class="tsd-kind-method">GradumSelector.makeConstrainer</a> on <code>this.element</code>, sets
+it up, and attaches all the defined solvers.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#initialize">initialize</a></p>
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:142</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:153</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getobjectpasses"><span>get<wbr/>Object<wbr/>Passes</span><a href="#getobjectpasses" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -357,17 +369,15 @@ all the defined solvers.</p>
 <li><span><span class="tsd-kind-parameter">object</span>: <span class="tsd-signature-type">object</span></span>
 <div class="tsd-comment tsd-typography"><p>The object to query.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><ul>
-<li>Number of passes already performed on this object.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><p>Number of passes already performed on this object.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve how many times the given object has been processed for the current resolving session
+<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve how many times the given object has been processed for the current resolving session
 of the constrainer.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:190</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:201</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getobjectdata"><span>get<wbr/>Object<wbr/>Data</span><a href="#getobjectdata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -382,17 +392,15 @@ of the constrainer.</p>
 <li><span><span class="tsd-kind-parameter">object</span>: <span class="tsd-signature-type">object</span></span>
 <div class="tsd-comment tsd-typography"><p>The object to query.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4><ul>
-<li>The stored data object (or an empty object if none).</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4><p>The stored data object (or an empty object if none).</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve custom per-object data for this constrainer. It is reset on every new
+<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve custom per-object data for this constrainer. It is reset on every new
 resolving session.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:201</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:212</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setobjectdata"><span>set<wbr/>Object<wbr/>Data</span><a href="#setobjectdata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -410,16 +418,14 @@ resolving session.</p>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">data</span>: <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></span>
 <div class="tsd-comment tsd-typography"><p>The new data object to associate with this object.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Set custom per-object data for this constrainer. It is reset on every new resolving session.</p>
+<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Set custom per-object data for this constrainer. It is reset on every new resolving session.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:212</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:223</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addchecker"><span>add<wbr/>Checker</span><a href="#addchecker" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -436,17 +442,15 @@ resolving session.</p>
 checker <code>callback</code> to be executed, the <code>name</code> of the checker to access it later, the name of the attached
 <code>constrainer</code>, and the <code>priority</code> of the checker.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a checker in the constrainer. Checkers dictate whether the event should continue
+<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a checker in the constrainer. Checkers dictate whether the event should continue
 executing depending on the provided context (event, tool, target, etc.).</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:225</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:236</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removechecker"><span>remove<wbr/>Checker</span><a href="#removechecker" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -461,16 +465,14 @@ executing depending on the provided context (event, tool, target, etc.).</p>
 <li><span><span class="tsd-kind-parameter">name</span>: <span class="tsd-signature-type">string</span></span>
 <div class="tsd-comment tsd-typography"><p>The checker name.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove a checker from this constrainer by its name.</p>
+<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove a checker from this constrainer by its name.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:236</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:247</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clearcheckers"><span>clear<wbr/>Checkers</span><a href="#clearcheckers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -479,16 +481,14 @@ executing depending on the provided context (event, tool, target, etc.).</p>
 <div class="tsd-description"><code class="tsd-tag">Function</code>
 <div class="tsd-comment tsd-typography"><p>clearCheckers</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all checkers attached to this constrainer.</p>
+<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all checkers attached to this constrainer.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:246</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:257</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="check"><span>check</span><a href="#check" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -503,16 +503,14 @@ executing depending on the provided context (event, tool, target, etc.).</p>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/ConstrainerCallbackProperties.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerCallbackProperties</a></span>
 <div class="tsd-comment tsd-typography"><p>Context passed to each checker.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><ul>
-<li>Whether the constrainer passes all checks.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>Whether the constrainer passes all checks.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Evaluate all checkers for this constrainer and return whether the event should proceed or halt.</p>
+<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Evaluate all checkers for this constrainer and return whether the event should proceed or halt.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:257</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:268</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addmutator"><span>add<wbr/>Mutator</span><a href="#addmutator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -528,16 +526,14 @@ executing depending on the provided context (event, tool, target, etc.).</p>
 <div class="tsd-comment tsd-typography"><p>Configuration object, including the
 mutator <code>callback</code> to be executed, the <code>name</code> of the mutator to access it later, and the <code>priority</code> of the mutator.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a mutator in the constrainer. Mutators compute or transform a value based on the context.</p>
+<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a mutator in the constrainer. Mutators compute or transform a value based on the context.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:268</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:279</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removemutator"><span>remove<wbr/>Mutator</span><a href="#removemutator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -552,16 +548,14 @@ mutator <code>callback</code> to be executed, the <code>name</code> of the mutat
 <li><span><span class="tsd-kind-parameter">name</span>: <span class="tsd-signature-type">string</span></span>
 <div class="tsd-comment tsd-typography"><p>The mutator name.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove a mutator from this constrainer by its name.</p>
+<h4 class="tsd-anchor-link" id="description-28">Description<a href="#description-28" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove a mutator from this constrainer by its name.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:279</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:290</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clearmutators"><span>clear<wbr/>Mutators</span><a href="#clearmutators" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -570,16 +564,14 @@ mutator <code>callback</code> to be executed, the <code>name</code> of the mutat
 <div class="tsd-description"><code class="tsd-tag">Function</code>
 <div class="tsd-comment tsd-typography"><p>clearMutators</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-28">Description<a href="#description-28" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all mutators attached to this constrainer.</p>
+<h4 class="tsd-anchor-link" id="description-29">Description<a href="#description-29" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all mutators attached to this constrainer.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:289</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:300</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="mutate"><span>mutate</span><a href="#mutate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -601,16 +593,14 @@ mutator <code>callback</code> to be executed, the <code>name</code> of the mutat
 <div class="tsd-comment tsd-typography"><p>Context object, including the
 <code>mutation</code> to execute, and the input <code>value</code> to mutate.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#mutatetype">Type</a></h4><ul>
-<li>The mutated result.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#mutatetype">Type</a></h4><p>The mutated result.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-29">Description<a href="#description-29" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Execute a mutator for this constrainer and return the resulting value.</p>
+<h4 class="tsd-anchor-link" id="description-30">Description<a href="#description-30" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Execute a mutator for this constrainer and return the resulting value.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:302</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:313</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addsolver"><span>add<wbr/>Solver</span><a href="#addsolver" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -626,18 +616,16 @@ mutator <code>callback</code> to be executed, the <code>name</code> of the mutat
 <div class="tsd-comment tsd-typography"><p>Configuration object, including the
 solver <code>callback</code> to be executed, the <code>name</code> of the solver to access it later, and the <code>priority</code> of the solver.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-30">Description<a href="#description-30" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a solver in the constrainer. Solvers typically execute after an event is fired to
+<h4 class="tsd-anchor-link" id="description-31">Description<a href="#description-31" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a solver in the constrainer. Solvers typically execute after an event is fired to
 ensure the constrainer's constraints are maintained. They process all objects in the constrainer's queue,
 one after the other.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:315</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:326</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removesolver"><span>remove<wbr/>Solver</span><a href="#removesolver" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -652,16 +640,14 @@ one after the other.</p>
 <li><span><span class="tsd-kind-parameter">name</span>: <span class="tsd-signature-type">string</span></span>
 <div class="tsd-comment tsd-typography"><p>The solver's name.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-31">Description<a href="#description-31" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the given function from the constrainer's list of solvers.</p>
+<h4 class="tsd-anchor-link" id="description-32">Description<a href="#description-32" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the given function from the constrainer's list of solvers.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:326</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:337</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clearsolvers"><span>clear<wbr/>Solvers</span><a href="#clearsolvers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -670,16 +656,14 @@ one after the other.</p>
 <div class="tsd-description"><code class="tsd-tag">Function</code>
 <div class="tsd-comment tsd-typography"><p>clearSolvers</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-32">Description<a href="#description-32" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all solvers attached to the constrainer.</p>
+<h4 class="tsd-anchor-link" id="description-33">Description<a href="#description-33" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all solvers attached to the constrainer.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:336</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:347</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="solve"><span>solve</span><a href="#solve" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -694,17 +678,15 @@ one after the other.</p>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/ConstrainerCallbackProperties.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerCallbackProperties</a><span class="tsd-signature-symbol"> = {}</span></span>
 <div class="tsd-comment tsd-typography"><p>Options object to configure the context.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><ul>
-<li>Itself for chaining.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-33">Description<a href="#description-33" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Solve the constrainer by executing all of its attached solvers. Each solver will be executed
+<h4 class="tsd-anchor-link" id="description-34">Description<a href="#description-34" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Solve the constrainer by executing all of its attached solvers. Each solver will be executed
 on every object in the constrainer's queue, incrementing its number of passes in the process.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/constrainer/constrainer.ts:348</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/constrainer/constrainer.ts:359</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="onactivate"><span>on<wbr/>Activate</span><a href="#onactivate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -716,7 +698,7 @@ on every object in the constrainer's queue, incrementing its number of passes in
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-34">Description<a href="#description-34" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Function to execute when the constrainer is activated.</p>
+<h4 class="tsd-anchor-link" id="description-35">Description<a href="#description-35" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Function to execute when the constrainer is activated.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/constrainer/constrainer.types.ts:38</li></ul></aside></div></li></ul></section>
@@ -731,7 +713,7 @@ on every object in the constrainer's queue, incrementing its number of passes in
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-35">Description<a href="#description-35" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Function to execute when the constrainer is deactivated.</p>
+<h4 class="tsd-anchor-link" id="description-36">Description<a href="#description-36" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Function to execute when the constrainer is deactivated.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/constrainer/constrainer.types.ts:44</li></ul></aside></div></li></ul></section>
@@ -746,12 +728,12 @@ on every object in the constrainer's queue, incrementing its number of passes in
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-36">Description<a href="#description-36" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Called in the constructor. Use for setup that should happen at instantiation,
+<h4 class="tsd-anchor-link" id="description-37">Description<a href="#description-37" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Called in the constructor. Use for setup that should happen at instantiation,
 before <code>this.initialize()</code> is called.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#setup">setup</a></p>
 <ul>
-<li>Defined in src/mvc/operator/operator.ts:70</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/operator/operator.ts:77</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setupuilisteners"><code class="tsd-tag">Protected</code><span>setup<wbr/>UI<wbr/>Listeners</span><a href="#setupuilisteners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -763,11 +745,11 @@ before <code>this.initialize()</code> is called.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-37">Description<a href="#description-37" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method for defining DOM and input event listeners.</p>
+<h4 class="tsd-anchor-link" id="description-38">Description<a href="#description-38" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method for defining DOM and input event listeners.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#setupuilisteners">setupUIListeners</a></p>
 <ul>
-<li>Defined in src/mvc/operator/operator.ts:86</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/operator/operator.ts:93</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setupchangedcallbacks"><code class="tsd-tag">Protected</code><span>setup<wbr/>Changed<wbr/>Callbacks</span><a href="#setupchangedcallbacks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -779,11 +761,11 @@ before <code>this.initialize()</code> is called.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-38">Description<a href="#description-38" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method intended to initialize change listeners and callbacks.</p>
+<h4 class="tsd-anchor-link" id="description-39">Description<a href="#description-39" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method intended to initialize change listeners and callbacks.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#setupchangedcallbacks">setupChangedCallbacks</a></p>
 <ul>
-<li>Defined in src/mvc/operator/operator.ts:95</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/mvc/operator/operator.ts:102</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

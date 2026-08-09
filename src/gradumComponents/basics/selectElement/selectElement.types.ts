@@ -8,13 +8,21 @@ import {GradumSelectElement} from "./selectElement";
 /**
  * @type {GradumSelectElementProperties}
  * @group Components
- * @category GradumDropdown
+ * @category GradumSelectElement
  *
- * @description Properties for configuring a Dropdown.
- * @extends GradumProperties
- *
- * @property {string | string[]} [entriesClasses] - CSS class(es) for dropdown entries.
- * @property {string | string[]} [selectedEntriesClasses] - CSS class(es) for selected entries.
+ * @extends GradumElementProperties
+ * @extends GradumSelectProperties
+ * @template ValueType - The type of the value held by each entry.
+ * @template SecondaryValueType - The type of each entry's secondary value.
+ * @template {HTMLElement} EntryType - The type of the entry elements.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties for configuring a {@link GradumSelectElement} — everything a selection accepts,
+ * plus the element-level options and the classes applied to its entries.
+ * @property {string | string[]} [entriesClasses] - CSS class(es) applied to every entry.
+ * @property {string | string[]} [selectedEntriesClasses] - CSS class(es) applied to selected entries.
  */
 type GradumSelectElementProperties<
     ValueType = string,

@@ -11,14 +11,14 @@ import {GradumOperatorProperties} from "./operator.types";
  * @group MVC
  * @category Operator
  *
- * @description The MVC base operator class. Its main job is to handle some part of (or all of) the logic of the
- * component. It has access to the element, the model to read and write data, the view to update the UI, and the
- * emitter to listen for changes in the model or any other internal events. It can only communicate with other
- * operators via the emitter (by firing or listening for changes on a certain key).
  * @template {object} ElementType - The type of the main component.
  * @template {GradumView} ViewType - The element's MVC view type.
  * @template {GradumModel} ModelType - The element's MVC model type.
  * @template {GradumEmitter} EmitterType - The element's MVC emitter type.
+ * @description The MVC base operator class. Its main job is to handle some part of (or all of) the logic of the
+ * component. It has access to the element, the model to read and write data, the view to update the UI, and the
+ * emitter to listen for changes in the model or any other internal events. It can only communicate with other
+ * operators via the emitter (by firing or listening for changes on a certain key).
  */
 class GradumOperator<
     ElementType extends object = object,
@@ -53,6 +53,13 @@ class GradumOperator<
      */
     public emitter: EmitterType;
 
+    /**
+     * @constructor
+     * @description Create an operator bound to an element. The view, model, and emitter default to the
+     * element's own, so an operator shares them rather than owning any state itself.
+     * @param {GradumOperatorProperties} properties - The element to attach to, plus optional view, model, and
+     * emitter overrides.
+     */
     public constructor(properties: GradumOperatorProperties<ElementType, ViewType, ModelType, EmitterType>) {
         this.element = properties.element;
         if (properties.model) this.model = properties.model;

@@ -15,7 +15,9 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A map of arbitrary nesting depth, addressed via <code>...keys</code> paths.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A map of arbitrary nesting depth, addressed by a <code>...keys</code> path rather than a single key.
+Entries can also be reached by a flat key that collapses a whole path into one value, so a nested
+structure can be indexed as if it were flat.</p>
 </div></div></section>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -33,7 +35,7 @@
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="GradumObserver.html" class="tsd-signature-type tsd-kind-class">GradumObserver</a></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:17</li></ul></aside>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:23</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -105,9 +107,13 @@
 <section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="nestedmap"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>nested<wbr/>Map</span><a href="#nestedmap" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">nestedMap</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GradumNestedMapNode</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">nestedMap</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GradumNestedMapNode</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The root of the nested structure holding this map's entries.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:18</li></ul></aside></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:29</li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -120,10 +126,10 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">[</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf <code>[key, value]</code> pairs in the nested map, sorted alphabetically by key.</p>
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf <code>[key, value]</code> pairs in the nested map, sorted alphabetically by key.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:217</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:228</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="keys"><span>keys</span><a href="#keys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -133,10 +139,10 @@
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf keys in the nested map, sorted alphabetically.</p>
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf keys in the nested map, sorted alphabetically.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:241</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:252</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="values"><span>values</span><a href="#values" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -146,10 +152,10 @@
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf values in the nested map, sorted alphabetically by key.</p>
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf values in the nested map, sorted alphabetically by key.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:265</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:276</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="paths"><span>paths</span><a href="#paths" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -159,10 +165,10 @@
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf key paths in the map.</p>
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf key paths in the map.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:289</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:300</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -172,10 +178,10 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Number of all leaf entries in the nested map.</p>
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Number of all leaf entries in the nested map.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:313</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:324</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -197,10 +203,10 @@
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given key path.</p>
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given key path.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:32</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:43</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getflat"><span>get<wbr/>Flat</span><a href="#getflat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -222,10 +228,10 @@
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:48</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:59</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getkey"><span>get<wbr/>Key</span><a href="#getkey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -244,10 +250,10 @@
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key path of the first occurrence of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key path of the first occurrence of the given value.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:59</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:70</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getkeys"><span>get<wbr/>Keys</span><a href="#getkeys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -266,10 +272,10 @@
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key paths of all occurrences of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key paths of all occurrences of the given value.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:69</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:80</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getflatkey"><span>get<wbr/>Flat<wbr/>Key</span><a href="#getflatkey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -288,10 +294,10 @@
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the flat key of the first occurrence of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the flat key of the first occurrence of the given value.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:79</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:90</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="set"><span>set</span><a href="#set" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -312,10 +318,10 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Store a value at the given key path. Intermediate nodes are created automatically.</p>
+<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Store a value at the given key path. Intermediate nodes are created automatically.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:97</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:108</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setflat"><span>set<wbr/>Flat</span><a href="#setflat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -339,10 +345,10 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Store a value at the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Store a value at the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:115</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:126</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="has"><span>has</span><a href="#has" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -360,10 +366,10 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an entry exists at the given key path.</p>
+<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an entry exists at the given key path.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:132</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:143</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="hasflat"><span>has<wbr/>Flat</span><a href="#hasflat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -384,10 +390,10 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an entry exists at the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an entry exists at the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:146</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:157</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="hasvalue"><span>has<wbr/>Value</span><a href="#hasvalue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -405,10 +411,10 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether the given value exists anywhere in the map.</p>
+<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether the given value exists anywhere in the map.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:157</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:168</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="remove"><span>remove</span><a href="#remove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -426,10 +432,10 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the entry at the given key path.</p>
+<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the entry at the given key path.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:172</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:183</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removevalue"><span>remove<wbr/>Value</span><a href="#removevalue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -447,10 +453,10 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the first occurrence of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the first occurrence of the given value.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:183</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:194</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removevalues"><span>remove<wbr/>Values</span><a href="#removevalues" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -468,10 +474,10 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all occurrences of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all occurrences of the given value.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:193</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:204</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getentriesat"><span>get<wbr/>Entries<wbr/>At</span><a href="#getentriesat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -489,11 +495,11 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">[</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf <code>[key, value]</code> pairs under the given path, sorted alphabetically by key.
+<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf <code>[key, value]</code> pairs under the given path, sorted alphabetically by key.
 Pass no keys to get all leaf entries in the map.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:210</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:221</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getkeysat"><span>get<wbr/>Keys<wbr/>At</span><a href="#getkeysat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -511,11 +517,11 @@ Pass no keys to get all leaf entries in the map.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf keys under the given path, sorted alphabetically.
+<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf keys under the given path, sorted alphabetically.
 Pass no keys to get all leaf keys in the map.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:234</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:245</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getvaluesat"><span>get<wbr/>Values<wbr/>At</span><a href="#getvaluesat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -533,11 +539,11 @@ Pass no keys to get all leaf keys in the map.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf values under the given path, sorted alphabetically by key.
+<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf values under the given path, sorted alphabetically by key.
 Pass no keys to get all leaf values in the map.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:258</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:269</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getpathsat"><span>get<wbr/>Paths<wbr/>At</span><a href="#getpathsat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -555,11 +561,11 @@ Pass no keys to get all leaf values in the map.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf key paths under the given path.
+<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf key paths under the given path.
 Pass no keys to get all leaf paths in the map.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:282</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:293</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getsizeat"><span>get<wbr/>Size<wbr/>At</span><a href="#getsizeat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -577,11 +583,11 @@ Pass no keys to get all leaf paths in the map.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the number of leaf entries under the given path.
+<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the number of leaf entries under the given path.
 Pass no keys to get the number of all leaf entries.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:306</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:317</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="flattenkey"><span>flatten<wbr/>Key</span><a href="#flattenkey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -600,14 +606,14 @@ Pass no keys to get the number of all leaf entries.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Serialize a key path into a single flat key.</p>
+<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Serialize a key path into a single flat key.</p>
 <ul>
 <li>Fully numeric paths produce a numeric global leaf index.</li>
 <li>All other paths produce a <code>&quot;k0|k1|k2|...&quot;</code> string.</li>
 </ul>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:331</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:342</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="scopekey"><span>scope<wbr/>Key</span><a href="#scopekey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -629,14 +635,14 @@ Pass no keys to get the number of all leaf entries.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert a flat key back into a key path. Reverses <a href="#flattenkey" class="tsd-kind-method">flattenKey</a>.</p>
+<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert a flat key back into a key path. Reverses <a href="#flattenkey" class="tsd-kind-method">flattenKey</a>.</p>
 <ul>
 <li>A string <code>&quot;k0|k1|k2&quot;</code> becomes <code>[k0, k1, k2]</code>.</li>
 <li>A numeric global leaf index becomes the corresponding numeric path.</li>
 </ul>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:358</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:369</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clear"><span>clear</span><a href="#clear" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -648,10 +654,10 @@ Pass no keys to get the number of all leaf entries.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all entries from the map.</p>
+<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all entries from the map.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:380</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:391</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="findpaths"><code class="tsd-tag">Protected</code><span>find<wbr/>Paths</span><a href="#findpaths" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -667,7 +673,7 @@ Pass no keys to get the number of all leaf entries.</p>
 <li><span><span class="tsd-kind-parameter">prefix</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:390</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:401</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="getflatcompatiblekey"><code class="tsd-tag">Protected</code><span>get<wbr/>Flat<wbr/>Compatible<wbr/>Key</span><a href="#getflatcompatiblekey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -680,7 +686,7 @@ Pass no keys to get the number of all leaf entries.</p>
 <li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">any</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:416</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:427</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

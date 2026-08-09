@@ -1,14 +1,36 @@
 import {ListenerProperties} from "../../gradumComponents/datatypes/listener/listener.types";
 
+/**
+ * @internal
+ * @type {ListenerConstructorType}
+ * @description Per-constructor record of every listener and behavior declared on a class, collected by
+ * the decorators and replayed onto each instance by {@link attachListenersAndBehaviors}.
+ * @property {Map<PropertyKey, DecoratorListenerProperties>} listeners - Declarations indexed by method name.
+ */
 type ListenerConstructorType = {
     listeners: Map<PropertyKey, DecoratorListenerProperties>,
 };
 
+/**
+ * @internal
+ * @type {DecoratorListenerProperties}
+ * @description A listener declaration recorded by `@listener` or `@behavior`. It is a
+ * {@link ListenerProperties} without its callback, since the method itself supplies that at attach time.
+ * @property {PropertyKey} methodName - The decorated method, resolved against the instance when attached.
+ * @property {"listener" | "behavior"} kind - Which phase the declaration belongs to: `"listener"` runs in
+ * the bubble loop, `"behavior"` in the capture loop.
+ */
 export type DecoratorListenerProperties = Omit<ListenerProperties, "callback"> & {
     methodName: PropertyKey,
     kind: "listener" | "behavior",
 };
 
+/**
+ * @internal
+ * @class ListenerUtils
+ * @description Stores the listener and behavior declarations gathered from `@listener` and `@behavior`,
+ * keyed by prototype, so they can be attached once the instance exists.
+ */
 export class ListenerUtils {
     private constructorMap = new WeakMap<object, ListenerConstructorType>();
 

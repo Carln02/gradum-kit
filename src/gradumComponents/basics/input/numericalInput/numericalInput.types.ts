@@ -5,8 +5,21 @@ import {GradumEmitter} from "../../../../mvc/emitter/emitter";
 import {GradumNumericalInput} from "./numericalInput";
 
 /**
+ * @type {GradumNumericalInputProperties}
  * @group Components
  * @category GradumNumericalInput
+ *
+ * @template ValueType - The type the input's string value is converted to and from.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumNumericalInput}. Extends
+ * {@link GradumInputProperties} with the numeric constraints applied to the entered value.
+ * @property {number} [multiplier=1] - Factor applied between the displayed value and the stored one.
+ * @property {number} [decimalPlaces] - How many decimals the value is rounded to. Left unrounded if omitted.
+ * @property {number} [min] - Lowest accepted value. The value is clamped to it.
+ * @property {number} [max] - Highest accepted value. The value is clamped to it.
  */
 type GradumNumericalInputProperties<
     ValueType = string,
@@ -24,7 +37,7 @@ type GradumNumericalInputProperties<
 
 declare module "../../../../types/element.types" {
     interface GradumElementTagNameMap {
-        "gradum-numerical-inout": GradumNumericalInput
+        "gradum-numerical-input": GradumNumericalInput
     }
 }
 

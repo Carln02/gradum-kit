@@ -27,7 +27,6 @@ const utils = new DefineDecoratorUtils();
  *     across the entire class hierarchy.
  *   - Optionally injects an `attributeChangedCallback` that mirrors HTML attribute changes to
  *     their corresponding `@observe`-decorated fields, and vice versa.
- *
  * @param {string} className - The class name, used as the registry key and to infer the tag name.
  * @param {string} [elementName] - The custom element tag name. Inferred as the kebab-case of
  * `className` if omitted (e.g. `"MyEl"` → `"my-el"`).
@@ -65,7 +64,6 @@ function define(className: string, elementName?: string, options?: DefineOptions
  * - Optionally injects an `attributeChangedCallback` attribute bridge.
  *
  * For all classes (element or not), it registers the class in the registry by {@link RegistryCategory}.
- *
  * @param {Type} Base - The class to register.
  * @param {string} [elementName] - The custom element tag name. Inferred as the kebab-case of
  * `className` if omitted.
@@ -284,7 +282,7 @@ function getRegisteredElements(): RegistryEntry[] {
 /**
  * @function addRegistryCategory
  * @group Decorators
- * @category Registry
+ * @category Registry, Attributes & DOM
  *
  * @description Associates a class constructor with a {@link RegistryCategory} in the Gradum Kit registry's
  * category inference map. When {@link define} is called on a subclass, it walks the prototype chain and
@@ -294,7 +292,6 @@ function getRegisteredElements(): RegistryEntry[] {
  * This should be called once per base class, after its definition, by the Gradum Kit internals.
  * User-defined subclasses do not need to call this — category inference propagates automatically
  * through the prototype chain.
- *
  * @param {new (...args: any[]) => object} type - The base class constructor to associate with a category.
  * @param {RegistryCategory} [category] - The category to associate with the class. Defaults to the
  * class name if omitted, which is useful when the class name matches a {@link RegistryCategory} value.

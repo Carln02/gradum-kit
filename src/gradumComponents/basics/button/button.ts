@@ -12,8 +12,8 @@ import {ValidTag} from "../../../types/element.types";
  * @group Components
  * @category GradumButton
  *
- * @description Button class for creating Gradum button elements.
  * @extends GradumElement
+ * @description Button class for creating Gradum button elements.
  */
 class GradumButton<
     ElementTag extends ValidTag = any,

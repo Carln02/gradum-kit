@@ -17,8 +17,8 @@ import {StatelessReifectProperties} from "../../wrappers/reifect/reifect.types";
  * @group Components
  * @category GradumSelectElement
  *
- * @description Select element class for creating Gradum button elements.
  * @extends GradumElement
+ * @description Select element class for creating Gradum button elements.
  */
 class GradumSelectElement<
     ValueType = string,
@@ -30,16 +30,36 @@ class GradumSelectElement<
     EmitterType extends GradumEmitter = GradumEmitter
 > extends GradumElement<ViewType, DataType, ModelType, EmitterType> {
     public declare readonly properties: GradumSelectElementProperties;
+    /**
+     * @static
+     * @description Default properties assigned to a new select element. Entries are built as
+     * {@link GradumRichElement}s unless another tag is given.
+     */
     public static defaultProperties: GradumSelectElementProperties = {
         entriesTag: "gradum-rich-element"
     };
 
+    /**
+     * @protected
+     * @description The pending timer that clears the container's fixed size once the resize animation ends.
+     */
     protected _sizeTransitionTimeout: ReturnType<typeof setTimeout>;
 
+    /**
+     * @readonly
+     * @description The selection logic backing this element. It owns the entries and their selected state;
+     * this element renders them.
+     */
     public readonly select: GradumSelect<ValueType, SecondaryValueType, EntryType> = GradumSelect.create() as any;
 
+    /**
+     * @description The tag used to build entries from plain values.
+     */
     public entriesTag: ValidTag;
 
+    /**
+     * @description The element's entries, in order. Assigning a new list replaces them all.
+     */
     public get entries(): EntryType[] {
         return this.select.entries;
     }
@@ -77,6 +97,10 @@ class GradumSelectElement<
 
     @expose("select", false) public accessor stringSelectedValue: string;
 
+    /**
+     * @function initialize
+     * @description Set the element up and select its initial entry.
+     */
     public initialize() {
         this.select.onSelect.add(() => this.applyTransition());
         super.initialize();
@@ -115,7 +139,6 @@ class GradumSelectElement<
     /**
      * @description Animates the container from its current size to the selected entry's natural
      * size. Subclasses should call `super.applyTransition()` then add their own entry-level logic.
-     *
      * The sequence:
      * 1. Freeze container at current px size (gives CSS transition a `from` value)
      * 2. Call `beforeResize()` — subclass hook to prepare entries before the frame
@@ -147,13 +170,13 @@ class GradumSelectElement<
     /**
      * @description Called synchronously inside `applyTransition`, before the rAF that reads the
      * selected entry's new size. Use this to reposition/reflow entries so the size read is correct.
-     * @param selectedEntry - The newly selected entry.
+     * @param {EntryType} selectedEntry - The newly selected entry.
      */
     protected beforeResize(selectedEntry: EntryType) {}
 
     /**
      * @description Called after the container size transition completes.
-     * @param selectedEntry - The selected entry.
+     * @param {EntryType} selectedEntry - The entry that is now selected.
      */
     protected afterResize(selectedEntry: EntryType) {}
 }

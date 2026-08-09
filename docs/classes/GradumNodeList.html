@@ -15,9 +15,12 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A composable, Set-like collection for managing nodes. Supports individual nodes, live DOM
-collections (<a href="https://developer.mozilla.org/docs/Web/API/HTMLCollection">HTMLCollection</a> or NodeListOf), and nested <a href="#" class="tsd-kind-class">GradumNodeList</a> instances as
-sub-lists. Changes to sub-lists and live DOM collections propagate automatically on iteration.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A composable, Set-like collection of nodes. A single list can mix individual nodes, live
+DOM collections (<a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection">HTMLCollection</a> or
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/NodeList">NodeList</a>), and nested
+<a href="#" class="tsd-kind-class">GradumNodeList</a>s. Iteration resolves all of them in order and de-duplicates, so entries added
+to a sub-list or to the DOM show up without re-registering anything. Entries are held weakly, so a
+node removed from the document drops out of the list on its own.</p>
 </div></div></section>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -26,7 +29,7 @@ sub-lists. Changes to sub-lists and live DOM collections propagate automatically
 <div class="tsd-comment tsd-typography"><p>The type of the nodes held in the list.</p>
 </div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:17</li></ul></aside>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:19</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -96,7 +99,7 @@ sub-lists. Changes to sub-lists and live DOM collections propagate automatically
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumNodeList</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:34</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:36</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -106,10 +109,10 @@ sub-lists. Changes to sub-lists and live DOM collections propagate automatically
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
 <h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired whenever an entry is added to or removed from the list, including entries
-from nested <a href="#" class="tsd-kind-class">GradumNodeList</a>s, <a href="https://developer.mozilla.org/docs/Web/API/HTMLCollection">HTMLCollection</a>s, and NodeListOf instances.</p>
+from nested <a href="#" class="tsd-kind-class">GradumNodeList</a>s, <code>HTMLCollection</code>s, and <code>NodeListOf</code> instances.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:28</li></ul></aside></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:30</li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -126,11 +129,11 @@ from nested <a href="#" class="tsd-kind-class">GradumNodeList</a>s, <a href="htt
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether to observe added <a href="https://developer.mozilla.org/docs/Web/API/HTMLCollection">HTMLCollection</a>s and NodeListOf instances for DOM
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether to observe added <code>HTMLCollection</code>s and <code>NodeListOf</code> instances for DOM
 mutations, automatically firing <a href="#onchanged" class="tsd-kind-property">onChanged</a> when nodes are added or removed from the DOM.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:42</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:44</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="list"><span>list</span><a href="#list" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -140,10 +143,10 @@ mutations, automatically firing <a href="#onchanged" class="tsd-kind-property">o
 <h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set" class="tsd-signature-type external" target="_blank">Set</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a> snapshot of all entries in this list, without duplicates.</p>
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A <code>Set</code> snapshot of all entries in this list, without duplicates.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:57</li></ul></aside></div></li>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:59</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="listlist-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">list</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a href="../types/NodeListType.html" class="tsd-signature-type tsd-kind-type-alias">NodeListType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -153,7 +156,7 @@ mutations, automatically firing <a href="#onchanged" class="tsd-kind-property">o
 <li><span><span class="tsd-kind-parameter">value</span>: <a href="../types/NodeListType.html" class="tsd-signature-type tsd-kind-type-alias">NodeListType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:61</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:63</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="array"><span>array</span><a href="#array" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -166,7 +169,7 @@ mutations, automatically firing <a href="#onchanged" class="tsd-kind-property">o
 <h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>An array snapshot of all entries in this list, without duplicates.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:70</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:72</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -180,7 +183,7 @@ mutations, automatically firing <a href="#onchanged" class="tsd-kind-property">o
 <a href="#slotcount" class="tsd-kind-accessor">slotCount</a>.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:78</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:80</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="slotcount"><span>slot<wbr/>Count</span><a href="#slotcount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -190,12 +193,12 @@ mutations, automatically firing <a href="#onchanged" class="tsd-kind-property">o
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The number of slots in this list. Individual entries, <a href="https://developer.mozilla.org/docs/Web/API/HTMLCollection">HTMLCollection</a>s,
-NodeListOf instances, and nested <a href="#" class="tsd-kind-class">GradumNodeList</a>s each count as one slot, regardless
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The number of slots in this list. Individual entries, <code>HTMLCollection</code>s,
+<code>NodeListOf</code> instances, and nested <a href="#" class="tsd-kind-class">GradumNodeList</a>s each count as one slot, regardless
 of how many entries they contain. For the number of resolved entries, see <a href="#size" class="tsd-kind-accessor">size</a>.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:89</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:91</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -220,7 +223,7 @@ of how many entries they contain. For the number of resolved entries, see <a hre
 <h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type guard — returns true if the given value is a <a href="#" class="tsd-kind-class">GradumNodeList</a>.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:100</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:102</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="isdomlist"><code class="tsd-tag">Protected</code><span>is<wbr/>Dom<wbr/>List</span><a href="#isdomlist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -239,11 +242,11 @@ of how many entries they contain. For the number of resolved entries, see <a hre
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type guard — returns true if the given value is an <a href="https://developer.mozilla.org/docs/Web/API/HTMLCollection">HTMLCollection</a> or
-NodeListOf.</p>
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type guard — returns true if the given value is an <code>HTMLCollection</code> or
+<code>NodeListOf</code>.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:112</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:114</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="isset"><code class="tsd-tag">Protected</code><span>is<wbr/>Set</span><a href="#isset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -262,10 +265,10 @@ NodeListOf.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type guard — returns true if the given value is a <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a> or an array.</p>
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type guard — returns true if the given value is a <code>Set</code> or an array.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:123</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:125</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="isentry"><code class="tsd-tag">Protected</code><span>is<wbr/>Entry</span><a href="#isentry" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -285,10 +288,10 @@ NodeListOf.</p>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
 <h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type guard — returns true if the given value is an individual node entry (i.e. not a
-<a href="#" class="tsd-kind-class">GradumNodeList</a>, DOM list, Set, array, or <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/WeakRef">WeakRef</a>).</p>
+<a href="#" class="tsd-kind-class">GradumNodeList</a>, DOM list, Set, array, or <code>WeakRef</code>).</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:135</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:137</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="iterator"><span>[iterator]</span><a href="#iterator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -302,13 +305,13 @@ NodeListOf.</p>
 entries.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:147</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:149</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="resolveslot"><code class="tsd-tag">Protected</code><span>resolve<wbr/>Slot</span><a href="#resolveslot" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
-<li class="">
+<li class="tsd-is-protected">
 <div class="tsd-signature tsd-anchor-link" id="resolveslot-1"><span class="tsd-kind-call-signature">resolveSlot</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">slot</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/WeakRef" class="tsd-signature-type external" target="_blank">WeakRef</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/NodeListSlot.html" class="tsd-signature-type tsd-kind-type-alias">NodeListSlot</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">IterableIterator</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span><a href="#resolveslot-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
 <div class="tsd-comment tsd-typography"><p>resolveSlot</p>
 </div>
 <div class="tsd-parameters">
@@ -317,15 +320,16 @@ entries.</p>
 <li><span><span class="tsd-kind-parameter">slot</span>: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/WeakRef" class="tsd-signature-type external" target="_blank">WeakRef</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/NodeListSlot.html" class="tsd-signature-type tsd-kind-type-alias">NodeListSlot</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></span>
 <div class="tsd-comment tsd-typography"><p>The slot to resolve.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">IterableIterator</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">IterableIterator</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The entries this slot resolves to, in order.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Resolves a slot <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/WeakRef">WeakRef</a> into its constituent entries. Yields all entries from
-sub-lists and DOM lists, or the single entry for individual node slots. Yields nothing if the
-referent has been garbage collected.</p>
+<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Expand a single slot into the entries it currently stands for — every entry of a
+sub-list or DOM list, or the one node of an individual slot. Yields nothing once the slot's
+referent has been garbage-collected, which is how dead entries leave the list.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:166</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:170</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="foreach"><span>for<wbr/>Each</span><a href="#foreach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -335,11 +339,21 @@ referent has been garbage collected.</p>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">set</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">this</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span></span></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">any</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">set</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">this</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span></span>
+<div class="tsd-comment tsd-typography"><p>Called once per entry.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>Value to bind as <code>this</code> inside the callback.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Run a callback for each resolved unique entry, in slot order. Ignored and duplicate
+entries are skipped.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:174</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:185</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="add"><span>add</span><a href="#add" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -358,12 +372,12 @@ referent has been garbage collected.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Adds one or more entries to the end of the list. Entries may be individual nodes,
-arrays, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>s, <a href="https://developer.mozilla.org/docs/Web/API/HTMLCollection">HTMLCollection</a>s, NodeListOf instances, or nested
+<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Adds one or more entries to the end of the list. Entries may be individual nodes,
+arrays, <code>Set</code>s, <code>HTMLCollection</code>s, <code>NodeListOf</code> instances, or nested
 <a href="#" class="tsd-kind-class">GradumNodeList</a>s.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:189</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:200</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addat"><span>add<wbr/>At</span><a href="#addat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -385,11 +399,11 @@ arrays, <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Glo
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Adds one or more entries at the given resolved size index. The index refers to the position
-among resolved unique entries, not slots. Arrays and <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>s are expanded inline.</p>
+<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Adds one or more entries at the given resolved size index. The index refers to the position
+among resolved unique entries, not slots. Arrays and <code>Set</code>s are expanded inline.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:202</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:213</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addatslot"><span>add<wbr/>At<wbr/>Slot</span><a href="#addatslot" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -411,12 +425,12 @@ among resolved unique entries, not slots. Arrays and <a href="https://developer.
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Adds one or more entries at the given slot index. Subsequent entries are inserted
-consecutively after the previous one. Arrays and <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>s are expanded inline, each item
+<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Adds one or more entries at the given slot index. Subsequent entries are inserted
+consecutively after the previous one. Arrays and <code>Set</code>s are expanded inline, each item
 occupying the next slot index.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:215</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:226</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="remove"><span>remove</span><a href="#remove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -435,12 +449,12 @@ occupying the next slot index.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Removes one or more entries from the list. Entries may be individual nodes, arrays,
-<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>s, <a href="https://developer.mozilla.org/docs/Web/API/HTMLCollection">HTMLCollection</a>s, NodeListOf instances, or nested
+<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Removes one or more entries from the list. Entries may be individual nodes, arrays,
+<code>Set</code>s, <code>HTMLCollection</code>s, <code>NodeListOf</code> instances, or nested
 <a href="#" class="tsd-kind-class">GradumNodeList</a>s.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:228</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:239</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removeatslot"><span>remove<wbr/>At<wbr/>Slot</span><a href="#removeatslot" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -462,11 +476,11 @@ occupying the next slot index.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Removes one or more slots starting at the given slot index. Each slot removed may
+<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Removes one or more slots starting at the given slot index. Each slot removed may
 correspond to an individual entry, a DOM list, or a nested <a href="#" class="tsd-kind-class">GradumNodeList</a>.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:241</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:252</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="move"><span>move</span><a href="#move" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -488,12 +502,12 @@ correspond to an individual entry, a DOM list, or a nested <a href="#" class="ts
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Moves an existing entry to the given resolved size index. If the entry is a member of a
+<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Moves an existing entry to the given resolved size index. If the entry is a member of a
 nested <a href="#" class="tsd-kind-class">GradumNodeList</a>, it is moved within that sub-list. If it belongs to a DOM list, it is
 repositioned in the DOM accordingly.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:257</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:268</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="movetoslot"><span>move<wbr/>To<wbr/>Slot</span><a href="#movetoslot" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -515,10 +529,10 @@ repositioned in the DOM accordingly.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Moves an existing entry to the given slot index.</p>
+<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Moves an existing entry to the given slot index.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:287</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:298</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="has"><span>has</span><a href="#has" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -537,14 +551,14 @@ repositioned in the DOM accordingly.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Checks whether the given entry or entries are present in the list.</p>
+<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Checks whether the given entry or entries are present in the list.</p>
 <ul>
 <li>For <a href="#" class="tsd-kind-class">GradumNodeList</a>s and DOM lists, checks if they belong to this list.</li>
-<li>For arrays and <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set">Set</a>s, returns true only if every item is present.</li>
+<li>For arrays and <code>Set</code>s, returns true only if every item is present.</li>
 </ul>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:308</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:319</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clear"><span>clear</span><a href="#clear" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -557,16 +571,16 @@ repositioned in the DOM accordingly.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Clears all entries from the list, firing <a href="#onchanged" class="tsd-kind-property">onChanged</a> for every resolved entry.</p>
+<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Clears all entries from the list, firing <a href="#onchanged" class="tsd-kind-property">onChanged</a> for every resolved entry.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:326</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:337</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="addentry"><code class="tsd-tag">Protected</code><span>add<wbr/>Entry</span><a href="#addentry" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
-<li class="">
+<li class="tsd-is-protected">
 <div class="tsd-signature tsd-anchor-link" id="addentry-1"><span class="tsd-kind-call-signature">addEntry</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a> <span class="tsd-signature-symbol">|</span> <a href="../types/NodeListType.html" class="tsd-signature-type tsd-kind-type-alias">NodeListType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">index</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#addentry-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
 <div class="tsd-comment tsd-typography"><p>addEntry</p>
 </div>
 <div class="tsd-parameters">
@@ -582,18 +596,18 @@ repositioned in the DOM accordingly.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Core insertion method. Inserts a single entry, DOM list, sub-list, or expands an
-array/Set inline. Skips already-present entries and duplicate slots. Registers sub-list handlers
-and DOM observers as needed.</p>
+<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Add one value of any accepted shape. Arrays and sets are expanded so each item takes
+its own slot; everything else occupies a single slot. Values already present are ignored, and
+sub-lists and DOM lists start being watched from here.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:346</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:358</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="removeentry"><code class="tsd-tag">Protected</code><span>remove<wbr/>Entry</span><a href="#removeentry" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
-<li class="">
+<li class="tsd-is-protected">
 <div class="tsd-signature tsd-anchor-link" id="removeentry-1"><span class="tsd-kind-call-signature">removeEntry</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">entry</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a> <span class="tsd-signature-symbol">|</span> <a href="../types/NodeListType.html" class="tsd-signature-type tsd-kind-type-alias">NodeListType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#removeentry-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
 <div class="tsd-comment tsd-typography"><p>removeEntry</p>
 </div>
 <div class="tsd-parameters">
@@ -605,18 +619,18 @@ and DOM observers as needed.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Core removal method. Removes a single entry, DOM list, sub-list, or expands an
-array/Set inline. Marks removed individual entries in ignoredMap. Disconnects observers
-and unregisters sub-list handlers as needed.</p>
+<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove one value of any accepted shape. Arrays and sets are expanded and removed
+item by item. An individual entry stays suppressed even if a sub-list or DOM list it belongs to
+still resolves to it, and sub-lists and DOM lists stop being watched from here.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:381</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:394</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="insertorremoveslot"><code class="tsd-tag">Protected</code><span>insert<wbr/>Or<wbr/>Remove<wbr/>Slot</span><a href="#insertorremoveslot" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
-<li class="">
+<li class="tsd-is-protected">
 <div class="tsd-signature tsd-anchor-link" id="insertorremoveslot-1"><span class="tsd-kind-call-signature">insertOrRemoveSlot</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">slot</span><span class="tsd-signature-symbol">:</span> <a href="../types/NodeListSlot.html" class="tsd-signature-type tsd-kind-type-alias">NodeListSlot</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">state</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;added&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;removed&quot;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">index</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#insertorremoveslot-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
 <div class="tsd-comment tsd-typography"><p>insertOrRemoveSlot</p>
 </div>
 <div class="tsd-parameters">
@@ -635,12 +649,11 @@ and unregisters sub-list handlers as needed.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Low-level slot mutation. On <code>&quot;added&quot;</code>, clamps the index and splices a new
-<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/WeakRef">WeakRef</a> into slots. On <code>&quot;removed&quot;</code>, finds the slot by identity and splices it out.
-Fires <a href="#onchanged" class="tsd-kind-property">onChanged</a> for all resolved entries of the slot.</p>
+<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Insert or drop a single slot and announce it, firing <a href="#onchanged" class="tsd-kind-property">onChanged</a> once per
+entry the slot resolves to. An out-of-range insertion index is clamped to the ends.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:423</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:436</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="attachobserver"><code class="tsd-tag">Protected</code><span>attach<wbr/>Observer</span><a href="#attachobserver" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -658,25 +671,35 @@ Fires <a href="#onchanged" class="tsd-kind-property">onChanged</a> for all resol
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Attaches a <a href="https://developer.mozilla.org/docs/Web/API/MutationObserver">MutationObserver</a> to the parent of the first node in the given DOM
+<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Attaches a <code>MutationObserver</code> to the parent of the first node in the given DOM
 list, firing <a href="#onchanged" class="tsd-kind-property">onChanged</a> when nodes matching the list are added to or removed from the DOM.
 Does nothing if an observer is already attached for this list, or if no parent node is found.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:447</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:460</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="sizeindextoslotindex"><code class="tsd-tag">Protected</code><span>size<wbr/>Index<wbr/>To<wbr/>Slot<wbr/>Index</span><a href="#sizeindextoslotindex" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
-<li class="">
+<li class="tsd-is-protected">
 <div class="tsd-signature tsd-anchor-link" id="sizeindextoslotindex-1"><span class="tsd-kind-call-signature">sizeIndexToSlotIndex</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">sizeIndex</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#sizeindextoslotindex-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>sizeIndexToSlotIndex</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">sizeIndex</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">sizeIndex</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>The resolved entry index, clamped to the current size.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><p>The matching slot index.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Translate a position among resolved entries into the slot index that holds it. The
+two differ whenever a slot resolves to more than one entry, as DOM lists and sub-lists do.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:475</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:496</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="findcontainingslot"><code class="tsd-tag">Protected</code><span>find<wbr/>Containing<wbr/>Slot</span><a href="#findcontainingslot" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -695,12 +718,12 @@ Does nothing if an observer is already attached for this list, or if no parent n
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Finds the slot that directly contains or resolves to the given entry.
+<h4 class="tsd-anchor-link" id="description-28">Description<a href="#description-28" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Finds the slot that directly contains or resolves to the given entry.
 Returns the slot itself if the entry is a direct slot, the nested <a href="#" class="tsd-kind-class">GradumNodeList</a>
 that contains it, or the DOM list that contains it.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:498</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/gradumComponents/datatypes/nodeList/nodeList.ts:519</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

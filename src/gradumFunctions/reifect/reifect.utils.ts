@@ -13,6 +13,11 @@ type ReifectDataEntry = {
     onTransitionEnd: Delegate<() => void>,
 };
 
+/**
+ * @internal
+ * @class ReifectFunctionsUtils
+ * @description Shared helpers and per-element state behind the reifect functions on {@link GradumSelector}.
+ */
 export class ReifectFunctionsUtils {
     private dataMap = new WeakMap<object, ReifectDataEntry>;
 

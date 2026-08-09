@@ -57,6 +57,11 @@ type ConstrainerDataWithId = {
     targets?: object[]
 };
 
+/**
+ * @internal
+ * @class ConstrainerFunctionsUtils
+ * @description Shared helpers and per-element state behind the constrainer functions on {@link GradumSelector}.
+ */
 export class ConstrainerFunctionsUtils {
     private objectsSet: GradumWeakSet = new GradumWeakSet();
     private dataMap = new WeakMap<object, ElementData>;
@@ -106,7 +111,7 @@ export class ConstrainerFunctionsUtils {
     }
 
     /**
-     * Forward the effective object list's onChanged into objectsChangedDelegate, so the public
+     * @description Forward the effective object list's onChanged into objectsChangedDelegate, so the public
      * onObjectListChange API actually fires. The effective list may be the data's own objectList
      * or one shadowed by an attached GradumConstrainer instance, and either can be replaced later —
      * call this again after any change to rewire (the previous bridge is removed).

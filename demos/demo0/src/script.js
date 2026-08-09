@@ -1,4 +1,4 @@
-import {gradum, randomColor, button} from "../../../build/gradum-kit.esm.js";
+import {gradum, Color, button} from "../../../build/gradum-kit.esm.js";
 
 //Creating an element in JS and adding it to the document
 const heading = document.createElement("h1");
@@ -9,7 +9,7 @@ document.body.appendChild(heading);
 const colorChangingButton = document.createElement("button");
 colorChangingButton.textContent = "Change color";
 document.body.appendChild(colorChangingButton);
-colorChangingButton.addEventListener("click", () => colorChangingButton.style.backgroundColor = randomColor());
+colorChangingButton.addEventListener("click", () => colorChangingButton.style.backgroundColor = Color.random());
 
 //Do it in one line with the toolkit
 const addSquareButton = button({text: "+ Add Square", parent: document.body, onClick: (e, el) => el.style.backgroundColor = "lightblue"});

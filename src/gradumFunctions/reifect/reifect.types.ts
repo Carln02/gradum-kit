@@ -27,8 +27,8 @@ declare module "../gradumSelector" {
 
         /**
          * @description Show or hide the element (based on CSS) by transitioning in/out of the element's showTransition.
-         * @param {boolean} b - Whether to show the element or not
-         * @param options
+         * @param {boolean} b - Whether to show the element.
+         * @param {ReifectAppliedOptions<Shown>} [options] - Options controlling how the transition is applied.
          * @returns {this} Itself, allowing for method chaining.
          */
         show(b: boolean, options?: ReifectAppliedOptions<Shown>): this;
@@ -37,7 +37,7 @@ declare module "../gradumSelector" {
          * @function attachReifect
          * @description Attach one or more reifects to the object.
          * @param {StatefulReifect[]} reifects - The reifect(s) to attach.
-         * @returns {this} - Itself, allowing for method chaining.
+         * @returns {this} Itself, allowing for method chaining.
          */
         attachReifect(...reifects: StatefulReifect[]): this;
 
@@ -45,7 +45,7 @@ declare module "../gradumSelector" {
          * @function detachReifect
          * @description Detach one or more reifects from the object.
          * @param {StatefulReifect[]} reifects - The reifect(s) to detach.
-         * @returns {this} - Itself, allowing for method chaining.
+         * @returns {this} Itself, allowing for method chaining.
          */
         detachReifect(...reifects: StatefulReifect[]): this;
 
@@ -57,7 +57,7 @@ declare module "../gradumSelector" {
          * @param {State} state - The state to initialize to (if the reifect is not stateless).
          * @param {ReifectAppliedOptions<State>} [options] - Optional overrides for the default values.
          * Set to `null` to not set anything on the object.
-         * @returns {this} - Itself, allowing for method chaining.
+         * @returns {this} Itself, allowing for method chaining.
          */
         initializeReifect<State extends string | symbol | number>(
             reifect?: StatefulReifect<State>, state?: State, options?: ReifectAppliedOptions<State>
@@ -71,7 +71,7 @@ declare module "../gradumSelector" {
          * @param {State} state - The state to initialize to (if the reifect is not stateless).
          * @param {ReifectAppliedOptions<State>} [options] - Optional overrides for the default values.
          * Set to `null` to not set anything on the object.
-         * @returns {this} - Itself, allowing for method chaining.
+         * @returns {this} Itself, allowing for method chaining.
          */
         applyReifect<State extends string | symbol | number>(
             reifect: StatefulReifect<State>, state?: State, options?: ReifectAppliedOptions<State>
@@ -84,7 +84,7 @@ declare module "../gradumSelector" {
          * @param {StatefulReifect<State>} reifect - The reifect to toggle.
          * @param {ReifectAppliedOptions<State>} [options] - Optional overrides for the default values.
          * Set to `null` to not set anything on the object.
-         * @returns {this} - Itself, allowing for method chaining.
+         * @returns {this} Itself, allowing for method chaining.
          */
         toggleReifect<State extends string | symbol | number>(
             reifect: StatefulReifect<State>, options?: ReifectAppliedOptions<State>
@@ -93,14 +93,14 @@ declare module "../gradumSelector" {
         /**
          * @function reloadReifects
          * @description Reloads all reifects attached to this object. Doesn't recompute values.
-         * @returns {this} - Itself, allowing for method chaining.
+         * @returns {this} Itself, allowing for method chaining.
          */
         reloadReifects(): this;
 
         /**
          * @function reloadReifectsChainableStyles
          * @description Reloads all transitions attached to this object. Doesn't recompute values.
-         * @returns {this} - Itself, allowing for method chaining.
+         * @returns {this} Itself, allowing for method chaining.
          */
         reloadReifectsChainableStyles(applyInstantly?: boolean): this;
 
@@ -110,7 +110,7 @@ declare module "../gradumSelector" {
          * the object for this specific reifect will be returned. otherwise, the global state of the object will
          * be returned.
          * @param {StatefulReifect} [reifect] - The target reifect.
-         * @return {ReifectEnabledObject} - The enabled state.
+         * @returns {ReifectEnabledObject} The enabled state.
          */
         reifectEnabledState(reifect?: StatefulReifect): ReifectEnabledObject;
 
@@ -121,7 +121,7 @@ declare module "../gradumSelector" {
          * be updated
          * @param {boolean | ReifectEnabledObject} value - The new state.
          * @param {StatefulReifect} [reifect] - The target reifect.
-         * @return {this} - Itself, allowing for method chaining.
+         * @returns {this} Itself, allowing for method chaining.
          */
         enableReifect(value: boolean | ReifectEnabledObject, reifect?: StatefulReifect): this;
     }

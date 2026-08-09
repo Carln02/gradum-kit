@@ -1,5 +1,14 @@
 import {gradum} from "../../../gradumFunctions/gradumFunctions";
 
+/**
+ * @internal
+ * @function defineUIPrototype
+ * @template {new (...args: any[]) => any} Type - The class being set up.
+ * @description Install the UI surface on a class prototype — `shadowDOM`, `defaultClasses`, and
+ * `unsetDefaultClasses` — backed by private symbols so the values do not collide with user fields.
+ * Called once per element class at definition time.
+ * @param {Type} constructor - The class whose prototype receives the accessors.
+ */
 export function defineUIPrototype<Type extends new (...args: any[]) => any>(constructor: Type) {
     const prototype = constructor.prototype as any;
     const shadowDOMKey = Symbol("__shadow_dom__");

@@ -60,7 +60,8 @@ function createYArray<DataType = object>(data: DataType[]): YArray {
  *
  * @description Attempts to deep-convert a JSON structure into Yjs data.
  * @param {object} data - The JSON data to convert.
- * @return {YAbstractType} - The Yjs data.
+ * @returns {YAbstractType} The converted Yjs structure: a YMap for an object, a YArray for an array, and the
+ * value itself for a primitive.
  */
 function jsonToYjs(data: object): YAbstractType {
     if (Array.isArray(data)) {
@@ -133,10 +134,14 @@ function addInYArray(data: object, parentYArray: YArray, index?: number): number
  * @category Yjs
  *
  * @static
- * @description Removes the first occurrence of the given entry from the YArray.
+ * @description Intended to remove the first occurrence of an entry from a YArray.
+ * *Note: it is currently unusable — it reads each element as if it were an `[index, value]` pair, so it
+ * throws a `TypeError` on an array of objects, which is the normal case, and silently compares the wrong
+ * things on an array of strings. Locate the entry with `toArray().indexOf(...)` and call `delete` on the
+ * YArray directly until this is corrected.*
  * @param {unknown} entry - The entry to remove.
- * @param {YArray} parentYArray - The parent YArray.
- * @returns {boolean} True if removed, false otherwise.
+ * @param {YArray} parentYArray - The array to remove it from.
+ * @returns {boolean} `true` if an entry was removed.
  */
 function removeFromYArray(entry: unknown, parentYArray: YArray): boolean {
     for (const [index, child] of parentYArray.toArray()) {

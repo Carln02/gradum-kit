@@ -14,15 +14,28 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="closestpointonedge"><span class="tsd-kind-call-signature">closestPointOnEdge</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">pointer</span><span class="tsd-signature-symbol">:</span> <a href="../types/Coordinate.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">rect</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><a href="#closestpointonedge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>closestPointOnEdge</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">pointer</span>: <a href="../types/Coordinate.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate</a></span></li>
-<li><span><span class="tsd-kind-parameter">rect</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">pointer</span>: <a href="../types/Coordinate.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate</a></span>
+<div class="tsd-comment tsd-typography"><p>The point to measure from.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">rect</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span>
+<div class="tsd-comment tsd-typography"><p>The rectangle to measure against.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><p>A new point on the rectangle's outline; neither argument is modified.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the point on a rectangle's outline nearest to a given point. Unlike
+<a href="closestPointOnAabb.html" class="tsd-kind-function">closestPointOnAabb</a>, a point inside the rectangle is pushed out to the nearest edge rather than
+returned as-is, so the result always sits on the border.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/geometry/rect.ts:6</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/geometry/rect.ts:18</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

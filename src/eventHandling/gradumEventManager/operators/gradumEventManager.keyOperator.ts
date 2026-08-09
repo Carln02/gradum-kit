@@ -4,6 +4,13 @@ import {GradumEventManager} from "../gradumEventManager";
 import {GradumOperator} from "../../../mvc/operator/operator";
 import {GradumKeyEventName} from "../../../types/eventNaming.types";
 
+/**
+ * @internal
+ * @class GradumEventManagerKeyOperator
+ * @extends GradumOperator
+ * @description Translates native keyboard input into {@link GradumKeyEvent}s. It keeps the manager's
+ * list of currently-held keys up to date and activates any tool bound to the pressed key.
+ */
 export class GradumEventManagerKeyOperator extends GradumOperator<GradumEventManager, any, GradumEventManagerModel> {
     public keyName: string = "key";
 

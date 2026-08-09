@@ -1,6 +1,12 @@
 import {gradum} from "../gradumFunctions/gradumFunctions";
 import {GradumEventManager} from "../eventHandling/gradumEventManager/gradumEventManager";
 
+/**
+ * @internal
+ * @type {FieldType}
+ * @description The MVC roles the field decorators in this file can fetch. Doubles as the suffix stripped
+ * from a field name when inferring its key — a field named `textHandler` resolves the key `"text"`.
+ */
 type FieldType = "Operator" | "Handler" | "Interactor" | "Tool" | "Constrainer";
 
 /**

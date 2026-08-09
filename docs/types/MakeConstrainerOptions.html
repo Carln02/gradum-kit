@@ -13,11 +13,12 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type representing objects used to configure the creation of constrainers. Used in makeConstrainer.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Options for turning an object into a constrainer with
+<a href="../classes/GradumSelector.html#makeconstrainer" class="tsd-kind-method">GradumSelector.makeConstrainer</a>.</p>
 </div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">MakeConstrainerOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#onactivate">onActivate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#ondeactivate">onDeactivate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#priority">priority</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#active">active</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#attachedinstance">attachedInstance</a><span class="tsd-signature-symbol">?:</span> <a href="../classes/GradumConstrainer.html" class="tsd-signature-type tsd-kind-class">GradumConstrainer</a><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:22</li></ul></aside>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:23</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -40,14 +41,14 @@
 <div class="tsd-comment tsd-typography"><p>Callback function to execute when the constrainer is activated.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:23</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:24</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="ondeactivate"><code class="tsd-tag">Optional</code><span>on<wbr/>Deactivate</span><a href="#ondeactivate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onDeactivate</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-comment tsd-typography"><p>Callback function to execute when the constrainer is deactivated.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:24</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:25</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="priority"><code class="tsd-tag">Optional</code><span>priority</span><a href="#priority" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">priority</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -55,21 +56,21 @@
 be resolved first. Defaults to 10.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:25</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:26</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="active"><code class="tsd-tag">Optional</code><span>active</span><a href="#active" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">active</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p>Whether the constrainer is active. Defaults to true.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:26</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:27</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="attachedinstance"><code class="tsd-tag">Optional</code><span>attached<wbr/>Instance</span><a href="#attachedinstance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">attachedInstance</span><span class="tsd-signature-symbol">?:</span> <a href="../classes/GradumConstrainer.html" class="tsd-signature-type tsd-kind-class">GradumConstrainer</a></div>
 <div class="tsd-comment tsd-typography"><p>The optional GradumConstrainer instance to attach to the constrainer.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:27</li></ul></aside></section></section></details></div>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:28</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

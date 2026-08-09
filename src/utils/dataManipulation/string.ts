@@ -1,12 +1,15 @@
 import {isUndefined} from "./misc";
 
 /**
+ * @function stringify
  * @group Utilities
  * @category String
  *
- * @description Converts the passed variable into a string.
- * @param value - The variable to convert to string
- * @returns {string} - The string representation of the value
+ * @description Render any value as a string that {@link parse} can turn back into an equivalent value. Dates
+ * become ISO strings, arrays are stringified entry by entry, and DOM elements collapse to the placeholder
+ * `"[DOM ELEMENT]"` rather than being serialized.
+ * @param {any} value - The value to render.
+ * @returns {string} The string form, or `undefined` when the value is `null` or `undefined`.
  */
 function stringify(value: any): string {
     if (value === null || value === undefined) return undefined;
@@ -37,12 +40,15 @@ function stringify(value: any): string {
 }
 
 /**
+ * @function parse
  * @group Utilities
  * @category String
  *
- * @description Attempts to convert the passed string back to its original type.
- * @param str - The string to convert back to its original type
- * @returns {any} - The original value
+ * @description Turn a string produced by {@link stringify} back into a value, recovering booleans, `null`,
+ * numbers, bigints, objects, and arrays. Anything it cannot place comes back unchanged as the original string.
+ * *Note: strings that look like function source are evaluated, so only parse input you trust.*
+ * @param {string} str - The string to convert back.
+ * @returns {any} The recovered value, or the original string if it matched no known form.
  */
 function parse(str: string): any {
     if (isUndefined(str)) return undefined;

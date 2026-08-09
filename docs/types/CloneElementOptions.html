@@ -10,9 +10,16 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">CloneElementOptions</a></li></ul>
 <h1>Type Alias CloneElementOptions</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Controls what <a href="../classes/GradumSelector.html#clone" class="tsd-kind-method">GradumSelector.clone</a> carries over to the copy. By default a clone gets
+the origin's own fields but shares object and node references; these options let you deepen or narrow
+that per field.</p>
+</div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">CloneElementOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#exclude">exclude</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#forceinclude">forceInclude</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#deepclone">deepClone</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#copyreference">copyReference</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#copynodes">copyNodes</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#deepcloneobjects">deepCloneObjects</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#deepclonenodes">deepCloneNodes</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#snapshotdata">snapshotData</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/element/element.types.ts:13</li></ul></aside>
+<li>Defined in src/gradumFunctions/element/element.types.ts:27</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -34,49 +41,61 @@
 <section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="exclude"><code class="tsd-tag">Optional</code><span>exclude</span><a href="#exclude" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">exclude</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">exclude</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span></div>
+<div class="tsd-comment tsd-typography"><p>Fields to leave off the clone entirely.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/element/element.types.ts:14</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/element/element.types.ts:28</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="forceinclude"><code class="tsd-tag">Optional</code><span>force<wbr/>Include</span><a href="#forceinclude" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">forceInclude</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">forceInclude</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span></div>
+<div class="tsd-comment tsd-typography"><p>Fields to copy even though they would normally be skipped.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/element/element.types.ts:15</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/element/element.types.ts:29</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="deepclone"><code class="tsd-tag">Optional</code><span>deep<wbr/>Clone</span><a href="#deepclone" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">deepClone</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">deepClone</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span></div>
+<div class="tsd-comment tsd-typography"><p>Fields to deep-clone rather than copy by reference.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/element/element.types.ts:16</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/element/element.types.ts:30</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="copyreference"><code class="tsd-tag">Optional</code><span>copy<wbr/>Reference</span><a href="#copyreference" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">copyReference</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">copyReference</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">[]</span></div>
+<div class="tsd-comment tsd-typography"><p>Fields to copy by reference even under a deep-clone setting.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/element/element.types.ts:17</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/element/element.types.ts:31</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="copynodes"><code class="tsd-tag">Optional</code><span>copy<wbr/>Nodes</span><a href="#copynodes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">copyNodes</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">copyNodes</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether to copy fields holding DOM nodes.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/element/element.types.ts:19</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/element/element.types.ts:33</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="deepcloneobjects"><code class="tsd-tag">Optional</code><span>deep<wbr/>Clone<wbr/>Objects</span><a href="#deepcloneobjects" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">deepCloneObjects</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">deepCloneObjects</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether to deep-clone every object-valued field.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/element/element.types.ts:20</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/element/element.types.ts:34</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="deepclonenodes"><code class="tsd-tag">Optional</code><span>deep<wbr/>Clone<wbr/>Nodes</span><a href="#deepclonenodes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">deepCloneNodes</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">deepCloneNodes</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether to deep-clone every node-valued field.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/element/element.types.ts:21</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/element/element.types.ts:35</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="snapshotdata"><code class="tsd-tag">Optional</code><span>snapshot<wbr/>Data</span><a href="#snapshotdata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">snapshotData</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p>When true, the clone's model receives a detached snapshot of the origin's data
-(via <code>toJSON()</code> when available — e.g. Y.js types — else <code>structuredClone</code>) instead
-of a live reference. Required for previews of MVC/synced elements: a reference copy
-would make the clone a live twin whose field writes go through the shared model.</p>
+<div class="tsd-comment tsd-typography"><p>Whether the clone's model gets a detached snapshot of the data
+instead of a live reference. See the note on the field.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/element/element.types.ts:29</li></ul></aside></section></section></details></div>
+<li>Defined in src/gradumFunctions/element/element.types.ts:43</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

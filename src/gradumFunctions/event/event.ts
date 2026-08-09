@@ -16,6 +16,13 @@ import {ListenerSet} from "../../gradumComponents/datatypes/listener/listenerSet
 
 const utils = new EventFunctionsUtils();
 
+/**
+ * @internal
+ * @function setupEventFunctions
+ * @description Install the event functions (`on`, `onTool`, `executeAction`, `preventDefault`, ...) onto the
+ * {@link GradumSelector} prototype. Called once by
+ * {@link gradumify}; the matching `exclude` option skips it.
+ */
 export function setupEventFunctions() {
     /**
      * @description Initializes a `boundListeners` set in the Node prototype, that will hold all the element's bound
@@ -48,7 +55,7 @@ export function setupEventFunctions() {
     /**
      * @description Adds an event listener to the element.
      * @param {string} type - The type of the event.
-     * @param toolName - The name of the tool. Set to null or undefined to check for listeners not bound to a tool.
+     * @param {string} toolName - The name of the tool. Set to null or undefined to bind a listener not tied to a tool.
      * @param {ListenerCallback} listener - The function that receives a notification.
      * @param {ListenerOptions} [options] - An options object that specifies characteristics
      * about the event listener.
@@ -98,12 +105,18 @@ export function setupEventFunctions() {
     };
 
     /**
-     * @description
-     * @param type
-     * @param toolName
-     * @param event
-     * @param options
-     * @param manager
+     * @description Execute the listeners bound on this element for the given `type` and `toolName`. Simulates
+     * firing a `type` event on the element with `toolName` active.
+     * @param {string} type - The type of the event.
+     * @param {string} toolName - The name of the tool. Set to null or undefined to fire listeners not bound
+     * to a tool.
+     * @param {Event} event - The event to pass as parameter to the listeners.
+     * @param {ListenerOptions} [options] - Options object that specifies characteristics about the event
+     * listeners to fire.
+     * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created
+     * manager, or a new instantiated one if none already exist.
+     * @returns {Propagation} Whether the caller should keep walking the event path, stop the current loop,
+     * or stop both loops.
      */
     GradumSelector.prototype.executeAction = function _executeAction(
         this: GradumSelector,
@@ -225,7 +238,7 @@ export function setupEventFunctions() {
      * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
      * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
      * or a new instantiated one if none already exist.
-     * @returns {boolean} - Whether the element has the given listener.
+     * @returns {boolean} Whether the element has the given listener.
      */
     GradumSelector.prototype.hasListener = function _hasListener(
         this: Gradum,
@@ -244,7 +257,7 @@ export function setupEventFunctions() {
      * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
      * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
      * or a new instantiated one if none already exist.
-     * @returns {boolean} - Whether the element has the given listener.
+     * @returns {boolean} Whether the element has the given listener.
      */
     GradumSelector.prototype.hasToolListener = function _hasToolListener(
         this: Gradum,
@@ -263,7 +276,7 @@ export function setupEventFunctions() {
      * to check for listeners not bound to a tool.
      * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
      * or a new instantiated one if none already exist.
-     * @returns {boolean} - Whether the element has the given listener.
+     * @returns {boolean} Whether the element has the given listener.
      */
     GradumSelector.prototype.hasListenersByType = function _hasListenersByType(
         type: string,

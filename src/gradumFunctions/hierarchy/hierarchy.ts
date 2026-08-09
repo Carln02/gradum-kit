@@ -6,6 +6,12 @@ import {ValidElement, ValidTag} from "../../types/element.types";
 
 const utils = new HierarchyFunctionsUtils();
 
+/**
+ * @internal
+ * @function setupHierarchyFunctions
+ * @description Install the DOM hierarchy functions (`addChild`, `closest`, `childHandler`, ...) onto the
+ * {@link GradumSelector} prototype. Called once by {@link gradumify}; the matching `exclude` option skips it.
+ */
 export function setupHierarchyFunctions() {
     //Readonly fields
 
@@ -292,7 +298,7 @@ export function setupHierarchyFunctions() {
     };
 
     /**
-     * Finds the closest ancestor of the current element (or the current element itself) that matches the
+     * @description Finds the closest ancestor of the current element (or the current element itself) that matches the
      * provided type. Accepts either a constructor (matched via `instanceof`) or a string. When a string is
      * given it is first resolved to a constructor via `customElements` (so `"my-component"` matches any
      * element that is an `instanceof MyComponent`); if no custom element is registered for that name it

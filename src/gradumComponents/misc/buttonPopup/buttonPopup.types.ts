@@ -6,26 +6,20 @@ import {GradumRichElementProperties} from "../../basics/richElement/richElement.
 import {GradumButtonPopup} from "./buttonPopup";
 
 /**
- * @type {GradumDropdownProperties}
+ * @type {GradumButtonPopupProperties}
  * @group Components
- * @category GradumDropdown
+ * @category GradumButtonPopup
  *
- * @description Properties for configuring a Dropdown.
- * @extends GradumProperties
- *
- * @property {(string | HTMLElement)} [selector] - Element or descriptor used as the dropdown selector. If a
- * string is passed, a Button with the given string as text will be assigned as the selector.
- * @property {HTMLElement} [popup] - The element used as a container for the dropdown entries.
- *
- * @property {boolean} [multiSelection=false] - Enables selection of multiple dropdown entries.
- *
- * @property {ValidTag} [selectorTag] - Custom HTML tag for the selector's text. Overrides the
- * default tag set in GradumConfig.Dropdown.
- *
- * @property {string | string[]} [selectorClasses] - Custom CSS class(es) for the selector. Overrides the default
- * classes set in GradumConfig.Dropdown.
- * @property {string | string[]} [popupClasses] - Custom CSS class(es) for the popup container. Overrides the
- * default classes set in GradumConfig.Dropdown.
+ * @extends GradumRichElementProperties
+ * @template {ValidTag} ElementTag - The tag of the main element.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumButtonPopup} — a button that shows a popup when
+ * activated. Adds the popup container to everything {@link GradumRichElementProperties} accepts.
+ * @property {HTMLElement} [popup] - Element used as the popup container. One is created if omitted.
+ * @property {string | string[]} [popupClasses] - CSS class(es) to add to the popup container.
  */
 type GradumButtonPopupProperties<
     ElementTag extends ValidTag = any,

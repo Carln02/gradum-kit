@@ -4,6 +4,14 @@ import {$} from "../../../gradumFunctions/gradumFunctions";
 import {GradumHandler} from "../../../mvc/handler/handler";
 import {DefaultEventName} from "../../../types/eventNaming.types";
 
+/**
+ * @internal
+ * @class GradumEventManagerUtilsHandler
+ * @extends GradumHandler
+ * @description Shared helpers for the event manager's operators: mapping a native button number to a
+ * {@link ClickMode}, resolving which Gradum event names are enabled, running the named timers behind
+ * long-press detection, and activating a tool.
+ */
 export class GradumEventManagerUtilsHandler extends GradumHandler<GradumEventManagerModel> {
     public keyName: string = "utils";
 

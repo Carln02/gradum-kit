@@ -13,40 +13,39 @@ import {GradumToolProperties} from "../../mvc/tool/tool.types";
 import {GradumConstrainerProperties} from "../../mvc/constrainer/constrainer.types";
 
 /**
- * @group MVC
- * @category MVC
- *
+ * @internal
  * @type {MvcInstanceOrConstructor}
- * @template Type
- * @template PropertiesType
- * @description Type representing the constructor of a certain `Type` (which takes a single parameter), or an
- * instance of `Type`.
+ * @template Type - The MVC piece being supplied.
+ * @template PropertiesType - The single argument its constructor takes.
+ * @description Either a ready-made MVC piece or a constructor to build one from. Lets every role in
+ * {@link MvcProperties} accept an instance you have already configured, or a class to instantiate.
  */
 export type MvcInstanceOrConstructor<Type, PropertiesType = any> = Type | (new (properties: PropertiesType) => Type);
 
 /**
- * @group MVC
- * @category MVC
- *
+ * @internal
  * @type {MvcManyInstancesOrConstructors}
- * @template Type
- * @template PropertiesType
- * @description Type representing a single entry or an array of {@link MvcInstanceOrConstructor}.
+ * @template Type - The MVC piece being supplied.
+ * @template PropertiesType - The single argument its constructor takes.
+ * @description One {@link MvcInstanceOrConstructor} or an array of them, for the roles that accept several
+ * pieces — operators, handlers, interactors, tools, and constrainers.
  */
 export type MvcManyInstancesOrConstructors<Type, PropertiesType = any> = MvcInstanceOrConstructor<Type, PropertiesType>
     | MvcInstanceOrConstructor<Type, PropertiesType>[];
 
 /**
- * @type {MvcGenerationProperties}
+ * @type {MvcProperties}
  * @group MVC
  * @category MVC
  *
  * @template {GradumView} ViewType - The element's view type, if any.
- * @template {object} DataType - The element's data type, if any.
- * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
  * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
  *
- * @description Type representing a configuration object for an {@link Mvc} instance.
+ * @description The set of MVC pieces attached to an element. Pass one to `defaultProperties` or to
+ * {@link GradumSelector.setMvc} to declare which classes fill each role; read the assembled set back from
+ * {@link GradumSelector.mvc}. Every role is optional, and each accepts either a ready-made instance or a
+ * constructor to build one from.
  * @property {MvcInstanceOrConstructor<ViewType, GradumViewProperties>} [view] - The view (or view constructor) to attach.
  * @property {ModelType | (new (data?: any, dataBlocksType?: "map" | "array") => ModelType)} [model] - The model
  * (or model constructor) to attach.
@@ -85,13 +84,14 @@ type MvcProperties<
  * @group MVC
  * @category MVC
  *
+ * @extends MvcProperties
  * @template {GradumView} ViewType - The element's view type, if any.
  * @template {object} DataType - The element's data type, if any.
  * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
  * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- *
- * @extends {MvcProperties}
- * @description Type representing a configuration object for an {@link Mvc} instance.
+ * @description Everything {@link MvcProperties} accepts, plus the data to seed the model with and whether
+ * to initialize. This is the shape {@link GradumSelector.setMvc} takes, so the pieces can be attached and
+ * brought up in one call.
  * @property {DataType} [data] - The data to attach to the model.
  * @property {boolean} [initialize] - Whether to initialize the MVC pieces after setting them or not. Defaults to true.
  */
@@ -241,7 +241,7 @@ declare module "../gradumSelector" {
          * @function getOperator
          * @description Retrieves the attached MVC operator with the given key.
          * @param {string} key - The operator's key.
-         * @returns {GradumOperator} - The operator.
+         * @returns {GradumOperator} The operator.
          */
         getOperator(key: string): GradumOperator;
 
@@ -270,7 +270,7 @@ declare module "../gradumSelector" {
          * @description Retrieves the attached MVC handler with the given key.
          * Returns undefined if no model is set.
          * @param {string} key - The handler's key.
-         * @returns {GradumHandler} - The handler.
+         * @returns {GradumHandler} The handler.
          */
         getHandler(key: string): GradumHandler;
 
@@ -300,7 +300,7 @@ declare module "../gradumSelector" {
          * @function getInteractor
          * @description Retrieves the attached MVC interactor with the given key.
          * @param {string} key - The interactor's key.
-         * @returns {GradumInteractor} - The interactor.
+         * @returns {GradumInteractor} The interactor.
          */
         getInteractor(key: string): GradumInteractor;
 
@@ -328,7 +328,7 @@ declare module "../gradumSelector" {
          * @function getTool
          * @description Retrieves the attached MVC tool with the given key.
          * @param {string} key - The tool's key.
-         * @returns {GradumTool} - The tool.
+         * @returns {GradumTool} The tool.
          */
         getTool(key: string): GradumTool;
 
@@ -356,7 +356,7 @@ declare module "../gradumSelector" {
          * @function getConstrainer
          * @description Retrieves the attached MVC constrainer with the given key.
          * @param {string} key - The constrainer's key.
-         * @returns {GradumConstrainer} - The constrainer.
+         * @returns {GradumConstrainer} The constrainer.
          */
         getConstrainer(key: string): GradumConstrainer;
 

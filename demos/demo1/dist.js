@@ -1,66 +1,16 @@
 (function () {
   'use strict';
 
-  /******************************************************************************
-  Copyright (c) Microsoft Corporation.
-
-  Permission to use, copy, modify, and/or distribute this software for any
-  purpose with or without fee is hereby granted.
-
-  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-  PERFORMANCE OF THIS SOFTWARE.
-  ***************************************************************************** */
-  /* global Reflect, Promise, SuppressedError, Symbol, Iterator */
-
-
-  function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
-    function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
-    var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
-    var _, done = false;
-    for (var i = decorators.length - 1; i >= 0; i--) {
-        var context = {};
-        for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-        for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-        context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
-        var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
-        if (kind === "accessor") {
-            if (result === void 0) continue;
-            if (result === null || typeof result !== "object") throw new TypeError("Object expected");
-            if (_ = accept(result.get)) descriptor.get = _;
-            if (_ = accept(result.set)) descriptor.set = _;
-            if (_ = accept(result.init)) initializers.unshift(_);
-        }
-        else if (_ = accept(result)) {
-            if (kind === "field") initializers.unshift(_);
-            else descriptor[key] = _;
-        }
-    }
-    if (target) Object.defineProperty(target, contextIn.name, descriptor);
-    done = true;
-  }
-  function __runInitializers(thisArg, initializers, value) {
-    var useValue = arguments.length > 2;
-    for (var i = 0; i < initializers.length; i++) {
-        value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
-    }
-    return useValue ? value : void 0;
-  }
-  typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-    var e = new Error(message);
-    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-  };
-
   /**
    * Utility module to work with key-value stores.
    *
    * @module map
+   */
+
+  /**
+   * @template K
+   * @template V
+   * @typedef {Map<K,V>} GlobalMap
    */
 
   /**
@@ -185,6 +135,58 @@
    */
   const from = Array.from;
 
+  /**
+   * True iff condition holds on every element in the Array.
+   *
+   * @function
+   * @template {ArrayLike<any>} ARR
+   *
+   * @param {ARR} arr
+   * @param {ARR extends ArrayLike<infer S> ? ((value:S, index:number, arr:ARR) => boolean) : any} f
+   * @return {boolean}
+   */
+  const every$1 = (arr, f) => {
+    for (let i = 0; i < arr.length; i++) {
+      if (!f(arr[i], i, arr)) {
+        return false
+      }
+    }
+    return true
+  };
+
+  /**
+   * True iff condition holds on some element in the Array.
+   *
+   * @function
+   * @template {ArrayLike<any>} ARR
+   *
+   * @param {ARR} arr
+   * @param {ARR extends ArrayLike<infer S> ? ((value:S, index:number, arr:ARR) => boolean) : never} f
+   * @return {boolean}
+   */
+  const some = (arr, f) => {
+    for (let i = 0; i < arr.length; i++) {
+      if (f(arr[i], i, arr)) {
+        return true
+      }
+    }
+    return false
+  };
+
+  /**
+   * @template T
+   * @param {number} len
+   * @param {function(number, Array<T>):T} f
+   * @return {Array<T>}
+   */
+  const unfold = (len, f) => {
+    const array = new Array(len);
+    for (let i = 0; i < len; i++) {
+      array[i] = f(i, array);
+    }
+    return array
+  };
+
   const isArray = Array.isArray;
 
   /**
@@ -300,8 +302,10 @@
   const max = (a, b) => a > b ? a : b;
 
   /**
+   * Check whether n is negative, while considering the -0 edge case. While `-0 < 0` is false, this
+   * function returns true for -0,-1,,.. and returns false for 0,1,2,...
    * @param {number} n
-   * @return {boolean} Wether n is negative. This function also differentiates between -0 and +0
+   * @return {boolean} Wether n is negative. This function also distinguishes between -0 and +0
    */
   const isNegativeZero = n => n !== 0 ? n < 0 : 1 / n < 0;
 
@@ -340,8 +344,19 @@
    */
 
 
+  const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER;
+  const MIN_SAFE_INTEGER = Number.MIN_SAFE_INTEGER;
+
   /* c8 ignore next */
   const isInteger = Number.isInteger || (num => typeof num === 'number' && isFinite(num) && floor(num) === num);
+
+  /**
+   * Utility module to work with strings.
+   *
+   * @module string
+   */
+
+  const fromCharCode = String.fromCharCode;
 
   /**
    * @param {string} s
@@ -368,7 +383,7 @@
 
   /**
    * @param {string} str
-   * @return {Uint8Array}
+   * @return {Uint8Array<ArrayBuffer>}
    */
   const _encodeUtf8Polyfill = str => {
     const encodedString = unescape(encodeURIComponent(str));
@@ -385,7 +400,7 @@
 
   /**
    * @param {string} str
-   * @return {Uint8Array}
+   * @return {Uint8Array<ArrayBuffer>}
    */
   const _encodeUtf8Native = str => utf8TextEncoder.encode(str);
 
@@ -409,6 +424,12 @@
     /* c8 ignore next */
     utf8TextDecoder = null;
   }
+
+  /**
+   * @param {string} source
+   * @param {number} n
+   */
+  const repeat = (source, n) => unfold(n, () => source).join('');
 
   /**
    * Efficient schema-less binary encoding with support for variable length encoding.
@@ -479,7 +500,7 @@
    *
    * @function
    * @param {Encoder} encoder
-   * @return {Uint8Array} The created ArrayBuffer.
+   * @return {Uint8Array<ArrayBuffer>} The created ArrayBuffer.
    */
   const toUint8Array = encoder => {
     const uint8arr = new Uint8Array(length(encoder));
@@ -721,6 +742,14 @@
   };
 
   /**
+   * @typedef {Array<AnyEncodable>} AnyEncodableArray
+   */
+
+  /**
+   * @typedef {undefined|null|number|bigint|boolean|string|{[k:string]:AnyEncodable}|AnyEncodableArray|Uint8Array} AnyEncodable
+   */
+
+  /**
    * Encode data with efficient binary format.
    *
    * Differences to JSON:
@@ -755,7 +784,7 @@
    *          lib0/encoding.js
    *
    * @param {Encoder} encoder
-   * @param {undefined|null|number|bigint|boolean|string|Object<string,any>|Array<any>|Uint8Array} data
+   * @param {AnyEncodable} data
    */
   const writeAny = (encoder, data) => {
     switch (typeof data) {
@@ -1198,12 +1227,38 @@
   /* c8 ignore next */
   const varStorage = _localStorage;
 
+  const EqualityTraitSymbol = Symbol('Equality');
+
   /**
-   * Utility functions for working with EcmaScript objects.
-   *
-   * @module object
+   * @typedef {{ [EqualityTraitSymbol]:(other:EqualityTrait)=>boolean }} EqualityTrait
    */
 
+  /**
+   *
+   * Utility function to compare any two objects.
+   *
+   * Note that it is expected that the first parameter is more specific than the latter one.
+   *
+   * @example js
+   *     class X { [traits.EqualityTraitSymbol] (other) { return other === this }  }
+   *     class X2 { [traits.EqualityTraitSymbol] (other) { return other === this }, x2 () { return 2 }  }
+   *     // this is fine
+   *     traits.equals(new X2(), new X())
+   *     // this is not, because the left type is less specific than the right one
+   *     traits.equals(new X(), new X2())
+   *
+   * @template {EqualityTrait} T
+   * @param {NoInfer<T>} a
+   * @param {T} b
+   * @return {boolean}
+   */
+  const equals = (a, b) => a === b || !!a?.[EqualityTraitSymbol]?.(b) || false;
+
+  /**
+   * @param {any} o
+   * @return {o is { [k:string]:any }}
+   */
+  const isObject = o => typeof o === 'object';
 
   /**
    * Object.assign
@@ -1272,7 +1327,7 @@
    * @param {Object<string,any>} b
    * @return {boolean}
    */
-  const equalFlat = (a, b) => a === b || (size(a) === size(b) && every(a, (val, key) => (val !== undefined || hasProperty(b, key)) && b[key] === val));
+  const equalFlat = (a, b) => a === b || (size(a) === size(b) && every(a, (val, key) => (val !== undefined || hasProperty(b, key)) && equals(b[key], val)));
 
   /**
    * Make an object immutable. This hurts performance and is usually not needed if you perform good
@@ -1321,6 +1376,88 @@
         callAll(fs, args, i + 1);
       }
     }
+  };
+
+  /* c8 ignore start */
+
+  /**
+   * @param {any} a
+   * @param {any} b
+   * @return {boolean}
+   */
+  const equalityDeep = (a, b) => {
+    if (a === b) {
+      return true
+    }
+    if (a == null || b == null || (a.constructor !== b.constructor && (a.constructor || Object) !== (b.constructor || Object))) {
+      return false
+    }
+    if (a[EqualityTraitSymbol] != null) {
+      return a[EqualityTraitSymbol](b)
+    }
+    switch (a.constructor) {
+      case ArrayBuffer:
+        a = new Uint8Array(a);
+        b = new Uint8Array(b);
+      // eslint-disable-next-line no-fallthrough
+      case Uint8Array: {
+        if (a.byteLength !== b.byteLength) {
+          return false
+        }
+        for (let i = 0; i < a.length; i++) {
+          if (a[i] !== b[i]) {
+            return false
+          }
+        }
+        break
+      }
+      case Set: {
+        if (a.size !== b.size) {
+          return false
+        }
+        for (const value of a) {
+          if (!b.has(value)) {
+            return false
+          }
+        }
+        break
+      }
+      case Map: {
+        if (a.size !== b.size) {
+          return false
+        }
+        for (const key of a.keys()) {
+          if (!b.has(key) || !equalityDeep(a.get(key), b.get(key))) {
+            return false
+          }
+        }
+        break
+      }
+      case undefined:
+      case Object:
+        if (size(a) !== size(b)) {
+          return false
+        }
+        for (const key in a) {
+          if (!hasProperty(a, key) || !equalityDeep(a[key], b[key])) {
+            return false
+          }
+        }
+        break
+      case Array:
+        if (a.length !== b.length) {
+          return false
+        }
+        for (let i = 0; i < a.length; i++) {
+          if (!equalityDeep(a[i], b[i])) {
+            return false
+          }
+        }
+        break
+      default:
+        return false
+    }
+    return true
   };
 
   /**
@@ -1417,7 +1554,7 @@
     hasParam('--' + name) || getVariable(name) !== null;
 
   /* c8 ignore next */
-  hasConf('production');
+  const production = hasConf('production');
 
   /* c8 ignore next 2 */
   const forceColor = isNode &&
@@ -1471,16 +1608,1230 @@
    */
   const create$1 = (left, right) => new Pair(left, right);
 
+  /**
+   * Fast Pseudo Random Number Generators.
+   *
+   * Given a seed a PRNG generates a sequence of numbers that cannot be reasonably predicted.
+   * Two PRNGs must generate the same random sequence of numbers if  given the same seed.
+   *
+   * @module prng
+   */
+
+
+  /**
+   * Generates a single random bool.
+   *
+   * @param {PRNG} gen A random number generator.
+   * @return {Boolean} A random boolean
+   */
+  const bool = gen => (gen.next() >= 0.5);
+
+  /**
+   * Generates a random integer with 53 bit resolution.
+   *
+   * @param {PRNG} gen A random number generator.
+   * @param {Number} min The lower bound of the allowed return values (inclusive).
+   * @param {Number} max The upper bound of the allowed return values (inclusive).
+   * @return {Number} A random integer on [min, max]
+   */
+  const int53 = (gen, min, max) => floor(gen.next() * (max + 1 - min) + min);
+
+  /**
+   * Generates a random integer with 32 bit resolution.
+   *
+   * @param {PRNG} gen A random number generator.
+   * @param {Number} min The lower bound of the allowed return values (inclusive).
+   * @param {Number} max The upper bound of the allowed return values (inclusive).
+   * @return {Number} A random integer on [min, max]
+   */
+  const int32 = (gen, min, max) => floor(gen.next() * (max + 1 - min) + min);
+
+  /**
+   * @deprecated
+   * Optimized version of prng.int32. It has the same precision as prng.int32, but should be preferred when
+   * openaring on smaller ranges.
+   *
+   * @param {PRNG} gen A random number generator.
+   * @param {Number} min The lower bound of the allowed return values (inclusive).
+   * @param {Number} max The upper bound of the allowed return values (inclusive). The max inclusive number is `binary.BITS31-1`
+   * @return {Number} A random integer on [min, max]
+   */
+  const int31 = (gen, min, max) => int32(gen, min, max);
+
+  /**
+   * @param {PRNG} gen
+   * @return {string} A single letter (a-z)
+   */
+  const letter = gen => fromCharCode(int31(gen, 97, 122));
+
+  /**
+   * @param {PRNG} gen
+   * @param {number} [minLen=0]
+   * @param {number} [maxLen=20]
+   * @return {string} A random word (0-20 characters) without spaces consisting of letters (a-z)
+   */
+  const word = (gen, minLen = 0, maxLen = 20) => {
+    const len = int31(gen, minLen, maxLen);
+    let str = '';
+    for (let i = 0; i < len; i++) {
+      str += letter(gen);
+    }
+    return str
+  };
+
+  /**
+   * Returns one element of a given array.
+   *
+   * @param {PRNG} gen A random number generator.
+   * @param {Array<T>} array Non empty Array of possible values.
+   * @return {T} One of the values of the supplied Array.
+   * @template T
+   */
+  const oneOf = (gen, array) => array[int31(gen, 0, array.length - 1)];
+  /* c8 ignore stop */
+
+  /**
+   * @experimental WIP
+   *
+   * Simple & efficient schemas for your data.
+   */
+
+
+  /**
+   * @typedef {string|number|bigint|boolean|null|undefined|symbol} Primitive
+   */
+
+  /**
+   * @typedef {{ [k:string|number|symbol]: any }} AnyObject
+   */
+
+  /**
+   * @template T
+   * @typedef {T extends Schema<infer X> ? X : T} Unwrap
+   */
+
+  /**
+   * @template T
+   * @typedef {T extends Schema<infer X> ? X : T} TypeOf
+   */
+
+  /**
+   * @template {readonly unknown[]} T
+   * @typedef {T extends readonly [Schema<infer First>, ...infer Rest] ? [First, ...UnwrapArray<Rest>] : [] } UnwrapArray
+   */
+
+  /**
+   * @template T
+   * @typedef {T extends Schema<infer S> ? Schema<S> : never} CastToSchema
+   */
+
+  /**
+   * @template {unknown[]} Arr
+   * @typedef {Arr extends [...unknown[], infer L] ? L : never} TupleLast
+   */
+
+  /**
+   * @template {unknown[]} Arr
+   * @typedef {Arr extends [...infer Fs, unknown] ? Fs : never} TuplePop
+   */
+
+  /**
+   * @template {readonly unknown[]} T
+   * @typedef {T extends []
+   *   ? {}
+   *   : T extends [infer First]
+   *   ? First
+   *   : T extends [infer First, ...infer Rest]
+   *   ? First & Intersect<Rest>
+   *   : never
+   * } Intersect
+   */
+
+  const schemaSymbol = Symbol('0schema');
+
+  class ValidationError {
+    constructor () {
+      /**
+       * Reverse errors
+       * @type {Array<{ path: string?, expected: string, has: string, message: string? }>}
+       */
+      this._rerrs = [];
+    }
+
+    /**
+     * @param {string?} path
+     * @param {string} expected
+     * @param {string} has
+     * @param {string?} message
+     */
+    extend (path, expected, has, message = null) {
+      this._rerrs.push({ path, expected, has, message });
+    }
+
+    toString () {
+      const s = [];
+      for (let i = this._rerrs.length - 1; i > 0; i--) {
+        const r = this._rerrs[i];
+        /* c8 ignore next */
+        s.push(repeat(' ', (this._rerrs.length - i) * 2) + `${r.path != null ? `[${r.path}] ` : ''}${r.has} doesn't match ${r.expected}. ${r.message}`);
+      }
+      return s.join('\n')
+    }
+  }
+
+  /**
+   * @param {any} a
+   * @param {any} b
+   * @return {boolean}
+   */
+  const shapeExtends = (a, b) => {
+    if (a === b) return true
+    if (a == null || b == null || a.constructor !== b.constructor) return false
+    if (a[EqualityTraitSymbol]) return equals(a, b) // last resort: check equality (do this before array and obj check which don't implement the equality trait)
+    if (isArray(a)) {
+      return every$1(a, aitem =>
+        some(b, bitem => shapeExtends(aitem, bitem))
+      )
+    } else if (isObject(a)) {
+      return every(a, (aitem, akey) =>
+        shapeExtends(aitem, b[akey])
+      )
+    }
+    /* c8 ignore next */
+    return false
+  };
+
+  /**
+   * @template T
+   * @implements {equalityTraits.EqualityTrait}
+   */
+  class Schema {
+    // this.shape must not be defined on Schema. Otherwise typecheck on metatypes (e.g. $$object) won't work as expected anymore
+    /**
+     * If true, the more things are added to the shape the more objects this schema will accept (e.g.
+     * union). By default, the more objects are added, the the fewer objects this schema will accept.
+     * @protected
+     */
+    static _dilutes = false
+
+    /**
+     * @param {Schema<any>} other
+     */
+    extends (other) {
+      let [a, b] = [/** @type {any} */(this).shape, /** @type {any} */ (other).shape];
+      if (/** @type {typeof Schema<any>} */ (this.constructor)._dilutes) [b, a] = [a, b];
+      return shapeExtends(a, b)
+    }
+
+    /**
+     * Overwrite this when necessary. By default, we only check the `shape` property which every shape
+     * should have.
+     * @param {Schema<any>} other
+     */
+    equals (other) {
+      // @ts-ignore
+      return this.constructor === other.constructor && equalityDeep(this.shape, other.shape)
+    }
+
+    [schemaSymbol] () { return true }
+
+    /**
+     * @param {object} other
+     */
+    [EqualityTraitSymbol] (other) {
+      return this.equals(/** @type {any} */ (other))
+    }
+
+    /**
+     * Use `schema.validate(obj)` with a typed parameter that is already of typed to be an instance of
+     * Schema. Validate will check the structure of the parameter and return true iff the instance
+     * really is an instance of Schema.
+     *
+     * @param {T} o
+     * @return {boolean}
+     */
+    validate (o) {
+      return this.check(o)
+    }
+
+    /* c8 ignore start */
+    /**
+     * Similar to validate, but this method accepts untyped parameters.
+     *
+     * @param {any} _o
+     * @param {ValidationError} [_err]
+     * @return {_o is T}
+     */
+    check (_o, _err) {
+      methodUnimplemented();
+    }
+    /* c8 ignore stop */
+
+    /**
+     * @type {Schema<T?>}
+     */
+    get nullable () {
+      // @ts-ignore
+      return $union(this, $null)
+    }
+
+    /**
+     * @type {$Optional<Schema<T>>}
+     */
+    get optional () {
+      return new $Optional(/** @type {Schema<T>} */ (this))
+    }
+
+    /**
+     * Cast a variable to a specific type. Returns the casted value, or throws an exception otherwise.
+     * Use this if you know that the type is of a specific type and you just want to convince the type
+     * system.
+     *
+     * **Do not rely on these error messages!**
+     * Performs an assertion check only if not in a production environment.
+     *
+     * @template OO
+     * @param {OO} o
+     * @return {Extract<OO, T> extends never ? T : (OO extends Array<never> ? T : Extract<OO,T>)}
+     */
+    cast (o) {
+      assert(o, this);
+      return /** @type {any} */ (o)
+    }
+
+    /**
+     * EXPECTO PATRONUM!! 🪄
+     * This function protects against type errors. Though it may not work in the real world.
+     *
+     * "After all this time?"
+     * "Always." - Snape, talking about type safety
+     *
+     * Ensures that a variable is a a specific type. Returns the value, or throws an exception if the assertion check failed.
+     * Use this if you know that the type is of a specific type and you just want to convince the type
+     * system.
+     *
+     * Can be useful when defining lambdas: `s.lambda(s.$number, s.$void).expect((n) => n + 1)`
+     *
+     * **Do not rely on these error messages!**
+     * Performs an assertion check if not in a production environment.
+     *
+     * @param {T} o
+     * @return {o extends T ? T : never}
+     */
+    expect (o) {
+      assert(o, this);
+      return o
+    }
+  }
+
+  /**
+   * @template {(new (...args:any[]) => any) | ((...args:any[]) => any)} Constr
+   * @typedef {Constr extends ((...args:any[]) => infer T) ? T : (Constr extends (new (...args:any[]) => any) ? InstanceType<Constr> : never)} Instance
+   */
+
+  /**
+   * @template {(new (...args:any[]) => any) | ((...args:any[]) => any)} C
+   * @extends {Schema<Instance<C>>}
+   */
+  class $ConstructedBy extends Schema {
+    /**
+     * @param {C} c
+     * @param {((o:Instance<C>)=>boolean)|null} check
+     */
+    constructor (c, check) {
+      super();
+      this.shape = c;
+      this._c = check;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is C extends ((...args:any[]) => infer T) ? T : (C extends (new (...args:any[]) => any) ? InstanceType<C> : never)} o
+     */
+    check (o, err = undefined) {
+      const c = o?.constructor === this.shape && (this._c == null || this._c(o));
+      /* c8 ignore next */
+      !c && err?.extend(null, this.shape.name, o?.constructor.name, o?.constructor !== this.shape ? 'Constructor match failed' : 'Check failed');
+      return c
+    }
+  }
+
+  /**
+   * @template {(new (...args:any[]) => any) | ((...args:any[]) => any)} C
+   * @param {C} c
+   * @param {((o:Instance<C>) => boolean)|null} check
+   * @return {CastToSchema<$ConstructedBy<C>>}
+   */
+  const $constructedBy = (c, check = null) => new $ConstructedBy(c, check);
+  $constructedBy($ConstructedBy);
+
+  /**
+   * Check custom properties on any object. You may want to overwrite the generated Schema<any>.
+   *
+   * @extends {Schema<any>}
+   */
+  class $Custom extends Schema {
+    /**
+     * @param {(o:any) => boolean} check
+     */
+    constructor (check) {
+      super();
+      /**
+       * @type {(o:any) => boolean}
+       */
+      this.shape = check;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} err
+     * @return {o is any}
+     */
+    check (o, err) {
+      const c = this.shape(o);
+      /* c8 ignore next */
+      !c && err?.extend(null, 'custom prop', o?.constructor.name, 'failed to check custom prop');
+      return c
+    }
+  }
+
+  /**
+   * @param {(o:any) => boolean} check
+   * @return {Schema<any>}
+   */
+  const $custom = (check) => new $Custom(check);
+  $constructedBy($Custom);
+
+  /**
+   * @template {Primitive} T
+   * @extends {Schema<T>}
+   */
+  class $Literal extends Schema {
+    /**
+     * @param {Array<T>} literals
+     */
+    constructor (literals) {
+      super();
+      this.shape = literals;
+    }
+
+    /**
+     *
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is T}
+     */
+    check (o, err) {
+      const c = this.shape.some(a => a === o);
+      /* c8 ignore next */
+      !c && err?.extend(null, this.shape.join(' | '), o.toString());
+      return c
+    }
+  }
+
+  /**
+   * @template {Primitive[]} T
+   * @param {T} literals
+   * @return {CastToSchema<$Literal<T[number]>>}
+   */
+  const $literal = (...literals) => new $Literal(literals);
+  const $$literal = $constructedBy($Literal);
+
+  /**
+   * @template {Array<string|Schema<string|number>>} Ts
+   * @typedef {Ts extends [] ? `` : (Ts extends [infer T] ? (Unwrap<T> extends (string|number) ? Unwrap<T> : never) : (Ts extends [infer T1, ...infer Rest] ? `${Unwrap<T1> extends (string|number) ? Unwrap<T1> : never}${Rest extends Array<string|Schema<string|number>> ? CastStringTemplateArgsToTemplate<Rest> : never}` : never))} CastStringTemplateArgsToTemplate
+   */
+
+  /**
+   * @param {string} str
+   * @return {string}
+   */
+  const _regexEscape = /** @type {any} */ (RegExp).escape || /** @type {(str:string) => string} */ (str =>
+    str.replace(/[().|&,$^[\]]/g, s => '\\' + s)
+  );
+
+  /**
+   * @param {string|Schema<any>} s
+   * @return {string[]}
+   */
+  const _schemaStringTemplateToRegex = s => {
+    if ($string.check(s)) {
+      return [_regexEscape(s)]
+    }
+    if ($$literal.check(s)) {
+      return /** @type {Array<string|number>} */ (s.shape).map(v => v + '')
+    }
+    if ($$number.check(s)) {
+      return ['[+-]?\\d+.?\\d*']
+    }
+    if ($$string.check(s)) {
+      return ['.*']
+    }
+    if ($$union.check(s)) {
+      return s.shape.map(_schemaStringTemplateToRegex).flat(1)
+    }
+    /* c8 ignore next 2 */
+    // unexpected schema structure (only supports unions and string in literal types)
+    unexpectedCase();
+  };
+
+  /**
+   * @template {Array<string|Schema<string|number>>} T
+   * @extends {Schema<CastStringTemplateArgsToTemplate<T>>}
+   */
+  class $StringTemplate extends Schema {
+    /**
+     * @param {T} shape
+     */
+    constructor (shape) {
+      super();
+      this.shape = shape;
+      this._r = new RegExp('^' + shape.map(_schemaStringTemplateToRegex).map(opts => `(${opts.join('|')})`).join('') + '$');
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is CastStringTemplateArgsToTemplate<T>}
+     */
+    check (o, err) {
+      const c = this._r.exec(o) != null;
+      /* c8 ignore next */
+      !c && err?.extend(null, this._r.toString(), o.toString(), 'String doesn\'t match string template.');
+      return c
+    }
+  }
+  $constructedBy($StringTemplate);
+
+  const isOptionalSymbol = Symbol('optional');
+  /**
+   * @template {Schema<any>} S
+   * @extends Schema<Unwrap<S>|undefined>
+   */
+  class $Optional extends Schema {
+    /**
+     * @param {S} shape
+     */
+    constructor (shape) {
+      super();
+      this.shape = shape;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is (Unwrap<S>|undefined)}
+     */
+    check (o, err) {
+      const c = o === undefined || this.shape.check(o);
+      /* c8 ignore next */
+      !c && err?.extend(null, 'undefined (optional)', '()');
+      return c
+    }
+
+    get [isOptionalSymbol] () { return true }
+  }
+  const $$optional = $constructedBy($Optional);
+
+  /**
+   * @extends Schema<never>
+   */
+  class $Never extends Schema {
+    /**
+     * @param {any} _o
+     * @param {ValidationError} [err]
+     * @return {_o is never}
+     */
+    check (_o, err) {
+      /* c8 ignore next */
+      err?.extend(null, 'never', typeof _o);
+      return false
+    }
+  }
+  $constructedBy($Never);
+
+  /**
+   * @template {{ [key: string|symbol|number]: Schema<any> }} S
+   * @typedef {{ [Key in keyof S as S[Key] extends $Optional<Schema<any>> ? Key : never]?: S[Key] extends $Optional<Schema<infer Type>> ? Type : never } & { [Key in keyof S as S[Key] extends $Optional<Schema<any>> ? never : Key]: S[Key] extends Schema<infer Type> ? Type : never }} $ObjectToType
+   */
+
+  /**
+   * @template {{[key:string|symbol|number]: Schema<any>}} S
+   * @extends {Schema<$ObjectToType<S>>}
+   */
+  class $Object extends Schema {
+    /**
+     * @param {S} shape
+     * @param {boolean} partial
+     */
+    constructor (shape, partial = false) {
+      super();
+      /**
+       * @type {S}
+       */
+      this.shape = shape;
+      this._isPartial = partial;
+    }
+
+    static _dilutes = true
+
+    /**
+     * @type {Schema<Partial<$ObjectToType<S>>>}
+     */
+    get partial () {
+      return new $Object(this.shape, true)
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} err
+     * @return {o is $ObjectToType<S>}
+     */
+    check (o, err) {
+      if (o == null) {
+        /* c8 ignore next */
+        err?.extend(null, 'object', 'null');
+        return false
+      }
+      return every(this.shape, (vv, vk) => {
+        const c = (this._isPartial && !hasProperty(o, vk)) || vv.check(o[vk], err);
+        !c && err?.extend(vk.toString(), vv.toString(), typeof o[vk], 'Object property does not match');
+        return c
+      })
+    }
+  }
+
+  /**
+   * @template S
+   * @typedef {Schema<{ [Key in keyof S as S[Key] extends $Optional<Schema<any>> ? Key : never]?: S[Key] extends $Optional<Schema<infer Type>> ? Type : never } & { [Key in keyof S as S[Key] extends $Optional<Schema<any>> ? never : Key]: S[Key] extends Schema<infer Type> ? Type : never }>} _ObjectDefToSchema
+   */
+
+  // I used an explicit type annotation instead of $ObjectToType, so that the user doesn't see the
+  // weird type definitions when inspecting type definions.
+  /**
+   * @template {{ [key:string|symbol|number]: Schema<any> }} S
+   * @param {S} def
+   * @return {_ObjectDefToSchema<S> extends Schema<infer S> ? Schema<{ [K in keyof S]: S[K] }> : never}
+   */
+  const $object = def => /** @type {any} */ (new $Object(def));
+  const $$object = $constructedBy($Object);
+  /**
+   * @type {Schema<{[key:string]: any}>}
+   */
+  const $objectAny = $custom(o => o != null && (o.constructor === Object || o.constructor == null));
+
+  /**
+   * @template {Schema<string|number|symbol>} Keys
+   * @template {Schema<any>} Values
+   * @extends {Schema<{ [key in Unwrap<Keys>]: Unwrap<Values> }>}
+   */
+  class $Record extends Schema {
+    /**
+     * @param {Keys} keys
+     * @param {Values} values
+     */
+    constructor (keys, values) {
+      super();
+      this.shape = {
+        keys, values
+      };
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} err
+     * @return {o is { [key in Unwrap<Keys>]: Unwrap<Values> }}
+     */
+    check (o, err) {
+      return o != null && every(o, (vv, vk) => {
+        const ck = this.shape.keys.check(vk, err);
+        /* c8 ignore next */
+        !ck && err?.extend(vk + '', 'Record', typeof o, ck ? 'Key doesn\'t match schema' : 'Value doesn\'t match value');
+        return ck && this.shape.values.check(vv, err)
+      })
+    }
+  }
+
+  /**
+   * @template {Schema<string|number|symbol>} Keys
+   * @template {Schema<any>} Values
+   * @param {Keys} keys
+   * @param {Values} values
+   * @return {CastToSchema<$Record<Keys,Values>>}
+   */
+  const $record = (keys, values) => new $Record(keys, values);
+  const $$record = $constructedBy($Record);
+
+  /**
+   * @template {Schema<any>[]} S
+   * @extends {Schema<{ [Key in keyof S]: S[Key] extends Schema<infer Type> ? Type : never }>}
+   */
+  class $Tuple extends Schema {
+    /**
+     * @param {S} shape
+     */
+    constructor (shape) {
+      super();
+      this.shape = shape;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} err
+     * @return {o is { [K in keyof S]: S[K] extends Schema<infer Type> ? Type : never }}
+     */
+    check (o, err) {
+      return o != null && every(this.shape, (vv, vk) => {
+        const c = /** @type {Schema<any>} */ (vv).check(o[vk], err);
+        /* c8 ignore next */
+        !c && err?.extend(vk.toString(), 'Tuple', typeof vv);
+        return c
+      })
+    }
+  }
+
+  /**
+   * @template {Array<Schema<any>>} T
+   * @param {T} def
+   * @return {CastToSchema<$Tuple<T>>}
+   */
+  const $tuple = (...def) => new $Tuple(def);
+  $constructedBy($Tuple);
+
+  /**
+   * @template {Schema<any>} S
+   * @extends {Schema<Array<S extends Schema<infer T> ? T : never>>}
+   */
+  class $Array extends Schema {
+    /**
+     * @param {Array<S>} v
+     */
+    constructor (v) {
+      super();
+      /**
+       * @type {Schema<S extends Schema<infer T> ? T : never>}
+       */
+      this.shape = v.length === 1 ? v[0] : new $Union(v);
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is Array<S extends Schema<infer T> ? T : never>} o
+     */
+    check (o, err) {
+      const c = isArray(o) && every$1(o, oi => this.shape.check(oi));
+      /* c8 ignore next */
+      !c && err?.extend(null, 'Array', '');
+      return c
+    }
+  }
+
+  /**
+   * @template {Array<Schema<any>>} T
+   * @param {T} def
+   * @return {Schema<Array<T extends Array<Schema<infer S>> ? S : never>>}
+   */
+  const $array = (...def) => new $Array(def);
+  const $$array = $constructedBy($Array);
+  /**
+   * @type {Schema<Array<any>>}
+   */
+  const $arrayAny = $custom(o => isArray(o));
+
+  /**
+   * @template T
+   * @extends {Schema<T>}
+   */
+  class $InstanceOf extends Schema {
+    /**
+     * @param {new (...args:any) => T} constructor
+     * @param {((o:T) => boolean)|null} check
+     */
+    constructor (constructor, check) {
+      super();
+      this.shape = constructor;
+      this._c = check;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} err
+     * @return {o is T}
+     */
+    check (o, err) {
+      const c = o instanceof this.shape && (this._c == null || this._c(o));
+      /* c8 ignore next */
+      !c && err?.extend(null, this.shape.name, o?.constructor.name);
+      return c
+    }
+  }
+
+  /**
+   * @template T
+   * @param {new (...args:any) => T} c
+   * @param {((o:T) => boolean)|null} check
+   * @return {Schema<T>}
+   */
+  const $instanceOf = (c, check = null) => new $InstanceOf(c, check);
+  $constructedBy($InstanceOf);
+
+  const $$schema = $instanceOf(Schema);
+
+  /**
+   * @template {Schema<any>[]} Args
+   * @typedef {(...args:UnwrapArray<TuplePop<Args>>)=>Unwrap<TupleLast<Args>>} _LArgsToLambdaDef
+   */
+
+  /**
+   * @template {Array<Schema<any>>} Args
+   * @extends {Schema<_LArgsToLambdaDef<Args>>}
+   */
+  class $Lambda extends Schema {
+    /**
+     * @param {Args} args
+     */
+    constructor (args) {
+      super();
+      this.len = args.length - 1;
+      this.args = $tuple(...args.slice(-1));
+      this.res = args[this.len];
+    }
+
+    /**
+     * @param {any} f
+     * @param {ValidationError} err
+     * @return {f is _LArgsToLambdaDef<Args>}
+     */
+    check (f, err) {
+      const c = f.constructor === Function && f.length <= this.len;
+      /* c8 ignore next */
+      !c && err?.extend(null, 'function', typeof f);
+      return c
+    }
+  }
+  const $$lambda = $constructedBy($Lambda);
+
+  /**
+   * @type {Schema<Function>}
+   */
+  const $function = $custom(o => typeof o === 'function');
+
+  /**
+   * @template {Array<Schema<any>>} T
+   * @extends {Schema<Intersect<UnwrapArray<T>>>}
+   */
+  class $Intersection extends Schema {
+    /**
+     * @param {T} v
+     */
+    constructor (v) {
+      super();
+      /**
+       * @type {T}
+       */
+      this.shape = v;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is Intersect<UnwrapArray<T>>}
+     */
+    check (o, err) {
+      // @ts-ignore
+      const c = every$1(this.shape, check => check.check(o, err));
+      /* c8 ignore next */
+      !c && err?.extend(null, 'Intersectinon', typeof o);
+      return c
+    }
+  }
+  $constructedBy($Intersection, o => o.shape.length > 0); // Intersection with length=0 is considered "any"
+
+  /**
+   * @template S
+   * @extends {Schema<S>}
+   */
+  class $Union extends Schema {
+    static _dilutes = true
+
+    /**
+     * @param {Array<Schema<S>>} v
+     */
+    constructor (v) {
+      super();
+      this.shape = v;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is S}
+     */
+    check (o, err) {
+      const c = some(this.shape, (vv) => vv.check(o, err));
+      err?.extend(null, 'Union', typeof o);
+      return c
+    }
+  }
+
+  /**
+   * @template {Array<any>} T
+   * @param {T} schemas
+   * @return {CastToSchema<$Union<Unwrap<ReadSchema<T>>>>}
+   */
+  const $union = (...schemas) => schemas.findIndex($s => $$union.check($s)) >= 0
+    ? $union(...schemas.map($s => $$1($s)).map($s => $$union.check($s) ? $s.shape : [$s]).flat(1))
+    : (schemas.length === 1
+        ? schemas[0]
+        : new $Union(schemas));
+  const $$union = /** @type {Schema<$Union<any>>} */ ($constructedBy($Union));
+
+  const _t = () => true;
+  /**
+   * @type {Schema<any>}
+   */
+  const $any = $custom(_t);
+  const $$any = /** @type {Schema<Schema<any>>} */ ($constructedBy($Custom, o => o.shape === _t));
+
+  /**
+   * @type {Schema<bigint>}
+   */
+  const $bigint = $custom(o => typeof o === 'bigint');
+  const $$bigint = /** @type {Schema<Schema<BigInt>>} */ ($custom(o => o === $bigint));
+
+  /**
+   * @type {Schema<symbol>}
+   */
+  const $symbol = $custom(o => typeof o === 'symbol');
+  /** @type {Schema<Schema<Symbol>>} */ ($custom(o => o === $symbol));
+
+  /**
+   * @type {Schema<number>}
+   */
+  const $number = $custom(o => typeof o === 'number');
+  const $$number = /** @type {Schema<Schema<number>>} */ ($custom(o => o === $number));
+
+  /**
+   * @type {Schema<string>}
+   */
+  const $string = $custom(o => typeof o === 'string');
+  const $$string = /** @type {Schema<Schema<string>>} */ ($custom(o => o === $string));
+
+  /**
+   * @type {Schema<boolean>}
+   */
+  const $boolean = $custom(o => typeof o === 'boolean');
+  const $$boolean = /** @type {Schema<Schema<Boolean>>} */ ($custom(o => o === $boolean));
+
+  /**
+   * @type {Schema<undefined>}
+   */
+  const $undefined = $literal(undefined);
+  /** @type {Schema<Schema<undefined>>} */ ($constructedBy($Literal, o => o.shape.length === 1 && o.shape[0] === undefined));
+
+  /**
+   * @type {Schema<void>}
+   */
+  $literal(undefined);
+
+  const $null = $literal(null);
+  const $$null = /** @type {Schema<Schema<null>>} */ ($constructedBy($Literal, o => o.shape.length === 1 && o.shape[0] === null));
+
+  $constructedBy(Uint8Array);
+  /** @type {Schema<Schema<Uint8Array>>} */ ($constructedBy($ConstructedBy, o => o.shape === Uint8Array));
+
+  /**
+   * @type {Schema<Primitive>}
+   */
+  const $primitive = $union($number, $string, $null, $undefined, $bigint, $boolean, $symbol);
+
+  /**
+   * @typedef {JSON[]} JSONArray
+   */
+  /**
+   * @typedef {Primitive|JSONArray|{ [key:string]:JSON }} JSON
+   */
+  /**
+   * @type {Schema<null|number|string|boolean|JSON[]|{[key:string]:JSON}>}
+   */
+  (() => {
+    const $jsonArr = /** @type {$Array<$any>} */ ($array($any));
+    const $jsonRecord = /** @type {$Record<$string,$any>} */ ($record($string, $any));
+    const $json = $union($number, $string, $null, $boolean, $jsonArr, $jsonRecord);
+    $jsonArr.shape = $json;
+    $jsonRecord.shape.values = $json;
+    return $json
+  })();
+
+  /**
+   * @template {any} IN
+   * @typedef {IN extends Schema<any> ? IN
+   *   : (IN extends string|number|boolean|null ? Schema<IN>
+   *     : (IN extends new (...args:any[])=>any ? Schema<InstanceType<IN>>
+   *       : (IN extends any[] ? Schema<{ [K in keyof IN]: Unwrap<ReadSchema<IN[K]>> }[number]>
+     *       : (IN extends object ? (_ObjectDefToSchema<{[K in keyof IN]:ReadSchema<IN[K]>}> extends Schema<infer S> ? Schema<{ [K in keyof S]: S[K] }> : never)
+     *         : never)
+   *         )
+   *       )
+   *     )
+   * } ReadSchemaOld
+   */
+
+  /**
+   * @template {any} IN
+   * @typedef {[Extract<IN,Schema<any>>,Extract<IN,string|number|boolean|null>,Extract<IN,new (...args:any[])=>any>,Extract<IN,any[]>,Extract<Exclude<IN,Schema<any>|string|number|boolean|null|(new (...args:any[])=>any)|any[]>,object>] extends [infer Schemas, infer Primitives, infer Constructors, infer Arrs, infer Obj]
+   *   ? Schema<
+   *       (Schemas extends Schema<infer S> ? S : never)
+   *     | Primitives
+   *     | (Constructors extends new (...args:any[])=>any ? InstanceType<Constructors> : never)
+   *     | (Arrs extends any[] ? { [K in keyof Arrs]: Unwrap<ReadSchema<Arrs[K]>> }[number] : never)
+   *     | (Obj extends object ? Unwrap<(_ObjectDefToSchema<{[K in keyof Obj]:ReadSchema<Obj[K]>}> extends Schema<infer S> ? Schema<{ [K in keyof S]: S[K] }> : never)> : never)>
+   *   : never
+   * } ReadSchema
+   */
+
+  /**
+   * @typedef {ReadSchema<{x:42}|{y:99}|Schema<string>|[1,2,{}]>} Q
+   */
+
+  /**
+   * @template IN
+   * @param {IN} o
+   * @return {ReadSchema<IN>}
+   */
+  const $$1 = o => {
+    if ($$schema.check(o)) {
+      return /** @type {any} */ (o)
+    } else if ($objectAny.check(o)) {
+      /**
+       * @type {any}
+       */
+      const o2 = {};
+      for (const k in o) {
+        o2[k] = $$1(o[k]);
+      }
+      return /** @type {any} */ ($object(o2))
+    } else if ($arrayAny.check(o)) {
+      return /** @type {any} */ ($union(...o.map($$1)))
+    } else if ($primitive.check(o)) {
+      return /** @type {any} */ ($literal(o))
+    } else if ($function.check(o)) {
+      return /** @type {any} */ ($constructedBy(/** @type {any} */ (o)))
+    }
+    /* c8 ignore next */
+    unexpectedCase();
+  };
+
+  /* c8 ignore start */
+  /**
+   * Assert that a variable is of this specific type.
+   * The assertion check is only performed in non-production environments.
+   *
+   * @type {<T>(o:any,schema:Schema<T>) => asserts o is T}
+   */
+  const assert = production
+    ? () => {}
+    : (o, schema) => {
+        const err = new ValidationError();
+        if (!schema.check(o, err)) {
+          throw create$3(`Expected value to be of type ${schema.constructor.name}.\n${err.toString()}`)
+        }
+      };
+  /* c8 ignore end */
+
+  /**
+   * @template In
+   * @template Out
+   * @typedef {{ if: Schema<In>, h: (o:In,state?:any)=>Out }} Pattern
+   */
+
+  /**
+   * @template {Pattern<any,any>} P
+   * @template In
+   * @typedef {ReturnType<Extract<P,Pattern<In extends number ? number : (In extends string ? string : In),any>>['h']>} PatternMatchResult
+   */
+
+  /**
+   * @todo move this to separate library
+   * @template {any} [State=undefined]
+   * @template {Pattern<any,any>} [Patterns=never]
+   */
+  class PatternMatcher {
+    /**
+     * @param {Schema<State>} [$state]
+     */
+    constructor ($state) {
+      /**
+       * @type {Array<Patterns>}
+       */
+      this.patterns = [];
+      this.$state = $state;
+    }
+
+    /**
+     * @template P
+     * @template R
+     * @param {P} pattern
+     * @param {(o:NoInfer<Unwrap<ReadSchema<P>>>,s:State)=>R} handler
+     * @return {PatternMatcher<State,Patterns|Pattern<Unwrap<ReadSchema<P>>,R>>}
+     */
+    if (pattern, handler) {
+      // @ts-ignore
+      this.patterns.push({ if: $$1(pattern), h: handler });
+      // @ts-ignore
+      return this
+    }
+
+    /**
+     * @template R
+     * @param {(o:any,s:State)=>R} h
+     */
+    else (h) {
+      return this.if($any, h)
+    }
+
+    /**
+     * @return {State extends undefined
+     *   ? <In extends Unwrap<Patterns['if']>>(o:In,state?:undefined)=>PatternMatchResult<Patterns,In>
+     *   : <In extends Unwrap<Patterns['if']>>(o:In,state:State)=>PatternMatchResult<Patterns,In>}
+     */
+    done () {
+      // @ts-ignore
+      return /** @type {any} */ (o, s) => {
+        for (let i = 0; i < this.patterns.length; i++) {
+          const p = this.patterns[i];
+          if (p.if.check(o)) {
+            // @ts-ignore
+            return p.h(o, s)
+          }
+        }
+        throw create$3('Unhandled pattern')
+      }
+    }
+  }
+
+  /**
+   * @template [State=undefined]
+   * @param {State} [state]
+   * @return {PatternMatcher<State extends undefined ? undefined : Unwrap<ReadSchema<State>>>}
+   */
+  const match = state => new PatternMatcher(/** @type {any} */ (state));
+
+  /**
+   * Helper function to generate a (non-exhaustive) sample set from a gives schema.
+   *
+   * @type {<T>(o:T,gen:prng.PRNG)=>T}
+   */
+  const _random = /** @type {any} */ (match(/** @type {Schema<prng.PRNG>} */ ($any))
+    .if($$number, (_o, gen) => int53(gen, MIN_SAFE_INTEGER, MAX_SAFE_INTEGER))
+    .if($$string, (_o, gen) => word(gen))
+    .if($$boolean, (_o, gen) => bool(gen))
+    .if($$bigint, (_o, gen) => BigInt(int53(gen, MIN_SAFE_INTEGER, MAX_SAFE_INTEGER)))
+    .if($$union, (o, gen) => random(gen, oneOf(gen, o.shape)))
+    .if($$object, (o, gen) => {
+      /**
+       * @type {any}
+       */
+      const res = {};
+      for (const k in o.shape) {
+        let prop = o.shape[k];
+        if ($$optional.check(prop)) {
+          if (bool(gen)) { continue }
+          prop = prop.shape;
+        }
+        res[k] = _random(prop, gen);
+      }
+      return res
+    })
+    .if($$array, (o, gen) => {
+      const arr = [];
+      const n = int32(gen, 0, 42);
+      for (let i = 0; i < n; i++) {
+        arr.push(random(gen, o.shape));
+      }
+      return arr
+    })
+    .if($$literal, (o, gen) => {
+      return oneOf(gen, o.shape)
+    })
+    .if($$null, (o, gen) => {
+      return null
+    })
+    .if($$lambda, (o, gen) => {
+      const res = random(gen, o.res);
+      return () => res
+    })
+    .if($$any, (o, gen) => random(gen, oneOf(gen, [
+      $number, $string, $null, $undefined, $bigint, $boolean,
+      $array($number),
+      $record($union('a', 'b', 'c'), $number)
+    ])))
+    .if($$record, (o, gen) => {
+      /**
+       * @type {any}
+       */
+      const res = {};
+      const keysN = int53(gen, 0, 3);
+      for (let i = 0; i < keysN; i++) {
+        const key = random(gen, o.shape.keys);
+        const val = random(gen, o.shape.values);
+        res[key] = val;
+      }
+      return res
+    })
+    .done());
+
+  /**
+   * @template S
+   * @param {prng.PRNG} gen
+   * @param {S} schema
+   * @return {Unwrap<ReadSchema<S>>}
+   */
+  const random = (gen, schema) => /** @type {any} */ (_random($$1(schema), gen));
+
   /* eslint-env browser */
 
 
+  /* c8 ignore start */
+  /**
+   * @type {Document}
+   */
+  const doc = /** @type {Document} */ (typeof document !== 'undefined' ? document : {});
+
+  /**
+   * @type {$.Schema<DocumentFragment>}
+   */
+  $custom(el => el.nodeType === DOCUMENT_FRAGMENT_NODE);
+
   /** @type {DOMParser} */ (typeof DOMParser !== 'undefined' ? new DOMParser() : null);
+
+  /**
+   * @type {$.Schema<Element>}
+   */
+  $custom(el => el.nodeType === ELEMENT_NODE);
+
+  /**
+   * @type {$.Schema<Text>}
+   */
+  $custom(el => el.nodeType === TEXT_NODE);
 
   /**
    * @param {Map<string,string>} m
    * @return {string}
    */
   const mapToStyleString = m => map(m, (value, key) => `${key}:${value};`).join('');
+
+  const ELEMENT_NODE = doc.ELEMENT_NODE;
+  const TEXT_NODE = doc.TEXT_NODE;
+  const DOCUMENT_NODE = doc.DOCUMENT_NODE;
+  const DOCUMENT_FRAGMENT_NODE = doc.DOCUMENT_FRAGMENT_NODE;
+
+  /**
+   * @type {$.Schema<Node>}
+   */
+  $custom(el => el.nodeType === DOCUMENT_NODE);
   /* c8 ignore stop */
 
   /**
@@ -1806,7 +3157,7 @@
         const left = dels[j - 1];
         const right = dels[i];
         if (left.clock + left.len >= right.clock) {
-          left.len = max(left.len, right.clock + right.len - left.clock);
+          dels[j - 1] = new DeleteItem(left.clock, max(left.len, right.clock + right.len - left.clock));
         } else {
           if (j < i) {
             dels[j] = right;
@@ -3242,17 +4593,21 @@
               // sort events by path length so that top-level events are fired first.
               events
                 .sort((event1, event2) => event1.path.length - event2.path.length);
-              // We don't need to check for events.length
-              // because we know it has at least one element
-              callEventHandlerListeners(type._dEH, events, transaction);
+              fs.push(() => {
+                // We don't need to check for events.length
+                // because we know it has at least one element
+                callEventHandlerListeners(type._dEH, events, transaction);
+              });
+            }
+          });
+          fs.push(() => doc.emit('afterTransaction', [transaction, doc]));
+          fs.push(() => {
+            if (transaction._needFormattingCleanup) {
+              cleanupYTextAfterTransaction(transaction);
             }
           });
         });
-        fs.push(() => doc.emit('afterTransaction', [transaction, doc]));
         callAll(fs, []);
-        if (transaction._needFormattingCleanup) {
-          cleanupYTextAfterTransaction(transaction);
-        }
       } finally {
         // Replace deleted items with ItemDeleted / GC.
         // This is where content is actually remove from the Yjs Doc.
@@ -3414,7 +4769,7 @@
        */
       this._changes = null;
       /**
-       * @type {null | Map<string, { action: 'add' | 'update' | 'delete', oldValue: any, newValue: any }>}
+       * @type {null | Map<string, { action: 'add' | 'update' | 'delete', oldValue: any }>}
        */
       this._keys = null;
       /**
@@ -3457,7 +4812,7 @@
     }
 
     /**
-     * @type {Map<string, { action: 'add' | 'update' | 'delete', oldValue: any, newValue: any }>}
+     * @type {Map<string, { action: 'add' | 'update' | 'delete', oldValue: any }>}
      */
     get keys () {
       if (this._keys === null) {
@@ -6798,12 +8153,10 @@
       const el = new YXmlElement(this.nodeName);
       const attrs = this.getAttributes();
       forEach(attrs, (value, key) => {
-        if (typeof value === 'string') {
-          el.setAttribute(key, value);
-        }
+        el.setAttribute(key, /** @type {any} */ (value));
       });
       // @ts-ignore
-      el.insert(0, this.toArray().map(item => item instanceof AbstractType ? item.clone() : item));
+      el.insert(0, this.toArray().map(v => v instanceof AbstractType ? v.clone() : v));
       return el
     }
 
@@ -8492,7 +9845,15 @@
   function isUndefined(value) {
       return typeof value == "undefined";
   }
+  /**
+   * @group Utilities
+   * @category Sorting
+   */
   function alphabeticalSorting(a, b) {
+      if (typeof a === "symbol")
+          a = String(a);
+      if (typeof b === "symbol")
+          b = String(b);
       if (typeof a == "string" && typeof b == "string")
           return a.localeCompare(b);
       else if (typeof a == "number" && typeof b == "number")
@@ -8559,8 +9920,21 @@
       }
       return undefined;
   }
+  /**
+   * @group Utilities
+   * @category Prototype
+   */
+  function getPrototypeChain(object) {
+      const chain = [];
+      let constructor = typeof object === "function" ? object : Object.getPrototypeOf(object);
+      while (constructor && constructor !== Function.prototype) {
+          chain.push(constructor);
+          constructor = Object.getPrototypeOf(constructor);
+      }
+      return chain;
+  }
 
-  const utils$a = new AutoUtils();
+  const utils$d = new AutoUtils();
   /**
    * @decorator
    * @function auto
@@ -8649,7 +10023,7 @@
                   writeFlag = true;
                   options.callBefore?.call(this, value);
                   let next = options?.preprocessValue ? options.preprocessValue.call(this, value) : value;
-                  if ((options.cancelIfUnchanged ?? true) && baseRead.call(this) === next) {
+                  if ((options.cancelIfUnchanged ?? true) && Object.is(baseRead.call(this), next)) {
                       writeFlag = false;
                       return;
                   }
@@ -8688,7 +10062,7 @@
                   });
               }
               else if (kind === "getter" || kind === "setter") {
-                  const installed = utils$a.constructorData(prototype).installed;
+                  const installed = utils$d.constructorData(prototype).installed;
                   if (installed.get(key))
                       return;
                   installed.set(key, true);
@@ -8709,14 +10083,14 @@
   }
 
   /**
-   * @class TurboSelector
-   * @group TurboSelector
+   * @class GradumSelector
+   * @group GradumSelector
    *
    * @template {object} Type - The type of the object it wraps.
    * @description Selector class that wraps an object and augments it with useful functions to manipulate it. It also
    * proxies the object, so you can access properties and methods on the underlying object directly through the selector.
    */
-  class TurboSelector {
+  class GradumSelector {
       /**
        * @description The underlying, wrapped object.
        */
@@ -8756,7 +10130,7 @@
   class HierarchyFunctionsUtils {
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return {};
@@ -8766,7 +10140,7 @@
       }
   }
 
-  const utils$9 = new HierarchyFunctionsUtils();
+  const utils$c = new HierarchyFunctionsUtils();
   function setupHierarchyFunctions() {
       //Readonly fields
       /**
@@ -8774,14 +10148,14 @@
        * its children) or its shadow root (if defined). Set it to change the node where the children are added/removed/
        * queried from when manipulating the node's children.
        */
-      Object.defineProperty(TurboSelector.prototype, "childHandler", {
+      Object.defineProperty(GradumSelector.prototype, "childHandler", {
           set: function (value) {
-              if (value instanceof TurboSelector)
+              if (value instanceof GradumSelector)
                   value = value.element;
-              utils$9.data(this).childHandler = value;
+              utils$c.data(this).childHandler = value;
           },
           get: function () {
-              const childHandler = utils$9.data(this).childHandler;
+              const childHandler = utils$c.data(this).childHandler;
               if (childHandler)
                   return childHandler;
               if (this.element instanceof Element && this.element.shadowRoot)
@@ -8794,7 +10168,7 @@
       /**
        * @description Static array of all the child nodes of the node.
        */
-      Object.defineProperty(TurboSelector.prototype, "childNodesArray", {
+      Object.defineProperty(GradumSelector.prototype, "childNodesArray", {
           get: function () {
               if (!this.element)
                   return [];
@@ -8806,7 +10180,7 @@
       /**
        * @description Static array of all the child elements of the node.
        */
-      Object.defineProperty(TurboSelector.prototype, "childrenArray", {
+      Object.defineProperty(GradumSelector.prototype, "childrenArray", {
           get: function () {
               return this.childNodesArray.filter((node) => node.nodeType === 1);
           },
@@ -8816,7 +10190,7 @@
       /**
        * @description Static array of all the sibling nodes (including the node itself) of the node.
        */
-      Object.defineProperty(TurboSelector.prototype, "siblingNodes", {
+      Object.defineProperty(GradumSelector.prototype, "siblingNodes", {
           get: function () {
               const parent = this.element?.parentNode;
               if (!parent)
@@ -8829,7 +10203,7 @@
       /**
        * @description Static array of all the sibling elements (including the element itself, if it is one) of the node.
        */
-      Object.defineProperty(TurboSelector.prototype, "siblings", {
+      Object.defineProperty(GradumSelector.prototype, "siblings", {
           get: function () {
               const parent = this.element?.parentElement;
               if (!parent)
@@ -8840,14 +10214,14 @@
           enumerable: true
       });
       //Self manipulation
-      TurboSelector.prototype.bringToFront = function _bringToFront() {
+      GradumSelector.prototype.bringToFront = function _bringToFront() {
           const parent = this.element?.parentNode;
           if (!parent)
               return this;
           $(parent).addChild(this.element);
           return this;
       };
-      TurboSelector.prototype.sendToBack = function _sendToBack() {
+      GradumSelector.prototype.sendToBack = function _sendToBack() {
           const parent = this.element?.parentNode;
           if (!parent)
               return this;
@@ -8858,7 +10232,7 @@
        * @description Removes the node from the document.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.remove = function _remove() {
+      GradumSelector.prototype.remove = function _remove() {
           this.element?.parentNode?.removeChild(this.element);
           return this;
       };
@@ -8872,7 +10246,7 @@
        * use as computation reference for index placement. Defaults to the node's `childrenArray`.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.addChild = function _addChild(children, index, referenceList = this.childrenArray) {
+      GradumSelector.prototype.addChild = function _addChild(children, index, referenceList = this.childrenArray) {
           if (!this.element || !children)
               return this;
           if (index !== undefined && (index < 0 || index > referenceList.length))
@@ -8887,7 +10261,7 @@
                   children.forEach((child) => {
                       if (!child)
                           return;
-                      if (child instanceof TurboSelector)
+                      if (child instanceof GradumSelector)
                           child = child.element;
                       this.childHandler.appendChild(child);
                       //TODO
@@ -8904,7 +10278,7 @@
        * @param {Node | Node[]} [children] - Array of (or single) child nodes.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.remChild = function _remChild(children) {
+      GradumSelector.prototype.remChild = function _remChild(children) {
           if (!this.element || !children)
               return this;
           // Try to remove every provided child (according to its type)
@@ -8914,7 +10288,7 @@
               children.forEach(child => {
                   if (!child)
                       return;
-                  if (child instanceof TurboSelector)
+                  if (child instanceof GradumSelector)
                       child = child.element;
                   this.childHandler.removeChild(child);
               });
@@ -8931,7 +10305,7 @@
        * @param {Node} [sibling] - The sibling node to insert the children before.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.addChildBefore = function _addChildBefore(children, sibling) {
+      GradumSelector.prototype.addChildBefore = function _addChildBefore(children, sibling) {
           if (!this.element || !children)
               return this;
           if (!sibling)
@@ -8943,7 +10317,7 @@
               children.forEach((child) => {
                   if (!child)
                       return;
-                  if (child instanceof TurboSelector)
+                  if (child instanceof GradumSelector)
                       child = child.element;
                   this.childHandler.insertBefore(child, sibling);
               });
@@ -8961,7 +10335,7 @@
        * use as computation reference for index placement and count. Defaults to the node's `childrenArray`.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeChildAt = function _removeChildAt(index, count = 1, referenceList = this.childrenArray) {
+      GradumSelector.prototype.removeChildAt = function _removeChildAt(index, count = 1, referenceList = this.childrenArray) {
           if (!this.element || index === undefined || index < 0)
               return this;
           if (index >= referenceList.length)
@@ -8985,7 +10359,7 @@
        * representing all the nodes to remove. Defaults to the node's `childrenArray`.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeAllChildren = function _removeAllChildren(referenceList = this.childrenArray) {
+      GradumSelector.prototype.removeAllChildren = function _removeAllChildren(referenceList = this.childrenArray) {
           if (!this.element)
               return this;
           try {
@@ -9006,7 +10380,7 @@
        * use as computation reference for index placement. Defaults to the node's `childrenArray`.
        * @returns {Node | Element | null} The child at the given index, or `null` if the index is invalid.
        */
-      TurboSelector.prototype.childAt = function _childAt(index, referenceList = this.childrenArray) {
+      GradumSelector.prototype.childAt = function _childAt(index, referenceList = this.childrenArray) {
           if (!this.element || index === undefined)
               return null;
           if (index >= referenceList.length)
@@ -9022,7 +10396,7 @@
        * use as computation reference for index placement. Defaults to the node's `childrenArray`.
        * @returns {number} The index of the child node in the provided list, or -1 if the child is not found.
        */
-      TurboSelector.prototype.indexOfChild = function _indexOfChild(child, referenceList = this.childrenArray) {
+      GradumSelector.prototype.indexOfChild = function _indexOfChild(child, referenceList = this.childrenArray) {
           if (!this.element || !child)
               return -1;
           if (!(referenceList instanceof Array))
@@ -9034,7 +10408,7 @@
        * @param {Node | Node[]} [children] - Array of (or single) child nodes.
        * @returns {boolean} A boolean indicating whether the provided nodes belong to the parent or not.
        */
-      TurboSelector.prototype.hasChild = function _hasChild(children) {
+      GradumSelector.prototype.hasChild = function _hasChild(children) {
           if (!this.element || !children)
               return false;
           const nodesArray = Array.from(this.element?.childNodes);
@@ -9047,25 +10421,32 @@
           return true;
       };
       /**
-       * Finds the closest ancestor of the current element (or the current element itself) that matches the provided
-       * CSS selector or element type.
-       * @param {ValidTag | (new (...args: any[]) => Element)} type - The (valid) CSS selector string, or element
-       * constructor/class to match.
+       * Finds the closest ancestor of the current element (or the current element itself) that matches the
+       * provided type. Accepts either a constructor (matched via `instanceof`) or a string. When a string is
+       * given it is first resolved to a constructor via `customElements` (so `"my-component"` matches any
+       * element that is an `instanceof MyComponent`); if no custom element is registered for that name it
+       * falls back to a native CSS-selector walk via `Element.closest()`.
+       * @param {string | (new (...args: any[]) => Element)} type - Custom-element tag name, CSS selector,
+       * or element constructor to match.
        * @returns {Element | null} The matching ancestor element, or null if no match is found.
        */
-      TurboSelector.prototype.closest = function _closest(type) {
+      GradumSelector.prototype.closest = function _closest(type) {
           if (!this.element || !type || !(this.element instanceof Element))
               return null;
           if (typeof type === "string") {
+              const ctor = customElements.get(type);
+              if (ctor) {
+                  let el = this.element;
+                  while (el && !(el instanceof ctor))
+                      el = el.parentElement;
+                  return el || null;
+              }
               return this.element.closest(type);
           }
-          else if (typeof type === "function") {
-              let element = this.element;
-              while (element && !(element instanceof type))
-                  element = element.parentElement;
-              return element || null;
-          }
-          return null;
+          let el = this.element;
+          while (el && !(el instanceof type))
+              el = el.parentElement;
+          return el || null;
       };
       //Parent identification
       /**
@@ -9073,7 +10454,7 @@
        * @param {Node | Node[]} [parents] - The parent(s) to check.
        * @returns {boolean} True if the node is within the given parents, false otherwise.
        */
-      TurboSelector.prototype.findInParents = function _findInParents(parents) {
+      GradumSelector.prototype.findInParents = function _findInParents(parents) {
           if (!parents || !this.element)
               return false;
           if (parents instanceof Node)
@@ -9092,7 +10473,7 @@
        * @param {Node | Node[]} [children] - The child or children to check.
        * @returns {boolean} True if the children belong to the node, false otherwise.
        */
-      TurboSelector.prototype.findInSubTree = function _findInSubTree(children) {
+      GradumSelector.prototype.findInSubTree = function _findInSubTree(children) {
           if (!children || !this.element)
               return false;
           if (children instanceof Node)
@@ -9114,7 +10495,7 @@
        * reference for index placement. Defaults to the node's `siblings`.
        * @returns {boolean} True if the children belong to the node, false otherwise.
        */
-      TurboSelector.prototype.indexInParent = function _indexInParent(referenceList = this.siblings) {
+      GradumSelector.prototype.indexInParent = function _indexInParent(referenceList = this.siblings) {
           if (!referenceList || !this.element)
               return -1;
           return referenceList.indexOf(this.element);
@@ -9129,7 +10510,7 @@
        * use as computation reference for index placement. Defaults to the node's `childrenArray`.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.addToParent = function _addToParent(parent, index, referenceList) {
+      GradumSelector.prototype.addToParent = function _addToParent(parent, index, referenceList) {
           if (!this.element || !parent)
               return this;
           $(parent).addChild(this.element, index, referenceList);
@@ -9141,9 +10522,9 @@
    * @constant
    * @group Types
    * @category Misc
-   * @description Default array-like keys to merge when applying defaults with {@link TurboSelector.applyDefaults}.
+   * @description Default array-like keys to merge when applying defaults with {@link GradumSelector.applyDefaults}.
    */
-  const ApplyDefaultsMergeProperties = ["interactors", "tools", "substrates", "controllers", "handlers"];
+  const ApplyDefaultsMergeProperties = ["interactors", "tools", "constrainers", "operators", "handlers"];
 
   function setupMiscFunctions() {
       /**
@@ -9151,12 +10532,95 @@
        * @param {(el: this) => void} callback The function to execute, with 1 parameter representing the instance itself.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.execute = function _execute(callback) {
+      GradumSelector.prototype.execute = function _execute(callback) {
           callback(this);
           return this;
       };
-      TurboSelector.prototype.applyDefaults = function applyDefaults(defaults, options = {}) {
+      GradumSelector.prototype.apply = function apply(properties) {
           if (!this.element || typeof this.element !== "object")
+              return this;
+          if (!properties || typeof properties !== "object")
+              return this;
+          for (const [key, value] of Object.entries(properties)) {
+              try {
+                  this.element[key] = value;
+              }
+              catch { }
+          }
+          return this;
+      };
+      GradumSelector.prototype.removeFields = function removeFields(keys) {
+          if (!this.element || typeof this.element !== "object")
+              return this;
+          if (!keys || !Array.isArray(keys))
+              return this;
+          for (const key of keys) {
+              try {
+                  delete this.element[key];
+              }
+              catch {
+                  try {
+                      delete this.element[key];
+                  }
+                  catch { }
+              }
+          }
+          return this;
+      };
+      GradumSelector.prototype.getDefaults = function getDefaults(defaults) {
+          if (!this.element || typeof this.element !== "object")
+              return {};
+          if (!defaults || typeof defaults !== "object")
+              return {};
+          const result = {};
+          for (const key of defaults) {
+              if (!isUndefined(this.element[key]))
+                  result[key] = this.element[key];
+          }
+          return result;
+      };
+      GradumSelector.prototype.getIntersection = function getIntersection(other) {
+          if (!this.element || typeof this.element !== "object")
+              return {};
+          if (!other || typeof other !== "object")
+              return {};
+          const result = {};
+          for (const key of Object.keys(other)) {
+              if (!isUndefined(this.element[key]))
+                  result[key] = this.element[key];
+          }
+          return result;
+      };
+      GradumSelector.prototype.getDifference = function getDifference(other) {
+          if (!this.element || typeof this.element !== "object")
+              return {};
+          if (!other || typeof other !== "object")
+              return {};
+          const result = {};
+          for (const key of Object.keys(this.element)) {
+              if (isUndefined(other[key]))
+                  result[key] = this.element[key];
+          }
+          return result;
+      };
+      GradumSelector.prototype.extract = function extract(keys) {
+          if (!this.element || typeof this.element !== "object")
+              return {};
+          if (!keys || !Array.isArray(keys))
+              return {};
+          const result = {};
+          for (const key of keys) {
+              if (isUndefined(this.element[key]))
+                  continue;
+              result[key] = this.element[key];
+              delete this.element[key];
+          }
+          return result;
+      };
+      GradumSelector.prototype.applyDefaults = function applyDefaults(defaults, options = {}) {
+          if (!this.element || typeof this.element !== "object")
+              return this;
+          if (!defaults || typeof defaults !== "object")
               return this;
           const { mergeProperties = ApplyDefaultsMergeProperties, removeDuplicates = true } = options;
           for (const [key, value] of Object.entries(defaults)) {
@@ -9203,27 +10667,27 @@
       }
   }
 
-  const utils$8 = new ClassFunctionsUtils();
+  const utils$b = new ClassFunctionsUtils();
   function setupClassFunctions() {
       /**
        * @description Add one or more CSS classes to the element.
        * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.addClass = function _addClass(classes) {
+      GradumSelector.prototype.addClass = function _addClass(classes) {
           if (!(this.element instanceof Element))
               return this;
-          return utils$8.operateOnClasses(this, classes, entry => this.element.classList.add(entry));
+          return utils$b.operateOnClasses(this, classes, entry => this.element.classList.add(entry));
       };
       /**
        * @description Remove one or more CSS classes from the element.
        * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeClass = function _removeClass(classes) {
+      GradumSelector.prototype.removeClass = function _removeClass(classes) {
           if (!(this.element instanceof Element))
               return this;
-          return utils$8.operateOnClasses(this, classes, entry => this.element.classList.remove(entry));
+          return utils$b.operateOnClasses(this, classes, entry => this.element.classList.remove(entry));
       };
       /**
        * @description Toggle one or more CSS classes in the element.
@@ -9232,17 +10696,17 @@
        * then the class will only be removed, but not added. If set to true, then token will only be added, but not removed.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.toggleClass = function _toggleClass(classes, force) {
+      GradumSelector.prototype.toggleClass = function _toggleClass(classes, force) {
           if (!(this.element instanceof Element))
               return this;
-          return utils$8.operateOnClasses(this, classes, entry => this.element.classList.toggle(entry, force));
+          return utils$b.operateOnClasses(this, classes, entry => this.element.classList.toggle(entry, force));
       };
       /**
        * @description Check if the element's class list contains the provided class(es).
        * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings
        * @return A boolean indicating whether the provided classes are included
        */
-      TurboSelector.prototype.hasClass = function _hasClass(classes) {
+      GradumSelector.prototype.hasClass = function _hasClass(classes) {
           if (!classes || !(this.element instanceof Element))
               return false;
           if (typeof classes === "string")
@@ -9298,7 +10762,7 @@
    * @category Creation Functions
    *
    * @description Create an element with the specified properties (and the specified namespace if applicable).
-   * @param {TurboProperties<Tag>} [properties] - Object containing properties of the element.
+   * @param {GradumProperties<Tag>} [properties] - Object containing properties of the element.
    * @returns {ValidElement<Tag>} The created element.
    * @template Tag
    */
@@ -9315,9 +10779,7 @@
       else {
           element = document.createElement(properties.tag || "div");
       }
-      if (properties.shadowDOM)
-          element.attachShadow({ mode: "open" });
-      $(element).setProperties(properties);
+      gradum(element, true).setProperties(properties);
       return element;
   }
   /**
@@ -9325,7 +10787,7 @@
    * @category Creation Functions
    *
    * @description Create an element with the specified properties. Supports SVG and MathML.
-   * @param {TurboProperties<Tag>} [properties] - Object containing properties of the element.
+   * @param {GradumProperties<Tag>} [properties] - Object containing properties of the element.
    * @returns {ValidElement<Tag>} The created element.
    * @template Tag
    */
@@ -9337,9 +10799,7 @@
           element = document.createElementNS(MathMLNamespace, properties.tag || "math");
       else
           element = document.createElement(properties.tag || "div");
-      if (properties.shadowDOM)
-          element.attachShadow({ mode: "open" });
-      $(element).setProperties(properties);
+      gradum(element, true).setProperties(properties);
       return element;
   }
   /**
@@ -9369,7 +10829,7 @@
    * @category Base Elements
    *
    * @description Creates a "div" element with the specified properties.
-   * @param {TurboProperties<"div">} [properties] - Object containing properties of the element.
+   * @param {GradumProperties<"div">} [properties] - Object containing properties of the element.
    * @returns {ValidElement<"div">} The created element.
    */
   function div(properties = {}) {
@@ -9380,7 +10840,7 @@
    * @category Base Elements
    *
    * @description Creates an "img" element with the specified properties.
-   * @param {TurboProperties<"img">} [properties] - Object containing properties of the element.
+   * @param {GradumProperties<"img">} [properties] - Object containing properties of the element.
    * @returns {ValidElement<"img">} The created element.
    */
   function img(properties = {}) {
@@ -9391,7 +10851,7 @@
    * @category Base Elements
    *
    * @description Creates an "input" element with the specified properties.
-   * @param {TurboProperties<"input">} [properties] - Object containing properties of the element.
+   * @param {GradumProperties<"input">} [properties] - Object containing properties of the element.
    * @returns {ValidElement<"input">} The created element.
    */
   function input(properties = {}) {
@@ -9402,11 +10862,22 @@
    * @category Base Elements
    *
    * @description Creates a "style" element with the specified properties.
-   * @param {TurboProperties<"style">} [properties] - Object containing properties of the element.
+   * @param {GradumProperties<"style">} [properties] - Object containing properties of the element.
    * @returns {ValidElement<"style">} The created element.
    */
   function style(properties = {}) {
       return element({ ...properties, tag: "style" });
+  }
+  /**
+   * @group Element Creation
+   * @category Base Elements
+   *
+   * @description Creates a "button" element with the specified properties.
+   * @param {GradumProperties<"button">} [properties] - Object containing properties of the element.
+   * @returns {ValidElement<"button">} The created element.
+   */
+  function button(properties = {}) {
+      return element({ ...properties, tag: "button" });
   }
 
   /**
@@ -9425,544 +10896,335 @@
   }
 
   /**
-   * @class TurboEmitter
-   * @group MVC
-   * @category Emitter
-   *
-   * @template {TurboModel} ModelType -The element's MVC model type.
-   * @description The base MVC emitter class. Its role is basically an event bus. It allows the different parts of the
-   * MVC structure to fire events or listen to some, with various methods.
+   * @group Types
+   * @category Event Names
    */
-  class TurboEmitter {
-      /**
-       * @description Map containing all callbacks.
-       * @protected
-       */
-      callbacks = new Map();
-      /**
-       * @description The attached MVC model.
-       */
-      model;
-      constructor(model) {
-          if (model)
-              this.model = model;
+  const GradumKeyEventName = {
+      keyPressed: "gradum-key-pressed",
+      keyReleased: "gradum-key-released"
+  };
+  /**
+   * @group Types
+   * @category Event Names
+   */
+  const DefaultKeyEventName = {
+      keyPressed: "keydown",
+      keyReleased: "keyup",
+  };
+  /**
+   * @group Types
+   * @category Event Names
+   */
+  const GradumClickEventName = {
+      click: "gradum-click",
+      clickStart: "gradum-click-start",
+      clickEnd: "gradum-click-end",
+      longPress: "gradum-long-press"
+  };
+  /**
+   * @group Types
+   * @category Event Names
+   */
+  const DefaultClickEventName = {
+      click: "click",
+      clickStart: "mousedown",
+      clickEnd: "mouseup",
+      longPress: GradumClickEventName.longPress
+  };
+  /**
+   * @group Types
+   * @category Event Names
+   */
+  const GradumMoveEventName = {
+      move: "gradum-move"
+  };
+  /**
+   * @group Types
+   * @category Event Names
+   */
+  const DefaultMoveEventName = {
+      move: "mousemove"
+  };
+  /**
+   * @group Types
+   * @category Event Names
+   */
+  const GradumDragEventName = {
+      drag: "gradum-drag",
+      dragStart: "gradum-drag-start",
+      dragEnd: "gradum-drag-end"
+  };
+  /**
+   * @group Types
+   * @category Event Names
+   */
+  const DefaultDragEventName = {
+      drag: GradumDragEventName.drag,
+      dragStart: GradumDragEventName.dragStart,
+      dragEnd: GradumDragEventName.dragEnd,
+  };
+  /**
+   * @group Types
+   * @category Event Names
+   */
+  const GradumWheelEventName = {
+      scroll: "gradum-scroll",
+      pinch: "gradum-pinch",
+  };
+  /**
+   * @group Types
+   * @category Event Names
+   */
+  const DefaultWheelEventName = {
+      scroll: "wheel",
+      pinch: "wheel",
+  };
+  /**
+   * @group Types
+   * @category Event Names
+   */
+  const GradumEventName = {
+      ...GradumClickEventName,
+      ...GradumKeyEventName,
+      ...GradumMoveEventName,
+      ...GradumDragEventName,
+      ...GradumWheelEventName};
+  /**
+   * @group Types
+   * @category Event Names
+   *
+   * @description Object containing the names of events fired by default by the gradumComponents. Modifying it (prior to
+   * setting up new gradum components) will subsequently alter the events that the instantiated components will listen for.
+   */
+  const DefaultEventName = {
+      ...DefaultKeyEventName,
+      ...DefaultClickEventName,
+      ...DefaultMoveEventName,
+      ...DefaultDragEventName,
+      ...DefaultWheelEventName,
+      wheel: "wheel",
+      scroll: "scroll",
+      input: "input",
+      change: "change",
+      focus: "focus",
+      focusIn: "focusin",
+      focusOut: "focusout",
+      blur: "blur",
+      resize: "resize",
+      compositionStart: "compositionstart",
+      compositionEnd: "compositionend",
+  };
+
+  /**
+   * @group Utilities
+   * @category String
+   *
+   * @description Converts the passed variable into a string.
+   * @param value - The variable to convert to string
+   * @returns {string} - The string representation of the value
+   */
+  function stringify(value) {
+      if (value === null || value === undefined)
+          return undefined;
+      switch (typeof value) {
+          case "string":
+              return value;
+          case "number":
+          case "boolean":
+          case "bigint":
+          case "symbol":
+          case "function":
+              return value.toString();
+          case "object":
+              if (Array.isArray(value))
+                  return JSON.stringify(value.map(entry => stringify(entry)));
+              else if (value instanceof Date)
+                  return value.toISOString();
+              else if (value instanceof Element)
+                  return "[DOM ELEMENT]";
+              else {
+                  try {
+                      return JSON.stringify(value);
+                  }
+                  catch {
+                      return "[object Object]";
+                  }
+              }
+          default:
+              return String(value);
       }
-      get defaultBlockKey() {
-          if (this.model)
-              return this.model.defaultBlockKey;
-          return "__defaultBlockKey__";
+  }
+  /**
+   * @group Utilities
+   * @category String
+   *
+   * @description Attempts to convert the passed string back to its original type.
+   * @param str - The string to convert back to its original type
+   * @returns {any} - The original value
+   */
+  function parse$1(str) {
+      if (isUndefined(str))
+          return undefined;
+      switch (str) {
+          case "null":
+              return null;
+          case "true":
+              return true;
+          case "false":
+              return false;
       }
-      /**
-       * @function getBlock
-       * @description Retrieves the callback block by the given blockKey.
-       * @param {number | string} [blockKey] - The key of the block to retrieve.
-       * @protected
-       */
-      getBlock(blockKey) {
-          return this.callbacks.get(blockKey?.toString());
-      }
-      /**
-       * @function getOrGenerateBlock
-       * @description Retrieves or creates a callback map for a given blockKey.
-       * @param {number | string} [blockKey] - The block key.
-       * @returns {Map<string, ((...args: any[]) => void)[]>} - The ensured callback map.
-       * @protected
-       */
-      getOrGenerateBlock(blockKey) {
-          if (!this.callbacks.has(blockKey.toString()))
-              this.callbacks.set(blockKey.toString(), new Map());
-          return this.callbacks.get(blockKey.toString());
-      }
-      /**
-       * @function getKey
-       * @description Gets all callbacks for a given event key within a block.
-       * @param {string} key - The event name.
-       * @param {number | string} [blockKey] - The block in which the event is scoped.
-       * @returns {((...args: any[]) => void)[]} - An array of callbacks for that event.
-       * @protected
-       */
-      getKey(key, blockKey) {
-          const block = this.getBlock(blockKey);
-          return block ? block.get(key) : [];
-      }
-      /**
-       * @function getOrGenerateKey
-       * @description Ensures and returns the array of callbacks for a given event key within a block.
-       * @param {string} key - The event name.
-       * @param {number | string} [blockKey] - The block in which the event is scoped.
-       * @returns {((...args: any[]) => void)[]} - An array of callbacks for that event.
-       * @protected
-       */
-      getOrGenerateKey(key, blockKey) {
-          const block = this.getOrGenerateBlock(blockKey);
-          if (!block.has(key))
-              block.set(key, []);
-          return block.get(key);
-      }
-      /**
-       * @function addWithBlock
-       * @description Registers a callback for an event key within a specified block -- usually for the corresponding
-       * data block in the model.
-       * @param {string} key - The event name.
-       * @param {number | string} blockKey - The block to register the event in.
-       * @param {(...args: any[]) => void} callback - The callback function to invoke when the event is fired.
-       */
-      addWithBlock(key, blockKey, callback) {
-          this.getOrGenerateKey(key, blockKey).push(callback);
-      }
-      /**
-       * @function add
-       * @description Registers a callback for an event key in the default block.
-       * @param {string} key - The event name.
-       * @param {(...args: any[]) => void} callback - The callback function.
-       */
-      add(key, callback) {
-          this.addWithBlock(key, this.defaultBlockKey, callback);
-      }
-      /**
-       * @function removeWithBlock
-       * @description Removes a specific callback or all callbacks for a key within a block.
-       * @param {string} key - The event name.
-       * @param {number | string} blockKey - The block from which to remove the event.
-       * @param {(...args: any[]) => void} [callback] - The specific callback to remove. If undefined, all callbacks
-       * for the key are removed.
-       */
-      removeWithBlock(key, blockKey, callback) {
-          if (callback == undefined)
-              this.getBlock(blockKey)?.delete(key);
-          else {
-              const callbacks = this.getKey(key, blockKey);
-              const index = callbacks.indexOf(callback);
-              if (index >= 0)
-                  callbacks.splice(index, 1);
+      if (str !== "" && !isNaN(Number(str)))
+          return Number(str);
+      if (/^\d+n$/.test(str))
+          return BigInt(str.slice(0, -1));
+      if (str.startsWith("function") || str.startsWith("(")) {
+          try {
+              const parsedFunction = new Function(`return (${str})`)();
+              if (typeof parsedFunction === "function")
+                  return parsedFunction;
+          }
+          catch {
           }
       }
-      /**
-       * @function remove
-       * @description Removes a specific callback or all callbacks for a key in the default block.
-       * @param {string} key - The event name.
-       * @param {(...args: any[]) => void} [callback] - The callback to remove. If omitted, all callbacks are removed.
-       */
-      remove(key, callback) {
-          this.removeWithBlock(key, this.defaultBlockKey, callback);
+      try {
+          const parsed = JSON.parse(str);
+          if (typeof parsed === "object" && parsed != null)
+              return parsed;
       }
-      /**
-       * @function fireWithBlock
-       * @description Triggers all callbacks associated with an event key in a specified block.
-       * @param {string} key - The event name.
-       * @param {number | string} blockKey - The block in which the event is scoped.
-       * @param {...any[]} args - Arguments passed to each callback.
-       */
-      fireWithBlock(key, blockKey, ...args) {
-          this.callbacks.get(blockKey.toString())?.get(key)?.forEach((callback) => {
-              if (callback && typeof callback == "function")
-                  callback(...args);
-          });
+      catch {
       }
-      /**
-       * @function fire
-       * @description Triggers all callbacks associated with an event key in the default block.
-       * @param {string} key - The event name.
-       * @param {...any[]} args - Arguments passed to the callback.
-       */
-      fire(key, ...args) {
-          this.fireWithBlock(key, this.defaultBlockKey, ...args);
-      }
+      return str;
   }
 
   /**
-   * @class Mvc
-   * @group MVC
-   * @category MVC
-   *
-   * @description MVC -- Model-View-Component -- handler. Generates and manages an MVC structure for a certain object.
-   * @template {object} ElementType - The type of the object that will be turned into MVC.
-   * @template {TurboView} ViewType - The element's view type.
-   * @template {object} DataType - The element's data type.
-   * @template {TurboModel<DataType>} ModelType - The element's model type.
-   * @template {TurboEmitter} EmitterType - The element's emitter type.
-   * */
-  class Mvc {
-      /**
-       * @description The element/root of the MVC structure.
-       */
-      element;
-      _view;
-      _model;
-      _emitter;
-      _controllers = new Map();
-      _handlers = new Map();
-      _interactors = new Map();
-      _tools = new Map();
-      _substrates = new Map();
-      constructor(properties) {
-          if (properties.element)
-              this.element = properties.element;
-          if (!properties.emitter)
-              this.emitter = new TurboEmitter();
-          this.generate(properties);
+   * @group Utilities
+   * @category Equity
+   */
+  function areEqual(...entries) {
+      if (entries.length < 2)
+          return true;
+      for (let i = 0; i < entries.length - 1; i++) {
+          if (!Object.is(entries[i], entries[i + 1]))
+              return false;
       }
-      /**
-       * @description The view (if any) of the current MVC structure. Setting it will update the view and link it
-       * with the existing pieces.
-       */
-      get view() {
-          return this._view;
-      }
-      set view(value) {
-          this._view = this.generateInstance(value, { element: this.element });
-          this.linkPieces();
-      }
-      /**
-       * @description The model (if any) of the current MVC structure. Setting it will update the model and link it
-       * with the existing pieces.
-       */
-      get model() {
-          return this._model;
-      }
-      set model(model) {
-          this.model?.keyChangedCallback.remove(this.emitterFireCallback);
-          this._model = this.generateInstance(model);
-          this._model.handlers = this._handlers;
-          this._model.addHandler = (handler) => this.addHandler(handler);
-          this.linkPieces();
-      }
-      /**
-       * @description The emitter (if any) of the current MVC structure. Setting it will update the emitter and link it
-       * with the existing pieces.
-       */
-      get emitter() {
-          return this._emitter;
-      }
-      set emitter(emitter) {
-          this._emitter = this.generateInstance(emitter);
-          this.linkPieces();
-      }
-      /**
-       * @description The controllers (if any) of the current MVC structure. Setting it will not override the existing
-       * controllers, but only add the new values and link them with the existing pieces.
-       */
-      get controllers() {
-          return Array.from(this._controllers.values()) || [];
-      }
-      set controllers(value) {
-          this.generateInstances(value, { element: this.element })
-              .forEach(instance => this.addController(instance));
-          this.linkPieces();
-      }
-      /**
-       * @description The handlers (if any) of the current MVC structure. Setting it will not override the existing
-       * handlers, but only add the new values and link them with the existing pieces.
-       */
-      get handlers() {
-          return Array.from(this._handlers.values()) || [];
-      }
-      set handlers(value) {
-          this.generateInstances(value).forEach(instance => this.addHandler(instance));
-          this.linkPieces();
-      }
-      /**
-       * @description The interactors (if any) of the current MVC structure. Setting it will not override the existing
-       * interactors, but only add the new values and link them with the existing pieces.
-       */
-      get interactors() {
-          return Array.from(this._interactors.values()) || [];
-      }
-      set interactors(value) {
-          this.generateInstances(value, { element: this.element })
-              .forEach(instance => this.addInteractor(instance));
-          this.linkPieces();
-      }
-      /**
-       * @description The tools (if any) of the current MVC structure. Setting it will not override the existing
-       * tools, but only add the new values and link them with the existing pieces.
-       */
-      get tools() {
-          return Array.from(this._tools.values()) || [];
-      }
-      set tools(value) {
-          this.generateInstances(value, { element: this.element })
-              .forEach(instance => this.addTool(instance));
-          this.linkPieces();
-      }
-      /**
-       * @description The substrates (if any) of the current MVC structure. Setting it will not override the existing
-       * substrates, but only add the new values and link them with the existing pieces.
-       */
-      get substrates() {
-          return Array.from(this._substrates.values()) || [];
-      }
-      set substrates(value) {
-          this.generateInstances(value, { element: this.element })
-              .forEach(instance => this.addSubstrate(instance));
-          this.linkPieces();
-      }
-      /**
-       * @description The main data block (if any) attached to the model (if any).
-       */
-      get data() {
-          return this.model?.data;
-      }
-      set data(data) {
-          if (this.model)
-              this.model.data = data;
-      }
-      /**
-       * @description The ID of the main data block (if any) attached to the model (if any).
-       */
-      get dataId() {
-          return this.model?.dataId;
-      }
-      set dataId(value) {
-          if (this.model)
-              this.model.dataId = value;
-      }
-      /**
-       * @description The numerical index of the main data block (if any) attached to the model (if any).
-       */
-      get dataIndex() {
-          return Number.parseInt(this.dataId);
-      }
-      set dataIndex(value) {
-          if (this.model)
-              this.model.dataId = value.toString();
-      }
-      /**
-       * @description The size (number) of the main data block (if any) attached to the model (if any).
-       */
-      get dataSize() {
-          return this.model?.getSize?.();
-      }
-      /**
-       * @function getController
-       * @description Retrieves the attached MVC controller with the given key.
-       * By default, unless manually defined in the controller, if the element's class name is MyElement
-       * and the controller's class name is MyElementSomethingController, the key would be "something".
-       * @param {string} key - The controller's key.
-       * @return {TurboController} - The controller.
-       */
-      getController(key) {
-          return this._controllers.get(key);
-      }
-      /**
-       * @function addController
-       * @description Adds the given controller to the MVC structure.
-       * @param {TurboController} controller - The controller to add.
-       */
-      addController(controller) {
-          if (!controller.keyName)
-              controller.keyName =
-                  this.extractClassEssenceName(controller.constructor, "Controller");
-          this._controllers.set(controller.keyName, controller);
-          this.updateController(controller);
-      }
-      /**
-       * @function getHandler
-       * @description Retrieves the attached MVC handler with the given key.
-       * By default, unless manually defined in the handler, if the element's class name is MyElement
-       * and the handler's class name is MyElementSomethingHandler, the key would be "something".
-       * @param {string} key - The handler's key.
-       * @return {TurboHandler} - The handler.
-       */
-      getHandler(key) {
-          return this._handlers.get(key);
-      }
-      /**
-       * @function addHandler
-       * @description Adds the given handler to the MVC structure.
-       * @param {TurboHandler} handler - The handler to add.
-       */
-      addHandler(handler) {
-          if (!handler.keyName)
-              handler.keyName =
-                  this.extractClassEssenceName(handler.constructor, "Handler");
-          this._handlers.set(handler.keyName, handler);
-          this.updateHandler(handler);
-      }
-      /**
-       * @function getInteractor
-       * @description Retrieves the attached MVC interactor with the given key.
-       * By default, unless manually defined in the interactor, if the element's class name is MyElement
-       * and the interactor's class name is MyElementSomethingInteractor, the key would be "something".
-       * @param {string} key - The interactor's key.
-       * @return {TurboInteractor} - The interactor.
-       */
-      getInteractor(key) {
-          return this._interactors.get(key);
-      }
-      /**
-       * @function addInteractor
-       * @description Adds the given interactor to the MVC structure.
-       * @param {TurboInteractor} interactor - The interactor to add.
-       */
-      addInteractor(interactor) {
-          if (!interactor.keyName)
-              interactor.keyName =
-                  this.extractClassEssenceName(interactor.constructor, "Interactor");
-          this._interactors.set(interactor.keyName, interactor);
-          this.updateInteractor(interactor);
-      }
-      /**
-       * @function getTool
-       * @description Retrieves the attached MVC Tool with the given key.
-       * By default, unless manually defined in the tool, if the element's class name is MyElement
-       * and the tool's class name is MyElementSomethingTool, the key would be "something".
-       * @param {string} key - The tool's key.
-       * @return {TurboTool} - The tool.
-       */
-      getTool(key) {
-          return this._tools.get(key);
-      }
-      /**
-       * @function addTool
-       * @description Adds the given tool to the MVC structure.
-       * @param {TurboTool} tool - The tool to add.
-       */
-      addTool(tool) {
-          if (!tool.keyName)
-              tool.keyName =
-                  this.extractClassEssenceName(tool.constructor, "Tool");
-          this._tools.set(tool.keyName, tool);
-          this.updateTool(tool);
-      }
-      /**
-       * @function getSubstrate
-       * @description Retrieves the attached MVC Substrate with the given key.
-       * By default, unless manually defined in the substrate, if the element's class name is MyElement
-       * and the substrate's class name is MyElementSomethingSubstrate, the key would be "something".
-       * @param {string} key - The substrate's key.
-       * @return {TurboSubstrate} - The substrate.
-       */
-      getSubstrate(key) {
-          return this._substrates.get(key);
-      }
-      /**
-       * @function addSubstrate
-       * @description Adds the given substrate to the MVC structure.
-       * @param {TurboSubstrate} substrate - The substrate to add.
-       */
-      addSubstrate(substrate) {
-          if (!substrate.keyName)
-              substrate.keyName =
-                  this.extractClassEssenceName(substrate.constructor, "Substrate");
-          this._substrates.set(substrate.keyName, substrate);
-          this.updateSubstrate(substrate);
-      }
-      /**
-       * @function generate
-       * @description Generates the MVC structure based on the provided properties.
-       * If no model or model constructor is defined, no model will be generated. The same applies for the view.
-       * If not defined, a default emitter will be created.
-       * @param {MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>} properties - The properties to use
-       * to generate the MVC structure.
-       */
-      generate(properties = {}) {
-          for (const property of Object.keys(properties)) {
-              const value = properties[property];
-              if (value === undefined || property === "initialize" || property === "data")
-                  continue;
-              this[property] = value;
+      return true;
+  }
+  function areSimilar(...entries) {
+      if (entries.length < 2)
+          return true;
+      for (let i = 0; i < entries.length - 1; i++) {
+          const e1 = entries[i];
+          const e2 = entries[i + 1];
+          if (e1 === e2)
+              continue;
+          if (typeof e1 !== "object" || typeof e2 !== "object")
+              return false;
+          if (Object.is(e1, e2))
+              continue;
+          if (e1 !== null && "equals" in e1 && typeof e1.equals === "function") {
+              const value = e1.equals(e2);
+              if (typeof value === "boolean")
+                  return value;
           }
-          if (!this._emitter)
-              this.emitter = new TurboEmitter();
-          if (properties.data && this.model)
-              this.model.setBlock(properties.data, undefined, undefined, false);
-          if (properties.initialize === undefined || properties.initialize)
-              this.initialize();
-      }
-      /**
-       * @function initialize
-       * @description Initializes the MVC parts: the view, the controllers, the interactors, the tools, the substrates,
-       * and the model (in this order). The model is initialized last to allow for the view and controllers to set up
-       * their change callbacks.
-       */
-      initialize() {
-          this.view?.initialize();
-          this._controllers.forEach(controller => controller.initialize());
-          this._interactors.forEach(interactor => interactor.initialize());
-          this._tools.forEach(tool => tool.initialize());
-          this._substrates.forEach(substrate => substrate.initialize());
-          this.model?.initialize();
-      }
-      updateController(controller) {
-          controller.emitter = this.emitter;
-          controller.model = this.model;
-          controller.view = this.view;
-      }
-      updateHandler(handler) {
-          handler.model = this.model;
-      }
-      updateInteractor(interactor) {
-          interactor.model = this.model;
-          interactor.view = this.view;
-          interactor.emitter = this.emitter;
-      }
-      updateTool(tool) {
-          tool.emitter = this.emitter;
-          tool.model = this.model;
-          tool.view = this.view;
-      }
-      updateSubstrate(substrate) {
-          substrate.model = this.model;
-          substrate.view = this.view;
-          substrate.emitter = this.emitter;
-      }
-      linkPieces() {
-          if (this.model && !this.model.keyChangedCallback.has(this.emitterFireCallback)) {
-              this.model.keyChangedCallback.add(this.emitterFireCallback);
-          }
-          if (this.emitter)
-              this.emitter.model = this.model;
-          if (this.view) {
-              this.view.emitter = this.emitter;
-              this.view.model = this.model;
-          }
-          this._controllers.forEach(controller => this.updateController(controller));
-          this._handlers.forEach(handler => this.updateHandler(handler));
-          this._interactors.forEach(interactor => this.updateInteractor(interactor));
-          this._tools.forEach(tool => this.updateTool(tool));
-          this._substrates.forEach(substrate => this.updateSubstrate(substrate));
-      }
-      generateInstance(data, properties, shallowCopyProperties = true) {
-          if (!data)
-              return undefined;
-          if (typeof data === "function") {
-              const shouldClone = shallowCopyProperties && properties && typeof properties === "object";
-              const prop = shouldClone ? { ...properties } : properties;
-              return new data(prop);
-          }
-          return data;
-      }
-      generateInstances(data, properties, shallowCopyProperties = true) {
-          if (!data)
-              return [];
-          if (typeof data !== "object" || !Array.isArray(data))
-              data = [data];
-          const result = [];
-          data.forEach(constructor => {
-              const instance = this.generateInstance(constructor, properties, shallowCopyProperties);
-              if (instance)
-                  result.push(instance);
-          });
-          return result;
-      }
-      emitterFireCallback = (keyName, blockKey, ...args) => this.emitter?.fireWithBlock(keyName, blockKey, ...args);
-      extractClassEssenceName(constructor, type) {
-          let className = constructor.name;
-          let prototype = Object.getPrototypeOf(this.element);
-          while (prototype && prototype.constructor !== Object) {
-              const name = prototype.constructor.name.replaceAll("_", "");
-              if (className.startsWith(name)) {
-                  className = className.slice(name.length);
-                  break;
+          if (e1 != null && e2 != null) {
+              let cont = false;
+              try {
+                  if (JSON.stringify(e1) === JSON.stringify(e2) && e1.toString() === e2.toString())
+                      cont = true;
               }
-              prototype = Object.getPrototypeOf(prototype);
+              catch { }
+              if (!cont)
+                  return false;
           }
-          if (className.endsWith(type))
-              className = className.slice(0, -(type.length));
-          return className.charAt(0).toLowerCase() + className.slice(1);
+      }
+      return true;
+  }
+  /**
+   * @group Utilities
+   * @category Equity
+   */
+  function equalToAny(entry, ...values) {
+      if (values.length < 1)
+          return true;
+      for (const value of values) {
+          if (entry == value)
+              return true;
+      }
+      return false;
+  }
+
+  class ElementFunctionsUtils {
+      dataMap = new WeakMap;
+      data(element) {
+          if (element instanceof GradumSelector)
+              element = element.element;
+          if (!element || !this.dataMap.has(element)) {
+              const entry = {
+                  feedforwardElements: new Map(),
+                  defaultFeedforwardProperties: {}
+              };
+              if (element)
+                  this.dataMap.set(element, entry);
+          }
+          return this.dataMap.get(element);
       }
   }
+
+  /******************************************************************************
+  Copyright (c) Microsoft Corporation.
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+  ***************************************************************************** */
+  /* global Reflect, Promise, SuppressedError, Symbol, Iterator */
+
+
+  function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+      function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
+      var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+      var target = ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+      var descriptor = (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+      var _, done = false;
+      for (var i = decorators.length - 1; i >= 0; i--) {
+          var context = {};
+          for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+          for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+          context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
+          var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+          if (kind === "accessor") {
+              if (result === void 0) continue;
+              if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+              if (_ = accept(result.get)) descriptor.get = _;
+              if (_ = accept(result.set)) descriptor.set = _;
+              if (_ = accept(result.init)) initializers.unshift(_);
+          }
+          else if (_ = accept(result)) {
+              if (kind === "field") initializers.unshift(_);
+              else descriptor[key] = _;
+          }
+      }
+      if (target) Object.defineProperty(target, contextIn.name, descriptor);
+      done = true;
+  }
+  function __runInitializers(thisArg, initializers, value) {
+      var useValue = arguments.length > 2;
+      for (var i = 0; i < initializers.length; i++) {
+          value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+      }
+      return useValue ? value : void 0;
+  }
+  typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+      var e = new Error(message);
+      return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+  };
 
   /**
    * @internal
@@ -9982,7 +11244,7 @@
       data(target) {
           let obj = this.dataMap.get(target);
           if (!obj) {
-              obj = { propertyKeyMap: new Map(), blockKeyMap: new Map() };
+              obj = { propertyKeyMap: new Map(), pathMap: new Map() };
               this.dataMap.set(target, obj);
           }
           return obj;
@@ -10016,7 +11278,6 @@
                       if (!Object.is(prev, value))
                           entry.emit();
                   }
-                  //If "write" is passed, setup emit() behavior. Otherwise, reflect to already defined setter.
                   else if (!options.diffOnWrite) {
                       write(value);
                       entry.emit();
@@ -10070,6 +11331,26 @@
       markDirty(target, key) {
           this.getSignal(target, key)?.emit();
       }
+      markDirtyPath(target, keys) {
+          const changed = this.serializePath(keys);
+          for (const [boundPath, propertyKey] of this.data(target).pathMap) {
+              // An empty changed path means the root was replaced, which overlaps every bound path
+              if (changed === ""
+                  || boundPath === changed
+                  || boundPath.startsWith(changed + "|")
+                  || changed.startsWith(boundPath + "|"))
+                  this.markDirty(target, propertyKey);
+          }
+      }
+      bindPath(target, propertyKey, keys) {
+          this.data(target).pathMap.set(this.serializePath(keys), propertyKey);
+      }
+      getKeyFromPath(target, keys) {
+          return this.data(target).pathMap.get(this.serializePath(keys));
+      }
+      serializePath(keys) {
+          return keys.map(k => typeof k === "symbol" ? `@@${k.description ?? ""}` : String(k)).join("|");
+      }
       schedule(effect) {
           if (effect.scheduled)
               return;
@@ -10078,17 +11359,6 @@
               effect.scheduled = false;
               effect.run();
           });
-      }
-      bindBlockKey(target, key, dataKey, blockKey) {
-          blockKey = blockKey ?? target?.defaultBlockKey ?? "__default__";
-          const map = this.data(target).blockKeyMap;
-          if (!map.has(blockKey))
-              map.set(blockKey, new Map());
-          map.get(blockKey).set(dataKey, key);
-      }
-      getKeyFromBlockKey(target, dataKey, blockKey) {
-          blockKey = blockKey ?? target?.defaultBlockKey ?? "__default__";
-          return this.data(target).blockKeyMap.get(blockKey)?.get(dataKey);
       }
   }
 
@@ -10228,28 +11498,113 @@
       }
   }
 
-  const utils$7 = new ReactivityUtils();
-  const signalUtils = new SignalUtils(utils$7);
+  class EffectUtils {
+      utils;
+      constructor(utils) {
+          this.utils = utils;
+      }
+      makeEffect(callback) {
+          const utils = this.utils;
+          return {
+              callback,
+              dependencies: new Set(),
+              cleanups: [],
+              scheduled: false,
+              run() {
+                  for (const c of this.cleanups)
+                      c();
+                  this.cleanups = [];
+                  this.dependencies = new Set();
+                  utils.activeEffect = this;
+                  try {
+                      this.callback();
+                  }
+                  finally {
+                      utils.activeEffect = null;
+                  }
+                  for (const dep of this.dependencies) {
+                      const unsub = dep.sub(() => utils.schedule(this));
+                      this.cleanups.push(unsub);
+                  }
+              },
+              dispose() {
+                  for (const c of this.cleanups)
+                      c();
+                  this.cleanups = [];
+                  this.dependencies.clear();
+              }
+          };
+      }
+  }
+
+  const utils$a = new ReactivityUtils();
+  const signalUtils = new SignalUtils(utils$a);
+  const effectUtils = new EffectUtils(utils$a);
   function signal(...args) {
-      //Decorator
+      // Decorator
       if (args.length === 2 && args[1] && typeof args[1] === "object"
           && "kind" in args[1] && "name" in args[1] && "static" in args[1] && "private" in args[1]) {
           return signalUtils.signalDecorator(args[0], args[1]);
       }
-      //Getter setter
+      // Getter + setter: signal(get, set, target?, ...keys)
       if (typeof args[0] === "function" && typeof args[1] === "function") {
-          return signalUtils.createBoxFromEntry(utils$7.createSignalEntry(undefined, args[2], args[3], args[0], args[1]));
+          const [get, set, target, ...keys] = args;
+          const key = keys.length === 1 ? keys[0] : keys.length > 1 ? utils$a.serializePath(keys) : undefined;
+          return signalUtils.createBoxFromEntry(utils$a.createSignalEntry(undefined, target, key, get, set));
       }
-      //From value
-      return signalUtils.createBoxFromEntry(utils$7.createSignalEntry(args[0], args[1], args[2]));
+      // From value: signal(initial?, target?, ...keys)
+      const [initial, target, ...keys] = args;
+      const key = keys.length === 1 ? keys[0] : keys.length > 1 ? utils$a.serializePath(keys) : undefined;
+      return signalUtils.createBoxFromEntry(utils$a.createSignalEntry(initial, target, key));
   }
-  function markDirty(target, key, blockKey) {
-      let computedKey;
-      if (!isUndefined(blockKey))
-          computedKey = utils$7.getKeyFromBlockKey(target, key, blockKey);
-      if (isUndefined(computedKey))
-          computedKey = key;
-      return utils$7.markDirty(target, computedKey);
+  function effect(...args) {
+      const value = args[0];
+      const context = args[1];
+      if (context && typeof context === "object" && "kind" in context
+          && "name" in context && "static" in context && "private" in context) {
+          const { kind, name, static: isStatic } = context;
+          const key = String(name);
+          if (kind !== "method" && kind !== "getter" && !(kind === "field" && typeof value === "function"))
+              throw new Error("@effect can only decorate zero-arg instance methods or getters.");
+          if (isStatic)
+              throw new Error("@effect does not support static methods/getters.");
+          context.addInitializer?.(function () {
+              const self = this;
+              const fn = function () {
+                  value?.call(this);
+              };
+              const eff = effectUtils.makeEffect(() => fn.call(self));
+              utils$a.setEffect(self, key, eff);
+          });
+      }
+      else if (typeof value === "function") {
+          const eff = effectUtils.makeEffect(value);
+          eff.run();
+          return () => eff.dispose();
+      }
+  }
+  function markDirty(target, ...keys) {
+      const computedKey = keys.length > 1
+          ? utils$a.getKeyFromPath(target, keys)
+          : keys[0];
+      return utils$a.markDirty(target, computedKey ?? keys[0]);
+  }
+  /**
+   * @function markDirtyPath
+   * @group Decorators
+   * @category Signal
+   *
+   * @description Marks as dirty every signal whose bound key path (registered via {@link modelSignal} or
+   * {@link nestedModelSignal}) overlaps the given changed key path, and fires their attached effects.
+   * A bound path overlaps the changed path when either is a prefix of (or equal to) the other:
+   * replacing a parent value invalidates signals bound deeper inside it, and changing a nested value
+   * invalidates signals bound to any of its ancestors. An empty `keys` array marks every bound path dirty,
+   * as it represents a change at the root.
+   * @param {object} target - The target to which the signals are bound.
+   * @param {KeyType[]} keys - The key path of the data that changed.
+   */
+  function markDirtyPath(target, keys) {
+      utils$a.markDirtyPath(target, keys);
   }
   /**
    * @function initializeEffects
@@ -10260,71 +11615,8 @@
    * @param {object} target - The target to which the effects are bound.
    */
   function initializeEffects(target) {
-      for (const [, entry] of utils$7.data(target).propertyKeyMap)
+      for (const [, entry] of utils$a.data(target).propertyKeyMap)
           entry.effect?.run();
-  }
-
-  /**
-   * @group Components
-   * @category TurboWeakSet
-   */
-  class TurboWeakSet {
-      _weakRefs;
-      constructor() {
-          this._weakRefs = new Set();
-      }
-      // Add an object as a WeakRef if it's not already in the set
-      add(obj) {
-          if (!this.has(obj))
-              this._weakRefs.add(new WeakRef(obj));
-          return this;
-      }
-      // Check if the set contains a WeakRef to the given object
-      has(obj) {
-          for (const weakRef of this._weakRefs) {
-              if (weakRef.deref() === obj)
-                  return true;
-          }
-          return false;
-      }
-      // Delete the WeakRef associated with the given object
-      delete(obj) {
-          for (const weakRef of this._weakRefs) {
-              if (weakRef.deref() === obj) {
-                  this._weakRefs.delete(weakRef);
-                  return true;
-              }
-          }
-          return false;
-      }
-      // Clean up any WeakRefs whose objects have been garbage-collected
-      cleanup() {
-          for (const weakRef of this._weakRefs) {
-              if (weakRef.deref() === undefined)
-                  this._weakRefs.delete(weakRef);
-          }
-      }
-      // Convert live objects in the TurboWeakSet to an array
-      toArray() {
-          const result = [];
-          for (const weakRef of this._weakRefs) {
-              const obj = weakRef.deref();
-              if (obj !== undefined)
-                  result.push(obj);
-              else
-                  this._weakRefs.delete(weakRef);
-          }
-          return result;
-      }
-      // Get the size of the TurboWeakSet (only live objects)
-      get size() {
-          this.cleanup();
-          return this.toArray().length;
-      }
-      // Clear all weak references
-      clear() {
-          this._weakRefs.clear();
-      }
   }
 
   /**
@@ -10405,1182 +11697,728 @@
       }
   }
 
-  class TurboObserver {
+  class GradumNestedMapNode extends Map {
+  }
+  /**
+   * @class GradumNestedMap
+   * @group Components
+   * @category GradumNestedMap
+   *
+   * @description A map of arbitrary nesting depth, addressed via `...keys` paths.
+   *
+   * @template ValueType - The type of stored values.
+   * @template KeyType - The type of keys at each level of the path. Defaults to `string | symbol | number`.
+   */
+  class GradumNestedMap {
+      nestedMap = new GradumNestedMapNode();
+      /*
+       *
+       * GET
+       *
+       */
+      /**
+       * @function get
+       * @description Retrieve the value at the given key path.
+       * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
+       * @returns {ValueType | undefined} The stored value, or `undefined` if not found.
+       */
+      get(...keys) {
+          let node = this.nestedMap;
+          for (const key of keys) {
+              if (!(node instanceof GradumNestedMapNode))
+                  return;
+              node = node.get(key);
+          }
+          return node;
+      }
+      /**
+       * @function getFlat
+       * @description Retrieve the value at the given flat key.
+       * @param {number | string} flatKey - A flat key produced by {@link flattenKey}.
+       * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
+       * @returns {ValueType | undefined} The stored value, or `undefined` if not found.
+       */
+      getFlat(flatKey, depth) {
+          const keys = this.scopeKey(flatKey, depth);
+          if (keys?.length)
+              return this.get(...keys);
+      }
+      /**
+       * @function getKey
+       * @description Find the key path of the first occurrence of the given value.
+       * @param {ValueType} value - The value to locate.
+       * @returns {KeyType[] | undefined} The key path, or `undefined` if not found.
+       */
+      getKey(value) {
+          return this.findPaths(this.nestedMap, value, false)[0];
+      }
+      /**
+       * @function getKeys
+       * @description Find the key paths of all occurrences of the given value.
+       * @param {ValueType} value - The value to locate.
+       * @returns {KeyType[][]} Array of key paths.
+       */
+      getKeys(value) {
+          return this.findPaths(this.nestedMap, value);
+      }
+      /**
+       * @function getFlatKey
+       * @description Return the flat key of the first occurrence of the given value.
+       * @param {ValueType} value - The value to query.
+       * @returns {string | number | undefined} The flat key, or `undefined` if not found.
+       */
+      getFlatKey(value) {
+          const path = this.findPaths(this.nestedMap, value, false)[0];
+          if (!path)
+              return undefined;
+          return this.flattenKey(...path);
+      }
+      /*
+       *
+       * SET
+       *
+       */
+      /**
+       * @function set
+       * @description Store a value at the given key path. Intermediate nodes are created automatically.
+       * @param {ValueType} value - The value to store.
+       * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
+       */
+      set(value, ...keys) {
+          if (!keys.length)
+              return;
+          let node = this.nestedMap;
+          for (let i = 0; i < keys.length - 1; i++) {
+              const key = keys[i];
+              if (!node.has(key) || !(node.get(key) instanceof GradumNestedMapNode))
+                  node.set(key, new GradumNestedMapNode());
+              node = node.get(key);
+          }
+          node.set(keys[keys.length - 1], value);
+      }
+      /**
+       * @function setFlat
+       * @description Store a value at the given flat key.
+       * @param {ValueType} value - The value to store.
+       * @param {number | string} flatKey - A flat key produced by {@link flattenKey}.
+       * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
+       */
+      setFlat(value, flatKey, depth) {
+          const keys = this.scopeKey(flatKey, depth);
+          if (keys?.length)
+              this.set(value, ...keys);
+      }
+      /*
+       *
+       * HAS
+       *
+       */
+      /**
+       * @function has
+       * @description Check whether an entry exists at the given key path.
+       * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
+       * @returns {boolean}
+       */
+      has(...keys) {
+          if (!keys.length)
+              return false;
+          const parent = this.get(...keys.slice(0, -1));
+          if (!(parent instanceof GradumNestedMapNode))
+              return false;
+          return parent.has(keys[keys.length - 1]);
+      }
+      /**
+       * @function hasFlat
+       * @description Check whether an entry exists at the given flat key.
+       * @param {number | string} flatKey - A flat key produced by {@link flattenKey}.
+       * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
+       * @returns {boolean}
+       */
+      hasFlat(flatKey, depth) {
+          const keys = this.scopeKey(flatKey, depth);
+          return keys?.length ? this.has(...keys) : false;
+      }
+      /**
+       * @function hasValue
+       * @description Check whether the given value exists anywhere in the map.
+       * @param {ValueType} value - The value to look for.
+       * @returns {boolean}
+       */
+      hasValue(value) {
+          return !!this.getKey(value);
+      }
+      /*
+       *
+       * REMOVE
+       *
+       */
+      /**
+       * @function remove
+       * @description Remove the entry at the given key path.
+       * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
+       */
+      remove(...keys) {
+          if (!keys.length)
+              return;
+          const parent = this.get(...keys.slice(0, -1));
+          if (parent instanceof GradumNestedMapNode)
+              parent.delete(keys[keys.length - 1]);
+      }
+      /**
+       * @function removeValue
+       * @description Remove the first occurrence of the given value.
+       * @param {ValueType} value - The value to remove.
+       */
+      removeValue(value) {
+          const path = this.findPaths(this.nestedMap, value, false)[0];
+          if (path)
+              this.remove(...path);
+      }
+      /**
+       * @function removeValues
+       * @description Remove all occurrences of the given value.
+       * @param {ValueType} value - The value to remove.
+       */
+      removeValues(value) {
+          this.findPaths(this.nestedMap, value).forEach(path => this.remove(...path));
+      }
+      /*
+       *
+       * ENTRIES
+       *
+       */
+      /**
+       * @function getEntriesAt
+       * @description Return all leaf `[key, value]` pairs under the given path, sorted alphabetically by key.
+       * Pass no keys to get all leaf entries in the map.
+       * @param {...KeyType[]} keys - Path to the subtree root.
+       * @returns {[KeyType, ValueType][]}
+       */
+      getEntriesAt(...keys) {
+          return this.getPathsAt(...keys).map(path => [path[path.length - 1], this.get(...path)]);
+      }
+      /**
+       * @description All leaf `[key, value]` pairs in the nested map, sorted alphabetically by key.
+       */
+      get entries() {
+          return this.getEntriesAt();
+      }
+      /*
+       *
+       * KEYS
+       *
+       */
+      /**
+       * @function getKeysAt
+       * @description Return all leaf keys under the given path, sorted alphabetically.
+       * Pass no keys to get all leaf keys in the map.
+       * @param {...KeyType[]} keys - Path to the parent node.
+       * @returns {KeyType[]}
+       */
+      getKeysAt(...keys) {
+          return this.getEntriesAt(...keys).map(e => e[0]);
+      }
+      /**
+       * @description All leaf keys in the nested map, sorted alphabetically.
+       */
+      get keys() {
+          return this.getKeysAt();
+      }
+      /*
+       *
+       * VALUES
+       *
+       */
+      /**
+       * @function getValuesAt
+       * @description Return all leaf values under the given path, sorted alphabetically by key.
+       * Pass no keys to get all leaf values in the map.
+       * @param {...KeyType[]} keys - Path to the parent node.
+       * @returns {ValueType[]}
+       */
+      getValuesAt(...keys) {
+          return this.getEntriesAt(...keys).map(e => e[1]);
+      }
+      /**
+       * @description All leaf values in the nested map, sorted alphabetically by key.
+       */
+      get values() {
+          return this.getValuesAt();
+      }
+      /*
+       *
+       * PATHS
+       *
+       */
+      /**
+       * @function getPathsAt
+       * @description Return all leaf key paths under the given path.
+       * Pass no keys to get all leaf paths in the map.
+       * @param {...KeyType[]} keys - Path to the subtree root.
+       * @returns {KeyType[][]}
+       */
+      getPathsAt(...keys) {
+          return this.findPaths(this.get(...keys));
+      }
+      /**
+       * @description All leaf key paths in the map.
+       */
+      get paths() {
+          return this.getPathsAt();
+      }
+      /*
+       *
+       * SIZE
+       *
+       */
+      /**
+       * @function getSizeAt
+       * @description Return the number of leaf entries under the given path.
+       * Pass no keys to get the number of all leaf entries.
+       * @param {...KeyType[]} keys - Path to the root.
+       * @returns {number}
+       */
+      getSizeAt(...keys) {
+          return this.getPathsAt(...keys).length;
+      }
+      /**
+       * @description Number of all leaf entries in the nested map.
+       */
+      get size() {
+          return this.getSizeAt();
+      }
+      /*
+       *
+       * SCOPE AND FLAT UTILS
+       *
+       */
+      /**
+       * @function flattenKey
+       * @description Serialize a key path into a single flat key.
+       * - Fully numeric paths produce a numeric global leaf index.
+       * - All other paths produce a `"k0|k1|k2|..."` string.
+       * @param {...KeyType[]} keys - The key path to serialize.
+       * @returns {string | number | undefined} The flat key, or `undefined` if the path is invalid.
+       */
+      flattenKey(...keys) {
+          if (!keys.length)
+              return;
+          const compatible = keys.map(k => this.getFlatCompatibleKey(k));
+          if (compatible.some(k => k === undefined))
+              return;
+          if (compatible.every(k => typeof k === "number")) {
+              let index = 0;
+              const allLeafPaths = this.findPaths(this.nestedMap).filter(p => p.length === keys.length);
+              for (const path of allLeafPaths) {
+                  if (path.every((k, i) => k === keys[i]))
+                      return index;
+                  index++;
+              }
+          }
+          return compatible.map(k => k.toString()).join("|");
+      }
+      /**
+       * @function scopeKey
+       * @description Convert a flat key back into a key path. Reverses {@link flattenKey}.
+       * - A string `"k0|k1|k2"` becomes `[k0, k1, k2]`.
+       * - A numeric global leaf index becomes the corresponding numeric path.
+       * @param {number | string} flatKey - The flat key to convert.
+       * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
+       * @returns {KeyType[] | undefined} The key path, or `undefined` if conversion fails.
+       */
+      scopeKey(flatKey, depth) {
+          if (typeof flatKey === "string") {
+              const parts = flatKey.split("|");
+              return parts.length >= 1 ? parts : undefined;
+          }
+          if (typeof flatKey === "number") {
+              const allLeafPaths = depth !== undefined
+                  ? this.findPaths(this.nestedMap).filter(p => p.length === depth)
+                  : this.findPaths(this.nestedMap);
+              if (flatKey < 0)
+                  return allLeafPaths[0];
+              if (flatKey >= allLeafPaths.length)
+                  return allLeafPaths[allLeafPaths.length - 1];
+              return allLeafPaths[flatKey];
+          }
+          return undefined;
+      }
+      /**
+       * @function clear
+       * @description Remove all entries from the map.
+       */
+      clear() {
+          this.nestedMap.clear();
+      }
+      /*
+       *
+       * PROTECTED
+       *
+       */
+      findPaths(node, target, allPaths = true, prefix = []) {
+          if (!node || !(node instanceof GradumNestedMapNode))
+              return [];
+          const results = [];
+          const entries = Array.from(node.entries())
+              .sort((a, b) => alphabeticalSorting(a[0], b[0]));
+          for (const [key, value] of entries) {
+              const path = [...prefix, key];
+              if (value instanceof GradumNestedMapNode) {
+                  const nested = this.findPaths(value, target, allPaths, path);
+                  if (!allPaths && target !== undefined && nested.length)
+                      return nested;
+                  else
+                      results.push(...nested);
+              }
+              else {
+                  if (allPaths && target === undefined)
+                      results.push(path);
+                  else if (value === target) {
+                      results.push(path);
+                      if (!allPaths)
+                          return results;
+                  }
+              }
+          }
+          return results;
+      }
+      getFlatCompatibleKey(key) {
+          if (typeof key === "number" || typeof key === "string")
+              return key;
+          const s = stringify(key);
+          return s !== undefined ? s : undefined;
+      }
+  }
+
+  /**
+   * @class GradumObserver
+   * @group MVC
+   * @category GradumModel
+   *
+   * @extends GradumNestedMap
+   * @description Generic observer that keeps a set of component instances organized by key path.
+   * Useful to maintain UI components or other per-entry objects synchronized with a data source
+   * ({@link GradumModel}).
+   *
+   * @template DataType - The type of data handled by the observer.
+   * @template {object} ComponentType - The instance type created/managed by the observer.
+   * @template {string | number | symbol} KeyType - The key type used at each level of the path.
+   */
+  class GradumObserver extends GradumNestedMap {
       _isInitialized = false;
+      prevData = new GradumNestedMap();
+      replaceOnUpdate;
+      /**
+       * @property onAdded
+       * @description Delegate called when a change is reported at a key path for which no component instance exists yet.
+       * Handlers may return a newly-created component instance, which will be stored and passed to subsequent
+       * `onUpdated` calls.
+       */
       onAdded = new Delegate();
+      /**
+       * @property onUpdated
+       * @description Delegate called when a change is reported at a key path that already has an associated instance.
+       */
       onUpdated = new Delegate();
+      /**
+       * @property onDeleted
+       * @description Delegate called when a key path is reported as deleted.
+       */
       onDeleted = new Delegate();
+      /**
+       * @property onInitialize
+       * @description Delegate fired once when the observer is initialized. Useful for initial population.
+       */
       onInitialize = new Delegate();
+      /**
+       * @property onDestroy
+       * @description Delegate fired when the observer is destroyed.
+       */
       onDestroy = new Delegate();
-      instances = new Map();
+      /**
+       * @constructor
+       * @description Create a GradumObserver.
+       * By default, `onUpdated` updates the data of the mapped instance if it exposes a {@link GradumModel} model,
+       * or `data` / `dataId` fields. `onDeleted` removes the instance from the map and the DOM.
+       * @param {GradumObserverProperties<DataType, ComponentType, KeyType>} [properties] - Initialization
+       * options and lifecycle callbacks.
+       */
       constructor(properties = {}) {
-          const self = this;
+          super();
           if (properties.onAdded)
-              this.onAdded.add((data, id, self, blockKey) => properties.onAdded(data, id, self, blockKey));
-          this.onUpdated.add((data, instance, id, self, blockKey) => {
+              this.onAdded.add((data, self, ...keys) => properties.onAdded(data, self, ...keys));
+          this.onUpdated.add((data, instance, self, ...keys) => {
               if (properties.onUpdated)
-                  properties.onUpdated(data, instance, id, self, blockKey);
+                  properties.onUpdated(data, instance, self, ...keys);
               else {
                   if (typeof instance !== "object")
                       return;
-                  if ("model" in instance && instance.model instanceof TurboModel)
-                      instance.model.setBlock(data, id);
-                  else {
-                      if ("data" in instance)
-                          instance.data = data;
-                      if ("dataId" in instance)
-                          instance.dataId = id.toString();
-                  }
+                  if ("data" in instance)
+                      instance.data = data;
+                  if ("dataId" in instance)
+                      instance.dataId = keys[keys.length - 1].toString();
               }
           });
-          this.onDeleted.add((data, instance, id, self, blockKey) => {
+          this.onDeleted.add((data, instance, self, ...keys) => {
               if (properties.onDeleted)
-                  properties.onDeleted(data, instance, id, self, blockKey);
+                  properties.onDeleted(data, instance, self, ...keys);
               else
-                  this.removeInstance(instance);
+                  this.removeValue(instance);
           });
+          if (properties.replaceOnUpdate)
+              this.replaceOnUpdate = properties.replaceOnUpdate;
           if (properties.onInitialize)
-              this.onInitialize.add(() => properties.onInitialize(self));
+              this.onInitialize.add((self) => properties.onInitialize(self));
           if (properties.onDestroy)
-              this.onDestroy.add(() => properties.onDestroy(self));
+              this.onDestroy.add((self) => properties.onDestroy(self));
           if (properties.initialize)
               this.initialize();
       }
-      getInstance(key, blockKey = this.defaultBlockKey) {
-          return this.instances.get(blockKey)?.get(key);
-      }
-      getBlockInstancesAndKeys(blockKey = this.defaultBlockKey) {
-          const block = this.instances.get(blockKey);
-          if (!block)
-              return [];
-          return Array.from(block.entries());
-      }
-      getBlockInstances(blockKey = this.defaultBlockKey) {
-          return this.getBlockInstancesAndKeys(blockKey)
-              .sort((a, b) => alphabeticalSorting(a[0], b[0]))
-              .map(entry => entry[1]);
-      }
-      getAllInstances() {
-          return Array.from(this.instances.keys())
-              .sort(alphabeticalSorting)
-              .flatMap(blockKey => this.getBlockInstances(blockKey));
-      }
-      getInstanceKey(instance) {
-          for (const [blockKey, map] of this.instances.entries()) {
-              for (const [key, entry] of map.entries()) {
-                  if (entry === instance)
-                      return { blockKey, key };
-              }
-          }
-      }
-      getInstanceAt(flatKey) {
-          const scoped = this.scopeKey(flatKey);
-          if (isUndefined(scoped.blockKey) || isUndefined(scoped.key))
-              return;
-          return this.getInstance(scoped.key, scoped.blockKey);
-      }
-      getInstanceFlatKey(instance) {
-          const scoped = this.getInstanceKey(instance);
-          if (!scoped)
-              return;
-          return this.flattenKey(scoped.key, scoped.blockKey);
-      }
-      setInstance(instance, key, blockKey = this.defaultBlockKey) {
-          let instancesBlock = this.instances.get(blockKey);
-          if (!instancesBlock) {
-              this.instances.set(blockKey, new Map());
-              instancesBlock = this.instances.get(blockKey);
-          }
-          instancesBlock?.set(key, instance);
-      }
-      removeInstanceByKey(key, removeFromDOM = true, blockKey = this.defaultBlockKey) {
-          const block = this.instances.get(blockKey);
-          if (!block)
-              return;
-          const instance = block.get(key);
-          block.delete(key);
+      /**
+       * @function remove
+       * @description Remove the instance at the given key path from the map and call `instance.remove()` if available.
+       * @param {...KeyType[]} keys - Ordered path to the instance.
+       */
+      remove(...keys) {
+          const instance = this.get(...keys);
+          super.remove(...keys);
           if (!instance)
               return;
-          if (removeFromDOM && instance && typeof instance === "object"
+          if (instance && typeof instance === "object"
               && "remove" in instance && typeof instance.remove == "function")
               instance?.remove();
       }
-      removeInstance(instance, removeFromDOM = true) {
-          const pos = this.getInstanceKey(instance);
-          if (pos)
-              this.removeInstanceByKey(pos.key, removeFromDOM, pos.blockKey ?? this.defaultBlockKey);
+      /**
+       * @function detach
+       * @description Remove the instance at the given key path from the map without calling `instance.remove()`,
+       * detaching it from the observer.
+       * @param {...KeyType[]} keys - Ordered path to the instance.
+       */
+      detach(...keys) {
+          super.remove(...keys);
       }
+      /**
+       * @property isInitialized
+       * @description Whether the observer has been initialized (i.e. {@link initialize} has been called).
+       */
       get isInitialized() {
           return this._isInitialized;
       }
+      /**
+       * @function initialize
+       * @description Initialization method that fires `onInitialize`. No-op if already initialized.
+       */
       initialize() {
           if (this.isInitialized)
               return;
           this.onInitialize.fire(this);
           this._isInitialized = true;
       }
-      clear() {
-          this.getAllInstances().forEach(instance => this.removeInstance(instance));
-          this.instances.clear();
+      /**
+       * @function clear
+       * @description Remove all managed instances, reset the observer to an uninitialized state, and optionally
+       * call `instance.remove()` on each instance.
+       * @param {boolean} [removeFromDom=true] - Whether to call `instance.remove()` on each managed instance.
+       */
+      clear(removeFromDom = true) {
+          if (removeFromDom)
+              this.values.forEach(instance => {
+                  if (typeof instance === "object" && "remove" in instance && typeof instance.remove == "function")
+                      instance.remove();
+              });
+          super.clear();
+          this.prevData.clear();
           this._isInitialized = false;
       }
-      destroy() {
-          this.clear();
+      /**
+       * @function destroy
+       * @description Remove all managed instances, reset the observer to an uninitialized state, optionally
+       * call `instance.remove()` on each instance, and fire `onDestroy`.
+       * @param {boolean} [removeFromDom=true] - Whether to call `instance.remove()` on each managed instance.
+       */
+      destroy(removeFromDom = true) {
+          this.clear(removeFromDom);
           this.onDestroy.fire(this);
       }
-      keyChanged(key, value, deleted = false, blockKey = this.defaultBlockKey) {
-          const existingInstance = this.getInstance(key, blockKey);
-          if (existingInstance) {
-              if (deleted)
-                  this.onDeleted.fire(value, existingInstance, key, this, blockKey);
-              else
-                  this.onUpdated.fire(value, existingInstance, key, this, blockKey);
+      /**
+       * @function keyChanged
+       * @description Notify the observer of a change at the given key path.
+       * Fires `onDeleted` if `deleted` is `true` and an instance exists, `onAdded` if no instance exists yet
+       * (storing the returned instance if any), and `onUpdated` otherwise.
+       * @param {KeyType[]} keys - The key path that changed.
+       * @param {DataType} value - The new value at that path.
+       * @param {boolean} [deleted=false] - Whether the entry was deleted.
+       */
+      keyChanged(keys, value, deleted = false) {
+          let instance = this.get(...keys);
+          if (!instance && deleted)
+              return;
+          if (instance && deleted) {
+              // Model-side deletions pass value = undefined by convention; recover the last
+              // seen value so onDeleted handlers know what was removed.
+              const prev = this.prevData.get(...keys);
+              this.prevData.remove(...keys);
+              this.onDeleted.fire(value ?? prev, instance, this, ...keys);
               return;
           }
-          if (deleted)
-              return;
-          const instance = this.onAdded.fire(value, key, this, blockKey);
-          if (!instance)
-              return;
-          this.setInstance(instance, key, blockKey);
-          this.onUpdated.fire(value, instance, key, this, blockKey);
-      }
-      flattenKey(key, blockKey = this.defaultBlockKey) {
-          if (typeof blockKey === "number") {
-              let globalIndex = 0;
-              for (const bk of Array.from(this.instances.keys()).sort(alphabeticalSorting)) {
-                  if (bk === blockKey)
-                      break;
-                  globalIndex += this.getBlockInstancesAndKeys(bk).length;
-              }
-              return globalIndex + Number(key);
-          }
-          else {
-              return blockKey.toString() + "|" + key.toString();
-          }
-      }
-      scopeKey(flatKey) {
-          if (typeof flatKey === "string") {
-              const split = flatKey.toString().split("|");
-              if (split.length < 2)
-                  return {};
-              return { blockKey: split[0], key: split[1] };
-          }
-          const blockKeys = Array.from(this.instances.keys()).sort(alphabeticalSorting);
-          if (typeof flatKey === "number") {
-              if (flatKey < 0)
-                  return { blockKey: blockKeys[0] ?? 0, key: 0 };
-              let index = flatKey;
-              for (const blockKey of blockKeys) {
-                  const size = this.getBlockInstancesAndKeys(blockKey).length;
-                  if (index < size)
-                      return { blockKey, key: index };
-                  index -= size;
+          if (instance && this.replaceOnUpdate) {
+              const prev = this.prevData.get(...keys);
+              if (this.replaceOnUpdate(prev, value, instance, this, ...keys)) {
+                  // Semantically a different item at this key — destroy old, create new.
+                  this.prevData.remove(...keys);
+                  this.onDeleted.fire(prev, instance, this, ...keys);
+                  // Force-detach if the onDeleted handler didn't remove the instance.
+                  if (this.get(...keys) === instance)
+                      this.detach(...keys);
+                  instance = undefined;
               }
           }
-          const lastBlockKey = blockKeys[blockKeys.length - 1];
-          return { blockKey: lastBlockKey, key: this.getBlockInstancesAndKeys(lastBlockKey).length };
-      }
-      get defaultBlockKey() {
-          const key = Array.from(this.instances.keys())?.[0];
-          if (!isUndefined(key))
-              return key;
-          return "__default__";
-      }
-  }
-
-  class DataBlockObserver extends TurboObserver {
-      keyChanged(key, value, deleted = false) {
-          super.keyChanged(key, value, deleted, this.defaultBlockKey);
-      }
-      // @ts-ignore
-      getInstanceKey(instance) {
-          return super.getInstanceKey(instance)?.key;
-      }
-      setInstance(instance, key) {
-          super.setInstance(instance, key);
+          if (!instance) {
+              instance = this.onAdded.fire(value, this, ...keys);
+              if (!instance)
+                  return;
+              this.set(instance, ...keys);
+          }
+          this.prevData.set(value, ...keys);
+          this.onUpdated.fire(value, instance, this, ...keys);
       }
   }
 
   /**
-   * @group Components
-   * @category TurboDataBlock
+   * @enum {string} RegistryCategory
+   * @group Decorators
+   * @category Registry, Attributes & DOM
+   *
+   * @description Categorizes registered classes by their base type in the Gradum Kit registry.
+   * Categories are ordered from most to least specific within each group, which determines
+   * how {@link inferCategory} resolves ambiguous inheritance chains.
+   *
+   * **Gradum Kit elements** (most to least specific):
+   * - `GradumProxiedElement`, `GradumElement`, `GradumBaseElement`, `GradumHeadlessElement`
+   *
+   * **Native DOM elements** (most to least specific):
+   * - `SVGElement`, `MathMLElement`, `HTMLElement`, `Element`, `Node`
+   *
+   * **MVC pieces:**
+   * - `GradumOperator`, `GradumHandler`, `GradumInteractor`, `GradumTool`, `GradumConstrainer`,
+   *   `GradumView`, `GradumEmitter`, `GradumModel`
+   *
+   * **Fallback:**
+   * - `Other` — for classes that do not match any recognized base type.
    */
-  let TurboDataBlock = (() => {
-      let _enabledCallbacks_decorators;
-      let _enabledCallbacks_initializers = [];
-      let _enabledCallbacks_extraInitializers = [];
-      return class TurboDataBlock {
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-              _enabledCallbacks_decorators = [auto({ defaultValue: true })];
-              __esDecorate(this, null, _enabledCallbacks_decorators, { kind: "accessor", name: "enabledCallbacks", static: false, private: false, access: { has: obj => "enabledCallbacks" in obj, get: obj => obj.enabledCallbacks, set: (obj, value) => { obj.enabledCallbacks = value; } }, metadata: _metadata }, _enabledCallbacks_initializers, _enabledCallbacks_extraInitializers);
-              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+  var RegistryCategory;
+  (function (RegistryCategory) {
+      RegistryCategory["GradumElement"] = "GradumElement";
+      RegistryCategory["GradumBaseElement"] = "GradumBaseElement";
+      RegistryCategory["GradumHeadlessElement"] = "GradumHeadlessElement";
+      RegistryCategory["GradumProxiedElement"] = "GradumProxiedElement";
+      RegistryCategory["HTMLElement"] = "HTMLElement";
+      RegistryCategory["SVGElement"] = "SVGElement";
+      RegistryCategory["MathMLElement"] = "MathMLElement";
+      RegistryCategory["Element"] = "Element";
+      RegistryCategory["Node"] = "Node";
+      RegistryCategory["GradumModel"] = "GradumModel";
+      RegistryCategory["GradumView"] = "GradumView";
+      RegistryCategory["GradumEmitter"] = "GradumEmitter";
+      RegistryCategory["GradumOperator"] = "GradumOperator";
+      RegistryCategory["GradumHandler"] = "GradumHandler";
+      RegistryCategory["GradumInteractor"] = "GradumInteractor";
+      RegistryCategory["GradumTool"] = "GradumTool";
+      RegistryCategory["GradumConstrainer"] = "GradumConstrainer";
+      RegistryCategory["Other"] = "Other";
+  })(RegistryCategory || (RegistryCategory = {}));
+
+  class DefineDecoratorUtils {
+      registry = new Map();
+      categoryMap = new WeakMap();
+      prototypeMap = new WeakMap();
+      dataMap = new WeakMap();
+      // -------------------------------------------------------------------------
+      // Category registration
+      // -------------------------------------------------------------------------
+      /**
+       * @description Registers a constructor's associated registry category. Called by each
+       * Gradum Kit base class after its definition to avoid circular import dependencies.
+       */
+      setCategory(constructor, category) {
+          this.categoryMap.set(constructor.prototype, category);
+      }
+      inferCategory(constructor) {
+          let proto = constructor.prototype;
+          while (proto && proto !== Object.prototype) {
+              const category = this.categoryMap.get(proto);
+              if (category)
+                  return category;
+              proto = Object.getPrototypeOf(proto);
           }
-          _data;
-          id;
-          get data() {
-              return this._data;
-          }
-          set data(data) {
-              this.clear(false);
-              this._data = data;
-              if (data)
-                  this.initialize();
-          }
-          #enabledCallbacks_accessor_storage = __runInitializers(this, _enabledCallbacks_initializers, void 0);
-          get enabledCallbacks() { return this.#enabledCallbacks_accessor_storage; }
-          set enabledCallbacks(value) { this.#enabledCallbacks_accessor_storage = value; }
-          isInitialized = (__runInitializers(this, _enabledCallbacks_extraInitializers), false);
-          host;
-          signals = new Map();
-          changeObservers = new TurboWeakSet();
-          onKeyChanged = new Delegate();
-          observerConstructor = DataBlockObserver;
-          constructor(properties = {}) {
-              this.id = properties.id;
-              this._data = properties.data;
-              if (properties.initialize)
-                  this.initialize();
-          }
-          /*
-           *
-           * Basics
-           *
-           */
-          get(key) {
-              if (this.data instanceof Map)
-                  return this.data.get(key);
-              return this.data?.[key];
-          }
-          set(key, value) {
-              if (!this.data)
-                  return;
-              const prev = this.get(key);
-              if (Object.is(prev, value))
-                  return;
-              if (this.data instanceof Map)
-                  this.data.set(key, value);
-              else
-                  this.data[key] = value;
-              this.keyChanged(key, value);
-          }
-          add(value, key) {
-              if (!this.data || !Array.isArray(this.data))
-                  return this.set(key, value);
-              let index = key;
-              if (isUndefined(index) || typeof index !== "number" || index > this.data.length) {
-                  index = this.data.length;
-                  this.data.push(value);
-              }
-              else {
-                  if (index < 0)
-                      index = 0;
-                  this.data.splice(index, 0, value);
-              }
-              return index;
-          }
-          has(key) {
-              if (this.data instanceof Map)
-                  return this.data.has(key);
-              return this.data?.[key] !== undefined;
-          }
-          delete(key) {
-              if (!this.data || !this.has(key))
-                  return;
-              if (this.data instanceof Map)
-                  this.data.delete(key);
-              else
-                  delete this.data[key];
-              this.keyChanged(key, undefined, true);
-          }
-          get keys() {
-              if (!this.data || typeof this.data !== "object")
-                  return [];
-              if (this.data instanceof Map)
-                  return Array.from(this.data.keys());
-              return [
-                  ...Object.keys(this.data),
-                  ...Object.getOwnPropertySymbols(this.data)
-              ];
-          }
-          get values() {
-              return this.keys.map(key => this.get(key));
-          }
-          get size() {
-              return this.keys.length;
-          }
-          /*
-           *
-           * Utilities
-           *
-           */
-          initialize() {
-              if (!this.data || this.isInitialized)
-                  return;
-              this.isInitialized = true;
-              for (const key of this.keys)
-                  this.keyChanged(key);
-          }
-          /**
-           * @function clear
-           * @description Clears the block data.
-           */
-          clear(clearData = true) {
-              if (clearData)
-                  this._data = undefined;
-              this.changeObservers?.toArray().forEach(observer => observer.clear());
-              this.isInitialized = false;
-          }
-          toJSON() {
-              if (this.data instanceof Map)
-                  return Object.fromEntries(this.data);
-              if (this.data && typeof this.data === "object") {
-                  const out = {};
-                  for (const k of this.keys)
-                      out[k] = this.get(k);
-                  return out;
-              }
+          const p = constructor.prototype;
+          if (p instanceof SVGElement)
+              return RegistryCategory.SVGElement;
+          if (typeof MathMLElement !== "undefined" && p instanceof MathMLElement)
+              return RegistryCategory.MathMLElement;
+          if (p instanceof HTMLElement)
+              return RegistryCategory.HTMLElement;
+          if (p instanceof Element)
+              return RegistryCategory.Element;
+          if (p instanceof Node)
+              return RegistryCategory.Node;
+          return RegistryCategory.Other;
+      }
+      // -------------------------------------------------------------------------
+      // Registry
+      // -------------------------------------------------------------------------
+      register(constructor, name, tag, category) {
+          const resolvedCategory = category ?? this.inferCategory(constructor);
+          const entry = { constructor, category: resolvedCategory, name, tag };
+          if (!this.registry.has(resolvedCategory))
+              this.registry.set(resolvedCategory, new Map());
+          this.registry.get(resolvedCategory)?.set(name, entry);
+      }
+      // -------------------------------------------------------------------------
+      // Define utils
+      // -------------------------------------------------------------------------
+      data(element) {
+          if (element instanceof GradumSelector)
+              element = element.element;
+          if (!element)
               return {};
+          if (!this.dataMap.has(element))
+              this.dataMap.set(element, {});
+          return this.dataMap.get(element);
+      }
+      prototype(prototype) {
+          if (!prototype)
+              return {};
+          if (!this.prototypeMap.has(prototype))
+              this.prototypeMap.set(prototype, {});
+          return this.prototypeMap.get(prototype);
+      }
+      fieldSetInPrototype(prototype, field) {
+          while (prototype && prototype !== HTMLElement.prototype) {
+              if (this.prototype(prototype)[field])
+                  return true;
+              prototype = Object.getPrototypeOf(prototype);
           }
-          /*
-           *
-           * Host
-           *
-           */
-          link(host) {
-              this.host = host;
+          return false;
+      }
+      skipAttributeChangedCallback(prototype) {
+          return this.fieldSetInPrototype(prototype, "setupAttributeChangedCallback");
+      }
+      skipConnectedCallback(prototype) {
+          return this.fieldSetInPrototype(prototype, "setupConnectedCallback");
+      }
+      getNamesOfPrototypeChain(prototype) {
+          const result = [];
+          while (prototype && prototype !== HTMLElement.prototype) {
+              const name = this.prototype(prototype).name;
+              if (name)
+                  result.push(name);
+              prototype = Object.getPrototypeOf(prototype);
           }
-          unlink() {
-              this.host = undefined;
-          }
-          /*
-           *
-           * Signals
-           *
-           */
-          makeSignal(key) {
-              if (this.signals.has(key))
-                  return this.signals.get(key);
-              const sig = signal(() => this.get(key), (value) => this.set(key, value), this, key);
-              this.signals.set(key, sig);
-              return sig;
-          }
-          getSignal(key) {
-              return this.signals.get(key);
-          }
-          makeAllSignals() {
-              this.keys.forEach(key => this.makeSignal(key));
-          }
-          /*
-           *
-           * Change observers
-           *
-           */
-          generateObserver(properties = {}) {
-              const observer = new (properties.customConstructor
-                  ?? this.observerConstructor
-                  ?? (DataBlockObserver))({
-                  ...properties,
-                  onDestroy: (self) => this.changeObservers?.delete(self),
-                  onInitialize: (self) => {
-                      if (!this.isInitialized)
-                          return;
-                      for (const key of this.keys)
-                          self.keyChanged(key, this.get(key));
-                  }
-              });
-              this.changeObservers?.add(observer);
-              return observer;
-          }
-          /*
-           *
-           * Internal utilities
-           *
-           */
-          keyChanged(key, value = this.get(key), deleted = false) {
-              this.signals.get(key)?.emit();
-              this.host?.onDirty?.(key, this);
-              if (deleted)
-                  this.signals.delete(key);
-              if (!this.enabledCallbacks)
-                  return;
-              this.onKeyChanged.fire(key, value);
-              this.host?.onChange?.(key, value, this);
-              this.changeObservers?.toArray().forEach(observer => observer.keyChanged(key, value, deleted));
-          }
-      };
-  })();
-
-  /**
-   * @class TurboModel
-   * @group MVC
-   * @category Model
-   *
-   * @template DataType - The type of the data stored in each block.
-   * @template {string | number | symbol} KeyType - The type of the keys used to access data in blocks.
-   * @template {string | number | symbol} IdType - The type of the block IDs.
-   * @template {"array" | "map"} BlocksType - Whether data blocks are stored as an array or a map.
-   * @template {TurboDataBlock<DataType, KeyType, IdType>} BlockType - The structure of each data block.
-   * @description A base class representing a model in MVC, which manages one or more data blocks and handles change
-   * propagation.
-   */
-  let TurboModel = (() => {
-      let _instanceExtraInitializers = [];
-      let _set_enabledCallbacks_decorators;
-      return class TurboModel {
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-              _set_enabledCallbacks_decorators = [auto()];
-              __esDecorate(this, null, _set_enabledCallbacks_decorators, { kind: "setter", name: "enabledCallbacks", static: false, private: false, access: { has: obj => "enabledCallbacks" in obj, set: (obj, value) => { obj.enabledCallbacks = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-          }
-          isDataBlocksArray = (__runInitializers(this, _instanceExtraInitializers), false);
-          dataBlocks;
-          changeObservers = new TurboWeakSet();
-          static dataBlockConstructor = TurboDataBlock;
-          observerConstructor = TurboObserver;
-          onSetBlock = new Delegate();
-          /**
-           * @description Map of MVC handlers bound to this model.
-           */
-          handlers;
-          /**
-           * @description Delegate triggered when a key changes.
-           */
-          keyChangedCallback;
-          onDirty(key, block) {
-              markDirty(this, key, this.getBlockKey(block));
-          }
-          onChange(key, value, block) {
-              this.fireBlockCallback(key, this.getBlockKey(block), value);
-          }
-          /**
-           * @constructor
-           * @param {DataType} [data] - Initial data. Not initialized if provided.
-           * @param {BlocksType} [dataBlocksType] - Type of data blocks (array or map).
-           */
-          constructor(data, dataBlocksType) {
-              this.keyChangedCallback = new Delegate();
-              if (dataBlocksType === "array") {
-                  this.isDataBlocksArray = true;
-                  this.dataBlocks = [];
-              }
-              else {
-                  this.isDataBlocksArray = false;
-                  this.dataBlocks = new Map();
-              }
-              this.enabledCallbacks = true;
-              if (data)
-                  this.setBlock(data, undefined, this.defaultBlockKey, false);
-              this.setup();
-          }
-          setup() { }
-          /**
-           * @description The default block.
-           */
-          get block() {
-              return this.getBlock();
-          }
-          set block(value) {
-              this.setBlock(value);
-          }
-          /**
-           * @description The data of the default block.
-           */
-          get data() {
-              return this.getBlockData();
-          }
-          set data(value) {
-              this.setBlock(value);
-          }
-          /**
-           * @description The ID of the default block.
-           */
-          get dataId() {
-              return this.getBlockId();
-          }
-          set dataId(value) {
-              this.setBlockId(value);
-          }
-          /**
-           * @description Whether callbacks are enabled or not.
-           */
-          set enabledCallbacks(value) {
-              this.getAllBlocks().forEach(block => block.enabledCallbacks = value);
-          }
-          /**
-           * @function getBlock
-           * @description Retrieves the data block for the given blockKey.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey = this.defaultBlockKey] - The block key to retrieve.
-           * @returns {BlockType | null} The block or null if it doesn't exist.
-           */
-          getBlock(blockKey = this.defaultBlockKey) {
-              if (!this.isValidBlockKey(blockKey))
-                  return;
-              if (this.isDataBlocksArray) {
-                  const index = Number(blockKey);
-                  if (Number.isInteger(index) && index >= 0 && index < this.dataBlocks.length) {
-                      return this.dataBlocks[index];
-                  }
-              }
-              else {
-                  return this.dataBlocks.get(blockKey.toString());
-              }
-          }
-          /**
-           * @function createBlock
-           * @description Creates a data block entry.
-           * @param {DataType} value - The data of the block.
-           * @param {IdType} [id] - The optional ID of the data.
-           * @param initialize
-           * @protected
-           * @return {BlockType} - The created block.
-           */
-          createBlock(value, id, initialize = true) {
-              const block = value instanceof TurboDataBlock
-                  ? value
-                  : new (this.constructor.dataBlockConstructor ?? TurboDataBlock)({ id: id, data: value });
-              block.link(this);
-              if (initialize)
-                  block.initialize();
-              return block;
-          }
-          /**
-           * @function setBlock
-           * @description Creates and sets a data block at the specified key.
-           * @param {DataType} value - The data to set.
-           * @param {IdType} [id] - Optional block ID.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey = this.defaultBlockKey] - The key of the block.
-           * @param {boolean} [initialize = true] - Whether to initialize the block after setting.
-           */
-          setBlock(value, id, blockKey = this.defaultBlockKey, initialize = true) {
-              if (!this.isValidBlockKey(blockKey))
-                  return;
-              const prev = this.getBlock(blockKey);
-              if (prev && !(value instanceof TurboDataBlock)) {
-                  prev.clear();
-                  prev.data = value;
-                  if (!isUndefined(id))
-                      prev.id = id;
-                  this.onSetBlock.fire(blockKey);
-                  return;
-              }
-              prev?.clear();
-              prev?.unlink();
-              const block = this.createBlock(value, id, false);
-              if (this.isDataBlocksArray) {
-                  const index = Number(blockKey);
-                  if (Number.isInteger(index) && index >= 0) {
-                      this.dataBlocks[index] = block;
-                  }
-              }
-              else {
-                  this.dataBlocks.set(blockKey.toString(), block);
-              }
-              if (initialize)
-                  this.initialize(blockKey);
-              this.onSetBlock.fire(blockKey);
-          }
-          /**
-           * @function hasBlock
-           * @description Check if a block exists at the given key.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey] - Block key.
-           * @return {boolean} - Whether the block exists or not.
-           */
-          hasBlock(blockKey) {
-              if (this.isDataBlocksArray) {
-                  const index = Number(blockKey);
-                  return Number.isInteger(index) && index >= 0 && index < this.dataBlocks.length;
-              }
-              return this.dataBlocks.has(blockKey.toString());
-          }
-          deleteBlock(blockKey) {
-              const block = this.getBlock(blockKey);
-              if (!block)
-                  return;
-              block.clear();
-              block.unlink();
-              if (this.isDataBlocksArray) {
-                  const index = Number(blockKey);
-                  if (Number.isInteger(index) && index >= 0 && index < this.dataBlocks.length) {
-                      this.dataBlocks.splice(index, 1);
-                  }
-              }
-              else {
-                  this.dataBlocks.delete(blockKey.toString());
-              }
-          }
-          /**
-           * @function addBlock
-           * @description Adds a new block into the structure. Appends or inserts based on key if using array.
-           * @param {DataType} value - The block data.
-           * @param {IdType} [id] - Optional block ID.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey] - Block key (used for insertion in arrays).
-           * @param {boolean} [initialize=true] - Whether to initialize after adding.
-           */
-          addBlock(value, id, blockKey, initialize = true) {
-              if (!this.isDataBlocksArray)
-                  return this.setBlock(value, id, blockKey, initialize);
-              const block = this.createBlock(value, id, false);
-              let index = Number(blockKey);
-              if (!Number.isInteger(index) || index < 0)
-                  index = this.dataBlocks.length;
-              this.dataBlocks.splice(index, 0, block);
-              if (initialize)
-                  this.initialize(index);
-              return index;
-          }
-          /**
-           * @function getData
-           * @description Retrieves the value associated with a given key in the specified block.
-           * @param {KeyType} key - The key to retrieve.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey = this.defaultBlockKey] - The block from which to retrieve the
-           * data.
-           * @returns {unknown} The value associated with the key, or null if not found.
-           */
-          getData(key, blockKey = this.defaultBlockKey) {
-              return this.getBlock(blockKey)?.get(key);
-          }
-          /**
-           * @function getDataAt
-           * @description Retrieves the value associated with a given flat key.
-           * @param {MvcFlatKeyType<BlocksType>} flatKey - The flat key to retrieve.
-           * @returns {unknown} The value associated with the key, or null if not found.
-           */
-          getDataAt(flatKey) {
-              const scopedKey = this.scopeKey(flatKey);
-              if (isUndefined(scopedKey.key) || isUndefined(scopedKey.blockKey))
-                  return;
-              return this.getData(scopedKey.key, scopedKey.blockKey);
-          }
-          /**
-           * @function setData
-           * @description Sets the value for a given key in the specified block and triggers callbacks (if enabled).
-           * @param {KeyType} key - The key to update.
-           * @param {unknown} value - The value to assign.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey = this.defaultBlockKey] - The block to update.
-           */
-          setData(key, value, blockKey = this.defaultBlockKey) {
-              return this.getBlock(blockKey)?.set(key, value);
-          }
-          /**
-           * @function setDataAt
-           * @description Sets the value for a given flat key and triggers callbacks (if enabled).
-           * @param {MvcFlatKeyType<BlocksType>} flatKey - The flat key to update.
-           * @param {unknown} value - The value to assign.
-           */
-          setDataAt(flatKey, value) {
-              const scopedKey = this.scopeKey(flatKey);
-              if (isUndefined(scopedKey.key) || isUndefined(scopedKey.blockKey))
-                  return;
-              return this.setData(scopedKey.key, value, scopedKey.blockKey);
-          }
-          addData(value, key, blockKey = this.defaultBlockKey) {
-              return this.getBlock(blockKey)?.add(value, key);
-          }
-          addDataAt(value, flatKey) {
-              const scopedKey = this.scopeKey(flatKey);
-              if (isUndefined(scopedKey.key) || isUndefined(scopedKey.blockKey))
-                  return;
-              return this.addData(value, scopedKey.key, scopedKey.blockKey);
-          }
-          /**
-           * @function hasData
-           * @description Checks the value for a given key in the specified block and triggers callbacks (if enabled).
-           * @param {KeyType} key - The key to update.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey = this.defaultBlockKey] - The block to update.
-           */
-          hasData(key, blockKey = this.defaultBlockKey) {
-              return this.getBlock(blockKey)?.has(key);
-          }
-          /**
-           * @function hasDataAt
-           * @description Sets the value for a given flat key in the specified block and triggers callbacks (if enabled).
-           * @param {MvcFlatKeyType<BlocksType>} flatKey - The flat key to check.
-           */
-          hasDataAt(flatKey) {
-              const scopedKey = this.scopeKey(flatKey);
-              if (isUndefined(scopedKey.key) || isUndefined(scopedKey.blockKey))
-                  return false;
-              return this.hasData(scopedKey.key, scopedKey.blockKey);
-          }
-          deleteData(key, blockKey = this.defaultBlockKey) {
-              return this.getBlock(blockKey)?.delete(key);
-          }
-          deleteDataAt(flatKey) {
-              const scopedKey = this.scopeKey(flatKey);
-              if (isUndefined(scopedKey.key) || isUndefined(scopedKey.blockKey))
-                  return false;
-              return this.deleteData(scopedKey.key, scopedKey.blockKey);
-          }
-          /**
-           * @function getSize
-           * @description Returns the size of the specified block.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey = this.defaultBlockKey] - The block to check.
-           * @returns {number} The size.
-           */
-          getSize(blockKey = this.defaultBlockKey) {
-              return this.getBlock(blockKey)?.size ?? 0;
-          }
-          toJSON(blockKey = this.defaultBlockKey) {
-              return this.getBlock(blockKey)?.toJSON();
-          }
-          /**
-           * @function getBlockData
-           * @description Retrieves the data from a specific block.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey = this.defaultBlockKey] - The block key.
-           * @returns {DataType} The block's data or  if it doesn't exist.
-           */
-          getBlockData(blockKey = this.defaultBlockKey) {
-              return this.getBlock(blockKey)?.data;
-          }
-          /**
-           * @function getBlockId
-           * @description Retrieves the ID from a specific block.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey = this.defaultBlockKey] - The block key.
-           * @returns {IdType} The block ID or null.
-           */
-          getBlockId(blockKey = this.defaultBlockKey) {
-              return this.getBlock(blockKey)?.id;
-          }
-          /**
-           * @function setBlockId
-           * @description Sets the ID for a specific block.
-           * @param {IdType} value - The new ID.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey=this.defaultBlockKey] - The block key.
-           */
-          setBlockId(value, blockKey = this.defaultBlockKey) {
-              if (!value)
-                  return;
-              const block = this.getBlock(blockKey);
-              if (block)
-                  block.id = value;
-          }
-          /**
-           * @function fireCallback
-           * @description Fires the emitter's change callback for the given key in the default blocks.
-           * @param {string | KeyType} key - The key to fire for.
-           * @param {...any[]} args - Additional arguments.
-           */
-          fireCallback(key, ...args) {
-              this.keyChangedCallback.fire(key, this.defaultBlockKey, ...args);
-          }
-          /**
-           * @function fireBlockCallback
-           * @description Fires the emitter's change callback for the given key in a specific block with custom arguments.
-           * @param {string | KeyType} key - The key to fire for.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey=this.defaultBlockKey] - The block key.
-           * @param {...any[]} args - Additional arguments.
-           */
-          fireBlockCallback(key, blockKey = this.defaultBlockKey, ...args) {
-              if (!this.isValidBlockKey(blockKey))
-                  blockKey = this.getAllBlockKeys()[0];
-              this.keyChangedCallback.fire(key, blockKey, ...args);
-              const value = this.getBlock(blockKey)?.get(key);
-              this.changeObservers.toArray().forEach(observer => observer.keyChanged(key, value, false, blockKey));
-          }
-          /**
-           * @function initialize
-           * @description Initializes the block at the given key, and triggers callbacks for all the keys in its data.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey = this.defaultBlockKey] - The block key.
-           */
-          initialize(blockKey = this.defaultBlockKey) {
-              this.getBlock(blockKey)?.initialize();
-          }
-          /**
-           * @function clear
-           * @description Clears the block data at the given key.
-           * @param clearData
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey = this.defaultBlockKey] - The block key.
-           */
-          clear(clearData = true, blockKey = this.defaultBlockKey) {
-              this.getBlock(blockKey)?.clear(clearData);
-          }
-          /**
-           * @description The default block key based on whether the data structure is an array or map.
-           */
-          get defaultBlockKey() {
-              return (this.isDataBlocksArray ? 0 : "__turbo_default_block_key__");
-          }
-          /**
-           * @description The default block key if there's only one block, otherwise null.
-           */
-          get defaultComputationBlockKey() {
-              const size = this.isDataBlocksArray
-                  ? this.dataBlocks.length
-                  : this.dataBlocks.size;
-              return size > 1 ? null : this.defaultBlockKey;
-          }
-          /**
-           * @function isValidBlockKey
-           * @description Checks if the block key is a valid string or number.
-           * @param {MvcBlockKeyType<BlocksType>} blockKey - The block key to validate.
-           * @returns {boolean} True if valid, false otherwise.
-           */
-          isValidBlockKey(blockKey) {
-              return blockKey !== undefined && blockKey !== null
-                  && ((typeof blockKey === "string" && blockKey.length !== 0)
-                      || typeof blockKey === "number");
-          }
-          /**
-           * @function getAllBlockKeys
-           * @description Retrieves all block keys in the model.
-           * @returns {MvcBlockKeyType<BlocksType>[]} Array of block keys.
-           */
-          getAllBlockKeys() {
-              if (this.isDataBlocksArray)
-                  return this.dataBlocks.map((_, index) => index);
-              else
-                  return Array.from(this.dataBlocks.keys());
-          }
-          /**
-           * @function getAllBlockIds
-           * @description Retrieves all block (data) IDs in the model.
-           * @returns {IdType[]} Array of IDs.
-           */
-          getAllBlockIds() {
-              return this.getAllBlocks().map(block => block.id);
-          }
-          /**
-           * @function getAllBlocks
-           * @description Retrieves all blocks or a specific one if blockKey is defined.
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey=this.defaultComputationBlockKey] - The block key.
-           * @returns {BlockType[]} Array of blocks.
-           */
-          getAllBlocks(blockKey = this.defaultComputationBlockKey) {
-              const output = [];
-              if (blockKey !== null) {
-                  const block = this.getBlock(blockKey);
-                  if (block)
-                      output.push(block);
-              }
-              else {
-                  for (const key of this.getAllBlockKeys()) {
-                      const block = this.getBlock(key);
-                      if (block)
-                          output.push(block);
-                  }
-              }
-              return output;
-          }
-          getBlockKey(block) {
-              for (const blockKey of this.getAllBlockKeys()) {
-                  if (this.getBlock(blockKey) === block)
-                      return blockKey;
-              }
-          }
-          /**
-           * @function getAllKeys
-           * @description Retrieves all keys within the given block(s).
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey=this.defaultComputationBlockKey] - The block key.
-           * @returns {KeyType[]} Array of keys.
-           */
-          getAllKeys(blockKey = this.defaultComputationBlockKey) {
-              return this.getAllBlocks(blockKey).flatMap(block => block.keys);
-          }
-          /**
-           * @function getAllValues
-           * @description Retrieves all values across block(s).
-           * @param {MvcBlockKeyType<BlocksType>} [blockKey=this.defaultComputationBlockKey] - The block key.
-           * @returns {unknown[]} Array of values.
-           */
-          getAllValues(blockKey = this.defaultComputationBlockKey) {
-              return this.getAllBlocks(blockKey).flatMap(block => block.values);
-          }
-          /**
-           * @function getHandler
-           * @description Retrieves the attached MVC handler with the given key.
-           * By default, unless manually defined in the handler, if the element's class name is MyElement
-           * and the handler's class name is MyElementSomethingHandler, the key would be "something".
-           * @param {string} key - The handler's key.
-           * @return {TurboHandler} - The handler.
-           */
-          getHandler(key) {
-              return this.handlers?.get(key);
-          }
-          /**
-           * @function addHandler
-           * @description Registers a TurboHandler for the given key.
-           * @param {TurboHandler} handler - The handler instance to register.
-           */
-          addHandler(handler) {
-              if (!handler.keyName)
-                  return;
-              this.handlers?.set(handler.keyName, handler);
-          }
-          generateObserver(properties = {}) {
-              const observer = new (properties.customConstructor
-                  ?? this.observerConstructor
-                  ?? (TurboObserver))({
-                  ...properties,
-                  onDestroy: () => this.changeObservers.delete(observer),
-                  onInitialize: () => {
-                      for (const blockKey of this.getAllBlockKeys()) {
-                          for (const key of this.getAllKeys(blockKey)) {
-                              observer.keyChanged(key, this.getData(key, blockKey), false, blockKey);
-                          }
-                      }
-                  }
-              });
-              this.changeObservers.add(observer);
-              return observer;
-          }
-          flattenKey(key, blockKey = this.defaultBlockKey) {
-              if (Array.isArray(this.dataBlocks)) {
-                  let globalIndex = 0;
-                  for (const bk of this.getAllBlockKeys().sort(alphabeticalSorting)) {
-                      if (bk === blockKey)
-                          break;
-                      globalIndex += this.getSize(bk);
-                  }
-                  return (globalIndex + Number(key));
-              }
-              else {
-                  return (blockKey.toString() + "|" + key.toString());
-              }
-          }
-          scopeKey(flatKey) {
-              if (typeof flatKey === "string") {
-                  const split = flatKey.toString().split("|");
-                  if (split.length < 2)
-                      return {};
-                  return { blockKey: split[0], key: split[1] };
-              }
-              const blockKeys = this.getAllBlockKeys().sort(alphabeticalSorting);
-              if (typeof flatKey === "number") {
-                  if (flatKey < 0)
-                      return { blockKey: 0, key: 0 };
-                  let index = flatKey;
-                  for (const blockKey of blockKeys) {
-                      const size = this.getSize(blockKey);
-                      if (index < size)
-                          return { blockKey, key: index };
-                      index -= size;
-                  }
-              }
-              const lastBlockKey = blockKeys[blockKeys.length - 1];
-              return { blockKey: lastBlockKey, key: this.getSize(lastBlockKey) };
-          }
-      };
-  })();
-
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const TurboKeyEventName = {
-      keyPressed: "turbo-key-pressed",
-      keyReleased: "turbo-key-released"
-  };
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const DefaultKeyEventName = {
-      keyPressed: "keydown",
-      keyReleased: "keyup",
-  };
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const TurboClickEventName = {
-      click: "turbo-click",
-      clickStart: "turbo-click-start",
-      clickEnd: "turbo-click-end",
-      longPress: "turbo-long-press"
-  };
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const DefaultClickEventName = {
-      click: "click",
-      clickStart: "mousedown",
-      clickEnd: "mouseup",
-      longPress: TurboClickEventName.longPress
-  };
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const TurboMoveEventName = {
-      move: "turbo-move"
-  };
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const DefaultMoveEventName = {
-      move: "mousemove"
-  };
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const TurboDragEventName = {
-      drag: "turbo-drag",
-      dragStart: "turbo-drag-start",
-      dragEnd: "turbo-drag-end"
-  };
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const DefaultDragEventName = {
-      drag: TurboDragEventName.drag,
-      dragStart: TurboDragEventName.dragStart,
-      dragEnd: TurboDragEventName.dragEnd,
-  };
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const TurboWheelEventName = {
-      trackpadScroll: "turbo-trackpad-scroll",
-      trackpadPinch: "turbo-trackpad-pinch",
-      mouseWheel: "turbo-mouse-wheel"
-  };
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const DefaultWheelEventName = {
-      trackpadScroll: "wheel",
-      trackpadPinch: "wheel",
-      mouseWheel: "wheel"
-  };
-  /**
-   * @group Types
-   * @category Event Names
-   */
-  const TurboEventName = {
-      ...TurboClickEventName,
-      ...TurboKeyEventName,
-      ...TurboMoveEventName,
-      ...TurboDragEventName,
-      ...TurboWheelEventName};
-  /**
-   * @group Types
-   * @category Event Names
-   *
-   * @description Object containing the names of events fired by default by the turboComponents. Modifying it (prior to
-   * setting up new turbo components) will subsequently alter the events that the instantiated components will listen for.
-   */
-  const DefaultEventName = {
-      ...DefaultKeyEventName,
-      ...DefaultClickEventName,
-      ...DefaultMoveEventName,
-      ...DefaultDragEventName,
-      ...DefaultWheelEventName,
-      wheel: "wheel",
-      scroll: "scroll",
-      input: "input",
-      change: "change",
-      focus: "focus",
-      focusIn: "focusin",
-      focusOut: "focusout",
-      blur: "blur",
-      resize: "resize",
-      compositionStart: "compositionstart",
-      compositionEnd: "compositionend",
-  };
-
-  /**
-   * @group Utilities
-   * @category String
-   *
-   * @description Converts the passed variable into a string.
-   * @param value - The variable to convert to string
-   * @returns {string} - The string representation of the value
-   */
-  function stringify(value) {
-      if (value === null || value === undefined)
-          return undefined;
-      switch (typeof value) {
-          case "string":
-              return value;
-          case "number":
-          case "boolean":
-          case "bigint":
-          case "symbol":
-          case "function":
-              return value.toString();
-          case "object":
-              if (Array.isArray(value))
-                  return JSON.stringify(value.map(entry => stringify(entry)));
-              else if (value instanceof Date)
-                  return value.toISOString();
-              else if (value instanceof Element)
-                  return "[DOM ELEMENT]";
-              else {
-                  try {
-                      return JSON.stringify(value);
-                  }
-                  catch {
-                      return "[object Object]";
-                  }
-              }
-          default:
-              return String(value);
+          return result;
       }
   }
-  /**
-   * @group Utilities
-   * @category String
-   *
-   * @description Attempts to convert the passed string back to its original type.
-   * @param str - The string to convert back to its original type
-   * @returns {any} - The original value
-   */
-  function parse(str) {
-      if (isUndefined(str))
-          return undefined;
-      switch (str) {
-          case "null":
-              return null;
-          case "true":
-              return true;
-          case "false":
-              return false;
-      }
-      if (!isNaN(Number(str)))
-          return Number(str);
-      if (/^\d+n$/.test(str))
-          return BigInt(str.slice(0, -1));
-      if (str.startsWith("function") || str.startsWith("(")) {
-          try {
-              const parsedFunction = new Function(`return (${str})`)();
-              if (typeof parsedFunction === "function")
-                  return parsedFunction;
-          }
-          catch {
-          }
-      }
-      try {
-          const parsed = JSON.parse(str);
-          if (typeof parsed === "object" && parsed != null)
-              return parsed;
-      }
-      catch {
-      }
-      return str;
-  }
-  /**
-   * @group Utilities
-   * @category String
-   *
-   * @description Extracts the extension from the given filename or path (e.g.: ".png").
-   * @param {string} str - The filename or path
-   * @return The extension, or an empty string if not found.
-   */
-  function getFileExtension(str) {
-      if (!str || str.length == 0)
-          return "";
-      const match = str.match(/\.\S{1,4}$/);
-      return match ? match[0] : "";
-  }
+
   /**
    * @group Utilities
    * @category String
@@ -11606,774 +12444,2477 @@
       return str.replace(/-([a-z])/g, g => g[1].toUpperCase());
   }
 
-  function setupElementFunctions() {
-      /**
-       * Sets the declared properties to the element.
-       * @param {TurboProperties<Tag>} [properties] - The properties object.
-       * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base turbo properties (classes,
-       * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in TurboProperties.
-       * @returns {this} Itself, allowing for method chaining.
-       * @template Tag
-       */
-      TurboSelector.prototype.setProperties = function _setProperties(properties = {}, setOnlyBaseProperties = false) {
-          if (!this)
-              return this;
-          if (properties.out) {
-              if (typeof properties.out == "string")
-                  this["__outName"] = properties.out;
-              else
-                  Object.assign(properties.out, this);
-          }
-          if (!this.element.shadowRoot) {
-              let shadowDOM = !!properties.shadowDOM;
-              if ("getPropertiesValue" in this.element && typeof this.element.getPropertiesValue === "function")
-                  shadowDOM = this.element.getPropertiesValue(properties.shadowDOM, "shadowDOM");
-              if (shadowDOM)
-                  try {
-                      this.element.attachShadow({ mode: "open" });
-                  }
-                  catch { }
-          }
-          const mvc = this.element?.["mvc"] instanceof Mvc ? this.element["mvc"]
-              : "model" in this.element && "view" in this.element ? this.element : undefined;
-          for (const property of Object.keys(properties)) {
-              const value = properties[property];
-              if (value === undefined)
-                  continue;
-              switch (property) {
-                  case "tag":
-                  case "namespace":
-                  case "shadowDOM":
-                      break;
-                  case "text":
-                      if (this.element instanceof HTMLElement)
-                          this.element.innerText = value;
-                      break;
-                  case "style":
-                      if (!(this.element instanceof HTMLElement || this.element instanceof SVGElement))
-                          break;
-                      this.setStyles(value, true);
-                      break;
-                  case "stylesheet":
-                      stylesheet(value, this.closestRoot);
-                      break;
-                  case "id":
-                      this.element.id = value;
-                      break;
-                  case "classes":
-                      this.addClass(value);
-                      break;
-                  case "listeners":
-                      Object.entries(value).forEach(([type, callback]) => this.on(type, callback));
-                      break;
-                  case "onClick":
-                      this.on(DefaultEventName.click, value);
-                      break;
-                  case "onDrag":
-                      this.on(DefaultEventName.drag, value);
-                      break;
-                  case "children":
-                      this.addChild(value);
-                      break;
-                  case "parent":
-                      $(value).addChild(this.element);
-                      break;
-                  case "data":
-                  case "dataId":
-                  case "initialize":
-                      if (mvc)
-                          break;
-                  case "model":
-                  case "view":
-                  case "emitter":
-                  case "controllers":
-                  case "handlers":
-                  case "interactors":
-                  case "tools":
-                  case "substrates":
-                      if (setOnlyBaseProperties)
-                          break;
-                      if (mvc) {
-                          try {
-                              mvc[property] = value;
-                              if (property === "model" && properties.data && mvc["model"] instanceof TurboModel) {
-                                  mvc["model"].setBlock(properties.data, properties.dataId, undefined, false);
-                              }
-                          }
-                          catch { }
-                          break;
-                      }
-                  default:
-                      if (setOnlyBaseProperties)
-                          break;
-                      try {
-                          this.element[property] = value;
-                      }
-                      catch (e) {
-                          try {
-                              this.setAttribute(property, stringify(value));
-                          }
-                          catch (e) {
-                              console.error(e);
-                          }
-                      }
-                      break;
-              }
-          }
-          if (properties.initialize === undefined || properties.initialize) {
-              if (this.element && "initialize" in this.element && typeof this.element.initialize === "function")
-                  this.element.initialize();
-              else if (mvc && "initialize" in mvc && typeof mvc.initialize === "function")
-                  mvc.initialize();
-          }
-          return this;
-      };
-      TurboSelector.prototype.setMvc = function _setMvc(properties) {
-          if (!this.element)
-              return undefined;
-          if ("mvc" in this.element && this.element.mvc instanceof Mvc) {
-              this.element.mvc.generate(properties);
-              return this.element.mvc;
-          }
-          return new Mvc({ ...properties, element: this.element });
-      };
-      /**
-       * @description Destroys the node by removing it from the document and removing all its bound listeners.
-       * @returns {this} Itself, allowing for method chaining.
-       */
-      TurboSelector.prototype.destroy = function _destroy() {
-          this.removeAllListeners();
-          this.remove();
-          if (this.element && "destroy" in this.element && typeof this.element.destroy === "function")
-              this.element.destroy();
-          return this;
-      };
-      /**
-       * @description Sets the value of an attribute on the underlying element.
-       * @param {string} name The name of the attribute.
-       * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent a
-       * true boolean.
-       * @returns {this} Itself, allowing for method chaining.
-       */
-      TurboSelector.prototype.setAttribute = function _setAttribute(name, value) {
-          if (this.element instanceof Element)
-              this.element.setAttribute(name, value?.toString() || "true");
-          return this;
-      };
-      /**
-       * @description Removes an attribute from the underlying element.
-       * @param {string} name The name of the attribute to remove.
-       * @returns {this} Itself, allowing for method chaining.
-       */
-      TurboSelector.prototype.removeAttribute = function _removeAttribute(name) {
-          if (this.element instanceof Element)
-              this.element.removeAttribute(name);
-          return this;
-      };
-      /**
-       * @description Causes the element to lose focus.
-       * @returns {this} Itself, allowing for method chaining.
-       */
-      TurboSelector.prototype.blur = function _blur() {
-          if (this.element instanceof HTMLElement)
-              this.element.blur();
-          return this;
-      };
-      /**
-       * @description Sets focus on the element.
-       * @returns {this} Itself, allowing for method chaining.
-       */
-      TurboSelector.prototype.focus = function _focus() {
-          if (this.element instanceof HTMLElement)
-              this.element.focus();
-          return this;
+  const utils$9 = new DefineDecoratorUtils();
+  function define(...args) {
+      if (typeof args[0] === "function") {
+          let [Base, elementName, className, options] = args;
+          if (!className)
+              className = Base?.name;
+          if (!elementName)
+              elementName = camelToKebabCase(className);
+          return applyDefine(Base, className, elementName, options);
+      }
+      let [className, elementName, options] = args;
+      return function (Base, context) {
+          if (!className)
+              className = context.name ?? Base?.constructor.name;
+          if (!elementName)
+              elementName = camelToKebabCase(className);
+          return applyDefine(Base, className, elementName, options);
       };
   }
-
-  var EventPropagation;
-  (function (EventPropagation) {
-      EventPropagation["propagate"] = "propagate";
-      EventPropagation["stopPropagation"] = "stopPropagation";
-      EventPropagation["stopImmediatePropagation"] = "stopImmediatePropagation";
-  })(EventPropagation || (EventPropagation = {}));
-  /**
-   * @group Types
-   * @category Event
-   */
-  const BasicInputEvents = [
-      "mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu",
-      "dragstart", "selectstart",
-      "touchstart", "touchmove", "touchend", "touchcancel",
-      "pointerdown", "pointermove", "pointerup",
-      "wheel"
-  ];
-  /**
-   * @group Types
-   * @category Event
-   */
-  const NonPassiveEvents = [
-      "wheel", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "pointercancel"
-  ];
-
-  /**
-   * @group Event Handling
-   * @category Enums
-   */
-  var ActionMode;
-  (function (ActionMode) {
-      ActionMode[ActionMode["none"] = 0] = "none";
-      ActionMode[ActionMode["click"] = 1] = "click";
-      ActionMode[ActionMode["longPress"] = 2] = "longPress";
-      ActionMode[ActionMode["drag"] = 3] = "drag";
-  })(ActionMode || (ActionMode = {}));
-  /**
-   * @group Event Handling
-   * @category Enums
-   */
-  var ClickMode;
-  (function (ClickMode) {
-      ClickMode[ClickMode["none"] = 0] = "none";
-      ClickMode[ClickMode["left"] = 1] = "left";
-      ClickMode[ClickMode["right"] = 2] = "right";
-      ClickMode[ClickMode["middle"] = 3] = "middle";
-      ClickMode[ClickMode["other"] = 4] = "other";
-      ClickMode[ClickMode["key"] = 5] = "key";
-  })(ClickMode || (ClickMode = {}));
-  /**
-   * @group Event Handling
-   * @category Enums
-   */
-  var InputDevice;
-  (function (InputDevice) {
-      InputDevice[InputDevice["unknown"] = 0] = "unknown";
-      InputDevice[InputDevice["mouse"] = 1] = "mouse";
-      InputDevice[InputDevice["trackpad"] = 2] = "trackpad";
-      InputDevice[InputDevice["touch"] = 3] = "touch";
-  })(InputDevice || (InputDevice = {}));
-
-  /**
-   * @internal
-   */
-  function inferKey(name, type, context) {
-      return (String(context.name).endsWith(type)
-          ? String(context.name).slice(0, -type.length)
-          : String(context.name));
-  }
-  /**
-   * @internal
-   */
-  function generateField(context, type, name) {
-      const cacheKey = Symbol(`__${type.toLowerCase()}_${String(context.name)}`);
-      const keyName = inferKey(name, type, context);
-      context.addInitializer(function () {
-          Object.defineProperty(this, context.name, {
+  function applyDefine(Base, className, elementName, options = { injectAttributeBridge: true }) {
+      const prototype = Base.prototype;
+      utils$9.register(Base, className, prototype instanceof Element ? elementName : undefined);
+      if (!(prototype instanceof Element))
+          return Base;
+      if (elementName)
+          utils$9.prototype(prototype).name = elementName;
+      Object.defineProperty(Base, "tagName", {
+          configurable: true,
+          enumerable: false,
+          writable: false,
+          value: elementName
+      });
+      if (typeof Base["create"] === "function" && !utils$9.prototype(Base.prototype).wrappedCreate) {
+          utils$9.prototype(Base.prototype).wrappedCreate = true;
+          const originalCreate = Base["create"];
+          Object.defineProperty(Base, "create", {
               configurable: true,
               enumerable: false,
-              get: function () {
-                  if (this[cacheKey])
-                      return this[cacheKey];
-                  let value;
-                  let functionName;
-                  switch (type) {
-                      case "Controller":
-                          functionName = "getController";
-                          break;
-                      case "Handler":
-                          functionName = "getHandler";
-                          break;
-                      case "Interactor":
-                          functionName = "getInteractor";
-                          break;
-                      case "Tool":
-                          functionName = "getTool";
-                          break;
-                      case "Substrate":
-                          functionName = "getSubstrate";
-                          break;
+              writable: true,
+              value: function (properties = {}) {
+                  gradum(properties).applyDefaults({ tag: elementName, ...(this.defaultProperties ?? {}) });
+                  return originalCreate.call(this, properties);
+              }
+          });
+      }
+      Object.defineProperty(Base, "observedAttributes", {
+          configurable: true,
+          enumerable: false,
+          get: function () {
+              const combined = new Set();
+              let constructor = this;
+              while (constructor && constructor !== Function.prototype) {
+                  const set = constructor[Symbol.metadata]?.observedAttributes;
+                  if (set)
+                      for (const entry of set)
+                          combined.add(entry);
+                  constructor = Object.getPrototypeOf(constructor);
+              }
+              return Array.from(combined);
+          },
+      });
+      if (options.injectAttributeBridge !== false && !utils$9.skipAttributeChangedCallback(prototype)) {
+          utils$9.prototype(prototype).setupAttributeChangedCallback = true;
+          const wrapper = function (name, oldValue, newValue) {
+              getSuperMethod(this, "attributeChangedCallback", wrapper)?.call(this, name, oldValue, newValue);
+              if (newValue === oldValue)
+                  return;
+              if (utils$9.data(this).attributeBridgePass)
+                  return;
+              const property = kebabToCamelCase(name);
+              if (!(property in this))
+                  return;
+              try {
+                  utils$9.data(this).attributeBridgePass = true;
+                  this[property] = newValue === null ? undefined : parse$1(newValue);
+              }
+              finally {
+                  utils$9.data(this).attributeBridgePass = false;
+              }
+          };
+          Object.defineProperty(prototype, "attributeChangedCallback", {
+              configurable: true,
+              enumerable: false,
+              writable: true,
+              value: wrapper
+          });
+      }
+      if (!utils$9.skipConnectedCallback(prototype)) {
+          utils$9.prototype(prototype).setupConnectedCallback = true;
+          const wrapper = function () {
+              getSuperMethod(this, "connectedCallback", wrapper)?.call(this);
+              if (!(this instanceof HTMLElement))
+                  return;
+              for (const attribute of this.constructor.observedAttributes ?? []) {
+                  const value = this[kebabToCamelCase(attribute)];
+                  if (value === undefined)
+                      continue;
+                  const stringValue = stringify(value);
+                  if (this.getAttribute(attribute) !== stringValue)
+                      this.setAttribute(attribute, stringValue);
+              }
+              utils$9.getNamesOfPrototypeChain(Object.getPrototypeOf(this)).forEach(name => this.classList?.add(name));
+          };
+          Object.defineProperty(prototype, "connectedCallback", {
+              configurable: true,
+              enumerable: false,
+              writable: true,
+              value: wrapper,
+          });
+      }
+      if (elementName && !customElements.get(elementName))
+          customElements.define(elementName, Base);
+      return Base;
+  }
+  /**
+   * @function addRegistryCategory
+   * @group Decorators
+   * @category Registry
+   *
+   * @description Associates a class constructor with a {@link RegistryCategory} in the Gradum Kit registry's
+   * category inference map. When {@link define} is called on a subclass, it walks the prototype chain and
+   * uses this map to determine the appropriate category without requiring direct imports of the base classes
+   * (which would cause circular dependencies).
+   *
+   * This should be called once per base class, after its definition, by the Gradum Kit internals.
+   * User-defined subclasses do not need to call this — category inference propagates automatically
+   * through the prototype chain.
+   *
+   * @param {new (...args: any[]) => object} type - The base class constructor to associate with a category.
+   * @param {RegistryCategory} [category] - The category to associate with the class. Defaults to the
+   * class name if omitted, which is useful when the class name matches a {@link RegistryCategory} value.
+   *
+   * @example
+   * ```ts
+   * // At the bottom of gradumModel.ts, after class definition:
+   * addRegistryCategory(GradumModel, RegistryCategory.GradumModel);
+   *
+   * // Later, when a subclass is defined:
+   * class MyModel extends GradumModel { ... }
+   * define(MyModel, "MyModel"); // infers RegistryCategory.GradumModel automatically
+   * ```
+   */
+  function addRegistryCategory(type, category) {
+      utils$9.setCategory(type, type.name);
+  }
+
+  const META = Symbol("__meta__");
+  /**
+   * @class GradumModel
+   * @group MVC
+   * @category GradumModel
+   *
+   * @template DataType - The type of the data held in the model.
+   * @template {KeyType} KeyType - The type of the data's keys.
+   * @template {KeyType} IdType - The type of the data's ID.
+   * @template ComponentType - The type of instances managed by attached observers.
+   * @template DataEntryType - The type of data associated with each observer instance.
+   *
+   * @description Wrapper around a plain JS container (object, Array, or Map) that exposes a
+   * consistent API for reads/writes, signals, and {@link GradumObserver}s.
+   */
+  let GradumModel = (() => {
+      let _enabledCallbacks_decorators;
+      let _enabledCallbacks_initializers = [];
+      let _enabledCallbacks_extraInitializers = [];
+      let _bubbleChanges_decorators;
+      let _bubbleChanges_initializers = [];
+      let _bubbleChanges_extraInitializers = [];
+      return class GradumModel {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+              __esDecorate(this, null, _enabledCallbacks_decorators, { kind: "accessor", name: "enabledCallbacks", static: false, private: false, access: { has: obj => "enabledCallbacks" in obj, get: obj => obj.enabledCallbacks, set: (obj, value) => { obj.enabledCallbacks = value; } }, metadata: _metadata }, _enabledCallbacks_initializers, _enabledCallbacks_extraInitializers);
+              __esDecorate(this, null, _bubbleChanges_decorators, { kind: "accessor", name: "bubbleChanges", static: false, private: false, access: { has: obj => "bubbleChanges" in obj, get: obj => obj.bubbleChanges, set: (obj, value) => { obj.bubbleChanges = value; } }, metadata: _metadata }, _bubbleChanges_initializers, _bubbleChanges_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          /**
+           * @description Symbol used in {@link nestAll}, {@link makeSignals}, and {@link generateObserver}
+           * to target all entries at a certain level inside the data.
+           */
+          static ALL = Symbol("ALL");
+          static from(data = {}, id) {
+              const model = GradumModel.create({ data, id, initialize: true, makeSignals: true });
+              return new Proxy(data, {
+                  get(target, key) {
+                      if (key === "$model")
+                          return model;
+                      return model.get(key);
+                  },
+                  set(target, key, value) {
+                      if (!model.has(key))
+                          model.makeSignal(key);
+                      model.set(value, key);
+                      return true;
                   }
-                  if (!functionName)
+              });
+          }
+          /**
+           * @function create
+           * @description Instantiate a model, then optionally initialize it and make its signals.
+           * Subclasses that need `create` to report their own type should override it and narrow the return type
+           * (see {@link GradumYModel.create}). The type parameters cannot be derived from the callee here, because
+           * `InstanceType`/`infer` resolve this class' generics to their constraints (`object`, `KeyType`, `unknown`)
+           * rather than their `any` defaults, which would break inference at every call site.
+           * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
+           * @returns {GradumModel} The created model.
+           */
+          static create(properties = {}) {
+              const model = new this(properties);
+              if (properties.initialize)
+                  model.initialize();
+              if (properties.makeSignals)
+                  model.makeSignals(GradumModel.ALL);
+              return model;
+          }
+          /**
+           * @description The default constructor used to create nested {@link GradumModel} instances.
+           */
+          modelConstructor = GradumModel;
+          /**
+           * @description The default constructor used to create {@link GradumObserver} instances via {@link generateObserver}.
+           */
+          observerConstructor = GradumObserver;
+          /**
+           * @description Map of MVC handlers bound to this model.
+           */
+          handlers = new Map();
+          #enabledCallbacks_accessor_storage = __runInitializers(this, _enabledCallbacks_initializers, void 0);
+          /**
+           * @description Whether change callbacks and observer notifications are enabled.
+           */
+          get enabledCallbacks() { return this.#enabledCallbacks_accessor_storage; }
+          set enabledCallbacks(value) { this.#enabledCallbacks_accessor_storage = value; }
+          #bubbleChanges_accessor_storage = (__runInitializers(this, _enabledCallbacks_extraInitializers), __runInitializers(this, _bubbleChanges_initializers, void 0));
+          /**
+           * @description Whether changes bubble up from nested models to their parent.
+           */
+          get bubbleChanges() { return this.#bubbleChanges_accessor_storage; }
+          set bubbleChanges(value) { this.#bubbleChanges_accessor_storage = value; }
+          /**
+           * @description Delegate fired whenever a value changes at a key path. Receives the new value followed
+           * by the key path as spread arguments.
+           */
+          onKeyChanged = (__runInitializers(this, _bubbleChanges_extraInitializers), new Delegate());
+          onDataChanged = new Delegate();
+          fireCallbackHook;
+          isInitialized = false;
+          signals = new Map();
+          changeObservers = new Set();
+          nestedModels = new Map();
+          nestedListeners = new Set();
+          /**
+           * @description The ID of the data held by this model.
+           */
+          id;
+          _data;
+          /**
+           * @description The data held by this model. Setting it clears the current state and re-initializes the model.
+           */
+          get data() {
+              return this._data;
+          }
+          set data(data) {
+              const oldData = this._data;
+              if (areEqual(oldData, data))
+                  return;
+              if (this.diffCheck(oldData, data))
+                  this.diffAction(oldData, data);
+              else {
+                  this.clear(false);
+                  this._data = data;
+                  if (data)
+                      this.initialize();
+              }
+              markDirtyPath(this, []);
+              this.onDataChanged.fire(oldData, data);
+          }
+          /**
+           * @description The metadata held by this model. Separate from this model's data.
+           */
+          get meta() {
+              return this.nest(META);
+          }
+          /**
+           * @constructor
+           * @description Create a new GradumModel.
+           * @param {GradumModelProperties} [properties] - Optional initialization properties.
+           */
+          constructor(properties = {}) {
+              this.id = properties.id;
+              this._data = properties.data ?? {};
+              if (typeof properties.enabledCallbacks === "boolean")
+                  this.enabledCallbacks = properties.enabledCallbacks;
+              if (typeof properties.bubbleChanges === "boolean")
+                  this.bubbleChanges = properties.bubbleChanges;
+              this.setup();
+              this.onDataChanged.fire(undefined, this._data);
+          }
+          /**
+           * @function setup
+           * @description Called in the constructor. Use for setup that should happen at instantiation,
+           * before `this.initialize()` is called.
+           * @protected
+           */
+          setup() {
+              initializeEffects(this);
+          }
+          /*
+           *
+           * GET
+           *
+           */
+          /**
+           * @protected
+           * @function getAction
+           * @description Read a single key from a data container. Override this method to support other datatypes.
+           * @param {any} data - The container to read from.
+           * @param {KeyType} key - The key to read.
+           * @returns {any} The value at the key, or `undefined` if not found.
+           */
+          getAction(data, key) {
+              if (data instanceof Map)
+                  return data.get(key);
+              return data?.[key];
+          }
+          get(...keys) {
+              if (keys.length === 0)
+                  return this.data;
+              let current = this.data;
+              for (const key of keys) {
+                  if (!current || typeof current !== "object")
+                      return undefined;
+                  current = this.getAction(current, key);
+              }
+              return current;
+          }
+          /**
+           * @function getFlat
+           * @description Retrieve the value at the given flat key.
+           * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
+           * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
+           * @returns {any} The stored value, or `undefined` if not found.
+           */
+          getFlat(flatKey, depth) {
+              const keys = this.scopeKey(flatKey, depth);
+              if (!keys?.length)
+                  return undefined;
+              return this.get(...keys);
+          }
+          /**
+           * @function getKey
+           * @description Find the key path of the first occurrence of the given value, searching depth-first.
+           * @param {any} value - The value to locate.
+           * @returns {KeyType[]} The key path, or `undefined` if not found.
+           */
+          getKey(value) {
+              const search = (data, path) => {
+                  if (!data || typeof data !== "object")
+                      return undefined;
+                  const keys = data instanceof Map
+                      ? Array.from(data.keys())
+                      : [...Object.keys(data), ...Object.getOwnPropertySymbols(data)];
+                  for (const key of keys) {
+                      const entry = this.getAction(data, key);
+                      if (Object.is(entry, value))
+                          return [...path, key];
+                      const nested = search(entry, [...path, key]);
+                      if (nested)
+                          return nested;
+                  }
+                  return undefined;
+              };
+              return search(this.data, []);
+          }
+          /**
+           * @function getFlatKey
+           * @description Return the flat key of the first occurrence of the given value.
+           * @param {any} value - The value to query.
+           * @returns {FlatKeyType | undefined} The flat key, or `undefined` if not found.
+           */
+          getFlatKey(value) {
+              const path = this.getKey(value);
+              if (!path?.length)
+                  return undefined;
+              return this.flattenKey(...path);
+          }
+          /**
+           * @function getKeys
+           * @description Find the key paths of all occurrences of the given value, searching depth-first.
+           * @param {any} value - The value to locate.
+           * @returns {KeyType[][]} Array of key paths.
+           */
+          getKeys(value) {
+              const results = [];
+              const search = (data, path) => {
+                  if (!data || typeof data !== "object")
                       return;
-                  if (this.mvc && this.mvc instanceof Mvc)
-                      value = this.mvc[functionName](keyName);
-                  else if (this[functionName] && typeof this[functionName] === "function")
-                      value = this[functionName](keyName);
-                  if (!value)
-                      throw new Error(`${type} "${keyName}" not found on ${this?.constructor?.name}.`);
-                  this[cacheKey] = value;
-                  return value;
-              },
-              set: function (value) { this[cacheKey] = value; }
+                  const keys = data instanceof Map
+                      ? Array.from(data.keys())
+                      : [...Object.keys(data), ...Object.getOwnPropertySymbols(data)];
+                  for (const key of keys) {
+                      const entry = this.getAction(data, key);
+                      const currentPath = [...path, key];
+                      if (Object.is(entry, value))
+                          results.push(currentPath);
+                      else
+                          search(entry, currentPath);
+                  }
+              };
+              search(this.data, []);
+              return results;
+          }
+          /**
+           * @function getFlatKeys
+           * @description Return the flat keys of all occurrences of the given value.
+           * @param {any} value - The value to query.
+           * @returns {FlatKeyType[]} Array of flat keys.
+           */
+          getFlatKeys(value) {
+              return this.getKeys(value).map(path => this.flattenKey(...path)).filter(k => k !== undefined);
+          }
+          /*
+           *
+           * SET
+           *
+           */
+          /**
+           * @protected
+           * @function setAction
+           * @description Write a single key to a data container. Override this method to support other datatypes.
+           * @param {any} data - The container to write to.
+           * @param {KeyType} key - The key to write.
+           * @param {any} value - The value to set.
+           */
+          setAction(data, value, key) {
+              if (data instanceof Map)
+                  data.set(key, value);
+              else
+                  data[key] = value;
+          }
+          /**
+           * @protected
+           * @function internalSet
+           * @description Write a value at a key, propagating the change to a nested model if one exists,
+           * and firing {@link keyChanged} if the value actually changed.
+           * @param {GradumModel} model - The owning model (used for nested model lookup and change notification),
+           * or `undefined` if operating on a non-root container.
+           * @param {any} data - The container to write to.
+           * @param {KeyType} key - The key to write.
+           * @param {any} value - The value to set.
+           */
+          internalSet(model, data, value, key) {
+              if (isUndefined(key)) {
+                  if (!model || areEqual(model.data, value))
+                      return false;
+                  model.data = value;
+                  return true;
+              }
+              if (model) {
+                  const nested = model.getNested(key);
+                  if (nested)
+                      nested.data = value;
+              }
+              if (!data || typeof data !== "object")
+                  return false;
+              const prev = this.getAction(data, key);
+              if (prev === value || Object.is(prev, value))
+                  return false;
+              this.setAction(data, value, key);
+              return true;
+          }
+          set(value, ...keys) {
+              let bool;
+              if (keys.length < 2)
+                  bool = this.internalSet(this, this.data, value, keys[0]);
+              else {
+                  const nested = this.getNested(keys[0]);
+                  if (nested)
+                      bool = nested.set(value, ...keys.slice(1));
+                  else
+                      bool = this.internalSet(undefined, this.get(keys[0], ...keys.slice(1, -1)), value, keys[keys.length - 1]);
+              }
+              if (bool)
+                  this.keyChanged(keys, value);
+              return bool;
+          }
+          /**
+           * @function setFlat
+           * @description Set a value at the given flat key.
+           * @param {unknown} value - The value to set.
+           * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
+           * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
+           */
+          setFlat(value, flatKey, depth) {
+              const keys = this.scopeKey(flatKey, depth);
+              if (keys?.length)
+                  return this.set(value, ...keys);
+              return false;
+          }
+          /*
+           *
+           * ADD
+           *
+           */
+          /**
+           * @protected
+           * @function internalAdd
+           * @description Insert a value into a container via {@link addAction} and fire {@link keyChanged}.
+           * @param {GradumModel} model - The owning model for change notification, or `undefined` for non-root containers.
+           * @param {any} data - The container to insert into.
+           * @param {any} value - The value to insert.
+           * @param {KeyType} key - The target index or key.
+           * @returns {KeyType} The index or key where the value was stored.
+           */
+          internalAdd(model, data, value, key) {
+              if (!data || typeof data !== "object")
+                  return;
+              return this.addAction(model, data, value, key);
+          }
+          /**
+           * @protected
+           * @function addAction
+           * @description Perform the raw insertion. Override this method to support other datatypes.
+           * @param {GradumModel} model - The owning model.
+           * @param {any} data - The container to insert into.
+           * @param {any} value - The value to insert.
+           * @param {KeyType} key - The target index or key. Clamped to valid array bounds for array containers.
+           * @returns {KeyType} The index or key where the value was stored.
+           */
+          addAction(model, data, value, key) {
+              if (Array.isArray(data)) {
+                  let index = key;
+                  if (isUndefined(index) || typeof index !== "number" || index > data.length)
+                      index = data.length;
+                  else if (index < 0)
+                      index = 0;
+                  data.splice(index, 0, value);
+                  return index;
+              }
+              const bool = this.internalSet(model, data, value, key);
+              return bool ? key : undefined;
+          }
+          add(value, ...keys) {
+              let key;
+              if (keys.length < 2)
+                  key = this.internalAdd(this, this.data, value, keys[0]);
+              else {
+                  const nested = this.getNested(keys[0]);
+                  if (nested)
+                      key = nested.add(value, ...keys.slice(1));
+                  else
+                      key = this.internalAdd(undefined, this.get(keys[0], ...keys.slice(1, -1)), value, keys[keys.length - 1]);
+              }
+              const lastKeyWasUndefined = isUndefined(keys[keys.length - 1]);
+              const changePath = lastKeyWasUndefined ? [...keys.slice(0, -1), key] : keys;
+              if (!isUndefined(key))
+                  this.keyChanged(changePath);
+              return key;
+          }
+          /**
+           * @function addFlat
+           * @description Insert a value at the position described by the given flat key.
+           * @param {unknown} value - The value to insert.
+           * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
+           * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
+           * @returns {KeyType} The index or key where the value was stored.
+           */
+          addFlat(value, flatKey, depth) {
+              const keys = this.scopeKey(flatKey, depth);
+              if (!keys?.length)
+                  throw new Error(`GradumModel.addFlat: could not resolve flat key "${String(flatKey)}" to a key path.`);
+              return this.add(value, ...keys);
+          }
+          /*
+           *
+           * HAS
+           *
+           */
+          /**
+           * @protected
+           * @function hasAction
+           * @description Check whether a key exists in a container. Override this method to support other datatypes.
+           * @param {any} data - The container to check.
+           * @param {KeyType} key - The key to check.
+           * @returns {boolean} `true` if the key is present.
+           */
+          hasAction(data, key) {
+              if (data instanceof Map)
+                  return data.has(key);
+              return data?.[key] !== undefined;
+          }
+          has(...keys) {
+              const data = this.get(...keys.slice(0, -1));
+              const key = keys[keys.length - 1];
+              if (!data || key === undefined)
+                  return false;
+              return this.hasAction(data, key);
+          }
+          /**
+           * @function hasFlat
+           * @description Check whether an entry exists at the given flat key.
+           * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
+           * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
+           * @returns {boolean}
+           */
+          hasFlat(flatKey, depth) {
+              const keys = this.scopeKey(flatKey, depth);
+              if (!keys?.length)
+                  return false;
+              return this.has(...keys);
+          }
+          /*
+           *
+           * DELETE
+           *
+           */
+          /**å
+           * @protected
+           * @function deleteAction
+           * @description Remove a single key from a container. Override this method to support other datatypes.
+           * @param {any} data - The container to remove from.
+           * @param {KeyType} key - The key to remove.
+           */
+          deleteAction(data, key) {
+              if (data instanceof Map)
+                  data.delete(key);
+              else if (Array.isArray(data))
+                  data.splice(key, 1);
+              else
+                  delete data[key];
+          }
+          /**
+           * @protected
+           * @function internalDelete
+           * @description Remove a key from a container, clearing any associated nested model, and firing {@link keyChanged}.
+           * No-op if the key does not exist.
+           * @param {GradumModel} model - The owning model for nested model cleanup and change notification,
+           * or `undefined` for non-root containers.
+           * @param {any} data - The container to remove from.
+           * @param {KeyType} key - The key to remove.
+           */
+          internalDelete(model, data, key) {
+              if (!data || !this.hasAction(data, key))
+                  return;
+              if (model) {
+                  const nested = model.getNested(key);
+                  if (nested) {
+                      nested.clear();
+                      model.nestedModels.delete(key);
+                  }
+              }
+              this.deleteAction(data, key);
+          }
+          delete(...keys) {
+              if (keys.length === 0)
+                  return;
+              // keyChanged must fire before internalDelete/deleteAction so that observer slots are
+              // vacated before shiftIndices (triggered synchronously by the Yjs transaction inside
+              // deleteAction) shifts neighbouring entries into the slot being deleted.
+              this.keyChanged(keys, undefined, true);
+              if (keys.length === 1)
+                  this.internalDelete(this, this.data, keys[0]);
+              else {
+                  const nested = this.getNested(keys[0]);
+                  if (nested)
+                      nested.delete(...keys.slice(1));
+                  else {
+                      const parentData = this.get(keys[0], ...keys.slice(1, -1));
+                      if (typeof parentData !== "object")
+                          return;
+                      this.internalDelete(undefined, parentData, keys[keys.length - 1]);
+                  }
+              }
+          }
+          /**
+           * @function deleteFlat
+           * @description Remove the entry at the given flat key.
+           * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
+           * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
+           */
+          deleteFlat(flatKey, depth) {
+              const keys = this.scopeKey(flatKey, depth);
+              if (keys?.length)
+                  this.delete(...keys);
+          }
+          /*
+           *
+           * KEYS
+           *
+           */
+          getKeysAction(data) {
+              if (!data || typeof data !== "object")
+                  return [];
+              if (Array.isArray(data))
+                  return Array.from({ length: data.length }, (_, i) => i);
+              if (data instanceof Map)
+                  return Array.from(data.keys());
+              return [...Object.keys(data), ...Object.getOwnPropertySymbols(data)];
+          }
+          /**
+           * @property keys
+           * @description All keys currently present in the model.
+           */
+          get keys() {
+              return this.getKeysAction(this.data);
+          }
+          /**
+           * @property values
+           * @description All values in the model, in the order of {@link keys}.
+           */
+          get values() {
+              return this.keys.map(key => this.get(key));
+          }
+          /**
+           * @property dataSize
+           * @description Number of entries in the model.
+           */
+          get dataSize() {
+              return this.keys.length;
+          }
+          /**
+           * @function flatSize
+           * @description Return the total number of entries reachable from this model at the given depth.
+           * @param {number} depth - How many levels deep to count.
+           * @returns {number}
+           */
+          flatSize(depth) {
+              return GradumModel.flattenSize(this.data, depth);
+          }
+          /*
+           *
+           * DIFFING
+           *
+           */
+          diffCheck(oldData, newData) {
+              if (!oldData || !newData)
+                  return false;
+              if (Array.isArray(oldData) && Array.isArray(newData))
+                  return true;
+              if (oldData instanceof Map && newData instanceof Map)
+                  return true;
+              if (Array.isArray(oldData) || Array.isArray(newData) || oldData instanceof Map || newData instanceof Map
+                  || oldData instanceof Set || newData instanceof Set)
+                  return false;
+              if (typeof oldData !== "object" || typeof newData !== "object")
+                  return false;
+              return Object.getPrototypeOf(oldData) === Object.prototype && Object.getPrototypeOf(newData) === Object.prototype;
+          }
+          diffAction(oldData, newData) {
+              this._data = newData;
+              for (const [key, child] of this.nestedModels) {
+                  const newVal = this.getAction(newData, key);
+                  if (child.data !== newVal)
+                      child.data = newVal;
+              }
+              const oldKeys = new Set(this.getKeysAction(oldData));
+              const newKeys = new Set(this.getKeysAction(newData));
+              for (const key of oldKeys) {
+                  // Deletions pass undefined by convention (nested-child onKeyChanged listeners
+                  // rely on it to clear their data). GradumObserver recovers the old value for
+                  // onDeleted from its own prevData tracking.
+                  if (!newKeys.has(key))
+                      this.keyChanged([key], undefined, true);
+                  else {
+                      const oldVal = this.getAction(oldData, key);
+                      const newVal = this.getAction(newData, key);
+                      if (!areEqual(oldVal, newVal))
+                          this.keyChanged([key], newVal);
+                  }
+              }
+              for (const key of newKeys) {
+                  if (!oldKeys.has(key))
+                      this.keyChanged([key], this.getAction(newData, key));
+              }
+          }
+          /*
+           *
+           * Iteration
+           *
+           */
+          /**
+           * @description Iterate over `[key, value]` pairs.
+           */
+          *[(_enabledCallbacks_decorators = [auto({ defaultValue: true })], _bubbleChanges_decorators = [auto({ defaultValue: false })], Symbol.iterator)]() {
+              for (const key of this.keys)
+                  yield [key, this.get(key)];
+          }
+          /**
+           * @function entries
+           * @description Return all `[key, value]` pairs in the model.
+           * @returns {[KeyType, any][]}
+           */
+          entries() {
+              return this.keys.map(key => [key, this.get(key)]);
+          }
+          /**
+           * @function forEach
+           * @description Execute a callback for each entry in the model.
+           * @param {(value: any, key: KeyType, model: this) => void} callback - Called with the value, key, and model.
+           * @param {any} [thisArg] - Value to use as `this` when calling the callback.
+           */
+          forEach(callback, thisArg) {
+              for (const key of this.keys)
+                  callback.call(thisArg, this.get(key), key, this);
+          }
+          /*
+           *
+           * Utilities
+           *
+           */
+          /**
+           * @function initialize
+           * @description Fire change notifications for all existing keys, marking the model as initialized.
+           * No-op if already initialized or if data is empty.
+           */
+          initialize() {
+              if (!this.data || this.isInitialized)
+                  return;
+              this.isInitialized = true;
+              for (const [key, child] of this.nestedModels) {
+                  const newData = this.get(key);
+                  if (child.data !== newData)
+                      child.data = newData;
+                  else if (!child.isInitialized)
+                      child.initialize();
+              }
+              for (const key of this.keys)
+                  this.keyChanged([key]);
+              for (const observer of this.changeObservers)
+                  observer.observer.initialize();
+          }
+          /**
+           * @function clear
+           * @description Reset the model, clearing nested models, observers, and signals.
+           * @param {boolean} [clearData=true] - Whether to also clear the stored data.
+           */
+          clear(clearData = true) {
+              if (clearData)
+                  this._data = undefined;
+              this.nestedModels.forEach(nested => nested.clear(clearData));
+              if (clearData)
+                  this.nestedModels.clear();
+              this.signals.clear();
+              if (clearData)
+                  this.nestedListeners.clear();
+              if (clearData)
+                  this.changeObservers.forEach(e => this.changeObservers.delete(e));
+              else
+                  this.changeObservers.forEach(e => e.observer.clear());
+              this.isInitialized = false;
+          }
+          /**
+           * @function toJSON
+           * @description Convert the model's data into a JSON-serializable form.
+           * Maps become plain objects. For non-object data types, the raw value is returned.
+           * @returns {object | DataType}
+           */
+          toJSON() {
+              if (typeof this.data !== "object")
+                  return this.data;
+              if (this.data instanceof Map)
+                  return Object.fromEntries(this.data);
+              if (this.data && typeof this.data === "object") {
+                  const out = {};
+                  for (const k of this.keys)
+                      out[k] = this.get(k);
+                  return out;
+              }
+              return {};
+          }
+          makeSignal(...keys) {
+              return this.makeSignals(...keys)[0];
+          }
+          /**
+           * @function makeSignals
+           * @description Return reactive {@link SignalBox} instances for multiple keys at the given path.
+           * Pass {@link GradumModel.ALL} at any level of the path to expand all entries at that level.
+           * @template Type - The type of the signals' values.
+           * @param {...KeyType[]} keys - Key path to the signal targets. Use `ALL` at any level to target all entries there.
+           * @returns {SignalBox<Type>[]}
+           */
+          makeSignals(...keys) {
+              if (keys.length === 0)
+                  keys = [GradumModel.ALL];
+              const maker = (key, model) => {
+                  if (model.signals.has(key))
+                      return model.signals.get(key);
+                  const sig = signal(() => model.get(key), (value) => model.set(value, key), this, key);
+                  model.signals.set(key, sig);
+                  return sig;
+              };
+              const pathKeys = keys.slice(0, -1);
+              const signalKey = keys[keys.length - 1];
+              const models = this.nestAll(...pathKeys);
+              if (signalKey === GradumModel.ALL)
+                  return models.flatMap(model => model.keys.map(k => maker(k, model)));
+              return models.map(model => maker(signalKey, model));
+          }
+          getSignal(...keys) {
+              return this.getNested(...keys.slice(0, -1)).signals.get(keys[keys.length - 1]);
+          }
+          nestAll(...args) {
+              const lastEntry = args[args.length - 1];
+              const properties = lastEntry !== null && typeof lastEntry === "object" ? lastEntry : {};
+              const keys = args.slice(0, lastEntry !== null && typeof lastEntry === "object" ? -1 : undefined);
+              if (keys.length === 0)
+                  return [this];
+              gradum(properties).applyDefaults({ bubbleChanges: this.bubbleChanges, enabledCallbacks: this.enabledCallbacks });
+              return this.nestRecur(keys, properties);
+          }
+          nestRecur(keys, properties) {
+              if (keys.length === 0)
+                  return [this];
+              if (keys[0] === GradumModel.ALL) {
+                  this.nestedListeners.add({
+                      listener: (selfKeys) => this.createNestedChild(this, selfKeys[0], properties).nestRecur(keys.slice(1), properties),
+                      keys: keys.slice(1)
+                  });
+                  return this.keys.flatMap(key => this.createNestedChild(this, key, properties).nestRecur(keys.slice(1), properties));
+              }
+              else
+                  return this.createNestedChild(this, keys[0], properties).nestRecur(keys.slice(1), properties);
+          }
+          nest(...keysAndProperties) {
+              return this.nestAll(...keysAndProperties)[0];
+          }
+          getNested(...keys) {
+              if (keys.length === 0)
+                  return this;
+              const nested = this.nestedModels.get(keys[0]);
+              if (keys.length > 1 && nested instanceof GradumModel)
+                  return nested.getNested(...keys.slice(1));
+              return nested;
+          }
+          /*
+           *
+           * Change observers
+           *
+           */
+          /**
+           * @function generateObserver
+           * @description Create and attach a {@link GradumObserver} to this model.
+           * If a key path is provided, the observer is attached to the nested model(s) at that path instead.
+           * Pass {@link GradumModel.ALL} at any level of the path to process all entries at that level,
+           * allowing a single observer to track multiple subtrees simultaneously.
+           * @param {GradumObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
+           * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe. Use `ALL` at
+           * any level to process all entries there.
+           * @returns {GradumObserver<DataEntryType, ComponentType, KeyType>}
+           */
+          generateObserver(properties = {}, ...keys) {
+              const initialize = (this.isInitialized && isUndefined(properties.initialize)) || properties.initialize === true;
+              const observer = new (properties.customConstructor
+                  ?? this.observerConstructor
+                  ?? (GradumObserver))({
+                  ...properties,
+                  initialize: false,
+                  onDestroy: (self) => {
+                      Array.from(this.changeObservers)
+                          .filter(e => e.observer === self)
+                          .forEach(e => this.changeObservers.delete(e));
+                      properties.onDestroy?.(self);
+                  },
+                  onInitialize: (self) => {
+                      this.initializeObserverOnPath(this.data, self, keys, []);
+                      properties.onInitialize?.(self);
+                  }
+              });
+              this.changeObservers.add({ keys, observer });
+              if (initialize)
+                  observer.initialize();
+              return observer;
+          }
+          /**
+           * @function generateDeepObserver
+           * @description Like {@link generateObserver}, but fires for the registered depth **and all deeper levels**.
+           * Whereas `generateObserver(..., GradumModel.ALL)` only notifies at depth-2, `generateDeepObserver(..., GradumModel.ALL)`
+           * also notifies for depth-3, depth-4, etc. — passing the full key path to `onAdded`/`onUpdated`/`onDeleted`.
+           * Use when you need to react to any nested change regardless of depth.
+           * @param {GradumObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
+           * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe.
+           * @returns {GradumObserver<DataEntryType, ComponentType, KeyType>}
+           */
+          generateDeepObserver(properties = {}, ...keys) {
+              const initialize = (this.isInitialized && isUndefined(properties.initialize)) || properties.initialize === true;
+              const observer = new (properties.customConstructor
+                  ?? this.observerConstructor
+                  ?? (GradumObserver))({
+                  ...properties,
+                  initialize: false,
+                  onDestroy: (self) => {
+                      Array.from(this.changeObservers)
+                          .filter(e => e.observer === self)
+                          .forEach(e => this.changeObservers.delete(e));
+                      properties.onDestroy?.(self);
+                  },
+                  onInitialize: (self) => {
+                      this.initializeObserverOnPath(this.data, self, keys, [], true);
+                      properties.onInitialize?.(self);
+                  }
+              });
+              this.changeObservers.add({ keys, observer, deep: true });
+              if (initialize)
+                  observer.initialize();
+              return observer;
+          }
+          initializeObserverOnPath(data, observer, keys, prefixKeys, deep = false) {
+              if (keys.length === 0) {
+                  if (!this.isInitialized)
+                      return;
+                  for (const key of this.getKeysAction(data)) {
+                      const value = this.getAction(data, key);
+                      observer.keyChanged([...prefixKeys, key], value);
+                      if (deep && value !== null && typeof value === "object")
+                          this.initializeObserverOnPath(value, observer, [], [...prefixKeys, key], deep);
+                  }
+              }
+              else if (keys[0] === GradumModel.ALL)
+                  for (const key of this.getKeysAction(data)) {
+                      this.initializeObserverOnPath(this.getAction(data, key), observer, keys.slice(1), [...prefixKeys, key], deep);
+                  }
+              else
+                  this.initializeObserverOnPath(this.getAction(data, keys[0]), observer, keys.slice(1), [...prefixKeys, keys[0]], deep);
+          }
+          /*
+           *
+           * Internal utilities
+           *
+           */
+          /**
+           * @protected
+           * @function keyChanged
+           * @description Called internally whenever an entry is added, updated, or deleted.
+           * Emits signals, fires {@link onKeyChanged}, and notifies attached observers.
+           * @param {KeyType[]} keys - The key path that changed.
+           * @param {unknown} [value] - The new value. Defaults to the current value at the key.
+           * @param {boolean} [deleted=false] - Whether the entry was removed.
+           */
+          keyChanged(keys, value = this.get(...keys), deleted = false) {
+              const key = keys[0];
+              if (key === undefined)
+                  return;
+              this.signals.get(key)?.emit();
+              markDirtyPath(this, keys);
+              if (deleted)
+                  this.signals.delete(key);
+              if (!this.enabledCallbacks)
+                  return;
+              if (!deleted && !this.nestedModels.has(key) && this.nestedListeners.size > 0)
+                  this.nestedListeners.forEach(({ listener }) => listener(keys, value));
+              this.onKeyChanged.fire(value, ...keys);
+              this.changeObservers.forEach(({ observer, keys: pattern, deep }) => this.matchObserverAndNotify(observer, keys, pattern, [], value, deleted, deep));
+          }
+          matchObserverAndNotify(observer, incomingKeys, pattern, prefixKeys, value, deleted, deep = false) {
+              if (!observer.isInitialized)
+                  return;
+              if (pattern.length === 0) {
+                  if (incomingKeys.length === 0) {
+                      if (!deleted && value !== null && typeof value === "object") {
+                          for (const key of this.getKeysAction(value)) {
+                              observer.keyChanged([...prefixKeys, key], this.getAction(value, key), deleted);
+                          }
+                      }
+                      else if (deleted) {
+                          for (const path of observer.getPathsAt(...prefixKeys)) {
+                              observer.keyChanged([...prefixKeys, ...path], undefined, true);
+                          }
+                      }
+                  }
+                  else if (deep)
+                      observer.keyChanged([...prefixKeys, ...incomingKeys], this.get(...prefixKeys, ...incomingKeys), deleted);
+                  else
+                      observer.keyChanged([...prefixKeys, incomingKeys[0]], this.get(...prefixKeys, incomingKeys[0]), deleted && incomingKeys.length === 1);
+                  return;
+              }
+              if (incomingKeys.length === 0) {
+                  if (!deleted && value !== null && typeof value === "object") {
+                      for (const key of this.getKeysAction(value))
+                          this.matchObserverAndNotify(observer, [key], pattern, prefixKeys, this.getAction(value, key), deleted, deep);
+                  }
+                  return;
+              }
+              const [head, ...tail] = incomingKeys;
+              const [patternHead, ...patternTail] = pattern;
+              if (patternHead === GradumModel.ALL || patternHead === head)
+                  this.matchObserverAndNotify(observer, tail, patternTail, [...prefixKeys, head], value, deleted, deep);
+          }
+          static flattenSize(data, depth) {
+              if (!data || depth <= 0)
+                  return 1;
+              if (Array.isArray(data)) {
+                  let total = 0;
+                  for (const item of data)
+                      total += this.flattenSize(item, depth - 1);
+                  return total;
+              }
+              if (typeof data === "object" && typeof data.length === "number" && typeof data.get === "function") {
+                  let total = 0;
+                  for (let i = 0; i < data.length; i++)
+                      total += this.flattenSize(data.get(i), depth - 1);
+                  return total;
+              }
+              return 1;
+          }
+          /**
+           * @function flattenKey
+           * @description Serialize a key path into a single flat key.
+           * - Fully numeric paths into array-backed data produce a numeric global leaf index.
+           * - All other paths produce a `"k0|k1|k2|..."` string, with symbols encoded as `"@@description"`.
+           * @param {...KeyType[]} keys - The key path to serialize.
+           * @returns {FlatKeyType}
+           */
+          flattenKey(...keys) {
+              const stringFLatKey = () => keys.map(k => typeof k === "symbol" ? `@@${k.description ?? ""}` : String(k)).join("|");
+              if (keys.some(k => typeof k !== "number"))
+                  return stringFLatKey();
+              let index = 0;
+              let current = this.data;
+              for (let i = 0; i < keys.length; i++) {
+                  if (!Array.isArray(current))
+                      return stringFLatKey();
+                  const key = keys[i];
+                  for (let sibling = 0; sibling < key; sibling++) {
+                      const siblingData = current[sibling];
+                      index += GradumModel.flattenSize(siblingData, keys.length - i - 1);
+                  }
+                  current = current[key];
+              }
+              return index;
+          }
+          scopeKey(flatKey, depth) {
+              if (typeof flatKey === "string") {
+                  return flatKey.split("|").map(k => {
+                      if (k.startsWith("@@"))
+                          return Symbol(k.slice(2));
+                      const n = Number(k);
+                      return isNaN(n) || k === "" ? k : n;
+                  });
+              }
+              if (depth == null)
+                  depth = 1;
+              const keys = [];
+              let remaining = flatKey;
+              let current = this.data;
+              for (let i = 0; i < depth; i++) {
+                  const isIndexable = Array.isArray(current)
+                      || (typeof current === "object" && current !== null
+                          && typeof current.length === "number" && typeof current.get === "function");
+                  if (!isIndexable)
+                      break;
+                  const remainingDepth = depth - i - 1;
+                  const getItem = Array.isArray(current) ? (j) => current[j] : (j) => current.get(j);
+                  for (let j = 0; j < current.length; j++) {
+                      const size = GradumModel.flattenSize(getItem(j), remainingDepth);
+                      if (remaining < size) {
+                          keys.push(j);
+                          current = getItem(j);
+                          break;
+                      }
+                      remaining -= size;
+                  }
+              }
+              return keys;
+          }
+          /*
+           *
+           * HANDLER
+           *
+           */
+          /**
+           * @function getHandler
+           * @description Retrieves the attached MVC handler with the given key.
+           * By default, unless manually defined in the handler, if the element's class name is MyElement
+           * and the handler's class name is MyElementSomethingHandler, the key would be "something".
+           * @param {string} key - The handler's key.
+           * @return {GradumHandler} - The handler.
+           */
+          getHandler(key) {
+              return this.handlers?.get(key);
+          }
+          /**
+           * @function addHandler
+           * @description Registers a GradumHandler for the given key.
+           * @param {GradumHandler} handler - The handler instance to register.
+           */
+          addHandler(handler) {
+              if (!handler.keyName)
+                  return;
+              this.handlers?.set(handler.keyName, handler);
+          }
+          setDataWithoutInitializing(data) {
+              this.clear(false);
+              this._data = data;
+          }
+          fireCallback(key, ...values) {
+              this.fireCallbackHook?.(key, ...values);
+          }
+          createNestedChild(model, key, properties) {
+              if (model.nestedModels.has(key))
+                  return model.nestedModels.get(key);
+              const child = this.modelConstructor.create({ ...properties, data: model.get(key), initialize: this.isInitialized });
+              model.onKeyChanged.add((value, changedKey) => {
+                  if (changedKey !== key)
+                      return;
+                  if (child.data !== value)
+                      child.data = value;
+              });
+              child.onKeyChanged.add((_value, ...keys) => {
+                  if (!model.enabledCallbacks || !model.bubbleChanges)
+                      return;
+                  model.keyChanged(keys, model.get(key));
+              });
+              model.nestedModels.set(key, child);
+              return child;
+          }
+          ;
+      };
+  })();
+  addRegistryCategory(GradumModel);
+  define(GradumModel);
+
+  /**
+   * @class GradumEmitter
+   * @group MVC
+   * @category Emitter
+   *
+   * @template {GradumModel} ModelType - The element's MVC model type.
+   * @template {KeyType} DataKeyType - The key type of the MVC's model.
+   * @description The base MVC emitter class. Its role is basically an event bus. It allows the different parts of the
+   * MVC structure to fire events or listen to some, with various methods.
+   */
+  class GradumEmitter {
+      /**
+       * @description Map containing all custom callbacks.
+       * @protected
+       */
+      callbacks = new Map();
+      /**
+       * @description Map containing all data callbacks.
+       * @protected
+       */
+      dataCallbacks = new Map();
+      /**
+       * @description The attached MVC model.
+       */
+      model;
+      constructor(model) {
+          if (model)
+              this.model = model;
+      }
+      /**
+       * @function add
+       * @description Register a callback for the given event name.
+       * @param {string} event - The event name.
+       * @param {(...args: any[]) => void} callback - The callback to invoke when the event fires.
+       */
+      add(event, callback) {
+          if (!this.callbacks.has(event))
+              this.callbacks.set(event, new Delegate());
+          this.callbacks.get(event)?.add(callback);
+      }
+      /**
+       * @function remove
+       * @description Remove a specific callback from the given event, or all callbacks if omitted.
+       * @param {string} event - The event name.
+       * @param {(...args: any[]) => void} [callback] - The callback to remove. If omitted,
+       * all callbacks for the event are removed.
+       */
+      remove(event, callback) {
+          if (!callback)
+              this.callbacks.delete(event);
+          else
+              this.callbacks.get(event)?.remove(callback);
+      }
+      /**
+       * @function fire
+       * @description Trigger all callbacks registered for the given event name.
+       * @param {string} event - The event name.
+       * @param {...any[]} args - Arguments passed to each callback.
+       */
+      fire(event, ...args) {
+          this.callbacks.get(event)?.fire(...args);
+      }
+      /**
+       * @function addKey
+       * @description Register a callback fired when the entry at the given key path changes in the model.
+       * The callback receives the new value as its first argument, followed by the key path as spread arguments.
+       * @param {(value: any, ...keys: DataKeyType[]) => void} callback - The callback to register.
+       * @param {...DataKeyType[]} keys - Ordered path from outermost to innermost key.
+       */
+      addKey(callback, ...keys) {
+          const flatKey = this.resolveFlatKey(keys);
+          if (!this.dataCallbacks.has(flatKey))
+              this.dataCallbacks.set(flatKey, new Delegate());
+          this.dataCallbacks.get(flatKey)?.add(callback);
+      }
+      /**
+       * @function removeKey
+       * @description Remove a specific callback for the given key path, or all callbacks if omitted.
+       * @param {(value: any, ...keys: DataKeyType[]) => void} [callback] - The callback to remove. If omitted,
+       * all callbacks for this path are removed.
+       * @param {...DataKeyType[]} keys - Ordered path from outermost to innermost key.
+       */
+      removeKey(callback, ...keys) {
+          const flatKey = this.resolveFlatKey(keys);
+          if (!callback)
+              this.dataCallbacks.delete(flatKey);
+          else
+              this.dataCallbacks.get(flatKey)?.remove(callback);
+      }
+      /**
+       * @function fireKey
+       * @description Trigger all callbacks registered for the given key path.
+       * Called automatically when the model fires a change notification at this path.
+       * @param {any} value - The new value at the key path.
+       * @param {...DataKeyType[]} keys - Ordered path from outermost to innermost key.
+       */
+      fireKey(value, ...keys) {
+          const flatKey = this.resolveFlatKey(keys);
+          this.dataCallbacks.get(flatKey)?.fire(value, ...keys);
+      }
+      /**
+       * @protected
+       * @function resolveFlatKey
+       * @description Convert a key path to a stable flat string key for internal storage lookup. Joins with `"|"`.
+       * @param {DataKeyType[]} keys - The key path to flatten.
+       * @returns {FlatKeyType}
+       */
+      resolveFlatKey(keys) {
+          return keys.map(k => typeof k === "symbol" ? `@@${k.description ?? ""}` : String(k)).join("|");
+      }
+  }
+  addRegistryCategory(GradumEmitter);
+  define(GradumEmitter);
+
+  const proxyWrapperSymbol = Symbol("__proxyWrapper__");
+  class MvcFunctionsUtils {
+      dataMap = new WeakMap;
+      modelLookupMap = new WeakMap;
+      peek(element) {
+          if (element instanceof GradumSelector)
+              element = element.element;
+          if (element instanceof GradumModel)
+              element = this.modelLookupMap.get(element)?.values().next().value;
+          return element ? this.dataMap.get(element) : undefined;
+      }
+      data(element) {
+          if (element instanceof GradumSelector)
+              element = element.element;
+          if (element instanceof GradumModel)
+              element = this.modelLookupMap.get(element)?.values().next().value;
+          if (!element)
+              return;
+          let entry = this.dataMap.get(element);
+          if (!entry) {
+              entry = {
+                  emitter: new GradumEmitter(),
+                  operators: new Map(), constrainers: new Map(), interactors: new Map(), tools: new Map(),
+                  emitterCallback: (key, ...values) => entry.emitter?.fire(key, ...values),
+                  emitterKeyCallback: (value, ...keys) => entry.emitter?.fireKey(value, ...keys)
+              };
+              this.dataMap.set(element, entry);
+          }
+          return entry;
+      }
+      attachModel(element, model, attach = true) {
+          if (!element || !model)
+              return;
+          if (attach && !this.modelLookupMap.has(model))
+              this.modelLookupMap.set(model, new Set());
+          if (attach)
+              this.modelLookupMap.get(model).add(element);
+          else
+              this.modelLookupMap.get(model).delete(element);
+      }
+      updateModel(element, model, attach = true) {
+          if (!element || !model)
+              return;
+          const mvc = this.peek(element);
+          if (!mvc)
+              return;
+          if (attach) {
+              if (!model.onKeyChanged.has(mvc.emitterKeyCallback))
+                  model.onKeyChanged.add(mvc.emitterKeyCallback);
+              model.fireCallbackHook = mvc.emitterCallback;
+          }
+          else {
+              model.onKeyChanged.remove(mvc.emitterKeyCallback);
+              model.fireCallbackHook = undefined;
+          }
+      }
+      updateView(element, view, attach = true) {
+          if (!view || !element)
+              return;
+          const mvc = this.peek(element);
+          if (!mvc)
+              return;
+          view.emitter = attach ? mvc.emitter : undefined;
+          view.model = attach ? mvc.model : undefined;
+      }
+      updateEmitter(element, emitter, attach = true) {
+          if (!emitter || !element)
+              return;
+          const mvc = this.peek(element);
+          if (!mvc)
+              return;
+          emitter.model = attach ? mvc.model : undefined;
+      }
+      updateOperator(element, operator, attach = true) {
+          if (!operator || !element)
+              return;
+          const mvc = this.peek(element);
+          if (!mvc)
+              return;
+          operator.emitter = attach ? mvc.emitter : undefined;
+          operator.model = attach ? mvc.model : undefined;
+          operator.view = attach ? mvc.view : undefined;
+      }
+      updateHandler(element, handler, attach = true) {
+          if (!element || !handler)
+              return;
+          const mvc = this.peek(element);
+          if (!mvc)
+              return;
+          handler.model = attach ? mvc.model : undefined;
+      }
+      updateInteractor(element, interactor, attach = true) {
+          if (!element || !interactor)
+              return;
+          const mvc = this.peek(element);
+          if (!mvc)
+              return;
+          interactor.model = attach ? mvc.model : undefined;
+          interactor.view = attach ? mvc.view : undefined;
+          interactor.emitter = attach ? mvc.emitter : undefined;
+      }
+      updateTool(element, tool, attach = true) {
+          if (!element || !tool)
+              return;
+          const mvc = this.peek(element);
+          if (!mvc)
+              return;
+          tool.model = attach ? mvc.model : undefined;
+          tool.view = attach ? mvc.view : undefined;
+          tool.emitter = attach ? mvc.emitter : undefined;
+      }
+      updateConstrainer(element, constrainer, attach = true) {
+          if (!element || !constrainer)
+              return;
+          const mvc = this.peek(element);
+          if (!mvc)
+              return;
+          constrainer.model = attach ? mvc.model : undefined;
+          constrainer.view = attach ? mvc.view : undefined;
+          constrainer.emitter = attach ? mvc.emitter : undefined;
+      }
+      linkPieces(element) {
+          if (!element)
+              return;
+          const mvc = this.peek(element);
+          if (!mvc)
+              return;
+          this.updateModel(element, mvc.model);
+          this.updateEmitter(element, mvc.emitter);
+          this.updateView(element, mvc.view);
+          mvc.operators.forEach(operator => this.updateOperator(element, operator));
+          mvc.model?.handlers.forEach(handler => this.updateHandler(element, handler));
+          mvc.interactors.forEach(interactor => this.updateInteractor(element, interactor));
+          mvc.tools.forEach(tool => this.updateTool(element, tool));
+          mvc.constrainers.forEach(constrainer => this.updateConstrainer(element, constrainer));
+      }
+      removeInstance(element, kind, keyOrInstance) {
+          if (!element)
+              return;
+          const map = kind === "handler" ? this.peek(element)?.model?.handlers : this.peek(element)?.[kind + "s"];
+          if (!map)
+              return;
+          const key = typeof keyOrInstance === "string" ? keyOrInstance
+              : Array.from(map.entries()).find(([, v]) => v === keyOrInstance)?.[0];
+          if (!key)
+              return;
+          const methodName = "update" + kind.charAt(0).toUpperCase() + kind.slice(1);
+          this[methodName]?.(element, map.get(key), false);
+          map.delete(key);
+      }
+      generateInstance(data, element) {
+          if (!data)
+              return undefined;
+          // If element is a raw DOM node backing a GradumProxiedElement, pass the wrapper instead so
+          // that view/operator/etc. constructors receive the public class instance (e.g. FlowEntry)
+          // rather than the internal <g> element.
+          const effectiveElement = element?.[proxyWrapperSymbol] ?? element;
+          if (typeof data === "function")
+              return new data(effectiveElement ? { element: effectiveElement } : undefined);
+          return data;
+      }
+      generateInstances(data, element) {
+          if (!data)
+              return [];
+          if (typeof data !== "object" || !Array.isArray(data))
+              data = [data];
+          const result = [];
+          data.forEach(constructor => {
+              const instance = this.generateInstance(constructor, element);
+              if (instance)
+                  result.push(instance);
+          });
+          return result;
+      }
+      /**
+       * @protected
+       * @function extractClassEssenceName
+       * @description Utility that derives a shorter "essence" key name for an MVC piece from its constructor name.
+       * It strips the element/class name prefix (if any) and the type suffix (e.g., "Operator", "Tool") to
+       * produce a key that reads well in camelCase (e.g., `MyElementSnapOperator` -> `snap`).
+       * @param element
+       * @param {new (...args: any[]) => any} constructor - The constructor to derive the name from.
+       * @param {string} type - The type suffix to strip (e.g., "Operator", "Handler", "Tool", "Constrainer").
+       * @returns {string} - A lower-cased, camel-style key name derived from the constructor.
+       */
+      extractClassEssenceName(element, constructor, type) {
+          let className = constructor.name;
+          const target = element[proxyWrapperSymbol] ?? element;
+          let prototype = Object.getPrototypeOf(target);
+          while (prototype && prototype.constructor !== Object) {
+              const name = prototype.constructor.name.replaceAll("_", "");
+              if (className.startsWith(name)) {
+                  className = className.slice(name.length);
+                  break;
+              }
+              prototype = Object.getPrototypeOf(prototype);
+          }
+          if (className.endsWith(type))
+              className = className.slice(0, -(type.length));
+          return className.charAt(0).toLowerCase() + className.slice(1);
+      }
+  }
+
+  const MvcFields = ["model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
+  const utils$8 = new MvcFunctionsUtils();
+  function setupMvcFunctions() {
+      Object.defineProperty(GradumSelector.prototype, "mvc", {
+          get() {
+              const data = utils$8.peek(this.element);
+              if (!data)
+                  return {};
+              return {
+                  model: data.model,
+                  view: data.view,
+                  operators: Array.from(data.operators?.values() ?? []),
+                  handlers: Array.from(data.model?.handlers?.values() ?? []),
+                  interactors: Array.from(data.interactors?.values() ?? []),
+                  tools: Array.from(data.tools?.values() ?? []),
+                  constrainers: Array.from(data.constrainers?.values() ?? []),
+              };
+          }, configurable: true, enumerable: true,
+      });
+      // -------------------------------------------------------------------------
+      // Singular pieces
+      // -------------------------------------------------------------------------
+      Object.defineProperty(GradumSelector.prototype, "model", {
+          get() {
+              return utils$8.peek(this.element)?.model;
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              const mvc = utils$8.data(this.element);
+              utils$8.attachModel(this.element, this.model, false);
+              utils$8.updateModel(this.element, mvc.model, false);
+              if (!value)
+                  return;
+              mvc.model = typeof value === "function" ? value.create() : value;
+              utils$8.attachModel(this.element, mvc.model);
+              utils$8.linkPieces(this.element);
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "view", {
+          get() {
+              return utils$8.peek(this.element)?.view;
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              utils$8.data(this.element).view = utils$8.generateInstance(value, this.element);
+              utils$8.linkPieces(this.element);
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "emitter", {
+          get() {
+              return utils$8.peek(this.element)?.emitter;
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              utils$8.data(this.element).emitter = utils$8.generateInstance(value);
+              utils$8.linkPieces(this.element);
+          },
+          configurable: true, enumerable: true,
+      });
+      // -------------------------------------------------------------------------
+      // Data
+      // -------------------------------------------------------------------------
+      Object.defineProperty(GradumSelector.prototype, "data", {
+          get() {
+              return utils$8.peek(this.element)?.model?.data;
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              const mvc = utils$8.data(this.element);
+              if (!mvc.model)
+                  return;
+              mvc.model.data = value;
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "metadata", {
+          get() {
+              return utils$8.peek(this.element)?.model?.meta;
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "dataId", {
+          get() {
+              return utils$8.peek(this.element)?.model?.id;
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              const mvc = utils$8.data(this.element);
+              if (!mvc.model)
+                  return;
+              mvc.model.id = value;
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "dataIndex", {
+          get() {
+              return Number.parseInt(this.dataId);
+          },
+          set(value) {
+              this.dataId = value;
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "dataSize", {
+          get() {
+              return utils$8.peek(this.element)?.model?.dataSize;
+          },
+          configurable: true, enumerable: true,
+      });
+      // -------------------------------------------------------------------------
+      // Collections
+      // -------------------------------------------------------------------------
+      Object.defineProperty(GradumSelector.prototype, "operators", {
+          get() {
+              return Array.from(utils$8.peek(this.element)?.operators.values() ?? []);
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              utils$8.generateInstances(value, this.element).forEach(instance => this.addOperator(instance));
+              utils$8.linkPieces(this.element);
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "handlers", {
+          get() {
+              return Array.from(utils$8.peek(this.element)?.model?.handlers.values() ?? []);
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              utils$8.generateInstances(value).forEach(instance => this.addHandler(instance));
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "interactors", {
+          get() {
+              return Array.from(utils$8.peek(this.element)?.interactors.values() ?? []);
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              utils$8.generateInstances(value, this.element).forEach(instance => this.addInteractor(instance));
+              utils$8.linkPieces(this.element);
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "tools", {
+          get() {
+              return Array.from(utils$8.peek(this.element)?.tools.values() ?? []);
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              utils$8.generateInstances(value, this.element).forEach(instance => this.addTool(instance));
+              utils$8.linkPieces(this.element);
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "constrainers", {
+          get() {
+              return Array.from(utils$8.peek(this.element)?.constrainers.values() ?? []);
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              utils$8.generateInstances(value, this.element).forEach(instance => this.addConstrainer(instance));
+              utils$8.linkPieces(this.element);
+          },
+          configurable: true, enumerable: true,
+      });
+      // -------------------------------------------------------------------------
+      // Main methods
+      // -------------------------------------------------------------------------
+      GradumSelector.prototype.setMvc = function (properties) {
+          const mvc = utils$8.data(this.element);
+          for (const [key, value] of Object.entries(gradum(properties).extract(MvcFields))) {
+              try {
+                  this[key] = value;
+              }
+              catch { }
+          }
+          if (!mvc.emitter)
+              mvc.emitter = new GradumEmitter();
+          if (properties.data && mvc.model)
+              mvc.model.setDataWithoutInitializing(properties.data);
+          if (properties.initialize === undefined || properties.initialize)
+              this.initializeMvc();
+          return this;
+      };
+      GradumSelector.prototype.initializeMvc = function () {
+          if (!this.element)
+              return this;
+          const mvc = utils$8.peek(this.element);
+          if (!mvc)
+              return this;
+          mvc.view?.initialize();
+          mvc.operators.forEach(operator => operator.initialize());
+          mvc.interactors.forEach(interactor => interactor.initialize());
+          mvc.tools.forEach(tool => tool.initialize());
+          mvc.constrainers.forEach(constrainer => constrainer.initialize());
+          mvc.model?.initialize();
+          return this;
+      };
+      GradumSelector.prototype.getMvcDifference = function (properties = {}) {
+          const difference = {};
+          const toConstructor = (x) => {
+              if (!x)
+                  return;
+              if (typeof x === "function")
+                  return x;
+              if (typeof x === "object")
+                  return x.constructor;
+          };
+          const toConstructorList = (x) => {
+              if (!x)
+                  return [];
+              const arr = Array.isArray(x) ? x : [x];
+              return arr.map(toConstructor).filter(Boolean);
+          };
+          const processField = (field) => {
+              if (!this[field])
+                  return;
+              const current = toConstructor(this[field]);
+              const external = toConstructor(properties[field]);
+              if (current === external)
+                  return;
+              difference[field] = current;
+          };
+          const processArray = (field) => {
+              if (!this[field] || this[field].length === 0)
+                  return;
+              const current = new Set(toConstructorList(this[field]));
+              const external = new Set(toConstructorList(properties[field] ?? []));
+              const result = [];
+              for (const entry of current)
+                  if (!external.has(entry))
+                      result.push(entry);
+              if (result.length > 0)
+                  difference[field] = result;
+          };
+          processField("view");
+          processField("model");
+          processField("emitter");
+          processArray("operators");
+          processArray("handlers");
+          processArray("interactors");
+          processArray("tools");
+          processArray("constrainers");
+          return difference;
+      };
+      // -------------------------------------------------------------------------
+      // Manipulations
+      // -------------------------------------------------------------------------
+      GradumSelector.prototype.getOperator = function (key) {
+          return utils$8.peek(this.element)?.operators.get(key);
+      };
+      GradumSelector.prototype.addOperator = function (operator) {
+          if (!this.element)
+              return this;
+          if (!operator.keyName)
+              operator.keyName =
+                  utils$8.extractClassEssenceName(this.element, operator.constructor, "Operator");
+          const data = utils$8.data(this.element);
+          if (data.operators.has(operator.keyName))
+              return this;
+          data.operators.set(operator.keyName, operator);
+          utils$8.updateOperator(this.element, operator);
+          return this;
+      };
+      GradumSelector.prototype.removeOperator = function (keyOrInstance) {
+          if (!this.element)
+              return this;
+          utils$8.removeInstance(this.element, "operator", keyOrInstance);
+          return this;
+      };
+      GradumSelector.prototype.getHandler = function (key) {
+          return utils$8.peek(this.element)?.model?.handlers.get(key);
+      };
+      GradumSelector.prototype.addHandler = function (handler) {
+          if (!this.element)
+              return this;
+          if (!handler.keyName)
+              handler.keyName =
+                  utils$8.extractClassEssenceName(this.element, handler.constructor, "Handler");
+          const data = utils$8.data(this.element);
+          if (data.model?.handlers.has(handler.keyName))
+              return this;
+          data.model?.handlers.set(handler.keyName, handler);
+          utils$8.updateHandler(this.element, handler);
+          return this;
+      };
+      GradumSelector.prototype.removeHandler = function (keyOrInstance) {
+          if (!this.element)
+              return this;
+          utils$8.removeInstance(this.element, "handler", keyOrInstance);
+          return this;
+      };
+      GradumSelector.prototype.getInteractor = function (key) {
+          return utils$8.peek(this.element)?.interactors.get(key);
+      };
+      GradumSelector.prototype.addInteractor = function (interactor) {
+          if (!this.element)
+              return this;
+          if (!interactor.keyName)
+              interactor.keyName =
+                  utils$8.extractClassEssenceName(this.element, interactor.constructor, "Interactor");
+          const data = utils$8.data(this.element);
+          if (data.interactors.has(interactor.keyName))
+              return this;
+          data.interactors.set(interactor.keyName, interactor);
+          utils$8.updateInteractor(this.element, interactor);
+          return this;
+      };
+      GradumSelector.prototype.removeInteractor = function (keyOrInstance) {
+          if (!this.element)
+              return this;
+          utils$8.removeInstance(this.element, "interactor", keyOrInstance);
+          return this;
+      };
+      GradumSelector.prototype.getTool = function (key) {
+          return utils$8.peek(this.element)?.tools.get(key);
+      };
+      GradumSelector.prototype.addTool = function (tool) {
+          if (!this.element)
+              return this;
+          if (!tool.keyName)
+              tool.keyName =
+                  utils$8.extractClassEssenceName(this.element, tool.constructor, "Tool");
+          const data = utils$8.data(this.element);
+          if (data.tools.has(tool.keyName))
+              return this;
+          data.tools.set(tool.keyName, tool);
+          utils$8.updateTool(this.element, tool);
+          return this;
+      };
+      GradumSelector.prototype.removeTool = function (keyOrInstance) {
+          if (!this.element)
+              return this;
+          utils$8.removeInstance(this.element, "tool", keyOrInstance);
+          return this;
+      };
+      GradumSelector.prototype.getConstrainer = function (key) {
+          return utils$8.peek(this.element)?.constrainers.get(key);
+      };
+      GradumSelector.prototype.addConstrainer = function (constrainer) {
+          if (!this.element)
+              return this;
+          if (!constrainer.keyName)
+              constrainer.keyName =
+                  utils$8.extractClassEssenceName(this.element, constrainer.constructor, "Constrainer");
+          const data = utils$8.data(this.element);
+          if (data.constrainers.has(constrainer.keyName))
+              return this;
+          data.constrainers.set(constrainer.keyName, constrainer);
+          utils$8.updateConstrainer(this.element, constrainer);
+          return this;
+      };
+      GradumSelector.prototype.removeConstrainer = function (keyOrInstance) {
+          if (!this.element)
+              return this;
+          utils$8.removeInstance(this.element, "constrainer", keyOrInstance);
+          return this;
+      };
+  }
+
+  function defineDefaultProperties(constructor) {
+      const prototype = constructor.prototype;
+      const initializedKey = Symbol("__initialized__");
+      Object.defineProperty(prototype, "destroy", {
+          value: function () { },
+          configurable: true,
+          enumerable: false,
+      });
+      Object.defineProperty(prototype, "initialized", {
+          get: function () {
+              return this[initializedKey] ?? false;
+          },
+          configurable: true,
+          enumerable: false,
+      });
+      Object.defineProperty(prototype, "initialize", {
+          value: function () {
+              if (this[initializedKey])
+                  return;
+              this[initializedKey] = true;
+              this.setupUIElements?.();
+              this.setupUILayout?.();
+              this.setupUIListeners?.();
+              this.setupFields?.();
+              this.setupChangedCallbacks?.();
+              gradum(this).initializeMvc();
+              initializeEffects(this);
+          },
+          configurable: true,
+          enumerable: false,
+      });
+      Object.defineProperty(prototype, "clone", {
+          value: function (properties) { return gradum(this).clone(properties); },
+          configurable: true,
+          enumerable: false,
+      });
+      const ffKey = Symbol("__defaultFeedforwardProperties__");
+      Object.defineProperty(prototype, "defaultFeedforwardProperties", {
+          get() {
+              if (!this[ffKey])
+                  this[ffKey] = {};
+              return this[ffKey];
+          },
+          set(value) { this[ffKey] = value; },
+          configurable: true,
+          enumerable: true
+      });
+      Object.defineProperty(prototype, "feedforward", {
+          value: function (properties) { return gradum(this).feedforward(properties); },
+          configurable: true,
+          enumerable: false,
+      });
+  }
+
+  /**
+   * Define MVC-style accessors on a class prototype via Object.defineProperty.
+   * Adds: view, model, emitter, operators, handlers, interactors, tools, constrainers,
+   * data, dataId, dataIndex, dataSize, and all add/get/remove methods.
+   */
+  function defineMvcAccessors(constructor) {
+      const prototype = constructor.prototype;
+      // Fields — proxy through gradum(this)
+      [...MvcFields, "data", "dataId", "dataIndex"].forEach(fieldName => {
+          Object.defineProperty(prototype, fieldName, {
+              get() { return gradum(this)[fieldName]; },
+              set(value) { gradum(this)[fieldName] = value; },
+              configurable: true,
+              enumerable: true,
+          });
+      });
+      ["dataSize"].forEach(fieldName => {
+          Object.defineProperty(prototype, fieldName, {
+              get() { return gradum(this)[fieldName]; },
+              configurable: true,
+              enumerable: true,
           });
       });
   }
-  /**
-   * @decorator
-   * @function controller
-   * @group Decorators
-   * @category MVC
-   *
-   * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
-   * fetched controller.
-   * @param {string} [name] - The key name of the controller in the MVC instance (if any). By default, it is inferred
-   * from the name of the field. If the field is named `somethingController`, the key name will be `something`.
-   *
-   * @example
-   * ```ts
-   * @controller() protected textController: TurboController;
-   * ```
-   * Is equivalent to:
-   * ```ts
-   * protected get textController(): TurboController {
-   *    if (this.mvc instanceof Mvc) return this.mvc.getController("text");
-   *    if (typeof this.getController === "function") return this.getController("text");
-   * }
-   * ```
-   */
-  function controller(name) {
-      return function (_unused, context) {
-          generateField(context, "Controller", name);
-      };
-  }
-  /**
-   * @decorator
-   * @function handler
-   * @group Decorators
-   * @category MVC
-   *
-   * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
-   * fetched handler.
-   * @param {string} [name] - The key name of the handler in the MVC instance (if any). By default, it is inferred
-   * from the name of the field. If the field is named `somethingHandler`, the key name will be `something`.
-   *
-   * @example
-   * ```ts
-   * @handler() protected textHandler: TurboHandler;
-   * ```
-   * Is equivalent to:
-   * ```ts
-   * protected get textHandler(): TurboHandler {
-   *    if (this.mvc instanceof Mvc) return this.mvc.getHandler("text");
-   *    if (typeof this.getHandler === "function") return this.getHandler("text");
-   * }
-   * ```
-   */
-  function handler(name) {
-      return function (_unused, context) {
-          generateField(context, "Handler", name);
-      };
-  }
 
-  /**
-   * @group Components
-   * @category TurboMap
-   */
-  class TurboMap extends Map {
-      enforceImmutability = true;
-      set(key, value) {
-          return super.set(key, this.enforceImmutability ? this.copy(value) : value);
-      }
-      get(key) {
-          const result = super.get(key);
-          return this.enforceImmutability ? this.copy(result) : result;
-      }
-      get first() {
-          if (this.size == 0)
-              return null;
-          const result = this.values().next().value;
-          return this.enforceImmutability ? this.copy(result) : result;
-      }
-      get last() {
-          if (this.size == 0)
-              return null;
-          const result = this.valuesArray()[this.size - 1];
-          return this.enforceImmutability ? this.copy(result) : result;
-      }
-      keysArray() {
-          return Array.from(this.keys());
-      }
-      valuesArray() {
-          return Array.from(this.values());
-      }
-      copy(value) {
-          if (value && typeof value == "object") {
-              if (value instanceof Array)
-                  return value.map(item => this.copy(item));
-              if (value.constructor && value.constructor != Object) {
-                  if (typeof value.clone == "function")
-                      return value.clone();
-                  if (typeof value.copy == "function")
-                      return value.copy();
+  function defineUIPrototype(constructor) {
+      const prototype = constructor.prototype;
+      const shadowDOMKey = Symbol("__shadow_dom__");
+      const unsetDefaultClassesKey = Symbol("__unset_default_classes__");
+      const defaultClassesKey = Symbol("__default_classes__");
+      Object.defineProperty(prototype, "shadowDOM", {
+          get: function () { return this[shadowDOMKey] ?? false; },
+          set: function (value) {
+              this[shadowDOMKey] = value;
+              const el = this.element;
+              if (value && !el.shadowRoot)
+                  try {
+                      el.attachShadow({ mode: "open" });
+                  }
+                  catch { }
+              if (el.shadowRoot) {
+                  const from = value ? el : el.shadowRoot;
+                  const to = value ? el.shadowRoot : el;
+                  while (from.childNodes.length > 0)
+                      to.appendChild(from.childNodes[0]);
               }
-              return { ...value };
-          }
-          return value;
-      }
-      mapKeys(callback) {
-          const newMap = new TurboMap();
-          for (let [key, value] of this) {
-              newMap.set(callback(key, value), value);
-          }
-          return newMap;
-      }
-      mapValues(callback) {
-          const newMap = new TurboMap();
-          for (let [key, value] of this) {
-              newMap.set(key, callback(key, value));
-          }
-          return newMap;
-      }
-      filter(callback) {
-          const newMap = new TurboMap();
-          for (let [key, value] of this) {
-              if (callback(key, value))
-                  newMap.set(key, value);
-          }
-          return newMap;
-      }
-      merge(map) {
-          for (let [key, value] of map) {
-              this.set(key, value);
-          }
-          return this;
-      }
+          },
+          enumerable: true,
+          configurable: true,
+      });
+      Object.defineProperty(prototype, "unsetDefaultClasses", {
+          get: function () { return this[unsetDefaultClassesKey] ?? false; },
+          set: function (value) {
+              this[unsetDefaultClassesKey] = value;
+              gradum(this).toggleClass(this.defaultClasses, !value);
+          },
+          enumerable: true,
+          configurable: true,
+      });
+      Object.defineProperty(prototype, "defaultClasses", {
+          get: function () { return this[defaultClassesKey] ?? ""; },
+          set: function (value) {
+              if (!this.unsetDefaultClasses)
+                  gradum(this).toggleClass(this[defaultClassesKey], false);
+              this[defaultClassesKey] = value;
+              if (!this.unsetDefaultClasses)
+                  gradum(this).toggleClass(value, true);
+          },
+          enumerable: true,
+          configurable: true,
+      });
   }
 
-  let TurboEventManagerModel = (() => {
-      let _classSuper = TurboModel;
-      let _instanceExtraInitializers = [];
-      let _utils_decorators;
-      let _utils_initializers = [];
-      let _utils_extraInitializers = [];
-      let _set_inputDevice_decorators;
-      return class TurboEventManagerModel extends _classSuper {
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _utils_decorators = [handler()];
-              _set_inputDevice_decorators = [auto({ callBefore: function (value) { if (value == InputDevice.trackpad)
-                          this.wasRecentlyTrackpad = true; } })];
-              __esDecorate(this, null, _set_inputDevice_decorators, { kind: "setter", name: "inputDevice", static: false, private: false, access: { has: obj => "inputDevice" in obj, set: (obj, value) => { obj.inputDevice = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(null, null, _utils_decorators, { kind: "field", name: "utils", static: false, private: false, access: { has: obj => "utils" in obj, get: obj => obj.utils, set: (obj, value) => { obj.utils = value; } }, metadata: _metadata }, _utils_initializers, _utils_extraInitializers);
-              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-          }
-          utils = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _utils_initializers, void 0));
-          state = (__runInitializers(this, _utils_extraInitializers), {});
-          lockState = {};
-          //Delegate fired when the input device changes
-          onInputDeviceChange = new Delegate();
-          /**
-           * @description Delegate fired when a tool is changed on a certain click button/mode
-           */
-          onToolChange = new Delegate();
-          //Input events states
-          currentKeys = [];
-          currentAction = ActionMode.none;
-          currentClick = ClickMode.none;
-          wasRecentlyTrackpad = false;
-          //Threshold differentiating a click from a drag
-          moveThreshold;
-          //Duration to reach long press
-          longPressDuration;
-          authorizeEventScaling;
-          scaleEventPosition;
-          activePointers = new Set();
-          //Saved values (Maps to account for different touch points and their IDs)
-          origins = new TurboMap();
-          previousPositions = new TurboMap();
-          positions;
-          lastTargetOrigin;
-          //Single timer instance --> easily cancel it and set it again
-          timerMap = new TurboMap();
-          //All created tools
-          tools = new Map();
-          //Tools mapped to keys
-          mappedKeysToTool = new Map();
-          //Tools currently held by the user (one - or none - per each click button/mode)
-          currentTools = new Map();
-          set inputDevice(value) {
-              this.onInputDeviceChange.fire(value);
-          }
-      };
-  })();
+  const VOID       = -1;
+  const PRIMITIVE  = 0;
+  const ARRAY      = 1;
+  const OBJECT     = 2;
+  const DATE       = 3;
+  const REGEXP     = 4;
+  const MAP        = 5;
+  const SET        = 6;
+  const ERROR      = 7;
+  const BIGINT     = 8;
+  // export const SYMBOL = 9;
+
+  const env = typeof self === 'object' ? self : globalThis;
+
+  const guard = (name, init) => {
+    switch (name) {
+      case 'Function':
+      case 'SharedWorker':
+      case 'Worker':
+      case 'eval':
+      case 'setInterval':
+      case 'setTimeout':
+        throw new TypeError('unable to deserialize ' + name);
+    }
+    return new env[name](init);
+  };
+
+  const deserializer = ($, _) => {
+    const as = (out, index) => {
+      $.set(index, out);
+      return out;
+    };
+
+    const unpair = index => {
+      if ($.has(index))
+        return $.get(index);
+
+      const [type, value] = _[index];
+      switch (type) {
+        case PRIMITIVE:
+        case VOID:
+          return as(value, index);
+        case ARRAY: {
+          const arr = as([], index);
+          for (const index of value)
+            arr.push(unpair(index));
+          return arr;
+        }
+        case OBJECT: {
+          const object = as({}, index);
+          for (const [key, index] of value)
+            object[unpair(key)] = unpair(index);
+          return object;
+        }
+        case DATE:
+          return as(new Date(value), index);
+        case REGEXP: {
+          const {source, flags} = value;
+          return as(new RegExp(source, flags), index);
+        }
+        case MAP: {
+          const map = as(new Map, index);
+          for (const [key, index] of value)
+            map.set(unpair(key), unpair(index));
+          return map;
+        }
+        case SET: {
+          const set = as(new Set, index);
+          for (const index of value)
+            set.add(unpair(index));
+          return set;
+        }
+        case ERROR: {
+          const {name, message} = value;
+          return as(
+            typeof env[name] === 'function' ?
+              guard(name, message) :
+              new Error(message),
+            index
+          );
+        }
+        case BIGINT:
+          return as(BigInt(value), index);
+        case 'BigInt':
+          return as(Object(BigInt(value)), index);
+        case 'ArrayBuffer':
+          return as(new Uint8Array(value).buffer, value);
+        case 'DataView': {
+          const { buffer } = new Uint8Array(value);
+          return as(new DataView(buffer), value);
+        }
+      }
+      return as(guard(type, value), index);
+    };
+
+    return unpair;
+  };
 
   /**
-   * @group Event Handling
-   * @category Enums
+   * @typedef {Array<string,any>} Record a type representation
    */
-  var ClosestOrigin;
-  (function (ClosestOrigin) {
-      ClosestOrigin["target"] = "target";
-      ClosestOrigin["position"] = "position";
-  })(ClosestOrigin || (ClosestOrigin = {}));
 
   /**
-   * @class TurboEvent
-   * @group Event Handling
-   * @category TurboEvents
-   * @description Generic turbo event.
+   * Returns a deserialized value from a serialized array of Records.
+   * @param {Record[]} serialized a previously serialized value.
+   * @returns {any}
    */
-  let TurboEvent = (() => {
-      let _classSuper = Event;
-      let _instanceExtraInitializers = [];
-      let _closest_decorators;
-      let _get_scaledPosition_decorators;
-      return class TurboEvent extends _classSuper {
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _closest_decorators = [cache()];
-              _get_scaledPosition_decorators = [cache()];
-              __esDecorate(this, null, _closest_decorators, { kind: "method", name: "closest", static: false, private: false, access: { has: obj => "closest" in obj, get: obj => obj.closest }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _get_scaledPosition_decorators, { kind: "getter", name: "scaledPosition", static: false, private: false, access: { has: obj => "scaledPosition" in obj, get: obj => obj.scaledPosition }, metadata: _metadata }, null, _instanceExtraInitializers);
-              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-          }
-          /**
-           * @description The event manager that fired this event.
-           */
-          eventManager = __runInitializers(this, _instanceExtraInitializers);
-          /**
-           * @description The name of the tool (if any) associated with this event.
-           */
-          toolName;
-          /**
-           * @description The name of the event.
-           */
-          eventName;
-          /**
-           * @description The click mode of the fired event
-           */
-          clickMode;
-          /**
-           * @description The keys pressed when the event was fired
-           */
-          keys;
-          /**
-           * @description The screen position from where the event was fired
-           */
-          position;
-          /**
-           * @description Callback function (or boolean) to be overridden to specify when to allow transformation
-           * and/or scaling.
-           */
-          authorizeScaling;
-          /**
-           * @description Callback function to be overridden to specify how to transform a position from screen to
-           * document space.
-           */
-          scalePosition;
-          constructor(properties) {
-              super(properties.eventName, { bubbles: true, cancelable: true, ...properties.eventInitDict });
-              this.eventManager = properties.eventManager ?? TurboEventManager.instance;
-              this.authorizeScaling = properties.authorizeScaling ?? true;
-              this.scalePosition = properties.scalePosition ?? ((position) => position);
-              this.clickMode = properties.clickMode ?? TurboEventManager.instance.currentClick;
-              this.keys = properties.keys ?? TurboEventManager.instance.currentKeys;
-              this.eventName = properties.eventName;
-              this.position = properties.position;
-              this.toolName = properties.toolName;
-          }
-          /**
-           * @description The tool (if any) associated with this event.
-           */
-          get tool() {
-              if (!this.toolName || !(this.eventManager instanceof TurboEventManager))
-                  return null;
-              return this.eventManager.getToolByName(this.toolName);
-          }
-          /**
-           * @description Returns the closest element of the provided type to the target (Searches through the element and
-           * all its parents to find one of matching type).
-           * @param type
-           * @param strict
-           * @param from
-           */
-          closest(type, strict = true, from = ClosestOrigin.target) {
-              const elements = from == ClosestOrigin.target ? [this.target]
-                  : document.elementsFromPoint(this.position.x, this.position.y);
-              const strictElement = strict instanceof Element ? strict : null;
-              const isStrict = strict === true || strictElement !== null;
-              for (let element of elements) {
-                  while (element && !((element instanceof type)
-                      && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? element))))
-                      element = element.parentElement;
-                  if (element)
-                      return element;
-              }
-              return null;
-          }
-          /**
-           * @description Checks if the position is inside the given element's bounding box.
-           * @param position
-           * @param element
-           */
-          isPositionInsideElement(position, element) {
-              const rect = element.getBoundingClientRect();
-              return position.x >= rect.left && position.x <= rect.right
-                  && position.y >= rect.top && position.y <= rect.bottom;
-          }
-          /**
-           * @description The target of the event (as an Element - or the document)
-           */
-          get target() {
-              return super.target || document;
-          }
-          /**
-           * @description The position of the fired event transformed and/or scaled using the class's scalePosition().
-           */
-          get scaledPosition() {
-              if (!this.scalingAuthorized)
-                  return this.position;
-              return this.scalePosition(this.position);
-          }
-          /**
-           * @description Specifies whether to allow transformation and/or scaling.
-           */
-          get scalingAuthorized() {
-              return typeof this.authorizeScaling == "function" ? this.authorizeScaling() : this.authorizeScaling;
-          }
-          /**
-           * @private
-           * @description Takes a map of points and returns a new map where each point is transformed accordingly.
-           * @param positions
-           */
-          scalePositionsMap(positions) {
-              return positions.mapValues((key, position) => this.scalePosition(position));
-          }
-      };
-  })();
+  const deserialize = serialized => deserializer(new Map, serialized)(0);
+
+  /*! (c) Andrea Giammarchi - ISC */
+
+
+  const {parse: $parse} = JSON;
 
   /**
-   * @class TurboKeyEvent
-   * @group Event Handling
-   * @category TurboEvents
+   * Revive a previously stringified structured clone.
+   * @param {string} str previously stringified data as string.
+   * @returns {any} whatever was previously stringified as clone.
+   */
+  const parse = str => deserialize($parse(str));
+
+  /**
+   * @class GradumElement
+   * @group GradumElement
+   * @category GradumElement
    *
-   * @extends TurboEvent
-   * @description Custom key event
-   */
-  class TurboKeyEvent extends TurboEvent {
+   * @extends HTMLElement
+   * @description Base GradumElement class, extending the base HTML element with a few useful tools and functions.
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * */
+  class GradumElement extends HTMLElement {
       /**
-       * @description The key pressed (if any) when the event was fired
+       * @description Default properties assigned to a new instance.
        */
-      keyPressed;
-      /**
-       * @description The key released (if any) when the event was fired
-       */
-      keyReleased;
-      constructor(properties) {
-          super({ ...properties, position: null });
-          this.keyPressed = properties.keyPressed;
-          this.keyReleased = properties.keyReleased;
+      static defaultProperties = {
+          defaultSelectedClasses: "selected"
+      };
+      // public static create<Type extends new (...args: any[]) => GradumElement>
+      // (this: Type, properties: InstanceType<Type>["properties"] = {}): InstanceType<Type> {
+      //     return (this as any).customCreate.call(this, properties);
+      // }
+      static create(properties) {
+          return this.customCreate(properties ?? {});
       }
-  }
-
-  /**
-   * @class TurboController
-   * @group MVC
-   * @category Controller
-   *
-   * @description The MVC base controller class. Its main job is to handle some part of (or all of) the logic of the
-   * component. It has access to the element, the model to read and write data, the view to update the UI, and the
-   * emitter to listen for changes in the model or any other internal events. It can only communicate with other
-   * controllers via the emitter (by firing or listening for changes on a certain key).
-   * @template {object} ElementType - The type of the main component.
-   * @template {TurboView} ViewType - The element's MVC view type.
-   * @template {TurboModel} ModelType - The element's MVC model type.
-   * @template {TurboEmitter} EmitterType - The element's MVC emitter type.
-   */
-  class TurboController {
-      /**
-       * @description The key of the controller. Used to retrieve it in the main component. If not set, if the element's
-       * class name is MyElement and the controller's class name is MyElementSomethingController, the key would
-       * default to "something".
-       */
-      keyName;
-      /**
-       * @description The element it is bound to.
-       */
-      element;
-      /**
-       * @description The MVC view.
-       */
-      view;
-      /**
-       * @description The MVC model.
-       */
-      model;
-      /**
-       * @description The MVC emitter.
-       */
-      emitter;
-      constructor(properties) {
-          this.element = properties.element;
-          if (properties.model)
-              this.model = properties.model;
-          if (properties.emitter)
-              this.emitter = properties.emitter;
-          if (properties.view)
-              this.view = properties.view;
-          this.setup();
+      static customCreate(properties) {
+          const prototypeChain = getPrototypeChain(this);
+          for (const prototype of prototypeChain)
+              gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+          return element({ ...properties });
       }
-      setup() { }
       /**
-       * @function initialize
-       * @description Initializes the controller. Specifically, it will set up the change callbacks.
+       * @description Delegate fired when the element is attached to DOM.
        */
-      initialize() {
-          this.setupChangedCallbacks();
-      }
+      onAttach = new Delegate();
+      /**
+       * @description Delegate fired when the element is detached from the DOM.
+       */
+      onDetach = new Delegate();
+      /**
+       * @description Delegate fired when the element is adopted by a new parent in the DOM.
+       */
+      onAdopt = new Delegate();
       /**
        * @function setupChangedCallbacks
-       * @description Setup method intended to initialize change listeners and callbacks.
+       * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
        * @protected
        */
       setupChangedCallbacks() {
-          initializeEffects(this);
+      }
+      /**
+       * @function setupUIElements
+       * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
+       * them in fields. Called on `initialize()`.
+       * @protected
+       */
+      setupUIElements() {
+      }
+      /**
+       * @function setupUILayout
+       * @description Setup method to create the layout structure of the element by adding all created sub-elements to
+       * this element's child tree. Called on `initialize()`.
+       * @protected
+       */
+      setupUILayout() {
+      }
+      /**
+       * @function setupUIListeners
+       * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
+       * `initialize()`.
+       * @protected
+       */
+      setupUIListeners() {
+      }
+      /**
+       * @function connectedCallback
+       * @description function called when the element is attached to the DOM.
+       */
+      connectedCallback() {
+          if (!this.initialized) {
+              const prototypeChain = getPrototypeChain(this);
+              const defaults = {};
+              for (const proto of prototypeChain)
+                  gradum(defaults).applyDefaults(proto.constructor?.["defaultProperties"]);
+              const toApply = {};
+              for (const [key, value] of Object.entries(defaults))
+                  if (isUndefined(this[key]))
+                      toApply[key] = value;
+              gradum(this).setProperties(toApply);
+              for (const attribute of this.constructor["observedAttributes"] ?? []) {
+                  if (!this.hasAttribute(attribute))
+                      continue;
+                  const property = kebabToCamelCase(attribute);
+                  const current = this.getAttribute(attribute);
+                  this[property] = parse(current);
+              }
+          }
+          this.onAttach.fire();
+      }
+      /**
+       * @function disconnectedCallback
+       * @description function called when the element is detached from the DOM.
+       */
+      disconnectedCallback() {
+          this.onDetach.fire();
+      }
+      /**
+       * @function adoptedCallback
+       * @description function called when the element is adopted by a new parent in the DOM.
+       */
+      adoptedCallback() {
+          this.onAdopt.fire();
       }
   }
-
-  class TurboEventManagerKeyController extends TurboController {
-      keyName = "key";
-      keyDown = (e) => this.keyDownFn(e);
-      keyDownFn(e) {
-          if (!this.element.enabled)
-              return;
-          //Return if key already pressed
-          if (this.model.currentKeys.includes(e.key))
-              return;
-          //Add key to currentKeys
-          this.model.currentKeys.push(e.key);
-          //Fire a keyPressed event (only once)
-          this.emitter.fire("dispatchEvent", document, TurboKeyEvent, { eventName: TurboKeyEventName.keyPressed, keyPressed: e.key });
-      }
-      keyUp = (e) => this.keyUpFn(e);
-      keyUpFn(e) {
-          if (!this.element.enabled)
-              return;
-          //Return if key not pressed
-          if (!this.model.currentKeys.includes(e.key))
-              return;
-          //Remove key from currentKeys
-          this.model.currentKeys.splice(this.model.currentKeys.indexOf(e.key), 1);
-          //Fire a keyReleased event
-          this.emitter.fire("dispatchEvent", document, TurboKeyEvent, { eventName: TurboKeyEventName.keyReleased, keyReleased: e.key });
-      }
-  }
+  (() => {
+      defineDefaultProperties(GradumElement);
+      defineMvcAccessors(GradumElement);
+      defineUIPrototype(GradumElement);
+  })();
+  addRegistryCategory(GradumElement);
 
   /**
-   * @class TurboWheelEvent
-   * @group Event Handling
-   * @category TurboEvents
+   * @class GradumBaseElement
+   * @group GradumElement
+   * @category GradumBaseElement
    *
-   * @extends TurboEvent
-   * @description Custom wheel event
+   * @description GradumHeadlessElement class, similar to GradumElement but without extending HTMLElement.
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
    */
-  class TurboWheelEvent extends TurboEvent {
+  class GradumBaseElement {
       /**
-       * @description The delta amount of scrolling
+       * @description Default properties assigned to a new instance.
        */
-      delta;
-      constructor(properties) {
-          super({ ...properties, position: null });
-          this.delta = properties.delta;
+      static defaultProperties = {};
+      static create(properties = {}) {
+          return this.customCreate.call(this, properties);
       }
+      static customCreate(properties) {
+          const prototypeChain = getPrototypeChain(this);
+          for (const prototype of prototypeChain)
+              gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+          const obj = new this();
+          gradum(obj).setProperties(properties);
+          return obj;
+      }
+  }
+  (() => {
+      defineDefaultProperties(GradumBaseElement);
+  })();
+  addRegistryCategory(GradumBaseElement);
+
+  const elementSymbol = Symbol("___element___");
+  /**
+   * @class GradumProxiedElement
+   * @group GradumElement
+   * @category GradumProxiedElement
+   *
+   * @description GradumProxiedElement class, similar to GradumElement but containing an HTML element instead of being one.
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   */
+  class GradumProxiedElement {
+      /**
+       * @description Default properties assigned to a new instance.
+       */
+      static defaultProperties = {
+          defaultSelectedClasses: "selected"
+      };
+      static create(properties = {}) {
+          const prototypeChain = getPrototypeChain(this);
+          for (const prototype of prototypeChain)
+              gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+          return this.customCreate.call(this, properties);
+      }
+      static customCreate(properties) {
+          const obj = new this();
+          obj[elementSymbol] = blindElement({ tag: properties["tag"] });
+          // gradum(obj) without raw unwraps to obj.element, which is the same key the model getter
+          // resolves to later. Using raw=true here would key MVC data under obj instead, making
+          // gradum(obj).model return undefined during initialize().
+          // The back-reference lets extractClassEssenceName walk obj's prototype chain (FlowEntry,
+          // etc.) instead of the raw SVGGElement chain, so handler/operator key derivation works.
+          obj[elementSymbol][proxyWrapperSymbol] = obj;
+          const shouldInitialize = properties["initialize"] !== false;
+          gradum(obj).setProperties(Object.assign({}, properties, { initialize: false }));
+          // Dispatch custom wrapper setters that setProperties couldn't reach.
+          // gradum(obj) routes through obj.element (the raw DOM node), so properties that have no
+          // meaning on the raw element (e.g. FlowEntry.flow) are silently dropped. We replay them
+          // onto obj directly — but only when: (1) not an MVC field already handled by GradumSelector,
+          // (2) the raw element has no descriptor for the key (setProperties already handled it), and
+          // (3) obj's prototype chain has a real setter for the key.
+          const rawEl = obj[elementSymbol];
+          for (const [key, value] of Object.entries(properties)) {
+              if (MvcFields.includes(key))
+                  continue;
+              if (getFirstDescriptorInChain(rawEl, key))
+                  continue;
+              const desc = getFirstDescriptorInChain(obj, key);
+              if (desc?.set)
+                  obj[key] = value;
+          }
+          if (shouldInitialize && typeof obj["initialize"] === "function")
+              obj["initialize"]();
+          return obj;
+      }
+      /**
+       * @description The HTML (or other) element wrapped inside this instance.
+       */
+      get element() {
+          return this[elementSymbol];
+      }
+      /**
+       * @function setupChangedCallbacks
+       * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
+       * @protected
+       */
+      setupChangedCallbacks() {
+      }
+      /**
+       * @function setupUIElements
+       * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
+       * them in fields. Called on `initialize()`.
+       * @protected
+       */
+      setupUIElements() {
+      }
+      /**
+       * @function setupUILayout
+       * @description Setup method to create the layout structure of the element by adding all created sub-elements to
+       * this element's child tree. Called on `initialize()`.
+       * @protected
+       */
+      setupUILayout() {
+      }
+      /**
+       * @function setupUIListeners
+       * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
+       * `initialize()`.
+       * @protected
+       */
+      setupUIListeners() {
+      }
+  }
+  (() => {
+      defineDefaultProperties(GradumProxiedElement);
+      defineMvcAccessors(GradumProxiedElement);
+      defineUIPrototype(GradumProxiedElement);
+  })();
+  addRegistryCategory(GradumProxiedElement);
+
+  /**
+   * @class GradumHeadlessElement
+   * @group GradumElement
+   * @category GradumHeadlessElement
+   *
+   * @description GradumHeadlessElement class, similar to GradumElement but without extending HTMLElement.
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   */
+  class GradumHeadlessElement {
+      /**
+       * @description Default properties assigned to a new instance.
+       */
+      static defaultProperties = {};
+      static create(properties = {}) {
+          return this.customCreate.call(this, properties);
+      }
+      static customCreate(properties) {
+          const prototypeChain = getPrototypeChain(this);
+          for (const prototype of prototypeChain)
+              gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+          const obj = new this();
+          gradum(obj).setProperties(properties);
+          return obj;
+      }
+  }
+  (() => {
+      defineDefaultProperties(GradumHeadlessElement);
+      defineMvcAccessors(GradumHeadlessElement);
+  })();
+  addRegistryCategory(GradumHeadlessElement);
+
+  /**
+   * @group Utilities
+   * @category Numbers
+   */
+  function trim(value, max, min = 0, fallback = 0) {
+      if (value === undefined || typeof value !== "number")
+          return fallback;
+      if (value < min)
+          value = min;
+      if (value > max)
+          value = max;
+      return value;
+  }
+  /**
+   * @group Utilities
+   * @category Numbers
+   */
+  function mod(value, modValue = 0) {
+      while (value < 0)
+          value += modValue;
+      while (value >= modValue)
+          value -= modValue;
+      return value;
   }
 
   /**
@@ -12415,10 +14956,11 @@
        * @param {Point[]} arr - Undetermined number of point parameters
        */
       static midPoint(...arr) {
-          if (arr.length == 0)
+          const points = arr.filter(p => p != null);
+          if (points.length == 0)
               return null;
-          const x = arr.reduce((sum, p) => sum + p.x, 0) / arr.length;
-          const y = arr.reduce((sum, p) => sum + p.y, 0) / arr.length;
+          const x = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+          const y = points.reduce((sum, p) => sum + p.y, 0) / points.length;
           return new Point(x, y);
       }
       /**
@@ -12426,10 +14968,11 @@
        * @param {Point[]} arr - Undetermined number of point parameters
        */
       static max(...arr) {
-          if (arr.length == 0)
+          const points = arr.filter(p => p != null);
+          if (points.length == 0)
               return null;
-          const x = arr.reduce((max, p) => Math.max(max, p.x), -Infinity);
-          const y = arr.reduce((max, p) => Math.max(max, p.y), -Infinity);
+          const x = points.reduce((max, p) => Math.max(max, p.x), -Infinity);
+          const y = points.reduce((max, p) => Math.max(max, p.y), -Infinity);
           return new Point(x, y);
       }
       /**
@@ -12437,10 +14980,11 @@
        * @param {Point[]} arr - Undetermined number of point parameters
        */
       static min(...arr) {
-          if (arr.length == 0)
+          const points = arr.filter(p => p != null);
+          if (points.length == 0)
               return null;
-          const x = arr.reduce((min, p) => Math.min(min, p.x), Infinity);
-          const y = arr.reduce((min, p) => Math.min(min, p.y), Infinity);
+          const x = points.reduce((min, p) => Math.min(min, p.x), Infinity);
+          const y = points.reduce((min, p) => Math.min(min, p.y), Infinity);
           return new Point(x, y);
       }
       // Instance methods
@@ -12543,9 +15087,1351 @@
       arr() {
           return [this.x, this.y];
       }
+      positionOnSegment(start, end) {
+          const shiftedEnd = end.sub(start);
+          const shiftedLength2 = shiftedEnd.length2;
+          if (shiftedLength2 < 1e-9)
+              return 0;
+          return trim((this.sub(start).dot(shiftedEnd)) / shiftedLength2, 1);
+      }
+      static linearInterpolation(start, end, t) {
+          return start.add(end.sub(start).mul(t));
+      }
+      toString() {
+          return JSON.stringify({ x: this.x, y: this.y });
+      }
+      fromString(value) {
+          try {
+              const parsed = JSON.parse(value);
+              if (typeof parsed.x === "number" && typeof parsed.y === "number")
+                  return new Point(parsed.x, parsed.y);
+          }
+          catch {
+              new Point(0, 0);
+          }
+      }
   }
 
-  class TurboEventManagerWheelController extends TurboController {
+  /**
+   * @class GradumMovable
+   * @group Components
+   * @category GradumMovable
+   *
+   * @extends GradumElement
+   * @description Positioning wrapper that places arbitrary content via pure CSS transforms.
+   * Set {@link translation} (alias {@link position}) and {@link rotation} to move/rotate the
+   * wrapper without touching the content's own fields — useful for previews (feedforwards),
+   * ghosts, overlays, or any element that must be positioned independently of how its content
+   * renders itself.
+   *
+   * @example
+   * ```ts
+   * const movable = GradumMovable.create({content: myElement});
+   * movable.translation = new Point(120, 40);
+   * movable.rotation = Math.PI / 6;
+   * movable.translateBy(new Point(5, 0));
+   * ```
+   */
+  let GradumMovable = (() => {
+      let _classSuper = GradumElement;
+      let _instanceExtraInitializers = [];
+      let _translation_decorators;
+      let _translation_initializers = [];
+      let _translation_extraInitializers = [];
+      let _rotation_decorators;
+      let _rotation_initializers = [];
+      let _rotation_extraInitializers = [];
+      let _centerAnchor_decorators;
+      let _centerAnchor_initializers = [];
+      let _centerAnchor_extraInitializers = [];
+      let _set_content_decorators;
+      let _updateTransform_decorators;
+      return class GradumMovable extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _translation_decorators = [signal];
+              _rotation_decorators = [signal];
+              _centerAnchor_decorators = [signal];
+              _set_content_decorators = [auto()];
+              _updateTransform_decorators = [effect];
+              __esDecorate(this, null, _set_content_decorators, { kind: "setter", name: "content", static: false, private: false, access: { has: obj => "content" in obj, set: (obj, value) => { obj.content = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _updateTransform_decorators, { kind: "method", name: "updateTransform", static: false, private: false, access: { has: obj => "updateTransform" in obj, get: obj => obj.updateTransform }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(null, null, _translation_decorators, { kind: "field", name: "translation", static: false, private: false, access: { has: obj => "translation" in obj, get: obj => obj.translation, set: (obj, value) => { obj.translation = value; } }, metadata: _metadata }, _translation_initializers, _translation_extraInitializers);
+              __esDecorate(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
+              __esDecorate(null, null, _centerAnchor_decorators, { kind: "field", name: "centerAnchor", static: false, private: false, access: { has: obj => "centerAnchor" in obj, get: obj => obj.centerAnchor, set: (obj, value) => { obj.centerAnchor = value; } }, metadata: _metadata }, _centerAnchor_initializers, _centerAnchor_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          /** @description The translation applied to the wrapper, in pixels. */
+          translation = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _translation_initializers, new Point()));
+          /** @description The rotation applied to the wrapper, in radians. */
+          rotation = (__runInitializers(this, _translation_extraInitializers), __runInitializers(this, _rotation_initializers, 0));
+          /** @description When true, the wrapper is offset by -50% so translation refers to its center. */
+          centerAnchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _centerAnchor_initializers, false));
+          /** @description The content element wrapped by this movable. Assigning it appends it as a child. */
+          set content(value) {
+              if (value)
+                  gradum(this).addChild(value);
+          }
+          setupUILayout() {
+              super.setupUILayout();
+              gradum(this).setStyles({ display: "inline-block", position: "absolute", left: "0", top: "0" });
+          }
+          updateTransform() {
+              const offset = this.centerAnchor ? " - 50%" : "";
+              // Instant so per-pointer-event positioning isn't deferred a frame behind by the
+              // rAF-batched style queue.
+              gradum(this).setStyle("transform", `translate3d(
+            calc(${this.translation.x}px${offset}),
+            calc(${this.translation.y}px${offset}),
+            0) rotate(${this.rotation}rad)`, true);
+          }
+          /** @description Add the given delta to the current translation. */
+          translateBy(delta) {
+              this.translation = this.translation.add(delta);
+          }
+          /** @description Add the given angle (radians) to the current rotation. */
+          rotateBy(angle) {
+              this.rotation += angle;
+          }
+          /**
+           * @description Alias of {@link translation}, so code that positions elements through a
+           * `position` field (e.g. constrainer solvers) works on the wrapper as-is.
+           */
+          get position() {
+              return this.translation;
+          }
+          set position(value) {
+              if (!value)
+                  return;
+              this.translation = value instanceof Point ? value : new Point(value);
+          }
+          constructor() {
+              super(...arguments);
+              __runInitializers(this, _centerAnchor_extraInitializers);
+          }
+      };
+  })();
+  define(GradumMovable, "gradum-movable");
+
+  const utils$7 = new ElementFunctionsUtils();
+  function setupElementFunctions() {
+      /**
+       * Sets the declared properties to the element.
+       * @param {GradumProperties<Tag>} [properties] - The properties object.
+       * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
+       * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
+       * @returns {this} Itself, allowing for method chaining.
+       * @template Tag
+       */
+      GradumSelector.prototype.setProperties = function _setProperties(properties = {}, setOnlyBaseProperties = false) {
+          if (!this.element)
+              return this;
+          const props = { ...properties };
+          const element = this.element instanceof Element ? this.element :
+              this.element["element"] instanceof Element ? this.element["element"] : undefined;
+          gradum(props, true).removeFields(["tag", "namespace"]);
+          const { out, shadowDOM, initialize, parent, model, data, dataId } = gradum(props, true).extract(["out", "shadowDOM", "initialize", "parent", "model", "data", "dataId"]);
+          let mvcUpdated = false;
+          if (out) {
+              if (typeof out == "string")
+                  this["__outName"] = out;
+              else
+                  Object.assign(out, this);
+          }
+          if (!!shadowDOM) {
+              if ("shadowDOM" in this.element)
+                  this["shadowDOM"] = shadowDOM;
+              else if (element)
+                  element.attachShadow({ mode: "open" });
+          }
+          if (!element || (element && !setOnlyBaseProperties)) {
+              if (model) {
+                  this.model = model;
+                  if (data && this.model) {
+                      this.model.setDataWithoutInitializing(data);
+                      this.model.id = dataId;
+                  }
+                  mvcUpdated = true;
+              }
+              const mvc = gradum(props, true).extract(MvcFields);
+              for (const [key, value] of Object.entries(mvc)) {
+                  try {
+                      this[key] = value;
+                      mvcUpdated = true;
+                  }
+                  catch {
+                  }
+              }
+          }
+          if (element) {
+              const elementProps = gradum(props, true).extract(["text", "style",
+                  "stylesheet", "id", "classes", "listeners", "onClick", "onDrag", "children"]);
+              for (const [property, value] of Object.entries(elementProps)) {
+                  if (value === undefined)
+                      continue;
+                  switch (property) {
+                      case "text":
+                          if (element instanceof HTMLElement)
+                              element.innerText = value;
+                          break;
+                      case "style":
+                          if (!(element instanceof HTMLElement || element instanceof SVGElement))
+                              break;
+                          gradum(element).setStyles(value, true);
+                          break;
+                      case "stylesheet":
+                          stylesheet(value, gradum(element).closestRoot);
+                          break;
+                      case "id":
+                          element.id = value;
+                          break;
+                      case "classes":
+                          gradum(element).addClass(value);
+                          break;
+                      case "listeners":
+                          Object.entries(value).forEach(([type, callback]) => gradum(element).on(type, callback));
+                          break;
+                      case "onClick":
+                          gradum(element).on(DefaultEventName.click, value);
+                          break;
+                      case "onDrag":
+                          gradum(element).on(DefaultEventName.drag, value);
+                          break;
+                      case "children":
+                          gradum(element).addChild(value);
+                          break;
+                  }
+              }
+          }
+          if (!element || !setOnlyBaseProperties) {
+              for (const [property, value] of Object.entries(props)) {
+                  if (value === undefined)
+                      continue;
+                  try {
+                      this.element[property] = value;
+                  }
+                  catch {
+                      if (element)
+                          try {
+                              element.setAttribute(property, stringify(value));
+                          }
+                          catch (e) {
+                              console.error(e);
+                          }
+                  }
+              }
+          }
+          if (parent)
+              gradum(element).addToParent(parent);
+          if (initialize === undefined || initialize) {
+              if ("initialize" in this.element && typeof this.element.initialize === "function")
+                  this.element.initialize();
+              else if (mvcUpdated)
+                  this.initializeMvc();
+          }
+          return this;
+      };
+      GradumSelector.prototype.getFields = function _getFields() {
+          if (!this.element)
+              return {};
+          const chain = getPrototypeChain(this.element);
+          const seen = new Set();
+          const result = {};
+          const builtinPrototypes = new Set([
+              GradumElement.prototype, GradumBaseElement.prototype, GradumProxiedElement.prototype,
+              GradumHeadlessElement.prototype, Element.prototype, HTMLElement.prototype, Node.prototype,
+              SVGElement.prototype, MathMLElement.prototype, EventTarget.prototype, Object.prototype
+          ]);
+          for (const proto of [this.element, ...chain].reverse()) {
+              if (builtinPrototypes.has(proto)) {
+                  for (const key of Object.getOwnPropertyNames(proto))
+                      seen.add(key);
+                  continue;
+              }
+              for (const key of Object.getOwnPropertyNames(proto)) {
+                  if (seen.has(key) || key.startsWith("_"))
+                      continue;
+                  const desc = Object.getOwnPropertyDescriptor(proto, key);
+                  if (!desc || typeof desc.value === "function" || (desc.get && !desc.set))
+                      continue;
+                  seen.add(key);
+                  result[key] = this.element[key];
+              }
+          }
+          return result;
+      };
+      GradumSelector.prototype.clone = function _clone(options = {}) {
+          const originElement = this.element instanceof Node ? this.element : undefined;
+          if (!originElement)
+              return;
+          const exclude = new Set(options.exclude ?? []);
+          const force = new Set(options.forceInclude ?? []);
+          const deepClone = new Set(options.deepClone ?? []);
+          const copyReference = new Set(options.copyReference ?? []);
+          const shouldCopy = (key, value, prototype) => {
+              if (force.has(key))
+                  return true;
+              if (exclude.has(key) || key === "mvc" || key === "__proto__" || key === "prototype")
+                  return false;
+              if (typeof value === "function" || value instanceof Delegate)
+                  return false;
+              if (key === "model" || key === "view" || key === "emitter" || key === "operators"
+                  || key === "handlers" || key === "interactors" || key === "tools" || key === "constrainers")
+                  return false;
+              const desc = Object.getOwnPropertyDescriptor(prototype, key);
+              if (!desc)
+                  return false;
+              if (desc.get && !desc.set)
+                  return false;
+              if (desc.writable === false)
+                  return false;
+              return true;
+          };
+          const copyField = (key, value) => {
+              if (value === null || value === undefined || typeof value !== "object")
+                  return value;
+              if (copyReference.has(key))
+                  return value;
+              if (value instanceof Node) {
+                  if (deepClone.has(key) || options.deepCloneNodes) {
+                      try {
+                          return gradum(value).clone(options);
+                      }
+                      catch {
+                          return undefined;
+                      }
+                  }
+                  return options.copyNodes ? value : undefined;
+              }
+              if (options.deepCloneObjects || deepClone.has(key)) {
+                  try {
+                      return structuredClone(value);
+                  }
+                  catch { /* fall through to reference */ }
+              }
+              return value;
+          };
+          const constructor = originElement.constructor;
+          const prototypeChain = getPrototypeChain(originElement);
+          const properties = {};
+          if (originElement["model"] && originElement["data"] != null) {
+              const rawData = originElement["data"];
+              let clonedData = rawData;
+              if (options.snapshotData || options.deepCloneObjects) {
+                  // Y.js types: deep-copy into a fresh detached Y.Doc. The clone's model machinery
+                  // (observers, nested models, views) then works unchanged on real Y types, and
+                  // nothing syncs since the doc has no provider. A plain-object (toJSON) snapshot
+                  // renders degraded previews — observers never populate from plain data.
+                  if (options.snapshotData && rawData instanceof AbstractType
+                      && typeof rawData.clone === "function") {
+                      try {
+                          const yClone = rawData.clone();
+                          // Y types must be inside a document before they can be read.
+                          new Doc().getMap("__gradum_snapshot__").set("data", yClone);
+                          clonedData = yClone;
+                      }
+                      catch { }
+                  }
+                  // Fallbacks: toJSON (plain detached object), then structuredClone. Only under
+                  // snapshotData — deepCloneObjects keeps its documented fallback to reference
+                  // sharing for non-structured-cloneable data.
+                  if (clonedData === rawData && options.snapshotData && typeof rawData.toJSON === "function")
+                      try {
+                          clonedData = rawData.toJSON();
+                      }
+                      catch { }
+                  if (clonedData === rawData)
+                      try {
+                          clonedData = structuredClone(rawData);
+                      }
+                      catch { }
+              }
+              properties.data = clonedData;
+          }
+          try {
+              Object.assign(properties, gradum(originElement).getMvcDifference());
+          }
+          catch { }
+          let clone;
+          if (typeof constructor.create === "function") {
+              try {
+                  clone = constructor.create(properties);
+              }
+              catch { }
+          }
+          if (!clone) {
+              if (originElement instanceof Element) {
+                  clone = gradum(document.createElement(originElement.tagName)).setProperties(properties).element;
+              }
+              else {
+                  try {
+                      clone = originElement.cloneNode(false);
+                  }
+                  catch { }
+              }
+          }
+          if (!clone)
+              return;
+          if (originElement instanceof Element && clone instanceof Element) {
+              for (const attr of Array.from(originElement.attributes)) {
+                  if (exclude.has(attr.name))
+                      continue;
+                  try {
+                      clone.setAttribute(attr.name, attr.value);
+                  }
+                  catch { }
+              }
+          }
+          const keys = new Map();
+          const addKeys = (prototype) => {
+              for (const property of Object.getOwnPropertyNames(prototype))
+                  if (!keys.has(property))
+                      keys.set(property, prototype);
+              for (const property of Object.getOwnPropertySymbols(prototype))
+                  if (!keys.has(property))
+                      keys.set(property, prototype);
+          };
+          const mathMLProto = typeof MathMLElement !== "undefined" ? MathMLElement.prototype : null;
+          addKeys(originElement);
+          for (const prototype of prototypeChain) {
+              if (equalToAny(prototype, GradumElement.prototype, GradumBaseElement.prototype, GradumProxiedElement.prototype, GradumHeadlessElement.prototype, Element.prototype, Node.prototype, HTMLElement.prototype, SVGElement.prototype, mathMLProto, EventTarget.prototype, Object.prototype))
+                  break;
+              addKeys(prototype);
+          }
+          for (const [key, prototype] of keys.entries()) {
+              const value = originElement[key];
+              if (!shouldCopy(key, value, prototype))
+                  continue;
+              const newValue = copyField(key, value);
+              if (newValue !== undefined)
+                  try {
+                      clone[key] = newValue;
+                  }
+                  catch { }
+          }
+          return clone;
+      };
+      /**
+       * @description Destroys the node by removing it from the document and removing all its bound listeners.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.destroy = function _destroy() {
+          this.removeAllListeners();
+          this.remove();
+          if (this.element && "destroy" in this.element && typeof this.element.destroy === "function")
+              this.element.destroy();
+          return this;
+      };
+      /**
+       * @description Sets the value of an attribute on the underlying element.
+       * @param {string} name The name of the attribute.
+       * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent a
+       * true boolean.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.setAttribute = function _setAttribute(name, value) {
+          if (this.element instanceof Element)
+              this.element.setAttribute(name, value?.toString() || "true");
+          return this;
+      };
+      /**
+       * @description Removes an attribute from the underlying element.
+       * @param {string} name The name of the attribute to remove.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.removeAttribute = function _removeAttribute(name) {
+          if (this.element instanceof Element)
+              this.element.removeAttribute(name);
+          return this;
+      };
+      /**
+       * @description Causes the element to lose focus.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.blur = function _blur() {
+          if (this.element instanceof HTMLElement)
+              this.element.blur();
+          return this;
+      };
+      /**
+       * @description Sets focus on the element.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.focus = function _focus() {
+          if (this.element instanceof HTMLElement)
+              this.element.focus();
+          return this;
+      };
+      const FEEDFORWARD_STYLE_ID = "gradum-feedforward-styles";
+      const wrapFeedforwardClone = (clone) => {
+          // Stylesheet !important beats the inline styles the clone's view keeps writing
+          // (its snapshot model still renders the original position). Injected once.
+          // position: static keeps absolutely-positioned clones (cards, nodes) in the wrapper's
+          // flow — otherwise they collapse the wrapper to 0x0 and break centerAnchor centering.
+          if (!document.getElementById(FEEDFORWARD_STYLE_ID)) {
+              const sheet = document.createElement("style");
+              sheet.id = FEEDFORWARD_STYLE_ID;
+              sheet.textContent = ".gradum-feedforward-wrapper > .gradum-feedforward-clone " +
+                  "{transform: none !important; position: static !important;}";
+              document.head.appendChild(sheet);
+          }
+          if (clone instanceof Element)
+              clone.classList.add("gradum-feedforward-clone");
+          const wrapper = GradumMovable.create({ content: clone instanceof Element ? clone : undefined });
+          wrapper.classList.add("gradum-feedforward-wrapper");
+          Object.defineProperty(wrapper, "feedforwardClone", { value: clone, configurable: true });
+          return wrapper;
+      };
+      GradumSelector.prototype.feedforward = function _feedforward(properties = {}) {
+          if (properties.removeOnPointerRelease === undefined)
+              properties.removeOnPointerRelease = true;
+          if (!this.element)
+              return;
+          const type = properties?.type ?? "___DEFAULT___";
+          const feedforwardElements = utils$7.data(this.element).feedforwardElements;
+          if (!feedforwardElements)
+              return;
+          let saved = feedforwardElements.get(type);
+          if (!saved) {
+              // Feedforwards are visual previews — snapshot the data so MVC/synced elements
+              // don't produce a live twin writing through the shared (e.g. Y.js) model.
+              const cloneOptions = { snapshotData: true, ...properties?.cloneOptions };
+              if (typeof this.element["clone"] === "function")
+                  saved = this.element["clone"](cloneOptions);
+              else
+                  saved = this.clone(cloneOptions);
+              // Positioning wrapper: callers move/rotate the preview through pure CSS
+              // transforms on the wrapper, never through the clone's semantic fields.
+              if (properties.wrap && saved)
+                  saved = wrapFeedforwardClone(saved);
+              // Register cleanup once per clone, not once per feedforward() call.
+              if (properties.removeOnPointerRelease && saved) {
+                  const savedClone = saved;
+                  gradum(document.body).on(DefaultEventName.clickEnd, () => {
+                      if (typeof savedClone["remove"] === "function")
+                          savedClone["remove"]();
+                      if (feedforwardElements.get(type) === savedClone)
+                          feedforwardElements.delete(type);
+                  }, { capture: true, once: true });
+              }
+          }
+          // feedforward() is called in hot paths (per pointer event). Re-applying an unchanged
+          // parent re-appends the whole subtree each call — custom-element disconnect/reconnect
+          // churn and forced reflows. Strip parent when the element is already inside it.
+          const stripUnchangedParent = (props) => {
+              if (!props?.parent || !(saved instanceof Node))
+                  return props;
+              const parentNode = props.parent instanceof GradumSelector ? props.parent.element : props.parent;
+              if (saved.parentNode === parentNode)
+                  return { ...props, parent: undefined };
+              return props;
+          };
+          gradum(saved).setProperties(stripUnchangedParent(this.defaultFeedforwardProperties ?? {}))
+              .setProperties(stripUnchangedParent({
+              ...properties,
+              cloneOptions: undefined,
+              type: undefined,
+              removeOnPointerRelease: undefined,
+              wrap: undefined
+          }));
+          feedforwardElements.set(type, saved);
+          return saved;
+      };
+      Object.defineProperty(GradumSelector.prototype, "defaultFeedforwardProperties", {
+          get: function () {
+              if ("defaultFeedforwardProperties" in this.element)
+                  return this.element.defaultFeedforwardProperties;
+              return utils$7.data(this.element).defaultFeedforwardProperties;
+          },
+          set: function (value) {
+              if ("defaultFeedforwardProperties" in this.element)
+                  this.element.defaultFeedforwardProperties = value;
+              utils$7.data(this.element).defaultFeedforwardProperties = value;
+          },
+          configurable: true,
+          enumerable: true
+      });
+  }
+
+  /**
+   * @enum {Propagation}
+   * @group Types
+   * @category Event
+   *
+   * @description Enum dictating the propagation of an event.
+   *
+   * @property {Propagation.propagate} propagate - Continue normal propagation.
+   * @property {Propagation.stopPropagation} stopPropagation - Stop propagation to parent targets.
+   * @property {Propagation.stopImmediatePropagation} stopImmediatePropagation - Stop propagation and prevent any
+   * additional listeners on the same target from executing.
+   */
+  var Propagation;
+  (function (Propagation) {
+      Propagation["propagate"] = "propagate";
+      Propagation["stopPropagation"] = "stopPropagation";
+      Propagation["stopImmediatePropagation"] = "stopImmediatePropagation";
+  })(Propagation || (Propagation = {}));
+  /**
+   * @group Types
+   * @category Event
+   * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
+   */
+  const BasicInputEvents = [
+      "mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu",
+      "dragstart", "selectstart",
+      "touchstart", "touchmove", "touchend", "touchcancel",
+      "pointerdown", "pointermove", "pointerup",
+      "wheel"
+  ];
+  /**
+   * @group Types
+   * @category Event
+   * @description Event types that should usually be registered as **non-passive** when you intend to call
+   *  * `preventDefault()` (e.g., scroll/touch/pointer interactions).
+   */
+  const NonPassiveEvents = [
+      "wheel", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "pointercancel"
+  ];
+
+  /**
+   * @group Event Handling
+   * @category Enums
+   */
+  var ActionMode;
+  (function (ActionMode) {
+      ActionMode[ActionMode["none"] = 0] = "none";
+      ActionMode[ActionMode["click"] = 1] = "click";
+      ActionMode[ActionMode["longPress"] = 2] = "longPress";
+      ActionMode[ActionMode["drag"] = 3] = "drag";
+  })(ActionMode || (ActionMode = {}));
+  /**
+   * @group Event Handling
+   * @category Enums
+   */
+  var ClickMode;
+  (function (ClickMode) {
+      ClickMode[ClickMode["none"] = 0] = "none";
+      ClickMode[ClickMode["left"] = 1] = "left";
+      ClickMode[ClickMode["right"] = 2] = "right";
+      ClickMode[ClickMode["middle"] = 3] = "middle";
+      ClickMode[ClickMode["other"] = 4] = "other";
+      ClickMode[ClickMode["key"] = 5] = "key";
+  })(ClickMode || (ClickMode = {}));
+  /**
+   * @group Event Handling
+   * @category Enums
+   */
+  var InputDevice;
+  (function (InputDevice) {
+      InputDevice[InputDevice["unknown"] = 0] = "unknown";
+      InputDevice[InputDevice["mouse"] = 1] = "mouse";
+      InputDevice[InputDevice["trackpad"] = 2] = "trackpad";
+      InputDevice[InputDevice["touch"] = 3] = "touch";
+  })(InputDevice || (InputDevice = {}));
+
+  /**
+   * @internal
+   */
+  function inferKey(name, type, context) {
+      return (String(context.name).endsWith(type)
+          ? String(context.name).slice(0, -type.length)
+          : String(context.name));
+  }
+  /**
+   * @internal
+   */
+  function generateField(context, type, name) {
+      const cacheKey = Symbol(`__${type.toLowerCase()}_${String(context.name)}`);
+      const keyName = inferKey(name, type, context);
+      context.addInitializer(function () {
+          Object.defineProperty(this, context.name, {
+              configurable: true,
+              enumerable: false,
+              get: function () {
+                  if (this[cacheKey])
+                      return this[cacheKey];
+                  let value;
+                  let functionName;
+                  switch (type) {
+                      case "Operator":
+                          functionName = "getOperator";
+                          break;
+                      case "Handler":
+                          functionName = "getHandler";
+                          break;
+                      case "Interactor":
+                          functionName = "getInteractor";
+                          break;
+                      case "Tool":
+                          functionName = "getTool";
+                          break;
+                      case "Constrainer":
+                          functionName = "getConstrainer";
+                          break;
+                  }
+                  if (!functionName)
+                      return;
+                  value = gradum(this)[functionName]?.(keyName);
+                  if (!value)
+                      throw new Error(`${type} "${keyName}" not found on ${this?.constructor?.name}.`);
+                  this[cacheKey] = value;
+                  return value;
+              },
+              set: function (value) { this[cacheKey] = value; }
+          });
+      });
+  }
+  /**
+   * @decorator
+   * @function operator
+   * @group Decorators
+   * @category MVC
+   *
+   * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+   * fetched operator.
+   * @param {string} [name] - The key name of the operator in the MVC instance (if any). By default, it is inferred
+   * from the name of the field. If the field is named `somethingOperator`, the key name will be `something`.
+   *
+   * @example
+   * ```ts
+   * @operator() protected textOperator: GradumOperator;
+   * ```
+   * Is equivalent to:
+   * ```ts
+   * protected get textOperator(): GradumOperator {
+   *    if (this.mvc instanceof Mvc) return this.mvc.getOperator("text");
+   *    if (typeof this.getOperator === "function") return this.getOperator("text");
+   * }
+   * ```
+   */
+  function operator(name) {
+      return function (_unused, context) {
+          generateField(context, "Operator", name);
+      };
+  }
+  /**
+   * @decorator
+   * @function handler
+   * @group Decorators
+   * @category MVC
+   *
+   * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+   * fetched handler.
+   * @param {string} [name] - The key name of the handler in the MVC instance (if any). By default, it is inferred
+   * from the name of the field. If the field is named `somethingHandler`, the key name will be `something`.
+   *
+   * @example
+   * ```ts
+   * @handler() protected textHandler: GradumHandler;
+   * ```
+   * Is equivalent to:
+   * ```ts
+   * protected get textHandler(): GradumHandler {
+   *    if (this.mvc instanceof Mvc) return this.mvc.getHandler("text");
+   *    if (typeof this.getHandler === "function") return this.getHandler("text");
+   * }
+   * ```
+   */
+  function handler(name) {
+      return function (_unused, context) {
+          generateField(context, "Handler", name);
+      };
+  }
+
+  /**
+   * @group Components
+   * @category GradumMap
+   */
+  class GradumMap extends Map {
+      enforceImmutability = true;
+      set(key, value) {
+          return super.set(key, this.enforceImmutability ? this.copy(value) : value);
+      }
+      get(key) {
+          const result = super.get(key);
+          return this.enforceImmutability ? this.copy(result) : result;
+      }
+      get first() {
+          if (this.size == 0)
+              return null;
+          const result = this.values().next().value;
+          return this.enforceImmutability ? this.copy(result) : result;
+      }
+      get last() {
+          if (this.size == 0)
+              return null;
+          const result = this.valuesArray()[this.size - 1];
+          return this.enforceImmutability ? this.copy(result) : result;
+      }
+      keysArray() {
+          return Array.from(this.keys());
+      }
+      valuesArray() {
+          return Array.from(this.values());
+      }
+      copy(value) {
+          if (value && typeof value == "object") {
+              if (value instanceof Array)
+                  return value.map(item => this.copy(item));
+              if (value.constructor && value.constructor != Object) {
+                  if (typeof value.clone == "function")
+                      return value.clone();
+                  if (typeof value.copy == "function")
+                      return value.copy();
+              }
+              return { ...value };
+          }
+          return value;
+      }
+      mapKeys(callback) {
+          const newMap = new GradumMap();
+          for (let [key, value] of this) {
+              newMap.set(callback(key, value), value);
+          }
+          return newMap;
+      }
+      mapValues(callback) {
+          const newMap = new GradumMap();
+          for (let [key, value] of this) {
+              newMap.set(key, callback(key, value));
+          }
+          return newMap;
+      }
+      filter(callback) {
+          const newMap = new GradumMap();
+          for (let [key, value] of this) {
+              if (callback(key, value))
+                  newMap.set(key, value);
+          }
+          return newMap;
+      }
+      merge(map) {
+          for (let [key, value] of map) {
+              this.set(key, value);
+          }
+          return this;
+      }
+  }
+
+  let GradumEventManagerModel = (() => {
+      let _classSuper = GradumModel;
+      let _instanceExtraInitializers = [];
+      let _utils_decorators;
+      let _utils_initializers = [];
+      let _utils_extraInitializers = [];
+      let _currentAction_decorators;
+      let _currentAction_initializers = [];
+      let _currentAction_extraInitializers = [];
+      let _currentClick_decorators;
+      let _currentClick_initializers = [];
+      let _currentClick_extraInitializers = [];
+      let _wasRecentlyTrackpad_decorators;
+      let _wasRecentlyTrackpad_initializers = [];
+      let _wasRecentlyTrackpad_extraInitializers = [];
+      let _moveThreshold_decorators;
+      let _moveThreshold_initializers = [];
+      let _moveThreshold_extraInitializers = [];
+      let _longPressDuration_decorators;
+      let _longPressDuration_initializers = [];
+      let _longPressDuration_extraInitializers = [];
+      let _authorizeEventScaling_decorators;
+      let _authorizeEventScaling_initializers = [];
+      let _authorizeEventScaling_extraInitializers = [];
+      let _scaleEventPosition_decorators;
+      let _scaleEventPosition_initializers = [];
+      let _scaleEventPosition_extraInitializers = [];
+      let _set_inputDevice_decorators;
+      return class GradumEventManagerModel extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _utils_decorators = [handler()];
+              _currentAction_decorators = [signal];
+              _currentClick_decorators = [signal];
+              _wasRecentlyTrackpad_decorators = [signal];
+              _moveThreshold_decorators = [signal];
+              _longPressDuration_decorators = [signal];
+              _authorizeEventScaling_decorators = [signal];
+              _scaleEventPosition_decorators = [signal];
+              _set_inputDevice_decorators = [auto({
+                      callBefore: function (value) {
+                          if (value == InputDevice.trackpad)
+                              this.wasRecentlyTrackpad = true;
+                      }
+                  })];
+              __esDecorate(this, null, _set_inputDevice_decorators, { kind: "setter", name: "inputDevice", static: false, private: false, access: { has: obj => "inputDevice" in obj, set: (obj, value) => { obj.inputDevice = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(null, null, _utils_decorators, { kind: "field", name: "utils", static: false, private: false, access: { has: obj => "utils" in obj, get: obj => obj.utils, set: (obj, value) => { obj.utils = value; } }, metadata: _metadata }, _utils_initializers, _utils_extraInitializers);
+              __esDecorate(null, null, _currentAction_decorators, { kind: "field", name: "currentAction", static: false, private: false, access: { has: obj => "currentAction" in obj, get: obj => obj.currentAction, set: (obj, value) => { obj.currentAction = value; } }, metadata: _metadata }, _currentAction_initializers, _currentAction_extraInitializers);
+              __esDecorate(null, null, _currentClick_decorators, { kind: "field", name: "currentClick", static: false, private: false, access: { has: obj => "currentClick" in obj, get: obj => obj.currentClick, set: (obj, value) => { obj.currentClick = value; } }, metadata: _metadata }, _currentClick_initializers, _currentClick_extraInitializers);
+              __esDecorate(null, null, _wasRecentlyTrackpad_decorators, { kind: "field", name: "wasRecentlyTrackpad", static: false, private: false, access: { has: obj => "wasRecentlyTrackpad" in obj, get: obj => obj.wasRecentlyTrackpad, set: (obj, value) => { obj.wasRecentlyTrackpad = value; } }, metadata: _metadata }, _wasRecentlyTrackpad_initializers, _wasRecentlyTrackpad_extraInitializers);
+              __esDecorate(null, null, _moveThreshold_decorators, { kind: "field", name: "moveThreshold", static: false, private: false, access: { has: obj => "moveThreshold" in obj, get: obj => obj.moveThreshold, set: (obj, value) => { obj.moveThreshold = value; } }, metadata: _metadata }, _moveThreshold_initializers, _moveThreshold_extraInitializers);
+              __esDecorate(null, null, _longPressDuration_decorators, { kind: "field", name: "longPressDuration", static: false, private: false, access: { has: obj => "longPressDuration" in obj, get: obj => obj.longPressDuration, set: (obj, value) => { obj.longPressDuration = value; } }, metadata: _metadata }, _longPressDuration_initializers, _longPressDuration_extraInitializers);
+              __esDecorate(null, null, _authorizeEventScaling_decorators, { kind: "field", name: "authorizeEventScaling", static: false, private: false, access: { has: obj => "authorizeEventScaling" in obj, get: obj => obj.authorizeEventScaling, set: (obj, value) => { obj.authorizeEventScaling = value; } }, metadata: _metadata }, _authorizeEventScaling_initializers, _authorizeEventScaling_extraInitializers);
+              __esDecorate(null, null, _scaleEventPosition_decorators, { kind: "field", name: "scaleEventPosition", static: false, private: false, access: { has: obj => "scaleEventPosition" in obj, get: obj => obj.scaleEventPosition, set: (obj, value) => { obj.scaleEventPosition = value; } }, metadata: _metadata }, _scaleEventPosition_initializers, _scaleEventPosition_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          utils = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _utils_initializers, void 0));
+          state = (__runInitializers(this, _utils_extraInitializers), GradumModel.from({
+              enabled: true,
+              preventDefaultMouse: false,
+              preventDefaultTouch: false,
+              preventDefaultWheel: false
+          }));
+          lockState = GradumModel.from();
+          //Delegate fired when the input device changes
+          onInputDeviceChange = new Delegate();
+          /**
+           * @description Delegate fired when a tool is changed on a certain click button/mode
+           */
+          onToolChange = new Delegate();
+          //Input events states
+          currentKeys = GradumModel.from([]);
+          currentAction = __runInitializers(this, _currentAction_initializers, ActionMode.none);
+          currentClick = (__runInitializers(this, _currentAction_extraInitializers), __runInitializers(this, _currentClick_initializers, ClickMode.none));
+          wasRecentlyTrackpad = (__runInitializers(this, _currentClick_extraInitializers), __runInitializers(this, _wasRecentlyTrackpad_initializers, false));
+          //Threshold differentiating a click from a drag
+          moveThreshold = (__runInitializers(this, _wasRecentlyTrackpad_extraInitializers), __runInitializers(this, _moveThreshold_initializers, 10));
+          //Duration to reach long press
+          longPressDuration = (__runInitializers(this, _moveThreshold_extraInitializers), __runInitializers(this, _longPressDuration_initializers, 500));
+          authorizeEventScaling = (__runInitializers(this, _longPressDuration_extraInitializers), __runInitializers(this, _authorizeEventScaling_initializers, void 0));
+          scaleEventPosition = (__runInitializers(this, _authorizeEventScaling_extraInitializers), __runInitializers(this, _scaleEventPosition_initializers, void 0));
+          activePointers = (__runInitializers(this, _scaleEventPosition_extraInitializers), new Set());
+          //Saved values (Maps to account for different touch points and their IDs)
+          origins = new GradumMap();
+          previousPositions = new GradumMap();
+          positions;
+          lastTargetOrigin;
+          //Single timer instance --> easily cancel it and set it again
+          timerMap = new GradumMap();
+          //All created tools
+          tools = new Map();
+          //Tools mapped to keys
+          mappedKeysToTool = new Map();
+          //Tools currently held by the user (one - or none - per each click button/mode)
+          currentTools = new Map();
+          set inputDevice(value) {
+              this.onInputDeviceChange.fire(value);
+          }
+      };
+  })();
+
+  /**
+   * @group Event Handling
+   * @category Enums
+   */
+  var ClosestOrigin;
+  (function (ClosestOrigin) {
+      ClosestOrigin["target"] = "target";
+      ClosestOrigin["position"] = "position";
+  })(ClosestOrigin || (ClosestOrigin = {}));
+
+  /**
+   * @class GradumEvent
+   * @group Event Handling
+   * @category GradumEvents
+   * @description Generic gradum event.
+   */
+  let GradumEvent = (() => {
+      let _classSuper = Event;
+      let _instanceExtraInitializers = [];
+      let _closest_decorators;
+      let _get_scaledPosition_decorators;
+      return class GradumEvent extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _closest_decorators = [cache()];
+              _get_scaledPosition_decorators = [cache()];
+              __esDecorate(this, null, _closest_decorators, { kind: "method", name: "closest", static: false, private: false, access: { has: obj => "closest" in obj, get: obj => obj.closest }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _get_scaledPosition_decorators, { kind: "getter", name: "scaledPosition", static: false, private: false, access: { has: obj => "scaledPosition" in obj, get: obj => obj.scaledPosition }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          /**
+           * @description The event manager that fired this event.
+           */
+          eventManager = __runInitializers(this, _instanceExtraInitializers);
+          /**
+           * @description The name of the tool (if any) associated with this event.
+           */
+          toolName;
+          /**
+           * @description The name of the event.
+           */
+          eventName;
+          /**
+           * @description The click mode of the fired event
+           */
+          clickMode;
+          /**
+           * @description The input device that fired this event
+           */
+          inputDevice;
+          /**
+           * @description The keys pressed when the event was fired
+           */
+          keys;
+          /**
+           * @description The screen position from where the event was fired
+           */
+          position;
+          /**
+           * @description Callback function (or boolean) to be overridden to specify when to allow transformation
+           * and/or scaling.
+           */
+          authorizeScaling;
+          /**
+           * @description Callback function to be overridden to specify how to transform a position from screen to
+           * document space.
+           */
+          scalePosition;
+          constructor(properties) {
+              super(properties.eventName, { bubbles: true, cancelable: true, ...properties.eventInitDict });
+              this.eventManager = properties.eventManager ?? GradumEventManager.instance;
+              this.authorizeScaling = properties.authorizeScaling ?? true;
+              this.scalePosition = properties.scalePosition ?? ((position) => position);
+              this.clickMode = properties.clickMode ?? GradumEventManager.instance.currentClick;
+              this.inputDevice = properties.inputDevice ?? InputDevice.unknown;
+              this.keys = properties.keys ?? GradumEventManager.instance.currentKeys;
+              this.eventName = properties.eventName;
+              this.position = properties.position;
+              this.toolName = properties.toolName;
+          }
+          /**
+           * @description The tool (if any) associated with this event.
+           */
+          get tool() {
+              if (!this.toolName || !(this.eventManager instanceof GradumEventManager))
+                  return null;
+              return this.eventManager.getToolByName(this.toolName);
+          }
+          closest(type, strict = true, from = ClosestOrigin.target) {
+              const elements = from === ClosestOrigin.target ? [this.target]
+                  : document.elementsFromPoint(this.position.x, this.position.y);
+              const strictElement = strict instanceof Element ? strict : null;
+              const isStrict = strict === true || strictElement !== null;
+              const ctor = typeof type === "string" ? customElements.get(type) : type;
+              for (let element of elements) {
+                  if (!ctor) {
+                      // No registered custom element for the string — CSS selector fallback.
+                      const match = element.closest(type);
+                      if (match && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? match)))
+                          return match;
+                      continue;
+                  }
+                  while (element && !((element instanceof ctor)
+                      && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? element))))
+                      element = element.parentElement;
+                  if (element)
+                      return element;
+              }
+              return null;
+          }
+          /**
+           * @description Checks if the position is inside the given element's bounding box.
+           * @param position
+           * @param element
+           */
+          isPositionInsideElement(position, element) {
+              const rect = element.getBoundingClientRect();
+              return position.x >= rect.left && position.x <= rect.right
+                  && position.y >= rect.top && position.y <= rect.bottom;
+          }
+          /**
+           * @description The target of the event (as an Element - or the document)
+           */
+          get target() {
+              return super.target || document;
+          }
+          /**
+           * @description The position of the fired event transformed and/or scaled using the class's scalePosition().
+           */
+          get scaledPosition() {
+              if (!this.scalingAuthorized)
+                  return this.position;
+              return this.scalePosition(this.position);
+          }
+          /**
+           * @description Specifies whether to allow transformation and/or scaling.
+           */
+          get scalingAuthorized() {
+              return typeof this.authorizeScaling == "function" ? this.authorizeScaling() : this.authorizeScaling;
+          }
+          /**
+           * @private
+           * @description Takes a map of points and returns a new map where each point is transformed accordingly.
+           * @param positions
+           */
+          scalePositionsMap(positions) {
+              return positions.mapValues((key, position) => this.scalePosition(position));
+          }
+      };
+  })();
+
+  /**
+   * @class GradumKeyEvent
+   * @group Event Handling
+   * @category GradumEvents
+   *
+   * @extends GradumEvent
+   * @description Custom key event
+   */
+  class GradumKeyEvent extends GradumEvent {
+      /**
+       * @description The key pressed (if any) when the event was fired
+       */
+      keyPressed;
+      /**
+       * @description The key released (if any) when the event was fired
+       */
+      keyReleased;
+      constructor(properties) {
+          super({ ...properties, position: null });
+          this.keyPressed = properties.keyPressed;
+          this.keyReleased = properties.keyReleased;
+      }
+  }
+
+  class ListenerUtils {
+      constructorMap = new WeakMap();
+      constructorData(prototype) {
+          let obj = this.constructorMap.get(prototype);
+          if (!obj) {
+              obj = { listeners: new Map() };
+              this.constructorMap.set(prototype, obj);
+          }
+          return obj;
+      }
+      addListener(prototype, listener) {
+          if (!listener.methodName)
+              return;
+          const data = this.constructorData(prototype)?.listeners;
+          if (!data || data.has(listener.methodName))
+              return;
+          data.set(listener.methodName, listener);
+      }
+      getAllListeners(instance) {
+          let prototype = Object.getPrototypeOf(instance);
+          const results = new Map();
+          while (prototype && prototype !== Object.prototype) {
+              const map = this.constructorData(prototype).listeners;
+              if (map?.size)
+                  for (const [key, value] of map.entries()) {
+                      if (!results.has(key))
+                          results.set(key, value);
+                  }
+              prototype = Object.getPrototypeOf(prototype);
+          }
+          return results;
+      }
+  }
+
+  const utils$6 = new ListenerUtils();
+  /**
+   * @decorator
+   * @function listener
+   * @group Decorators
+   * @category Listeners
+   *
+   * @description Method decorator that registers the decorated method as an event listener, to be attached later
+   * via {@link attachListenersAndBehaviors}.
+   * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
+   * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
+   * to derive the event name from {@link DefaultEventName}.
+   *
+   * @example ```ts
+   * class MyElement {
+   *   @listener() click(e: Event) { ... }
+   *   //Equivalent to: gradum(this).on(DefaultEventName.click, (e: Event) => { ... });
+   * }
+   * ```
+   */
+  function listener(properties = {}) {
+      return function (value, context) {
+          //TODO FIX
+          GradumEventManager.instance;
+          let type = properties.type;
+          if (!type) {
+              const kebab = camelToKebabCase(String(context.name));
+              type = Object.values(DefaultEventName).includes("gradum-" + kebab) ? "gradum-" + kebab : kebab;
+          }
+          context.addInitializer(function () {
+              utils$6.addListener(Object.getPrototypeOf(this), { ...properties, type, methodName: context.name, kind: "listener" });
+          });
+          return value;
+      };
+  }
+  /**
+   * @decorator
+   * @function attachListenersAndBehaviors
+   * @group Decorators
+   * @category Listeners
+   *
+   * @description Attach all previously-decorated listeners and behaviors recorded on the given `context`. It attempts to
+   * resolve defaults from the latter, such as the `target`, `toolName`, `options`, and `manager`. This method is called
+   * automatically in the GradumElement lifecycle.
+   * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
+   */
+  function attachListenersAndBehaviors(context) {
+      if (!context || typeof context !== "object")
+          return;
+      const listeners = utils$6.getAllListeners(context);
+      if (!listeners || listeners.size === 0)
+          return;
+      const defaultTarget = context.target instanceof Node
+          ? context.target : context instanceof Node
+          ? context : context.element instanceof Node
+          ? context.element : undefined;
+      const defaultTool = typeof context.toolName === "string" ? context.toolName : undefined;
+      const defaultOptions = typeof context.options === "object" ? context.options : undefined;
+      const defaultManager = context.manager instanceof GradumEventManager ? context.manager : undefined;
+      for (const [, listener] of listeners) {
+          const method = context[listener.methodName];
+          if (typeof method !== "function")
+              continue;
+          const target = listener.target ?? defaultTarget;
+          const tool = listener.toolName ?? defaultTool;
+          const manager = listener.manager ?? defaultManager;
+          if (listener.kind === "behavior") {
+              if (!tool)
+                  continue;
+              gradum(context).addToolBehavior(listener.type, (e, el) => method.call(context, e, el), tool, manager);
+          }
+          else if (listener.kind === "listener") {
+              if (!(target instanceof Node))
+                  continue;
+              gradum(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el), listener.options ?? defaultOptions, manager);
+          }
+      }
+  }
+
+  /**
+   * @class GradumOperator
+   * @group MVC
+   * @category Operator
+   *
+   * @description The MVC base operator class. Its main job is to handle some part of (or all of) the logic of the
+   * component. It has access to the element, the model to read and write data, the view to update the UI, and the
+   * emitter to listen for changes in the model or any other internal events. It can only communicate with other
+   * operators via the emitter (by firing or listening for changes on a certain key).
+   * @template {object} ElementType - The type of the main component.
+   * @template {GradumView} ViewType - The element's MVC view type.
+   * @template {GradumModel} ModelType - The element's MVC model type.
+   * @template {GradumEmitter} EmitterType - The element's MVC emitter type.
+   */
+  class GradumOperator {
+      /**
+       * @description The key of the operator. Used to retrieve it in the main component. If not set, if the element's
+       * class name is MyElement and the operator's class name is MyElementSomethingOperator, the key would
+       * default to "something".
+       */
+      keyName;
+      /**
+       * @description The element it is bound to.
+       */
+      element;
+      /**
+       * @description The MVC view.
+       */
+      view;
+      /**
+       * @description The MVC model.
+       */
+      model;
+      /**
+       * @description The MVC emitter.
+       */
+      emitter;
+      constructor(properties) {
+          this.element = properties.element;
+          if (properties.model)
+              this.model = properties.model;
+          if (properties.emitter)
+              this.emitter = properties.emitter;
+          if (properties.view)
+              this.view = properties.view;
+          this.setup();
+      }
+      /**
+       * @function setup
+       * @description Called in the constructor. Use for setup that should happen at instantiation,
+       * before `this.initialize()` is called.
+       * @protected
+       */
+      setup() { }
+      /**
+       * @function initialize
+       * @description Initializes the operator. Specifically, it will set up the change callbacks.
+       */
+      initialize() {
+          this.setupUIListeners();
+          this.setupChangedCallbacks();
+      }
+      /**
+       * @function setupUIListeners
+       * @description Setup method for defining DOM and input event listeners.
+       * @protected
+       */
+      setupUIListeners() {
+          attachListenersAndBehaviors(this);
+      }
+      /**
+       * @function setupChangedCallbacks
+       * @description Setup method intended to initialize change listeners and callbacks.
+       * @protected
+       */
+      setupChangedCallbacks() {
+          initializeEffects(this);
+      }
+  }
+  addRegistryCategory(GradumOperator);
+  define(GradumOperator);
+
+  class GradumEventManagerKeyOperator extends GradumOperator {
+      keyName = "key";
+      keyDown = (e) => this.keyDownFn(e);
+      keyDownFn(e) {
+          if (!this.element.enabled)
+              return;
+          //Return if key already pressed
+          if (this.model.currentKeys.includes(e.key))
+              return;
+          //Add key to currentKeys
+          this.model.currentKeys.push(e.key);
+          //Fire a keyPressed event (only once)
+          this.emitter.fire("dispatchEvent", document, GradumKeyEvent, { eventName: GradumKeyEventName.keyPressed, keyPressed: e.key });
+      }
+      keyUp = (e) => this.keyUpFn(e);
+      keyUpFn(e) {
+          if (!this.element.enabled)
+              return;
+          //Return if key not pressed
+          if (!this.model.currentKeys.includes(e.key))
+              return;
+          //Remove key from currentKeys
+          this.model.currentKeys.splice(this.model.currentKeys.indexOf(e.key), 1);
+          //Fire a keyReleased event
+          this.emitter.fire("dispatchEvent", document, GradumKeyEvent, { eventName: GradumKeyEventName.keyReleased, keyReleased: e.key });
+      }
+  }
+
+  /**
+   * @class GradumWheelEvent
+   * @group Event Handling
+   * @category GradumEvents
+   *
+   * @extends GradumEvent
+   * @description Custom wheel event
+   */
+  class GradumWheelEvent extends GradumEvent {
+      /**
+       * @description The delta amount of scrolling
+       */
+      delta;
+      constructor(properties) {
+          super({ ...properties, position: null });
+          this.delta = properties.delta;
+      }
+  }
+
+  class GradumEventManagerWheelOperator extends GradumOperator {
       keyName = "wheel";
       wheel = (e) => {
           if (!this.element.enabled)
@@ -12567,30 +16453,25 @@
                   this.model.wasRecentlyTrackpad = false;
           }, 800);
           //Get name of event according to input type
-          let eventName;
-          //Trackpad pinching (for some reason Ctrl key is marked as pressed in the WheelEvent)
-          if (this.model.inputDevice == InputDevice.trackpad && e.ctrlKey)
-              eventName = TurboEventName.trackpadPinch;
-          //Trackpad zooming
-          else if (this.model.inputDevice == InputDevice.trackpad)
-              eventName = TurboEventName.trackpadScroll;
-          //Mouse scrolling
-          else
-              eventName = TurboEventName.mouseWheel;
-          this.emitter.fire("dispatchEvent", document, TurboWheelEvent, { delta: new Point(e.deltaX, e.deltaY), eventName: eventName });
+          //Pinching (for trackpad, Ctrl key is marked as pressed in the WheelEvent)
+          const eventName = (this.model.inputDevice == InputDevice.trackpad && e.ctrlKey)
+              ? GradumEventName.pinch
+              : GradumEventName.scroll;
+          const target = document.elementFromPoint?.(e.clientX, e.clientY) || document;
+          this.emitter.fire("dispatchEvent", target, GradumWheelEvent, { delta: new Point(e.deltaX, e.deltaY), eventName: eventName });
       };
   }
 
   /**
-   * @class TurboDragEvent
+   * @class GradumDragEvent
    * @group Event Handling
-   * @category TurboEvents
+   * @category GradumEvents
    *
-   * @extends TurboEvent
-   * @description Turbo drag event class, fired on turbo-drag, turbo-drag-start, turbo-drag-end, etc.
+   * @extends GradumEvent
+   * @description Gradum drag event class, fired on gradum-drag, gradum-drag-start, gradum-drag-end, etc.
    */
-  let TurboDragEvent = (() => {
-      let _classSuper = TurboEvent;
+  let GradumDragEvent = (() => {
+      let _classSuper = GradumEvent;
       let _instanceExtraInitializers = [];
       let _get_scaledOrigins_decorators;
       let _get_scaledPreviousPositions_decorators;
@@ -12599,7 +16480,7 @@
       let _get_deltaPosition_decorators;
       let _get_scaledDeltaPositions_decorators;
       let _get_scaledDeltaPosition_decorators;
-      return class TurboDragEvent extends _classSuper {
+      return class GradumDragEvent extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _get_scaledOrigins_decorators = [cache()];
@@ -12663,8 +16544,9 @@
           get deltaPositions() {
               return this.positions.mapValues((key, position) => {
                   const previousPosition = this.previousPositions.get(key);
-                  if (previousPosition)
-                      return position.sub(previousPosition);
+                  // No previous position (drag start, or a finger just joined) → zero delta,
+                  // so consumers reading deltas on the first event get a defined Point.
+                  return previousPosition ? position.sub(previousPosition) : new Point(0, 0);
               });
           }
           get deltaPosition() {
@@ -12673,8 +16555,7 @@
           get scaledDeltaPositions() {
               return this.scaledPositions.mapValues((key, position) => {
                   const previousPosition = this.scaledPreviousPositions.get(key);
-                  if (previousPosition)
-                      return position.sub(previousPosition);
+                  return previousPosition ? position.sub(previousPosition) : new Point(0, 0);
               });
           }
           get scaledDeltaPosition() {
@@ -12683,7 +16564,7 @@
       };
   })();
 
-  class TurboEventManagerPointerController extends TurboController {
+  class GradumEventManagerPointerOperator extends GradumOperator {
       keyName = "pointer";
       pointerDown = (e) => this.pointerDownFn(e);
       pointerMove = (e) => this.pointerMoveFn(e);
@@ -12702,7 +16583,7 @@
           //Prevent default actions (especially useful for touch events on iOS and iPadOS)
           if (this.element.preventDefaultMouse && !isTouch)
               e.preventDefault();
-          if (this.element.preventDefaultTouch && isTouch)
+          if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
               e.preventDefault();
           //Update input device
           if (isTouch)
@@ -12722,43 +16603,64 @@
           this.model.activePointers.add(id);
           this.model.utils.setClickMode(isTouch ? this.model.activePointers.size : e.button, isTouch);
           //Return if click events are disabled
-          if (!this.element.clickEventEnabled)
+          if (!this.element.clickEventsEnabled)
               return;
           // Fire click start
-          this.fireClick(this.model.origins.first, TurboEventName.clickStart);
+          this.fireClick(this.model.origins.first, GradumEventName.clickStart);
           this.model.currentAction = ActionMode.click;
           // Long-press timer
-          this.model.utils.setTimer(TurboEventName.longPress, () => {
+          this.model.utils.setTimer(GradumEventName.longPress, () => {
               if (this.model.currentAction !== ActionMode.click)
                   return;
               this.model.currentAction = ActionMode.longPress;
-              this.fireClick(this.model.origins.first, TurboEventName.longPress);
+              this.fireClick(this.model.origins.first, GradumEventName.longPress);
           }, this.model.longPressDuration);
       }
       pointerMoveFn(e) {
           if (!this.element.enabled)
               return;
-          if (!this.element.moveEventsEnabled && !this.element.dragEventEnabled)
-              return;
           //Check if is touch
           const isTouch = e.pointerType === "touch";
+          if (!this.element.moveEventsEnabled && !this.element.dragEventsEnabled
+              && !(isTouch && this.element.wheelEventsEnabled))
+              return;
           //Prevent default actions
           if (this.element.preventDefaultMouse && !isTouch)
               e.preventDefault();
-          if (this.element.preventDefaultTouch && isTouch)
+          if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
               e.preventDefault();
           //New positions map
-          this.model.positions = new TurboMap();
-          // Only update the current pointer’s position (others remain tracked from prior moves)
+          this.model.positions = new GradumMap();
+          // Only update the current pointer's position (others remain tracked from prior moves)
           this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
           // Clear cached target origin if not dragging
           if (this.model.currentAction !== ActionMode.drag)
               this.model.lastTargetOrigin = null;
+          //Fire touch scroll/pinch events (2-finger only)
+          if (isTouch && this.element.wheelEventsEnabled) {
+              const currentPos = new Point(e.clientX, e.clientY);
+              const prevPos = this.model.previousPositions.get(e.pointerId);
+              if (this.model.activePointers.size === 2 && prevPos) {
+                  const otherId = [...this.model.activePointers].find(id => id !== e.pointerId);
+                  const otherPos = this.model.previousPositions.get(otherId);
+                  if (otherPos) {
+                      const prevCenter = Point.midPoint(prevPos, otherPos);
+                      const currentCenter = Point.midPoint(currentPos, otherPos);
+                      const scrollDelta = currentCenter.sub(prevCenter);
+                      const pinchDelta = Point.dist(currentPos, otherPos) - Point.dist(prevPos, otherPos);
+                      const centerTarget = document.elementFromPoint(currentCenter.x, currentCenter.y) || document;
+                      if (scrollDelta.x !== 0 || scrollDelta.y !== 0)
+                          this.emitter.fire("dispatchEvent", centerTarget, GradumWheelEvent, { delta: scrollDelta, eventName: GradumEventName.scroll });
+                      if (pinchDelta !== 0)
+                          this.emitter.fire("dispatchEvent", centerTarget, GradumWheelEvent, { delta: new Point(0, pinchDelta), eventName: GradumEventName.pinch });
+                  }
+              }
+          }
           //Fire move event if enabled
           if (this.element.moveEventsEnabled)
-              this.fireDrag(this.model.positions, TurboEventName.move);
+              this.fireDrag(this.model.positions, GradumEventName.move);
           //If drag events are enabled and user is interacting
-          if (this.model.currentAction !== ActionMode.none && this.element.dragEventEnabled) {
+          if (this.model.currentAction !== ActionMode.none && this.element.dragEventsEnabled) {
               //Initialize drag
               if (this.model.currentAction !== ActionMode.drag) {
                   //Check if any tracked origin moved beyond threshold
@@ -12767,11 +16669,13 @@
                           ? this.model.positions.get(key)
                           : this.model.previousPositions.get(key);
                       return p && Point.dist(p, origin) > this.model.moveThreshold;
-                  }))
+                  })) {
+                      this.model.previousPositions.set(e.pointerId, this.model.positions.get(e.pointerId));
                       return;
+                  }
                   //If didn't return --> fire drag start and set action to drag
                   clearCache(this);
-                  this.fireDrag(this.model.origins, TurboEventName.dragStart);
+                  this.fireDrag(this.model.origins, GradumEventName.dragStart);
                   this.model.currentAction = ActionMode.drag;
               }
               //Fire drag step
@@ -12788,25 +16692,25 @@
           //Prevent default actions
           if (this.element.preventDefaultMouse && !isTouch)
               e.preventDefault();
-          if (this.element.preventDefaultTouch && isTouch)
+          if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
               e.preventDefault();
           //Clear any timer set
-          this.model.utils.clearTimer(TurboEventName.longPress);
+          this.model.utils.clearTimer(GradumEventName.longPress);
           //Initialize a new positions map
-          this.model.positions = new TurboMap();
+          this.model.positions = new GradumMap();
           this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
           //If action was drag --> fire drag end
-          if (this.model.currentAction === ActionMode.drag && this.element.dragEventEnabled) {
-              this.fireDrag(this.model.positions, TurboEventName.dragEnd);
+          if (this.model.currentAction === ActionMode.drag && this.element.dragEventsEnabled) {
+              this.fireDrag(this.model.positions, GradumEventName.dragEnd);
           }
           //If click events are enabled
-          if (this.element.clickEventEnabled) {
+          if (this.element.clickEventsEnabled) {
               //If action is click --> fire click
               if (this.model.currentAction === ActionMode.click) {
-                  this.fireClick(this.model.positions.first, TurboEventName.click);
+                  this.fireClick(this.model.positions.first, GradumEventName.click);
               }
               //Fire click end
-              this.fireClick(this.model.origins.first, TurboEventName.clickEnd);
+              this.fireClick(this.model.origins.first, GradumEventName.clickEnd);
           }
           //Cleanup for this pointerId only
           this.model.origins.delete(e.pointerId);
@@ -12819,8 +16723,15 @@
           }
       }
       pointerCancelFn(e) {
-          //Treat like an aborted drag/click
-          this.model.utils.clearTimer(TurboEventName.longPress);
+          if (!this.model.activePointers.has(e.pointerId))
+              return;
+          this.model.utils.clearTimer(GradumEventName.longPress);
+          this.model.positions = new GradumMap();
+          this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
+          if (this.model.currentAction === ActionMode.drag && this.element.dragEventsEnabled)
+              this.fireDrag(this.model.positions, GradumEventName.dragEnd);
+          if (this.element.clickEventsEnabled)
+              this.fireClick(this.model.origins.first, GradumEventName.clickEnd);
           this.model.origins.delete(e.pointerId);
           this.model.previousPositions.delete(e.pointerId);
           this.model.activePointers.delete(e.pointerId);
@@ -12829,31 +16740,33 @@
               this.model.currentClick = ClickMode.none;
           }
       }
-      lostPointerCaptureFn(_e) {
-          // Optional: cleanup or fallback if needed
+      lostPointerCaptureFn(e) {
+          // lostpointercapture fires after pointercancel too; guard avoids double-cleanup
+          if (this.model.activePointers.has(e.pointerId))
+              this.pointerCancelFn(e);
       }
       /**
-       * @description Fires a custom Turbo click event at the click target with the click position
+       * @description Fires a custom Gradum click event at the click target with the click position
        * @param p
        * @param eventName
        * @private
        */
-      fireClick(p, eventName = TurboEventName.click) {
+      fireClick(p, eventName = GradumEventName.click) {
           if (!p)
               return;
           const target = document.elementFromPoint(p.x, p.y) || document;
-          this.emitter.fire("dispatchEvent", target, TurboEvent, { position: p, eventName: eventName });
+          this.emitter.fire("dispatchEvent", target, GradumEvent, { position: p, eventName: eventName });
       }
       /**
-       * @description Fires a custom Turbo drag event at the target with the origin of the drag, the last drag position, and the current position
+       * @description Fires a custom Gradum drag event at the target with the origin of the drag, the last drag position, and the current position
        * @param positions
        * @param eventName
        * @private
        */
-      fireDrag(positions, eventName = TurboEventName.drag) {
+      fireDrag(positions, eventName = GradumEventName.drag) {
           if (!positions)
               return;
-          this.emitter.fire("dispatchEvent", this.getFireOrigin(positions), TurboDragEvent, {
+          this.emitter.fire("dispatchEvent", this.getFireOrigin(positions), GradumDragEvent, {
               positions: positions,
               previousPositions: this.model.previousPositions,
               origins: this.model.origins,
@@ -12869,7 +16782,7 @@
       }
   }
 
-  class TurboEventManagerDispatchController extends TurboController {
+  class GradumEventManagerDispatchOperator extends GradumOperator {
       keyName = "dispatch";
       boundHooks = new Map();
       setupChangedCallbacks() {
@@ -12882,24 +16795,41 @@
           properties.keys = this.model.currentKeys;
           properties.toolName = this.element.getCurrentToolName(this.model.currentClick);
           properties.clickMode = this.model.currentClick;
+          properties.inputDevice = this.model.inputDevice;
           properties.eventManager = this.element;
           properties.eventInitDict = { bubbles: true, cancelable: true, composed: true };
           properties.authorizeScaling = this.element.authorizeEventScaling;
           properties.scalePosition = this.element.scaleEventPosition;
-          if (properties.eventName === TurboKeyEventName.keyPressed)
+          if (properties.eventName === GradumKeyEventName.keyPressed)
               this.element.setToolByKey(properties["keyPressed"]);
-          else if (properties.eventName === TurboKeyEventName.keyReleased)
+          else if (properties.eventName === GradumKeyEventName.keyReleased)
               this.element.setTool(undefined, ClickMode.key, { select: false });
           target.dispatchEvent(new eventType(properties));
       };
       getToolHandlingCallback(type, e) {
           const toolName = this.element.getCurrentToolName(this.model.currentClick);
+          // For move events, composedPath() is the drag-origin's ancestor chain and never
+          // includes non-topmost components at the current cursor (e.g. Playback behind
+          // ClipRenderer). Use the full z-stack at the cursor instead, dispatching topmost-first
+          // and stopping at the first handler that returns non-propagate.
+          if (type === GradumMoveEventName.move && e instanceof GradumDragEvent && e.position) {
+              const { x, y } = e.position;
+              const stack = document.elementsFromPoint?.(x, y) ?? [];
+              for (const el of stack) {
+                  if (!(el instanceof Node))
+                      continue;
+                  const propagate = gradum(el).executeAction(type, toolName, e, undefined, this.element);
+                  if (propagate !== Propagation.propagate)
+                      break;
+              }
+              return;
+          }
           const path = e.composedPath?.() || [];
           for (let i = path.length - 1; i >= 0; i--) {
               if (!(path[i] instanceof Node))
                   continue;
-              const propagate = $(path[i]).executeAction(type, toolName, e, { capture: true }, this.element);
-              if (propagate !== EventPropagation.propagate) {
+              const propagate = gradum(path[i]).executeAction(type, toolName, e, { capture: true }, this.element);
+              if (propagate !== Propagation.propagate) {
                   e.stopPropagation();
                   break;
               }
@@ -12907,8 +16837,8 @@
           for (let i = 0; i < path.length; i++) {
               if (!(path[i] instanceof Node))
                   continue;
-              const propagate = $(path[i]).executeAction(type, toolName, e, undefined, this.element);
-              if (propagate !== EventPropagation.propagate) {
+              const propagate = gradum(path[i]).executeAction(type, toolName, e, undefined, this.element);
+              if (propagate !== Propagation.propagate) {
                   e.stopPropagation();
                   break;
               }
@@ -12931,15 +16861,15 @@
   }
 
   /**
-   * @class TurboHandler
+   * @class GradumHandler
    * @group MVC
    * @category Handler
    *
    * @description The MVC base handler class. It's an extension of the model, and its main job is to provide some utility
    * functions to manipulate some of (or all of) the model's data.
-   * @template {TurboModel} ModelType - The element's MVC model type.
+   * @template {GradumModel} ModelType - The element's MVC model type.
    */
-  class TurboHandler {
+  class GradumHandler {
       /**
        * @description The key of the handler. Used to retrieve it in the main component. If not set, if the element's
        * class name is MyElement and the handler's class name is MyElementSomethingHandler, the key would
@@ -12956,10 +16886,20 @@
               this.model = model;
           this.setup();
       }
-      setup() { }
+      /**
+       * @function setup
+       * @description Called in the constructor. Use for setup that should happen at instantiation,
+       * before `this.initialize()` is called.
+       * @protected
+       */
+      setup() {
+          initializeEffects(this);
+      }
   }
+  addRegistryCategory(GradumHandler);
+  define(GradumHandler);
 
-  class TurboEventManagerUtilsHandler extends TurboHandler {
+  class GradumEventManagerUtilsHandler extends GradumHandler {
       keyName = "utils";
       setClickMode(button, isTouch = false) {
           if (isTouch)
@@ -13002,10 +16942,6 @@
           clearTimeout(timer);
           this.model.timerMap.delete(timerName);
       }
-      selectTool(element, value) {
-          if ("selected" in element && typeof element["selected"] === "boolean")
-              element["selected"] = value;
-      }
       activateTool(element, toolName, value) {
           if (value)
               $(element).onToolActivate(toolName).fire();
@@ -13015,250 +16951,241 @@
   }
 
   /**
-   * Define MVC-style accessors on a class prototype via Object.defineProperty.
-   * Adds: selected, view, model, data, dataId, dataIndex, dataSize
+   * @group Components
+   * @category GradumWeakSet
    */
-  function defineMvcAccessors(constructor) {
-      const prototype = constructor.prototype;
-      Object.defineProperty(prototype, "view", {
-          get() { return this.mvc?.view; },
-          set(view) {
-              if (!this.mvc)
-                  throw new Error("view: missing this.mvc");
-              this.mvc.view = view;
-          },
-          enumerable: true,
-          configurable: true
-      });
-      Object.defineProperty(prototype, "model", {
-          get() { return this.mvc?.model; },
-          set(model) {
-              if (!this.mvc)
-                  throw new Error("model: missing this.mvc");
-              this.mvc.model = model;
-          },
-          enumerable: true,
-          configurable: true
-      });
-      Object.defineProperty(prototype, "data", {
-          get() { return this.mvc?.data; },
-          set(data) {
-              if (!this.mvc)
-                  throw new Error("data: missing this.mvc");
-              this.mvc.data = data;
-          },
-          enumerable: true,
-          configurable: true
-      });
-      Object.defineProperty(prototype, "dataId", {
-          get() { return this.mvc?.dataId; },
-          set(v) {
-              if (!this.mvc)
-                  throw new Error("dataId: missing this.mvc");
-              this.mvc.dataId = v;
-          },
-          enumerable: true,
-          configurable: true
-      });
-      Object.defineProperty(prototype, "dataIndex", {
-          get() { return this.mvc?.dataIndex; },
-          set(v) {
-              if (!this.mvc)
-                  throw new Error("dataIndex: missing this.mvc");
-              this.mvc.dataIndex = v;
-          },
-          enumerable: true,
-          configurable: true
-      });
-      Object.defineProperty(prototype, "dataSize", {
-          get() { return this.mvc?.dataSize; },
-          enumerable: true,
-          configurable: true
-      });
-  }
-
-  function defineDefaultProperties(constructor) {
-      const prototype = constructor.prototype;
-      const selectedKey = Symbol("__selected__");
-      const selectedClass = Symbol("__selectedClass__");
-      const initializedKey = Symbol("__initialized__");
-      Object.defineProperty(prototype, "selected", {
-          get() { return !!this[selectedKey]; },
-          set(value) {
-              const element = this instanceof Element ? this : this.element instanceof Element ? this.element : undefined;
-              if (!element) {
-                  this[selectedKey] = value;
-                  return;
-              }
-              const prevClass = this[selectedClass];
-              const nextClass = this.getPropertiesValue?.(null, "defaultSelectedClass", "selected") ?? "selected";
-              this[selectedKey] = value;
-              this[selectedClass] = nextClass;
-              if (prevClass && prevClass !== nextClass)
-                  $(element).toggleClass(prevClass, false);
-              $(element).toggleClass(nextClass, !!value);
-          },
-          enumerable: true,
-          configurable: true,
-      });
-      Object.defineProperty(prototype, "getPropertiesValue", {
-          value: function (propertiesValue, configFieldName, defaultValue) {
-              if (propertiesValue !== undefined && propertiesValue !== null)
-                  return propertiesValue;
-              let constructor = this.constructor;
-              while (constructor) {
-                  const configValue = constructor.config?.[configFieldName];
-                  if (configValue !== undefined && configValue !== null)
-                      return configValue;
-                  constructor = Object.getPrototypeOf(constructor);
-              }
-              return defaultValue;
-          },
-          configurable: true,
-          enumerable: false,
-      });
-      Object.defineProperty(prototype, "destroy", {
-          value: function () { },
-          configurable: true,
-          enumerable: false,
-      });
-      Object.defineProperty(prototype, "initialized", {
-          get: function () {
-              return this[initializedKey] ?? false;
-          },
-          configurable: true,
-          enumerable: false,
-      });
-      Object.defineProperty(prototype, "initialize", {
-          value: function () {
-              if (this[initializedKey])
-                  return;
-              this.setupUIElements?.();
-              this.setupUILayout?.();
-              this.setupUIListeners?.();
-              this.setupChangedCallbacks?.();
-              if (this.mvc && this.mvc instanceof Mvc)
-                  this.mvc.initialize();
-              initializeEffects(this);
-              this[initializedKey] = true;
-          },
-          configurable: true,
-          enumerable: false,
-      });
-  }
-
-  /**
-   * @class TurboHeadlessElement
-   * @group TurboElement
-   * @category TurboHeadlessElement
-   *
-   * @description TurboHeadlessElement class, similar to TurboElement but without extending HTMLElement.
-   * @template {TurboView} ViewType - The element's view type, if initializing MVC.
-   * @template {object} DataType - The element's data type, if initializing MVC.
-   * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
-   * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
-   */
-  class TurboHeadlessElement {
-      /**
-       * @description Static configuration object.
-       */
-      static config = {};
-      /**
-       * @description Update the class's static configurations. Will only overwrite the set properties.
-       * @property {typeof this.config} value - The object containing the new configurations.
-       */
-      static configure(value) {
-          Object.entries(value).forEach(([key, val]) => {
-              if (val !== undefined)
-                  this.config[key] = val;
-          });
+  class GradumWeakSet {
+      _weakRefs;
+      constructor() {
+          this._weakRefs = new Set();
       }
-      /**
-       * @description The MVC handler of the element. If initialized, turns the element into an MVC structure.
-       * @protected
-       */
-      mvc;
-      constructor(properties = {}) {
-          this.mvc = new Mvc({ ...properties, element: this });
+      // Add an object as a WeakRef if it's not already in the set
+      add(obj) {
+          if (!this.has(obj))
+              this._weakRefs.add(new WeakRef(obj));
+          return this;
+      }
+      // Check if the set contains a WeakRef to the given object
+      has(obj) {
+          for (const weakRef of this._weakRefs) {
+              if (weakRef.deref() === obj)
+                  return true;
+          }
+          return false;
+      }
+      // Delete the WeakRef associated with the given object
+      delete(obj) {
+          for (const weakRef of this._weakRefs) {
+              if (weakRef.deref() === obj) {
+                  this._weakRefs.delete(weakRef);
+                  return true;
+              }
+          }
+          return false;
+      }
+      // Clean up any WeakRefs whose objects have been garbage-collected
+      cleanup() {
+          for (const weakRef of this._weakRefs) {
+              if (weakRef.deref() === undefined)
+                  this._weakRefs.delete(weakRef);
+          }
+      }
+      // Convert live objects in the GradumWeakSet to an array
+      toArray() {
+          const result = [];
+          for (const weakRef of this._weakRefs) {
+              const obj = weakRef.deref();
+              if (obj !== undefined)
+                  result.push(obj);
+              else
+                  this._weakRefs.delete(weakRef);
+          }
+          return result;
+      }
+      // Get the size of the GradumWeakSet (only live objects)
+      get size() {
+          return this.toArray().length;
+      }
+      // Clear all weak references
+      clear() {
+          this._weakRefs.clear();
+      }
+      forEach(callback, thisArg) {
+          for (const weakRef of this._weakRefs) {
+              const obj = weakRef.deref();
+              if (obj !== undefined)
+                  callback.call(thisArg, obj, obj, this);
+              else
+                  this._weakRefs.delete(weakRef);
+          }
+      }
+      *[Symbol.iterator]() {
+          for (const weakRef of this._weakRefs) {
+              const obj = weakRef.deref();
+              if (obj !== undefined)
+                  yield obj;
+              else
+                  this._weakRefs.delete(weakRef);
+          }
       }
   }
-  (() => {
-      defineDefaultProperties(TurboHeadlessElement);
-      defineMvcAccessors(TurboHeadlessElement);
-  })();
+
+  function expose(...args) {
+      if (typeof args[0] === "object") {
+          if (args.length < 3)
+              return;
+          return applyExpose(args[0], args[2], args[1], args[3] ?? true);
+      }
+      else {
+          return function (value, context) {
+              return exposeDecorator(args[0], args[1] ?? true, value, context);
+          };
+      }
+  }
+  function applyExpose(host, key, rootKey, exposeSetter) {
+      const nestedRoots = rootKey.split(".").filter(Boolean);
+      const getLowestRoot = (h) => nestedRoots.reduce((p, r) => p?.[r], h);
+      const descriptor = getFirstDescriptorInChain(host, key);
+      Object.defineProperty(host, key, {
+          configurable: true,
+          enumerable: descriptor?.enumerable ?? true,
+          get() { return getLowestRoot(this)?.[key]; },
+          set(value) { if (exposeSetter) {
+              const r = getLowestRoot(this);
+              if (r)
+                  r[key] = value;
+          } },
+      });
+  }
+  function exposeDecorator(rootKey, exposeSetter, value, context) {
+      if (!rootKey)
+          return value;
+      const { kind, name } = context;
+      const key = String(name);
+      const nestedRoots = rootKey.split(".").filter(Boolean);
+      const getLowestRoot = (host) => nestedRoots.reduce((p, r) => p?.[r], host);
+      if (kind === "method") {
+          return function (...args) {
+              const root = getLowestRoot(this);
+              const fn = root?.[key];
+              if (typeof fn === "function")
+                  return fn.apply(root, args);
+          };
+      }
+      context.addInitializer(function () {
+          applyExpose(this, key, rootKey, exposeSetter);
+      });
+  }
 
   //TODO Create merged events maybe --> fire event x when "mousedown" | "touchstart" | "mousemove" etc.
   //ToDO Create "interaction" event --> when element interacted with
   /**
-   * @class TurboEventManager
+   * @class GradumEventManager
    * @group Event Handling
-   * @category TurboEventManager
+   * @category GradumEventManager
    *
    * @description Class that manages default mouse, trackpad, and touch events, and accordingly fires custom events for
    * easier management of input.
    */
-  let TurboEventManager = (() => {
-      let _classSuper = TurboHeadlessElement;
+  let GradumEventManager = (() => {
+      let _classSuper = GradumBaseElement;
       let _instanceExtraInitializers = [];
-      let _keyController_decorators;
-      let _keyController_initializers = [];
-      let _keyController_extraInitializers = [];
-      let _wheelController_decorators;
-      let _wheelController_initializers = [];
-      let _wheelController_extraInitializers = [];
-      let _pointerController_decorators;
-      let _pointerController_initializers = [];
-      let _pointerController_extraInitializers = [];
-      let _dispatchController_decorators;
-      let _dispatchController_initializers = [];
-      let _dispatchController_extraInitializers = [];
+      let _keyOperator_decorators;
+      let _keyOperator_initializers = [];
+      let _keyOperator_extraInitializers = [];
+      let _wheelOperator_decorators;
+      let _wheelOperator_initializers = [];
+      let _wheelOperator_extraInitializers = [];
+      let _pointerOperator_decorators;
+      let _pointerOperator_initializers = [];
+      let _pointerOperator_extraInitializers = [];
+      let _dispatchOperator_decorators;
+      let _dispatchOperator_initializers = [];
+      let _dispatchOperator_extraInitializers = [];
+      let _inputDevice_decorators;
+      let _inputDevice_initializers = [];
+      let _inputDevice_extraInitializers = [];
+      let _onInputDeviceChange_decorators;
+      let _onInputDeviceChange_initializers = [];
+      let _onInputDeviceChange_extraInitializers = [];
+      let _currentClick_decorators;
+      let _currentClick_initializers = [];
+      let _currentClick_extraInitializers = [];
+      let _currentKeys_decorators;
+      let _currentKeys_initializers = [];
+      let _currentKeys_extraInitializers = [];
+      let _onToolChange_decorators;
+      let _onToolChange_initializers = [];
+      let _onToolChange_extraInitializers = [];
+      let _authorizeEventScaling_decorators;
+      let _authorizeEventScaling_initializers = [];
+      let _authorizeEventScaling_extraInitializers = [];
+      let _scaleEventPosition_decorators;
+      let _scaleEventPosition_initializers = [];
+      let _scaleEventPosition_extraInitializers = [];
+      let _moveThreshold_decorators;
+      let _moveThreshold_initializers = [];
+      let _moveThreshold_extraInitializers = [];
+      let _longPressDuration_decorators;
+      let _longPressDuration_initializers = [];
+      let _longPressDuration_extraInitializers = [];
       let _set_keyEventsEnabled_decorators;
       let _set_wheelEventsEnabled_decorators;
       let _set_moveEventsEnabled_decorators;
       let _set_mouseEventsEnabled_decorators;
       let _set_touchEventsEnabled_decorators;
-      let _set_clickEventEnabled_decorators;
-      let _set_dragEventEnabled_decorators;
-      return class TurboEventManager extends _classSuper {
+      let _set_clickEventsEnabled_decorators;
+      let _set_dragEventsEnabled_decorators;
+      return class GradumEventManager extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _keyController_decorators = [controller()];
-              _wheelController_decorators = [controller()];
-              _pointerController_decorators = [controller()];
-              _dispatchController_decorators = [controller()];
+              _keyOperator_decorators = [operator()];
+              _wheelOperator_decorators = [operator()];
+              _pointerOperator_decorators = [operator()];
+              _dispatchOperator_decorators = [operator()];
+              _inputDevice_decorators = [expose("model", false)];
+              _onInputDeviceChange_decorators = [expose("model", false)];
+              _currentClick_decorators = [expose("model", false)];
+              _currentKeys_decorators = [expose("model", false)];
+              _onToolChange_decorators = [expose("model", false)];
+              _authorizeEventScaling_decorators = [expose("model")];
+              _scaleEventPosition_decorators = [expose("model")];
+              _moveThreshold_decorators = [expose("model")];
+              _longPressDuration_decorators = [expose("model")];
               _set_keyEventsEnabled_decorators = [auto()];
               _set_wheelEventsEnabled_decorators = [auto()];
               _set_moveEventsEnabled_decorators = [auto()];
               _set_mouseEventsEnabled_decorators = [auto()];
               _set_touchEventsEnabled_decorators = [auto()];
-              _set_clickEventEnabled_decorators = [auto()];
-              _set_dragEventEnabled_decorators = [auto()];
+              _set_clickEventsEnabled_decorators = [auto()];
+              _set_dragEventsEnabled_decorators = [auto()];
               __esDecorate(this, null, _set_keyEventsEnabled_decorators, { kind: "setter", name: "keyEventsEnabled", static: false, private: false, access: { has: obj => "keyEventsEnabled" in obj, set: (obj, value) => { obj.keyEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_wheelEventsEnabled_decorators, { kind: "setter", name: "wheelEventsEnabled", static: false, private: false, access: { has: obj => "wheelEventsEnabled" in obj, set: (obj, value) => { obj.wheelEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_moveEventsEnabled_decorators, { kind: "setter", name: "moveEventsEnabled", static: false, private: false, access: { has: obj => "moveEventsEnabled" in obj, set: (obj, value) => { obj.moveEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_mouseEventsEnabled_decorators, { kind: "setter", name: "mouseEventsEnabled", static: false, private: false, access: { has: obj => "mouseEventsEnabled" in obj, set: (obj, value) => { obj.mouseEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_touchEventsEnabled_decorators, { kind: "setter", name: "touchEventsEnabled", static: false, private: false, access: { has: obj => "touchEventsEnabled" in obj, set: (obj, value) => { obj.touchEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _set_clickEventEnabled_decorators, { kind: "setter", name: "clickEventEnabled", static: false, private: false, access: { has: obj => "clickEventEnabled" in obj, set: (obj, value) => { obj.clickEventEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _set_dragEventEnabled_decorators, { kind: "setter", name: "dragEventEnabled", static: false, private: false, access: { has: obj => "dragEventEnabled" in obj, set: (obj, value) => { obj.dragEventEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(null, null, _keyController_decorators, { kind: "field", name: "keyController", static: false, private: false, access: { has: obj => "keyController" in obj, get: obj => obj.keyController, set: (obj, value) => { obj.keyController = value; } }, metadata: _metadata }, _keyController_initializers, _keyController_extraInitializers);
-              __esDecorate(null, null, _wheelController_decorators, { kind: "field", name: "wheelController", static: false, private: false, access: { has: obj => "wheelController" in obj, get: obj => obj.wheelController, set: (obj, value) => { obj.wheelController = value; } }, metadata: _metadata }, _wheelController_initializers, _wheelController_extraInitializers);
-              __esDecorate(null, null, _pointerController_decorators, { kind: "field", name: "pointerController", static: false, private: false, access: { has: obj => "pointerController" in obj, get: obj => obj.pointerController, set: (obj, value) => { obj.pointerController = value; } }, metadata: _metadata }, _pointerController_initializers, _pointerController_extraInitializers);
-              __esDecorate(null, null, _dispatchController_decorators, { kind: "field", name: "dispatchController", static: false, private: false, access: { has: obj => "dispatchController" in obj, get: obj => obj.dispatchController, set: (obj, value) => { obj.dispatchController = value; } }, metadata: _metadata }, _dispatchController_initializers, _dispatchController_extraInitializers);
+              __esDecorate(this, null, _set_clickEventsEnabled_decorators, { kind: "setter", name: "clickEventsEnabled", static: false, private: false, access: { has: obj => "clickEventsEnabled" in obj, set: (obj, value) => { obj.clickEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_dragEventsEnabled_decorators, { kind: "setter", name: "dragEventsEnabled", static: false, private: false, access: { has: obj => "dragEventsEnabled" in obj, set: (obj, value) => { obj.dragEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(null, null, _keyOperator_decorators, { kind: "field", name: "keyOperator", static: false, private: false, access: { has: obj => "keyOperator" in obj, get: obj => obj.keyOperator, set: (obj, value) => { obj.keyOperator = value; } }, metadata: _metadata }, _keyOperator_initializers, _keyOperator_extraInitializers);
+              __esDecorate(null, null, _wheelOperator_decorators, { kind: "field", name: "wheelOperator", static: false, private: false, access: { has: obj => "wheelOperator" in obj, get: obj => obj.wheelOperator, set: (obj, value) => { obj.wheelOperator = value; } }, metadata: _metadata }, _wheelOperator_initializers, _wheelOperator_extraInitializers);
+              __esDecorate(null, null, _pointerOperator_decorators, { kind: "field", name: "pointerOperator", static: false, private: false, access: { has: obj => "pointerOperator" in obj, get: obj => obj.pointerOperator, set: (obj, value) => { obj.pointerOperator = value; } }, metadata: _metadata }, _pointerOperator_initializers, _pointerOperator_extraInitializers);
+              __esDecorate(null, null, _dispatchOperator_decorators, { kind: "field", name: "dispatchOperator", static: false, private: false, access: { has: obj => "dispatchOperator" in obj, get: obj => obj.dispatchOperator, set: (obj, value) => { obj.dispatchOperator = value; } }, metadata: _metadata }, _dispatchOperator_initializers, _dispatchOperator_extraInitializers);
+              __esDecorate(null, null, _inputDevice_decorators, { kind: "field", name: "inputDevice", static: false, private: false, access: { has: obj => "inputDevice" in obj, get: obj => obj.inputDevice, set: (obj, value) => { obj.inputDevice = value; } }, metadata: _metadata }, _inputDevice_initializers, _inputDevice_extraInitializers);
+              __esDecorate(null, null, _onInputDeviceChange_decorators, { kind: "field", name: "onInputDeviceChange", static: false, private: false, access: { has: obj => "onInputDeviceChange" in obj, get: obj => obj.onInputDeviceChange, set: (obj, value) => { obj.onInputDeviceChange = value; } }, metadata: _metadata }, _onInputDeviceChange_initializers, _onInputDeviceChange_extraInitializers);
+              __esDecorate(null, null, _currentClick_decorators, { kind: "field", name: "currentClick", static: false, private: false, access: { has: obj => "currentClick" in obj, get: obj => obj.currentClick, set: (obj, value) => { obj.currentClick = value; } }, metadata: _metadata }, _currentClick_initializers, _currentClick_extraInitializers);
+              __esDecorate(null, null, _currentKeys_decorators, { kind: "field", name: "currentKeys", static: false, private: false, access: { has: obj => "currentKeys" in obj, get: obj => obj.currentKeys, set: (obj, value) => { obj.currentKeys = value; } }, metadata: _metadata }, _currentKeys_initializers, _currentKeys_extraInitializers);
+              __esDecorate(null, null, _onToolChange_decorators, { kind: "field", name: "onToolChange", static: false, private: false, access: { has: obj => "onToolChange" in obj, get: obj => obj.onToolChange, set: (obj, value) => { obj.onToolChange = value; } }, metadata: _metadata }, _onToolChange_initializers, _onToolChange_extraInitializers);
+              __esDecorate(null, null, _authorizeEventScaling_decorators, { kind: "field", name: "authorizeEventScaling", static: false, private: false, access: { has: obj => "authorizeEventScaling" in obj, get: obj => obj.authorizeEventScaling, set: (obj, value) => { obj.authorizeEventScaling = value; } }, metadata: _metadata }, _authorizeEventScaling_initializers, _authorizeEventScaling_extraInitializers);
+              __esDecorate(null, null, _scaleEventPosition_decorators, { kind: "field", name: "scaleEventPosition", static: false, private: false, access: { has: obj => "scaleEventPosition" in obj, get: obj => obj.scaleEventPosition, set: (obj, value) => { obj.scaleEventPosition = value; } }, metadata: _metadata }, _scaleEventPosition_initializers, _scaleEventPosition_extraInitializers);
+              __esDecorate(null, null, _moveThreshold_decorators, { kind: "field", name: "moveThreshold", static: false, private: false, access: { has: obj => "moveThreshold" in obj, get: obj => obj.moveThreshold, set: (obj, value) => { obj.moveThreshold = value; } }, metadata: _metadata }, _moveThreshold_initializers, _moveThreshold_extraInitializers);
+              __esDecorate(null, null, _longPressDuration_decorators, { kind: "field", name: "longPressDuration", static: false, private: false, access: { has: obj => "longPressDuration" in obj, get: obj => obj.longPressDuration, set: (obj, value) => { obj.longPressDuration = value; } }, metadata: _metadata }, _longPressDuration_initializers, _longPressDuration_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          /*
-           *
-           *
-           * Static stuff
-           *
-           *
-           */
           static managers = [];
           static get instance() {
-              if (TurboEventManager.managers.length > 0)
-                  return TurboEventManager.managers[0];
-              else
-                  return new TurboEventManager();
+              if (GradumEventManager.managers.length == 0)
+                  this.managers.push(GradumEventManager.create());
+              return GradumEventManager.managers[0];
           }
           static get allManagers() {
               return [...this.managers];
@@ -13266,184 +17193,114 @@
           static set allManagers(managers) {
               this.managers = managers;
           }
-          /*
-           *
-           *
-           * Controllers & handlers
-           *
-           *
-           */
-          keyController = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _keyController_initializers, void 0));
-          wheelController = (__runInitializers(this, _keyController_extraInitializers), __runInitializers(this, _wheelController_initializers, void 0));
-          pointerController = (__runInitializers(this, _wheelController_extraInitializers), __runInitializers(this, _pointerController_initializers, void 0));
-          dispatchController = (__runInitializers(this, _pointerController_extraInitializers), __runInitializers(this, _dispatchController_initializers, void 0));
-          /*
-           *
-           *
-           * Constructor
-           *
-           *
-           */
-          constructor(properties = {}) {
-              super();
-              __runInitializers(this, _dispatchController_extraInitializers);
-              this.mvc.generate({
-                  model: TurboEventManagerModel,
-                  controllers: [
-                      TurboEventManagerKeyController,
-                      TurboEventManagerWheelController,
-                      TurboEventManagerPointerController,
-                      TurboEventManagerDispatchController
-                  ],
-                  handlers: [TurboEventManagerUtilsHandler]
-              });
-              TurboEventManager.managers.push(this);
-              this.model.authorizeEventScaling = properties.authorizeEventScaling;
-              this.model.scaleEventPosition = properties.scaleEventPosition;
-              this.model.state.enabled = properties.enabled ?? true;
-              this.model.state.preventDefaultMouse = properties.preventDefaultMouse ?? true;
-              this.model.state.preventDefaultTouch = properties.preventDefaultTouch ?? true;
-              this.model.state.preventDefaultWheel = properties.preventDefaultWheel ?? true;
-              this.unlock();
-              this.model.moveThreshold = properties.moveThreshold || 10;
-              this.model.longPressDuration = properties.longPressDuration || 500;
-              if (!properties.disableKeyEvents)
-                  this.keyEventsEnabled = true;
-              if (!properties.disableWheelEvents)
-                  this.wheelEventsEnabled = true;
-              if (!properties.disableMouseEvents)
-                  this.mouseEventsEnabled = true;
-              if (!properties.disableTouchEvents)
-                  this.touchEventsEnabled = true;
-              if (!properties.disableDragEvents)
-                  this.dragEventEnabled = true;
-              if (!properties.disableClickEvents)
-                  this.clickEventEnabled = true;
-              if (!properties.disableMoveEvent)
-                  this.moveEventsEnabled = true;
-              document.addEventListener("pointerdown", this.pointerController.pointerDown, { passive: false });
-              document.addEventListener("pointermove", this.pointerController.pointerMove, { passive: false });
-              document.addEventListener("pointerup", this.pointerController.pointerUp, { passive: false });
-              document.addEventListener("pointercancel", this.pointerController.pointerCancel, { passive: false });
-              //TODO
-              this.dispatchController.setupCustomDispatcher("pointerdown");
+          get model() {
+              return gradum(this).model;
           }
-          /*
-           *
-           *
-           * Getters and setters
-           *
-           *
-           *
-           */
+          static defaultProperties = {
+              model: GradumEventManagerModel,
+              operators: [
+                  GradumEventManagerKeyOperator,
+                  GradumEventManagerWheelOperator,
+                  GradumEventManagerPointerOperator,
+                  GradumEventManagerDispatchOperator
+              ],
+              handlers: GradumEventManagerUtilsHandler,
+              keyEventsEnabled: true,
+              wheelEventsEnabled: true,
+              mouseEventsEnabled: true,
+              touchEventsEnabled: true,
+              clickEventsEnabled: true,
+              dragEventsEnabled: true,
+              moveEventsEnabled: true,
+          };
+          keyOperator = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _keyOperator_initializers, void 0));
+          wheelOperator = (__runInitializers(this, _keyOperator_extraInitializers), __runInitializers(this, _wheelOperator_initializers, void 0));
+          pointerOperator = (__runInitializers(this, _wheelOperator_extraInitializers), __runInitializers(this, _pointerOperator_initializers, void 0));
+          dispatchOperator = (__runInitializers(this, _pointerOperator_extraInitializers), __runInitializers(this, _dispatchOperator_initializers, void 0));
           /**
            * @description The currently identified input device. It is not 100% accurate, especially when differentiating
            * between mouse and trackpad.
            */
-          get inputDevice() {
-              return this.model.inputDevice;
-          }
-          //Delegate fired when the input device changes
-          get onInputDeviceChange() {
-              return this.model.onInputDeviceChange;
-          }
-          get currentClick() {
-              return this.model.currentClick;
-          }
-          get currentKeys() {
-              return this.model.currentKeys;
-          }
+          inputDevice = (__runInitializers(this, _dispatchOperator_extraInitializers), __runInitializers(this, _inputDevice_initializers, void 0));
+          onInputDeviceChange = (__runInitializers(this, _inputDevice_extraInitializers), __runInitializers(this, _onInputDeviceChange_initializers, void 0));
+          currentClick = (__runInitializers(this, _onInputDeviceChange_extraInitializers), __runInitializers(this, _currentClick_initializers, void 0));
+          currentKeys = (__runInitializers(this, _currentClick_extraInitializers), __runInitializers(this, _currentKeys_initializers, void 0));
           /**
            * @description Delegate fired when a tool is changed on a certain click button/mode
            */
-          get onToolChange() {
-              return this.model.onToolChange;
+          onToolChange = (__runInitializers(this, _currentKeys_extraInitializers), __runInitializers(this, _onToolChange_initializers, void 0));
+          authorizeEventScaling = (__runInitializers(this, _onToolChange_extraInitializers), __runInitializers(this, _authorizeEventScaling_initializers, void 0));
+          scaleEventPosition = (__runInitializers(this, _authorizeEventScaling_extraInitializers), __runInitializers(this, _scaleEventPosition_initializers, void 0));
+          moveThreshold = (__runInitializers(this, _scaleEventPosition_extraInitializers), __runInitializers(this, _moveThreshold_initializers, void 0));
+          longPressDuration = (__runInitializers(this, _moveThreshold_extraInitializers), __runInitializers(this, _longPressDuration_initializers, void 0));
+          constructor() {
+              super();
+              __runInitializers(this, _longPressDuration_extraInitializers);
+              GradumEventManager.managers.push(this);
           }
-          get authorizeEventScaling() {
-              return this.model.authorizeEventScaling;
+          initialize() {
+              super.initialize();
+              this.unlock();
+              document.addEventListener("pointerdown", this.pointerOperator.pointerDown, { passive: false });
+              document.addEventListener("pointermove", this.pointerOperator.pointerMove, { passive: false });
+              document.addEventListener("pointerup", this.pointerOperator.pointerUp, { passive: false });
+              document.addEventListener("pointercancel", this.pointerOperator.pointerCancel, { passive: false });
+              //TODO
+              this.dispatchOperator.setupCustomDispatcher("pointerdown");
           }
-          set authorizeEventScaling(value) {
-              this.model.authorizeEventScaling = value;
-          }
-          get scaleEventPosition() {
-              return this.model.scaleEventPosition;
-          }
-          set scaleEventPosition(value) {
-              this.model.scaleEventPosition = value;
-          }
-          get moveThreshold() {
-              return this.model.moveThreshold;
-          }
-          set moveThreshold(value) {
-              this.model.moveThreshold = value;
-          }
-          get longPressDuration() {
-              return this.model.longPressDuration;
-          }
-          set longPressDuration(value) {
-              this.model.longPressDuration = value;
-          }
-          /*
-           *
-           *
-           * Enabling events setters
-           *
-           *
-           *
-           */
           set keyEventsEnabled(value) {
               if (value) {
-                  document.addEventListener("keydown", this.keyController.keyDown);
-                  document.addEventListener("keyup", this.keyController.keyUp);
+                  document.addEventListener("keydown", this.keyOperator.keyDown);
+                  document.addEventListener("keyup", this.keyOperator.keyUp);
               }
               else {
-                  document.removeEventListener("keydown", this.keyController.keyDown);
-                  document.removeEventListener("keyup", this.keyController.keyUp);
+                  document.removeEventListener("keydown", this.keyOperator.keyDown);
+                  document.removeEventListener("keyup", this.keyOperator.keyUp);
               }
-              this.applyAndHookEvents(TurboKeyEventName, DefaultKeyEventName, value);
+              this.applyAndHookEvents(GradumKeyEventName, DefaultKeyEventName, value);
           }
           set wheelEventsEnabled(value) {
               if (value)
-                  document.body.addEventListener("wheel", this.wheelController.wheel, { passive: false });
+                  document.body.addEventListener("wheel", this.wheelOperator.wheel, { passive: false });
               else
-                  document.body.removeEventListener("wheel", this.wheelController.wheel);
-              this.applyAndHookEvents(TurboWheelEventName, DefaultWheelEventName, value);
+                  document.body.removeEventListener("wheel", this.wheelOperator.wheel);
+              this.applyAndHookEvents(GradumWheelEventName, DefaultWheelEventName, value);
           }
           set moveEventsEnabled(value) {
-              this.applyAndHookEvents(TurboMoveEventName, DefaultMoveEventName, value);
+              this.applyAndHookEvents(GradumMoveEventName, DefaultMoveEventName, value);
           }
           set mouseEventsEnabled(value) {
               //TODO
               // if (value) {
-              //     doc.on("pointerdown", this.pointerController.pointerDown, {passive: false, propagate: true});
-              //     doc.on("pointermove", this.pointerController.pointerMove, {passive: false, propagate: true});
-              //     doc.on("pointerup", this.pointerController.pointerUp, {passive: false, propagate: true});
-              //     doc.on("pointercancel", this.pointerController.pointerCancel, {passive: false, propagate: true});
+              //     doc.on("pointerdown", this.pointerOperator.pointerDown, {passive: false, propagate: true});
+              //     doc.on("pointermove", this.pointerOperator.pointerMove, {passive: false, propagate: true});
+              //     doc.on("pointerup", this.pointerOperator.pointerUp, {passive: false, propagate: true});
+              //     doc.on("pointercancel", this.pointerOperator.pointerCancel, {passive: false, propagate: true});
               // } else {
-              //     doc.removeListener("mousedown", this.pointerController.pointerDown);
-              //     doc.removeListener("mousemove", this.pointerController.pointerMove);
-              //     doc.removeListener("mouseup", this.pointerController.pointerUp);
-              //     doc.removeListener("mouseleave", this.pointerController.pointerLeave);
+              //     doc.removeListener("mousedown", this.pointerOperator.pointerDown);
+              //     doc.removeListener("mousemove", this.pointerOperator.pointerMove);
+              //     doc.removeListener("mouseup", this.pointerOperator.pointerUp);
+              //     doc.removeListener("mouseleave", this.pointerOperator.pointerLeave);
               // }
           }
           set touchEventsEnabled(value) {
               // if (value) {
-              //     doc.on("touchstart", this.pointerController.pointerDown, {passive: false, propagate: true});
-              //     doc.on("touchmove", this.pointerController.pointerMove, {passive: false, propagate: true});
-              //     doc.on("touchend", this.pointerController.pointerUp, {passive: false, propagate: true});
-              //     doc.on("touchcancel", this.pointerController.pointerUp, {passive: false, propagate: true});
+              //     doc.on("touchstart", this.pointerOperator.pointerDown, {passive: false, propagate: true});
+              //     doc.on("touchmove", this.pointerOperator.pointerMove, {passive: false, propagate: true});
+              //     doc.on("touchend", this.pointerOperator.pointerUp, {passive: false, propagate: true});
+              //     doc.on("touchcancel", this.pointerOperator.pointerUp, {passive: false, propagate: true});
               // } else {
-              //     doc.removeListener("touchstart", this.pointerController.pointerDown);
-              //     doc.removeListener("touchmove", this.pointerController.pointerMove);
-              //     doc.removeListener("touchend", this.pointerController.pointerUp);
-              //     doc.removeListener("touchcancel", this.pointerController.pointerUp);
+              //     doc.removeListener("touchstart", this.pointerOperator.pointerDown);
+              //     doc.removeListener("touchmove", this.pointerOperator.pointerMove);
+              //     doc.removeListener("touchend", this.pointerOperator.pointerUp);
+              //     doc.removeListener("touchcancel", this.pointerOperator.pointerUp);
               // }
           }
-          set clickEventEnabled(value) {
-              this.applyAndHookEvents(TurboClickEventName, DefaultClickEventName, value);
+          set clickEventsEnabled(value) {
+              this.applyAndHookEvents(GradumClickEventName, DefaultClickEventName, value);
           }
-          set dragEventEnabled(value) {
-              this.applyAndHookEvents(TurboDragEventName, DefaultDragEventName, value);
+          set dragEventsEnabled(value) {
+              this.applyAndHookEvents(GradumDragEventName, DefaultDragEventName, value);
           }
           /*
            *
@@ -13468,36 +17325,38 @@
            * @description Resets the lock state to the default values.
            */
           unlock() {
-              const s = this.model.state;
-              const l = this.model.lockState;
-              l.enabled = s.enabled;
-              l.preventDefaultMouse = s.preventDefaultMouse;
-              l.preventDefaultTouch = s.preventDefaultTouch;
-              l.preventDefaultWheel = s.preventDefaultWheel;
-              l.lockOrigin = document.body;
+              this.model.lockState = { lockOrigin: document.body };
           }
           get enabled() {
-              return this.model.state.enabled && this.model.lockState.enabled;
+              return this.model.state.enabled && (this.model.lockState.enabled ?? true);
           }
           set enabled(value) {
               this.model.state.enabled = value;
           }
           get preventDefaultWheel() {
-              return this.model.state.preventDefaultWheel && this.model.lockState.preventDefaultWheel;
+              return this.model.state.preventDefaultWheel && (this.model.lockState.preventDefaultWheel ?? true);
           }
           set preventDefaultWheel(value) {
               this.model.state.preventDefaultWheel = value;
           }
           get preventDefaultMouse() {
-              return this.model.state.preventDefaultMouse && this.model.lockState.preventDefaultMouse;
+              return this.model.state.preventDefaultMouse && (this.model.lockState.preventDefaultMouse ?? true);
           }
           set preventDefaultMouse(value) {
               this.model.state.preventDefaultMouse = value;
           }
           get preventDefaultTouch() {
-              return this.model.state.preventDefaultTouch && this.model.lockState.preventDefaultTouch;
+              return this.model.state.preventDefaultTouch && (this.model.lockState.preventDefaultTouch ?? true);
           }
           set preventDefaultTouch(value) {
+              this.model.state.preventDefaultTouch = value;
+          }
+          get preventDefaults() {
+              return this.preventDefaultMouse || this.preventDefaultTouch || this.preventDefaultWheel;
+          }
+          set preventDefaults(value) {
+              this.model.state.preventDefaultWheel = value;
+              this.model.state.preventDefaultMouse = value;
               this.model.state.preventDefaultTouch = value;
           }
           /*
@@ -13590,7 +17449,7 @@
            */
           addTool(toolName, tool, key) {
               if (!this.model.tools.has(toolName))
-                  this.model.tools.set(toolName, new TurboWeakSet());
+                  this.model.tools.set(toolName, new GradumWeakSet());
               const tools = this.model.tools.get(toolName);
               if (!tools.has(tool))
                   tools.add(tool);
@@ -13606,13 +17465,7 @@
           setTool(tool, type, options = {}) {
               if (!isUndefined(tool) && !$(tool).isTool(this))
                   return;
-              //Initialize undefined options
-              if (options.select == undefined)
-                  options.select = true;
-              if (options.activate == undefined)
-                  options.activate = true;
-              if (options.setAsNoAction == undefined)
-                  options.setAsNoAction = type == ClickMode.left;
+              gradum(options).applyDefaults({ select: true, activate: true, setAsNoAction: type == ClickMode.left });
               //Get previous tool
               const previousTool = this.model.currentTools.get(type);
               if (previousTool) {
@@ -13622,7 +17475,7 @@
                   //Deselect and deactivate previous tool
                   this.getSimilarTools(previousTool).forEach(element => {
                       if (options.select)
-                          this.model.utils.selectTool(element, false);
+                          gradum(element).selected = false;
                       if (options.activate)
                           this.model.utils.activateTool(element, this.getToolName(previousTool), false);
                   });
@@ -13636,7 +17489,7 @@
                   if (options.activate)
                       this.model.utils.activateTool(element, this.getToolName(tool), true);
                   if (options.select)
-                      this.model.utils.selectTool(element, true);
+                      gradum(element).selected = true;
               });
               //Fire tool changed
               this.onToolChange.fire(previousTool, tool, type);
@@ -13660,15 +17513,15 @@
            *
            */
           setupCustomDispatcher(type) {
-              return this.dispatchController.setupCustomDispatcher(type);
+              return this.dispatchOperator.setupCustomDispatcher(type);
           }
-          applyAndHookEvents(turboEventNames, defaultEventNames, applyTurboEvents) {
-              this.model.utils.applyEventNames(applyTurboEvents ? turboEventNames : defaultEventNames);
-              for (const name in turboEventNames) {
-                  if (applyTurboEvents)
-                      this.dispatchController.setupCustomDispatcher(name);
+          applyAndHookEvents(gradumEventNames, defaultEventNames, applyGradumEvents) {
+              this.model.utils.applyEventNames(applyGradumEvents ? gradumEventNames : defaultEventNames);
+              for (const name of Object.values(applyGradumEvents ? gradumEventNames : defaultEventNames)) {
+                  if (applyGradumEvents)
+                      this.dispatchOperator.setupCustomDispatcher(name);
                   else
-                      this.dispatchController.removeCustomDispatcher(name);
+                      this.dispatchOperator.removeCustomDispatcher(name);
               }
           }
           destroy() {
@@ -13676,32 +17529,233 @@
               this.wheelEventsEnabled = false;
               this.mouseEventsEnabled = false;
               this.touchEventsEnabled = false;
-              this.dragEventEnabled = false;
-              this.clickEventEnabled = false;
+              this.dragEventsEnabled = false;
+              this.clickEventsEnabled = false;
               this.onToolChange.clear();
               return this;
           }
       };
   })();
+  define(GradumEventManager);
+
+  /**
+   * @class Listener
+   * @group Components
+   * @category Listener
+   *
+   * @template {Node} TargetType - The type of the event target.
+   * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
+   * @description Object representing an event listener, storing its metadata (type, target, toolName, options,
+   * manager) and providing utilities to execute and match it.
+   */
+  class Listener {
+      /** @description Event type (e.g., `"click"`, `"pointermove"`). */
+      type;
+      /** @description Target node this listener is associated with. */
+      target;
+      /** @description Name of the tool this listener is bound to (if any). */
+      toolName;
+      /** @description Callback provided by the user. */
+      callback;
+      /**
+       * @description Bundled listener that adapts native events to the {@link ListenerCallback} signature.
+       */
+      bundledListener;
+      /** @description Listener options used for registration and additional behaviors.*/
+      options;
+      /** @description Associated event manager used to coordinate listener execution. */
+      manager;
+      /** @description Last animation frame index during which this listener executed. */
+      lastExecutionFrame;
+      /** @description Last timestamp (ms) at which this listener executed. */
+      lastExecutionTime;
+      /**
+       * @constructor
+       * @param {ListenerProperties<TargetType, CallbackType>} properties - Listener configuration.
+       * @description Creates a {@link Listener}.
+       */
+      constructor(properties) {
+          if (properties.target instanceof GradumSelector)
+              properties.target = properties.target.element;
+          this.type = properties.type;
+          this.target = properties.target;
+          this.toolName = properties.toolName;
+          this.callback = properties.callback;
+          this.bundledListener = (e) => this.callback(e, this.target);
+          this.options = properties.options ?? {};
+          this.manager = properties.manager ?? GradumEventManager.instance;
+      }
+      /**
+       * @function execute
+       * @description Executes the listener using its bundled signature.
+       * @param {Event} e - Event passed to the callback.
+       * @returns {Propagation} Propagation returned by the callback.
+       */
+      execute(e) {
+          return this.bundledListener(e);
+      }
+      /**
+       * @function executeOn
+       * @description Executes the underlying callback on an explicit target.
+       * @param {Event} e - Event passed to the callback.
+       * @param {TargetType} target - Target node.
+       * @param {...any[]} args - Additional arguments forwarded to the callback.
+       * @returns {any} Whatever the callback returns (typically {@link Propagation}).
+       */
+      executeOn(e, target, ...args) {
+          return this.callback(e, target, ...args);
+      }
+      /**
+       * @function match
+       * @description Checks whether this listener matches a subset of properties.
+       * @param {MatchListenerProperties<TargetType, CallbackType>} [properties={}] - Properties to match against.
+       * @returns {boolean} Whether this listener matches.
+       */
+      match(properties = {}) {
+          for (let [key, value] of Object.entries(properties)) {
+              if (key === "target" && value instanceof GradumSelector)
+                  value = value.element;
+              if (key === "optionsToSkip")
+                  continue;
+              if (value === undefined) {
+                  if (key === "toolName" && this.toolName !== undefined)
+                      return false;
+                  continue;
+              }
+              if (typeof value === "object") {
+                  if (typeof this[key] !== "object")
+                      return false;
+                  for (const [subKey, subValue] of Object.entries(value)) {
+                      if (key === "options" && properties.optionsToSkip?.includes(subKey))
+                          continue;
+                      if (subValue === undefined)
+                          continue;
+                      if (this[key][subKey] !== subValue)
+                          return false;
+                  }
+                  continue;
+              }
+              if (this[key] !== value)
+                  return false;
+          }
+          return true;
+      }
+  }
+
+  /**
+   * @class ListenerSet
+   * @group Components
+   * @category Listener
+   *
+   * @template {Node} TargetType - The type of the event target.
+   * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
+   * @description Collection of {@link Listener} instances indexed by event type.
+   * Provides helpers to add/remove/query listeners and to remove listeners matching criteria.
+   */
+  class ListenerSet {
+      /**
+       * @description Map from event type to a set of listeners registered for that type.
+       */
+      listeners = new Map();
+      /**
+       * @readonly
+       * @description Flattened array of all listeners in the set.
+       */
+      get listenersArray() {
+          const listeners = [];
+          for (const set of this.listeners.values()) {
+              for (const entry of set.values()) {
+                  listeners.push(entry);
+              }
+          }
+          return listeners;
+      }
+      addListener(value) {
+          if (typeof value === "object" && !(value instanceof Listener))
+              value = new Listener(value);
+          if (!value.type)
+              return;
+          if (!this.listeners.has(value.type))
+              this.listeners.set(value.type, new Set());
+          this.listeners.get(value.type).add(value);
+      }
+      removeListener(value) {
+          if (!value)
+              return;
+          if (value instanceof Listener)
+              this.listeners.get(value.type)?.delete(value);
+          else {
+              const listener = this.listenersArray.find(listener => listener.callback === value);
+              if (!listener)
+                  return;
+              this.listeners.get(listener.type)?.delete(listener);
+          }
+      }
+      /**
+       * @function removeMatchingListeners
+       * @description Removes all listeners that match the provided properties (see {@link Listener.match}).
+       * @param {MatchListenerProperties<TargetType, CallbackType>} [matchingProperties={}] - Properties to match.
+       */
+      removeMatchingListeners(matchingProperties = {}) {
+          this.getListeners(matchingProperties).forEach((listener) => {
+              // listener.target?.removeEventListener(listener.type, listener.bundledListener, listener.options);
+              this.removeListener(listener);
+          });
+      }
+      /**
+       * @function getListeners
+       * @description Returns all listeners matching the provided properties (see {@link Listener.match}).
+       * @param {MatchListenerProperties<TargetType, CallbackType>} [matchingProperties={}] - Properties to match.
+       * @returns {Listener[]} Matching listeners.
+       */
+      getListeners(matchingProperties = {}) {
+          return this.listenersArray.filter(listener => listener.match(matchingProperties));
+      }
+      /**
+       * @function getListenersByType
+       * @description Returns the set of listeners registered for the given event type.
+       * @param {string} type - Event type.
+       * @returns {Set<Listener<TargetType, CallbackType>>} Set of listeners for that type.
+       */
+      getListenersByType(type) {
+          if (!type || !this.listeners.has(type))
+              return new Set();
+          return this.listeners.get(type);
+      }
+  }
 
   class EventFunctionsUtils {
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
-          if (!element)
-              return {};
-          if (!this.dataMap.has(element))
-              this.dataMap.set(element, {});
+          if (!element || !this.dataMap.has(element)) {
+              const entry = {
+                  boundListeners: new ListenerSet(),
+                  preventDefaultListeners: {},
+              };
+              if (element)
+                  this.dataMap.set(element, entry);
+          }
           return this.dataMap.get(element);
       }
       getBoundListenersSet(element) {
           let set = this.data(element).boundListeners;
           if (!set) {
-              set = new Set();
+              set = new ListenerSet();
               this.data(element).boundListeners = set;
           }
           return set;
+      }
+      getBoundListeners(properties) {
+          if (!properties.target)
+              return [];
+          if (!properties.manager)
+              properties.manager = GradumEventManager.instance;
+          return this.getBoundListenersSet(properties.target).getListeners({
+              ...properties,
+              optionsToSkip: ["checkConstrainers", "solveConstrainers"]
+          });
       }
       getPreventDefaultListeners(element) {
           let map = this.data(element).preventDefaultListeners;
@@ -13712,7 +17766,7 @@
           return map;
       }
       bypassManager(element, eventManager, bypassResults) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return;
@@ -13731,48 +17785,29 @@
                   preventDefaultTouch: bypassResults.preventDefaultTouch ?? false,
               });
       }
-      getBoundListeners(element, type, toolName, options, manager = TurboEventManager.instance) {
-          if (element instanceof TurboSelector)
-              element = element.element;
-          if (!element)
-              return [];
-          if (!options)
-              options = {};
-          return [...this.getBoundListenersSet(element)]
-              .filter(entry => entry.type === type && entry.manager === manager && entry.toolName === toolName)
-              .filter(entry => {
-              if (!options)
-                  return true;
-              for (const [option, value] of Object.entries(options)) {
-                  if (entry.options?.[option] !== value)
-                      return false;
-              }
-              return true;
-          });
-      }
-      processPropagation(currentPropagation, storedPropagation = EventPropagation.propagate, defaultPropagation = EventPropagation.stopPropagation) {
+      //TODO FIX IDK
+      processPropagation(currentPropagation, storedPropagation = Propagation.propagate, defaultPropagation = Propagation.stopPropagation) {
           const orderedValues = [
-              EventPropagation.propagate,
-              EventPropagation.stopPropagation,
-              EventPropagation.stopImmediatePropagation
+              Propagation.propagate,
+              Propagation.stopPropagation,
+              Propagation.stopImmediatePropagation
           ];
           if (!orderedValues.includes(currentPropagation))
               currentPropagation = defaultPropagation;
-          const currentIndex = orderedValues.indexOf(currentPropagation);
-          const storedIndex = orderedValues.indexOf(storedPropagation);
-          return currentIndex <= storedIndex ? currentPropagation : storedPropagation;
+          return orderedValues.indexOf(currentPropagation) <= orderedValues.indexOf(storedPropagation)
+              ? storedPropagation : currentPropagation;
       }
   }
 
-  const utils$6 = new EventFunctionsUtils();
+  const utils$5 = new EventFunctionsUtils();
   function setupEventFunctions() {
       /**
        * @description Initializes a `boundListeners` set in the Node prototype, that will hold all the element's bound
        * listeners.
        */
-      Object.defineProperty(TurboSelector.prototype, "boundListeners", {
+      Object.defineProperty(GradumSelector.prototype, "boundListeners", {
           get: function () {
-              return utils$6.getBoundListenersSet(this);
+              return utils$5.getBoundListenersSet(this);
           },
           configurable: true,
           enumerable: true
@@ -13782,12 +17817,12 @@
        * you can set this field to a predicate that defines when to bypass the manager.
        * @param {Event} e The event.
        */
-      Object.defineProperty(TurboSelector.prototype, "bypassManagerOn", {
+      Object.defineProperty(GradumSelector.prototype, "bypassManagerOn", {
           get: function () {
-              return utils$6.data(this)["bypassCallback"];
+              return utils$5.data(this)["bypassCallback"];
           },
           set: function (value) {
-              utils$6.data(this)["bypassCallback"] = value;
+              utils$5.data(this)["bypassCallback"] = value;
           },
           configurable: true,
           enumerable: true
@@ -13799,16 +17834,22 @@
        * @param {ListenerCallback} listener - The function that receives a notification.
        * @param {ListenerOptions} [options] - An options object that specifies characteristics
        * about the event listener.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.onTool = function _onTool(type, toolName, listener, options, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.onTool = function _onTool(type, toolName, listener, options, manager = GradumEventManager.instance) {
           if (this.hasToolListener(type, toolName, listener, manager))
               return this;
-          const bundledListener = (e) => listener(e, this);
           manager.setupCustomDispatcher?.(type);
-          utils$6.getBoundListenersSet(this).add({ target: this, type, toolName, listener, bundledListener, options, manager });
+          utils$5.getBoundListenersSet(this).addListener({
+              target: this,
+              type,
+              toolName,
+              callback: listener,
+              options,
+              manager
+          });
           return this;
       };
       /**
@@ -13817,11 +17858,11 @@
        * @param {ListenerCallback} listener - The function that receives a notification.
        * @param {ListenerOptions} [options] - An options object that specifies characteristics
        * about the event listener.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.on = function _on(type, listener, options, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.on = function _on(type, listener, options, manager = GradumEventManager.instance) {
           return this.onTool(type, undefined, listener, options, manager);
       };
       /**
@@ -13832,78 +17873,129 @@
        * @param options
        * @param manager
        */
-      TurboSelector.prototype.executeAction = function _executeAction(type, toolName, event, options, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.executeAction = function _executeAction(type, toolName, event, options, manager = GradumEventManager.instance) {
           if (!type)
-              return EventPropagation.propagate;
+              return Propagation.propagate;
           if (!options)
               options = {};
+          gradum(options).applyDefaults({ checkConstrainers: true, solveConstrainers: true });
           const activeTool = toolName ?? manager.getCurrentToolName();
-          if (this.bypassManagerOn)
-              utils$6.bypassManager(this, manager, this.bypassManagerOn(event));
+          const checkedConstrainersFor = new Set();
+          const checkedObjectsToolMap = new Map();
           const firedListeners = new Set();
-          let propagation = EventPropagation.propagate;
-          const run = (target, tool) => {
-              const ts = target instanceof TurboSelector ? target : $(target);
-              const boundSet = utils$6.getBoundListenersSet(target);
-              const entries = [...utils$6.getBoundListeners(target, type, tool, options, manager)];
+          let propagation = Propagation.propagate;
+          if (this.bypassManagerOn)
+              utils$5.bypassManager(this, manager, this.bypassManagerOn(event));
+          const checkConstrainers = (target, tool) => {
+              if (!target)
+                  return;
+              if (propagation === Propagation.stopImmediatePropagation)
+                  return;
+              if (!checkedConstrainersFor.has(target)) {
+                  checkedConstrainersFor.add(target);
+                  if (tool)
+                      checkedObjectsToolMap.set(target, tool);
+                  if (options.checkConstrainers) {
+                      const check = this.checkConstrainersForEvent({
+                          event, manager,
+                          toolName: tool,
+                          eventType: type,
+                          eventTarget: target,
+                          eventOptions: options,
+                      });
+                      if (!check)
+                          propagation = Propagation.stopImmediatePropagation;
+                  }
+              }
+              checkConstrainers(target.parentNode, tool);
+          };
+          const runListeners = (target, tool) => {
+              const ts = target instanceof GradumSelector ? target : gradum(target);
+              const boundSet = utils$5.getBoundListenersSet(target);
+              const entries = utils$5.getBoundListeners({ target, type, toolName: tool, options, manager });
+              checkConstrainers(target, tool);
               if (entries.length === 0)
+                  return;
+              if (propagation === Propagation.stopImmediatePropagation)
                   return;
               for (const entry of entries) {
                   if (firedListeners.has(entry))
                       continue;
                   try {
-                      propagation = utils$6.processPropagation(entry.listener(event, ts), propagation);
+                      propagation = utils$5.processPropagation(entry.executeOn(event, ts), propagation);
                   }
                   finally {
                       firedListeners.add(entry);
                       if (entry.options?.once)
-                          boundSet.delete(entry);
+                          boundSet.removeListener(entry);
                   }
-                  if (propagation === EventPropagation.stopImmediatePropagation)
-                      return propagation;
+                  if (propagation === Propagation.stopImmediatePropagation)
+                      return;
               }
           };
-          if (activeTool) {
-              run(this, activeTool);
-              if (propagation !== EventPropagation.propagate)
-                  return propagation;
-          }
-          if (!options.capture && activeTool && !this.isToolIgnored(activeTool, type, manager)) {
-              propagation = this.applyTool(activeTool, type, event, manager);
-              if (propagation !== EventPropagation.propagate)
-                  return propagation;
-          }
-          const embeddedTarget = this.getEmbeddedToolTarget(manager);
-          const objectTools = this.getToolNames(manager);
-          if (embeddedTarget && objectTools.length > 0) {
-              for (const toolName of objectTools)
-                  run(embeddedTarget, toolName);
-              if (propagation !== EventPropagation.propagate)
-                  return propagation;
-              const embeddedTargetSel = turbo(embeddedTarget);
-              if (!options.capture)
+          const applyTool = (target, tool) => {
+              if (options.capture || !tool)
+                  return;
+              if (gradum(target).isToolIgnored(tool, type, manager))
+                  return;
+              checkConstrainers(target, tool);
+              if (!this.hasToolBehavior(type, tool, manager))
+                  return;
+              if (propagation === Propagation.stopImmediatePropagation)
+                  return;
+              propagation = gradum(target).applyTool(tool, type, event, manager);
+          };
+          const main = () => {
+              if (activeTool) {
+                  runListeners(this, activeTool);
+                  if (propagation !== Propagation.propagate)
+                      return;
+              }
+              applyTool(this.element, activeTool);
+              if (propagation !== Propagation.propagate)
+                  return;
+              const embeddedTarget = this.getEmbeddedToolTarget(manager);
+              const objectTools = this.getToolNames(manager);
+              if (embeddedTarget && objectTools.length > 0) {
                   for (const toolName of objectTools) {
-                      if (!embeddedTargetSel.isToolIgnored(toolName, type, manager)) {
-                          propagation = turbo(embeddedTarget).applyTool(toolName, type, event, manager);
-                          if (propagation !== EventPropagation.propagate)
-                              return propagation;
-                      }
+                      runListeners(embeddedTarget, toolName);
+                      if (propagation === Propagation.stopImmediatePropagation)
+                          return;
                   }
-              if (propagation !== EventPropagation.propagate)
-                  return propagation;
-          }
-          run(this, undefined);
+                  if (propagation !== Propagation.propagate)
+                      return;
+                  if (!options.capture)
+                      for (const toolName of objectTools) {
+                          applyTool(embeddedTarget, toolName);
+                          if (propagation === Propagation.stopImmediatePropagation)
+                              return;
+                      }
+                  if (propagation !== Propagation.propagate)
+                      return;
+              }
+              runListeners(this, undefined);
+          };
+          main();
+          if (options.solveConstrainers)
+              checkedConstrainersFor.forEach(entry => gradum(this).solveConstrainersForEvent({
+                  event,
+                  toolName: checkedObjectsToolMap.get(entry),
+                  eventType: type,
+                  eventTarget: entry,
+                  eventOptions: options,
+                  manager: manager
+              }));
           return propagation;
       };
       /**
        * @description Checks if the given event listener is bound to the element (in its boundListeners list).
        * @param {string} type - The type of the event. Set to null or undefined to get all event types.
        * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {boolean} - Whether the element has the given listener.
        */
-      TurboSelector.prototype.hasListener = function _hasListener(type, listener, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.hasListener = function _hasListener(type, listener, manager = GradumEventManager.instance) {
           return this.hasToolListener(type, undefined, listener, manager);
       };
       /**
@@ -13912,35 +18004,34 @@
        * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
        * to check for listeners not bound to a tool.
        * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {boolean} - Whether the element has the given listener.
        */
-      TurboSelector.prototype.hasToolListener = function _hasToolListener(type, toolName, listener, manager = TurboEventManager.instance) {
-          return utils$6.getBoundListeners(this, type, toolName, undefined, manager)
-              .filter(entry => entry.listener === listener).length > 0;
+      GradumSelector.prototype.hasToolListener = function _hasToolListener(type, toolName, listener, manager = GradumEventManager.instance) {
+          return utils$5.getBoundListeners({ target: this, callback: listener, type, toolName, manager }).length > 0;
       };
       /**
        * @description Checks if the element has bound listeners of the given type (in its boundListeners list).
        * @param {string} type - The type of the event. Set to null or undefined to get all event types.
        * @param {string} toolName - The name of the tool to consider (if any). Set to null or undefined
        * to check for listeners not bound to a tool.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {boolean} - Whether the element has the given listener.
        */
-      TurboSelector.prototype.hasListenersByType = function _hasListenersByType(type, toolName, manager = TurboEventManager.instance) {
-          return utils$6.getBoundListeners(this, type, toolName, undefined, manager).length > 0;
+      GradumSelector.prototype.hasListenersByType = function _hasListenersByType(type, toolName, manager = GradumEventManager.instance) {
+          return utils$5.getBoundListeners({ target: this, type, toolName, manager }).length > 0;
       };
       /**
        * @description Removes an event listener that is bound to the element (in its boundListeners list).
        * @param {string} type - The type of the event.
        * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeListener = function _removeListener(type, listener, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.removeListener = function _removeListener(type, listener, manager = GradumEventManager.instance) {
           return this.removeToolListener(type, undefined, listener, manager);
       };
       /**
@@ -13949,18 +18040,12 @@
        * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
        * to check for listeners not bound to a tool.
        * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeToolListener = function _removeToolListener(type, toolName, listener, manager = TurboEventManager.instance) {
-          const boundListeners = utils$6.getBoundListenersSet(this);
-          utils$6.getBoundListeners(this, type, toolName, undefined, manager)
-              .filter(entry => entry.listener === listener)
-              .forEach(entry => {
-              entry.target.removeEventListener(entry.type, entry.bundledListener, entry.options);
-              boundListeners.delete(entry);
-          });
+      GradumSelector.prototype.removeToolListener = function _removeToolListener(type, toolName, listener, manager = GradumEventManager.instance) {
+          utils$5.getBoundListenersSet(this).removeMatchingListeners({ target: this, type, toolName, callback: listener, manager });
           return this;
       };
       /**
@@ -13969,32 +18054,22 @@
        * @param {string} type - The type of the event. Set to null or undefined to consider all types.
        * @param {string} toolName - The name of the tool associated (if any). Set to null or undefined
        * to check for listeners not bound to a tool.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeListenersByType = function _removeListenersByType(type, toolName, manager = TurboEventManager.instance) {
-          const boundListeners = utils$6.getBoundListenersSet(this);
-          utils$6.getBoundListeners(this, type, toolName, undefined, manager)
-              .forEach(entry => {
-              entry.target.removeEventListener(entry.type, entry.bundledListener, entry.options);
-              boundListeners.delete(entry);
-          });
+      GradumSelector.prototype.removeListenersByType = function _removeListenersByType(type, toolName, manager = GradumEventManager.instance) {
+          utils$5.getBoundListenersSet(this).removeMatchingListeners({ target: this, type, toolName, manager });
           return this;
       };
       /**
        * @description Removes all event listeners bound to the element (in its boundListeners list).
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeAllListeners = function _removeListeners(manager = TurboEventManager.instance) {
-          const set = this.boundListeners;
-          [...set].filter(entry => entry.manager === manager)
-              .forEach(entry => {
-              entry.target.removeEventListener(entry.type, entry.bundledListener, entry.options);
-              set.delete(entry);
-          });
+      GradumSelector.prototype.removeAllListeners = function _removeListeners(manager = GradumEventManager.instance) {
+          utils$5.getBoundListenersSet(this).removeMatchingListeners({ manager });
           return this;
       };
       /**
@@ -14002,16 +18077,16 @@
        * will be processed.
        * @param {PreventDefaultOptions} options - An options object to customize the behavior of the function.
        */
-      TurboSelector.prototype.preventDefault = function _preventDefault(options) {
+      GradumSelector.prototype.preventDefault = function _preventDefault(options) {
           if (!options)
               options = {};
-          const manager = options.manager ?? TurboEventManager.instance;
+          const manager = options.manager ?? GradumEventManager.instance;
           const types = options.types ?? BasicInputEvents;
           const phase = options.phase ?? "capture";
           const stop = options.stop ?? false;
-          utils$6.data(this.element).preventDefaultOn = options.preventDefaultOn
-              ?? utils$6.data(this.element).preventDefaultOn ?? (() => true);
-          const preventDefaultListeners = utils$6.getPreventDefaultListeners(this);
+          utils$5.data(this.element).preventDefaultOn = options.preventDefaultOn
+              ?? utils$5.data(this.element).preventDefaultOn ?? (() => true);
+          const preventDefaultListeners = utils$5.getPreventDefaultListeners(this);
           if (options.clearPreviousListeners)
               for (const [type, listener] of Object.entries(preventDefaultListeners)) {
                   this.removeListener(type, listener);
@@ -14020,7 +18095,7 @@
           const shouldNotBePassive = new Set(NonPassiveEvents);
           for (const type of new Set(types)) {
               const handler = (event) => {
-                  if (!utils$6.data(this.element).preventDefaultOn(type, event))
+                  if (!utils$5.data(this.element).preventDefaultOn(type, event))
                       return false;
                   event.preventDefault?.();
                   if (stop === "immediate")
@@ -14044,7 +18119,7 @@
   class StyleFunctionsUtils {
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return {};
@@ -14086,12 +18161,15 @@
       }
   }
 
-  const utils$5 = new StyleFunctionsUtils();
+  const utils$4 = new StyleFunctionsUtils();
+  const selectedKey = Symbol("__selected__");
+  const selectedClass = Symbol("__selectedClass__");
+  const defaultSelectedClassesKey = Symbol("__default_selected_classes__");
   function setupStyleFunctions() {
       /**
        * @description The closest root to the element in the document (the closest ShadowRoot, or the document's head).
        */
-      Object.defineProperty(TurboSelector.prototype, "closestRoot", {
+      Object.defineProperty(GradumSelector.prototype, "closestRoot", {
           get: function () {
               let node = this.element;
               while (node) {
@@ -14104,6 +18182,52 @@
           configurable: false,
           enumerable: true
       });
+      Object.defineProperty(GradumSelector.prototype, "selected", {
+          get() {
+              return !!this[selectedKey];
+          },
+          set(value) {
+              const element = this.element;
+              if (!element)
+                  return;
+              if (element instanceof Element) {
+                  const prevClass = element[selectedClass];
+                  const nextClass = this["defaultSelectedClasses"] || "selected";
+                  element[selectedClass] = nextClass;
+                  if (prevClass && prevClass !== nextClass)
+                      gradum(element).toggleClass(prevClass, false);
+                  gradum(element).toggleClass(nextClass, !!value);
+              }
+              element[selectedKey] = value;
+              this.onSelected.fire(value);
+          },
+          enumerable: true,
+          configurable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "defaultSelectedClasses", {
+          get: function () {
+              return this[defaultSelectedClassesKey] ?? "";
+          },
+          set: function (value) {
+              if (this.selected)
+                  gradum(this).toggleClass(this[defaultSelectedClassesKey], false);
+              this[defaultSelectedClassesKey] = value;
+              if (this.selected)
+                  gradum(this).toggleClass(value, true);
+          },
+          enumerable: true,
+          configurable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "onSelected", {
+          get: function () {
+              const data = utils$4.data(this);
+              if (!data["onSelected"])
+                  data["onSelected"] = new Delegate();
+              return data["onSelected"];
+          },
+          enumerable: true,
+          configurable: true,
+      });
       /**
        * @description Set a certain style attribute of the element to the provided value.
        * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to set.
@@ -14112,12 +18236,12 @@
        * animation frame.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.setStyle = function _setStyle(attribute, value, instant = false) {
+      GradumSelector.prototype.setStyle = function _setStyle(attribute, value, instant = false) {
           if (!attribute || value == undefined)
               return this;
           if (!(this.element instanceof HTMLElement) && !(this.element instanceof SVGElement))
               return this;
-          utils$5.setStyle(this, attribute, value, instant);
+          utils$4.setStyle(this, attribute, value, instant);
           return this;
       };
       /**
@@ -14129,14 +18253,14 @@
        * animation frame.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.appendStyle = function _appendStyle(attribute, value, separator = ", ", instant = false) {
+      GradumSelector.prototype.appendStyle = function _appendStyle(attribute, value, separator = ", ", instant = false) {
           if (!attribute || value == undefined)
               return this;
           if (!(this.element instanceof HTMLElement) && !(this.element instanceof SVGElement))
               return this;
           const currentStyle = (this.element.style[attribute] || "");
           separator = currentStyle.length > 0 ? separator : "";
-          utils$5.setStyle(this, attribute, currentStyle + separator + value, instant);
+          utils$4.setStyle(this, attribute, currentStyle + separator + value, instant);
           return this;
       };
       /**
@@ -14147,7 +18271,7 @@
        * animation frame.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.setStyles = function _setStyles(styles, instant = false) {
+      GradumSelector.prototype.setStyles = function _setStyles(styles, instant = false) {
           if (!styles || typeof styles == "number")
               return this;
           if (!(this.element instanceof HTMLElement) && !(this.element instanceof SVGElement))
@@ -14163,9 +18287,9 @@
                   stylesObject[property] = value;
               });
           }
-          Object.entries(stylesObject).forEach(([key, value]) => utils$5.setStyle(this, key, value, instant, false));
+          Object.entries(stylesObject).forEach(([key, value]) => utils$4.setStyle(this, key, value, instant, false));
           if (!instant)
-              utils$5.applyStyles(this);
+              utils$4.applyStyles(this);
           return this;
       };
   }
@@ -14182,7 +18306,7 @@
           return value;
       }
       getElementData(element, manager) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           const es = this.getOrCreate(this.elements, element, () => new WeakMap());
           return this.getOrCreate(es, manager, () => ({
@@ -14196,7 +18320,7 @@
       getToolsData(manager, toolName) {
           const byTool = this.getOrCreate(this.tools, manager, () => new Map());
           return this.getOrCreate(byTool, toolName, () => ({
-              behaviors: new Map()
+              behaviors: new ListenerSet()
           }));
       }
       getActivationDelegate(element, toolName, manager) {
@@ -14212,49 +18336,45 @@
           return map.get(toolName);
       }
       saveTool(element, toolName, manager) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return;
           this.getElementData(element, manager).tools.add(toolName);
       }
       getToolNames(element, manager) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return [];
           return [...this.getElementData(element, manager).tools];
       }
       setEmbeddedToolTarget(element, target, manager) {
-          if (target instanceof TurboSelector)
+          if (target instanceof GradumSelector)
               target = target.element;
           if (!target)
               return;
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return;
           this.getElementData(element, manager).embeddedTarget = target;
       }
       getEmbeddedToolTarget(element, manager) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return;
           return this.getElementData(element, manager).embeddedTarget;
       }
       addToolBehavior(toolName, type, callback, manager) {
-          const behaviors = this.getToolsData(manager, toolName).behaviors;
-          const set = this.getOrCreate(behaviors, type, () => new Set());
-          set.add(callback);
+          this.getToolsData(manager, toolName).behaviors?.addListener({ callback, type, toolName, manager });
       }
       getToolBehaviors(toolName, type, manager) {
-          const behaviors = this.getToolsData(manager, toolName).behaviors;
-          return [...this.getOrCreate(behaviors, type, () => new Set())];
+          return this.getToolsData(manager, toolName).behaviors?.getListeners({ toolName, manager, type });
       }
       removeToolBehaviors(toolName, type, manager) {
-          const behaviors = this.getToolsData(manager, toolName).behaviors;
-          this.getOrCreate(behaviors, type, () => new Set()).clear();
+          this.getToolsData(manager, toolName).behaviors?.removeMatchingListeners({ toolName, manager, type });
       }
       clearToolBehaviors(manager) {
           this.getOrCreate(this.tools, manager, () => new Map()).clear();
@@ -14287,34 +18407,33 @@
               return true;
           return ignoredTool.has(type);
       }
-      processPropagation(currentPropagation, storedPropagation = EventPropagation.propagate, defaultPropagation = EventPropagation.stopPropagation) {
+      processPropagation(currentPropagation, storedPropagation = Propagation.propagate, defaultPropagation = Propagation.stopPropagation) {
           const orderedValues = [
-              EventPropagation.propagate,
-              EventPropagation.stopPropagation,
-              EventPropagation.stopImmediatePropagation
+              Propagation.propagate,
+              Propagation.stopPropagation,
+              Propagation.stopImmediatePropagation
           ];
           if (!orderedValues.includes(currentPropagation))
               currentPropagation = defaultPropagation;
-          const currentIndex = orderedValues.indexOf(currentPropagation);
-          const storedIndex = orderedValues.indexOf(storedPropagation);
-          return currentIndex <= storedIndex ? currentPropagation : storedPropagation;
+          return orderedValues.indexOf(currentPropagation) <= orderedValues.indexOf(storedPropagation)
+              ? storedPropagation : currentPropagation;
       }
   }
 
-  const utils$4 = new ToolFunctionsUtils();
+  const utils$3 = new ToolFunctionsUtils();
   function setupToolFunctions() {
       /*
        *
        * Basic tool manipulation
        *
        */
-      TurboSelector.prototype.makeTool = function _makeTool(toolName, options) {
+      GradumSelector.prototype.makeTool = function _makeTool(toolName, options) {
           if (!toolName)
               return this;
           if (!options)
               options = {};
           if (!options.manager)
-              options.manager = TurboEventManager.instance;
+              options.manager = GradumEventManager.instance;
           options.manager.addTool(toolName, this.element, options.key);
           if (options.customActivation && typeof options.customActivation === "function") {
               options.customActivation(this, options.manager);
@@ -14324,24 +18443,24 @@
               options.clickMode ??= ClickMode.left;
               this.on(options.activationEvent, () => {
                   options.manager.setTool(this.element, options.clickMode);
-                  return true;
+                  return Propagation.stopPropagation;
               }, undefined, options.manager);
           }
-          utils$4.saveTool(this, toolName, options.manager);
+          utils$3.saveTool(this, toolName, options.manager);
           if (options.onActivate)
-              utils$4.getActivationDelegate(this, toolName, options.manager).add(options.onActivate);
+              utils$3.getActivationDelegate(this, toolName, options.manager).add(options.onActivate);
           if (options.onDeactivate)
-              utils$4.getDeactivationDelegate(this, toolName, options.manager).add(options.onDeactivate);
+              utils$3.getDeactivationDelegate(this, toolName, options.manager).add(options.onDeactivate);
           return this;
       };
-      TurboSelector.prototype.isTool = function _isTool(manager = TurboEventManager.instance) {
-          return utils$4.getToolNames(this.element, manager).length > 0;
+      GradumSelector.prototype.isTool = function _isTool(manager = GradumEventManager.instance) {
+          return utils$3.getToolNames(this.element, manager).length > 0;
       };
-      TurboSelector.prototype.getToolNames = function _getToolName(manager = TurboEventManager.instance) {
-          return utils$4.getToolNames(this.element, manager);
+      GradumSelector.prototype.getToolNames = function _getToolName(manager = GradumEventManager.instance) {
+          return utils$3.getToolNames(this.element, manager);
       };
-      TurboSelector.prototype.getToolName = function _getToolName(manager = TurboEventManager.instance) {
-          const toolNames = utils$4.getToolNames(this.element, manager);
+      GradumSelector.prototype.getToolName = function _getToolName(manager = GradumEventManager.instance) {
+          const toolNames = utils$3.getToolNames(this.element, manager);
           if (toolNames.length > 0)
               return toolNames[0];
       };
@@ -14350,40 +18469,40 @@
        * Tool activation manipulation
        *
        */
-      TurboSelector.prototype.onToolActivate = function _onActivate(toolName, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.onToolActivate = function _onActivate(toolName, manager = GradumEventManager.instance) {
           if (!toolName)
               toolName = this.getToolName(manager);
-          return utils$4.getActivationDelegate(this, toolName, manager);
+          return utils$3.getActivationDelegate(this, toolName, manager);
       };
-      TurboSelector.prototype.onToolDeactivate = function _onDeactivate(toolName, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.onToolDeactivate = function _onDeactivate(toolName, manager = GradumEventManager.instance) {
           if (!toolName)
               toolName = this.getToolName(manager);
-          return utils$4.getDeactivationDelegate(this, toolName, manager);
+          return utils$3.getDeactivationDelegate(this, toolName, manager);
       };
       /*
        *
        * Tool behavior manipulation
        *
        */
-      TurboSelector.prototype.addToolBehavior = function _addToolBehavior(type, callback, toolName = this.getToolName(), manager = TurboEventManager.instance) {
+      GradumSelector.prototype.addToolBehavior = function _addToolBehavior(type, callback, toolName = this.getToolName(), manager = GradumEventManager.instance) {
           if (type && toolName) {
               manager.setupCustomDispatcher?.(type);
-              utils$4.addToolBehavior(toolName, type, callback, manager);
+              utils$3.addToolBehavior(toolName, type, callback, manager);
           }
           return this;
       };
-      TurboSelector.prototype.hasToolBehavior = function _hasToolBehavior(type, toolName = this.getToolName(), manager = TurboEventManager.instance) {
+      GradumSelector.prototype.hasToolBehavior = function _hasToolBehavior(type, toolName = this.getToolName(), manager = GradumEventManager.instance) {
           if (!type || !toolName)
               return false;
-          return utils$4.getToolBehaviors(toolName, type, manager).length > 0;
+          return utils$3.getToolBehaviors(toolName, type, manager).length > 0;
       };
-      TurboSelector.prototype.removeToolBehaviors = function _removeToolBehaviors(type, toolName = this.getToolName(), manager = TurboEventManager.instance) {
+      GradumSelector.prototype.removeToolBehaviors = function _removeToolBehaviors(type, toolName = this.getToolName(), manager = GradumEventManager.instance) {
           if (type && toolName)
-              utils$4.removeToolBehaviors(toolName, type, manager);
+              utils$3.removeToolBehaviors(toolName, type, manager);
           return this;
       };
-      TurboSelector.prototype.clearToolBehaviors = function _clearToolBehaviors(manager = TurboEventManager.instance) {
-          utils$4.clearToolBehaviors(manager);
+      GradumSelector.prototype.clearToolBehaviors = function _clearToolBehaviors(manager = GradumEventManager.instance) {
+          utils$3.clearToolBehaviors(manager);
           return this;
       };
       /*
@@ -14391,260 +18510,1476 @@
        * Embedded tool manipulation
        *
        */
-      TurboSelector.prototype.embedTool = function _embedTool(target, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.embedTool = function _embedTool(target, manager = GradumEventManager.instance) {
           if (this.isTool(manager))
-              utils$4.setEmbeddedToolTarget(this.element, target, manager);
+              utils$3.setEmbeddedToolTarget(this.element, target, manager);
           return this;
       };
-      TurboSelector.prototype.isEmbeddedTool = function _isEmbeddedTool(manager = TurboEventManager.instance) {
-          return !!utils$4.getEmbeddedToolTarget(this.element, manager);
+      GradumSelector.prototype.isEmbeddedTool = function _isEmbeddedTool(manager = GradumEventManager.instance) {
+          return !!utils$3.getEmbeddedToolTarget(this.element, manager);
       };
-      TurboSelector.prototype.getEmbeddedToolTarget = function _getEmbeddedToolTarget(manager = TurboEventManager.instance) {
-          return utils$4.getEmbeddedToolTarget(this.element, manager);
+      GradumSelector.prototype.getEmbeddedToolTarget = function _getEmbeddedToolTarget(manager = GradumEventManager.instance) {
+          return utils$3.getEmbeddedToolTarget(this.element, manager);
       };
       /*
        *
        * Apply tool
        *
        */
-      TurboSelector.prototype.applyTool = function _applyTool(toolName, type, event, manager = TurboEventManager.instance) {
-          let propagation = EventPropagation.propagate;
-          const behaviors = utils$4.getToolBehaviors(toolName, type, manager);
+      GradumSelector.prototype.applyTool = function _applyTool(toolName, type, event, manager = GradumEventManager.instance) {
+          let propagation = Propagation.propagate;
+          const behaviors = utils$3.getToolBehaviors(toolName, type, manager);
           const options = {};
-          options.embeddedTarget = utils$4.getEmbeddedToolTarget(this.element, manager);
+          options.embeddedTarget = utils$3.getEmbeddedToolTarget(this.element, manager);
           options.isEmbedded = !!options.embeddedTarget;
-          behaviors.forEach(behavior => {
-              propagation = utils$4.processPropagation(behavior(event, this.element, options), propagation);
-              if (propagation === EventPropagation.stopImmediatePropagation)
-                  return;
-          });
+          for (const behavior of behaviors) {
+              propagation = utils$3.processPropagation(behavior.executeOn(event, this.element, options), propagation, Propagation.propagate);
+              if (propagation === Propagation.stopImmediatePropagation)
+                  break;
+          }
           return propagation;
       };
-      TurboSelector.prototype.ignoreTool = function _ignoreTool(toolName, type, ignore = true, manager = TurboEventManager.instance) {
-          utils$4.ignoreTool(this.element, toolName, type, ignore, manager);
+      GradumSelector.prototype.ignoreTool = function _ignoreTool(toolName, type, ignore = true, manager = GradumEventManager.instance) {
+          utils$3.ignoreTool(this.element, toolName, type, ignore, manager);
           return this;
       };
-      TurboSelector.prototype.ignoreAllTools = function _ignoreAllTools(ignore = true, manager = TurboEventManager.instance) {
-          utils$4.getElementData(this.element, manager).ignoreAllTools = ignore;
+      GradumSelector.prototype.ignoreAllTools = function _ignoreAllTools(ignore = true, manager = GradumEventManager.instance) {
+          utils$3.getElementData(this.element, manager).ignoreAllTools = ignore;
           return this;
       };
-      TurboSelector.prototype.isToolIgnored = function _isToolIgnored(toolName, type, manager = TurboEventManager.instance) {
-          if (utils$4.getElementData(this.element, manager).ignoreAllTools)
+      GradumSelector.prototype.isToolIgnored = function _isToolIgnored(toolName, type, manager = GradumEventManager.instance) {
+          if (utils$3.getElementData(this.element, manager).ignoreAllTools)
               return true;
-          return utils$4.isToolIgnored(this.element, toolName, type, manager);
+          return utils$3.isToolIgnored(this.element, toolName, type, manager);
       };
   }
 
-  class SubstrateFunctionsUtils {
+  /**
+   * @class GradumQueue
+   * @group Components
+   * @category GradumQueue
+   */
+  class GradumQueue {
+      items = [];
+      head = 0;
+      push(...values) {
+          values.forEach(value => this.items.push(value));
+          return this;
+      }
+      addOnTop(...values) {
+          this.items = [...values, ...this.items];
+          return this;
+      }
+      pop() {
+          if (this.head >= this.items.length)
+              return undefined;
+          const value = this.items[this.head];
+          this.items[this.head] = undefined;
+          this.head++;
+          if (this.head > 1024 && this.head * 2 > this.items.length) {
+              this.items = this.items.slice(this.head);
+              this.head = 0;
+          }
+          return value;
+      }
+      peek() {
+          return this.head < this.items.length ? this.items[this.head] : undefined;
+      }
+      has(value) {
+          return this.items.includes(value);
+      }
+      get size() {
+          return this.items.length - this.head;
+      }
+      get isEmpty() {
+          return this.size === 0;
+      }
+      removeDuplicates(entry) {
+          const uniques = new Set();
+          const toDelete = [];
+          for (let i = 0; i < this.items.length; i++) {
+              if (entry && this.items[i] !== entry)
+                  continue;
+              if (!uniques.has(this.items[i]))
+                  uniques.add(this.items[i]);
+              else
+                  toDelete.push(i);
+          }
+          for (let i = toDelete.length - 1; i >= 0; i--)
+              this.items.splice(i, 1);
+          return this;
+      }
+      clear() {
+          this.items = [];
+          this.head = 0;
+          return this;
+      }
+      toArray() {
+          const arr = [];
+          for (let i = this.head; i < this.items.length; i += 1)
+              arr.push(this.items[i]);
+          return arr;
+      }
+      clone() {
+          const queue = new GradumQueue();
+          for (let i = this.head; i < this.items.length; i += 1)
+              queue.push(this.items[i]);
+          return queue;
+      }
+      remove(value) {
+          for (let i = this.head; i < this.items.length; i += 1) {
+              if (this.items[i] !== value)
+                  continue;
+              this.items.splice(i, 1);
+              return true;
+          }
+          return false;
+      }
+  }
+
+  /**
+   * @class GradumNodeList
+   * @group Components
+   * @category GradumNodeList
+   *
+   * @description A composable, Set-like collection for managing nodes. Supports individual nodes, live DOM
+   * collections ({@link HTMLCollection} or {@link NodeListOf}), and nested {@link GradumNodeList} instances as
+   * sub-lists. Changes to sub-lists and live DOM collections propagate automatically on iteration.
+   *
+   * @template {object} Type - The type of the nodes held in the list.
+   */
+  let GradumNodeList = (() => {
+      let _instanceExtraInitializers = [];
+      let _set_observeDomLists_decorators;
+      return class GradumNodeList {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+              __esDecorate(this, null, _set_observeDomLists_decorators, { kind: "setter", name: "observeDomLists", static: false, private: false, access: { has: obj => "observeDomLists" in obj, set: (obj, value) => { obj.observeDomLists = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          slots = (__runInitializers(this, _instanceExtraInitializers), []);
+          ignoredMap = new WeakMap();
+          domListObservers = new Map();
+          subNodeListHandlers = new Map();
+          /**
+           * @description Delegate fired whenever an entry is added to or removed from the list, including entries
+           * from nested {@link GradumNodeList}s, {@link HTMLCollection}s, and {@link NodeListOf} instances.
+           */
+          onChanged = new Delegate();
+          /**
+           * @constructor
+           * @param {...(Type | NodeListType<Type>)[]} [values] - Optional initial value(s) to populate the list with.
+           */
+          constructor(...values) {
+              this.add(...values);
+          }
+          /**
+           * @description Whether to observe added {@link HTMLCollection}s and {@link NodeListOf} instances for DOM
+           * mutations, automatically firing {@link onChanged} when nodes are added or removed from the DOM.
+           */
+          set observeDomLists(value) {
+              if (value) {
+                  for (const entry of this.slots) {
+                      const obj = entry.deref();
+                      if (this.isDomList(obj))
+                          this.attachObserver(obj);
+                  }
+              }
+              else {
+                  for (const [, observer] of this.domListObservers)
+                      observer.disconnect();
+                  this.domListObservers.clear();
+              }
+          }
+          /**
+           * @description A {@link Set} snapshot of all entries in this list, without duplicates.
+           */
+          get list() {
+              return new Set(this);
+          }
+          set list(value) {
+              if (!value)
+                  return;
+              this.clear();
+              this.addEntry(value);
+          }
+          /**
+           * @description An array snapshot of all entries in this list, without duplicates.
+           */
+          get array() {
+              return Array.from(this);
+          }
+          /**
+           * @description The number of resolved unique entries in this list. For the number of slots, see
+           * {@link slotCount}.
+           */
+          get size() {
+              let count = 0;
+              for (const _ of this)
+                  count++;
+              return count;
+          }
+          /**
+           * @description The number of slots in this list. Individual entries, {@link HTMLCollection}s,
+           * {@link NodeListOf} instances, and nested {@link GradumNodeList}s each count as one slot, regardless
+           * of how many entries they contain. For the number of resolved entries, see {@link size}.
+           */
+          get slotCount() {
+              return this.slots.length;
+          }
+          /**
+           * @function isGradumNodeList
+           * @protected
+           * @description Type guard — returns true if the given value is a {@link GradumNodeList}.
+           * @param {any} entry - The value to check.
+           * @returns {boolean} Whether the value is a {@link GradumNodeList}.
+           */
+          isGradumNodeList(entry) {
+              return entry instanceof GradumNodeList;
+          }
+          /**
+           * @function isDomList
+           * @protected
+           * @description Type guard — returns true if the given value is an {@link HTMLCollection} or
+           * {@link NodeListOf}.
+           * @param {any} entry - The value to check.
+           * @returns {boolean} Whether the value is a DOM list.
+           */
+          isDomList(entry) {
+              return entry instanceof NodeList || entry instanceof HTMLCollection;
+          }
+          /**
+           * @function isSet
+           * @protected
+           * @description Type guard — returns true if the given value is a {@link Set} or an array.
+           * @param {any} entry - The value to check.
+           * @returns {boolean} Whether the value is a Set or array.
+           */
+          isSet(entry) {
+              return entry instanceof Set || Array.isArray(entry);
+          }
+          /**
+           * @function isEntry
+           * @protected
+           * @description Type guard — returns true if the given value is an individual node entry (i.e. not a
+           * {@link GradumNodeList}, DOM list, Set, array, or {@link WeakRef}).
+           * @param {any} entry - The value to check.
+           * @returns {boolean} Whether the value is an individual entry.
+           */
+          isEntry(entry) {
+              return typeof entry === "object" && entry !== null
+                  && !this.isGradumNodeList(entry)
+                  && !this.isDomList(entry)
+                  && !this.isSet(entry)
+                  && !(entry instanceof WeakRef);
+          }
+          /**
+           * @description Iterates over all resolved unique entries in slot order, skipping ignored and duplicate
+           * entries.
+           */
+          *[(_set_observeDomLists_decorators = [auto({ cancelIfUnchanged: true })], Symbol.iterator)]() {
+              const seen = new Set();
+              for (const slot of this.slots) {
+                  for (const entry of this.resolveSlot(slot)) {
+                      if (!this.ignoredMap.get(entry) && !seen.has(entry)) {
+                          seen.add(entry);
+                          yield entry;
+                      }
+                  }
+              }
+          }
+          /**
+           * @function resolveSlot
+           * @description Resolves a slot {@link WeakRef} into its constituent entries. Yields all entries from
+           * sub-lists and DOM lists, or the single entry for individual node slots. Yields nothing if the
+           * referent has been garbage collected.
+           * @param {WeakRef<NodeListSlot<Type>>} slot - The slot to resolve.
+           */
+          *resolveSlot(slot) {
+              const obj = slot.deref();
+              if (!obj)
+                  return;
+              if (this.isGradumNodeList(obj))
+                  yield* obj;
+              else if (this.isDomList(obj))
+                  yield* Array.from(obj);
+              else
+                  yield obj;
+          }
+          forEach(callback, thisArg) {
+              for (const entry of this) {
+                  callback.call(thisArg, entry, entry, this);
+              }
+              return this;
+          }
+          /**
+           * @function add
+           * @description Adds one or more entries to the end of the list. Entries may be individual nodes,
+           * arrays, {@link Set}s, {@link HTMLCollection}s, {@link NodeListOf} instances, or nested
+           * {@link GradumNodeList}s.
+           * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
+           * @returns {this} Itself, allowing for method chaining.
+           */
+          add(...entries) {
+              entries.forEach(entry => this.addEntry(entry));
+              return this;
+          }
+          /**
+           * @function addAt
+           * @description Adds one or more entries at the given resolved size index. The index refers to the position
+           * among resolved unique entries, not slots. Arrays and {@link Set}s are expanded inline.
+           * @param {number} index - The resolved entry index to insert at.
+           * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
+           * @returns {this} Itself, allowing for method chaining.
+           */
+          addAt(index, ...entries) {
+              return this.addAtSlot(this.sizeIndexToSlotIndex(index), ...entries);
+          }
+          /**
+           * @function addAtSlot
+           * @description Adds one or more entries at the given slot index. Subsequent entries are inserted
+           * consecutively after the previous one. Arrays and {@link Set}s are expanded inline, each item
+           * occupying the next slot index.
+           * @param {number} index - The slot index to insert at.
+           * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
+           * @returns {this} Itself, allowing for method chaining.
+           */
+          addAtSlot(index, ...entries) {
+              entries.forEach(entry => index = this.addEntry(entry, index));
+              return this;
+          }
+          /**
+           * @function remove
+           * @description Removes one or more entries from the list. Entries may be individual nodes, arrays,
+           * {@link Set}s, {@link HTMLCollection}s, {@link NodeListOf} instances, or nested
+           * {@link GradumNodeList}s.
+           * @param {...(NodeListType<Type> | Type)[]} entries - The entries to remove.
+           * @returns {this} Itself, allowing for method chaining.
+           */
+          remove(...entries) {
+              entries.forEach(entry => this.removeEntry(entry));
+              return this;
+          }
+          /**
+           * @function removeAtSlot
+           * @description Removes one or more slots starting at the given slot index. Each slot removed may
+           * correspond to an individual entry, a DOM list, or a nested {@link GradumNodeList}.
+           * @param {number} index - The slot index to start removing from.
+           * @param {number} [count=1] - The number of consecutive slots to remove.
+           * @returns {this} Itself, allowing for method chaining.
+           */
+          removeAtSlot(index, count = 1) {
+              const toRemove = this.slots.slice(index, index + count)
+                  .map(s => s.deref()).filter(Boolean);
+              for (const slot of toRemove)
+                  this.removeEntry(slot);
+              return this;
+          }
+          /**
+           * @function move
+           * @description Moves an existing entry to the given resolved size index. If the entry is a member of a
+           * nested {@link GradumNodeList}, it is moved within that sub-list. If it belongs to a DOM list, it is
+           * repositioned in the DOM accordingly.
+           * @param {Type} entry - The entry to move.
+           * @param {number} index - The resolved entry index to move the entry to.
+           * @returns {this} Itself, allowing for method chaining.
+           */
+          move(entry, index) {
+              const currentSlotIndex = this.slots.findIndex(s => s.deref() === entry);
+              if (currentSlotIndex > -1)
+                  return this.moveToSlot(entry, this.sizeIndexToSlotIndex(index));
+              const container = this.findContainingSlot(entry);
+              if (!container)
+                  return this;
+              if (this.isGradumNodeList(container)) {
+                  container.move(entry, index);
+                  return this;
+              }
+              if (this.isDomList(container)) {
+                  if (!(entry instanceof Node))
+                      return this;
+                  const parent = entry.parentNode;
+                  if (!parent)
+                      return this;
+                  const siblings = Array.from(container).filter(n => n !== entry);
+                  const ref = siblings[Math.max(0, Math.min(index, siblings.length))] ?? null;
+                  parent.insertBefore(entry, ref);
+                  return this;
+              }
+          }
+          /**
+           * @function moveToSlot
+           * @description Moves an existing entry to the given slot index.
+           * @param {Type} entry - The entry to move.
+           * @param {number} index - The slot index to move the entry to.
+           * @returns {this} Itself, allowing for method chaining.
+           */
+          moveToSlot(entry, index) {
+              if (!entry || !this.has(entry))
+                  return this;
+              const currentSlotIndex = this.slots.findIndex(s => s.deref() === entry);
+              if (currentSlotIndex === -1)
+                  return this;
+              index = trim(index, this.slots.length, 0, this.slots.length);
+              if (currentSlotIndex === index)
+                  return this;
+              this.slots.splice(currentSlotIndex, 1);
+              this.slots.splice(index > currentSlotIndex ? index - 1 : index, 0, new WeakRef(entry));
+              return this;
+          }
+          /**
+           * @function has
+           * @description Checks whether the given entry or entries are present in the list.
+           * - For {@link GradumNodeList}s and DOM lists, checks if they belong to this list.
+           * - For arrays and {@link Set}s, returns true only if every item is present.
+           * @param {Type | NodeListType<Type>} entry - The entry or entries to check.
+           * @returns {boolean} Whether the entry or entries are present in the list.
+           */
+          has(entry) {
+              if (!entry)
+                  return false;
+              if (this.isGradumNodeList(entry) || this.isDomList(entry))
+                  return this.slots.some(s => s.deref() === entry);
+              if (this.isSet(entry)) {
+                  const arr = Array.from(entry);
+                  return arr.length > 0 && arr.every(item => this.has(item));
+              }
+              if (this.ignoredMap.get(entry))
+                  return false;
+              for (const resolved of this)
+                  if (resolved === entry)
+                      return true;
+              return false;
+          }
+          /**
+           * @function clear
+           * @description Clears all entries from the list, firing {@link onChanged} for every resolved entry.
+           * @returns {this} Itself, allowing for method chaining.
+           */
+          clear() {
+              for (const entry of this)
+                  this.onChanged.fire(entry, "removed");
+              for (const [_, observer] of this.domListObservers)
+                  observer.disconnect();
+              this.domListObservers.clear();
+              for (const [subNodeList, handler] of this.subNodeListHandlers)
+                  subNodeList.onChanged.remove(handler);
+              this.subNodeListHandlers.clear();
+              this.slots = [];
+              this.ignoredMap = new WeakMap();
+              return this;
+          }
+          /**
+           * @function addEntry
+           * @description Core insertion method. Inserts a single entry, DOM list, sub-list, or expands an
+           * array/Set inline. Skips already-present entries and duplicate slots. Registers sub-list handlers
+           * and DOM observers as needed.
+           * @param {Type | NodeListType<Type>} entry - The entry to add.
+           * @param {number} [index] - The slot index to insert at. Defaults to the end of the slot array.
+           * @returns {number} The next available slot index after this insertion, for consecutive chaining.
+           */
+          addEntry(entry, index) {
+              if (index === undefined)
+                  index = this.slots.length;
+              if (!entry)
+                  return index;
+              if (this.isSet(entry)) {
+                  for (const item of entry)
+                      index = this.addEntry(item, index);
+                  return index;
+              }
+              if (this.isEntry(entry) && !this.has(entry)) {
+                  this.ignoredMap.delete(entry);
+                  return this.insertOrRemoveSlot(entry, "added", index);
+              }
+              if (this.slots.some(s => s.deref() === entry))
+                  return index;
+              index = this.insertOrRemoveSlot(entry, "added", index);
+              if (this.isGradumNodeList(entry)) {
+                  const handler = (subEntry, state) => {
+                      if (state === "added" && this.ignoredMap.get(subEntry))
+                          return;
+                      this.onChanged.fire(subEntry, state);
+                  };
+                  this.subNodeListHandlers.set(entry, handler);
+                  entry.onChanged.add(handler);
+              }
+              else if (this.isDomList(entry) && this.observeDomLists)
+                  this.attachObserver(entry);
+              return index;
+          }
+          /**
+           * @function removeEntry
+           * @description Core removal method. Removes a single entry, DOM list, sub-list, or expands an
+           * array/Set inline. Marks removed individual entries in {@link ignoredMap}. Disconnects observers
+           * and unregisters sub-list handlers as needed.
+           * @param {Type | NodeListType<Type>} entry - The entry to remove.
+           */
+          removeEntry(entry) {
+              if (!entry)
+                  return;
+              if (this.isSet(entry)) {
+                  for (const item of entry)
+                      this.removeEntry(item);
+                  return;
+              }
+              if (this.isEntry(entry)) {
+                  if (this.has(entry)) {
+                      this.ignoredMap.set(entry, true);
+                      this.insertOrRemoveSlot(entry, "removed");
+                  }
+                  return;
+              }
+              if (this.isGradumNodeList(entry)) {
+                  const handler = this.subNodeListHandlers.get(entry);
+                  if (handler) {
+                      entry.onChanged.remove(handler);
+                      this.subNodeListHandlers.delete(entry);
+                  }
+              }
+              else if (this.isDomList(entry)) {
+                  const observer = this.domListObservers.get(entry);
+                  if (observer) {
+                      observer.disconnect();
+                      this.domListObservers.delete(entry);
+                  }
+              }
+              this.insertOrRemoveSlot(entry, "removed");
+          }
+          /**
+           * @function insertOrRemoveSlot
+           * @description Low-level slot mutation. On `"added"`, clamps the index and splices a new
+           * {@link WeakRef} into {@link slots}. On `"removed"`, finds the slot by identity and splices it out.
+           * Fires {@link onChanged} for all resolved entries of the slot.
+           * @param {NodeListSlot<Type>} slot - The slot value to insert or remove.
+           * @param {"added" | "removed"} state - Whether to insert or remove the slot.
+           * @param {number} [index] - Slot index for insertion. Ignored on removal.
+           * @returns {number} The next available slot index after the operation, for consecutive chaining.
+           */
+          insertOrRemoveSlot(slot, state, index) {
+              if (state === "added") {
+                  index = trim(index, this.slots.length, 0, this.slots.length);
+                  this.slots.splice(index, 0, new WeakRef(slot));
+              }
+              else {
+                  index = this.slots.findIndex(s => s.deref() === slot);
+                  if (index !== -1)
+                      this.slots.splice(index, 1);
+              }
+              if (this.isEntry(slot))
+                  this.onChanged.fire(slot, state);
+              else
+                  for (const entry of this.isDomList(slot) ? Array.from(slot) : slot) {
+                      if (!this.ignoredMap.get(entry))
+                          this.onChanged.fire(entry, state);
+                  }
+              return index + 1;
+          }
+          /**
+           * @function attachObserver
+           * @description Attaches a {@link MutationObserver} to the parent of the first node in the given DOM
+           * list, firing {@link onChanged} when nodes matching the list are added to or removed from the DOM.
+           * Does nothing if an observer is already attached for this list, or if no parent node is found.
+           * @param {HTMLCollection | NodeListOf<Type & Node>} domList - The DOM list to observe.
+           */
+          attachObserver(domList) {
+              if (this.domListObservers.has(domList))
+                  return;
+              const firstNode = domList[0];
+              const parent = firstNode?.parentElement ?? firstNode?.parentNode;
+              if (!parent)
+                  return;
+              const snapshot = new Set(Array.from(domList));
+              const observer = new MutationObserver(mutations => mutations.forEach(mutation => {
+                  mutation.addedNodes.forEach(node => {
+                      const obj = node;
+                      if (snapshot.has(obj) || this.ignoredMap.get(obj) || node.parentNode !== parent)
+                          return;
+                      snapshot.add(obj);
+                      this.onChanged.fire(obj, "added");
+                  });
+                  mutation.removedNodes.forEach(node => {
+                      const obj = node;
+                      if (!snapshot.has(obj) || this.ignoredMap.get(obj))
+                          return;
+                      snapshot.delete(obj);
+                      this.onChanged.fire(obj, "removed");
+                  });
+              }));
+              observer.observe(parent, { childList: true, subtree: true });
+              this.domListObservers.set(domList, observer);
+          }
+          sizeIndexToSlotIndex(sizeIndex) {
+              const size = this.size;
+              sizeIndex = trim(sizeIndex, size, 0, size);
+              let count = 0;
+              for (let i = 0; i < this.slots.length; i++) {
+                  if (count === sizeIndex)
+                      return i;
+                  for (const _ of this.resolveSlot(this.slots[i])) {
+                      count++;
+                      if (count === sizeIndex)
+                          return i + 1;
+                  }
+              }
+              return this.slots.length;
+          }
+          /**
+           * @function findContainingSlot
+           * @protected
+           * @description Finds the slot that directly contains or resolves to the given entry.
+           * Returns the slot itself if the entry is a direct slot, the nested {@link GradumNodeList}
+           * that contains it, or the DOM list that contains it.
+           * @param {Type} entry - The entry to locate.
+           * @returns {NodeListSlot<Type> | undefined} The containing slot, or undefined if not found.
+           */
+          findContainingSlot(entry) {
+              for (const slot of this.slots) {
+                  const obj = slot.deref();
+                  if (!obj)
+                      continue;
+                  if (obj === entry)
+                      return obj;
+                  if (this.isGradumNodeList(obj) && obj.has(entry))
+                      return obj;
+                  else if (this.isDomList(obj) && Array.from(obj).includes(entry))
+                      return obj;
+              }
+          }
+      };
+  })();
+
+  /**
+   * @class GradumConstrainer
+   * @group MVC
+   * @category Constrainer
+   *
+   * @extends GradumOperator
+   * @template {object} ElementType - The type of the element.
+   * @template {GradumView} ViewType - The element's view type, if any.
+   * @template {GradumModel} ModelType - The element's model type, if any.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+   * @description Class representing an constrainer in MVC, bound to the provided element.
+   */
+  class GradumConstrainer extends GradumOperator {
+      /**
+       * @description The name of the constrainer.
+       */
+      constrainerName;
+      /**
+       * @description The property keys of the constrainer solvers defined in the instance.
+       */
+      solversMetadata = [];
+      /**
+       * @description The property keys of the constrainer checkers defined in the instance.
+       */
+      checkersMetadata = [];
+      /**
+       * @description The property keys of the constrainer mutators defined in the instance.
+       */
+      mutatorsMetadata = [];
+      /**
+       * @description The priority of the constrainer. Higher priority constrainers (lower number) should
+       * be resolved first. Defaults to 10.
+       */
+      priority;
+      /**
+       * @description The list of objects constrained by the constrainer. To manipulate, check {@link GradumNodeList}.
+       * Defaults to the children of the element the constrainer is attached to.
+       */
+      objectList;
+      /**
+       * @description The list of objects that trigger the constrainer to resolve.
+       * Interacting with any of these objects would typically lead to the solving of the given constrainer.
+       * To manipulate, check {@link GradumNodeList}. Defaults to the objects in this.objectList.
+       */
+      triggerList;
+      /**
+       * @description The default queue template for the constrainer, used when starting a new resolving pass.
+       * It defaults to the constrainer's object list.
+       */
+      defaultQueue;
+      /**
+       * @description The maximum number of passes allowed per object for this constrainer during resolving.
+       * This helps prevent infinite cycles in constraint propagation. Defaults to 5.
+       */
+      maxPasses;
+      /**
+       * @description Whether the constrainer is active. Defaults to true.
+       */
+      get active() {
+          return gradum(this).activeConstrainers.includes(this.constrainerName);
+      }
+      set active(value) {
+          gradum(this).toggleConstrainer(this.constrainerName, value);
+      }
+      /**
+       * @description Delegate fired whenever an object is added to or removed from the constrainer's object list.
+       */
+      get onObjectListChange() {
+          return gradum(this).onConstrainerObjectListChange(this.constrainerName);
+      }
+      /**
+       * @description The current queue to be processed by the constrainer while resolving.
+       */
+      get queue() {
+          return gradum(this).getConstrainerQueue(this.constrainerName);
+      }
+      constructor(properties) {
+          super(properties);
+          this.constrainerName = properties.constrainerName ?? this.constrainerName ?? undefined;
+          if (properties.onActivate)
+              this.onActivate = properties.onActivate;
+          if (properties.onDeactivate)
+              this.onDeactivate = properties.onDeactivate;
+          if (properties.active !== undefined)
+              this.active = properties.active;
+          if (typeof properties.priority === "number")
+              this.priority = properties.priority;
+          if (!this.objectList)
+              this.objectList = new GradumNodeList(this.element instanceof Element ? this.element.children
+                  : this.element instanceof Node ? this.element.childNodes
+                      : []);
+          if (!this.triggerList)
+              this.triggerList = new GradumNodeList(this.objectList);
+          this.setup();
+      }
+      /**
+       * @function initialize
+       * @override
+       * @description Initialization function that calls {@link makeConstrainer} on `this.element`, sets it up, and attaches
+       * all the defined solvers.
+       */
+      initialize() {
+          super.initialize();
+          if (!this.constrainerName)
+              return;
+          gradum(this).makeConstrainer(this.constrainerName, {
+              onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
+              onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
+              attachedInstance: this
+          });
+          this.solversMetadata.forEach(metadata => {
+              if (!metadata.name)
+                  return;
+              gradum(this).addSolver({
+                  name: metadata.name,
+                  constrainer: this.constrainerName,
+                  priority: metadata.priority,
+                  callback: props => this[metadata.name]?.(props)
+              });
+          });
+          this.checkersMetadata.forEach(metadata => {
+              if (!metadata.name)
+                  return;
+              gradum(this).addChecker({
+                  name: metadata.name,
+                  constrainer: this.constrainerName,
+                  priority: metadata.priority,
+                  callback: props => this[metadata.name]?.(props)
+              });
+          });
+          this.mutatorsMetadata.forEach(metadata => {
+              if (!metadata.name)
+                  return;
+              gradum(this).addMutator({
+                  name: metadata.name,
+                  constrainer: this.constrainerName,
+                  priority: metadata.priority,
+                  callback: props => this[metadata.name]?.(props)
+              });
+          });
+      }
+      /**
+       * @function getObjectPasses
+       * @description Retrieve how many times the given object has been processed for the current resolving session
+       * of the constrainer.
+       * @param {object} object - The object to query.
+       * @return {number} - Number of passes already performed on this object.
+       */
+      getObjectPasses(object) {
+          return gradum(this).getObjectPassesForConstrainer(object, this.constrainerName);
+      }
+      /**
+       * @function getObjectData
+       * @description Retrieve custom per-object data for this constrainer. It is reset on every new
+       * resolving session.
+       * @param {object} object - The object to query.
+       * @return {Record<string, any>} - The stored data object (or an empty object if none).
+       */
+      getObjectData(object) {
+          return gradum(this).getObjectDataForConstrainer(object, this.constrainerName);
+      }
+      /**
+       * @function setObjectData
+       * @description Set custom per-object data for this constrainer. It is reset on every new resolving session.
+       * @param {object} object - The object to update.
+       * @param {Record<string, any>} [data] - The new data object to associate with this object.
+       * @return {this} - Itself for chaining.
+       */
+      setObjectData(object, data) {
+          return gradum(this).setObjectDataForConstrainer(object, data, this.constrainerName);
+      }
+      /**
+       * @function addChecker
+       * @description Register a checker in the constrainer. Checkers dictate whether the event should continue
+       * executing depending on the provided context (event, tool, target, etc.).
+       * @param {ConstrainerAddCallbackProperties<ConstrainerChecker>} properties - Configuration object, including the
+       * checker `callback` to be executed, the `name` of the checker to access it later, the name of the attached
+       * `constrainer`, and the `priority` of the checker.
+       * @return {this} - Itself for chaining.
+       */
+      addChecker(properties) {
+          gradum(this).addChecker({ ...properties, constrainer: this.constrainerName });
+          return this;
+      }
+      /**
+       * @function removeChecker
+       * @description Remove a checker from this constrainer by its name.
+       * @param {string} name - The checker name.
+       * @return {this} - Itself for chaining.
+       */
+      removeChecker(name) {
+          gradum(this).removeChecker(name, this.constrainerName);
+          return this;
+      }
+      /**
+       * @function clearCheckers
+       * @description Remove all checkers attached to this constrainer.
+       * @return {this} - Itself for chaining.
+       */
+      clearCheckers() {
+          gradum(this).clearCheckers(this.constrainerName);
+          return this;
+      }
+      /**
+       * @function check
+       * @description Evaluate all checkers for this constrainer and return whether the event should proceed or halt.
+       * @param {ConstrainerCallbackProperties} [properties] - Context passed to each checker.
+       * @return {boolean} - Whether the constrainer passes all checks.
+       */
+      check(properties) {
+          return gradum(this).checkConstrainer({ ...properties, constrainer: this.constrainerName });
+      }
+      /**
+       * @function addMutator
+       * @description Register a mutator in the constrainer. Mutators compute or transform a value based on the context.
+       * @param {ConstrainerAddCallbackProperties<ConstrainerMutator>} properties - Configuration object, including the
+       * mutator `callback` to be executed, the `name` of the mutator to access it later, and the `priority` of the mutator.
+       * @return {this} - Itself for chaining.
+       */
+      addMutator(properties) {
+          gradum(this).addMutator({ ...properties, constrainer: this.constrainerName });
+          return this;
+      }
+      /**
+       * @function removeMutator
+       * @description Remove a mutator from this constrainer by its name.
+       * @param {string} name - The mutator name.
+       * @return {this} - Itself for chaining.
+       */
+      removeMutator(name) {
+          gradum(this).removeMutator(name, this.constrainerName);
+          return this;
+      }
+      /**
+       * @function clearMutators
+       * @description Remove all mutators attached to this constrainer.
+       * @return {this} - Itself for chaining.
+       */
+      clearMutators() {
+          gradum(this).clearMutators(this.constrainerName);
+          return this;
+      }
+      /**
+       * @function mutate
+       * @template Type - The type of the value to mutate
+       * @description Execute a mutator for this constrainer and return the resulting value.
+       * @param {ConstrainerMutatorProperties<Type>} [properties] - Context object, including the
+       * `mutation` to execute, and the input `value` to mutate.
+       * @return {Type} - The mutated result.
+       */
+      mutate(properties) {
+          return gradum(this).mutate({ ...properties, constrainer: this.constrainerName });
+      }
+      /**
+       * @function addSolver
+       * @description Register a solver in the constrainer. Solvers typically execute after an event is fired to
+       * ensure the constrainer's constraints are maintained. They process all objects in the constrainer's queue,
+       * one after the other.
+       * @param {ConstrainerAddCallbackProperties<ConstrainerSolver>} properties - Configuration object, including the
+       * solver `callback` to be executed, the `name` of the solver to access it later, and the `priority` of the solver.
+       * @return {this} - Itself for chaining.
+       */
+      addSolver(properties) {
+          gradum(this).addSolver({ ...properties, constrainer: this.constrainerName });
+          return this;
+      }
+      /**
+       * @function removeSolver
+       * @description Remove the given function from the constrainer's list of solvers.
+       * @param {string} name - The solver's name.
+       * @return {this} - Itself for chaining.
+       */
+      removeSolver(name) {
+          gradum(this).removeSolver(name, this.constrainerName);
+          return this;
+      }
+      /**
+       * @function clearSolvers
+       * @description Remove all solvers attached to the constrainer.
+       * @return {this} - Itself for chaining.
+       */
+      clearSolvers() {
+          gradum(this).clearSolvers(this.constrainerName);
+          return this;
+      }
+      /**
+       * @function solve
+       * @description Solve the constrainer by executing all of its attached solvers. Each solver will be executed
+       * on every object in the constrainer's queue, incrementing its number of passes in the process.
+       * @param {ConstrainerCallbackProperties} [properties] - Options object to configure the context.
+       * @return {this} - Itself for chaining.
+       */
+      solve(properties = {}) {
+          gradum(this).solveConstrainer({ ...properties, constrainer: this.constrainerName });
+          return this;
+      }
+  }
+  addRegistryCategory(GradumConstrainer);
+  define(GradumConstrainer);
+
+  class ConstrainerFunctionsUtils {
+      objectsSet = new GradumWeakSet();
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return {};
           if (!this.dataMap.has(element))
-              this.dataMap.set(element, {
-                  substrates: new Map(),
-                  onChange: new Delegate()
-              });
+              this.dataMap.set(element, { constrainers: new Map() });
           return this.dataMap.get(element);
       }
-      createSubstrate(element, substrate) {
+      createConstrainer(element, constrainer) {
+          if (element instanceof GradumSelector)
+              element = element.element;
+          const objectList = new GradumNodeList(element instanceof Element ? element.children
+              : element instanceof Node ? element.childNodes
+                  : []);
           const data = {
-              objects: element instanceof Element ? element.children : element.childNodes,
-              temporaryMetadata: new WeakMap(),
-              persistentMetadata: new WeakMap(),
+              active: false,
+              objectList: objectList,
+              triggerList: new GradumNodeList(objectList),
+              customData: new WeakMap(),
+              objectsChangedDelegate: new Delegate(),
+              priority: 10,
+              maxPasses: 5,
+              queue: new GradumQueue(),
+              passes: new WeakMap(),
               onActivate: new Delegate(),
               onDeactivate: new Delegate(),
-              solvers: new Set()
+              checkers: new Map(),
+              mutators: new Map(),
+              solvers: new Map(),
+              sortedSolvers: []
           };
-          this.data(element).substrates.set(substrate, data);
+          if (element) {
+              this.objectsSet.add(element);
+              this.data(element).constrainers.set(constrainer, data);
+              this.ensureObjectListBridge(element, constrainer);
+          }
           return data;
       }
-      setCurrent(element, substrate) {
-          if (!this.getSubstrates(element).includes(substrate))
-              return false;
-          this.data(element).current = substrate;
-          return true;
+      /**
+       * Forward the effective object list's onChanged into objectsChangedDelegate, so the public
+       * onObjectListChange API actually fires. The effective list may be the data's own objectList
+       * or one shadowed by an attached GradumConstrainer instance, and either can be replaced later —
+       * call this again after any change to rewire (the previous bridge is removed).
+       */
+      ensureObjectListBridge(element, constrainer) {
+          const data = this.getConstrainerData(element, constrainer);
+          if (!data)
+              return;
+          const list = this.getField(element, constrainer, "objectList");
+          if (!(list instanceof GradumNodeList) || data.bridgedObjectList === list)
+              return;
+          if (data.bridgedObjectList && data.bridgeHandler)
+              data.bridgedObjectList.onChanged.remove(data.bridgeHandler);
+          data.bridgeHandler = (entry, state) => data.objectsChangedDelegate.fire(entry, state);
+          data.bridgedObjectList = list;
+          list.onChanged.add(data.bridgeHandler);
       }
-      getSubstrateData(element, substrate) {
-          return this.data(element).substrates.get(substrate);
+      activate(element, constrainer, activate) {
+          const data = this.getConstrainerData(element, constrainer);
+          if (!data)
+              return;
+          if (typeof activate === "boolean")
+              data.active = activate;
+          else
+              data.active = !data.active;
       }
-      getSubstrates(element) {
-          return [...this.data(element).substrates.keys()];
+      getConstrainerData(element, constrainer) {
+          return this.data(element)?.constrainers?.get(constrainer);
       }
-      getPersistentMetadata(element, substrate, object) {
-          const substrateData = this.getSubstrateData(element, substrate);
-          if (!substrateData || !substrateData.persistentMetadata)
+      getConstrainers(element) {
+          return [...this.data(element)?.constrainers?.keys()];
+      }
+      getActiveConstrainers(element) {
+          const data = this.data(element)?.constrainers;
+          if (!data)
+              return [];
+          const entries = [];
+          for (const [key, value] of data.entries()) {
+              if (value.active)
+                  entries.push(key);
+          }
+          return entries;
+      }
+      getDefaultConstrainer(element, allowInactive = true) {
+          const data = this.data(element).constrainers;
+          if (!data)
+              return;
+          for (const [key, value] of data.entries()) {
+              if (value.active)
+                  return key;
+          }
+          if (allowInactive)
+              return data.keys()[0];
+      }
+      getCustomData(element, constrainer, object) {
+          const constrainerData = this.getConstrainerData(element, constrainer);
+          if (!constrainerData || !constrainerData.customData)
               return {};
-          let metadata = substrateData.persistentMetadata.get(object);
-          if (!metadata) {
-              metadata = {};
-              substrateData.persistentMetadata.set(object, metadata);
+          let customData = constrainerData.customData.get(object);
+          if (!customData) {
+              customData = {};
+              constrainerData.customData.set(object, customData);
           }
-          return metadata;
+          return customData;
       }
-      setPersistentMetadata(element, substrate, object, metadata) {
-          const substrateData = this.getSubstrateData(element, substrate);
-          if (!substrateData || !substrateData.persistentMetadata)
-              return;
-          substrateData.persistentMetadata.set(object, metadata);
+      getConstrainersTriggeredByObjects(...elements) {
+          if (!elements || elements.length === 0)
+              return [];
+          const nodeTargets = elements.filter(el => el instanceof Node);
+          const data = [];
+          const checkTargets = (constrainerName, object) => {
+              const hits = new Set();
+              const list = this.getField(object, constrainerName, "triggerList") ?? new GradumNodeList();
+              for (const el of nodeTargets)
+                  if (list.has(el))
+                      hits.add(el);
+              return Array.from(hits.values());
+          };
+          this.objectsSet.toArray().forEach(object => this.data(object).constrainers.forEach((constrainerData, name) => {
+              if (!constrainerData.active)
+                  return;
+              const hits = checkTargets(name, object);
+              if (hits.length > 0)
+                  data.push({ name, data: constrainerData, host: object, targets: hits });
+          }));
+          data.sort((a, b) => this.getField(a.host, a.name, "priority") - this.getField(b.host, b.name, "priority"));
+          return data;
       }
-      getTemporaryMetadata(element, substrate, object) {
-          const substrateData = this.getSubstrateData(element, substrate);
-          if (!substrateData || !substrateData.temporaryMetadata)
+      getField(element, constrainer, field) {
+          const data = this.getConstrainerData(element, constrainer);
+          if (!data)
               return;
-          let metadata = substrateData.temporaryMetadata.get(object);
-          if (!metadata) {
-              metadata = {};
-              substrateData.temporaryMetadata.set(object, metadata);
+          if (data.attachedInstance && data.attachedInstance instanceof GradumConstrainer
+              && data.attachedInstance[field] !== undefined)
+              return data.attachedInstance[field];
+          return data[field];
+      }
+      setField(element, constrainer, field, value) {
+          const data = this.getConstrainerData(element, constrainer);
+          if (data.attachedInstance && data.attachedInstance instanceof GradumConstrainer)
+              data.attachedInstance[field] = value;
+          else
+              data[field] = value;
+          if (field === "objectList")
+              this.ensureObjectListBridge(element, constrainer);
+      }
+      setupConstrainerCallbackProperties(element, properties) {
+          if (element instanceof GradumSelector)
+              element = element.element;
+          gradum(properties).applyDefaults({
+              constrainerHost: element,
+              constrainer: element ? this.getDefaultConstrainer(element, false) : undefined,
+              manager: GradumEventManager.instance,
+              eventOptions: {},
+              toolName: properties.event?.toolName,
+              eventType: properties.event?.type,
+              eventTarget: properties.event?.target
+          });
+      }
+      solveConstrainerInternal(data, properties) {
+          const constrainerData = data.data;
+          constrainerData.passes = new WeakMap();
+          constrainerData.customData = new WeakMap();
+          constrainerData.queue = gradum(data.host).getDefaultConstrainerQueue(data.name);
+          if (!constrainerData.queue)
+              constrainerData.queue = new GradumQueue();
+          if (!constrainerData.solvers)
+              return;
+          let object = properties.eventTarget;
+          if (properties.eventTarget)
+              constrainerData.queue.remove(properties.eventTarget);
+          else
+              object = constrainerData.queue.pop();
+          const onObjectAdded = (entry, state) => {
+              if (state === "added")
+                  constrainerData.queue.push(entry);
+          };
+          constrainerData.objectList.onChanged.add(onObjectAdded);
+          while (object) {
+              const passes = constrainerData.passes.get(object) ?? 0;
+              if (passes < constrainerData.maxPasses) {
+                  constrainerData.passes.set(object, passes + 1);
+                  for (const solverName of constrainerData.sortedSolvers) {
+                      const propagation = constrainerData.solvers.get(solverName)?.callback({ ...properties, target: object, constrainer: data.name });
+                      if (propagation === Propagation.stopImmediatePropagation || propagation === Propagation.stopPropagation)
+                          break;
+                  }
+              }
+              object = constrainerData.queue.pop();
           }
-          return metadata;
-      }
-      setTemporaryMetadata(element, substrate, object, metadata) {
-          const substrateData = this.getSubstrateData(element, substrate);
-          if (!substrateData || !substrateData.temporaryMetadata)
-              return;
-          substrateData.temporaryMetadata.set(object, metadata);
+          constrainerData.objectList.onChanged.remove(onObjectAdded);
       }
   }
 
-  const utils$3 = new SubstrateFunctionsUtils();
-  function setupSubstrateFunctions() {
-      TurboSelector.prototype.makeSubstrate = function _makeSubstrate(name, options) {
-          utils$3.createSubstrate(this, name);
+  /**
+   * Inserts `item` into `array` using binary search.
+   * Keeps array sorted according to `compare`.
+   *
+   * @returns the index where the item was inserted
+   */
+  function binaryInsert(array, item, compare) {
+      let low = 0;
+      let high = array.length;
+      while (low < high) {
+          const mid = (low + high) >>> 1;
+          if (compare(array[mid], item) <= 0)
+              low = mid + 1;
+          else
+              high = mid;
+      }
+      array.splice(low, 0, item);
+      return low;
+  }
+
+  /**
+   * @group Utilities
+   * @category Random
+   */
+  function randomId(length = 8) {
+      const array = new Uint8Array(length);
+      crypto.getRandomValues(array);
+      return Array.from(array)
+          .map(b => b.toString(36).padStart(2, "0"))
+          .join("")
+          .slice(0, length);
+  }
+  /**
+   * @group Utilities
+   * @category Random
+   */
+  function randomFromRange(n1, n2) {
+      if (typeof n1 != "number" || typeof n2 != "number")
+          return 0;
+      const min = Math.min(n1, n2);
+      const max = Math.max(n1, n2);
+      return (Math.random() * (max - min)) + min;
+  }
+  /**
+   * @group Utilities
+   * @category Random
+   */
+  function randomString(length = 12) {
+      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let result = "";
+      for (let i = 0; i < length; i++)
+          result += chars.charAt(Math.floor(Math.random() * chars.length));
+      return result;
+  }
+
+  const utils$2 = new ConstrainerFunctionsUtils();
+  function setupConstrainerFunctions() {
+      GradumSelector.prototype.makeConstrainer = function _makeConstrainer(constrainer, options) {
+          if (!utils$2.getConstrainerData(this, constrainer))
+              utils$2.createConstrainer(this, constrainer);
           if (options?.onActivate)
-              this.onSubstrateActivate(name).add(options.onActivate);
+              this.onConstrainerActivate(constrainer).add(options.onActivate);
           if (options?.onDeactivate)
-              this.onSubstrateDeactivate(name).add(options.onDeactivate);
-          if (!this.currentSubstrate)
-              this.currentSubstrate = name;
+              this.onConstrainerDeactivate(constrainer).add(options.onDeactivate);
+          if (options?.priority)
+              utils$2.getConstrainerData(this, constrainer).priority = options.priority;
+          if (options?.attachedInstance) {
+              utils$2.getConstrainerData(this, constrainer).attachedInstance = options.attachedInstance;
+              // The instance may shadow the data's objectList — rewire the onObjectListChange bridge.
+              utils$2.ensureObjectListBridge(this, constrainer);
+          }
+          if (options?.active || options?.active === undefined)
+              utils$2.activate(this, constrainer, true);
           return this;
       };
-      Object.defineProperty(TurboSelector.prototype, "substrates", {
-          get: function () { return utils$3.getSubstrates(this.element); },
-          configurable: false,
-          enumerable: true
-      });
-      Object.defineProperty(TurboSelector.prototype, "currentSubstrate", {
-          get: function () { return utils$3.data(this).current; },
-          set: function (value) {
-              if (!value)
-                  return;
-              const prev = this.currentSubstrate;
-              if (utils$3.setCurrent(this, value))
-                  this.onSubstrateChange.fire(prev, value);
+      Object.defineProperty(GradumSelector.prototype, "constrainersNames", {
+          get: function () {
+              return utils$2.getConstrainers(this.element);
           },
           configurable: false,
           enumerable: true
       });
-      Object.defineProperty(TurboSelector.prototype, "onSubstrateChange", {
-          get: function () { return utils$3.data(this).onChange; },
+      //ACTIVATION
+      Object.defineProperty(GradumSelector.prototype, "activeConstrainers", {
+          get: function () {
+              return utils$2.getActiveConstrainers(this.element);
+          },
           configurable: false,
           enumerable: true
       });
-      TurboSelector.prototype.onSubstrateActivate = function _onSubstrateActivate(name = this.currentSubstrate) {
-          return utils$3.getSubstrateData(this, name)?.onActivate ?? new Delegate();
-      };
-      TurboSelector.prototype.onSubstrateDeactivate = function _onSubstrateDeactivate(name = this.currentSubstrate) {
-          return utils$3.getSubstrateData(this, name)?.onDeactivate ?? new Delegate();
-      };
-      TurboSelector.prototype.getSubstrateObjectList = function _getSubstrateObjectList(substrate = this.currentSubstrate) {
-          const set = new Set();
-          if (!substrate)
-              return set;
-          Array.from(utils$3.getSubstrateData(this, substrate).objects).forEach(object => {
-              if (!utils$3.getPersistentMetadata(this, substrate, object).ignored)
-                  set.add(object);
+      GradumSelector.prototype.activateConstrainer = function _activateConstrainers(...constrainers) {
+          const targets = constrainers.length ? constrainers : [utils$2.getDefaultConstrainer(this)];
+          targets.forEach(constrainer => {
+              if (constrainer)
+                  utils$2.activate(this, constrainer, true);
           });
-          return set;
+          return this;
       };
-      TurboSelector.prototype.setSubstrateObjectList = function _setSubstrateObjectList(list, substrate = this.currentSubstrate) {
-          if (!list || !substrate)
+      GradumSelector.prototype.deactivateConstrainer = function _deactivateConstrainers(...constrainers) {
+          const targets = constrainers.length ? constrainers : [utils$2.getDefaultConstrainer(this)];
+          targets.forEach(constrainer => {
+              if (constrainer)
+                  utils$2.activate(this, constrainer, false);
+          });
+          return this;
+      };
+      GradumSelector.prototype.toggleConstrainer = function _toggleConstrainers(constrainer = utils$2.getDefaultConstrainer(this), force) {
+          if (constrainer)
+              utils$2.activate(this, constrainer, force);
+          return this;
+      };
+      GradumSelector.prototype.activateOnlyConstrainer = function _activateOnlyConstrainers(constrainer = utils$2.getDefaultConstrainer(this)) {
+          if (constrainer)
+              utils$2.getConstrainers(this).forEach(enf => utils$2.activate(this, constrainer, constrainer === enf));
+          return this;
+      };
+      GradumSelector.prototype.activateAllConstrainers = function _activateAllConstrainers() {
+          utils$2.getConstrainers(this).forEach(constrainer => utils$2.activate(this, constrainer, true));
+          return this;
+      };
+      GradumSelector.prototype.deactivateAllConstrainers = function _deactivateAllConstrainers() {
+          utils$2.getConstrainers(this).forEach(constrainer => utils$2.activate(this, constrainer, false));
+          return this;
+      };
+      GradumSelector.prototype.onConstrainerActivate = function _onConstrainerActivate(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getConstrainerData(this, constrainer)?.onActivate ?? new Delegate();
+      };
+      GradumSelector.prototype.onConstrainerDeactivate = function _onConstrainerDeactivate(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getConstrainerData(this, constrainer)?.onDeactivate ?? new Delegate();
+      };
+      //PRIORITY
+      GradumSelector.prototype.getConstrainerPriority = function _getConstrainerPriority(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getField(this, constrainer, "priority") ?? 0;
+      };
+      GradumSelector.prototype.setConstrainerPriority = function _setConstrainerPriority(priority, constrainer = utils$2.getDefaultConstrainer(this)) {
+          if (typeof priority === "number")
+              utils$2.setField(this, constrainer, "priority", priority);
+          return this;
+      };
+      //OBJECT LIST
+      GradumSelector.prototype.getConstrainerObjectList = function _getConstrainerObjectList(constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.ensureObjectListBridge(this, constrainer);
+          return utils$2.getField(this, constrainer, "objectList") ?? new GradumNodeList();
+      };
+      GradumSelector.prototype.onConstrainerObjectListChange = function _onConstrainerObjectListChange(constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.ensureObjectListBridge(this, constrainer);
+          return utils$2.getConstrainerData(this, constrainer)?.objectsChangedDelegate ?? new Delegate();
+      };
+      //TRIGGER LIST
+      GradumSelector.prototype.getConstrainerTriggerList = function _getConstrainerTriggerList(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getField(this, constrainer, "triggerList") ?? new GradumNodeList();
+      };
+      //QUEUE
+      GradumSelector.prototype.getConstrainerQueue = function _getConstrainerQueue(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getConstrainerData(this, constrainer).queue;
+      };
+      GradumSelector.prototype.getDefaultConstrainerQueue = function _getDefaultConstrainerQueue(constrainer = utils$2.getDefaultConstrainer(this)) {
+          const queue = utils$2.getField(this, constrainer, "defaultQueue");
+          if (queue instanceof GradumQueue)
+              return queue.clone();
+          else if (queue instanceof Array || queue instanceof Set)
+              return new GradumQueue().push(...queue);
+          return new GradumQueue().push(...this.getConstrainerObjectList(constrainer));
+      };
+      GradumSelector.prototype.setDefaultConstrainerQueue = function _setDefaultConstrainerQueue(queue, constrainer = utils$2.getDefaultConstrainer(this)) {
+          if (!queue || typeof queue !== "object")
               return this;
-          utils$3.getSubstrateData(this, substrate).objects = list;
+          if (Array.isArray(queue))
+              queue = new GradumQueue().push(...queue);
+          if (queue instanceof GradumQueue)
+              utils$2.setField(this, constrainer, "defaultQueue", queue.clone());
           return this;
       };
-      TurboSelector.prototype.addObjectToSubstrate = function _addObjectToSubstrate(object, substrate = this.currentSubstrate) {
-          if (!object || !substrate)
+      //PASSES
+      GradumSelector.prototype.getObjectPassesForConstrainer = function _getObjectPassesForConstrainer(object, constrainer = utils$2.getDefaultConstrainer(this)) {
+          if (!object)
+              return 0;
+          const map = utils$2.getConstrainerData(this, constrainer).passes;
+          if (!map || !(map instanceof WeakMap))
+              return 0;
+          return map.get(object) ?? 0;
+      };
+      GradumSelector.prototype.getMaxPassesForConstrainer = function _getMaxPassesForConstrainer(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getField(this, constrainer, "maxPasses");
+      };
+      GradumSelector.prototype.setMaxPassesForConstrainer = function _setMaxPassesForConstrainer(passes, constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.setField(this, constrainer, "maxPasses", passes);
+          return this;
+      };
+      //CUSTOM DATA
+      GradumSelector.prototype.getObjectDataForConstrainer = function _getObjectDataForConstrainer(object, constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getCustomData(this.element, constrainer, object);
+      };
+      GradumSelector.prototype.setObjectDataForConstrainer = function _setObjectDataForConstrainer(object, data, constrainer = utils$2.getDefaultConstrainer(this)) {
+          if (!data || typeof data !== "object")
+              data = {};
+          utils$2.getConstrainerData(this.element, constrainer).customData.set(object, data);
+          return this;
+      };
+      //CHECKER
+      GradumSelector.prototype.addChecker = function _addChecker(properties) {
+          if (!properties || !properties.name || !properties.callback)
               return this;
-          utils$3.getPersistentMetadata(this, substrate, object).ignored = false;
-          const list = utils$3.getSubstrateData(this, substrate).objects;
-          if (list instanceof HTMLCollection || list instanceof NodeList)
-              return this;
-          try {
-              if (!list.has(object))
-                  list.add(object);
-          }
-          catch { }
+          const constrainer = properties.constrainer || utils$2.getDefaultConstrainer(this);
+          utils$2.getConstrainerData(this, constrainer).checkers?.set(properties.name, properties.callback);
           return this;
       };
-      TurboSelector.prototype.removeObjectFromSubstrate = function _removeObjectFromSubstrate(object, substrate = this.currentSubstrate) {
-          if (!object || !substrate)
-              return this;
-          utils$3.getPersistentMetadata(this, substrate, object).ignored = true;
-          const list = utils$3.getSubstrateData(this, substrate).objects;
-          if (list instanceof Set)
-              list.delete(object);
+      GradumSelector.prototype.removeChecker = function _removeChecker(name, constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.getConstrainerData(this, constrainer).checkers?.delete(name);
           return this;
       };
-      TurboSelector.prototype.hasObjectInSubstrate = function _hasObjectInSubstrate(object, substrate = this.currentSubstrate) {
-          if (!object || !substrate)
-              return false;
-          const list = this.getSubstrateObjectList(substrate);
-          for (const obj of list) {
-              if (obj === object)
-                  return true;
-          }
-          return false;
-      };
-      TurboSelector.prototype.wasObjectProcessedBySubstrate = function _wasObjectProcessedBySubstrate(object, substrate = this.currentSubstrate) {
-          if (!object || !substrate)
-              return false;
-          return !!utils$3.getTemporaryMetadata(this, substrate, object)?.processed;
-      };
-      TurboSelector.prototype.addSolver = function _addSolver(callback, name = this.currentSubstrate) {
-          utils$3.getSubstrateData(this, name).solvers?.add(callback);
+      GradumSelector.prototype.clearCheckers = function _clearCheckers(constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.getConstrainerData(this, constrainer).checkers?.clear();
           return this;
       };
-      TurboSelector.prototype.removeSolver = function _removeSolver(callback, name = this.currentSubstrate) {
-          utils$3.getSubstrateData(this, name).solvers?.delete(callback);
-          return this;
-      };
-      TurboSelector.prototype.clearSolvers = function _clearSolvers(name = this.currentSubstrate) {
-          utils$3.getSubstrateData(this, name).solvers?.clear();
-          return this;
-      };
-      TurboSelector.prototype.resolveSubstrate = function _resolveSubstrate(properties = {}, substrate = this.currentSubstrate) {
+      GradumSelector.prototype.checkConstrainer = function _checkConstrainer(properties) {
           if (!properties)
               properties = {};
-          properties.substrate = properties.substrate ?? substrate;
-          if (!properties.substrate)
+          utils$2.setupConstrainerCallbackProperties(this, properties);
+          if (!properties.constrainer)
+              return true;
+          const constrainer = properties.constrainer || utils$2.getDefaultConstrainer(this);
+          for (const checker of utils$2.getConstrainerData(this, constrainer).checkers.values()) {
+              if (!checker(properties))
+                  return false;
+          }
+          return true;
+      };
+      GradumSelector.prototype.checkConstrainersForEvent = function _checkConstrainersForEvent(properties) {
+          if (!properties || !properties.event)
+              return true;
+          utils$2.setupConstrainerCallbackProperties(null, properties);
+          if (!properties.eventTarget || typeof properties.eventTarget !== "object") {
+              properties.eventTarget = this.element;
+              if (!properties.eventTarget || typeof properties.eventTarget !== "object")
+                  return true;
+          }
+          const constrainersData = utils$2.getConstrainersTriggeredByObjects(properties.eventTarget);
+          for (const constrainerData of constrainersData) {
+              for (const checker of constrainerData.data.checkers.values()) {
+                  if (!checker({ ...properties, constrainer: constrainerData.name }))
+                      return false;
+              }
+          }
+          return true;
+      };
+      //MUTATOR
+      GradumSelector.prototype.addMutator = function _addMutator(properties) {
+          if (!properties || !properties.name || !properties.callback)
               return this;
-          if (!properties.manager)
-              properties.manager = TurboEventManager.instance;
-          if (!properties.eventOptions)
-              properties.eventOptions = {};
-          const data = utils$3.getSubstrateData(this, properties.substrate);
+          const constrainer = properties.constrainer || utils$2.getDefaultConstrainer(this);
+          utils$2.getConstrainerData(this, constrainer).mutators?.set(properties.name, properties.callback);
+          return this;
+      };
+      GradumSelector.prototype.removeMutator = function _removeMutator(name, constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.getConstrainerData(this, constrainer).mutators?.delete(name);
+          return this;
+      };
+      GradumSelector.prototype.clearMutators = function _clearMutators(constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.getConstrainerData(this, constrainer).mutators?.clear();
+          return this;
+      };
+      GradumSelector.prototype.mutate = function _mutate(properties) {
+          if (!properties || !properties.mutation)
+              return;
+          utils$2.setupConstrainerCallbackProperties(this, properties);
+          if (!properties.constrainer)
+              return this;
+          const mutation = utils$2.getConstrainerData(this, properties.constrainer).mutators?.get(properties.mutation);
+          if (mutation)
+              return mutation(properties);
+      };
+      //SOLVERS
+      GradumSelector.prototype.addSolver = function _addSolver(properties) {
+          if (!properties || !properties.callback)
+              return this;
+          if (!properties.name)
+              properties.name = randomString(8);
+          const constrainer = properties.constrainer ?? utils$2.getDefaultConstrainer(this);
+          const data = utils$2.getConstrainerData(this, constrainer);
           if (!data)
               return this;
-          data.solvers?.forEach(solver => {
-              data.temporaryMetadata = new WeakMap();
-              if (properties.eventTarget) {
-                  data.temporaryMetadata.set(properties.eventTarget, { processed: true, isMainTarget: true });
-                  solver({ ...properties, target: properties.eventTarget });
-              }
-              let target;
-              do {
-                  target = Array
-                      .from(this.getSubstrateObjectList(properties.substrate))
-                      .find(entry => !data.temporaryMetadata.get(entry)?.processed);
-                  if (target) {
-                      data.temporaryMetadata.set(target, { processed: true });
-                      solver({ ...properties, target });
-                  }
-              } while (target);
-          });
+          const name = properties.name;
+          delete properties.name;
+          delete properties.constrainer;
+          if (!properties.priority)
+              properties.priority = 10;
+          data.solvers?.set(name, properties);
+          binaryInsert(data.sortedSolvers, name, (name1, name2) => data.solvers.get(name1).priority - data.solvers.get(name2).priority);
+          return this;
+      };
+      GradumSelector.prototype.removeSolver = function _removeSolver(name, constrainer = utils$2.getDefaultConstrainer(this)) {
+          const data = utils$2.getConstrainerData(this, constrainer);
+          if (!data)
+              return this;
+          data.solvers?.delete(name);
+          const index = data.sortedSolvers?.indexOf(name);
+          if (index !== undefined && index >= 0)
+              data.sortedSolvers.splice(index, 1);
+          return this;
+      };
+      GradumSelector.prototype.clearSolvers = function _clearSolvers(constrainer = utils$2.getDefaultConstrainer(this)) {
+          const data = utils$2.getConstrainerData(this, constrainer);
+          if (!data)
+              return this;
+          data.solvers?.clear();
+          data.sortedSolvers = [];
+          return this;
+      };
+      GradumSelector.prototype.solveConstrainer = function _solveConstrainer(properties = {}) {
+          if (!properties)
+              properties = {};
+          utils$2.setupConstrainerCallbackProperties(this, properties);
+          if (!properties.constrainer)
+              return this;
+          const data = utils$2.getConstrainerData(this, properties.constrainer);
+          if (!data)
+              return this;
+          utils$2.solveConstrainerInternal({ data, host: this.element, name: properties.constrainer }, properties);
+          return this;
+      };
+      GradumSelector.prototype.solveConstrainersForEvent = function _solveConstrainersForEvent(properties) {
+          if (!properties || !properties.event)
+              return this;
+          utils$2.setupConstrainerCallbackProperties(null, properties);
+          if (!properties.eventTarget || typeof properties.eventTarget !== "object") {
+              properties.eventTarget = this.element;
+              if (!properties.eventTarget || typeof properties.eventTarget !== "object")
+                  return this;
+          }
+          const constrainersData = utils$2.getConstrainersTriggeredByObjects(properties.eventTarget);
+          for (const constrainerData of constrainersData)
+              utils$2.solveConstrainerInternal(constrainerData, properties);
           return this;
       };
   }
@@ -14706,29 +20041,6 @@
   }
 
   /**
-   * @group Utilities
-   * @category Numbers
-   */
-  function trim(value, max, min = 0) {
-      if (value < min)
-          value = min;
-      if (value > max)
-          value = max;
-      return value;
-  }
-  /**
-   * @group Utilities
-   * @category Numbers
-   */
-  function mod(value, modValue = 0) {
-      while (value < 0)
-          value += modValue;
-      while (value >= modValue)
-          value -= modValue;
-      return value;
-  }
-
-  /**
    * @class StatefulReifect
    * @group Components
    * @category StatefulReifect
@@ -14741,98 +20053,58 @@
    */
   let StatefulReifect = (() => {
       let _instanceExtraInitializers = [];
-      let _states_decorators;
-      let _states_initializers = [];
-      let _states_extraInitializers = [];
-      let _get_enabled_decorators;
+      let _get_states_decorators;
+      let _set_propertiesEnabled_decorators;
+      let _set_classesEnabled_decorators;
+      let _set_stylesEnabled_decorators;
+      let _set_replacedWithEnabled_decorators;
+      let _set_enabled_decorators;
       let _set_properties_decorators;
       let _set_styles_decorators;
       let _set_classes_decorators;
       let _set_replaceWith_decorators;
-      let _set_transitionProperties_decorators;
-      let _set_transitionDuration_decorators;
-      let _set_transitionTimingFunction_decorators;
-      let _set_transitionDelay_decorators;
       return class StatefulReifect {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-              _states_decorators = [auto({ defaultValueCallback: function () { return this.getAllStates(); } })];
-              _get_enabled_decorators = [auto({
-                      defaultValueCallback: () => {
-                          return { global: true, properties: true, classes: true, styles: true, replaceWith: true, transition: true };
-                      },
-                      preprocessValue: function (value) { return typeof value === "boolean" ? { ...this.enabled, global: value } : value; }
-                  })];
-              _set_properties_decorators = [auto({
-                      setIfUndefined: true,
-                      preprocessValue: function (value) { return this.normalizePropertyConfig(this.properties, value); }
-                  })];
-              _set_styles_decorators = [auto({
-                      setIfUndefined: true,
-                      preprocessValue: function (value) { return this.normalizePropertyConfig(this.styles, value); }
-                  })];
-              _set_classes_decorators = [auto({
-                      setIfUndefined: true,
-                      preprocessValue: function (value) { return this.normalizePropertyConfig(this.classes, value); }
-                  })];
-              _set_replaceWith_decorators = [auto({
-                      setIfUndefined: true,
-                      preprocessValue: function (value) { return this.normalizePropertyConfig(this.replaceWith, value); }
-                  })];
-              _set_transitionProperties_decorators = [auto({
-                      setIfUndefined: true,
-                      preprocessValue: function (value) { return this.normalizePropertyConfig(this.transitionProperties, value); }
-                  })];
-              _set_transitionDuration_decorators = [auto({
-                      setIfUndefined: true,
-                      preprocessValue: function (value) { return this.normalizePropertyConfig(this.transitionDuration, value); }
-                  })];
-              _set_transitionTimingFunction_decorators = [auto({
-                      setIfUndefined: true,
-                      preprocessValue: function (value) { return this.normalizePropertyConfig(this.transitionTimingFunction, value); }
-                  })];
-              _set_transitionDelay_decorators = [auto({
-                      setIfUndefined: true,
-                      preprocessValue: function (value) { return this.normalizePropertyConfig(this.transitionDelay, value); }
-                  })];
-              __esDecorate(this, null, _get_enabled_decorators, { kind: "getter", name: "enabled", static: false, private: false, access: { has: obj => "enabled" in obj, get: obj => obj.enabled }, metadata: _metadata }, null, _instanceExtraInitializers);
+              _get_states_decorators = [auto({ preprocessValue: function (value) { return this.normalizeStates(value); } })];
+              _set_propertiesEnabled_decorators = [auto({ defaultValue: true })];
+              _set_classesEnabled_decorators = [auto({ defaultValue: true })];
+              _set_stylesEnabled_decorators = [auto({ defaultValue: true })];
+              _set_replacedWithEnabled_decorators = [auto({ defaultValue: true })];
+              _set_enabled_decorators = [auto({ defaultValue: true })];
+              _set_properties_decorators = [auto({ setIfUndefined: true, preprocessValue: function (value) { return this.normalizePropertyConfig(this.properties, value); } })];
+              _set_styles_decorators = [auto({ setIfUndefined: true, preprocessValue: function (value) { return this.normalizePropertyConfig(this.styles, value); } })];
+              _set_classes_decorators = [auto({ setIfUndefined: true, preprocessValue: function (value) { return this.normalizePropertyConfig(this.classes, value); } })];
+              _set_replaceWith_decorators = [auto({ setIfUndefined: true, preprocessValue: function (value) { return this.normalizePropertyConfig(this.replaceWith, value); } })];
+              __esDecorate(this, null, _get_states_decorators, { kind: "getter", name: "states", static: false, private: false, access: { has: obj => "states" in obj, get: obj => obj.states }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_propertiesEnabled_decorators, { kind: "setter", name: "propertiesEnabled", static: false, private: false, access: { has: obj => "propertiesEnabled" in obj, set: (obj, value) => { obj.propertiesEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_classesEnabled_decorators, { kind: "setter", name: "classesEnabled", static: false, private: false, access: { has: obj => "classesEnabled" in obj, set: (obj, value) => { obj.classesEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_stylesEnabled_decorators, { kind: "setter", name: "stylesEnabled", static: false, private: false, access: { has: obj => "stylesEnabled" in obj, set: (obj, value) => { obj.stylesEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_replacedWithEnabled_decorators, { kind: "setter", name: "replacedWithEnabled", static: false, private: false, access: { has: obj => "replacedWithEnabled" in obj, set: (obj, value) => { obj.replacedWithEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_enabled_decorators, { kind: "setter", name: "enabled", static: false, private: false, access: { has: obj => "enabled" in obj, set: (obj, value) => { obj.enabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_properties_decorators, { kind: "setter", name: "properties", static: false, private: false, access: { has: obj => "properties" in obj, set: (obj, value) => { obj.properties = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_styles_decorators, { kind: "setter", name: "styles", static: false, private: false, access: { has: obj => "styles" in obj, set: (obj, value) => { obj.styles = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_classes_decorators, { kind: "setter", name: "classes", static: false, private: false, access: { has: obj => "classes" in obj, set: (obj, value) => { obj.classes = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_replaceWith_decorators, { kind: "setter", name: "replaceWith", static: false, private: false, access: { has: obj => "replaceWith" in obj, set: (obj, value) => { obj.replaceWith = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _set_transitionProperties_decorators, { kind: "setter", name: "transitionProperties", static: false, private: false, access: { has: obj => "transitionProperties" in obj, set: (obj, value) => { obj.transitionProperties = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _set_transitionDuration_decorators, { kind: "setter", name: "transitionDuration", static: false, private: false, access: { has: obj => "transitionDuration" in obj, set: (obj, value) => { obj.transitionDuration = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _set_transitionTimingFunction_decorators, { kind: "setter", name: "transitionTimingFunction", static: false, private: false, access: { has: obj => "transitionTimingFunction" in obj, set: (obj, value) => { obj.transitionTimingFunction = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _set_transitionDelay_decorators, { kind: "setter", name: "transitionDelay", static: false, private: false, access: { has: obj => "transitionDelay" in obj, set: (obj, value) => { obj.transitionDelay = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(null, null, _states_decorators, { kind: "field", name: "states", static: false, private: false, access: { has: obj => "states" in obj, get: obj => obj.states, set: (obj, value) => { obj.states = value; } }, metadata: _metadata }, _states_initializers, _states_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          static fields = ["properties", "classes", "styles",
-              "replaceWith", "transitionProperties", "transitionDuration", "transitionTimingFunction", "transitionDelay"];
+          static fields = ["properties", "classes", "styles", "replaceWith"];
+          static knownFields = new Set(["states", "attachedObjects", "initialState", ...this.fields]);
+          static chainableStyleFields = new Set(["transition", "transitionDelay",
+              "transitionTimingFunction", "transitionDuration", "transform"]);
           timeRegex = (__runInitializers(this, _instanceExtraInitializers), /^(\d+(?:\.\d+)?)(ms|s)?$/i);
-          attachedObjects = [];
+          attachedObjectsData = new WeakMap();
+          attachedObjects = new GradumNodeList();
           /**
            * @description All possible states.
            */
-          states = __runInitializers(this, _states_initializers, void 0);
-          get enabled() { return; }
-          set enabled(value) {
-              const object = value;
-              if (!isUndefined(object.global)) {
-                  this.refreshResolvedValues();
-                  return;
-              }
-              if (!isUndefined(object.properties))
-                  this.refreshProperties();
-              if (!isUndefined(object.styles))
-                  this.refreshStyles();
-              if (!isUndefined(object.classes))
-                  this.refreshClasses();
-              if (!isUndefined(object.replaceWith))
-                  this.refreshReplaceWith();
-              if (!isUndefined(object.transition))
-                  this.refreshTransition();
-          }
+          get states() { return; }
+          set states(states) { }
+          set propertiesEnabled(value) { this.refreshProperties(); }
+          set classesEnabled(value) { this.refreshClasses(); }
+          set stylesEnabled(value) { this.refreshStyles(); }
+          set replacedWithEnabled(value) { this.refreshReplaceWith(); }
+          set enabled(value) { this.refreshAll(); }
           /**
            * @description The properties to be assigned to the objects. It could take:
            * - A record of `{key: value}` pairs.
@@ -14900,164 +20172,45 @@
           set replaceWith(value) { }
           get replaceWith() { return; }
           /**
-           * @description The property(ies) to apply a CSS transition on, on the attached objects. Defaults to "all". It
-           * could take:
-           * - A string of space-separated CSS properties.
-           * - An array of CSS properties.
-           * - A record of `{state: space-separated CSS properties string, array of CSS properties, or an interpolation
-           * function that would return any of the latter}`.
-           * - An interpolation function that would return a string of space-separated CSS properties or an array of
-           * CSS properties based on the state value.
-           *
-           * The interpolation function would take as arguments:
-           * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
-           * defined for the whole field (and not for a specific state).
-           * - `index: number`: the index of the object in the applied list.
-           * - `total: number`: the total number of objects in the applied list.
-           * - `object: ClassType`: the object itself.
-           */
-          set transitionProperties(value) { }
-          get transitionProperties() { return; }
-          /**
-           * @description The duration of the CSS transition to apply on the attached objects. Defaults to 0. It could take:
-           * - A numerical value (in seconds).
-           * - A record of `{state: duration (number in seconds) or an interpolation function that would return a duration
-           * (number in seconds)}`.
-           * - An interpolation function that would return a duration (number in seconds) based on the state value.
-           *
-           * The interpolation function would take as arguments:
-           * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
-           * defined for the whole field (and not for a specific state).
-           * - `index: number`: the index of the object in the applied list.
-           * - `total: number`: the total number of objects in the applied list.
-           * - `object: ClassType`: the object itself.
-           */
-          set transitionDuration(value) { }
-          get transitionDuration() { return; }
-          /**
-           * @description The timing function of the CSS transition to apply on the attached objects. Defaults to "linear."
-           * It could take:
-           * - A string representing the timing function to apply.
-           * - A record of `{state: timing function (string) or an interpolation function that would return a timing
-           * function (string)}`.
-           * - An interpolation function that would return a timing function (string) based on the state value.
-           *
-           * The interpolation function would take as arguments:
-           * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
-           * defined for the whole field (and not for a specific state).
-           * - `index: number`: the index of the object in the applied list.
-           * - `total: number`: the total number of objects in the applied list.
-           * - `object: ClassType`: the object itself.
-           */
-          set transitionTimingFunction(value) { }
-          get transitionTimingFunction() { return; }
-          /**
-           * @description The delay of the CSS transition to apply on the attached objects. Defaults to 0. It could take:
-           * - A numerical value (in seconds).
-           * - A record of `{state: delay (number in seconds) or an interpolation function that would return a delay
-           * (number in seconds)}`.
-           * - An interpolation function that would return a delay (number in seconds) based on the state value.
-           *
-           * The interpolation function would take as arguments:
-           * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
-           * defined for the whole field (and not for a specific state).
-           * - `index: number`: the index of the object in the applied list.
-           * - `total: number`: the total number of objects in the applied list.
-           * - `object: ClassType`: the object itself.
-           */
-          set transitionDelay(value) { }
-          get transitionDelay() { return; }
-          /**
            * @description Creates an instance of StatefulReifier.
            * @param {StatefulReifectProperties<State, ClassType>} properties - The configuration properties.
            */
           constructor(properties) {
-              __runInitializers(this, _states_extraInitializers);
               if (properties.states)
                   this.states = properties.states;
+              const unknownEntries = [];
               Object.entries(properties).forEach(([key, value]) => {
-                  if (key === "attachedObjects" || key === "states")
+                  if (key === "attachedObjects" || key === "states" || key === "initialState")
                       return;
-                  this[key] = value;
+                  if (StatefulReifect.knownFields.has(key))
+                      this[key] = value;
+                  else
+                      unknownEntries.push([key, value]);
               });
-              //Disable transition if undefined
-              if (!properties.transition && !properties.transitionProperties && !properties.transitionDuration
-                  && !properties.transitionTimingFunction && !properties.transitionDelay)
-                  this.enabled.transition = false;
+              if (unknownEntries.length > 0)
+                  this.properties = Object.fromEntries(unknownEntries);
               if (properties.attachedObjects)
-                  this.attachAll(...properties.attachedObjects);
+                  this.attach(...properties.attachedObjects);
+              if (properties.initialState !== undefined)
+                  this.apply(properties.initialState);
           }
-          /*
-           *
-           * *********************************
-           *
-           * Attached objects management
-           *
-           * *********************************
-           *
-           */
-          /**
-           * @function attach
-           * @description Attaches an object to the reifier.
-           * @param {ClassType} object - The object to attach.
-           * @param {(state: State, index: number, total: number, object: ClassType) => void} [onSwitch] - Optional
-           * callback fired when the reifier is applied to the object. The callback takes as parameters:
-           * - `state: State`: The state being applied to the object.
-           * - `index: number`: the index of the object in the applied list.
-           * - `total: number`: the total number of objects in the applied list.
-           * - `object: ClassType`: the object itself.
-           * @param {number} [index] - Optional index to specify the position at which to insert the object in the reifier's
-           * attached list.
-           * @returns {this} - The reifier itself, for method chaining.
-           */
-          attach(object, onSwitch, index) {
-              const data = this.getData(object);
-              if (data && onSwitch)
-                  data.onSwitch = onSwitch;
-              if (!data)
-                  this.attachObject(object, index, onSwitch);
-              return this;
-          }
-          /**
-           * @function attachAll
-           * @description Attaches multiple objects to the reifier.
-           * @param {...ClassType[]} objects - The objects to attach.
-           * @returns {this} - The reifier itself, for method chaining.
-           */
-          attachAll(...objects) {
-              objects.forEach(object => {
-                  if (!this.getData(object))
-                      this.attachObject(object);
+          attach(...args) {
+              const lastArg = args[args.length - 1];
+              const secondLastArg = args[args.length - 2];
+              const trailingIndex = typeof lastArg === "number" ? lastArg : undefined;
+              const onSwitchArg = trailingIndex !== undefined ? secondLastArg : lastArg;
+              const trailingOnSwitch = typeof onSwitchArg === "function" ? onSwitchArg : undefined;
+              const objects = args.slice(0, args.length
+                  - (trailingIndex !== undefined ? 1 : 0)
+                  - (trailingOnSwitch !== undefined ? 1 : 0));
+              objects.forEach((object, i) => {
+                  const index = trailingIndex !== undefined ? trailingIndex + i : undefined;
+                  this.attachObject(object, trailingOnSwitch, index);
               });
               return this;
           }
-          /**
-           * @function attachAllAt
-           * @description Attaches multiple objects to the reifier at a specified index.
-           * @param {number} index - The index to specify the position at which to insert the objects in the reifier's
-           * attached list.
-           * @param {...ClassType[]} objects - The objects to attach.
-           * @returns {this} - The reifier itself, for method chaining.
-           */
-          attachAllAt(index, ...objects) {
-              objects.forEach((object, count) => {
-                  if (!this.getData(object))
-                      this.attachObject(object, index + count);
-              });
-              return this;
-          }
-          /**
-           * @function detach
-           * @description Detaches one or more objects from the reifier.
-           * @param {...ClassType[]} objects - The objects to detach.
-           * @returns {this} - The reifier itself, for method chaining.
-           */
           detach(...objects) {
-              objects.forEach(object => {
-                  const data = this.getData(object);
-                  if (data)
-                      this.detachObject(data);
-              });
+              objects.forEach(object => this.detachObject(object));
               return this;
           }
           /**
@@ -15068,7 +20221,7 @@
            * @param {ClassType} object - The object to attach
            * @param {number} [index] - Optional index to specify the position at which to insert the object in the reifier's
            * attached list.
-           * @param {(state: State, index: number, total: number, object: ClassType) => void} [onSwitch] - Optional
+           * @param {ReifectOnSwitchCallback<State, ClassType>} [onSwitch] - Optional
            * callback fired when the reifier is applied to the object. The callback takes as parameters:
            * - `state: State`: The state being applied to the object.
            * - `index: number`: the index of the object in the applied list.
@@ -15076,32 +20229,42 @@
            * - `object: ClassType`: the object itself.
            * @returns {ReifectObjectData<State, ClassType>} - The created data entry.
            */
-          attachObject(object, index, onSwitch) {
-              if (index == undefined || isNaN(index))
-                  index = this.attachedObjects.length;
-              if (index < 0)
-                  index = 0;
-              const data = this.generateNewData(object, onSwitch);
-              this.attachedObjects.splice(index, 0, data);
-              turbo(object).attachReifect(this);
+          attachObject(object, onSwitch, index) {
+              let data = this.getData(object);
+              if (data) {
+                  if (onSwitch)
+                      data.onSwitch = onSwitch;
+                  if (index !== undefined) {
+                      data.index = index;
+                      this.attachedObjects.move(object, index);
+                  }
+                  return data;
+              }
+              index = trim(index, this.attachedObjects.size, 0, this.attachedObjects.size);
+              this.attachedObjects.addAt(index, object);
+              data = this.generateNewData(object, onSwitch, index);
+              this.attachedObjectsData.set(object, data);
+              gradum(object).attachReifect(this);
               data.lastState = this.stateOf(object);
-              this.applyResolvedValues(data, false, true);
-              // this.applyTransition(data);
+              this.applyAll(object);
               return data;
           }
           /**
            * @protected
            * @function detachObject
            * @description Function used to remove a data entry from the attached objects list.
-           * @param {ReifectObjectData<State, ClassType>} data - The data entry to remove.
+           * @param object
            */
-          detachObject(data) {
-              if (!this.attachedObjects.includes(data))
+          detachObject(object) {
+              if (!object || !this.attachedObjects.has(object))
                   return;
-              const object = data.object.deref();
-              this.attachedObjects.splice(this.attachedObjects.indexOf(data), 1);
-              if (object)
-                  turbo(object).detachReifect(this);
+              const data = this.getData(object);
+              if (data) {
+                  data.disposeEffect?.();
+                  data.disposeEffect = undefined;
+              }
+              this.attachedObjectsData.delete(object);
+              gradum(object).detachReifect(this);
           }
           /**
            * @function getData
@@ -15112,12 +20275,7 @@
           getData(object) {
               if (!object)
                   return;
-              for (const entry of this.attachedObjects) {
-                  const entryObject = this.getObject(entry);
-                  if (entryObject && entryObject == object)
-                      return entry;
-              }
-              return;
+              return this.attachedObjectsData.get(object);
           }
           /**
            * @function getObject
@@ -15156,7 +20314,7 @@
               if (!(object instanceof HTMLElement))
                   return this.states[0];
               if (!data.resolvedValues)
-                  this.processRawProperties(data);
+                  this.processRawProperties(object);
               for (const state of this.states) {
                   if (!data.resolvedValues?.styles?.[state])
                       continue;
@@ -15174,17 +20332,6 @@
               }
               return this.states[0];
           }
-          getAllStates() {
-              const set = new Set();
-              for (const field of StatefulReifect.fields) {
-                  const value = this[field];
-                  if (!value || typeof value !== "object")
-                      continue;
-                  for (const state of Object.keys(value))
-                      set.add(state);
-              }
-              return Array.from(set);
-          }
           /**
            * @protected
            * @function parseState
@@ -15198,9 +20345,8 @@
               else
                   for (const str of value ? ["true", "on", "in", "enabled", "shown"]
                       : ["false", "off", "out", "disabled", "hidden"]) {
-                      if (!this.states.includes(str))
-                          continue;
-                      return str;
+                      if (this.states.includes(str))
+                          return str;
                   }
               return this.states[0];
           }
@@ -15214,23 +20360,6 @@
            *
            */
           /**
-           * @function enable
-           * @description Sets/updates the `enabled` value corresponding to the provided object for this reifier.
-           * @param {ClassType} object - The object to set the state of.
-           * @param {boolean | ReifectEnabledObject} value - The value to set/update with. Setting it to a boolean will
-           * accordingly update the value of `enabled.global`.
-           */
-          enable(value, object) {
-              const data = this.getData(object);
-              if (!data)
-                  return this.enabled = value;
-              if (typeof value === "boolean")
-                  data.enabled.global = value;
-              else if (typeof value === "object")
-                  Object.entries(value)
-                      .forEach(([key, value]) => data.enabled[key] = value);
-          }
-          /**
            * @function getObjectEnabledState
            * @description Returns the `enabled` value corresponding to the provided object for this reifier.
            * @param {ClassType} object - The object to get the state of.
@@ -15243,81 +20372,6 @@
            *
            * *********************************
            *
-           * Properties stuff
-           *
-           * *********************************
-           *
-           */
-          set transition(value) {
-              if (!value)
-                  return;
-              const object = typeof value === "string"
-                  ? this.processTransitionString(value)
-                  : this.processTransitionObject(value);
-              Object.entries(object).forEach(([key, value]) => this[key] = value);
-          }
-          processTransitionObject(transitionObject) {
-              const transitionValues = {};
-              for (const [state, entry] of Object.entries(transitionObject)) {
-                  if (!this.states.includes(state))
-                      continue;
-                  if (typeof entry !== "string")
-                      continue;
-                  Object.entries(this.processTransitionString(entry)).forEach(([key, value]) => {
-                      if (!transitionValues[key])
-                          transitionValues[key] = {};
-                      transitionValues[key][state] = value;
-                  });
-              }
-              return transitionValues;
-          }
-          processTransitionString(transitionString) {
-              // Normalize commas → spaces, split & filter
-              const tokens = transitionString.trim().replace(/,/g, " ").split(/\s+/).filter(t => t.length > 0);
-              const object = { transitionProperties: [] };
-              let i = 0;
-              while (i < tokens.length && !this.timeRegex.test(tokens[i])) {
-                  object.transitionProperties.push(tokens[i]);
-                  i++;
-              }
-              if (i < tokens.length) {
-                  const duration = this.parseTime(tokens[i]);
-                  if (!isNaN(duration))
-                      object.transitionDuration = duration;
-                  i++;
-              }
-              if (i < tokens.length) {
-                  object.transitionTimingFunction = tokens[i];
-                  i++;
-              }
-              if (i < tokens.length) {
-                  const delay = this.parseTime(tokens[i]);
-                  if (!isNaN(delay))
-                      object.transitionDelay = delay;
-                  i++;
-              }
-              return object;
-          }
-          /**
-           * @function getTransitionString
-           * @description Gets the CSS transition string for the specified direction.
-           * @param {ReifectObjectData<State, ClassType>} data - The target element's transition data entry.
-           * @param state
-           * @returns {string} The CSS transition string.
-           */
-          getTransitionString(data, state = data.lastState) {
-              if (!data.resolvedValues)
-                  return "";
-              const properties = this.cleanTransitionProperties(data.resolvedValues.transitionProperties[state]);
-              const duration = data.resolvedValues.transitionDuration[state] ?? 0;
-              const timing = data.resolvedValues.transitionTimingFunction[state] ?? "linear";
-              const delay = data.resolvedValues.transitionDelay[state] ?? 0;
-              return properties.map(property => `${property} ${duration}s ${timing} ${delay}s`).join(", ");
-          }
-          /*
-           *
-           * *********************************
-           *
            * Usage methods
            *
            * *********************************
@@ -15325,44 +20379,67 @@
            */
           initialize(state, objects, options) {
               if (!this.enabled)
-                  return;
+                  return this;
               state = this.parseState(state);
               options = this.initializeOptions(options, objects);
-              this.getEnabledObjectsData(objects, options).forEach(data => {
+              this.getEnabledObjects(objects, options).forEach(object => {
+                  const data = this.getData(object);
+                  if (!data)
+                      return;
                   if (options.recomputeProperties || !data.resolvedValues)
-                      this.processRawProperties(data, options.propertiesOverride);
+                      this.processRawProperties(object, options.propertiesOverride);
                   data.lastState = state;
-                  this.applyResolvedValues(data, true, options?.applyStylesInstantly);
+                  this.applyAll(object, options?.applyStylesInstantly);
                   if (data.onSwitch)
-                      data.onSwitch(state, data.objectIndex, data.totalObjectCount, this.getObject(data));
+                      data.onSwitch(state, data.index, data.total, this.getObject(data));
               });
+              return this;
           }
           apply(state, objects, options) {
               if (!this.enabled)
-                  return;
+                  return this;
               state = this.parseState(state);
               options = this.initializeOptions(options, objects);
-              this.getEnabledObjectsData(objects, options).forEach(data => {
+              this.getEnabledObjects(objects, options).forEach(object => {
+                  const data = this.getData(object);
+                  if (!data)
+                      return;
                   if (options.recomputeProperties || !data.resolvedValues)
-                      this.processRawProperties(data, options.propertiesOverride);
+                      this.processRawProperties(object, options.propertiesOverride);
                   data.lastState = state;
-                  this.applyResolvedValues(data, false, options?.applyStylesInstantly);
+                  this.applyAll(object, options?.applyStylesInstantly);
                   if (data.onSwitch)
-                      data.onSwitch(state, data.objectIndex, data.totalObjectCount, this.getObject(data));
+                      data.onSwitch(state, data.index, data.total, this.getObject(data));
               });
+              return this;
           }
           toggle(objects, options) {
               if (!this.enabled)
-                  return;
+                  return this;
               if (!objects)
                   objects = [];
               else if (objects instanceof HTMLCollection)
                   objects = [...objects];
               else if (!Array.isArray(objects))
                   objects = [objects];
-              const previousState = this.getData(objects[0])?.lastState;
+              const referenceObject = objects[0] ?? this.attachedObjects.array[0];
+              const previousState = this.getData(referenceObject)?.lastState;
               const nextStateIndex = mod(!previousState ? 0 : this.states.indexOf(previousState) + 1, this.states.length);
-              this.apply(this.states[nextStateIndex], objects, options);
+              return this.apply(this.states[nextStateIndex], objects, options);
+          }
+          //TODO FIXXXX
+          unapply(objects, options) {
+              if (!this.enabled)
+                  return this;
+              options = this.initializeOptions(options, objects);
+              this.getEnabledObjects(objects, options).forEach(object => {
+                  const data = this.getData(object);
+                  if (!data || !data.resolvedValues)
+                      return;
+                  this.unapplyAll(object, options?.applyStylesInstantly);
+                  // if (data.onSwitch) data.onSwitch(undefined, data.index, data.total, this.getObject(data));
+              });
+              return this;
           }
           /**
            * @function reloadFor
@@ -15372,24 +20449,15 @@
            * @returns {this} Itself for method chaining.
            */
           reloadFor(object) {
-              if (!this.enabled.global)
+              if (!this.enabled)
                   return this;
               const data = this.getData(object);
               if (!data || !data.enabled || !data.enabled.global)
                   return this;
-              this.applyResolvedValues(data);
+              this.applyAll(object);
               return this;
           }
-          reloadTransitionFor(object) {
-              if (!this.enabled.global || !this.enabled.transition)
-                  return this;
-              const data = this.getData(object);
-              if (!data || !data.enabled || !data.enabled.global || !data.enabled.transition)
-                  return this;
-              this.applyTransition(data, data.lastState);
-              return this;
-          }
-          getEnabledObjectsData(objects, options) {
+          getEnabledObjects(objects, options) {
               if (!this.enabled) {
                   console.warn("The reifier object you are trying to access is disabled.");
                   return [];
@@ -15405,27 +20473,22 @@
                   objects.forEach(element => this.attach(element));
               if (options.executeForAll) {
                   objects = [];
-                  this.attachedObjects.forEach(entry => {
-                      const object = entry.object.deref();
-                      if (object)
-                          objects.push(object);
-                  });
+                  this.attachedObjects.forEach(entry => objects.push(entry));
               }
               const enabledObjectsData = [];
               objects.forEach((object) => {
                   const data = this.getData(object) || this.generateNewData(object);
                   if (!this.filterEnabledObjects(data))
                       return;
-                  if (options.recomputeIndices || data.objectIndex == undefined)
-                      data.objectIndex = enabledObjectsData.length;
+                  if (options.recomputeIndices || data.index == undefined)
+                      data.index = enabledObjectsData.length;
                   enabledObjectsData.push(data);
               });
               enabledObjectsData.forEach(data => {
-                  if (options.recomputeIndices || data.totalObjectCount == undefined) {
-                      data.totalObjectCount = enabledObjectsData.length;
-                  }
+                  if (options.recomputeIndices || data.total == undefined)
+                      data.total = enabledObjectsData.length;
               });
-              return enabledObjectsData;
+              return objects;
           }
           /*
            *
@@ -15436,126 +20499,204 @@
            * *********************************
            *
            */
-          applyResolvedValues(data, skipTransition = false, applyStylesInstantly = false) {
-              this.applyStyles(data, data.lastState, applyStylesInstantly);
-              if (!skipTransition) {
-                  if (this.attachedObjects.includes(data))
-                      turbo(data.object.deref()).reloadTransitions();
-                  else
-                      this.applyTransition(data, data.lastState);
-              }
-              this.applyReplaceWith(data, data.lastState);
-              this.applyProperties(data, data.lastState);
-              this.applyClasses(data, data.lastState);
+          applyAll(object, applyStylesInstantly = false) {
+              this.applyReplaceWith(object);
+              this.applyStyles(object, undefined, applyStylesInstantly);
+              this.applyProperties(object);
+              this.applyClasses(object);
           }
-          refreshResolvedValues() {
+          unapplyAll(object, applyStylesInstantly = false) {
+              this.unapplyReplaceWith(object);
+              this.unapplyStyles(object, applyStylesInstantly);
+              this.unapplyProperties(object);
+              this.unapplyClasses(object);
+          }
+          refreshAll() {
+              this.refreshReplaceWith();
               this.refreshProperties();
               this.refreshStyles();
               this.refreshClasses();
-              this.refreshReplaceWith();
-              this.refreshTransition();
           }
-          applyProperties(data, state = data.lastState) {
-              if (!this.enabled || !this.enabled.properties)
-                  return;
-              if (!data.enabled.global || !data.enabled.properties)
-                  return;
-              const properties = data.resolvedValues?.properties?.[state];
-              if (!properties)
-                  return;
-              const object = data.object.deref();
-              if (!object)
-                  return;
-              for (const [field, value] of Object.entries(properties)) {
-                  if (!field || value == undefined)
-                      continue;
-                  try {
-                      object[field] = value;
+          applyProperties(object, state) {
+              this.applyField(object, "properties", (object, data, state) => {
+                  const properties = data.resolvedValues?.properties?.[state];
+                  if (!properties)
+                      return;
+                  for (const [field, value] of Object.entries(properties)) {
+                      if (!field || value === undefined)
+                          continue;
+                      try {
+                          if (areSimilar(object[field], value))
+                              continue;
+                          object[field] = value;
+                      }
+                      catch (e) {
+                          console.error(`Unable to set property ${field} to ${value}: ${e.message}`);
+                      }
                   }
-                  catch (e) {
-                      console.error(`Unable to set property ${field} to ${value}: ${e.message}`);
+              }, state);
+          }
+          unapplyProperties(object) {
+              this.applyField(object, "properties", (object, data, state) => {
+                  const properties = data.resolvedValues?.properties?.[state];
+                  if (!properties)
+                      return;
+                  for (const field of Object.keys(properties)) {
+                      if (!field)
+                          continue;
+                      try {
+                          object[field] = undefined;
+                      }
+                      catch (e) {
+                          console.error(`Unable to unset property ${field}: ${e.message}`);
+                      }
                   }
-              }
+              });
           }
           refreshProperties() {
-              if (!this.enabled || !this.enabled.properties)
+              if (!this.enabled || !this.propertiesEnabled)
                   return;
-              this.attachedObjects.forEach(data => this.applyProperties(data));
+              this.attachedObjects.forEach(object => this.applyProperties(object));
           }
-          applyReplaceWith(data, state = data.lastState) {
-              if (!this.enabled || !this.enabled.replaceWith)
-                  return;
-              if (!data.enabled.global || !data.enabled.replaceWith)
-                  return;
-              const newObject = data.resolvedValues?.replaceWith?.[state];
-              if (!newObject)
-                  return;
-              try {
-                  const object = data.object.deref();
-                  if (object && object instanceof Node && newObject instanceof Node)
-                      object.parentNode?.replaceChild(newObject, object);
-                  data.object = new WeakRef(newObject);
-              }
-              catch (e) {
-                  console.error(`Unable to replace object: ${e.message}`);
-              }
+          applyReplaceWith(object, state) {
+              this.applyField(object, "replaceWith", (object, data, state) => {
+                  const newObject = data.resolvedValues?.replaceWith?.[state];
+                  if (!newObject)
+                      return;
+                  try {
+                      if (object instanceof Node && newObject instanceof Node)
+                          object.parentNode?.replaceChild(newObject, object);
+                      data.object = new WeakRef(newObject);
+                  }
+                  catch (e) {
+                      console.error(`Unable to replace object: ${e.message}`);
+                  }
+              }, state);
+          }
+          unapplyReplaceWith(object) {
+              return;
           }
           refreshReplaceWith() {
-              if (!this.enabled || !this.enabled.replaceWith)
+              if (!this.enabled || !this.replacedWithEnabled)
                   return;
-              this.attachedObjects.forEach(data => this.applyReplaceWith(data));
+              this.attachedObjects.forEach(object => this.applyReplaceWith(object));
           }
-          applyClasses(data, state = data.lastState) {
-              if (!this.enabled || !this.enabled.classes)
-                  return;
-              if (!data.enabled.global || !data.enabled.classes)
-                  return;
-              const classes = data.resolvedValues?.classes;
-              if (!classes)
-                  return;
-              const object = data.object.deref();
-              if (!object || !(object instanceof Element))
-                  return;
-              for (const [key, value] of Object.entries(classes)) {
-                  turbo(object).toggleClass(value, state == key);
-              }
+          applyClasses(object, state) {
+              this.applyField(object, "classes", (object, data, state) => {
+                  if (!(object instanceof Element) || !data.resolvedValues?.classes)
+                      return;
+                  for (const [key, value] of Object.entries(data.resolvedValues.classes)) {
+                      gradum(object).toggleClass(value, state === key);
+                  }
+              }, state);
+          }
+          unapplyClasses(object) {
+              this.applyField(object, "classes", (object, data, state) => {
+                  if (!(object instanceof Element) || !data.resolvedValues?.classes)
+                      return;
+                  for (const value of Object.values(data.resolvedValues.classes)) {
+                      gradum(object).toggleClass(value, false);
+                  }
+              });
           }
           refreshClasses() {
-              if (!this.enabled || !this.enabled.classes)
+              if (!this.enabled || !this.classesEnabled)
                   return;
-              this.attachedObjects.forEach(data => this.applyClasses(data));
+              this.attachedObjects.forEach(object => this.applyClasses(object));
           }
-          applyStyles(data, state = data.lastState, applyStylesInstantly = false) {
-              if (!this.enabled || !this.enabled.styles)
-                  return;
-              if (!data.enabled.global || !data.enabled.styles)
-                  return;
-              if (!data.resolvedValues?.styles)
-                  return;
-              const object = data.object.deref();
-              if (!object || !(object instanceof Element))
-                  return;
-              turbo(object).setStyles(data.resolvedValues.styles[state], applyStylesInstantly);
+          applyStyles(object, state, applyStylesInstantly = false) {
+              this.applyField(object, "styles", (object, data, state) => {
+                  if (!(object instanceof Element) || !data.resolvedValues?.styles)
+                      return;
+                  const styles = data.resolvedValues.styles[state];
+                  if (!styles)
+                      return;
+                  const normal = {};
+                  let hasChainable = false;
+                  for (const [key, value] of Object.entries(styles)) {
+                      if (StatefulReifect.chainableStyleFields.has(key))
+                          hasChainable = true;
+                      else
+                          normal[key] = value;
+                  }
+                  if (Object.keys(normal).length > 0)
+                      gradum(object).setStyles(normal, applyStylesInstantly);
+                  if (hasChainable)
+                      gradum(object).reloadReifectsChainableStyles();
+              }, state);
+          }
+          unapplyStyles(object, applyStylesInstantly = false) {
+              this.applyField(object, "styles", (object, data, state) => {
+                  if (!(object instanceof Element) || !data.resolvedValues?.styles)
+                      return;
+                  let hasChainable = false;
+                  for (const state of this.states) {
+                      const styles = data.resolvedValues.styles?.[state];
+                      if (!styles)
+                          return;
+                      for (const key of Object.keys(styles)) {
+                          if (StatefulReifect.chainableStyleFields.has(key))
+                              hasChainable = true;
+                          else
+                              gradum(object).setStyle(key, "", applyStylesInstantly);
+                      }
+                  }
+                  data.resolvedValues.styles = {};
+                  if (hasChainable)
+                      gradum(object).reloadReifectsChainableStyles();
+              });
           }
           refreshStyles() {
-              if (!this.enabled || !this.enabled.styles)
+              if (!this.enabled || !this.stylesEnabled)
                   return;
-              this.attachedObjects.forEach(data => this.applyStyles(data));
+              this.attachedObjects.forEach(object => this.applyStyles(object));
           }
-          applyTransition(data, state = data.lastState) {
-              if (!this.enabled || !this.enabled.transition)
-                  return;
-              if (!data.enabled.global || !data.enabled.transition)
-                  return;
-              const object = data.object.deref();
-              if (!object || !(object instanceof Element) || !data.resolvedValues)
-                  return;
-              turbo(object).appendStyle("transition", this.getTransitionString(data, state), ", ", true);
-          }
-          refreshTransition() {
-              for (const data of this.attachedObjects) {
-                  turbo(data.object?.deref()).reloadTransitions();
+          getChainableStyles(object) {
+              if (!this.enabled || !this.stylesEnabled)
+                  return {};
+              const data = this.getData(object);
+              if (!data?.resolvedValues?.styles || !data.lastState || !data.enabled.global || !data.enabled.styles)
+                  return {};
+              const styles = data.resolvedValues.styles[data.lastState];
+              if (!styles)
+                  return {};
+              const result = {};
+              for (const [key, value] of Object.entries(styles)) {
+                  if (StatefulReifect.chainableStyleFields.has(key) && value != null)
+                      result[key] = value.toString().trim();
               }
+              return result;
+          }
+          applyField(object, field, callback, state) {
+              if (!object || !field)
+                  return;
+              if (!this.enabled || !this[field + "Enabled"])
+                  return;
+              const data = this.getData(object);
+              if (!data.enabled || !data.enabled.global || !data.enabled[field])
+                  return;
+              if (!state)
+                  state = data.lastState;
+              if (!data.resolvedValues)
+                  return;
+              callback(object, data, state);
+          }
+          parseStylesValue(styles) {
+              if (!styles || typeof styles === "number")
+                  return {};
+              if (typeof styles === "object")
+                  return styles;
+              const result = {};
+              styles.split(";").forEach(entry => {
+                  const colonIndex = entry.indexOf(":");
+                  if (colonIndex === -1)
+                      return;
+                  const property = entry.slice(0, colonIndex).trim();
+                  const value = entry.slice(colonIndex + 1).trim();
+                  if (property && value)
+                      result[property] = value;
+              });
+              return result;
           }
           //General methods (to be overridden for custom functionalities)
           filterEnabledObjects(data) {
@@ -15567,30 +20708,42 @@
               return true;
           }
           //Utilities
-          processRawProperties(data, override) {
-              if (!data.resolvedValues)
-                  data.resolvedValues = {};
-              if (isNull(override))
-                  return;
-              const object = data.object.deref();
+          processRawProperties(object, override) {
               if (!object)
                   return;
-              const index = data.objectIndex ?? 0;
-              const total = data.totalObjectCount ?? 1;
-              for (const field of StatefulReifect.fields) {
-                  const rawValue = this.normalizePropertyConfig(this[field], override?.[field]);
-                  if (!data.resolvedValues[field])
-                      data.resolvedValues[field] = {};
-                  for (const state of this.states)
-                      data.resolvedValues[field][state] = rawValue[state]?.(index, total, object);
-              }
+              const data = this.getData(object);
+              data.disposeEffect?.();
+              let firstRun = true;
+              data.disposeEffect = effect(() => {
+                  if (!data.resolvedValues)
+                      data.resolvedValues = {};
+                  if (isNull(override))
+                      return;
+                  const index = data.index ?? 0;
+                  const total = data.total ?? 1;
+                  for (const field of StatefulReifect.fields) {
+                      const rawValue = this.normalizePropertyConfig(this[field], override?.[field]);
+                      if (!data.resolvedValues[field])
+                          data.resolvedValues[field] = {};
+                      for (const state of this.states) {
+                          const resolved = rawValue[state]?.(index, total, object);
+                          data.resolvedValues[field][state] = field === "styles"
+                              ? this.parseStylesValue(resolved)
+                              : resolved;
+                      }
+                  }
+                  if (!firstRun && data.lastState !== undefined)
+                      this.applyAll(object, false);
+                  firstRun = false;
+              });
           }
-          generateNewData(object, onSwitch) {
+          generateNewData(object, onSwitch, index) {
               return {
                   object: new WeakRef(object),
-                  enabled: { global: true, properties: true, classes: true, styles: true, replaceWith: true, transition: true },
+                  enabled: { global: true, properties: true, classes: true, styles: true, replaceWith: true },
                   lastState: this.stateOf(object),
-                  onSwitch: onSwitch
+                  onSwitch: onSwitch,
+                  index: index,
               };
           }
           initializeOptions(options, objects) {
@@ -15618,15 +20771,18 @@
                   classes: this.classes,
                   styles: this.styles,
                   replaceWith: this.replaceWith,
-                  transitionProperties: this.transitionProperties,
-                  transitionDuration: this.transitionDuration,
-                  transitionTimingFunction: this.transitionTimingFunction,
-                  transitionDelay: this.transitionDelay,
               });
+          }
+          normalizeStates(states) {
+              if (Array.isArray(states))
+                  return states;
+              const values = Object.values(states);
+              const isNumericEnum = values.some(v => typeof v === "number");
+              return (isNumericEnum ? values.filter(v => typeof v === "number") : values);
           }
           normalizePropertyConfig(currentConfig, newConfig) {
               const out = currentConfig ? { ...currentConfig } : {};
-              if (isUndefined(newConfig))
+              if (isUndefined(newConfig) || !this.states?.length)
                   return out;
               const isObject = typeof newConfig === "object" && newConfig !== null && !Array.isArray(newConfig);
               const keys = isObject ? Reflect.ownKeys(newConfig) : [];
@@ -15647,31 +20803,26 @@
                               : () => entry;
                   });
               else {
-                  const value = () => newConfig;
-                  this.states.forEach(state => out[state] = value);
+                  const entries = Object.entries(newConfig);
+                  const hasPerPropertyInterpolators = entries.some(([, v]) => typeof v === "function");
+                  if (hasPerPropertyInterpolators) {
+                      this.states.forEach(state => {
+                          out[state] = (index, total, object) => {
+                              const result = {};
+                              for (const [key, val] of entries)
+                                  result[key] = typeof val === "function"
+                                      ? val(index, total, object)
+                                      : val;
+                              return result;
+                          };
+                      });
+                  }
+                  else {
+                      const value = () => newConfig;
+                      this.states.forEach(state => out[state] = value);
+                  }
               }
               return out;
-          }
-          cleanTransitionProperties(value) {
-              if (!value)
-                  return ["all"];
-              if (Array.isArray(value))
-                  return value.length ? value : ["all"];
-              const split = value.split(/\s+/).map(s => s.trim()).filter(Boolean);
-              return split.length ? split : ["all"];
-          }
-          /**
-           * @description Processes string durations like "200ms" or "0.3s", or even "100".
-           * @param value
-           * @private
-           */
-          parseTime(value) {
-              const matches = value.match(this.timeRegex);
-              if (!matches)
-                  return NaN;
-              const num = parseFloat(matches[1]);
-              const unit = matches[2]?.toLowerCase() ?? "s";
-              return unit === "ms" ? num / 1000 : num;
           }
       };
   })();
@@ -15679,12 +20830,12 @@
   class ReifectFunctionsUtils {
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (this.dataMap.has(element))
               return this.dataMap.get(element);
           const newMap = {
-              reifects: new TurboWeakSet(),
+              reifects: new GradumWeakSet(),
               enabled: {},
               onTransitionStart: new Delegate(),
               onTransitionEnd: new Delegate(),
@@ -15790,79 +20941,18 @@
       set replaceWith(value) {
           super.replaceWith = value;
       }
-      /**
-       * @description The property(ies) to apply a CSS transition on, on the attached objects. Defaults to "all". It
-       * could take:
-       * - A string of space-separated CSS properties.
-       * - An array of CSS properties.
-       * - An interpolation function that would return a string of space-separated CSS properties or an array of
-       * CSS properties.
-       *
-       * The interpolation function would take as arguments:
-       * - `index: number`: the index of the object in the applied list.
-       * - `total: number`: the total number of objects in the applied list.
-       * - `object: ClassType`: the object itself.
-       */
-      get transitionProperties() {
-          return super.transitionProperties?.["default"];
-      }
-      set transitionProperties(value) {
-          super.transitionProperties = value;
-      }
-      /**
-       * @description The duration of the CSS transition to apply on the attached objects. Defaults to 0. It could take:
-       * - A numerical value (in seconds).
-       * - An interpolation function that would return a duration (number in seconds).
-       *
-       * The interpolation function would take as arguments:
-       * - `index: number`: the index of the object in the applied list.
-       * - `total: number`: the total number of objects in the applied list.
-       * - `object: ClassType`: the object itself.
-       */
-      get transitionDuration() {
-          return super.transitionDuration?.["default"];
-      }
-      set transitionDuration(value) {
-          super.transitionDuration = value;
-      }
-      /**
-       * @description The timing function of the CSS transition to apply on the attached objects. Defaults to "linear."
-       * It could take:
-       * - A string representing the timing function to apply.
-       * - An interpolation function that would return a timing function (string).
-       *
-       * The interpolation function would take as arguments:
-       * - `index: number`: the index of the object in the applied list.
-       * - `total: number`: the total number of objects in the applied list.
-       * - `object: ClassType`: the object itself.
-       */
-      get transitionTimingFunction() {
-          return super.transitionTimingFunction?.["default"];
-      }
-      set transitionTimingFunction(value) {
-          super.transitionTimingFunction = value;
-      }
-      /**
-       * @description The delay of the CSS transition to apply on the attached objects. Defaults to 0. It could take:
-       * - A numerical value (in seconds).
-       * - An interpolation function that would return a delay (number in seconds).
-       *
-       * The interpolation function would take as arguments:
-       * - `index: number`: the index of the object in the applied list.
-       * - `total: number`: the total number of objects in the applied list.
-       * - `object: ClassType`: the object itself.
-       */
-      get transitionDelay() {
-          return super.transitionDelay?.["default"];
-      }
-      set transitionDelay(value) {
-          super.transitionDelay = value;
-      }
       initialize(objects, options) {
           super.initialize("default", objects, options);
       }
       apply(objects, options) {
           super.apply("default", objects, options);
+      }
+      normalizePropertyConfig(currentConfig, newConfig) {
+          if (typeof newConfig === "function" && newConfig.length <= 3) {
+              const wrapped = (_state, index, total, object) => newConfig(index, total, object);
+              return super.normalizePropertyConfig(currentConfig, wrapped);
+          }
+          return super.normalizePropertyConfig(currentConfig, newConfig);
       }
   }
 
@@ -15959,8 +21049,24 @@
       Range["min"] = "min";
       Range["max"] = "max";
   })(Range || (Range = {}));
+  /**
+   * @group Types
+   * @category Enums
+   */
+  var Anchor;
+  (function (Anchor) {
+      Anchor["TopLeft"] = "topLeft";
+      Anchor["TopRight"] = "topRight";
+      Anchor["TopMiddle"] = "topMiddle";
+      Anchor["BottomLeft"] = "bottomLeft";
+      Anchor["BottomMiddle"] = "bottomMiddle";
+      Anchor["BottomRight"] = "bottomRight";
+      Anchor["Center"] = "center";
+      Anchor["CenterLeft"] = "centerLeft";
+      Anchor["CenterRight"] = "centerRight";
+  })(Anchor || (Anchor = {}));
 
-  const utils$2 = new ReifectFunctionsUtils();
+  const utils$1 = new ReifectFunctionsUtils();
   const showTransition = new StatefulReifect({
       states: [Shown.visible, Shown.hidden],
       styles: (state) => `visibility: ${state}`
@@ -15969,25 +21075,11 @@
       /**
        * @description Adds a readonly "reifects" property to Node prototype.
        */
-      Object.defineProperty(TurboSelector.prototype, "reifects", {
+      Object.defineProperty(GradumSelector.prototype, "reifects", {
           get: function () {
               if (!this.element)
                   return new Set();
-              return new Set(utils$2.data(this.element).reifects?.toArray());
-          },
-          configurable: false,
-          enumerable: true
-      });
-      Object.defineProperty(TurboSelector.prototype, "onTransitionStart", {
-          get: function () {
-              return utils$2.data(this.element).onTransitionStart;
-          },
-          configurable: false,
-          enumerable: true
-      });
-      Object.defineProperty(TurboSelector.prototype, "onTransitionEnd", {
-          get: function () {
-              return utils$2.data(this.element).onTransitionEnd;
+              return new Set(utils$1.data(this.element).reifects?.toArray());
           },
           configurable: false,
           enumerable: true
@@ -15996,11 +21088,11 @@
        * @description Adds a configurable "showTransition" property to Node prototype. Defaults to a global
        * transition assigned to all nodes.
        */
-      Object.defineProperty(TurboSelector.prototype, "showTransition", {
+      Object.defineProperty(GradumSelector.prototype, "showTransition", {
           get: function () {
               if (!this.element)
                   return;
-              const data = utils$2.data(this.element);
+              const data = utils$1.data(this.element);
               if (!data.showTransition)
                   data.showTransition = showTransition;
               return data.showTransition;
@@ -16008,7 +21100,7 @@
           set: function (value) {
               if (!this.element)
                   return;
-              utils$2.data(this.element).showTransition = value;
+              utils$1.data(this.element).showTransition = value;
           },
           configurable: true,
           enumerable: true
@@ -16016,7 +21108,7 @@
       /**
        * @description Boolean indicating whether the node is shown or not, based on its showTransition.
        */
-      Object.defineProperty(TurboSelector.prototype, "isShown", {
+      Object.defineProperty(GradumSelector.prototype, "isShown", {
           get: function () {
               if (!this.element)
                   return;
@@ -16039,7 +21131,7 @@
        * execution.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.show = function _show(b, options = {}) {
+      GradumSelector.prototype.show = function _show(b, options = {}) {
           if (!this.element)
               return this;
           if (!options.executeForAll)
@@ -16047,29 +21139,29 @@
           this.showTransition.apply(b ? Shown.visible : Shown.hidden, this.element, options);
           return this;
       };
-      TurboSelector.prototype.attachReifect = function _attachReifect(...reifects) {
+      GradumSelector.prototype.attachReifect = function _attachReifect(...reifects) {
           if (!this.element || typeof this.element !== "object")
               return this;
           reifects.forEach(entry => {
               if (this.reifects.has(entry))
                   return;
-              utils$2.attachReifect(this.element, entry);
+              utils$1.attachReifect(this.element, entry);
               entry.attach(this.element);
           });
           return this;
       };
-      TurboSelector.prototype.detachReifect = function _detachReifect(...reifects) {
+      GradumSelector.prototype.detachReifect = function _detachReifect(...reifects) {
           if (!this.element || typeof this.element !== "object")
               return this;
           reifects.forEach(entry => {
               if (!this.reifects.has(entry))
                   return;
-              utils$2.detachReifect(this.element, entry);
+              utils$1.detachReifect(this.element, entry);
               entry.detach(this.element);
           });
           return this;
       };
-      TurboSelector.prototype.initializeReifect = function _initializeReifect(reifect, state, options) {
+      GradumSelector.prototype.initializeReifect = function _initializeReifect(reifect, state, options) {
           if (!this.element)
               return this;
           if (reifect instanceof Reifect)
@@ -16078,7 +21170,7 @@
               reifect.initialize(this.element, state, options);
           return this;
       };
-      TurboSelector.prototype.applyReifect = function _applyReifect(reifect, state, options) {
+      GradumSelector.prototype.applyReifect = function _applyReifect(reifect, state, options) {
           if (!this.element)
               return this;
           if (reifect instanceof Reifect)
@@ -16087,7 +21179,7 @@
               reifect.apply(this.element, state, options);
           return this;
       };
-      TurboSelector.prototype.toggleReifect = function _toggleReifect(reifect, options) {
+      GradumSelector.prototype.toggleReifect = function _toggleReifect(reifect, options) {
           if (!this.element)
               return this;
           if (reifect instanceof Reifect)
@@ -16096,35 +21188,46 @@
               reifect.toggle(this.element, options);
           return this;
       };
-      TurboSelector.prototype.reloadReifects = function _reloadReifects() {
+      GradumSelector.prototype.reloadReifects = function _reloadReifects() {
           if (!this.element)
               return this;
-          this.setStyle("transition", "", true);
           this.reifects.forEach(reifect => reifect.reloadFor(this.element));
           return this;
       };
-      TurboSelector.prototype.reloadTransitions = function _reloadTransitions() {
+      GradumSelector.prototype.reloadReifectsChainableStyles = function _reloadChainableStyles(applyInstantly = true) {
           if (!this.element)
               return this;
-          this.setStyle("transition", "", true);
-          this.reifects.forEach(reifect => reifect.reloadTransitionFor(this.element));
+          const contributions = {};
+          this.reifects.forEach((reifect) => {
+              const chainable = reifect.getChainableStyles(this.element);
+              for (const [key, value] of Object.entries(chainable)) {
+                  if (!value)
+                      continue;
+                  if (!contributions[key])
+                      contributions[key] = [];
+                  contributions[key].push(value);
+              }
+          });
+          for (const [key, values] of Object.entries(contributions)) {
+              const separator = key === "transform" ? " " : ", ";
+              gradum(this.element).setStyle(key, values.join(separator), applyInstantly);
+          }
           return this;
       };
-      TurboSelector.prototype.reifectEnabledState = function _reifectEnabledState(reifect) {
+      GradumSelector.prototype.reifectEnabledState = function _reifectEnabledState(reifect) {
           if (!this.element)
               return {};
           if (reifect)
               return reifect.getObjectEnabledState(this.element);
-          return utils$2.data(this.element).enabled;
+          return utils$1.data(this.element).enabled;
       };
-      TurboSelector.prototype.enableReifect = function _enableReifect(value, reifect) {
+      GradumSelector.prototype.enableReifect = function _enableReifect(value, reifect) {
           if (!this.element)
               return this;
-          if (reifect) {
-              reifect.enable(value, this.element);
+          const enabled = reifect ? reifect.getData(this.element)?.enabled
+              : utils$1.data(this.element).enabled;
+          if (!enabled)
               return this;
-          }
-          const enabled = utils$2.data(this.element).enabled;
           if (typeof value === "boolean")
               enabled.global = value;
           else if (typeof value === "object")
@@ -16135,40 +21238,43 @@
   }
 
   const cache$1 = new WeakMap();
-  function turbo(tagOrElement) {
-      turbofy();
+  function gradum(tagOrElement, raw = false) {
+      gradumify();
       let el;
       if (!tagOrElement)
           tagOrElement = "div";
       if (typeof tagOrElement === "string")
           el = element({ tag: tagOrElement });
       else if (typeof tagOrElement === "object") {
-          if (tagOrElement instanceof TurboSelector)
+          if (tagOrElement instanceof GradumSelector)
               return tagOrElement;
-          if (tagOrElement instanceof Node)
+          if (raw || tagOrElement instanceof Node)
               el = tagOrElement;
-          else if (tagOrElement["element"] && typeof tagOrElement["element"] === "object")
+          else if (tagOrElement["element"] && typeof tagOrElement["element"] === "object") {
               el = tagOrElement["element"];
+          }
           else
               el = tagOrElement;
       }
       const cached = cache$1.get(el);
       if (cached)
           return cached;
-      const turboSelector = new TurboSelector();
-      turboSelector.element = el;
-      cache$1.set(el, turboSelector);
-      return turboSelector;
+      const gradumSelector = new GradumSelector();
+      gradumSelector.element = el;
+      cache$1.set(el, gradumSelector);
+      return gradumSelector;
   }
-  function $(tagOrElement) {
-      return turbo(tagOrElement);
+  function $(tagOrElement, raw = false) {
+      return gradum(tagOrElement, raw);
   }
   /**
-   * @group TurboSelector
+   * @group GradumSelector
    */
-  const turbofy = callOnce(function (options = {}) {
+  const gradumify = callOnce(function (options = {}) {
       if (!options.excludeHierarchyFunctions)
           setupHierarchyFunctions();
+      if (!options.excludeMvcFunctions)
+          setupMvcFunctions();
       if (!options.excludeMiscFunctions)
           setupMiscFunctions();
       if (!options.excludeClassFunctions)
@@ -16181,8 +21287,8 @@
           setupStyleFunctions();
       if (!options.excludeToolFunctions)
           setupToolFunctions();
-      if (!options.excludeSubstrateFunctions)
-          setupSubstrateFunctions();
+      if (!options.excludeConstrainerFunctions)
+          setupConstrainerFunctions();
       if (!options.excludeReifectFunctions)
           setupReifectFunctions();
   });
@@ -16463,235 +21569,6 @@
       }
   }
 
-  class DefineDecoratorUtils {
-      prototypeMap = new WeakMap;
-      dataMap = new WeakMap;
-      data(element) {
-          if (element instanceof TurboSelector)
-              element = element.element;
-          if (!element)
-              return {};
-          if (!this.dataMap.has(element))
-              this.dataMap.set(element, {});
-          return this.dataMap.get(element);
-      }
-      prototype(prototype) {
-          if (!prototype)
-              return {};
-          if (!this.prototypeMap.has(prototype))
-              this.prototypeMap.set(prototype, {});
-          return this.prototypeMap.get(prototype);
-      }
-      fieldSetInPrototype(prototype, field) {
-          while (prototype && prototype !== HTMLElement.prototype) {
-              if (this.prototype(prototype)[field])
-                  return true;
-              prototype = Object.getPrototypeOf(prototype);
-          }
-          return false;
-      }
-      skipAttributeChangedCallback(prototype) {
-          return this.fieldSetInPrototype(prototype, "setupAttributeChangedCallback");
-      }
-      skipConnectedCallback(prototype) {
-          return this.fieldSetInPrototype(prototype, "setupConnectedCallback");
-      }
-      getNamesOfPrototypeChain(prototype) {
-          const result = [];
-          while (prototype && prototype !== HTMLElement.prototype) {
-              const name = this.prototype(prototype).name;
-              if (name)
-                  result.push(name);
-              prototype = Object.getPrototypeOf(prototype);
-          }
-          return result;
-      }
-  }
-
-  const utils$1 = new DefineDecoratorUtils();
-  /**
-   * @decorator
-   * @function define
-   * @group Decorators
-   * @category Registry, Attributes & DOM
-   *
-   * @description Stage-3 **class** decorator factory. It:
-   * - Registers the element with customElements (name inferred if omitted).
-   * - Adds the defined (or inferred) customElement name as a class to all instances of this class (and the class's children).
-   * - Publishes a *live* `observedAttributes` getter that lists all attributes associated with `@observed` fields in
-   *   this class and its ancestors.
-   * - Sets up an `attributeChangedCallback()` function to mirror changes from attributes to their associated
-   * `@observed` fields.
-   *
-   * @param {string} [elementName] - The name of the custom HTML element. It is inferred if omitted.
-   * @param {DefineOptions} [options] - Custom {@link DefineOptions} options object.
-   *
-   * @example
-   * ```ts
-   * @define() // name will be "my-el" (kebab case of class name).
-   * class MyEl extends HTMLElement { ... }
-   *
-   * @define("my-el") // explicit name
-   * class MyEl extends HTMLElement { ... }
-   * ````
-   */
-  function define(elementName, options = { injectAttributeBridge: true }) {
-      return function (Base, context) {
-          const name = elementName ?? camelToKebabCase(context.name);
-          const prototype = Base.prototype;
-          if (name)
-              utils$1.prototype(prototype).name = name;
-          Object.defineProperty(Base, "observedAttributes", {
-              configurable: true,
-              enumerable: false,
-              get: function () {
-                  const combined = new Set();
-                  let constructor = this;
-                  while (constructor && constructor !== Function.prototype) {
-                      const set = constructor[Symbol.metadata]?.observedAttributes;
-                      if (set)
-                          for (const entry of set)
-                              combined.add(entry);
-                      constructor = Object.getPrototypeOf(constructor);
-                  }
-                  return Array.from(combined);
-              },
-          });
-          if (options.injectAttributeBridge !== false && !utils$1.skipAttributeChangedCallback(prototype)) {
-              utils$1.prototype(prototype).setupAttributeChangedCallback = true;
-              const wrapper = function (name, oldValue, newValue) {
-                  getSuperMethod(this, "attributeChangedCallback", wrapper)?.call(this, name, oldValue, newValue);
-                  if (newValue === oldValue)
-                      return;
-                  if (utils$1.data(this).attributeBridgePass)
-                      return;
-                  const property = kebabToCamelCase(name);
-                  if (!(property in this))
-                      return;
-                  try {
-                      utils$1.data(this).attributeBridgePass = true;
-                      this[property] = newValue === null ? undefined : parse(newValue);
-                  }
-                  finally {
-                      utils$1.data(this).attributeBridgePass = false;
-                  }
-              };
-              Object.defineProperty(prototype, "attributeChangedCallback", {
-                  configurable: true,
-                  enumerable: false,
-                  writable: true,
-                  value: wrapper
-              });
-          }
-          if (!utils$1.skipConnectedCallback(prototype)) {
-              utils$1.prototype(prototype).setupConnectedCallback = true;
-              const wrapper = function () {
-                  getSuperMethod(this, "connectedCallback", wrapper)?.call(this);
-                  if (!(this instanceof HTMLElement))
-                      return;
-                  for (const attribute of this.constructor.observedAttributes ?? []) {
-                      const value = this[kebabToCamelCase(attribute)];
-                      if (value === undefined)
-                          continue;
-                      const stringValue = stringify(value);
-                      if (this.getAttribute(attribute) !== stringValue)
-                          this.setAttribute(attribute, stringValue);
-                  }
-                  utils$1.getNamesOfPrototypeChain(Object.getPrototypeOf(this)).forEach(name => this.classList?.add(name));
-              };
-              Object.defineProperty(prototype, "connectedCallback", {
-                  configurable: true,
-                  enumerable: false,
-                  writable: true,
-                  value: wrapper,
-              });
-          }
-          context.addInitializer(function () {
-              if (name && !customElements.get(name))
-                  customElements.define(name, Base);
-          });
-          return Base;
-      };
-  }
-
-  /**
-   * @decorator
-   * @function expose
-   * @group Decorators
-   * @category Augmentation
-   *
-   * @description Stage-3 decorator that augments fields, accessors, and methods to expose fields and methods
-   * from inner instances.
-   * @param {string} rootKey - The property key of the instance to expose from.
-   * @param {boolean} [exposeSetter=true] - Whether to expose a setter for the property. Defaults to true.
-   *
-   * @example
-   * ```ts
-   * protected model: TurboModel;
-   * @expose("model") public color: string;
-   * ```
-   * Is equivalent to:
-   * ```ts
-   * protected model: TurboModel;
-   *
-   * public get color(): string {
-   *    return this.model.color;
-   * }
-   *
-   * public set color(value: string) {
-   *    this.model.color = value;
-   * }
-   * ```
-   */
-  function expose(rootKey, exposeSetter = true) {
-      return function (value, context) {
-          if (!rootKey)
-              return value;
-          const { kind, name } = context;
-          const key = String(name);
-          const nestedRoots = rootKey.split(".").filter(Boolean);
-          const getLowestRoot = function (host) {
-              if (!host)
-                  return;
-              let parent = host;
-              for (const root of nestedRoots) {
-                  parent = parent[root];
-                  if (!parent)
-                      return;
-              }
-              return parent;
-          };
-          if (kind === "method") {
-              return function (...args) {
-                  const root = getLowestRoot(this);
-                  const fn = root?.[key];
-                  if (typeof fn === "function")
-                      return fn.apply(root, args);
-              };
-          }
-          context.addInitializer(function () {
-              const read = function () { return getLowestRoot(this)?.[key]; };
-              const write = function (value) {
-                  const root = getLowestRoot(this);
-                  if (root)
-                      root[key] = value;
-              };
-              if (kind === "field" || kind === "accessor") {
-                  const descriptor = getFirstDescriptorInChain(this, key);
-                  Object.defineProperty(this, key, {
-                      configurable: true,
-                      enumerable: descriptor?.enumerable ?? true,
-                      get: () => read.call(this),
-                      set: (value) => {
-                          if (exposeSetter)
-                              write.call(this, value);
-                      },
-                  });
-              }
-          });
-      };
-  }
-
   class ObserveUtils {
       constructorMap = new WeakMap();
       constructorData(target) {
@@ -16715,7 +21592,7 @@
    * @decorator
    * @function observe
    * @group Decorators
-   * @category Registry, Attributes & DOM
+   * @category Attributes & DOM
    *
    * @description Stage-3 decorator for fields, getters, setters, and accessors that reflects a property to an HTML
    * attribute. So when the value of the property changes, it is reflected in the element's HTML attributes.
@@ -16808,73 +21685,6 @@
       });
   }
 
-  /**
-   * @class TurboInteractor
-   * @group MVC
-   * @category Interactor
-   *
-   * @extends TurboController
-   * @template {object} ElementType - The type of the main component.
-   * @template {TurboView} ViewType - The element's MVC view type.
-   * @template {TurboModel} ModelType - The element's MVC model type.
-   * @template {TurboEmitter} EmitterType - The element's MVC emitter type.
-   * @description Class representing an MVC interactor. It holds event listeners to set up on the element itself, or
-   * the custom defined target.
-   */
-  class TurboInteractor extends TurboController {
-      #target_accessor_storage;
-      /**
-       * @description The target of the event listeners. Defaults to the element itself.
-       */
-      get target() { return this.#target_accessor_storage; }
-      set target(value) { this.#target_accessor_storage = value; }
-      /**
-       * @readonly
-       * @description The name of the tool (if any) to listen for.
-       */
-      toolName;
-      /**
-       * @readonly
-       * @description The associated event manager. Defaults to `TurboEventManager.instance`.
-       */
-      manager;
-      /**
-       *
-       * @readonly
-       * @description Optional custom options to define per event type.
-       */
-      options;
-      constructor(properties) {
-          super(properties);
-          this.manager = properties.manager ?? this.manager ?? TurboEventManager.instance;
-          this.toolName = properties.toolName ?? this.toolName ?? undefined;
-          this.options = properties.listenerOptions ?? {};
-          const host = this.element;
-          this.target = properties.target ?? this.target ?? host instanceof Node ? host
-              : host?.element instanceof Node ? host.element
-                  : undefined;
-          this.setup();
-      }
-      /**
-       * @function initialize
-       * @description Initialization function that sets up all the defined evnt listeners and attaches them to the target.
-       */
-      initialize() {
-          super.initialize();
-          const target = this.target ?? this;
-          for (const [methodName, eventName] of Object.entries(DefaultEventName)) {
-              const handler = this[methodName];
-              if (typeof handler !== "function")
-                  continue;
-              const options = this.options?.[methodName];
-              if (this.toolName)
-                  $(target).onTool(eventName, this.toolName, e => handler.call(this, e), options, this.manager);
-              else
-                  $(target).on(eventName, e => handler.call(this, e), options, this.manager);
-          }
-      }
-  }
-
   function styleInject(css, ref) {
     if ( ref === void 0 ) ref = {};
     var insertAt = ref.insertAt;
@@ -16902,143 +21712,22 @@
     }
   }
 
-  var css_248z$3 = "turbo-button{align-items:center;background-color:#dadada;border:1px solid #000;border-radius:.4em;color:#000;display:inline-flex;flex-direction:row;gap:.4em;padding:.5em .7em;text-decoration:none}turbo-button>h4{flex-grow:1}";
-  styleInject(css_248z$3);
+  var css_248z$4 = "gradum-button{align-items:center;background-color:#dadada;border:1px solid #000;border-radius:.4em;color:#000;display:inline-flex;flex-direction:row;gap:.4em;padding:.5em .7em;text-decoration:none}gradum-button>h4{flex-grow:1}";
+  styleInject(css_248z$4);
 
-  function defineUIPrototype(constructor) {
-      const prototype = constructor.prototype;
-      const unsetDefaultClassesKey = Symbol("__unset_default_classes__");
-      Object.defineProperty(prototype, "unsetDefaultClasses", {
-          get: function () { return this[unsetDefaultClassesKey] ?? false; },
-          set: function (value) {
-              this[unsetDefaultClassesKey] = value;
-              const defaultClasses = this.constructor?.config?.defaultClasses;
-              if (!defaultClasses)
-                  return;
-              $(this).toggleClass(defaultClasses, value);
-          },
-          enumerable: true,
-          configurable: true,
-      });
-  }
-
-  /**
-   * @class TurboElement
-   * @group TurboElement
-   * @category TurboElement
-   *
-   * @extends HTMLElement
-   * @description Base TurboElement class, extending the base HTML element with a few useful tools and functions.
-   * @template {TurboView} ViewType - The element's view type, if initializing MVC.
-   * @template {object} DataType - The element's data type, if initializing MVC.
-   * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
-   * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
-   * */
-  class TurboElement extends HTMLElement {
-      /**
-       * @description Static configuration object.
-       */
-      static config = {
-          shadowDOM: false,
-          defaultSelectedClass: "selected"
-      };
-      /**
-       * @description The MVC handler of the element. If initialized, turns the element into an MVC structure.
-       * @protected
-       */
-      mvc = new Mvc({ element: this });
-      /**
-       * @description Delegate fired when the element is attached to DOM.
-       */
-      onAttach = new Delegate();
-      /**
-       * @description Delegate fired when the element is detached from the DOM.
-       */
-      onDetach = new Delegate();
-      /**
-       * @description Delegate fired when the element is adopted by a new parent in the DOM.
-       */
-      onAdopt = new Delegate();
-      /**
-       * @description Update the class's static configurations. Will only overwrite the set properties.
-       * @property {typeof this.config} value - The object containing the new configurations.
-       */
-      static configure(value) {
-          Object.entries(value).forEach(([key, val]) => {
-              if (val !== undefined)
-                  this.config[key] = val;
-          });
-      }
-      /**
-       * @function setupChangedCallbacks
-       * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
-       * @protected
-       */
-      setupChangedCallbacks() {
-      }
-      /**
-       * @function setupUIElements
-       * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
-       * them in fields. Called on `initialize()`.
-       * @protected
-       */
-      setupUIElements() {
-      }
-      /**
-       * @function setupUILayout
-       * @description Setup method to create the layout structure of the element by adding all created sub-elements to
-       * this element's child tree. Called on `initialize()`.
-       * @protected
-       */
-      setupUILayout() {
-      }
-      /**
-       * @function setupUIListeners
-       * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
-       * `initialize()`.
-       * @protected
-       */
-      setupUIListeners() {
-      }
-      /**
-       * @function connectedCallback
-       * @description function called when the element is attached to the DOM.
-       */
-      connectedCallback() {
-          this.onAttach.fire();
-      }
-      /**
-       * @function disconnectedCallback
-       * @description function called when the element is detached from the DOM.
-       */
-      disconnectedCallback() {
-          this.onDetach.fire();
-      }
-      /**
-       * @function adoptedCallback
-       * @description function called when the element is adopted by a new parent in the DOM.
-       */
-      adoptedCallback() {
-          this.onAdopt.fire();
-      }
-  }
-  (() => {
-      defineDefaultProperties(TurboElement);
-      defineMvcAccessors(TurboElement);
-      defineUIPrototype(TurboElement);
-  })();
   /**
    * @group Utilities
-   * @category Equity
+   * @category String
+   *
+   * @description Extracts the extension from the given filename or path (e.g.: ".png").
+   * @param {string} str - The filename or path
+   * @return The extension, or an empty string if not found.
    */
-  function equalToAny(entry, ...values) {
-      if (values.length < 1)
-          return true;
-      for (const value of values) {
-          if (entry == value)
-              return true;
-      }
-      return false;
+  function getFileExtension(str) {
+      if (!str || str.length == 0)
+          return "";
+      const match = str.match(/\.\S{1,4}$/);
+      return match ? match[0] : "";
   }
 
   /**
@@ -17092,19 +21781,469 @@
   }
 
   /**
-   * @class TurboIcon
+   * @class Color
+   * @group Utilities
+   * @category Color
+   *
+   * @description Unified color class. Parses any CSS color string (hex, rgb/rgba, hsl/hsla), stores the color
+   * internally as RGBA, and provides conversions, interpolation, luminance, and contrast utilities.
+   * All channels are kept in sync: setting any of r/g/b/a/h/s/l/hex updates the rest automatically.
+   */
+  let Color = (() => {
+      let _instanceExtraInitializers = [];
+      let _set_r_decorators;
+      let _set_g_decorators;
+      let _set_b_decorators;
+      let _set_a_decorators;
+      let _set_h_decorators;
+      let _set_s_decorators;
+      let _set_l_decorators;
+      let _set_hex_decorators;
+      return class Color {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+              _set_r_decorators = [auto({ preprocessValue: (value) => trim(value, 255) })];
+              _set_g_decorators = [auto({ preprocessValue: (value) => trim(value, 255) })];
+              _set_b_decorators = [auto({ preprocessValue: (value) => trim(value, 255) })];
+              _set_a_decorators = [auto({ preprocessValue: (value) => trim(value, 1) })];
+              _set_h_decorators = [auto({ preprocessValue: (value) => ((value % 360) + 360) % 360 })];
+              _set_s_decorators = [auto({ preprocessValue: (value) => trim(value, 100) })];
+              _set_l_decorators = [auto({ preprocessValue: (value) => trim(value, 100) })];
+              _set_hex_decorators = [auto()];
+              __esDecorate(this, null, _set_r_decorators, { kind: "setter", name: "r", static: false, private: false, access: { has: obj => "r" in obj, set: (obj, value) => { obj.r = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_g_decorators, { kind: "setter", name: "g", static: false, private: false, access: { has: obj => "g" in obj, set: (obj, value) => { obj.g = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_b_decorators, { kind: "setter", name: "b", static: false, private: false, access: { has: obj => "b" in obj, set: (obj, value) => { obj.b = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_a_decorators, { kind: "setter", name: "a", static: false, private: false, access: { has: obj => "a" in obj, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_h_decorators, { kind: "setter", name: "h", static: false, private: false, access: { has: obj => "h" in obj, set: (obj, value) => { obj.h = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_s_decorators, { kind: "setter", name: "s", static: false, private: false, access: { has: obj => "s" in obj, set: (obj, value) => { obj.s = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_l_decorators, { kind: "setter", name: "l", static: false, private: false, access: { has: obj => "l" in obj, set: (obj, value) => { obj.l = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_hex_decorators, { kind: "setter", name: "hex", static: false, private: false, access: { has: obj => "hex" in obj, set: (obj, value) => { obj.hex = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          syncing = (__runInitializers(this, _instanceExtraInitializers), false);
+          set r(value) {
+              this.syncFromRgb();
+          }
+          set g(value) {
+              this.syncFromRgb();
+          }
+          set b(value) {
+              this.syncFromRgb();
+          }
+          set a(value) {
+              this.syncHex();
+          }
+          set h(value) {
+              this.syncFromHsl();
+          }
+          set s(value) {
+              this.syncFromHsl();
+          }
+          set l(value) {
+              this.syncFromHsl();
+          }
+          set hex(value) {
+              this.syncFromHex();
+          }
+          /**
+           * @constructor
+           * @param {number} r - Red channel (0–255).
+           * @param {number} g - Green channel (0–255).
+           * @param {number} b - Blue channel (0–255).
+           * @param {number} [a=1] - Alpha channel (0–1).
+           */
+          constructor(r = 0, g = 0, b = 0, a = 1) {
+              this.syncing = true;
+              this.r = r;
+              this.g = g;
+              this.b = b;
+              this.a = a;
+              this.syncing = false;
+              this.syncFromRgb();
+          }
+          /**
+           * @description Returns the color as a CSS `rgb()` string (alpha ignored).
+           * @returns {string} - e.g. `"rgb(255 136 0)"`.
+           */
+          get rgb() {
+              return `rgb(${this.r} ${this.g} ${this.b})`;
+          }
+          /**
+           * @description Returns the color as a CSS `rgb()` string with alpha.
+           * @returns {string} - e.g. `"rgb(255 136 0 / 0.5)"`.
+           */
+          get rgba() {
+              return `rgb(${this.r} ${this.g} ${this.b} / ${+this.a.toFixed(4)})`;
+          }
+          /**
+           * @description Returns the color as a CSS `hsl()` string (alpha ignored).
+           * @returns {string} - e.g. `"hsl(32 100% 50%)"`.
+           */
+          get hsl() {
+              return `hsl(${this.h} ${this.s}% ${this.l}%)`;
+          }
+          /**
+           * @description Returns the color as a CSS `hsl()` string with alpha.
+           * @returns {string} - e.g. `"hsl(32 100% 50% / 0.5)"`.
+           */
+          get hsla() {
+              return `hsl(${this.h} ${this.s}% ${this.l}% / ${+this.a.toFixed(4)})`;
+          }
+          /**
+           * @description Returns `rgb()` for opaque colors and `rgb()` with alpha for semi-transparent ones.
+           */
+          toString() {
+              return this.a < 1 ? this.rgba : this.rgb;
+          }
+          fromString(value) {
+              return Color.from(value);
+          }
+          syncFromRgb() {
+              if (this.syncing)
+                  return;
+              this.syncing = true;
+              const { h, s, l } = Color.rgbToHsl(this.r, this.g, this.b);
+              this.h = h;
+              this.s = s;
+              this.l = l;
+              this.hex = Color.toHexStr(this.r, this.g, this.b, this.a);
+              this.syncing = false;
+          }
+          syncFromHsl() {
+              if (this.syncing)
+                  return;
+              this.syncing = true;
+              const { r, g, b } = Color.hslToRgb(this.h, this.s, this.l);
+              this.r = r;
+              this.g = g;
+              this.b = b;
+              this.hex = Color.toHexStr(this.r, this.g, this.b, this.a);
+              this.syncing = false;
+          }
+          syncFromHex() {
+              if (this.syncing)
+                  return;
+              const parsed = Color.fromHexString(this.hex);
+              if (!parsed)
+                  return;
+              this.syncing = true;
+              this.r = parsed.r;
+              this.g = parsed.g;
+              this.b = parsed.b;
+              this.a = parsed.a;
+              const { h, s, l } = Color.rgbToHsl(this.r, this.g, this.b);
+              this.h = h;
+              this.s = s;
+              this.l = l;
+              this.syncing = false;
+          }
+          syncHex() {
+              this.syncing = true;
+              this.hex = Color.toHexStr(this.r, this.g, this.b, this.a);
+              this.syncing = false;
+          }
+          /**
+           * @description Creates a Color from a CSS color string or an existing Color instance.
+           * Supports hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), `rgb()`/`rgba()`, and `hsl()`/`hsla()`.
+           * Returns `Color(0, 0, 0)` if the string cannot be parsed.
+           * @param {string | Color} color - The CSS color string or Color instance to parse.
+           * @returns {Color}
+           */
+          static from(color) {
+              if (!color)
+                  return new Color();
+              if (color instanceof Color)
+                  return color;
+              color = color.trim();
+              if (color.startsWith("#"))
+                  return Color.fromHexString(color) ?? new Color();
+              if (/^hsla?\s*\(/i.test(color))
+                  return Color.fromHslString(color) ?? new Color();
+              if (/^rgba?\s*\(/i.test(color))
+                  return Color.fromRgbString(color) ?? new Color();
+              return new Color(0, 0, 0);
+          }
+          /**
+           * @description Creates a Color from a hex string (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`).
+           * @param {string} hex - The hex color string.
+           * @returns {Color | null} - Null if the string is not a valid hex color.
+           */
+          static fromHexString(hex) {
+              if (!hex)
+                  return new Color();
+              const raw = hex.replace(/^#/, "");
+              const color = new Color();
+              if (raw.length === 3 || raw.length === 4) {
+                  color.r = parseInt(raw[0] + raw[0], 16);
+                  color.g = parseInt(raw[1] + raw[1], 16);
+                  color.b = parseInt(raw[2] + raw[2], 16);
+                  if (raw.length === 4)
+                      color.a = parseInt(raw[3] + raw[3], 16) / 255;
+              }
+              else if (raw.length === 6 || raw.length === 8) {
+                  color.r = parseInt(raw.slice(0, 2), 16);
+                  color.g = parseInt(raw.slice(2, 4), 16);
+                  color.b = parseInt(raw.slice(4, 6), 16);
+                  if (raw.length === 8)
+                      color.a = parseInt(raw.slice(6, 8), 16) / 255;
+              }
+              else
+                  return new Color();
+              if (isNaN(color.r) || isNaN(color.g) || isNaN(color.b))
+                  return new Color();
+              return color;
+          }
+          /**
+           * @description Creates a Color from HSL components.
+           * @param {number} h - Hue, 0–360.
+           * @param {number} s - Saturation, 0–100.
+           * @param {number} l - Lightness, 0–100.
+           * @param {number} [a=1] - Alpha, 0–1.
+           * @returns {Color}
+           */
+          static fromHsl(h, s, l, a = 1) {
+              const { r, g, b } = Color.hslToRgb(h, s, l);
+              return new Color(r, g, b, a);
+          }
+          /**
+           * @description Creates a Color from a CSS `hsl()`/`hsla()` string.
+           * Handles both comma-separated (CSS Level 3) and space-separated (CSS Level 4) syntax,
+           * with or without `%` signs and `deg` units, and optional alpha via `/` or as a fourth argument.
+           * @param {string} color - The HSL color string.
+           * @returns {Color | null} - Null if parsing fails.
+           */
+          static fromHslString(color) {
+              const inner = color.match(/hsla?\s*\(([^)]+)\)/i)?.[1];
+              if (!inner)
+                  return new Color();
+              const parts = Color.extractNumbers(inner);
+              if (parts.length < 3)
+                  return new Color();
+              return Color.fromHsl(parts[0], parts[1], parts[2], parts[3] ?? 1);
+          }
+          /**
+           * @description Creates a Color from a CSS `rgb()`/`rgba()` string.
+           * Handles both comma-separated (CSS Level 3) and space-separated (CSS Level 4) syntax,
+           * and optional alpha via `/` or as a fourth argument.
+           * @param {string} color - The RGB color string.
+           * @returns {Color | null} - Null if parsing fails.
+           */
+          static fromRgbString(color) {
+              const inner = color.match(/rgba?\s*\(([^)]+)\)/i)?.[1];
+              if (!inner)
+                  return new Color();
+              const parts = Color.extractNumbers(inner);
+              if (parts.length < 3)
+                  return new Color();
+              return new Color(parts[0], parts[1], parts[2], parts[3] ?? 1);
+          }
+          /**
+           * @description The WCAG 2.1 relative luminance of the color (0 = black, 1 = white).
+           * @returns {number}
+           */
+          get luminance() {
+              const lin = (c) => {
+                  c /= 255;
+                  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+              };
+              return 0.2126 * lin(this.r) + 0.7152 * lin(this.g) + 0.0722 * lin(this.b);
+          }
+          /**
+           * @description Computes the WCAG 2.1 contrast ratio between this color and another.
+           * @param {Color | string} other - The color to compare against.
+           * @returns {number} - Contrast ratio, 1–21.
+           */
+          contrast(other) {
+              const l1 = this.luminance, l2 = Color.from(other).luminance;
+              return (Math.max(l1, l2) + 0.1) / (Math.min(l1, l2) + 0.1);
+          }
+          /**
+           * @description Returns whichever of the two candidate colors has better contrast against this color.
+           * Defaults to black and white if candidates are not provided.
+           * @param {Color | string} [dark="#000000"] - The dark candidate.
+           * @param {Color | string} [light="#ffffff"] - The light candidate.
+           * @returns {Color}
+           */
+          bestOverlay(dark = "#000000", light = "#ffffff") {
+              const d = Color.from(dark), l = Color.from(light);
+              return this.contrast(l) >= this.contrast(d) ? l : d;
+          }
+          /**
+           * @description Linearly interpolates between this color and another in RGB space.
+           * Works regardless of the original format of the input color.
+           * @param {Color | string} other - The target color.
+           * @param {number} t - Interpolation factor (0 = this, 1 = other).
+           * @returns {Color}
+           */
+          interpolate(other, t) {
+              const c = Color.from(other);
+              return new Color(this.r + (c.r - this.r) * t, this.g + (c.g - this.g) * t, this.b + (c.b - this.b) * t, this.a + (c.a - this.a) * t);
+          }
+          /**
+           * @description Checks whether this color is equal to another color or CSS color string,
+           * comparing all four channels within an optional tolerance.
+           * @param {Color | string} other - The color to compare against.
+           * @param {number} [tolerance=0] - Maximum allowed difference per channel.
+           * @returns {boolean}
+           */
+          equals(other, tolerance = 0) {
+              const c = Color.from(other);
+              return Math.abs(this.r - c.r) <= tolerance
+                  && Math.abs(this.g - c.g) <= tolerance
+                  && Math.abs(this.b - c.b) <= tolerance
+                  && Math.abs(this.a - c.a) <= tolerance;
+          }
+          /**
+           * @description Linearly interpolates between two colors in RGB space.
+           * Accepts any mix of `Color` instances and CSS color strings of any supported format.
+           * @param {Color | string} color1 - The start color.
+           * @param {Color | string} color2 - The end color.
+           * @param {number} t - Interpolation factor (0 = color1, 1 = color2).
+           * @returns {Color}
+           */
+          static interpolate(color1, color2, t) {
+              return Color.from(color1).interpolate(color2, t);
+          }
+          /**
+           * @description Interpolates along a multi-stop gradient.
+           * `t = 0` returns the first color, `t = 1` returns the last color.
+           * @param {(Color | string)[]} colors - Two or more color stops.
+           * @param {number} t - Gradient position (0–1).
+           * @returns {Color}
+           */
+          static gradient(colors, t) {
+              if (colors.length === 0)
+                  return new Color(0, 0, 0);
+              if (colors.length === 1)
+                  return Color.from(colors[0]);
+              t = Math.max(0, Math.min(1, t));
+              const segments = colors.length - 1;
+              const index = Math.min(Math.floor(t * segments), segments - 1);
+              const localT = t * segments - index;
+              return Color.from(colors[index]).interpolate(colors[index + 1], localT);
+          }
+          /**
+           * @description Computes the WCAG 2.1 contrast ratio between two colors.
+           * @param {Color | string} color1
+           * @param {Color | string} color2
+           * @returns {number}
+           */
+          static contrast(color1, color2) {
+              return Color.from(color1).contrast(color2);
+          }
+          /**
+           * @description Computes the WCAG 2.1 relative luminance of a color.
+           * @param {Color | string} color
+           * @returns {number}
+           */
+          static luminance(color) {
+              return Color.from(color).luminance;
+          }
+          /**
+           * @description Returns whichever of the two candidates has better contrast against the base color.
+           * @param {Color | string} base
+           * @param {Color | string} [dark="#000000"]
+           * @param {Color | string} [light="#ffffff"]
+           * @returns {Color}
+           */
+          static bestOverlay(base, dark = "#000000", light = "#ffffff") {
+              return Color.from(base).bestOverlay(dark, light);
+          }
+          /**
+           * @group Utilities
+           * @category Random
+           */
+          static random(saturation = [50, 70], lightness = [70, 85]) {
+              if (typeof saturation != "number" && saturation.length >= 2)
+                  saturation = randomFromRange(saturation[0], saturation[1]);
+              if (typeof lightness != "number" && lightness.length >= 2)
+                  lightness = randomFromRange(lightness[0], lightness[1]);
+              return Color.fromHsl(Math.random() * 360, saturation, lightness);
+          }
+          static rgbToHsl(r, g, b) {
+              r /= 255;
+              g /= 255;
+              b /= 255;
+              const max = Math.max(r, g, b), min = Math.min(r, g, b);
+              const d = max - min;
+              const l = (max + min) / 2;
+              if (d === 0)
+                  return { h: 0, s: 0, l: Math.round(l * 100) };
+              const s = d / (1 - Math.abs(2 * l - 1));
+              let h = 0;
+              if (max === r)
+                  h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+              else if (max === g)
+                  h = ((b - r) / d + 2) / 6;
+              else
+                  h = ((r - g) / d + 4) / 6;
+              return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+          }
+          static hslToRgb(h, s, l) {
+              s /= 100;
+              l /= 100;
+              h = ((h % 360) + 360) % 360;
+              const C = (1 - Math.abs(2 * l - 1)) * s;
+              const X = C * (1 - Math.abs((h / 60) % 2 - 1));
+              const m = l - C / 2;
+              let r1 = 0, g1 = 0, b1 = 0;
+              if (h < 60) {
+                  r1 = C;
+                  g1 = X;
+                  b1 = 0;
+              }
+              else if (h < 120) {
+                  r1 = X;
+                  g1 = C;
+                  b1 = 0;
+              }
+              else if (h < 180) {
+                  r1 = 0;
+                  g1 = C;
+                  b1 = X;
+              }
+              else if (h < 240) {
+                  r1 = 0;
+                  g1 = X;
+                  b1 = C;
+              }
+              else if (h < 300) {
+                  r1 = X;
+                  g1 = 0;
+                  b1 = C;
+              }
+              else {
+                  r1 = C;
+                  g1 = 0;
+                  b1 = X;
+              }
+              return {
+                  r: Math.round((r1 + m) * 255),
+                  g: Math.round((g1 + m) * 255),
+                  b: Math.round((b1 + m) * 255),
+              };
+          }
+          static toHexStr(r, g, b, a) {
+              const h = (n) => Math.round(n).toString(16).padStart(2, "0");
+              const base = `#${h(r)}${h(g)}${h(b)}`;
+              return a < 1 ? base + h(a * 255) : base;
+          }
+          static extractNumbers(str) {
+              return (str.match(/-?[\d.]+(?:e[+-]?\d+)?/gi) ?? []).map(Number);
+          }
+      };
+  })();
+
+  /**
+   * @class GradumIcon
    * @group Components
-   * @category TurboIcon
+   * @category GradumIcon
    *
    * @description Icon class for creating icon elements.
-   * @extends TurboElement
+   * @extends GradumElement
    */
-  let TurboIcon = (() => {
-      let _classDecorators = [define("turbo-icon")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboElement;
+  let GradumIcon = (() => {
+      let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
       let _type_decorators;
       let _type_initializers = [];
@@ -17113,14 +22252,13 @@
       let _directory_initializers = [];
       let _directory_extraInitializers = [];
       let _set_icon_decorators;
+      let _get_iconColor_decorators;
       let _set_iconColor_decorators;
       let _loadSvg_decorators;
-      (class extends _classSuper {
-          static { _classThis = this; }
+      return class GradumIcon extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _type_decorators = [observe, auto({
-                      initialValueCallback: function () { return this.getPropertiesValue(this.type, "defaultType", "svg"); },
                       preprocessValue: function (value) {
                           if (!value || value.length == 0)
                               return this.type;
@@ -17131,7 +22269,6 @@
                       callAfter: function () { this.generateIcon(); },
                   })];
               _directory_decorators = [observe, auto({
-                      initialValueCallback: function () { return this.getPropertiesValue(undefined, "defaultDirectory", ""); },
                       preprocessValue: function (value) {
                           if (isUndefined(value))
                               return this.directory;
@@ -17142,24 +22279,22 @@
                       callAfter: function () { this.generateIcon(); }
                   })];
               _set_icon_decorators = [observe, auto()];
+              _get_iconColor_decorators = [observe, auto()];
               _set_iconColor_decorators = [observe, auto()];
               _loadSvg_decorators = [cache()];
               __esDecorate(this, null, _set_icon_decorators, { kind: "setter", name: "icon", static: false, private: false, access: { has: obj => "icon" in obj, set: (obj, value) => { obj.icon = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _get_iconColor_decorators, { kind: "getter", name: "iconColor", static: false, private: false, access: { has: obj => "iconColor" in obj, get: obj => obj.iconColor }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_iconColor_decorators, { kind: "setter", name: "iconColor", static: false, private: false, access: { has: obj => "iconColor" in obj, set: (obj, value) => { obj.iconColor = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _loadSvg_decorators, { kind: "method", name: "loadSvg", static: false, private: false, access: { has: obj => "loadSvg" in obj, get: obj => obj.loadSvg }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(null, null, _type_decorators, { kind: "field", name: "type", static: false, private: false, access: { has: obj => "type" in obj, get: obj => obj.type, set: (obj, value) => { obj.type = value; } }, metadata: _metadata }, _type_initializers, _type_extraInitializers);
               __esDecorate(null, null, _directory_decorators, { kind: "field", name: "directory", static: false, private: false, access: { has: obj => "directory" in obj, get: obj => obj.directory, set: (obj, value) => { obj.directory = value; } }, metadata: _metadata }, _directory_initializers, _directory_extraInitializers);
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          static config = {
-              ...TurboElement.config,
-              defaultType: "svg",
-              customLoaders: {}
+          static customLoaders = {};
+          static defaultProperties = {
+              type: "svg"
           };
-          static imageTypes = ["png", "jpg", "jpeg", "gif", "webp",
-              "PNG", "JPG", "JPEG", "GIF", "WEBP"];
+          static imageTypes = ["png", "jpg", "jpeg", "gif", "webp", "PNG", "JPG", "JPEG", "GIF", "WEBP"];
           _element = __runInitializers(this, _instanceExtraInitializers);
           _loadToken = 0;
           onLoaded;
@@ -17179,7 +22314,7 @@
               const icon = this.icon?.replace(extension, "");
               if (extension.length === 0 && this.type?.length > 0)
                   extension = "." + this.type;
-              return this.directory + icon + extension;
+              return (this.directory ?? "") + icon + extension;
           }
           /**
            * @description The name (or path) of the icon. Might include the file extension (to override the icon's type).
@@ -17194,8 +22329,9 @@
           /**
            * @description The assigned color to the icon (if any)
            */
+          get iconColor() { return; }
           set iconColor(value) {
-              this.updateColor(value);
+              this.updateColor(Color.from(value));
           }
           /**
            * @description The child element of the icon element (an HTML image or an SVG element).
@@ -17215,7 +22351,7 @@
           }
           updateColor(value = this.iconColor) {
               if (value && this.element instanceof SVGElement)
-                  this.element.style.fill = value;
+                  this.element.style.fill = value.toString();
           }
           generateIcon() {
               const path = this.path;
@@ -17228,6 +22364,8 @@
               }
               this.clear();
               if (!this.icon || this.icon.length === 0)
+                  return;
+              if (!type)
                   return;
               const token = ++this._loadToken;
               const element = this.getLoader(type)(path);
@@ -17243,7 +22381,7 @@
           getLoader(type) {
               if (!type)
                   return;
-              const customLoader = this.constructor.config.customLoaders[type];
+              const customLoader = this.constructor.customLoaders?.[type];
               if (customLoader)
                   return customLoader;
               if (equalToAny(type, "svg", "SVG"))
@@ -17257,56 +22395,36 @@
                   return;
               if (element.parentElement)
                   element = element.cloneNode(true);
-              $(this).addChild(element);
+              gradum(this).addChild(element);
               this.updateColor();
               this.onLoaded?.(element);
               this.element = element;
           }
           clear() {
-              $(this.element).destroy();
+              gradum(this.element).destroy();
               this.element = null;
           }
           constructor() {
               super(...arguments);
               __runInitializers(this, _directory_extraInitializers);
           }
-          static {
-              __runInitializers(_classThis, _classExtraInitializers);
-          }
-      });
-      return _classThis;
+      };
   })();
-  /**
-   * @group Components
-   * @category TurboIcon
-   * @param properties
-   */
-  function icon(properties) {
-      if (!properties.tag)
-          properties.tag = "turbo-icon";
-      return element({ ...properties });
-  }
+  define(GradumIcon);
 
   /**
-   * @class TurboRichElement
+   * @class GradumRichElement
    * @group Components
-   * @category TurboRichElement
+   * @category GradumRichElement
    *
-   * @description Class for creating a rich turbo element (an element that is possibly accompanied by icons (or other elements) on
+   * @description Class for creating a rich gradum element (an element that is possibly accompanied by icons (or other elements) on
    * its left and/or right).
-   * @extends TurboElement
+   * @extends GradumElement
    * @template {ValidTag} ElementTag - The tag of the main element to create the rich element from.
    */
-  let TurboRichElement = (() => {
-      let _classDecorators = [define("turbo-rich-element")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboElement;
+  let GradumRichElement = (() => {
+      let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
-      let _elementTag_decorators;
-      let _elementTag_initializers = [];
-      let _elementTag_extraInitializers = [];
       let _set_leftCustomElements_decorators;
       let _set_leftIcon_decorators;
       let _set_prefixEntry_decorators;
@@ -17314,11 +22432,9 @@
       let _set_suffixEntry_decorators;
       let _set_rightIcon_decorators;
       let _set_rightCustomElements_decorators;
-      (class extends _classSuper {
-          static { _classThis = this; }
+      return class GradumRichElement extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _elementTag_decorators = [auto({ initialValueCallback: function () { return this.getPropertiesValue(undefined, "defaultElementTag", "h4"); } })];
               _set_leftCustomElements_decorators = [auto({ executeSetterBeforeStoring: true })];
               _set_leftIcon_decorators = [auto({
                       preprocessValue: function (value) {
@@ -17327,9 +22443,9 @@
                                   this.leftIcon.icon = value;
                                   return this.leftIcon;
                               }
-                              value = icon({ icon: value });
+                              value = GradumIcon.create({ icon: value });
                           }
-                          $(this).remChild(this.leftIcon);
+                          gradum(this).remChild(this.leftIcon);
                           this.addAtPosition(value, "leftIcon");
                           return value;
                       }
@@ -17343,12 +22459,12 @@
                               }
                               value = element({ text: value });
                           }
-                          $(this).remChild(this.prefixEntry);
+                          gradum(this).remChild(this.prefixEntry);
                           this.addAtPosition(value, "prefixEntry");
                           return value;
                       }
                   })];
-              _set_element_decorators = [auto({
+              _set_element_decorators = [signal, auto({
                       preprocessValue: function (value) {
                           if (typeof value === "string") {
                               if (this.element && "textContent" in this.element) {
@@ -17362,7 +22478,7 @@
                                   value.tag = this.elementTag;
                               value = element(value);
                           }
-                          $(this).remChild(this.element);
+                          gradum(this).remChild(this.element);
                           this.addAtPosition(value, "element");
                           return value;
                       }
@@ -17376,7 +22492,7 @@
                               }
                               value = element({ text: value });
                           }
-                          $(this).remChild(this.suffixEntry);
+                          gradum(this).remChild(this.suffixEntry);
                           this.addAtPosition(value, "suffixEntry");
                           return value;
                       }
@@ -17388,9 +22504,9 @@
                                   this.rightIcon.icon = value;
                                   return this.rightIcon;
                               }
-                              value = icon({ icon: value });
+                              value = GradumIcon.create({ icon: value });
                           }
-                          $(this).remChild(this.rightIcon);
+                          gradum(this).remChild(this.rightIcon);
                           this.addAtPosition(value, "rightIcon");
                           return value;
                       }
@@ -17403,15 +22519,21 @@
               __esDecorate(this, null, _set_suffixEntry_decorators, { kind: "setter", name: "suffixEntry", static: false, private: false, access: { has: obj => "suffixEntry" in obj, set: (obj, value) => { obj.suffixEntry = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_rightIcon_decorators, { kind: "setter", name: "rightIcon", static: false, private: false, access: { has: obj => "rightIcon" in obj, set: (obj, value) => { obj.rightIcon = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_rightCustomElements_decorators, { kind: "setter", name: "rightCustomElements", static: false, private: false, access: { has: obj => "rightCustomElements" in obj, set: (obj, value) => { obj.rightCustomElements = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(null, null, _elementTag_decorators, { kind: "field", name: "elementTag", static: false, private: false, access: { has: obj => "elementTag" in obj, get: obj => obj.elementTag, set: (obj, value) => { obj.elementTag = value; } }, metadata: _metadata }, _elementTag_initializers, _elementTag_extraInitializers);
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          static config = {
-              ...TurboElement.config,
-              defaultElementTag: "h4"
+          static defaultProperties = {
+              elementTag: "h4"
           };
+          static customCreate(properties) {
+              if (properties.text && !properties.element) {
+                  properties.element = properties.text;
+                  properties.text = undefined;
+              }
+              if (properties.elementTag && typeof properties.element === "object" && !(properties.element instanceof Element)) {
+                  properties.element.tag = properties.elementTag;
+              }
+              return super.customCreate(properties);
+          }
           childrenOrder = (__runInitializers(this, _instanceExtraInitializers), ["leftCustomElements", "leftIcon",
               "prefixEntry", "element", "suffixEntry", "rightIcon", "rightCustomElements"]);
           /**
@@ -17433,28 +22555,28 @@
                   else if (el && Array.isArray(el))
                       nextSiblingIndex += el.length;
               }
-              $(this).addChild(element, nextSiblingIndex);
+              gradum(this).addChild(element, nextSiblingIndex);
           }
           /**
            * @description The tag of the text element in the button
            */
-          elementTag = __runInitializers(this, _elementTag_initializers, void 0);
+          elementTag;
           /**
            * @description The custom element(s) on the left. Can be set to new element(s) by a simple assignment.
            */
           set leftCustomElements(value) {
-              $(this).remChild(this.leftCustomElements);
+              gradum(this).remChild(this.leftCustomElements);
               this.addAtPosition(value, "leftCustomElements");
           }
           /**
            * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-           * icon, or a Turbo/HTML element).
+           * icon, or a Gradum/HTML element).
            */
           set leftIcon(value) { }
           get leftIcon() { return; }
           /**
            * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-           * icon, or a Turbo/HTML element).
+           * icon, or a Gradum/HTML element).
            */
           set prefixEntry(value) { }
           get prefixEntry() { return; }
@@ -17481,13 +22603,13 @@
           }
           /**
            * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-           * icon, or a Turbo/HTML element).
+           * icon, or a Gradum/HTML element).
            */
           set suffixEntry(value) { }
           get suffixEntry() { return; }
           /**
            * @description The right icon element. Can be set with a new icon by a simple assignment (the name/path of the
-           * icon, or a Turbo/HTML element).
+           * icon, or a Gradum/HTML element).
            */
           set rightIcon(value) { }
           get rightIcon() { return; }
@@ -17495,91 +22617,36 @@
            * @description The custom element(s) on the right. Can be set to new element(s) by a simple assignment.
            */
           set rightCustomElements(value) {
-              $(this).remChild(this.rightCustomElements);
+              gradum(this).remChild(this.rightCustomElements);
               this.addAtPosition(value, "rightCustomElements");
           }
-          constructor() {
-              super(...arguments);
-              __runInitializers(this, _elementTag_extraInitializers);
-          }
-          static {
-              __runInitializers(_classThis, _classExtraInitializers);
-          }
-      });
-      return _classThis;
+      };
   })();
-  /**
-   * @group Components
-   * @category TurboRichElement
-   * @param properties
-   */
-  function richElement(properties) {
-      if (properties.text && !properties.element)
-          properties.element = properties.text;
-      if (properties.elementTag && typeof properties.element === "object" && !(properties.element instanceof Element)) {
-          properties.element.tag = properties.elementTag;
-      }
-      if (!properties.tag)
-          properties.tag = "turbo-rich-element";
-      return element({ ...properties, text: undefined });
-  }
+  define(GradumRichElement);
 
   /**
-   * @class TurboButton
+   * @class GradumButton
    * @group Components
-   * @category TurboButton
+   * @category GradumButton
    *
-   * @description Button class for creating Turbo button elements.
-   * @extends TurboElement
+   * @description Button class for creating Gradum button elements.
+   * @extends GradumElement
    */
-  let TurboButton = (() => {
-      let _classDecorators = [define("turbo-button")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboRichElement;
-      (class extends _classSuper {
-          static { _classThis = this; }
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-          }
-          static config = { ...TurboRichElement.config, defaultElementTag: "h4" };
-          static {
-              __runInitializers(_classThis, _classExtraInitializers);
-          }
-      });
-      return _classThis;
-  })();
-  /**
-   * @group Components
-   * @category TurboButton
-   * @param properties
-   */
-  function button(properties) {
-      if (!properties.tag)
-          properties.tag = "turbo-button";
-      return richElement({ ...properties });
+  class GradumButton extends GradumRichElement {
   }
+  define(GradumButton);
 
   /**
    * @group Components
-   * @category TurboIconSwitch
+   * @category GradumIconSwitch
    */
-  let TurboIconSwitch = (() => {
-      let _classDecorators = [define("turbo-icon-switch")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboIcon;
+  let GradumIconSwitch = (() => {
+      let _classSuper = GradumIcon;
       let _instanceExtraInitializers = [];
       let _set_switchReifect_decorators;
       let _set_defaultState_decorators;
       let _set_appendStateToIconName_decorators;
-      (class extends _classSuper {
-          static { _classThis = this; }
+      return class GradumIconSwitch extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _set_switchReifect_decorators = [auto({
@@ -17595,12 +22662,8 @@
               __esDecorate(this, null, _set_switchReifect_decorators, { kind: "setter", name: "switchReifect", static: false, private: false, access: { has: obj => "switchReifect" in obj, set: (obj, value) => { obj.switchReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_defaultState_decorators, { kind: "setter", name: "defaultState", static: false, private: false, access: { has: obj => "defaultState" in obj, set: (obj, value) => { obj.defaultState = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_appendStateToIconName_decorators, { kind: "setter", name: "appendStateToIconName", static: false, private: false, access: { has: obj => "appendStateToIconName" in obj, set: (obj, value) => { obj.appendStateToIconName = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-              __runInitializers(_classThis, _classExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          config = (__runInitializers(this, _instanceExtraInitializers), { ...TurboIcon.config });
           get switchReifect() { return; }
           set switchReifect(value) {
               this.switchReifect.attach(this);
@@ -17624,47 +22687,33 @@
               if (this.defaultState)
                   this.switchReifect?.apply(this.defaultState, this);
           }
-      });
-      return _classThis;
+          constructor() {
+              super(...arguments);
+              __runInitializers(this, _instanceExtraInitializers);
+          }
+      };
   })();
-  /**
-   * @group Components
-   * @category TurboIconSwitch
-   */
-  function iconSwitch(properties) {
-      if (!properties.tag)
-          properties.tag = "turbo-icon-switch";
-      return icon({ ...properties });
-  }
+  define(GradumIconSwitch);
 
   /**
    * @group Components
-   * @category TurboIconToggle
+   * @category GradumIconToggle
    */
-  (() => {
-      let _classDecorators = [define("turbo-icon-toggle")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboIcon;
+  let GradumIconToggle = (() => {
+      let _classSuper = GradumIcon;
       let _instanceExtraInitializers = [];
       let _set_toggled_decorators;
       let _set_toggleOnClick_decorators;
-      (class extends _classSuper {
-          static { _classThis = this; }
+      return class GradumIconToggle extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _set_toggled_decorators = [auto({ initialValue: false })];
               _set_toggleOnClick_decorators = [auto({ initialValue: false })];
               __esDecorate(this, null, _set_toggled_decorators, { kind: "setter", name: "toggled", static: false, private: false, access: { has: obj => "toggled" in obj, set: (obj, value) => { obj.toggled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_toggleOnClick_decorators, { kind: "setter", name: "toggleOnClick", static: false, private: false, access: { has: obj => "toggleOnClick" in obj, set: (obj, value) => { obj.toggleOnClick = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-              __runInitializers(_classThis, _classExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          config = (__runInitializers(this, _instanceExtraInitializers), { ...TurboIcon.config });
-          stopPropagationOnClick = true;
+          stopPropagationOnClick = (__runInitializers(this, _instanceExtraInitializers), true);
           onToggle;
           clickListener = () => {
               this.toggle();
@@ -17676,135 +22725,249 @@
           }
           set toggleOnClick(value) {
               if (value)
-                  $(this).on(DefaultEventName.click, this.clickListener);
+                  gradum(this).on(DefaultEventName.click, this.clickListener);
               else
-                  $(this).removeListener(DefaultEventName.click, this.clickListener);
+                  gradum(this).removeListener(DefaultEventName.click, this.clickListener);
           }
           toggle() {
               this.toggled = !this.toggled;
           }
-      });
-      return _classThis;
-  })();
-
-  /**
-   * @group Utilities
-   * @category Random
-   */
-  function randomId(length = 8) {
-      const array = new Uint8Array(length);
-      crypto.getRandomValues(array);
-      return Array.from(array)
-          .map(b => b.toString(36).padStart(2, "0"))
-          .join("")
-          .slice(0, length);
-  }
-  /**
-   * @group Utilities
-   * @category Random
-   */
-  function randomFromRange(n1, n2) {
-      const min = Math.min(n1, n2);
-      const max = Math.max(n1, n2);
-      return (Math.random() * (max - min)) + min;
-  }
-
-  class TurboInputInputInteractor extends TurboInteractor {
-      keyName = "__input__interactor__";
-      _composing = false;
-      _resizeQueued = false;
-      options = {
-          compositionStart: { capture: true },
-          compositionEnd: { capture: true },
-          input: { capture: true },
       };
-      get inputElement() {
-          return this.element.element;
-      }
-      initialize() {
-          super.initialize();
-          $(this.target).bypassManagerOn = () => true;
-      }
-      setupChangedCallbacks() {
-          super.setupChangedCallbacks();
-          this.emitter.add("valueSet", () => this.handleInput());
-      }
-      click() {
-          if (!this.element.locked)
-              this.inputElement?.focus();
-          return false;
-      }
-      focusIn(e) {
-          if (e.target !== this.inputElement)
-              return;
-          if (this.element.locked) {
-              this.inputElement.blur();
-              return;
+  })();
+  define(GradumIconToggle);
+
+  /**
+   * @class GradumInteractor
+   * @group MVC
+   * @category Interactor
+   *
+   * @extends GradumOperator
+   * @template {object} ElementType - The type of the main component.
+   * @template {GradumView} ViewType - The element's MVC view type.
+   * @template {GradumModel} ModelType - The element's MVC model type.
+   * @template {GradumEmitter} EmitterType - The element's MVC emitter type.
+   * @description Class representing an MVC interactor. It holds event listeners to set up on the element itself, or
+   * the custom defined target.
+   */
+  class GradumInteractor extends GradumOperator {
+      #target_accessor_storage;
+      /**
+       * @description The target of the event listeners. Defaults to the element itself.
+       */
+      get target() { return this.#target_accessor_storage; }
+      set target(value) { this.#target_accessor_storage = value; }
+      /**
+       * @readonly
+       * @description The name of the tool (if any) to listen for.
+       */
+      toolName;
+      /**
+       * @readonly
+       * @description The associated event manager. Defaults to `GradumEventManager.instance`.
+       */
+      manager;
+      /**
+       *
+       * @readonly
+       * @description Optional custom options to define per event type.
+       */
+      options;
+      constructor(properties) {
+          super(properties);
+          this.manager = properties.manager ?? this.manager ?? GradumEventManager.instance;
+          this.toolName = properties.toolName ?? this.toolName ?? undefined;
+          this.options = properties.listenerOptions ?? {};
+          const host = this.element;
+          try {
+              this.target = properties.target ?? this.target ?? (host instanceof Node ? host
+                  : host?.element instanceof Node ? host.element
+                      : undefined);
           }
-          if (this.element.selectTextOnFocus)
-              requestAnimationFrame(() => {
-                  try {
-                      this.inputElement.select?.();
-                  }
-                  catch { }
-              });
-          this.element.onFocus.fire();
-          return true;
+          catch { }
       }
-      focusOut(e) {
-          if (e.target !== this.inputElement)
-              return;
-          this.element.value = this.element.element?.value;
-          this.element.onBlur.fire();
-      }
-      compositionStart(e) {
-          if (e.target !== this.inputElement)
-              return;
-          this._composing = true;
-      }
-      compositionEnd(e) {
-          if (e.target !== this.inputElement)
-              return;
-          this._composing = false;
-          this.handleInput();
-          return true;
-      }
-      input(e) {
-          if (e.target !== this.inputElement)
-              return;
-          this.handleInput();
-          return true;
-      }
-      handleInput() {
-          if (this._composing)
-              return;
-          if (!this.inputElement)
-              return;
-          if (this.element.dynamicVerticalResize && this.inputElement instanceof HTMLTextAreaElement) {
-              if (!this._resizeQueued) {
-                  this._resizeQueued = true;
-                  queueMicrotask(() => {
-                      this._resizeQueued = false;
-                      $(this.inputElement)
-                          .setStyle("height", "auto", true)
-                          .setStyle("height", this.inputElement.scrollHeight + "px", true);
+  }
+  addRegistryCategory(GradumInteractor);
+  define(GradumInteractor);
+
+  let GradumInputInputInteractor = (() => {
+      let _classSuper = GradumInteractor;
+      let _instanceExtraInitializers = [];
+      let _focusIn_decorators;
+      let _focusOut_decorators;
+      let _compositionStart_decorators;
+      let _compositionEnd_decorators;
+      let _input_decorators;
+      return class GradumInputInputInteractor extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _focusIn_decorators = [listener()];
+              _focusOut_decorators = [listener()];
+              _compositionStart_decorators = [listener({ options: { capture: true } })];
+              _compositionEnd_decorators = [listener({ options: { capture: true } })];
+              _input_decorators = [listener({ options: { capture: true } })];
+              __esDecorate(this, null, _focusIn_decorators, { kind: "method", name: "focusIn", static: false, private: false, access: { has: obj => "focusIn" in obj, get: obj => obj.focusIn }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _focusOut_decorators, { kind: "method", name: "focusOut", static: false, private: false, access: { has: obj => "focusOut" in obj, get: obj => obj.focusOut }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _compositionStart_decorators, { kind: "method", name: "compositionStart", static: false, private: false, access: { has: obj => "compositionStart" in obj, get: obj => obj.compositionStart }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _compositionEnd_decorators, { kind: "method", name: "compositionEnd", static: false, private: false, access: { has: obj => "compositionEnd" in obj, get: obj => obj.compositionEnd }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _input_decorators, { kind: "method", name: "input", static: false, private: false, access: { has: obj => "input" in obj, get: obj => obj.input }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          keyName = (__runInitializers(this, _instanceExtraInitializers), "__input__interactor__");
+          _composing = false;
+          _resizeQueued = false;
+          get target() {
+              return this.element.element;
+          }
+          initialize() {
+              super.initialize();
+              gradum(this.target).bypassManagerOn = () => true;
+          }
+          setupChangedCallbacks() {
+              super.setupChangedCallbacks();
+              this.emitter.add("valueSet", () => this.handleInput());
+          }
+          focusIn(e) {
+              if (this.element.locked) {
+                  this.target.blur();
+                  return Propagation.propagate;
+              }
+              if (this.element.selectTextOnFocus)
+                  requestAnimationFrame(() => {
+                      try {
+                          this.target.select?.();
+                      }
+                      catch { }
                   });
+              this.element.onFocus.fire();
+          }
+          focusOut(e) {
+              this.element.rawValue = this.element.element?.value ?? "";
+              this.element.onBlur.fire();
+          }
+          compositionStart(e) {
+              this._composing = true;
+          }
+          compositionEnd(e) {
+              this._composing = false;
+              this.handleInput();
+              this.emitter.fire("processValue");
+          }
+          input(e) {
+              this.handleInput();
+              this.emitter.fire("processValue");
+          }
+          handleInput() {
+              if (this._composing)
+                  return;
+              if (this.element.dynamicVerticalResize && this.target instanceof HTMLTextAreaElement) {
+                  if (!this._resizeQueued) {
+                      this._resizeQueued = true;
+                      queueMicrotask(() => {
+                          this._resizeQueued = false;
+                          gradum(this.target)
+                              .setStyle("height", "auto", true)
+                              .setStyle("height", this.target.scrollHeight + "px", true);
+                      });
+                  }
               }
           }
-          this.emitter.fire("processValue");
-      }
-  }
+      };
+  })();
+
+  let GradumLabelElement = (() => {
+      let _classSuper = GradumRichElement;
+      let _instanceExtraInitializers = [];
+      let _defaultId_decorators;
+      let _defaultId_initializers = [];
+      let _defaultId_extraInitializers = [];
+      let _labelElement_decorators;
+      let _labelElement_initializers = [];
+      let _labelElement_extraInitializers = [];
+      let _get_element_decorators;
+      let _updateId_decorators;
+      return class GradumLabelElement extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _defaultId_decorators = [signal];
+              _labelElement_decorators = [signal];
+              _get_element_decorators = [signal];
+              _updateId_decorators = [effect];
+              __esDecorate(this, null, _get_element_decorators, { kind: "getter", name: "element", static: false, private: false, access: { has: obj => "element" in obj, get: obj => obj.element }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _updateId_decorators, { kind: "method", name: "updateId", static: false, private: false, access: { has: obj => "updateId" in obj, get: obj => obj.updateId }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(null, null, _defaultId_decorators, { kind: "field", name: "defaultId", static: false, private: false, access: { has: obj => "defaultId" in obj, get: obj => obj.defaultId, set: (obj, value) => { obj.defaultId = value; } }, metadata: _metadata }, _defaultId_initializers, _defaultId_extraInitializers);
+              __esDecorate(null, null, _labelElement_decorators, { kind: "field", name: "labelElement", static: false, private: false, access: { has: obj => "labelElement" in obj, get: obj => obj.labelElement, set: (obj, value) => { obj.labelElement = value; } }, metadata: _metadata }, _labelElement_initializers, _labelElement_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          defaultId = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _defaultId_initializers, "gradum-id-" + randomId()));
+          labelElement = (__runInitializers(this, _defaultId_extraInitializers), __runInitializers(this, _labelElement_initializers, void 0));
+          content = __runInitializers(this, _labelElement_extraInitializers);
+          set label(value) {
+              if (!value || value.length === 0) {
+                  if (this.labelElement)
+                      this.labelElement.remove();
+                  return;
+              }
+              if (!this.labelElement) {
+                  this.labelElement = element({ tag: "label" });
+                  gradum(this).childHandler = this;
+                  gradum(this).addChild(this.labelElement, 0);
+                  if (this.content)
+                      gradum(this).childHandler = this.content;
+              }
+              this.labelElement.textContent = value;
+          }
+          get label() {
+              return this.labelElement?.textContent;
+          }
+          get element() {
+              return super.element;
+          }
+          set element(value) {
+              super.element = value;
+              if (this.element) {
+                  if (!this.element.id)
+                      this.element.id = this.defaultId;
+                  else if (this.labelElement)
+                      this.labelElement.htmlFor = this.element.id;
+              }
+          }
+          setupUIElements() {
+              super.setupUIElements();
+              this.content = div();
+          }
+          setupUILayout() {
+              super.setupUILayout();
+              gradum(this.content).addChild(gradum(this).childrenArray);
+              gradum(this).addChild([this.labelElement, this.content]);
+              gradum(this).childHandler = this.content;
+          }
+          updateId() {
+              if (this.element && !this.element.id)
+                  this.element.id = this.defaultId;
+              if (this.labelElement)
+                  this.labelElement.htmlFor = this.element?.id ?? this.defaultId;
+          }
+      };
+  })();
+  define(GradumLabelElement);
 
   /**
    * @group Components
-   * @category TurboInput
+   * @category GradumInput
    */
-  let TurboInput = (() => {
-      let _classDecorators = [define("turbo-input")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboRichElement;
+  let GradumInput = (() => {
+      let _classSuper = GradumLabelElement;
+      let _instanceExtraInitializers = [];
+      let _locked_decorators;
+      let _locked_initializers = [];
+      let _locked_extraInitializers = [];
+      let _selectTextOnFocus_decorators;
+      let _selectTextOnFocus_initializers = [];
+      let _selectTextOnFocus_extraInitializers = [];
+      let _dynamicVerticalResize_decorators;
+      let _dynamicVerticalResize_initializers = [];
+      let _dynamicVerticalResize_extraInitializers = [];
+      let _get_element_decorators;
       let _type_decorators;
       let _type_initializers = [];
       let _type_extraInitializers = [];
@@ -17817,62 +22980,65 @@
       let _size_decorators;
       let _size_initializers = [];
       let _size_extraInitializers = [];
-      (class extends _classSuper {
-          static { _classThis = this; }
+      let _get_value_decorators;
+      let _get_rawValue_decorators;
+      return class GradumInput extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _locked_decorators = [signal];
+              _selectTextOnFocus_decorators = [signal];
+              _dynamicVerticalResize_decorators = [signal];
+              _get_element_decorators = [signal];
               _type_decorators = [expose("element")];
               _placeholder_decorators = [expose("element")];
               _pattern_decorators = [expose("element")];
               _size_decorators = [expose("element")];
+              _get_value_decorators = [signal];
+              _get_rawValue_decorators = [signal];
+              __esDecorate(this, null, _get_element_decorators, { kind: "getter", name: "element", static: false, private: false, access: { has: obj => "element" in obj, get: obj => obj.element }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _type_decorators, { kind: "accessor", name: "type", static: false, private: false, access: { has: obj => "type" in obj, get: obj => obj.type, set: (obj, value) => { obj.type = value; } }, metadata: _metadata }, _type_initializers, _type_extraInitializers);
               __esDecorate(this, null, _placeholder_decorators, { kind: "accessor", name: "placeholder", static: false, private: false, access: { has: obj => "placeholder" in obj, get: obj => obj.placeholder, set: (obj, value) => { obj.placeholder = value; } }, metadata: _metadata }, _placeholder_initializers, _placeholder_extraInitializers);
               __esDecorate(this, null, _pattern_decorators, { kind: "accessor", name: "pattern", static: false, private: false, access: { has: obj => "pattern" in obj, get: obj => obj.pattern, set: (obj, value) => { obj.pattern = value; } }, metadata: _metadata }, _pattern_initializers, _pattern_extraInitializers);
               __esDecorate(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+              __esDecorate(this, null, _get_value_decorators, { kind: "getter", name: "value", static: false, private: false, access: { has: obj => "value" in obj, get: obj => obj.value }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _get_rawValue_decorators, { kind: "getter", name: "rawValue", static: false, private: false, access: { has: obj => "rawValue" in obj, get: obj => obj.rawValue }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(null, null, _locked_decorators, { kind: "field", name: "locked", static: false, private: false, access: { has: obj => "locked" in obj, get: obj => obj.locked, set: (obj, value) => { obj.locked = value; } }, metadata: _metadata }, _locked_initializers, _locked_extraInitializers);
+              __esDecorate(null, null, _selectTextOnFocus_decorators, { kind: "field", name: "selectTextOnFocus", static: false, private: false, access: { has: obj => "selectTextOnFocus" in obj, get: obj => obj.selectTextOnFocus, set: (obj, value) => { obj.selectTextOnFocus = value; } }, metadata: _metadata }, _selectTextOnFocus_initializers, _selectTextOnFocus_extraInitializers);
+              __esDecorate(null, null, _dynamicVerticalResize_decorators, { kind: "field", name: "dynamicVerticalResize", static: false, private: false, access: { has: obj => "dynamicVerticalResize" in obj, get: obj => obj.dynamicVerticalResize, set: (obj, value) => { obj.dynamicVerticalResize = value; } }, metadata: _metadata }, _dynamicVerticalResize_initializers, _dynamicVerticalResize_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          static config = {
-              ...TurboRichElement.config,
-              defaultElementTag: "input"
+          static defaultProperties = {
+              inputTag: "input",
+              interactors: GradumInputInputInteractor
           };
-          labelElement;
-          content;
-          defaultId = "turbo-input-" + randomId();
-          locked = false;
-          selectTextOnFocus = false;
-          dynamicVerticalResize = false;
-          inputRegexCheck;
+          static customCreate(properties) {
+              const element = properties.input ?? {};
+              const elementTag = properties.inputTag ?? "input";
+              const value = properties.value;
+              const input = super.customCreate({ ...properties, elementTag, element,
+                  value: undefined, input: undefined, inputTag: undefined });
+              if (value !== undefined && value !== null)
+                  input.value = value;
+              return input;
+          }
+          locked = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _locked_initializers, false));
+          selectTextOnFocus = (__runInitializers(this, _locked_extraInitializers), __runInitializers(this, _selectTextOnFocus_initializers, false));
+          dynamicVerticalResize = (__runInitializers(this, _selectTextOnFocus_extraInitializers), __runInitializers(this, _dynamicVerticalResize_initializers, false));
+          inputRegexCheck = __runInitializers(this, _dynamicVerticalResize_extraInitializers);
           blurRegexCheck;
           lastValidForInput = "";
           lastValidForBlur = "";
           onFocus = new Delegate();
           onBlur = new Delegate();
           onInput = new Delegate();
-          set label(value) {
-              if (!value || value.length === 0) {
-                  if (this.labelElement)
-                      this.labelElement.remove();
-                  return;
-              }
-              if (!this.labelElement) {
-                  this.labelElement = element({ tag: "label", htmlFor: this.element?.id ?? this.defaultId });
-                  $(this).childHandler = this;
-                  $(this).addChild(this.labelElement, 0);
-                  if (this.content)
-                      $(this).childHandler = this.content;
-              }
-              this.labelElement.textContent = value;
-          }
-          get label() {
-              return this.labelElement?.textContent;
-          }
           get input() {
               return this.element;
           }
           set input(value) {
               this.element = value;
+          }
+          get element() {
+              return super.element;
           }
           set element(value) {
               if (!(value instanceof Node) && typeof value === "object") {
@@ -17882,15 +23048,6 @@
                       value.type = "text";
               }
               super.element = value;
-              if (this.element) {
-                  if (!this.element.id)
-                      this.element.id = this.defaultId;
-                  else if (this.labelElement)
-                      this.labelElement.htmlFor = this.element.id;
-              }
-          }
-          get element() {
-              return super.element;
           }
           #type_accessor_storage = __runInitializers(this, _type_initializers, void 0);
           get type() { return this.#type_accessor_storage; }
@@ -17904,36 +23061,48 @@
           #size_accessor_storage = (__runInitializers(this, _pattern_extraInitializers), __runInitializers(this, _size_initializers, void 0));
           get size() { return this.#size_accessor_storage; }
           set size(value) { this.#size_accessor_storage = value; }
-          initialize() {
-              super.initialize();
-              this.mvc.generate({ interactors: [TurboInputInputInteractor] });
-              this.mvc.getInteractor("__input__interactor__").target = this.content;
-          }
-          setupUIElements() {
-              super.setupUIElements();
-              this.content = div();
-          }
-          setupUILayout() {
-              super.setupUILayout();
-              $(this.content).addChild($(this).childrenArray);
-              $(this).addChild([this.labelElement, this.content]);
-              $(this).childHandler = this.content;
-          }
           setupChangedCallbacks() {
               super.setupChangedCallbacks();
-              this.mvc.emitter.add("processValue", () => this.processInputValue());
+              this.emitter?.add("processValue", () => this.processInputValue());
+          }
+          setupUIListeners() {
+              super.setupUIListeners();
+              gradum(this).on(DefaultEventName.click, () => {
+                  if (!this.locked)
+                      this.element?.focus();
+                  return Propagation.propagate;
+              });
           }
           get value() {
-              const value = this.element?.value;
+              const value = this.rawValue;
+              if (!value)
+                  return undefined;
               try {
                   const num = parseFloat(value);
                   if (!isNaN(num))
                       return num;
               }
               catch { }
+              try {
+                  const current = this.value;
+                  if (current && typeof current === "object" && "fromString" in current
+                      && typeof current.fromString === "function")
+                      return current.fromString(value);
+              }
+              catch { }
+              try {
+                  return JSON.parse(value);
+              }
+              catch { }
               return value;
           }
           set value(value) {
+              this.rawValue = value.toString();
+          }
+          get rawValue() {
+              return this.element?.value ?? "";
+          }
+          set rawValue(value) {
               if (!(this.element instanceof HTMLInputElement) && !(this.element instanceof HTMLTextAreaElement))
                   return;
               let strValue = value.toString();
@@ -17943,7 +23112,12 @@
                       strValue = this.lastValidForBlur;
               }
               this.element.value = strValue;
-              this.mvc.emitter.fire("valueSet");
+              this.emitter.fire("valueSet");
+          }
+          setValueSilently(value) {
+              if (!(this.element instanceof HTMLInputElement) && !(this.element instanceof HTMLTextAreaElement))
+                  return;
+              this.element.value = typeof value?.toString === "function" ? value.toString() : String(value);
           }
           processInputValue(value = this.element.value) {
               if (this.inputRegexCheck) {
@@ -17965,7 +23139,9 @@
               else {
                   this.lastValidForBlur = value;
               }
-              this.element.value = value;
+              if (this.element instanceof HTMLInputElement || this.element instanceof HTMLTextAreaElement)
+                  this.element.value = value;
+              markDirty(this, "rawValue");
               this.onInput.fire();
           }
           sanitizeByRegex(value, rule) {
@@ -17985,63 +23161,49 @@
               super(...arguments);
               __runInitializers(this, _size_extraInitializers);
           }
-          static {
-              __runInitializers(_classThis, _classExtraInitializers);
-          }
-      });
-      return _classThis;
+      };
   })();
+  define(GradumInput);
 
   /**
    * @group Components
-   * @category TurboNumericalInput
+   * @category GradumNumericalInput
    */
-  (() => {
-      let _classDecorators = [define("turbo-numerical-input")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboInput;
-      (class extends _classSuper {
-          static { _classThis = this; }
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-              __runInitializers(_classThis, _classExtraInitializers);
+  class GradumNumericalInput extends GradumInput {
+      static defaultProperties = {
+          inputRegexCheck: /^(?!-0?(\.0+)?$)-?(0|[1-9]\d*)?(\.\d+)?\.?$|^-$|^$/,
+          blurRegexCheck: /^(?!-0?(\.0+)?$)-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)$/,
+      };
+      multiplier = 1;
+      decimalPlaces;
+      min;
+      max;
+      get value() {
+          return this.element ? Number.parseFloat(this.element.value) / this.multiplier : undefined;
+      }
+      set value(value) {
+          if (!value || value == "")
+              value = 0;
+          if (typeof value == "string")
+              value = Number.parseFloat(value);
+          value *= this.multiplier;
+          if (this.min != undefined && value < this.min)
+              value = this.min;
+          if (this.max != undefined && value > this.max)
+              value = this.max;
+          if (this.decimalPlaces != undefined) {
+              value = Math.round(value * Math.pow(10, this.decimalPlaces)) / Math.pow(10, this.decimalPlaces);
           }
-          multiplier = 1;
-          decimalPlaces;
-          min;
-          max;
-          get value() {
-              return Number.parseFloat(this.element.value) / this.multiplier;
-          }
-          set value(value) {
-              if (!value || value == "")
-                  value = 0;
-              if (typeof value == "string")
-                  value = Number.parseFloat(value);
-              value *= this.multiplier;
-              if (this.min != undefined && value < this.min)
-                  value = this.min;
-              if (this.max != undefined && value > this.max)
-                  value = this.max;
-              if (this.decimalPlaces != undefined) {
-                  value = Math.round(value * Math.pow(10, this.decimalPlaces)) / Math.pow(10, this.decimalPlaces);
-              }
-              super.value = value;
-          }
-      });
-      return _classThis;
-  })();
+          super.value = value;
+      }
+  }
+  define(GradumNumericalInput);
 
   /**
    * @group Event Handling
-   * @category TurboEvents
+   * @category GradumEvents
    */
-  class TurboSelectInputEvent extends TurboEvent {
+  class GradumSelectInputEvent extends GradumEvent {
       toggledEntry;
       values;
       constructor(properties) {
@@ -18052,47 +23214,16 @@
   }
 
   /**
-   * @class TurboBaseElement
-   * @group TurboElement
-   * @category TurboBaseElement
-   *
-   * @description TurboHeadlessElement class, similar to TurboElement but without extending HTMLElement.
-   * @template {TurboView} ViewType - The element's view type, if initializing MVC.
-   * @template {object} DataType - The element's data type, if initializing MVC.
-   * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
-   * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
-   */
-  class TurboBaseElement {
-      /**
-       * @description Static configuration object.
-       */
-      static config = {};
-      /**
-       * @description Update the class's static configurations. Will only overwrite the set properties.
-       * @property {typeof this.config} value - The object containing the new configurations.
-       */
-      static configure(value) {
-          Object.entries(value).forEach(([key, val]) => {
-              if (val !== undefined)
-                  this.config[key] = val;
-          });
-      }
-  }
-  (() => {
-      defineDefaultProperties(TurboBaseElement);
-  })();
-
-  /**
-   * @class TurboSelect
+   * @class GradumSelect
    * @group Components
-   * @category TurboSelect
+   * @category GradumSelect
    *
    * @description Base class for creating a selection menu
 
-   * @extends TurboElement
+   * @extends GradumElement
    */
-  let TurboSelect = (() => {
-      let _classSuper = TurboBaseElement;
+  let GradumSelect = (() => {
+      let _classSuper = GradumBaseElement;
       let _instanceExtraInitializers = [];
       let _set_parent_decorators;
       let _getValue_decorators;
@@ -18108,29 +23239,47 @@
       let _forceSelection_decorators;
       let _forceSelection_initializers = [];
       let _forceSelection_extraInitializers = [];
-      let _selectedEntryClasses_decorators;
-      let _selectedEntryClasses_initializers = [];
-      let _selectedEntryClasses_extraInitializers = [];
-      return class TurboSelect extends _classSuper {
+      let _selectedEntriesClasses_decorators;
+      let _selectedEntriesClasses_initializers = [];
+      let _selectedEntriesClasses_extraInitializers = [];
+      let _entriesClasses_decorators;
+      let _entriesClasses_initializers = [];
+      let _entriesClasses_extraInitializers = [];
+      return class GradumSelect extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _set_parent_decorators = [auto()];
               _getValue_decorators = [auto({
-                      defaultValue: (entry) => entry instanceof TurboRichElement ? entry.text
+                      defaultValue: (entry) => entry instanceof GradumRichElement ? entry.text
                           : entry instanceof HTMLElement ? entry.textContent
                               : entry instanceof Element ? entry.innerHTML
                                   : undefined
                   })];
               _getSecondaryValue_decorators = [auto({ defaultValue: () => "" })];
               _createEntry_decorators = [auto({
-                      defaultValue: (value) => richElement({ text: stringify(value) })
+                      defaultValue: (value) => GradumRichElement.create({ text: stringify(value) })
                   })];
               _set_multiSelection_decorators = [auto({ defaultValue: false })];
-              _forceSelection_decorators = [auto({ defaultValueCallback: function () { return !this.multiSelection; } })];
-              _selectedEntryClasses_decorators = [auto({
-                      callBefore: function () { this.selectedEntries?.forEach(entry => turbo(entry).removeClass(this.selectedEntryClasses)); },
-                      callAfter: function () { this.selectedEntries?.forEach(entry => turbo(entry).addClass(this.selectedEntryClasses)); },
-                      initialValueCallback: function () { return this.getPropertiesValue(undefined, "defaultSelectedEntryClasses"); },
+              _forceSelection_decorators = [auto({
+                      defaultValueCallback: function () {
+                          return !this.multiSelection;
+                      }
+                  })];
+              _selectedEntriesClasses_decorators = [auto({
+                      callBefore: function () {
+                          this.selectedEntries?.forEach(entry => gradum(entry).removeClass(this.selectedEntryClasses));
+                      },
+                      callAfter: function () {
+                          this.selectedEntries?.forEach(entry => gradum(entry).addClass(this.selectedEntryClasses));
+                      },
+                  })];
+              _entriesClasses_decorators = [auto({
+                      callBefore: function (value) {
+                          this.entries.forEach(entry => gradum(entry).removeClass(value));
+                      },
+                      callAfter: function (value) {
+                          this.entries.forEach(entry => gradum(entry).addClass(value));
+                      }
                   })];
               __esDecorate(this, null, _set_parent_decorators, { kind: "setter", name: "parent", static: false, private: false, access: { has: obj => "parent" in obj, set: (obj, value) => { obj.parent = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_multiSelection_decorators, { kind: "setter", name: "multiSelection", static: false, private: false, access: { has: obj => "multiSelection" in obj, set: (obj, value) => { obj.multiSelection = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
@@ -18138,19 +23287,62 @@
               __esDecorate(null, null, _getSecondaryValue_decorators, { kind: "field", name: "getSecondaryValue", static: false, private: false, access: { has: obj => "getSecondaryValue" in obj, get: obj => obj.getSecondaryValue, set: (obj, value) => { obj.getSecondaryValue = value; } }, metadata: _metadata }, _getSecondaryValue_initializers, _getSecondaryValue_extraInitializers);
               __esDecorate(null, null, _createEntry_decorators, { kind: "field", name: "createEntry", static: false, private: false, access: { has: obj => "createEntry" in obj, get: obj => obj.createEntry, set: (obj, value) => { obj.createEntry = value; } }, metadata: _metadata }, _createEntry_initializers, _createEntry_extraInitializers);
               __esDecorate(null, null, _forceSelection_decorators, { kind: "field", name: "forceSelection", static: false, private: false, access: { has: obj => "forceSelection" in obj, get: obj => obj.forceSelection, set: (obj, value) => { obj.forceSelection = value; } }, metadata: _metadata }, _forceSelection_initializers, _forceSelection_extraInitializers);
-              __esDecorate(null, null, _selectedEntryClasses_decorators, { kind: "field", name: "selectedEntryClasses", static: false, private: false, access: { has: obj => "selectedEntryClasses" in obj, get: obj => obj.selectedEntryClasses, set: (obj, value) => { obj.selectedEntryClasses = value; } }, metadata: _metadata }, _selectedEntryClasses_initializers, _selectedEntryClasses_extraInitializers);
+              __esDecorate(null, null, _selectedEntriesClasses_decorators, { kind: "field", name: "selectedEntriesClasses", static: false, private: false, access: { has: obj => "selectedEntriesClasses" in obj, get: obj => obj.selectedEntriesClasses, set: (obj, value) => { obj.selectedEntriesClasses = value; } }, metadata: _metadata }, _selectedEntriesClasses_initializers, _selectedEntriesClasses_extraInitializers);
+              __esDecorate(null, null, _entriesClasses_decorators, { kind: "field", name: "entriesClasses", static: false, private: false, access: { has: obj => "entriesClasses" in obj, get: obj => obj.entriesClasses, set: (obj, value) => { obj.entriesClasses = value; } }, metadata: _metadata }, _entriesClasses_initializers, _entriesClasses_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          static config = { defaultSelectedEntryClasses: "selected" };
+          static defaultProperties = {
+              selectedEntriesClasses: "selected",
+              onEnabled: (b, entry) => {
+                  if (!(entry instanceof HTMLElement))
+                      return;
+                  gradum(entry).setStyle("visibility", b ? "" : "hidden");
+              }
+          };
           _inputField = __runInitializers(this, _instanceExtraInitializers);
           _entries = [];
           _entriesData = new WeakMap();
           parentObserver;
-          onSelectDelegate = new Delegate();
-          onEnabledDelegate = new Delegate();
-          onEntryAdded = new Delegate();
-          onEntryRemoved = new Delegate();
-          onEntryClicked = new Delegate();
+          _onSelect = new Delegate();
+          get onSelect() {
+              return this._onSelect;
+          }
+          set onSelect(value) {
+              if (value)
+                  this._onSelect.add(value);
+          }
+          _onEnabled = new Delegate();
+          get onEnabled() {
+              return this._onEnabled;
+          }
+          set onEnabled(value) {
+              if (value)
+                  this._onEnabled.add(value);
+          }
+          _onEntryAdded = new Delegate();
+          get onEntryAdded() {
+              return this._onEntryAdded;
+          }
+          set onEntryAdded(value) {
+              if (value)
+                  this.onEntryAdded.add(value);
+          }
+          _onEntryRemoved = new Delegate();
+          get onEntryRemoved() {
+              return this._onEntryRemoved;
+          }
+          set onEntryRemoved(value) {
+              if (value)
+                  this.onEntryRemoved.add(value);
+          }
+          _onEntryClicked = new Delegate();
+          get onEntryClicked() {
+              return this._onEntryClicked;
+          }
+          set onEntryClicked(value) {
+              if (value)
+                  this.onEntryClicked.add(value);
+          }
           /**
            * The dropdown's entries.
            */
@@ -18159,7 +23351,6 @@
           }
           set entries(value) {
               this.enableObserver(false);
-              console.log(value);
               const previouslySelectedValues = this.selectedValues;
               this.clear(false);
               this._entries = (Array.isArray(value) ? value : Array.from(value))
@@ -18167,8 +23358,10 @@
               if (value instanceof HTMLCollection && value.item(0))
                   this.parent = value.item(0).parentElement;
               const array = this.entries;
-              for (let i = 0; i < array.length; i++)
+              for (let i = 0; i < array.length; i++) {
                   this.onEntryAdded.fire(array[i], i);
+                  gradum(array[i]).addClass(this.entriesClasses);
+              }
               this.deselectAll();
               for (let i = 0; i < array.length; i++) {
                   if (previouslySelectedValues.includes(this.getValue(array[i])))
@@ -18190,7 +23383,7 @@
               values.forEach(value => {
                   const entry = this.createEntry(value);
                   if (entry instanceof Node && this.parent)
-                      $(this.parent).addChild(entry);
+                      gradum(this.parent).addChild(entry);
                   entries.push(entry);
               });
               this.entries = entries;
@@ -18207,7 +23400,7 @@
           set parent(value) {
               if (!(value instanceof Element))
                   return;
-              $(value).addChild(this.entries.filter(entry => entry instanceof Node));
+              gradum(value).addChild(this.entries.filter(entry => entry instanceof Node));
               if (this.inputField)
                   value.appendChild(this.inputField);
               this.setupParentObserver();
@@ -18237,53 +23430,29 @@
               this.forceSelection = !value;
           }
           forceSelection = (__runInitializers(this, _createEntry_extraInitializers), __runInitializers(this, _forceSelection_initializers, void 0));
-          set onSelect(value) {
-              if (value)
-                  this.onSelectDelegate.add(value);
+          //TODO FIX
+          selectedEntriesClasses = (__runInitializers(this, _forceSelection_extraInitializers), __runInitializers(this, _selectedEntriesClasses_initializers, void 0));
+          entriesClasses = (__runInitializers(this, _selectedEntriesClasses_extraInitializers), __runInitializers(this, _entriesClasses_initializers, void 0));
+          static customCreate(properties) {
+              const { selectedValues, parent } = properties;
+              const obj = super.customCreate({ ...properties, selectedValues: undefined, parent: undefined });
+              obj.parent = parent;
+              obj.selectedValues = selectedValues || [];
+              return obj;
           }
-          set onEnabled(value) {
-              if (value)
-                  this.onEnabledDelegate.add(value);
-          }
-          selectedEntryClasses = (__runInitializers(this, _forceSelection_extraInitializers), __runInitializers(this, _selectedEntryClasses_initializers, void 0));
           /**
            * @description Dropdown constructor
-           * @param {TurboDropdownProperties} properties - Properties for configuring the dropdown.
            */
-          constructor(properties = {}) {
+          constructor() {
               super();
-              __runInitializers(this, _selectedEntryClasses_extraInitializers);
-              const selectedValues = properties.selectedValues || [];
-              properties.selectedValues = undefined;
+              __runInitializers(this, _entriesClasses_extraInitializers);
               this.onEntryClicked.add((entry) => this.select(entry, !this.isSelected(entry)));
               this.onEntryAdded.add((entry) => {
                   this.initializeSelection();
-                  turbo(entry).on(DefaultEventName.click, (e) => {
+                  gradum(entry).on(DefaultEventName.click, (e) => {
                       this.onEntryClicked.fire(entry, e);
-                      return true;
+                      return Propagation.stopPropagation;
                   });
-              });
-              if (!properties.onEnabled)
-                  properties.onEnabled = (b, entry) => {
-                      if (!(entry instanceof HTMLElement))
-                          return;
-                      turbo(entry).setStyle("visibility", b ? "" : "hidden");
-                  };
-              for (const property of Object.keys(properties)) {
-                  try {
-                      if (this[property] instanceof Delegate)
-                          this[property].add(properties[property]);
-                      else
-                          this[property] = properties[property];
-                  }
-                  catch { }
-              }
-              if (!this.forceSelection)
-                  this.deselectAll();
-              this.entries.forEach(entry => {
-                  if (selectedValues.includes(this.getValue(entry))) {
-                      this.select(entry);
-                  }
               });
           }
           getEntryData(entry) {
@@ -18309,12 +23478,31 @@
                   index = 0;
               this.enableObserver(false);
               this.onEntryAdded.fire(entry, index);
+              gradum(entry).addClass(this.entriesClasses);
               if (Array.isArray(this.entries) && !this.entries.includes(entry))
                   this.entries.splice(index, 0, entry);
               if (entry instanceof Node && !entry.parentElement && this.parent)
-                  $(this.parent).addChild(entry, index);
+                  gradum(this.parent).addChild(entry, index);
               this.enableObserver(true);
               requestAnimationFrame(() => this.select(this.selectedEntry));
+          }
+          removeEntry(value) {
+              const entry = this.getEntry(value);
+              if (!entry)
+                  return this;
+              this.enableObserver(false);
+              if (this.getEntryData(entry).selected && this.forceSelection) {
+                  const fallback = this.enabledEntries.find(e => e !== entry);
+                  if (fallback)
+                      this.select(fallback);
+              }
+              this.onEntryRemoved.fire(entry);
+              if (entry instanceof Node && entry.parentElement)
+                  entry.parentElement.removeChild(entry);
+              this.clearEntryData(entry);
+              this.refreshInputField();
+              this.enableObserver(true);
+              return this;
           }
           getEntryFromSecondaryValue(value) {
               return this.entries.find((entry) => this.getSecondaryValue(entry) === value);
@@ -18334,14 +23522,15 @@
                           entry = isEntry;
                   }
               }
-              catch { }
+              catch {
+              }
               return entry;
           }
           /**
            * @description Select an entry.
            * @param {string | EntryType} value - The DropdownEntry (or its string value) to select.
            * @param selected
-           * @return {TurboSelect} - This Dropdown for chaining.
+           * @return {GradumSelect} - This Dropdown for chaining.
            */
           select(value, selected = true) {
               if (isNull(value) || isUndefined(value))
@@ -18357,7 +23546,8 @@
                           entry = isEntry;
                   }
               }
-              catch { }
+              catch {
+              }
               if (!entry)
                   return this;
               const wasSelected = this.isSelected(entry);
@@ -18369,11 +23559,11 @@
                   this.deselectAll();
               this.getEntryData(entry).selected = selected;
               if (entry instanceof HTMLElement)
-                  $(entry).toggleClass(this.selectedEntryClasses, selected);
+                  gradum(entry).toggleClass(this.selectedEntriesClasses, selected);
               this.initializeSelection();
               this.refreshInputField();
-              this.onSelectDelegate.fire(selected, entry, this.getIndex(entry));
-              (this.parent ?? document).dispatchEvent(new TurboSelectInputEvent({
+              this.onSelect.fire(selected, entry, this.getIndex(entry));
+              (this.parent ?? document).dispatchEvent(new GradumSelectInputEvent({
                   toggledEntry: entry,
                   values: this.selectedValues
               }));
@@ -18384,7 +23574,7 @@
            * @param {number} index - The index of the entry to select
            * @param {(index: number, entriesCount: number, zero?: number) => number} [preprocess=trim] - Callback to execute
            * on the index to preprocess it. Defaults to trim().
-           * @return {TurboSelect} - This Dropdown for chaining.
+           * @return {GradumSelect} - This Dropdown for chaining.
            */
           selectByIndex(index, preprocess = trim) {
               index = preprocess(index, this.entries.length - 1, 0);
@@ -18396,7 +23586,7 @@
           deselectAll() {
               this.selectedEntries.forEach(entry => {
                   if (entry instanceof HTMLElement)
-                      $(entry).toggleClass(this.selectedEntryClasses, false);
+                      gradum(entry).toggleClass(this.selectedEntriesClasses, false);
                   this.getEntryData(entry).selected = false;
               });
               this.refreshInputField();
@@ -18434,7 +23624,7 @@
                   if (!entry)
                       return;
                   this.getEntryData(entry).enabled = b;
-                  this.onEnabledDelegate.fire(b, entry, this.getIndex(entry));
+                  this.onEnabled.fire(b, entry, this.getIndex(entry));
               });
           }
           /**
@@ -18442,6 +23632,23 @@
            */
           get selectedEntry() {
               return this.selectedEntries[0];
+          }
+          get selectedIndex() {
+              return this.getIndex(this.selectedEntry);
+          }
+          set selectedIndex(value) {
+              this.selectByIndex(value);
+          }
+          get selectedIndices() {
+              return this.selectedEntries.map(entry => this.getIndex(entry));
+          }
+          set selectedValues(values) {
+              if (!this.forceSelection)
+                  this.deselectAll();
+              this.entries.forEach(entry => {
+                  if (values.includes(this.getValue(entry)))
+                      this.select(entry);
+              });
           }
           /**
            * @description The dropdown's currently selected values
@@ -18527,6 +23734,7 @@
                           }
                           this.getEntryData(entry);
                           this.onEntryAdded.fire(entry, this.getIndex(entry));
+                          gradum(entry).addClass(this.entriesClasses);
                       }
                       for (const node of record.removedNodes) {
                           if (!(node instanceof Element))
@@ -18553,21 +23761,397 @@
           }
       };
   })();
+  define(GradumSelect);
 
-  var css_248z$2 = ".turbo-drawer{align-items:center;direction:ltr;display:inline-flex}.turbo-drawer-panel-container{align-items:center;display:flex;overflow:hidden;position:relative}.turbo-drawer-thumb{display:inline-block;position:relative}.top-drawer .turbo-drawer-panel-container,.turbo-drawer.top-drawer{flex-direction:column}.bottom-drawer .turbo-drawer-panel-container,.turbo-drawer.bottom-drawer{flex-direction:column-reverse}.left-drawer .turbo-drawer-panel-container,.turbo-drawer.left-drawer{flex-direction:row}.right-drawer .turbo-drawer-panel-container,.turbo-drawer.right-drawer{flex-direction:row-reverse}";
+  /**
+   * @class GradumSelectElement
+   * @group Components
+   * @category GradumSelectElement
+   *
+   * @description Select element class for creating Gradum button elements.
+   * @extends GradumElement
+   */
+  let GradumSelectElement = (() => {
+      let _classSuper = GradumElement;
+      let _instanceExtraInitializers = [];
+      let _values_decorators;
+      let _values_initializers = [];
+      let _values_extraInitializers = [];
+      let _selectedEntries_decorators;
+      let _selectedEntries_initializers = [];
+      let _selectedEntries_extraInitializers = [];
+      let _selectedEntry_decorators;
+      let _selectedEntry_initializers = [];
+      let _selectedEntry_extraInitializers = [];
+      let _selectedIndex_decorators;
+      let _selectedIndex_initializers = [];
+      let _selectedIndex_extraInitializers = [];
+      let _selectedIndices_decorators;
+      let _selectedIndices_initializers = [];
+      let _selectedIndices_extraInitializers = [];
+      let _entriesClasses_decorators;
+      let _entriesClasses_initializers = [];
+      let _entriesClasses_extraInitializers = [];
+      let _selectedEntriesClasses_decorators;
+      let _selectedEntriesClasses_initializers = [];
+      let _selectedEntriesClasses_extraInitializers = [];
+      let _inputName_decorators;
+      let _inputName_initializers = [];
+      let _inputName_extraInitializers = [];
+      let _inputField_decorators;
+      let _inputField_initializers = [];
+      let _inputField_extraInitializers = [];
+      let _multiSelection_decorators;
+      let _multiSelection_initializers = [];
+      let _multiSelection_extraInitializers = [];
+      let _forceSelection_decorators;
+      let _forceSelection_initializers = [];
+      let _forceSelection_extraInitializers = [];
+      let _enabledEntries_decorators;
+      let _enabledEntries_initializers = [];
+      let _enabledEntries_extraInitializers = [];
+      let _enabledValues_decorators;
+      let _enabledValues_initializers = [];
+      let _enabledValues_extraInitializers = [];
+      let _enabledSecondaryValues_decorators;
+      let _enabledSecondaryValues_initializers = [];
+      let _enabledSecondaryValues_extraInitializers = [];
+      let _selectedValue_decorators;
+      let _selectedValue_initializers = [];
+      let _selectedValue_extraInitializers = [];
+      let _selectedValues_decorators;
+      let _selectedValues_initializers = [];
+      let _selectedValues_extraInitializers = [];
+      let _selectedSecondaryValues_decorators;
+      let _selectedSecondaryValues_initializers = [];
+      let _selectedSecondaryValues_extraInitializers = [];
+      let _selectedSecondaryValue_decorators;
+      let _selectedSecondaryValue_initializers = [];
+      let _selectedSecondaryValue_extraInitializers = [];
+      let _stringSelectedValue_decorators;
+      let _stringSelectedValue_initializers = [];
+      let _stringSelectedValue_extraInitializers = [];
+      let _set_transitionReifect_decorators;
+      return class GradumSelectElement extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _values_decorators = [expose("select")];
+              _selectedEntries_decorators = [expose("select")];
+              _selectedEntry_decorators = [expose("select", false)];
+              _selectedIndex_decorators = [expose("select")];
+              _selectedIndices_decorators = [expose("select", false)];
+              _entriesClasses_decorators = [expose("select")];
+              _selectedEntriesClasses_decorators = [expose("select")];
+              _inputName_decorators = [expose("select")];
+              _inputField_decorators = [expose("select", false)];
+              _multiSelection_decorators = [expose("select")];
+              _forceSelection_decorators = [expose("select")];
+              _enabledEntries_decorators = [expose("select", false)];
+              _enabledValues_decorators = [expose("select", false)];
+              _enabledSecondaryValues_decorators = [expose("select", false)];
+              _selectedValue_decorators = [expose("select", false)];
+              _selectedValues_decorators = [expose("select", false)];
+              _selectedSecondaryValues_decorators = [expose("select", false)];
+              _selectedSecondaryValue_decorators = [expose("select", false)];
+              _stringSelectedValue_decorators = [expose("select", false)];
+              _set_transitionReifect_decorators = [auto({
+                      preprocessValue: function (value) {
+                          if (!value)
+                              return;
+                          if (value instanceof Reifect)
+                              return value;
+                          return new Reifect(value);
+                      }
+                  })];
+              __esDecorate(this, null, _selectedEntries_decorators, { kind: "accessor", name: "selectedEntries", static: false, private: false, access: { has: obj => "selectedEntries" in obj, get: obj => obj.selectedEntries, set: (obj, value) => { obj.selectedEntries = value; } }, metadata: _metadata }, _selectedEntries_initializers, _selectedEntries_extraInitializers);
+              __esDecorate(this, null, _selectedEntry_decorators, { kind: "accessor", name: "selectedEntry", static: false, private: false, access: { has: obj => "selectedEntry" in obj, get: obj => obj.selectedEntry, set: (obj, value) => { obj.selectedEntry = value; } }, metadata: _metadata }, _selectedEntry_initializers, _selectedEntry_extraInitializers);
+              __esDecorate(this, null, _selectedIndex_decorators, { kind: "accessor", name: "selectedIndex", static: false, private: false, access: { has: obj => "selectedIndex" in obj, get: obj => obj.selectedIndex, set: (obj, value) => { obj.selectedIndex = value; } }, metadata: _metadata }, _selectedIndex_initializers, _selectedIndex_extraInitializers);
+              __esDecorate(this, null, _selectedIndices_decorators, { kind: "accessor", name: "selectedIndices", static: false, private: false, access: { has: obj => "selectedIndices" in obj, get: obj => obj.selectedIndices, set: (obj, value) => { obj.selectedIndices = value; } }, metadata: _metadata }, _selectedIndices_initializers, _selectedIndices_extraInitializers);
+              __esDecorate(this, null, _inputName_decorators, { kind: "accessor", name: "inputName", static: false, private: false, access: { has: obj => "inputName" in obj, get: obj => obj.inputName, set: (obj, value) => { obj.inputName = value; } }, metadata: _metadata }, _inputName_initializers, _inputName_extraInitializers);
+              __esDecorate(this, null, _inputField_decorators, { kind: "accessor", name: "inputField", static: false, private: false, access: { has: obj => "inputField" in obj, get: obj => obj.inputField, set: (obj, value) => { obj.inputField = value; } }, metadata: _metadata }, _inputField_initializers, _inputField_extraInitializers);
+              __esDecorate(this, null, _multiSelection_decorators, { kind: "accessor", name: "multiSelection", static: false, private: false, access: { has: obj => "multiSelection" in obj, get: obj => obj.multiSelection, set: (obj, value) => { obj.multiSelection = value; } }, metadata: _metadata }, _multiSelection_initializers, _multiSelection_extraInitializers);
+              __esDecorate(this, null, _forceSelection_decorators, { kind: "accessor", name: "forceSelection", static: false, private: false, access: { has: obj => "forceSelection" in obj, get: obj => obj.forceSelection, set: (obj, value) => { obj.forceSelection = value; } }, metadata: _metadata }, _forceSelection_initializers, _forceSelection_extraInitializers);
+              __esDecorate(this, null, _enabledEntries_decorators, { kind: "accessor", name: "enabledEntries", static: false, private: false, access: { has: obj => "enabledEntries" in obj, get: obj => obj.enabledEntries, set: (obj, value) => { obj.enabledEntries = value; } }, metadata: _metadata }, _enabledEntries_initializers, _enabledEntries_extraInitializers);
+              __esDecorate(this, null, _enabledValues_decorators, { kind: "accessor", name: "enabledValues", static: false, private: false, access: { has: obj => "enabledValues" in obj, get: obj => obj.enabledValues, set: (obj, value) => { obj.enabledValues = value; } }, metadata: _metadata }, _enabledValues_initializers, _enabledValues_extraInitializers);
+              __esDecorate(this, null, _enabledSecondaryValues_decorators, { kind: "accessor", name: "enabledSecondaryValues", static: false, private: false, access: { has: obj => "enabledSecondaryValues" in obj, get: obj => obj.enabledSecondaryValues, set: (obj, value) => { obj.enabledSecondaryValues = value; } }, metadata: _metadata }, _enabledSecondaryValues_initializers, _enabledSecondaryValues_extraInitializers);
+              __esDecorate(this, null, _selectedValue_decorators, { kind: "accessor", name: "selectedValue", static: false, private: false, access: { has: obj => "selectedValue" in obj, get: obj => obj.selectedValue, set: (obj, value) => { obj.selectedValue = value; } }, metadata: _metadata }, _selectedValue_initializers, _selectedValue_extraInitializers);
+              __esDecorate(this, null, _selectedValues_decorators, { kind: "accessor", name: "selectedValues", static: false, private: false, access: { has: obj => "selectedValues" in obj, get: obj => obj.selectedValues, set: (obj, value) => { obj.selectedValues = value; } }, metadata: _metadata }, _selectedValues_initializers, _selectedValues_extraInitializers);
+              __esDecorate(this, null, _selectedSecondaryValues_decorators, { kind: "accessor", name: "selectedSecondaryValues", static: false, private: false, access: { has: obj => "selectedSecondaryValues" in obj, get: obj => obj.selectedSecondaryValues, set: (obj, value) => { obj.selectedSecondaryValues = value; } }, metadata: _metadata }, _selectedSecondaryValues_initializers, _selectedSecondaryValues_extraInitializers);
+              __esDecorate(this, null, _selectedSecondaryValue_decorators, { kind: "accessor", name: "selectedSecondaryValue", static: false, private: false, access: { has: obj => "selectedSecondaryValue" in obj, get: obj => obj.selectedSecondaryValue, set: (obj, value) => { obj.selectedSecondaryValue = value; } }, metadata: _metadata }, _selectedSecondaryValue_initializers, _selectedSecondaryValue_extraInitializers);
+              __esDecorate(this, null, _stringSelectedValue_decorators, { kind: "accessor", name: "stringSelectedValue", static: false, private: false, access: { has: obj => "stringSelectedValue" in obj, get: obj => obj.stringSelectedValue, set: (obj, value) => { obj.stringSelectedValue = value; } }, metadata: _metadata }, _stringSelectedValue_initializers, _stringSelectedValue_extraInitializers);
+              __esDecorate(this, null, _set_transitionReifect_decorators, { kind: "setter", name: "transitionReifect", static: false, private: false, access: { has: obj => "transitionReifect" in obj, set: (obj, value) => { obj.transitionReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(null, null, _values_decorators, { kind: "field", name: "values", static: false, private: false, access: { has: obj => "values" in obj, get: obj => obj.values, set: (obj, value) => { obj.values = value; } }, metadata: _metadata }, _values_initializers, _values_extraInitializers);
+              __esDecorate(null, null, _entriesClasses_decorators, { kind: "field", name: "entriesClasses", static: false, private: false, access: { has: obj => "entriesClasses" in obj, get: obj => obj.entriesClasses, set: (obj, value) => { obj.entriesClasses = value; } }, metadata: _metadata }, _entriesClasses_initializers, _entriesClasses_extraInitializers);
+              __esDecorate(null, null, _selectedEntriesClasses_decorators, { kind: "field", name: "selectedEntriesClasses", static: false, private: false, access: { has: obj => "selectedEntriesClasses" in obj, get: obj => obj.selectedEntriesClasses, set: (obj, value) => { obj.selectedEntriesClasses = value; } }, metadata: _metadata }, _selectedEntriesClasses_initializers, _selectedEntriesClasses_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          static defaultProperties = {
+              entriesTag: "gradum-rich-element"
+          };
+          _sizeTransitionTimeout = __runInitializers(this, _instanceExtraInitializers);
+          select = GradumSelect.create();
+          entriesTag;
+          get entries() {
+              return this.select.entries;
+          }
+          set entries(value) {
+              this.select.entries = value;
+          }
+          values = __runInitializers(this, _values_initializers, void 0);
+          #selectedEntries_accessor_storage = (__runInitializers(this, _values_extraInitializers), __runInitializers(this, _selectedEntries_initializers, void 0));
+          get selectedEntries() { return this.#selectedEntries_accessor_storage; }
+          set selectedEntries(value) { this.#selectedEntries_accessor_storage = value; }
+          #selectedEntry_accessor_storage = (__runInitializers(this, _selectedEntries_extraInitializers), __runInitializers(this, _selectedEntry_initializers, void 0));
+          get selectedEntry() { return this.#selectedEntry_accessor_storage; }
+          set selectedEntry(value) { this.#selectedEntry_accessor_storage = value; }
+          #selectedIndex_accessor_storage = (__runInitializers(this, _selectedEntry_extraInitializers), __runInitializers(this, _selectedIndex_initializers, void 0));
+          get selectedIndex() { return this.#selectedIndex_accessor_storage; }
+          set selectedIndex(value) { this.#selectedIndex_accessor_storage = value; }
+          #selectedIndices_accessor_storage = (__runInitializers(this, _selectedIndex_extraInitializers), __runInitializers(this, _selectedIndices_initializers, void 0));
+          get selectedIndices() { return this.#selectedIndices_accessor_storage; }
+          set selectedIndices(value) { this.#selectedIndices_accessor_storage = value; }
+          entriesClasses = (__runInitializers(this, _selectedIndices_extraInitializers), __runInitializers(this, _entriesClasses_initializers, void 0));
+          selectedEntriesClasses = (__runInitializers(this, _entriesClasses_extraInitializers), __runInitializers(this, _selectedEntriesClasses_initializers, void 0));
+          #inputName_accessor_storage = (__runInitializers(this, _selectedEntriesClasses_extraInitializers), __runInitializers(this, _inputName_initializers, void 0));
+          get inputName() { return this.#inputName_accessor_storage; }
+          set inputName(value) { this.#inputName_accessor_storage = value; }
+          #inputField_accessor_storage = (__runInitializers(this, _inputName_extraInitializers), __runInitializers(this, _inputField_initializers, void 0));
+          get inputField() { return this.#inputField_accessor_storage; }
+          set inputField(value) { this.#inputField_accessor_storage = value; }
+          #multiSelection_accessor_storage = (__runInitializers(this, _inputField_extraInitializers), __runInitializers(this, _multiSelection_initializers, void 0));
+          get multiSelection() { return this.#multiSelection_accessor_storage; }
+          set multiSelection(value) { this.#multiSelection_accessor_storage = value; }
+          #forceSelection_accessor_storage = (__runInitializers(this, _multiSelection_extraInitializers), __runInitializers(this, _forceSelection_initializers, void 0));
+          get forceSelection() { return this.#forceSelection_accessor_storage; }
+          set forceSelection(value) { this.#forceSelection_accessor_storage = value; }
+          #enabledEntries_accessor_storage = (__runInitializers(this, _forceSelection_extraInitializers), __runInitializers(this, _enabledEntries_initializers, void 0));
+          get enabledEntries() { return this.#enabledEntries_accessor_storage; }
+          set enabledEntries(value) { this.#enabledEntries_accessor_storage = value; }
+          #enabledValues_accessor_storage = (__runInitializers(this, _enabledEntries_extraInitializers), __runInitializers(this, _enabledValues_initializers, void 0));
+          get enabledValues() { return this.#enabledValues_accessor_storage; }
+          set enabledValues(value) { this.#enabledValues_accessor_storage = value; }
+          #enabledSecondaryValues_accessor_storage = (__runInitializers(this, _enabledValues_extraInitializers), __runInitializers(this, _enabledSecondaryValues_initializers, void 0));
+          get enabledSecondaryValues() { return this.#enabledSecondaryValues_accessor_storage; }
+          set enabledSecondaryValues(value) { this.#enabledSecondaryValues_accessor_storage = value; }
+          #selectedValue_accessor_storage = (__runInitializers(this, _enabledSecondaryValues_extraInitializers), __runInitializers(this, _selectedValue_initializers, void 0));
+          get selectedValue() { return this.#selectedValue_accessor_storage; }
+          set selectedValue(value) { this.#selectedValue_accessor_storage = value; }
+          #selectedValues_accessor_storage = (__runInitializers(this, _selectedValue_extraInitializers), __runInitializers(this, _selectedValues_initializers, void 0));
+          get selectedValues() { return this.#selectedValues_accessor_storage; }
+          set selectedValues(value) { this.#selectedValues_accessor_storage = value; }
+          #selectedSecondaryValues_accessor_storage = (__runInitializers(this, _selectedValues_extraInitializers), __runInitializers(this, _selectedSecondaryValues_initializers, void 0));
+          get selectedSecondaryValues() { return this.#selectedSecondaryValues_accessor_storage; }
+          set selectedSecondaryValues(value) { this.#selectedSecondaryValues_accessor_storage = value; }
+          #selectedSecondaryValue_accessor_storage = (__runInitializers(this, _selectedSecondaryValues_extraInitializers), __runInitializers(this, _selectedSecondaryValue_initializers, void 0));
+          get selectedSecondaryValue() { return this.#selectedSecondaryValue_accessor_storage; }
+          set selectedSecondaryValue(value) { this.#selectedSecondaryValue_accessor_storage = value; }
+          #stringSelectedValue_accessor_storage = (__runInitializers(this, _selectedSecondaryValue_extraInitializers), __runInitializers(this, _stringSelectedValue_initializers, void 0));
+          get stringSelectedValue() { return this.#stringSelectedValue_accessor_storage; }
+          set stringSelectedValue(value) { this.#stringSelectedValue_accessor_storage = value; }
+          initialize() {
+              this.select.onSelect.add(() => this.applyTransition());
+              super.initialize();
+              if (!this.select.parent)
+                  this.select.parent = this;
+          }
+          _transitionDuration = (__runInitializers(this, _stringSelectedValue_extraInitializers), 0);
+          get transitionDuration() {
+              return this._transitionDuration;
+          }
+          /**
+           * @description Duration of the container size transition in seconds. Kept in sync with
+           * `switchTransitionReifect` — set this to change both at once.
+           */
+          set transitionDuration(value) {
+              this._transitionDuration = value;
+              if (value <= 0)
+                  return;
+              if (!this.transitionReifect)
+                  this.transitionReifect = new Reifect({});
+              this.transitionReifect.styles = `transition: width ${value}s ease-in-out, height ${value}s ease-in-out`;
+          }
+          set transitionReifect(value) {
+              if (!value)
+                  return;
+              value.attach(this);
+          }
+          get transitionReifect() { return; }
+          /**
+           * @description Animates the container from its current size to the selected entry's natural
+           * size. Subclasses should call `super.applyTransition()` then add their own entry-level logic.
+           *
+           * The sequence:
+           * 1. Freeze container at current px size (gives CSS transition a `from` value)
+           * 2. Call `beforeResize()` — subclass hook to prepare entries before the frame
+           * 3. Next frame: read selected entry's natural size, animate container to it
+           * 4. After `transitionDuration`ms: release explicit container size
+           */
+          applyTransition() {
+              if (this.transitionDuration <= 0 || !this.transitionReifect)
+                  return;
+              const selectedEntry = this.selectedEntry;
+              if (!selectedEntry)
+                  return;
+              this.transitionReifect.unapply(this);
+              gradum(this).setStyles({ width: `${this.offsetWidth}px`, height: `${this.offsetHeight}px` }, true);
+              this.transitionReifect.apply(this);
+              this.beforeResize(selectedEntry);
+              requestAnimationFrame(() => gradum(this).setStyles({
+                  width: `${selectedEntry.offsetWidth}px`,
+                  height: `${selectedEntry.offsetHeight}px`
+              }));
+              clearTimeout(this._sizeTransitionTimeout);
+              this._sizeTransitionTimeout = setTimeout(() => {
+                  gradum(this).setStyles({ width: "", height: "" });
+                  this.afterResize(selectedEntry);
+              }, this.transitionDuration * 1000);
+          }
+          /**
+           * @description Called synchronously inside `applyTransition`, before the rAF that reads the
+           * selected entry's new size. Use this to reposition/reflow entries so the size read is correct.
+           * @param selectedEntry - The newly selected entry.
+           */
+          beforeResize(selectedEntry) { }
+          /**
+           * @description Called after the container size transition completes.
+           * @param selectedEntry - The selected entry.
+           */
+          afterResize(selectedEntry) { }
+      };
+  })();
+  define(GradumSelectElement);
+
+  var css_248z$3 = "gradum-content-switch{align-items:flex-start;display:flex;flex-direction:column;overflow:hidden;position:relative}gradum-content-switch>*{box-sizing:border-box;left:0;position:absolute;top:0}";
+  styleInject(css_248z$3);
+
+  var ContentSwitchMode;
+  (function (ContentSwitchMode) {
+      ContentSwitchMode["fadeLeft"] = "fadeLeft";
+      ContentSwitchMode["fadeRight"] = "fadeRight";
+      ContentSwitchMode["carousel"] = "carousel";
+  })(ContentSwitchMode || (ContentSwitchMode = {}));
+
+  let GradumContentSwitch = (() => {
+      let _classSuper = GradumSelectElement;
+      let _instanceExtraInitializers = [];
+      let _set_mode_decorators;
+      let _set_entryTransitionReifect_decorators;
+      let _set_movementReifect_decorators;
+      let _set_transitionDuration_decorators;
+      return class GradumContentSwitch extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _set_mode_decorators = [auto({ defaultValue: ContentSwitchMode.fadeRight })];
+              _set_entryTransitionReifect_decorators = [auto({
+                      preprocessValue: function (value) {
+                          if (!value)
+                              return;
+                          if (value instanceof Reifect)
+                              return value;
+                          return new Reifect(value);
+                      }
+                  })];
+              _set_movementReifect_decorators = [auto({
+                      preprocessValue: function (value) {
+                          if (!value)
+                              return;
+                          if (value instanceof Reifect)
+                              return value;
+                          return new Reifect(value);
+                      }
+                  })];
+              _set_transitionDuration_decorators = [auto({ override: true })];
+              __esDecorate(this, null, _set_mode_decorators, { kind: "setter", name: "mode", static: false, private: false, access: { has: obj => "mode" in obj, set: (obj, value) => { obj.mode = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_entryTransitionReifect_decorators, { kind: "setter", name: "entryTransitionReifect", static: false, private: false, access: { has: obj => "entryTransitionReifect" in obj, set: (obj, value) => { obj.entryTransitionReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_movementReifect_decorators, { kind: "setter", name: "movementReifect", static: false, private: false, access: { has: obj => "movementReifect" in obj, set: (obj, value) => { obj.movementReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_transitionDuration_decorators, { kind: "setter", name: "transitionDuration", static: false, private: false, access: { has: obj => "transitionDuration" in obj, set: (obj, value) => { obj.transitionDuration = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          static defaultProperties = { transitionDuration: 0.3 };
+          set mode(value) {
+              this.reloadMovementReifect();
+          }
+          set entryTransitionReifect(value) {
+              if (!value)
+                  return;
+              if (this.entries.length > 0)
+                  value.attach(...this.entries);
+          }
+          get entryTransitionReifect() { return; }
+          set movementReifect(value) {
+              if (value && this.entries.length > 0)
+                  value.attach(...this.entries);
+          }
+          get movementReifect() { return; }
+          set transitionDuration(value) {
+              if (value <= 0)
+                  return;
+              if (!this.entryTransitionReifect)
+                  this.entryTransitionReifect = new Reifect({});
+              this.entryTransitionReifect.styles = `transition: transform ${value}s ease-in-out, opacity ${value}s ease-in-out`;
+          }
+          initialize() {
+              this.select.onEntryAdded.add(entry => this.setupEntry(entry));
+              this.select.onEntryRemoved.add(entry => {
+                  this.entryTransitionReifect?.detach(entry);
+                  this.movementReifect?.detach(entry);
+              });
+              super.initialize();
+              this.reloadMovementReifect();
+          }
+          setupEntry(entry) {
+              gradum(entry).setStyles({ position: "relative", width: "", height: "", top: "0", left: "0" }, true);
+              this.entryTransitionReifect?.attach(entry);
+              this.movementReifect?.attach(entry);
+              requestAnimationFrame(() => {
+                  if (entry !== this.selectedEntry)
+                      this.freezeAndHide(entry);
+              });
+          }
+          freezeAndHide(entry, isRelative = false) {
+              gradum(entry).setStyles({
+                  width: isRelative ? "" : `${entry.offsetWidth}px`,
+                  height: isRelative ? "" : `${entry.offsetHeight}px`,
+                  position: isRelative ? "relative" : "absolute",
+                  top: "0",
+                  left: "0",
+              }, true);
+          }
+          reloadMovementReifect() {
+              if (!this.movementReifect)
+                  this.movementReifect = new Reifect({});
+              this.movementReifect.styles = (index) => {
+                  const offset = index - this.selectedIndex;
+                  if (offset === 0)
+                      return "transform: translateX(0); opacity: 1; pointer-events: all;";
+                  if (this.mode === ContentSwitchMode.carousel)
+                      return `transform: translateX(${offset > 0 ? "100%" : "-100%"}); opacity: 0; pointer-events: none;`;
+                  const dx = this.mode === ContentSwitchMode.fadeLeft ? "-100%" : "100%";
+                  return `transform: translateX(${dx}); opacity: 0; pointer-events: none;`;
+              };
+          }
+          beforeResize(selectedEntry) {
+              this.select.entries.forEach(entry => this.freezeAndHide(entry, entry === selectedEntry));
+              this.movementReifect?.apply(this.select.entries, { recomputeProperties: true });
+          }
+          constructor() {
+              super(...arguments);
+              __runInitializers(this, _instanceExtraInitializers);
+          }
+      };
+  })();
+  define(GradumContentSwitch, "gradum-content-switch");
+
+  var css_248z$2 = ".gradum-drawer{align-items:center;direction:ltr;display:inline-flex}.gradum-drawer-panel-container{align-items:center;display:flex;overflow:hidden;position:relative}.gradum-drawer-thumb{display:inline-block;position:relative}.gradum-drawer.top-drawer,.top-drawer .gradum-drawer-panel-container{flex-direction:column}.bottom-drawer .gradum-drawer-panel-container,.gradum-drawer.bottom-drawer{flex-direction:column-reverse}.gradum-drawer.left-drawer,.left-drawer .gradum-drawer-panel-container{flex-direction:row}.gradum-drawer.right-drawer,.right-drawer .gradum-drawer-panel-container{flex-direction:row-reverse}";
   styleInject(css_248z$2);
 
   //TODO TRY TO SEE IF HIDDEN OVERFLOW ELEMENT CAN CONTAIN ELEMENT THAT OVERFLOWS PAST PARENT
   /**
    * @group Components
-   * @category TurboDrawer
+   * @category GradumDrawer
    */
-  (() => {
-      let _classDecorators = [define("turbo-drawer")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboElement;
+  let GradumDrawer = (() => {
+      let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
       let _set_thumb_decorators;
       let _set_panel_decorators;
@@ -18582,20 +24166,19 @@
       let _transition_decorators;
       let _transition_initializers = [];
       let _transition_extraInitializers = [];
-      (class extends _classSuper {
-          static { _classThis = this; }
+      return class GradumDrawer extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _set_thumb_decorators = [auto({
                       setIfUndefined: true,
                       callBefore: function () { if (this.thumb)
-                          turbo(this).remChild(this.thumb); },
+                          gradum(this).remChild(this.thumb); },
                       preprocessValue: (value) => value instanceof HTMLElement ? value : div(value)
                   })];
               _set_panel_decorators = [auto({
                       setIfUndefined: true,
                       callBefore: function () { if (this.panel)
-                          turbo(this).remChild(this.panel); },
+                          gradum(this).remChild(this.panel); },
                       preprocessValue: (value) => value instanceof HTMLElement ? value : div(value)
                   })];
               _set_icon_decorators = [auto({
@@ -18606,7 +24189,7 @@
                               return value;
                           if (typeof value === "string" && !this.attachSideToIconName && !this.rotateIconBasedOnSide)
                               this.attachSideToIconName = true;
-                          return iconSwitch(typeof value === "object" ? value : {
+                          return GradumIconSwitch.create(typeof value === "object" ? value : {
                               icon: value,
                               switchReifect: { states: Object.values(Side) },
                               defaultState: this.open ? this.getOppositeSide() : this.side,
@@ -18635,7 +24218,7 @@
                               transitionTimingFunction: "ease-out",
                           });
                       },
-                      callAfter: function () { this.transition.attachAll(this, this.panelContainer); },
+                      callAfter: function () { this.transition.attach(this, this.panelContainer); },
                   })];
               __esDecorate(this, null, _set_thumb_decorators, { kind: "setter", name: "thumb", static: false, private: false, access: { has: obj => "thumb" in obj, set: (obj, value) => { obj.thumb = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_panel_decorators, { kind: "setter", name: "panel", static: false, private: false, access: { has: obj => "panel" in obj, set: (obj, value) => { obj.panel = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
@@ -18648,23 +24231,20 @@
               __esDecorate(this, null, _set_open_decorators, { kind: "setter", name: "open", static: false, private: false, access: { has: obj => "open" in obj, set: (obj, value) => { obj.open = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_translation_decorators, { kind: "setter", name: "translation", static: false, private: false, access: { has: obj => "translation" in obj, set: (obj, value) => { obj.translation = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(null, null, _transition_decorators, { kind: "field", name: "transition", static: false, private: false, access: { has: obj => "transition" in obj, get: obj => obj.transition, set: (obj, value) => { obj.transition = value; } }, metadata: _metadata }, _transition_initializers, _transition_extraInitializers);
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-              __runInitializers(_classThis, _classExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           _panelContainer = __runInitializers(this, _instanceExtraInitializers);
           get panelContainer() { return this._panelContainer; }
           dragging = false;
           resizeObserver;
           set thumb(value) {
-              turbo(value).addClass("turbo-drawer-thumb");
+              gradum(value).addClass("gradum-drawer-thumb");
               if (this.initialized)
                   this.setupUILayout();
           }
           get thumb() { return; }
           set panel(value) {
-              turbo(value).addClass("turbo-drawer-panel");
+              gradum(value).addClass("gradum-drawer-panel");
               if (this.initialized)
                   this.setupUILayout();
           }
@@ -18675,10 +24255,10 @@
           }
           get icon() { return; }
           set hideOverflow(value) {
-              turbo(this.panelContainer).setStyle("overflow", value ? "hidden" : "");
+              gradum(this.panelContainer).setStyle("overflow", value ? "hidden" : "");
           }
           set attachSideToIconName(value) {
-              if (this.icon instanceof TurboIconSwitch)
+              if (this.icon instanceof GradumIconSwitch)
                   this.icon.appendStateToIconName = value;
               if (value)
                   this.rotateIconBasedOnSide = false;
@@ -18686,7 +24266,7 @@
           set rotateIconBasedOnSide(value) {
               if (value)
                   this.attachSideToIconName = false;
-              if (this.icon instanceof TurboIconSwitch)
+              if (this.icon instanceof GradumIconSwitch)
                   this.icon.switchReifect.styles = {
                       top: "transform: rotate(180deg)",
                       bottom: "transform: rotate(0deg)",
@@ -18695,7 +24275,7 @@
                   };
           }
           set side(value) {
-              turbo(this).toggleClass("top-drawer", value == Side.top)
+              gradum(this).toggleClass("top-drawer", value == Side.top)
                   .toggleClass("bottom-drawer", value == Side.bottom)
                   .toggleClass("left-drawer", value == Side.left)
                   .toggleClass("right-drawer", value == Side.right);
@@ -18717,27 +24297,27 @@
               switch (this.side) {
                   case Side.top:
                       if (this.hideOverflow)
-                          turbo(this.panelContainer).setStyle("height", value + "px");
+                          gradum(this.panelContainer).setStyle("height", value + "px");
                       else
-                          turbo(this).setStyle("transform", `translateY(${-value}px)`);
+                          gradum(this).setStyle("transform", `translateY(${-value}px)`);
                       break;
                   case Side.bottom:
                       if (this.hideOverflow)
-                          turbo(this.panelContainer).setStyle("height", value + "px");
+                          gradum(this.panelContainer).setStyle("height", value + "px");
                       else
-                          turbo(this).setStyle("transform", `translateY(${-value}px)`);
+                          gradum(this).setStyle("transform", `translateY(${-value}px)`);
                       break;
                   case Side.left:
                       if (this.hideOverflow)
-                          turbo(this.panelContainer).setStyle("width", value + "px");
+                          gradum(this.panelContainer).setStyle("width", value + "px");
                       else
-                          turbo(this).setStyle("transform", `translateX(${-value}px)`);
+                          gradum(this).setStyle("transform", `translateX(${-value}px)`);
                       break;
                   case Side.right:
                       if (this.hideOverflow)
-                          turbo(this.panelContainer).setStyle("width", value + "px");
+                          gradum(this.panelContainer).setStyle("width", value + "px");
                       else
-                          turbo(this).setStyle("transform", `translateX(${-value}px)`);
+                          gradum(this).setStyle("transform", `translateX(${-value}px)`);
                       break;
               }
           }
@@ -18745,42 +24325,43 @@
           get translation() { return; }
           initialize() {
               super.initialize();
-              turbo(this).show(false);
+              gradum(this).show(false);
               this.enableTransition(false);
               this.setupResizeObserver();
               this.open = false;
               requestAnimationFrame(() => {
-                  turbo(this).show(true);
+                  gradum(this).show(true);
                   this.enableTransition(true);
               });
           }
           setupUIElements() {
               super.setupUIElements();
-              this._panelContainer = div({ classes: "turbo-drawer-panel-container" });
+              this._panelContainer = div({ classes: "gradum-drawer-panel-container" });
           }
           setupUILayout() {
               super.setupUILayout();
-              turbo(this).childHandler = this;
-              turbo(this.panel).addChild(turbo(this).childrenArray.filter(el => el !== this.panelContainer));
-              turbo(this).addChild([this.thumb, this.panelContainer]);
-              turbo(this.panelContainer).addChild(this.panel);
-              turbo(this.thumb).addChild(this.icon);
-              turbo(this).childHandler = this.panel;
+              gradum(this).childHandler = this;
+              const panelChildren = gradum(this).childrenArray.filter(el => el !== this.panelContainer && el !== this.thumb);
+              gradum(this).addChild([this.thumb, this.panelContainer]);
+              gradum(this.panel).addChild(panelChildren);
+              gradum(this.panelContainer).addChild(this.panel);
+              gradum(this.thumb).addChild(this.icon);
+              gradum(this).childHandler = this.panel;
           }
           setupUIListeners() {
-              turbo(this.thumb).on(DefaultEventName.click, (e) => {
+              gradum(this.thumb).on(DefaultEventName.click, (e) => {
                   this.open = !this.open;
-                  return true;
-              }).on(TurboEventName.dragStart, (e) => {
+                  return Propagation.stopPropagation;
+              }).on(GradumEventName.dragStart, (e) => {
                   this.dragging = true;
                   this.enableTransition(false);
-                  return true;
-              }).on(TurboEventName.drag, (e) => {
+                  return Propagation.stopPropagation;
+              }).on(GradumEventName.drag, (e) => {
                   if (!this.dragging)
                       return;
                   this.translation += this.isVertical ? e.scaledDeltaPosition.y : e.scaledDeltaPosition.x;
-                  return true;
-              }).on(TurboEventName.dragEnd, (e) => {
+                  return Propagation.stopPropagation;
+              }).on(GradumEventName.dragEnd, (e) => {
                   if (!this.dragging)
                       return;
                   this.dragging = false;
@@ -18842,14 +24423,14 @@
           }
           refresh() {
               if (this.hideOverflow)
-                  turbo(this.panel).setStyle("position", "absolute", true);
-              if (this.icon instanceof TurboIconSwitch)
+                  gradum(this.panel).setStyle("position", "absolute", true);
+              if (this.icon instanceof GradumIconSwitch)
                   this.icon.switchReifect.apply(this.open ? this.getOppositeSide() : this.side);
               requestAnimationFrame(() => {
                   this.translation = (this.open ? this.offset.open : this.offset.closed)
                       + (this.open ? (this.isVertical ? this.panel.offsetHeight : this.panel.offsetWidth) : 0);
                   if (this.hideOverflow)
-                      turbo(this.panel).setStyle("position", "relative", true);
+                      gradum(this.panel).setStyle("position", "relative", true);
               });
           }
           enableTransition(b) {
@@ -18859,9 +24440,9 @@
           setupResizeObserver() {
               let mutex = 0;
               let initializationLock = true;
-              turbo(this).on("transitionstart", () => mutex++)
+              gradum(this).on("transitionstart", () => mutex++)
                   .on("transitionend", () => { mutex--; initializationLock = false; });
-              turbo(this.panelContainer).on("transitionstart", () => mutex++)
+              gradum(this.panelContainer).on("transitionstart", () => mutex++)
                   .on("transitionend", () => mutex--);
               this.resizeObserver = new ResizeObserver(entries => {
                   if (!this.open || this.dragging || mutex > 0 || initializationLock)
@@ -18875,13 +24456,13 @@
               super(...arguments);
               __runInitializers(this, _transition_extraInitializers);
           }
-      });
-      return _classThis;
+      };
   })();
+  define(GradumDrawer);
 
   /**
    * @group Components
-   * @category TurboPopup
+   * @category GradumPopup
    */
   var PopupFallbackMode;
   (function (PopupFallbackMode) {
@@ -18890,19 +24471,15 @@
       PopupFallbackMode["none"] = "none";
   })(PopupFallbackMode || (PopupFallbackMode = {}));
 
-  var css_248z$1 = "#turbo-popup-parent-element{display:block;left:0;position:fixed;top:0;z-index:1000}.turbo-popup{display:block;inset:auto;overflow:auto;position:fixed}";
+  var css_248z$1 = "#gradum-popup-parent-element{display:block;left:0;position:fixed;top:0;z-index:1000}.gradum-popup{display:block;inset:auto;overflow:auto;position:fixed}";
   styleInject(css_248z$1);
 
   /**
    * @group Components
-   * @category TurboPopup
+   * @category GradumPopup
    */
-  let TurboPopup = (() => {
-      let _classDecorators = [define("turbo-popup")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboElement;
+  let GradumPopup = (() => {
+      let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
       let _static_parentElement_decorators;
       let _static_parentElement_initializers = [];
@@ -18920,48 +24497,23 @@
       let _get_computedStyle_decorators;
       let _get_anchorComputedStyle_decorators;
       let _get_computedMargins_decorators;
-      var TurboPopup = class extends _classSuper {
-          static { _classThis = this; }
+      let _recomputePosition_decorators;
+      return class GradumPopup extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _static_parentElement_decorators = [auto({ defaultValue: div({ parent: document.body, id: "turbo-popup-parent-element" }) })];
-              _anchor_decorators = [auto({ defaultValue: document.body })];
-              _set_popupPosition_decorators = [auto({
-                      initialValueCallback: function () {
-                          return this.getPropertiesValue(undefined, "defaultPopupAnchor", { x: 50, y: 0 });
-                      },
-                      preprocessValue: (value) => new Point(value).bound(0, 100)
-                  })];
-              _set_anchorPosition_decorators = [auto({
-                      initialValueCallback: function () {
-                          return this.getPropertiesValue(undefined, "defaultAnchorPosition", { x: 50, y: 100 });
-                      },
-                      preprocessValue: (value) => new Point(value).bound(0, 100)
-                  })];
-              _set_viewportMargin_decorators = [auto({
-                      initialValueCallback: function () { return this.getPropertiesValue(undefined, "defaultViewportMargin", 0); },
-                      preprocessValue: (value) => new Point(value)
-                  })];
-              _set_offsetFromAnchor_decorators = [auto({
-                      initialValueCallback: function () { return this.getPropertiesValue(undefined, "defaultOffsetFromAnchor", 0); },
-                      preprocessValue: (value) => new Point(value)
-                  })];
-              _set_fallbackModes_decorators = [auto({
-                      preprocessValue: (value) => {
-                          return typeof value !== "object" ? { x: value, y: value } : value;
-                      },
-                      initialValueCallback: function () {
-                          return {
-                              x: Math.abs(this.anchorPosition.x - 50) > 25 ? PopupFallbackMode.invert : PopupFallbackMode.offset,
-                              y: Math.abs(this.anchorPosition.y - 50) > 25 ? PopupFallbackMode.invert : PopupFallbackMode.offset,
-                          };
-                      }
-                  })];
+              _static_parentElement_decorators = [auto({ defaultValue: div({ parent: document.body, id: "gradum-popup-parent-element" }) })];
+              _anchor_decorators = [signal];
+              _set_popupPosition_decorators = [auto({ preprocessValue: (value) => new Point(value).bound(0, 100) })];
+              _set_anchorPosition_decorators = [auto({ preprocessValue: (value) => new Point(value).bound(0, 100) })];
+              _set_viewportMargin_decorators = [auto({ preprocessValue: (value) => new Point(value) })];
+              _set_offsetFromAnchor_decorators = [auto({ preprocessValue: (value) => new Point(value) })];
+              _set_fallbackModes_decorators = [auto({ preprocessValue: (value) => typeof value !== "object" ? { x: value, y: value } : value })];
               _get_rect_decorators = [cache({ clearOnNextFrame: true })];
               _get_anchorRect_decorators = [cache({ clearOnNextFrame: true })];
               _get_computedStyle_decorators = [cache({ clearOnNextFrame: true })];
               _get_anchorComputedStyle_decorators = [cache({ clearOnNextFrame: true })];
               _get_computedMargins_decorators = [cache({ clearOnNextFrame: true })];
+              _recomputePosition_decorators = [effect];
               __esDecorate(this, null, _set_popupPosition_decorators, { kind: "setter", name: "popupPosition", static: false, private: false, access: { has: obj => "popupPosition" in obj, set: (obj, value) => { obj.popupPosition = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_anchorPosition_decorators, { kind: "setter", name: "anchorPosition", static: false, private: false, access: { has: obj => "anchorPosition" in obj, set: (obj, value) => { obj.anchorPosition = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_viewportMargin_decorators, { kind: "setter", name: "viewportMargin", static: false, private: false, access: { has: obj => "viewportMargin" in obj, set: (obj, value) => { obj.viewportMargin = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
@@ -18972,21 +24524,20 @@
               __esDecorate(this, null, _get_computedStyle_decorators, { kind: "getter", name: "computedStyle", static: false, private: false, access: { has: obj => "computedStyle" in obj, get: obj => obj.computedStyle }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _get_anchorComputedStyle_decorators, { kind: "getter", name: "anchorComputedStyle", static: false, private: false, access: { has: obj => "anchorComputedStyle" in obj, get: obj => obj.anchorComputedStyle }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _get_computedMargins_decorators, { kind: "getter", name: "computedMargins", static: false, private: false, access: { has: obj => "computedMargins" in obj, get: obj => obj.computedMargins }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _recomputePosition_decorators, { kind: "method", name: "recomputePosition", static: false, private: false, access: { has: obj => "recomputePosition" in obj, get: obj => obj.recomputePosition }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(null, null, _static_parentElement_decorators, { kind: "field", name: "parentElement", static: true, private: false, access: { has: obj => "parentElement" in obj, get: obj => obj.parentElement, set: (obj, value) => { obj.parentElement = value; } }, metadata: _metadata }, _static_parentElement_initializers, _static_parentElement_extraInitializers);
               __esDecorate(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              TurboPopup = _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          static config = {
-              ...TurboElement.config,
-              defaultPopupPosition: { x: 0, y: -100 },
-              defaultAnchorPosition: { x: 0, y: 100 },
-              defaultViewportMargin: 4,
-              defaultOffsetFromAnchor: { x: 0, y: 4 }
+          static defaultProperties = {
+              popupPosition: { x: 0, y: -100 },
+              anchorPosition: { x: 0, y: 100 },
+              viewportMargin: 4,
+              offsetFromAnchor: { x: 0, y: 4 },
+              fallbackModes: { x: PopupFallbackMode.offset, y: PopupFallbackMode.invert }
           };
-          static parentElement = __runInitializers(_classThis, _static_parentElement_initializers, void 0);
-          anchor = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _anchor_initializers, void 0));
+          static parentElement = __runInitializers(this, _static_parentElement_initializers, void 0);
+          anchor = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _anchor_initializers, document.body));
           set popupPosition(value) { }
           get popupPosition() { return; }
           set anchorPosition(value) { }
@@ -19019,15 +24570,15 @@
               super.initialize();
               this.show(false);
               if (!this.parentElement)
-                  turbo(this).addToParent(TurboPopup.parentElement);
+                  gradum(this).addToParent(GradumPopup.parentElement);
           }
           setupUIListeners() {
               super.setupUIListeners();
               document.addEventListener(DefaultEventName.scroll, () => this.show(false), { capture: true, passive: true });
-              window.addEventListener(DefaultEventName.resize, () => { if (turbo(this).isShown)
+              window.addEventListener(DefaultEventName.resize, () => { if (gradum(this).isShown)
                   this.recomputePosition(); }, { passive: true });
-              turbo(document.body).on(DefaultEventName.click, e => {
-                  if (!turbo(this).isShown)
+              gradum(document.body).on(DefaultEventName.click, e => {
+                  if (!gradum(this).isShown)
                       return;
                   const t = e.target;
                   if (this.contains(t))
@@ -19040,14 +24591,14 @@
           recomputePosition() {
               if (!this.anchor)
                   return;
-              turbo(this).setStyles({ maxHeight: "", maxWidth: "" }, true);
+              gradum(this).setStyles({ maxHeight: "", maxWidth: "" }, true);
               const left = this.computeAxis(Direction.horizontal);
               const top = this.computeAxis(Direction.vertical);
-              turbo(this).setStyles({ left: `${left}px`, top: `${top}px` });
+              gradum(this).setStyles({ left: `${left}px`, top: `${top}px` });
               const maxWidth = Math.max(0, Math.min(window.innerWidth - 2 * this.viewportMargin.x, window.innerWidth - 2 * this.viewportMargin.x - this.computedMargins.x));
               const maxHeight = Math.max(0, Math.min(window.innerHeight - 2 * this.viewportMargin.y, window.innerHeight - 2 * this.viewportMargin.y - this.computedMargins.y));
-              turbo(this).setStyle("maxWidth", `${maxWidth}px`);
-              turbo(this).setStyle("maxHeight", `${maxHeight}px`);
+              gradum(this).setStyle("maxWidth", `${maxWidth}px`);
+              gradum(this).setStyle("maxHeight", `${maxHeight}px`);
           }
           computeAxis(direction) {
               const axis = direction === Direction.horizontal ? "x" : "y";
@@ -19084,10 +24635,10 @@
                   this.style.display = "";
                   this.recomputePosition();
                   this.style.visibility = "";
-                  turbo(this).show(true);
+                  gradum(this).show(true);
               }
               else {
-                  turbo(this).setStyles({ maxHeight: "", maxWidth: "" }, true).show(false);
+                  gradum(this).setStyles({ maxHeight: "", maxWidth: "" }, true).show(false);
               }
               return this;
           }
@@ -19096,383 +24647,175 @@
               __runInitializers(this, _anchor_extraInitializers);
           }
           static {
-              __runInitializers(_classThis, _static_parentElement_extraInitializers);
-              __runInitializers(_classThis, _classExtraInitializers);
+              __runInitializers(this, _static_parentElement_extraInitializers);
           }
       };
-      return TurboPopup = _classThis;
   })();
-  /**
-   * @group Components
-   * @category TurboPopup
-   */
-  function popup(properties = {}) {
-      return element({ ...properties, text: undefined, tag: "turbo-popup" });
-  }
+  define(GradumPopup);
 
   /**
+   * @class AnchorPoint
    * @group Components
-   * @category TurboYBlock
+   * @category AnchorPoint
    */
   (() => {
-      let _classSuper = TurboDataBlock;
       let _instanceExtraInitializers = [];
-      let _set_enabledCallbacks_decorators;
-      return class TurboYBlock extends _classSuper {
+      let _set_value_decorators;
+      return class AnchorPoint {
           static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _set_enabledCallbacks_decorators = [auto({ override: true })];
-              __esDecorate(this, null, _set_enabledCallbacks_decorators, { kind: "setter", name: "enabledCallbacks", static: false, private: false, access: { has: obj => "enabledCallbacks" in obj, set: (obj, value) => { obj.enabledCallbacks = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+              _set_value_decorators = [auto({
+                      preprocessValue: function (value) {
+                          if (typeof value === "object" && value instanceof Point)
+                              return value;
+                          if (Object.values(Anchor).includes(value))
+                              return AnchorPoint.enumToPoint(value);
+                          return this._value;
+                      }
+                  })];
+              __esDecorate(this, null, _set_value_decorators, { kind: "setter", name: "value", static: false, private: false, access: { has: obj => "value" in obj, set: (obj, value) => { obj.value = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          observer = (__runInitializers(this, _instanceExtraInitializers), (event, transaction) => this.observeChanges(event, transaction));
-          set enabledCallbacks(value) {
-              if (!this.data || !(this.data instanceof AbstractType))
-                  return;
-              if (value)
-                  this.data.observe(this.observer);
-              else
-                  this.data.unobserve(this.observer);
+          constructor(anchor) {
+              __runInitializers(this, _instanceExtraInitializers);
+              this.value = anchor;
           }
-          /*
-           *
-           * Basics
-           *
-           */
-          /**
-           * @function get
-           * @description Retrieves the value associated with a given key in the specified block.
-           * @param {KeyType} key - The key to retrieve.
-           * @returns {unknown} The value associated with the key, or null if not found.
-           */
-          get(key) {
-              if (!this.data || typeof this.data !== "object")
-                  return;
-              if (this.data instanceof YMap)
-                  return this.data.get(key.toString());
-              if (this.data instanceof YArray)
-                  return this.data.get(trim(Number(key), this.data.length));
-              return super.get(key);
+          set value(value) { }
+          get value() { return; }
+          get enum() {
+              return AnchorPoint.pointToEnum(this.value);
           }
-          /**
-           * @function set
-           * @description Sets the value for a given key in the specified block and triggers callbacks (if enabled).
-           * @param {KeyType} key - The key to update.
-           * @param {unknown} value - The value to assign.
-           */
-          set(key, value) {
-              if (!this.data || typeof this.data !== "object")
-                  return;
-              if (this.data instanceof YMap)
-                  this.data.set(key.toString(), value);
-              else if (this.data instanceof YArray) {
-                  const index = trim(Number(key), this.data.length + 1);
-                  if (index < this.data.length)
-                      this.data.delete(index, 1);
-                  this.data.insert(index, [value]);
+          static pointToEnum(value) {
+              if (!value)
+                  return Anchor.Center;
+              const snapAxis = (n) => n < -50 ? -100 : n > 50 ? 100 : 0;
+              const x = snapAxis(value.x);
+              const y = snapAxis(value.y);
+              if (y === -100) {
+                  if (x === -100)
+                      return Anchor.TopLeft;
+                  if (x === 0)
+                      return Anchor.TopMiddle;
+                  return Anchor.TopRight;
               }
-              else
-                  super.set(key, value);
-          }
-          add(value, key) {
-              if (this.data instanceof YArray) {
-                  let index = key;
-                  if (isUndefined(index) || typeof index !== "number" || index > this.data.length) {
-                      index = this.data.length;
-                      this.data.push([value]);
-                  }
-                  else {
-                      if (index < 0)
-                          index = 0;
-                      this.data.insert(index, [value]);
-                  }
-                  return index;
+              if (y === 0) {
+                  if (x === -100)
+                      return Anchor.CenterLeft;
+                  if (x === 0)
+                      return Anchor.Center;
+                  return Anchor.CenterRight;
               }
-              else if (this.data instanceof AbstractType)
-                  return this.set(key, value);
-              return super.add(value, key);
+              if (x === -100)
+                  return Anchor.BottomLeft;
+              if (x === 0)
+                  return Anchor.BottomMiddle;
+              return Anchor.BottomRight;
           }
-          has(key) {
-              if (!this.data || typeof this.data !== "object")
-                  return false;
-              if (this.data instanceof YMap)
-                  return this.data.has(key.toString());
-              if (this.data instanceof YArray)
-                  return typeof key === "number" && key >= 0 && key < this.size;
-              return super.has(key);
-          }
-          delete(key) {
-              if (!this.data || typeof this.data !== "object")
-                  return;
-              if (this.data instanceof YMap)
-                  this.data.delete(key.toString());
-              else if (this.data instanceof YArray && typeof key === "number" && key >= 0 && key < this.size)
-                  this.data.delete(key, 1);
-              else
-                  super.delete(key);
-          }
-          /**
-           * @function keys
-           * @description Retrieves all keys within the given block(s).
-           * @returns {KeyType[]} Array of keys.
-           */
-          get keys() {
-              if (this.data instanceof YMap)
-                  return Array.from(this.data.keys());
-              if (this.data instanceof YArray) {
-                  const output = [];
-                  for (let i = 0; i < this.data.length; i++)
-                      output.push(i);
-                  return output;
+          static enumToPoint(value) {
+              if (!value)
+                  return new Point();
+              switch (value) {
+                  case Anchor.TopLeft:
+                      return new Point(-100, -100);
+                  case Anchor.TopMiddle:
+                      return new Point(0, -100);
+                  case Anchor.TopRight:
+                      return new Point(100, -100);
+                  case Anchor.CenterLeft:
+                      return new Point(-100, 0);
+                  case Anchor.Center:
+                      return new Point(0, 0);
+                  case Anchor.CenterRight:
+                      return new Point(100, 0);
+                  case Anchor.BottomLeft:
+                      return new Point(-100, 100);
+                  case Anchor.BottomMiddle:
+                      return new Point(0, 100);
+                  case Anchor.BottomRight:
+                      return new Point(100, 100);
               }
-              return super.keys;
-          }
-          /**
-           * @function size
-           * @description Returns the size of the specified block.
-           * @returns {number} The size.
-           */
-          get size() {
-              if (this.data instanceof YMap)
-                  return this.data.size;
-              if (this.data instanceof YArray)
-                  return this.data.length;
-              return 0;
-          }
-          /*
-           *
-           * Utilities
-           *
-           */
-          /**
-           * @function initialize
-           * @description Initializes the block at the given key, and triggers callbacks for all the keys in its data.
-           */
-          initialize() {
-              super.initialize();
-              if (this.enabledCallbacks && this.data instanceof AbstractType)
-                  this.data?.observe(this.observer);
-          }
-          clear(clearData = true) {
-              if (clearData && this.data instanceof AbstractType)
-                  this.data?.unobserve(this.observer);
-              super.clear(clearData);
-          }
-          /*
-           *
-           * Utilities
-           *
-           */
-          observeChanges(event, transaction) {
-              //TODO
-              !!transaction?.local;
-              transaction?.origin;
-              if (event instanceof YMapEvent) {
-                  event.keysChanged.forEach(key => {
-                      const change = event.changes.keys.get(key);
-                      if (!change)
-                          return;
-                      if (change.action === "delete")
-                          this.keyChanged(key, undefined, true);
-                      else
-                          this.keyChanged(key);
-                  });
-              }
-              else if (event instanceof YArrayEvent) {
-                  let currentIndex = 0;
-                  for (const delta of event.delta) {
-                      if (delta.retain !== undefined)
-                          currentIndex += delta.retain;
-                      else if (delta.insert) {
-                          const insertedItems = Array.isArray(delta.insert) ? delta.insert : [delta.insert];
-                          const count = insertedItems.length;
-                          this.shiftIndices(currentIndex, count);
-                          for (let i = 0; i < count; i++)
-                              this.keyChanged((currentIndex + i));
-                          currentIndex += count;
-                      }
-                      else if (delta.delete) {
-                          const count = delta.delete;
-                          for (let i = 0; i < count; i++)
-                              this.keyChanged((currentIndex + i), undefined, true);
-                          this.shiftIndices(currentIndex + count, -count);
-                      }
-                  }
-              }
-          }
-          shiftIndices(fromIndex, offset) {
-              this.changeObservers?.toArray().forEach(observer => {
-                  const itemsToShift = [];
-                  for (const [oldIndexStr, instance] of observer.getBlockInstancesAndKeys()) {
-                      const oldIndex = Number(oldIndexStr);
-                      if (oldIndex >= fromIndex)
-                          itemsToShift.push([oldIndex, instance]);
-                  }
-                  itemsToShift.sort((a, b) => a[0] - b[0]);
-                  for (const [oldIndex] of itemsToShift)
-                      observer.removeInstanceByKey(oldIndex, false);
-                  for (const [oldIndex, instance] of itemsToShift) {
-                      const newIndex = oldIndex + offset;
-                      if (typeof instance === "object" && "dataId" in instance)
-                          instance.dataId = newIndex;
-                      observer.setInstance(instance, (oldIndex + offset));
-                  }
-              });
           }
       };
   })();
 
-  var css_248z = "turbo-dropdown{display:inline-block;position:relative}turbo-dropdown>.turbo-popup{background-color:#fff;border:.1em solid #5e5e5e;border-radius:.4em;display:flex;flex-direction:column;overflow:hidden}turbo-dropdown>.turbo-popup>turbo-select-entry{padding:.5em}turbo-dropdown>.turbo-popup>turbo-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}turbo-dropdown>turbo-select-entry{padding:.5em .7em;width:100%}turbo-dropdown>turbo-select-entry:hover{background-color:#d7d7d7}turbo-dropdown>turbo-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}";
+  var css_248z = "gradum-dropdown{display:inline-block;position:relative}gradum-dropdown>.gradum-popup{background-color:#fff;border:.1em solid #5e5e5e;border-radius:.4em;display:flex;flex-direction:column;overflow:hidden}gradum-dropdown>.gradum-popup>gradum-select-entry{padding:.5em}gradum-dropdown>.gradum-popup>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}gradum-dropdown>gradum-select-entry{padding:.5em .7em;width:100%}gradum-dropdown>gradum-select-entry:hover{background-color:#d7d7d7}gradum-dropdown>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}";
   styleInject(css_248z);
 
   /**
-   * @class TurboDropdown
+   * @class GradumDropdown
    * @group Components
-   * @category TurboDropdown
+   * @category GradumDropdown
    *
-   * @description Dropdown class for creating Turbo button elements.
-   * @extends TurboElement
+   * @description Dropdown class for creating Gradum button elements.
+   * @extends GradumElement
    */
-  (() => {
-      let _classDecorators = [define("turbo-dropdown")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboElement;
+  let GradumDropdown = (() => {
+      let _classSuper = GradumSelectElement;
       let _instanceExtraInitializers = [];
-      let _selectorTag_decorators;
-      let _selectorTag_initializers = [];
-      let _selectorTag_extraInitializers = [];
       let _selectorClasses_decorators;
       let _selectorClasses_initializers = [];
       let _selectorClasses_extraInitializers = [];
       let _popupClasses_decorators;
       let _popupClasses_initializers = [];
       let _popupClasses_extraInitializers = [];
-      let _entries_decorators;
-      let _entries_initializers = [];
-      let _entries_extraInitializers = [];
-      let _values_decorators;
-      let _values_initializers = [];
-      let _values_extraInitializers = [];
-      let _selectedEntry_decorators;
-      let _selectedEntry_initializers = [];
-      let _selectedEntry_extraInitializers = [];
-      let _selectedValue_decorators;
-      let _selectedValue_initializers = [];
-      let _selectedValue_extraInitializers = [];
-      let _selectedValues_decorators;
-      let _selectedValues_initializers = [];
-      let _selectedValues_extraInitializers = [];
-      let _selectedSecondaryValues_decorators;
-      let _selectedSecondaryValues_initializers = [];
-      let _selectedSecondaryValues_extraInitializers = [];
-      let _selectedSecondaryValue_decorators;
-      let _selectedSecondaryValue_initializers = [];
-      let _selectedSecondaryValue_extraInitializers = [];
-      let _stringSelectedValue_decorators;
-      let _stringSelectedValue_initializers = [];
-      let _stringSelectedValue_extraInitializers = [];
       let _set_selector_decorators;
       let _set_popup_decorators;
-      (class extends _classSuper {
-          static { _classThis = this; }
+      return class GradumDropdown extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _selectorTag_decorators = [auto({ defaultValueCallback: function () { return this.getPropertiesValue(undefined, "defaultSelectorTag"); } })];
               _selectorClasses_decorators = [auto({
-                      defaultValueCallback: function () { return this.getPropertiesValue(undefined, "defaultSelectorClasses"); },
-                      callBefore: function () { turbo(this.selector).removeClass(this.selectorClasses); },
-                      callAfter: function () { turbo(this.selector).addClass(this.selectorClasses); }
+                      callBefore: function () { gradum(this.selector).removeClass(this.selectorClasses); },
+                      callAfter: function () { gradum(this.selector).addClass(this.selectorClasses); }
                   })];
               _popupClasses_decorators = [auto({
-                      defaultValueCallback: function () { return this.getPropertiesValue(undefined, "defaultPopupClasses"); },
-                      callBefore: function () { turbo(this.popup).removeClass(this.popupClasses); },
-                      callAfter: function () { turbo(this.popup).addClass(this.popupClasses); }
+                      callBefore: function () { gradum(this.popup).removeClass(this.popupClasses); },
+                      callAfter: function () { gradum(this.popup).addClass(this.popupClasses); }
                   })];
-              _entries_decorators = [expose("select")];
-              _values_decorators = [expose("select")];
-              _selectedEntry_decorators = [expose("select", false)];
-              _selectedValue_decorators = [expose("select", false)];
-              _selectedValues_decorators = [expose("select", false)];
-              _selectedSecondaryValues_decorators = [expose("select", false)];
-              _selectedSecondaryValue_decorators = [expose("select", false)];
-              _stringSelectedValue_decorators = [expose("select", false)];
               _set_selector_decorators = [auto({
                       setIfUndefined: true,
                       preprocessValue: function (value) {
                           if (value instanceof HTMLElement)
                               return value;
                           const text = typeof value === "string" ? value : stringify(this.select.getValue(this.entries[0]));
-                          if (this.selector instanceof TurboButton)
+                          if (this.selector instanceof GradumButton)
                               this.selector.text = text;
                           else
-                              return button({ text, elementTag: this.selectorTag });
+                              return GradumButton.create({ text, elementTag: this.selectorTag });
                       }
                   })];
-              _set_popup_decorators = [auto({ defaultValueCallback: () => popup() })];
-              __esDecorate(this, null, _selectedEntry_decorators, { kind: "accessor", name: "selectedEntry", static: false, private: false, access: { has: obj => "selectedEntry" in obj, get: obj => obj.selectedEntry, set: (obj, value) => { obj.selectedEntry = value; } }, metadata: _metadata }, _selectedEntry_initializers, _selectedEntry_extraInitializers);
-              __esDecorate(this, null, _selectedValue_decorators, { kind: "accessor", name: "selectedValue", static: false, private: false, access: { has: obj => "selectedValue" in obj, get: obj => obj.selectedValue, set: (obj, value) => { obj.selectedValue = value; } }, metadata: _metadata }, _selectedValue_initializers, _selectedValue_extraInitializers);
-              __esDecorate(this, null, _selectedValues_decorators, { kind: "accessor", name: "selectedValues", static: false, private: false, access: { has: obj => "selectedValues" in obj, get: obj => obj.selectedValues, set: (obj, value) => { obj.selectedValues = value; } }, metadata: _metadata }, _selectedValues_initializers, _selectedValues_extraInitializers);
-              __esDecorate(this, null, _selectedSecondaryValues_decorators, { kind: "accessor", name: "selectedSecondaryValues", static: false, private: false, access: { has: obj => "selectedSecondaryValues" in obj, get: obj => obj.selectedSecondaryValues, set: (obj, value) => { obj.selectedSecondaryValues = value; } }, metadata: _metadata }, _selectedSecondaryValues_initializers, _selectedSecondaryValues_extraInitializers);
-              __esDecorate(this, null, _selectedSecondaryValue_decorators, { kind: "accessor", name: "selectedSecondaryValue", static: false, private: false, access: { has: obj => "selectedSecondaryValue" in obj, get: obj => obj.selectedSecondaryValue, set: (obj, value) => { obj.selectedSecondaryValue = value; } }, metadata: _metadata }, _selectedSecondaryValue_initializers, _selectedSecondaryValue_extraInitializers);
-              __esDecorate(this, null, _stringSelectedValue_decorators, { kind: "accessor", name: "stringSelectedValue", static: false, private: false, access: { has: obj => "stringSelectedValue" in obj, get: obj => obj.stringSelectedValue, set: (obj, value) => { obj.stringSelectedValue = value; } }, metadata: _metadata }, _stringSelectedValue_initializers, _stringSelectedValue_extraInitializers);
+              _set_popup_decorators = [auto({ defaultValueCallback: () => GradumPopup.create() })];
               __esDecorate(this, null, _set_selector_decorators, { kind: "setter", name: "selector", static: false, private: false, access: { has: obj => "selector" in obj, set: (obj, value) => { obj.selector = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_popup_decorators, { kind: "setter", name: "popup", static: false, private: false, access: { has: obj => "popup" in obj, set: (obj, value) => { obj.popup = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(null, null, _selectorTag_decorators, { kind: "field", name: "selectorTag", static: false, private: false, access: { has: obj => "selectorTag" in obj, get: obj => obj.selectorTag, set: (obj, value) => { obj.selectorTag = value; } }, metadata: _metadata }, _selectorTag_initializers, _selectorTag_extraInitializers);
               __esDecorate(null, null, _selectorClasses_decorators, { kind: "field", name: "selectorClasses", static: false, private: false, access: { has: obj => "selectorClasses" in obj, get: obj => obj.selectorClasses, set: (obj, value) => { obj.selectorClasses = value; } }, metadata: _metadata }, _selectorClasses_initializers, _selectorClasses_extraInitializers);
               __esDecorate(null, null, _popupClasses_decorators, { kind: "field", name: "popupClasses", static: false, private: false, access: { has: obj => "popupClasses" in obj, get: obj => obj.popupClasses, set: (obj, value) => { obj.popupClasses = value; } }, metadata: _metadata }, _popupClasses_initializers, _popupClasses_extraInitializers);
-              __esDecorate(null, null, _entries_decorators, { kind: "field", name: "entries", static: false, private: false, access: { has: obj => "entries" in obj, get: obj => obj.entries, set: (obj, value) => { obj.entries = value; } }, metadata: _metadata }, _entries_initializers, _entries_extraInitializers);
-              __esDecorate(null, null, _values_decorators, { kind: "field", name: "values", static: false, private: false, access: { has: obj => "values" in obj, get: obj => obj.values, set: (obj, value) => { obj.values = value; } }, metadata: _metadata }, _values_initializers, _values_extraInitializers);
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          //TODO MOVE DEFAULT CLICK TO MAIN CONFIG
-          static config = { ...TurboElement.config, defaultSelectorTag: "h4" };
-          select = (__runInitializers(this, _instanceExtraInitializers), new TurboSelect({
+          static defaultProperties = {
+              selectorTag: "h4",
+          };
+          select = (__runInitializers(this, _instanceExtraInitializers), GradumSelect.create({
               onEntryClicked: () => this.openPopup(false)
           }));
           popupOpen = false;
-          selectorTag = __runInitializers(this, _selectorTag_initializers, void 0);
-          selectorClasses = (__runInitializers(this, _selectorTag_extraInitializers), __runInitializers(this, _selectorClasses_initializers, void 0));
+          selectorTag;
+          selectorClasses = __runInitializers(this, _selectorClasses_initializers, void 0);
           popupClasses = (__runInitializers(this, _selectorClasses_extraInitializers), __runInitializers(this, _popupClasses_initializers, void 0));
-          entries = (__runInitializers(this, _popupClasses_extraInitializers), __runInitializers(this, _entries_initializers, void 0));
-          values = (__runInitializers(this, _entries_extraInitializers), __runInitializers(this, _values_initializers, void 0));
-          #selectedEntry_accessor_storage = (__runInitializers(this, _values_extraInitializers), __runInitializers(this, _selectedEntry_initializers, void 0));
-          get selectedEntry() { return this.#selectedEntry_accessor_storage; }
-          set selectedEntry(value) { this.#selectedEntry_accessor_storage = value; }
-          #selectedValue_accessor_storage = (__runInitializers(this, _selectedEntry_extraInitializers), __runInitializers(this, _selectedValue_initializers, void 0));
-          get selectedValue() { return this.#selectedValue_accessor_storage; }
-          set selectedValue(value) { this.#selectedValue_accessor_storage = value; }
-          #selectedValues_accessor_storage = (__runInitializers(this, _selectedValue_extraInitializers), __runInitializers(this, _selectedValues_initializers, void 0));
-          get selectedValues() { return this.#selectedValues_accessor_storage; }
-          set selectedValues(value) { this.#selectedValues_accessor_storage = value; }
-          #selectedSecondaryValues_accessor_storage = (__runInitializers(this, _selectedValues_extraInitializers), __runInitializers(this, _selectedSecondaryValues_initializers, void 0));
-          get selectedSecondaryValues() { return this.#selectedSecondaryValues_accessor_storage; }
-          set selectedSecondaryValues(value) { this.#selectedSecondaryValues_accessor_storage = value; }
-          #selectedSecondaryValue_accessor_storage = (__runInitializers(this, _selectedSecondaryValues_extraInitializers), __runInitializers(this, _selectedSecondaryValue_initializers, void 0));
-          get selectedSecondaryValue() { return this.#selectedSecondaryValue_accessor_storage; }
-          set selectedSecondaryValue(value) { this.#selectedSecondaryValue_accessor_storage = value; }
-          #stringSelectedValue_accessor_storage = (__runInitializers(this, _selectedSecondaryValue_extraInitializers), __runInitializers(this, _stringSelectedValue_initializers, void 0));
-          get stringSelectedValue() { return this.#stringSelectedValue_accessor_storage; }
-          set stringSelectedValue(value) { this.#stringSelectedValue_accessor_storage = value; }
           /**
            * The dropdown's selector element.
            */
           set selector(value) {
               if (!(value instanceof HTMLElement))
                   return;
-              turbo(value)
+              gradum(value)
                   .addClass(this.selectorClasses)
                   .on(DefaultEventName.click, (e) => {
                   this.openPopup(!this.popupOpen);
-                  return true;
+                  return Propagation.stopPropagation;
               });
-              if (this.popup instanceof TurboPopup)
+              if (this.popup instanceof GradumPopup)
                   this.popup.anchor = value;
-              turbo(this).addChild(value);
-              if (value instanceof TurboButton)
+              gradum(this).addChild(value);
+              if (value instanceof GradumButton)
                   this.select.onSelect = () => value.text = this.stringSelectedValue;
           }
           get selector() { return; }
@@ -19480,15 +24823,15 @@
            * The dropdown's popup element.
            */
           set popup(value) {
-              if (value instanceof TurboPopup)
+              if (value instanceof GradumPopup)
                   value.anchor = this.selector;
-              turbo(value).addClass(this.popupClasses);
+              gradum(value).addClass(this.popupClasses);
               this.select.parent = value;
           }
           initialize() {
               super.initialize();
               this.selector;
-              turbo(document.body).on(DefaultEventName.click, () => e => {
+              gradum(document.body).on(DefaultEventName.click, () => e => {
                   if (this.popupOpen && !this.contains(e.target))
                       this.openPopup(false);
               }, { capture: true });
@@ -19500,37 +24843,29 @@
               if ("show" in this.popup && typeof this.popup.show === "function")
                   this.popup.show(b);
               else
-                  turbo(this.popup).show(b);
+                  gradum(this.popup).show(b);
           }
           constructor() {
               super(...arguments);
-              __runInitializers(this, _stringSelectedValue_extraInitializers);
+              __runInitializers(this, _popupClasses_extraInitializers);
           }
-          static {
-              __runInitializers(_classThis, _classExtraInitializers);
-          }
-      });
-      return _classThis;
+      };
   })();
+  define(GradumDropdown);
 
   /**
    * @group Components
-   * @category TurboMarkingMenu
+   * @category GradumMarkingMenu
    */
-  (() => {
-      let _classDecorators = [define("turbo-marking-menu")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboElement;
+  let GradumMarkingMenu = (() => {
+      let _classSuper = GradumElement;
       let _startAngle_decorators;
       let _startAngle_initializers = [];
       let _startAngle_extraInitializers = [];
       let _endAngle_decorators;
       let _endAngle_initializers = [];
       let _endAngle_extraInitializers = [];
-      (class extends _classSuper {
-          static { _classThis = this; }
+      return class GradumMarkingMenu extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _startAngle_decorators = [auto({
@@ -19543,10 +24878,7 @@
                   })];
               __esDecorate(null, null, _startAngle_decorators, { kind: "field", name: "startAngle", static: false, private: false, access: { has: obj => "startAngle" in obj, get: obj => obj.startAngle, set: (obj, value) => { obj.startAngle = value; } }, metadata: _metadata }, _startAngle_initializers, _startAngle_extraInitializers);
               __esDecorate(null, null, _endAngle_decorators, { kind: "field", name: "endAngle", static: false, private: false, access: { has: obj => "endAngle" in obj, get: obj => obj.endAngle, set: (obj, value) => { obj.endAngle = value; } }, metadata: _metadata }, _endAngle_initializers, _endAngle_extraInitializers);
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-              __runInitializers(_classThis, _classExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           transition;
           currentOrigin;
@@ -19559,9 +24891,9 @@
               super(...arguments);
               __runInitializers(this, _endAngle_extraInitializers);
           }
-      });
-      return _classThis;
+      };
   })();
+  define(GradumMarkingMenu);
 
   /**
    * @group Utilities
@@ -19589,319 +24921,325 @@
   }
 
   /**
-   * @class TurboSelectWheel
+   * @class GradumSelectWheel
    * @group Components
-   * @category TurboSelectWheel
+   * @category GradumSelectWheel
    *
-   * @extends TurboSelect
-   * @description Class to create a dynamic selection wheel.
-   * @template {string} ValueType
-   * @template {TurboSelectEntry<ValueType, any>} EntryType
+   * @extends GradumSelectElement
+   * @description A swipeable selection wheel. Entries are always position absolute, fanned out by a
+   * continuous pixel offset. Dragging moves all entries in real time; releasing snaps to the nearest.
+   * The container sizes to the selected entry. Visual state is driven by `entryTransitionReifect`
+   * (CSS transitions) and `computeAndApplyStyling` (per-entry opacity/scale/transform).
    */
-  (() => {
-      let _classDecorators = [define("turbo-select-wheel")];
-      let _classDescriptor;
-      let _classExtraInitializers = [];
-      let _classThis;
-      let _classSuper = TurboElement;
+  let GradumSelectWheel = (() => {
+      let _classSuper = GradumSelectElement;
       let _instanceExtraInitializers = [];
-      let _entries_decorators;
-      let _entries_initializers = [];
-      let _entries_extraInitializers = [];
-      let _values_decorators;
-      let _values_initializers = [];
-      let _values_extraInitializers = [];
-      let _selectedEntry_decorators;
-      let _selectedEntry_initializers = [];
-      let _selectedEntry_extraInitializers = [];
-      let _selectedValue_decorators;
-      let _selectedValue_initializers = [];
-      let _selectedValue_extraInitializers = [];
       let _opacity_decorators;
       let _opacity_initializers = [];
       let _opacity_extraInitializers = [];
       let _set_size_decorators;
-      let _get_reifect_decorators;
+      let _set_entryTransitionReifect_decorators;
+      let _set_transitionDuration_decorators;
+      let _set_customReifect_decorators;
       let _set_alwaysOpen_decorators;
-      let _set_index_decorators;
       let _set_open_decorators;
-      (class extends _classSuper {
-          static { _classThis = this; }
+      return class GradumSelectWheel extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _entries_decorators = [expose("selector")];
-              _values_decorators = [expose("selector")];
-              _selectedEntry_decorators = [expose("selector", false)];
-              _selectedValue_decorators = [expose("selector", false)];
               _opacity_decorators = [auto({
                       defaultValue: { max: 1, min: 0 },
-                      preprocessValue: (value) => {
-                          return {
-                              max: trim(value?.max, 1),
-                              min: trim(value?.min, 1)
-                          };
-                      }
+                      preprocessValue: (value) => ({
+                          max: trim(value?.max ?? 1, 1),
+                          min: trim(value?.min ?? 0, 1),
+                      }),
                   })];
               _set_size_decorators = [auto({
-                      preprocessValue: (value) => typeof value == "object" ? value : { max: value ?? 100, min: -(value ?? 100) }
+                      defaultValue: { max: 100, min: -100 },
+                      preprocessValue: (value) => typeof value === "object" ? value : { max: value ?? 100, min: -(value ?? 100) },
                   })];
-              _get_reifect_decorators = [auto({
+              _set_entryTransitionReifect_decorators = [auto({
                       preprocessValue: function (value) {
+                          if (!value)
+                              return;
                           if (value instanceof Reifect)
                               return value;
-                          if (!value)
-                              value = {};
-                          if (!value.transitionProperties)
-                              value.transitionProperties = "opacity transform";
-                          if (value.transitionDuration == undefined)
-                              value.transitionDuration = 0.2;
-                          if (!value.transitionTimingFunction)
-                              value.transitionTimingFunction = "ease-in-out";
                           return new Reifect(value);
                       }
                   })];
+              _set_transitionDuration_decorators = [auto({ override: true })];
+              _set_customReifect_decorators = [auto({
+                      preprocessValue: function (value) {
+                          if (!value)
+                              return null;
+                          if (value instanceof Reifect)
+                              return value;
+                          return new Reifect(value);
+                      },
+                  })];
               _set_alwaysOpen_decorators = [auto({ defaultValue: false })];
-              _set_index_decorators = [auto({ cancelIfUnchanged: false })];
               _set_open_decorators = [auto()];
-              __esDecorate(this, null, _entries_decorators, { kind: "accessor", name: "entries", static: false, private: false, access: { has: obj => "entries" in obj, get: obj => obj.entries, set: (obj, value) => { obj.entries = value; } }, metadata: _metadata }, _entries_initializers, _entries_extraInitializers);
-              __esDecorate(this, null, _values_decorators, { kind: "accessor", name: "values", static: false, private: false, access: { has: obj => "values" in obj, get: obj => obj.values, set: (obj, value) => { obj.values = value; } }, metadata: _metadata }, _values_initializers, _values_extraInitializers);
-              __esDecorate(this, null, _selectedEntry_decorators, { kind: "accessor", name: "selectedEntry", static: false, private: false, access: { has: obj => "selectedEntry" in obj, get: obj => obj.selectedEntry, set: (obj, value) => { obj.selectedEntry = value; } }, metadata: _metadata }, _selectedEntry_initializers, _selectedEntry_extraInitializers);
-              __esDecorate(this, null, _selectedValue_decorators, { kind: "accessor", name: "selectedValue", static: false, private: false, access: { has: obj => "selectedValue" in obj, get: obj => obj.selectedValue, set: (obj, value) => { obj.selectedValue = value; } }, metadata: _metadata }, _selectedValue_initializers, _selectedValue_extraInitializers);
               __esDecorate(this, null, _set_size_decorators, { kind: "setter", name: "size", static: false, private: false, access: { has: obj => "size" in obj, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _get_reifect_decorators, { kind: "getter", name: "reifect", static: false, private: false, access: { has: obj => "reifect" in obj, get: obj => obj.reifect }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_entryTransitionReifect_decorators, { kind: "setter", name: "entryTransitionReifect", static: false, private: false, access: { has: obj => "entryTransitionReifect" in obj, set: (obj, value) => { obj.entryTransitionReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_transitionDuration_decorators, { kind: "setter", name: "transitionDuration", static: false, private: false, access: { has: obj => "transitionDuration" in obj, set: (obj, value) => { obj.transitionDuration = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _set_customReifect_decorators, { kind: "setter", name: "customReifect", static: false, private: false, access: { has: obj => "customReifect" in obj, set: (obj, value) => { obj.customReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_alwaysOpen_decorators, { kind: "setter", name: "alwaysOpen", static: false, private: false, access: { has: obj => "alwaysOpen" in obj, set: (obj, value) => { obj.alwaysOpen = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _set_index_decorators, { kind: "setter", name: "index", static: false, private: false, access: { has: obj => "index" in obj, set: (obj, value) => { obj.index = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _set_open_decorators, { kind: "setter", name: "open", static: false, private: false, access: { has: obj => "open" in obj, set: (obj, value) => { obj.open = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(null, null, _opacity_decorators, { kind: "field", name: "opacity", static: false, private: false, access: { has: obj => "opacity" in obj, get: obj => obj.opacity, set: (obj, value) => { obj.opacity = value; } }, metadata: _metadata }, _opacity_initializers, _opacity_extraInitializers);
-              __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-              _classThis = _classDescriptor.value;
-              if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-              __runInitializers(_classThis, _classExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          selector = __runInitializers(this, _instanceExtraInitializers);
-          #entries_accessor_storage = __runInitializers(this, _entries_initializers, void 0);
-          get entries() { return this.#entries_accessor_storage; }
-          set entries(value) { this.#entries_accessor_storage = value; }
-          #values_accessor_storage = (__runInitializers(this, _entries_extraInitializers), __runInitializers(this, _values_initializers, void 0));
-          get values() { return this.#values_accessor_storage; }
-          set values(value) { this.#values_accessor_storage = value; }
-          #selectedEntry_accessor_storage = (__runInitializers(this, _values_extraInitializers), __runInitializers(this, _selectedEntry_initializers, void 0));
-          get selectedEntry() { return this.#selectedEntry_accessor_storage; }
-          set selectedEntry(value) { this.#selectedEntry_accessor_storage = value; }
-          #selectedValue_accessor_storage = (__runInitializers(this, _selectedEntry_extraInitializers), __runInitializers(this, _selectedValue_initializers, void 0));
-          get selectedValue() { return this.#selectedValue_accessor_storage; }
-          set selectedValue(value) { this.#selectedValue_accessor_storage = value; }
-          _currentPosition = (__runInitializers(this, _selectedValue_extraInitializers), 0);
+          static defaultProperties = { transitionDuration: 0.3 };
+          _currentPosition = (__runInitializers(this, _instanceExtraInitializers), 0);
+          _index = 0;
           sizePerEntry = [];
           positionPerEntry = [];
           totalSize = 0;
           dragLimitOffset = 30;
-          /**
-           * @description Hides after the set time has passed. Set to a negative value to never hide the wheel. In ms.
-           */
           openTimeout = 3000;
           direction = Direction.horizontal;
           scale = { max: 1, min: 0.5 };
           generateCustomStyling;
-          dragging;
+          dragging = false;
           openTimer;
           initialize() {
-              this.selector = new TurboSelect();
-              this.selector.multiSelection = false;
-              this.selector.forceSelection = true;
-              this.selector.onSelectDelegate.add((b) => {
-                  if (!b)
-                      return;
-                  this.open = true;
-                  if (!this.alwaysOpen)
-                      this.setOpenTimer();
-              });
-              this.selector.onEntryRemoved.add((entry) => this.reifect?.detach(entry));
-              this.selector.onEntryAdded.add((entry) => {
-                  if (entry instanceof Element && entry.parentElement) {
-                      this.reifect?.attach(entry);
-                      this.reloadEntrySizes();
-                  }
-                  let showTimer;
-                  turbo(entry)
-                      .setStyles({ position: "absolute" })
-                      .on(DefaultEventName.dragStart, (e) => {
-                      e.stopImmediatePropagation();
+              const initEntry = (entry) => {
+                  gradum(entry).setStyles({ position: "absolute", whiteSpace: "nowrap" }, true);
+                  this.entryTransitionReifect?.attach(entry);
+                  this.customReifect?.attach(entry);
+                  gradum(entry)
+                      .on(DefaultEventName.dragStart, () => {
                       this.clearOpenTimer();
                       this.open = true;
                       this.dragging = true;
-                      this.reifect.enabled.transition = false;
+                      // Remove transitions instantly so the first drag frame isn't animated.
+                      if (this.entryTransitionReifect)
+                          this.entryTransitionReifect.unapply(undefined, { applyStylesInstantly: true });
                       this.reloadEntrySizes();
+                      return Propagation.stopImmediatePropagation;
                   })
-                      .on("pointerover", () => {
-                      clearTimeout(showTimer);
-                      showTimer = setTimeout(() => this.open = true, 1000);
+                      .on(DefaultEventName.drag, (e) => {
+                      if (!this.dragging)
+                          return;
+                      this.currentPosition += this.computeDragDelta(e.scaledDeltaPosition);
+                      return Propagation.stopImmediatePropagation;
                   })
-                      .on("pointerout", () => {
-                      if (showTimer)
-                          clearTimeout(showTimer);
-                      showTimer = null;
+                      .on(DefaultEventName.dragEnd, () => {
+                      if (!this.dragging)
+                          return;
+                      this.dragging = false;
+                      // recomputeProperties is required because unapplyStyles() clears resolvedValues.styles,
+                      // so apply() without it finds styles["default"] === undefined and returns early,
+                      // never calling reloadReifectsChainableStyles — leaving transition: "none" stuck.
+                      if (this.entryTransitionReifect)
+                          this.entryTransitionReifect.apply(undefined, { recomputeProperties: true });
+                      this.snapToNearest();
+                      if (!this.alwaysOpen)
+                          this.setOpenTimer();
+                      return Propagation.stopImmediatePropagation;
                   });
-                  this.refresh();
+                  requestAnimationFrame(() => this.reloadEntrySizes());
+              };
+              this.select.onEntryAdded.add(initEntry);
+              this.select.onEntryRemoved.add(entry => {
+                  this.entryTransitionReifect?.detach(entry);
+                  this.customReifect?.detach(entry);
+                  requestAnimationFrame(() => this.reloadEntrySizes());
               });
               super.initialize();
-              this.refresh();
-              turbo(this).setStyles({ display: "block", position: "relative" });
+              gradum(this).setStyles({ display: "inline-block", position: "relative", overflow: "hidden" });
+              // Entries set via create({values: [...]}) fire onEntryAdded before initialize() has a
+              // chance to add the callback above. Replay initEntry for any such pre-existing entries.
+              this.entries.forEach(initEntry);
           }
           opacity = __runInitializers(this, _opacity_initializers, void 0);
-          set size(value) { }
-          get size() { return; }
-          get reifect() { return; }
-          set reifect(value) {
-              this.reifect.attachAll(...this.entries);
+          set size(value) {
           }
-          closeOnClick = (__runInitializers(this, _opacity_extraInitializers), () => this.open = false);
+          get size() {
+              return;
+          }
+          set entryTransitionReifect(value) {
+              if (!value)
+                  return;
+              if (this.entries.length > 0)
+                  value.attach(...this.entries);
+          }
+          get entryTransitionReifect() {
+              return;
+          }
+          set transitionDuration(value) {
+              if (value <= 0)
+                  return;
+              if (!this.entryTransitionReifect)
+                  this.entryTransitionReifect = new Reifect({});
+              this.entryTransitionReifect.styles = `transition: transform ${value}s ease-in-out, opacity ${value}s ease-in-out`;
+          }
+          set customReifect(value) {
+              if (this.customReifect && this.entries.length > 0)
+                  this.customReifect.attach(...this.entries);
+          }
+          get customReifect() {
+              return;
+          }
+          _closeOnClick = (__runInitializers(this, _opacity_extraInitializers), () => this.open = false);
           set alwaysOpen(value) {
               if (value)
-                  turbo(document.body).removeListener(DefaultEventName.click, this.closeOnClick);
+                  gradum(document.body).removeListener(DefaultEventName.click, this._closeOnClick);
               else
-                  turbo(document.body).on(DefaultEventName.click, this.closeOnClick);
+                  gradum(document.body).on(DefaultEventName.click, this._closeOnClick);
               this.open = value;
           }
+          set open(value) {
+              gradum(this).setStyle("overflow", value ? "visible" : "hidden");
+              // When opening, entries may have had zero layout size if the wheel was off-screen or
+              // hidden when first populated. Reload now that the wheel is visible.
+              if (value)
+                  requestAnimationFrame(() => this.reloadEntrySizes());
+          }
           get isVertical() {
-              return this.direction == Direction.vertical;
+              return this.direction === Direction.vertical;
+          }
+          /** Fractional index — integer when snapped, fractional mid-drag. */
+          get index() {
+              return this._index;
           }
           set index(value) {
-              this.selector.selectByIndex(this.trimmedIndex);
+              this._index = value;
+              this.select.selectByIndex(trim(Math.round(value), this.entries.length - 1));
           }
-          get trimmedIndex() {
-              return trim(Math.round(this.index), this.entries.length - 1);
-          }
-          get flooredTrimmedIndex() {
-              return trim(Math.floor(this.index), this.entries.length - 1);
-          }
-          set open(value) {
-              turbo(this).setStyle("overflow", value ? "visible" : "hidden");
-          }
+          // -------------------------------------------------------------------------
+          // Position
+          // -------------------------------------------------------------------------
           get currentPosition() {
               return this._currentPosition;
           }
           set currentPosition(value) {
+              if (!this.sizePerEntry.length)
+                  return;
               const min = -this.dragLimitOffset - this.sizePerEntry[0] / 2;
               const max = this.totalSize + this.dragLimitOffset - this.sizePerEntry[this.sizePerEntry.length - 1] / 2;
-              if (value < min)
-                  value = min;
-              if (value > max)
-                  value = max;
-              this._currentPosition = value;
-              const elements = this.reifect.getEnabledObjectsData();
-              if (elements.length === 0)
-                  return;
-              elements.forEach((el, index) => this.computeAndApplyStyling(el.object.deref(), this.positionPerEntry[index] - value));
+              this._currentPosition = Math.min(Math.max(value, min), max);
+              this._index = this.positionToIndex(this._currentPosition);
+              this.applyAllEntryStyles();
           }
-          setupUIListeners() {
-              super.setupUIListeners();
-              turbo(document.body)
-                  .on(DefaultEventName.drag, (e) => {
-                  if (!this.dragging)
-                      return;
-                  e.stopImmediatePropagation();
-                  this.currentPosition += this.computeDragValue(e.scaledDeltaPosition);
-              })
-                  .on(DefaultEventName.dragEnd, (e) => {
-                  if (!this.dragging)
-                      return;
-                  e.stopImmediatePropagation();
-                  this.dragging = false;
-                  this.recomputeIndex();
-                  // this.snapTo(this.trimmedIndex);
-                  if (!this.alwaysOpen)
-                      this.setOpenTimer();
-              });
-          }
-          computeDragValue(delta) {
+          computeDragDelta(delta) {
               return -delta[this.isVertical ? "y" : "x"];
           }
-          /**
-           * Recalculates the dimensions and positions of all entries
-           */
+          // -------------------------------------------------------------------------
+          // Layout
+          // -------------------------------------------------------------------------
           reloadEntrySizes() {
-              if (!this.reifect)
-                  return;
               this.sizePerEntry.length = 0;
               this.positionPerEntry.length = 0;
               this.totalSize = 0;
-              this.reifect.getEnabledObjectsData().forEach(entry => {
-                  const object = entry.object.deref();
-                  const size = object ? object[this.isVertical ? "offsetHeight" : "offsetWidth"] : 0;
+              this.entries.forEach(entry => {
+                  const size = entry[this.isVertical ? "offsetHeight" : "offsetWidth"];
                   this.sizePerEntry.push(size);
                   this.positionPerEntry.push(this.totalSize);
                   this.totalSize += size;
               });
-              const flooredIndex = Math.floor(this.index);
-              const indexOffset = this.index - Math.floor(this.index);
-              this.currentPosition = 0;
-              if (this.index < 0)
-                  this.currentPosition = -Math.abs(this.index) * this.sizePerEntry[0];
-              else if (this.index >= this.sizePerEntry.length)
-                  this.currentPosition =
-                      (this.index - this.sizePerEntry.length + 1) * this.sizePerEntry[this.sizePerEntry.length - 1];
-              else
-                  this.currentPosition = this.positionPerEntry[flooredIndex] + this.sizePerEntry[flooredIndex] * indexOffset;
+              if (!this.sizePerEntry.length) {
+                  this._currentPosition = 0;
+                  return;
+              }
+              // If the wheel or its ancestors weren't in layout yet (e.g. off-screen, hidden, or
+              // added to the DOM after entries were created), all sizes read as 0. Retry next frame
+              // so the browser has time to perform layout.
+              if (this.totalSize === 0) {
+                  requestAnimationFrame(() => this.reloadEntrySizes());
+                  return;
+              }
+              this._currentPosition = this.indexToPosition(this._index);
+              this.applyAllEntryStyles();
+              if (this.selectedIndex >= 0)
+                  this.applyTransition();
           }
-          recomputeIndex() {
-              let index = 0;
-              while (index < this.positionPerEntry.length - 1 && this.positionPerEntry[index + 1] < this.currentPosition)
-                  index++;
-              if (this.currentPosition - this.positionPerEntry[index] > this.sizePerEntry[index + 1] / 2)
-                  index++;
-              this.index = index;
+          indexToPosition(index) {
+              if (!this.sizePerEntry.length)
+                  return 0;
+              if (index < 0)
+                  return -Math.abs(index) * this.sizePerEntry[0];
+              if (index >= this.sizePerEntry.length)
+                  return this.totalSize - this.sizePerEntry[this.sizePerEntry.length - 1] / 2;
+              const floor = trim(Math.floor(index), this.sizePerEntry.length - 1);
+              return this.positionPerEntry[floor] + this.sizePerEntry[floor] * (index - Math.floor(index));
           }
-          computeAndApplyStyling(element, translationValue, size = this.size) {
-              let opacityValue, scaleValue;
+          positionToIndex(position) {
+              if (!this.positionPerEntry.length)
+                  return 0;
+              let i = 0;
+              while (i < this.positionPerEntry.length - 1 && this.positionPerEntry[i + 1] <= position)
+                  i++;
+              if (i >= this.sizePerEntry.length - 1)
+                  return i;
+              return i + Math.min((position - this.positionPerEntry[i]) / (this.sizePerEntry[i] || 1), 1);
+          }
+          snapToNearest() {
+              const nearest = trim(Math.round(this.positionToIndex(this._currentPosition)), this.entries.length - 1);
+              this.index = nearest;
+              this._currentPosition = this.indexToPosition(nearest);
+              this.applyAllEntryStyles();
+          }
+          // -------------------------------------------------------------------------
+          // Transition (overrides GradumSelectElement — wheel sizes to selected entry directly)
+          // -------------------------------------------------------------------------
+          applyTransition() {
+              const i = this.selectedIndex;
+              if (i < 0)
+                  return;
+              this._index = i;
+              this._currentPosition = this.indexToPosition(i);
+              this.applyAllEntryStyles();
+              // Size container to selected entry
+              if (this.sizePerEntry.length) {
+                  const entry = this.entries[i];
+                  const w = this.isVertical ? entry.offsetWidth : this.sizePerEntry[i];
+                  const h = this.isVertical ? this.sizePerEntry[i] : entry.offsetHeight;
+                  $(this).setStyles({ width: `${w}px`, height: `${h}px` });
+              }
+          }
+          // -------------------------------------------------------------------------
+          // Styling
+          // -------------------------------------------------------------------------
+          applyAllEntryStyles() {
+              // Apply instantly during drag so transforms aren't queued behind a rAF while a CSS
+              // transition is still active on the element, which would cause visual lag.
+              const instant = this.dragging;
+              this.entries.forEach((el, i) => {
+                  const translationValue = (this.positionPerEntry[i] ?? 0) - this._currentPosition;
+                  if (this.customReifect) {
+                      this.customReifect.apply(el, { recomputeProperties: true });
+                  }
+                  else {
+                      this.computeAndApplyStyling(el, translationValue, undefined, instant);
+                  }
+              });
+          }
+          computeAndApplyStyling(element, translationValue, size = this.size, instant = false) {
               const bound = translationValue > 0 ? size.max : size.min;
-              opacityValue = linearInterpolation(translationValue, 0, bound, this.opacity.max, this.opacity.min);
-              scaleValue = linearInterpolation(translationValue, 0, bound, this.scale.max, this.scale.min);
+              const opacityValue = linearInterpolation(translationValue, 0, bound, this.opacity.max, this.opacity.min);
+              const scaleValue = linearInterpolation(translationValue, 0, bound, this.scale.max, this.scale.min);
+              // `transition` is a "chainable style field" — Reifect.unapply() clears its own
+              // resolved state but reloadReifectsChainableStyles() only writes keys that still
+              // have an active contribution, so the old inline transition is never explicitly
+              // removed. Writing "none" here overrides it every drag frame.
               let styles = {
-                  left: "50%", top: "50%", opacity: opacityValue, transform: `translate3d(
-            calc(${!this.isVertical ? translationValue : 0}px - 50%),
-            calc(${this.isVertical ? translationValue : 0}px - 50%),
-            0) scale3d(${scaleValue}, ${scaleValue}, 1)`
+                  left: "50%",
+                  top: "50%",
+                  opacity: opacityValue,
+                  ...(instant && { transition: "none" }),
+                  transform: `translate3d(
+                calc(${!this.isVertical ? translationValue : 0}px - 50%),
+                calc(${this.isVertical ? translationValue : 0}px - 50%),
+                0) scale3d(${scaleValue}, ${scaleValue}, 1)`,
               };
               if (this.generateCustomStyling)
                   styles = this.generateCustomStyling({
-                      element: element,
-                      translationValue: translationValue,
-                      opacityValue: opacityValue,
-                      scaleValue: scaleValue,
-                      size: size,
-                      defaultComputedStyles: styles
+                      element, translationValue, opacityValue, scaleValue, size, defaultComputedStyles: styles,
                   });
-              $(element).setStyles(styles);
+              $(element).setStyles(styles, instant);
           }
-          select(entry, selected = true) {
-              // super.select(entry, selected);
-              if (entry === undefined || entry === null)
-                  return this;
-              const index = this.selector.getIndex(this.selectedEntry);
-              if (index != this.index)
-                  this.index = index;
-              if (this.reifect) {
-                  this.reifect.enabled.transition = true;
-                  this.reloadEntrySizes();
-              }
-              const computedStyle = getComputedStyle(this.selectedEntry);
-              $(this).setStyles({ minWidth: computedStyle.width, minHeight: computedStyle.height }, true);
-              return this;
-          }
-          clear() {
-              this.reifect.detach(...this.entries);
-              this.selector.clear();
-          }
-          refresh() {
-              if (this.selectedEntry)
-                  this.select(this.selectedEntry);
-              else
-                  this.reset();
-          }
-          reset() {
-              this.select(this.entries[0]);
-          }
+          // -------------------------------------------------------------------------
+          // Timer helpers
+          // -------------------------------------------------------------------------
           clearOpenTimer() {
               if (this.openTimer)
                   clearTimeout(this.openTimer);
@@ -19912,75 +25250,571 @@
                   return;
               this.openTimer = setTimeout(() => this.open = false, this.openTimeout);
           }
-      });
-      return _classThis;
+      };
+  })();
+  define(GradumSelectWheel);
+
+  /**
+   * @class GradumButtonPopup
+   * @group Components
+   * @category GradumButton
+   *
+   * @description Button class for creating Gradum button elements.
+   * @extends GradumElement
+   */
+  let GradumButtonPopup = (() => {
+      let _classSuper = GradumButton;
+      let _instanceExtraInitializers = [];
+      let _popupClasses_decorators;
+      let _popupClasses_initializers = [];
+      let _popupClasses_extraInitializers = [];
+      let _set_popup_decorators;
+      return class GradumButtonPopup extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _popupClasses_decorators = [auto({
+                      callBefore: function () { gradum(this.popup).removeClass(this.popupClasses); },
+                      callAfter: function () { gradum(this.popup).addClass(this.popupClasses); }
+                  })];
+              _set_popup_decorators = [auto({ defaultValueCallback: () => GradumPopup.create() })];
+              __esDecorate(this, null, _set_popup_decorators, { kind: "setter", name: "popup", static: false, private: false, access: { has: obj => "popup" in obj, set: (obj, value) => { obj.popup = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(null, null, _popupClasses_decorators, { kind: "field", name: "popupClasses", static: false, private: false, access: { has: obj => "popupClasses" in obj, get: obj => obj.popupClasses, set: (obj, value) => { obj.popupClasses = value; } }, metadata: _metadata }, _popupClasses_initializers, _popupClasses_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          popupOpen = (__runInitializers(this, _instanceExtraInitializers), false);
+          popupClasses = __runInitializers(this, _popupClasses_initializers, void 0);
+          /**
+           * The dropdown's popup element.
+           */
+          set popup(value) {
+              if (value instanceof GradumPopup)
+                  value.anchor = this;
+              gradum(value).addClass(this.popupClasses);
+          }
+          setupUIListeners() {
+              super.setupUIListeners();
+              gradum(document.body).on(DefaultEventName.click, () => e => {
+                  if (this.popupOpen && !this.contains(e.target))
+                      this.openPopup(false);
+              }, { capture: true });
+              gradum(this).on(DefaultEventName.click, (e) => {
+                  this.openPopup(!this.popupOpen);
+                  return Propagation.stopPropagation;
+              });
+          }
+          openPopup(b) {
+              if (this.popupOpen == b)
+                  return;
+              this.popupOpen = b;
+              if ("show" in this.popup && typeof this.popup.show === "function")
+                  this.popup.show(b);
+              else
+                  gradum(this.popup).show(b);
+          }
+          constructor() {
+              super(...arguments);
+              __runInitializers(this, _popupClasses_extraInitializers);
+          }
+      };
+  })();
+  define(GradumButtonPopup);
+
+  /**
+   * @group MVC
+   * @category GradumModel
+   */
+  (() => {
+      let _classSuper = GradumModel;
+      let _instanceExtraInitializers = [];
+      let _set_enabledCallbacks_decorators;
+      return class GradumYModel extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _set_enabledCallbacks_decorators = [auto({ override: true })];
+              __esDecorate(this, null, _set_enabledCallbacks_decorators, { kind: "setter", name: "enabledCallbacks", static: false, private: false, access: { has: obj => "enabledCallbacks" in obj, set: (obj, value) => { obj.enabledCallbacks = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          observer = (__runInitializers(this, _instanceExtraInitializers), (event, transaction) => this.observeChanges(event, transaction));
+          observedYTypes = new WeakSet();
+          /**
+           * @function create
+           * @description Instantiate a GradumYModel, then optionally initialize it and make its signals.
+           * Overrides {@link GradumModel.create} solely to narrow the return type, so that Y-specific members
+           * (`observeChanges`, `attachNestedObservers`, ...) remain visible on the result.
+           * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
+           * @returns {GradumYModel} The created model.
+           */
+          static create(properties = {}) {
+              return super.create(properties);
+          }
+          /**
+           * @inheritDoc
+           */
+          modelConstructor = GradumYModel;
+          /**
+           * @inheritDoc
+           */
+          set enabledCallbacks(value) {
+              if (!this.data)
+                  return;
+              if (this.data instanceof AbstractType) {
+                  if (value)
+                      this.attachNestedObservers(this.data);
+                  else
+                      this.detachNestedObservers(this.data);
+              }
+              else if (Array.isArray(this.data)) {
+                  for (const item of this.data) {
+                      if (value)
+                          this.attachNestedObservers(item);
+                      else
+                          this.detachNestedObservers(item);
+                  }
+              }
+          }
+          /*
+           *
+           * Basics
+           *
+           */
+          /**
+           * @inheritDoc
+           */
+          getAction(data, key) {
+              if (data instanceof YMap)
+                  return data.get(key.toString());
+              if (data instanceof YArray)
+                  return data.get(trim(Number(key), data.length));
+              return super.getAction(data, key);
+          }
+          /**
+           * @inheritDoc
+           */
+          setAction(data, value, key) {
+              if (data instanceof YMap)
+                  data.doc.transact(() => data.set(key.toString(), value), this);
+              else if (data instanceof YArray) {
+                  const index = trim(Number(key), data.length + 1);
+                  if (index < data.length)
+                      data.delete(index, 1);
+                  data.doc.transact(() => data.insert(index, [value]), this);
+              }
+              else {
+                  const oldValue = this.getAction(data, key);
+                  if (oldValue !== value && oldValue != null && typeof oldValue === "object")
+                      this.detachNestedObservers(oldValue);
+                  super.setAction(data, value, key);
+                  if (oldValue !== value && value != null && typeof value === "object")
+                      this.attachNestedObservers(value);
+              }
+          }
+          /**
+           * @inheritDoc
+           */
+          addAction(model, data, value, key) {
+              if (data instanceof YArray) {
+                  let index = key;
+                  if (isUndefined(index) || typeof index !== "number" || index > data.length) {
+                      index = data.length;
+                      data.doc.transact(() => data.push([value]), this);
+                  }
+                  else {
+                      if (index < 0)
+                          index = 0;
+                      data.doc.transact(() => data.insert(index, [value]), this);
+                  }
+                  return index;
+              }
+              if (Array.isArray(data)) {
+                  const index = super.addAction(model, data, value, key);
+                  if (index !== undefined && value != null && typeof value === "object")
+                      this.attachNestedObservers(value);
+                  return index;
+              }
+              return super.addAction(model, data, value, key);
+          }
+          /**
+           * @inheritDoc
+           */
+          hasAction(data, key) {
+              if (data instanceof YMap)
+                  return data.has(key.toString());
+              if (data instanceof YArray)
+                  return typeof key === "number" && key >= 0 && key < data.length;
+              return super.hasAction(data, key);
+          }
+          /**
+           * @inheritDoc
+           */
+          deleteAction(data, key) {
+              if (data instanceof YMap)
+                  data.doc.transact(() => data.delete(key.toString()), this);
+              else if (data instanceof YArray && typeof key === "number" && key >= 0 && key < data.length)
+                  data.doc.transact(() => data.delete(key, 1), this);
+              else
+                  super.deleteAction(data, key);
+          }
+          /**
+           * @inheritDoc
+           */
+          getKeysAction(data) {
+              if (data instanceof YMap)
+                  return Array.from(data.keys());
+              if (data instanceof YArray) {
+                  const output = [];
+                  for (let i = 0; i < data.length; i++)
+                      output.push(i);
+                  return output;
+              }
+              return super.getKeysAction(data);
+          }
+          /**
+           * @inheritDoc
+           */
+          initialize() {
+              super.initialize();
+              if (!this.enabledCallbacks)
+                  return;
+              if (this.data instanceof AbstractType)
+                  this.attachNestedObservers(this.data);
+              else if (Array.isArray(this.data)) {
+                  for (const item of this.data)
+                      this.attachNestedObservers(item);
+              }
+          }
+          /**
+           * @inheritDoc
+           */
+          clear(clearData = true) {
+              if (clearData) {
+                  if (this.data instanceof AbstractType)
+                      this.detachNestedObservers(this.data);
+                  else if (Array.isArray(this.data)) {
+                      for (const item of this.data)
+                          this.detachNestedObservers(item);
+                  }
+              }
+              super.clear(clearData);
+          }
+          diffCheck(oldData, newData) {
+              if (oldData instanceof AbstractType || newData instanceof AbstractType)
+                  return false;
+              return super.diffCheck(oldData, newData);
+          }
+          /*
+           *
+           * Utilities
+           *
+           */
+          observeChanges(event, transaction) {
+              const selfOriginated = transaction?.origin === this;
+              const basePath = this.getPathToTarget(event.target);
+              if (event instanceof YMapEvent) {
+                  if (selfOriginated)
+                      return;
+                  event.keysChanged.forEach(key => {
+                      const change = event.changes.keys.get(key);
+                      if (!change)
+                          return;
+                      if (change.action === "delete")
+                          this.keyChanged([...basePath, key], undefined, true);
+                      else {
+                          this.attachNestedObservers(this.getAction(event.target, key));
+                          this.keyChanged([...basePath, key]);
+                      }
+                  });
+              }
+              else if (event instanceof YArrayEvent) {
+                  let currentIndex = 0;
+                  for (const delta of event.delta) {
+                      if (delta.retain !== undefined) {
+                          currentIndex += delta.retain;
+                      }
+                      else if (delta.insert) {
+                          const insertedItems = Array.isArray(delta.insert) ? delta.insert : [delta.insert];
+                          const count = insertedItems.length;
+                          this.shiftIndices(basePath, currentIndex, count);
+                          if (!selfOriginated) {
+                              for (let i = 0; i < count; i++) {
+                                  this.attachNestedObservers(this.getAction(event.target, currentIndex + i));
+                                  this.keyChanged([...basePath, currentIndex + i]);
+                              }
+                          }
+                          currentIndex += count;
+                      }
+                      else if (delta.delete) {
+                          const count = delta.delete;
+                          if (!selfOriginated) {
+                              for (let i = 0; i < count; i++)
+                                  this.keyChanged([...basePath, currentIndex + i], undefined, true);
+                          }
+                          this.shiftIndices(basePath, currentIndex + count, -count);
+                      }
+                  }
+              }
+          }
+          attachNestedObservers(value) {
+              if (value instanceof AbstractType) {
+                  if (!this.observedYTypes.has(value)) {
+                      value.observe(this.observer);
+                      this.observedYTypes.add(value);
+                  }
+                  // Skip key iteration when the type has no document yet — Y.js throws
+                  // "Invalid access: Add Yjs type to a document before reading data."
+                  // when keys() / get() are called before the type is inserted into a doc.
+                  if (!value.doc)
+                      return;
+                  for (const key of this.getKeysAction(value)) {
+                      if (!this.nestedModels.has(key))
+                          this.attachNestedObservers(this.getAction(value, key));
+                  }
+              }
+              else if (Array.isArray(value)) {
+                  for (let i = 0; i < value.length; i++)
+                      this.attachNestedObservers(value[i]);
+              }
+          }
+          detachNestedObservers(value) {
+              if (value instanceof AbstractType) {
+                  if (this.observedYTypes.has(value)) {
+                      // Guard: Y.js GC can clear event handlers on deleted types, leaving
+                      // observedYTypes stale. Check the internal handler array before calling
+                      // unobserve to avoid "[yjs] Tried to remove event handler that doesn't exist."
+                      if (value._eH?.l?.includes(this.observer))
+                          value.unobserve(this.observer);
+                      this.observedYTypes.delete(value);
+                  }
+                  for (const key of this.getKeysAction(value))
+                      this.detachNestedObservers(this.getAction(value, key));
+              }
+              else if (Array.isArray(value)) {
+                  for (let i = 0; i < value.length; i++)
+                      this.detachNestedObservers(value[i]);
+              }
+          }
+          shiftIndices(basePath, fromIndex, offset) {
+              const depth = basePath.length;
+              Array.from(this.changeObservers).forEach(entry => {
+                  const observer = entry.observer;
+                  const pathsToShift = observer.paths.filter(path => path.length > depth &&
+                      basePath.every((k, i) => path[i] == k) &&
+                      Number(path[depth]) >= fromIndex);
+                  const itemsToShift = pathsToShift
+                      .map(path => [Number(path[depth]), path, observer.get(...path)]);
+                  itemsToShift.sort((a, b) => offset < 0 ? a[0] - b[0] : b[0] - a[0]);
+                  pathsToShift.forEach(path => observer.detach(...path));
+                  for (const [oldIndex, path, instance] of itemsToShift) {
+                      const newIndex = oldIndex + offset;
+                      if (typeof instance === "object" && "dataId" in instance)
+                          instance.dataId = String(newIndex);
+                      const newPath = [...basePath, newIndex, ...path.slice(depth + 1)];
+                      observer.set(instance, ...newPath);
+                  }
+              });
+          }
+          getPathToTarget(target) {
+              const search = (current, path) => {
+                  if (current === target)
+                      return path;
+                  for (const key of this.getKeysAction(current)) {
+                      const child = this.getAction(current, key);
+                      const result = search(child, [...path, key]);
+                      if (result)
+                          return result;
+                  }
+                  return null;
+              };
+              return search(this.data, []) ?? [];
+          }
+      };
   })();
 
   /**
-   * @class TurboProxiedElement
-   * @group TurboElement
-   * @category TurboProxiedElement
+   * @class GradumTool
+   * @group MVC
+   * @category Tool
    *
-   * @description TurboProxiedElement class, similar to TurboElement but containing an HTML element instead of being one.
-   * @template {TurboView} ViewType - The element's view type, if initializing MVC.
-   * @template {object} DataType - The element's data type, if initializing MVC.
-   * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
-   * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * @extends GradumOperator
+   * @template {object} ElementType - The type of the element.
+   * @template {GradumView} ViewType - The element's view type, if any.
+   * @template {GradumModel} ModelType - The element's model type, if any.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+   * @description Class representing a tool in MVC, bound to the provided element.
    */
-  class TurboProxiedElement {
+  class GradumTool extends GradumOperator {
       /**
-       * @description Static configuration object.
+       * @description The name of the tool.
        */
-      static config = { shadowDOM: false, defaultSelectedClass: "selected" };
+      toolName;
       /**
-       * @description Update the class's static configurations. Will only overwrite the set properties.
-       * @property {typeof this.config} value - The object containing the new configurations.
+       * @readonly
+       * @description The target of this tool. If defined, will embed the tool.
        */
-      static configure(value) {
-          Object.entries(value).forEach(([key, val]) => {
-              if (val !== undefined)
-                  this.config[key] = val;
-          });
+      embeddedTarget;
+      /**
+       * @readonly
+       * @description The associated event manager. Defaults to `GradumEventManager.instance`.
+       */
+      manager;
+      /**
+       * @readonly
+       * @description Custom activation event to listen to. Defaults to the default click event name.
+       */
+      activationEvent = DefaultEventName.click;
+      /**
+       * @readonly
+       * @description Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
+       */
+      clickMode = ClickMode.left;
+      /**
+       * @readonly
+       * @description Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
+       */
+      key;
+      constructor(properties) {
+          super(properties);
+          this.toolName = properties.toolName ?? this.toolName ?? undefined;
+          if (properties.embeddedTarget)
+              this.embeddedTarget = properties.embeddedTarget;
+          if (properties.onActivate)
+              this.onActivate = properties.onActivate;
+          if (properties.onDeactivate)
+              this.onDeactivate = properties.onDeactivate;
+          if (properties.activationEvent)
+              this.activationEvent = properties.activationEvent;
+          if (properties.clickMode)
+              this.clickMode = properties.clickMode;
+          if (properties.customActivation)
+              this.customActivation = properties.customActivation;
+          if (properties.key)
+              this.key = properties.key;
+          this.manager = properties.manager ?? this.manager ?? GradumEventManager.instance;
+          this.setup();
       }
       /**
-       * @description The HTML (or other) element wrapped inside this instance.
+       * @function initialize
+       * @override
+       * @description Initialization function that calls {@link makeTool} on `this.element`, sets it up, and attaches
+       * all the defined tool behaviors.
+       */
+      initialize() {
+          if (this.toolName)
+              gradum(this).makeTool(this.toolName, {
+                  onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
+                  onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
+                  activationEvent: this.activationEvent,
+                  clickMode: this.clickMode,
+                  customActivation: typeof this.customActivation === "function" ? this.customActivation.bind(this) : undefined,
+                  key: this.key,
+                  manager: this.manager,
+              });
+          if (this.embeddedTarget)
+              gradum(this).embedTool(this.embeddedTarget, this.manager);
+          super.initialize();
+      }
+  }
+  addRegistryCategory(GradumTool);
+  define(GradumTool);
+
+  /**
+   * @class GradumView
+   * @group MVC
+   * @category View
+   *
+   * @template {object} ElementType - The type of the element attached to the view.
+   * @template {GradumModel} ModelType - The model type used in this view.
+   * @template {GradumEmitter} EmitterType - The emitter type used in this view.
+   * @description A base view class for MVC elements, providing structure for initializing and managing UI setup and
+   * event listeners. Designed to be devoid of logic and only handle direct UI changes.
+   */
+  class GradumView {
+      /**
+       * @description The main component this view is attached to.
        */
       element;
       /**
-       * @description The MVC handler of the element. If initialized, turns the element into an MVC structure.
+       * @description The model instance this view is bound to.
+       */
+      model;
+      /**
+       * @description The emitter instance used for event communication.
+       */
+      emitter;
+      /**
+       * @constructor
+       * @param {GradumViewProperties<ElementType, ModelType, EmitterType>} properties - Properties to initialize the view with.
+       */
+      constructor(properties) {
+          this.element = properties.element;
+          if (properties.model)
+              this.model = properties.model;
+          if (properties.emitter)
+              this.emitter = properties.emitter;
+          this.setup();
+      }
+      /**
+       * @function setup
+       * @description Called in the constructor. Use for setup that should happen at instantiation,
+       * before `this.initialize()` is called.
        * @protected
        */
-      mvc = new Mvc({ element: this });
-      constructor(properties = {}) {
-          this.element = blindElement(properties);
+      setup() { }
+      /**
+       * @function initialize
+       * @description Initializes the view by setting up change callbacks, UI elements, layout, and event listeners.
+       */
+      initialize() {
+          this.setupUIElements();
+          this.setupUILayout();
+          this.setupUIListeners();
+          this.setupChangedCallbacks();
       }
+      /**
+       * @function setupChangedCallbacks
+       * @description Setup method for initializing data/model change listeners and associated UI logic.
+       * @protected
+       */
       setupChangedCallbacks() {
+          initializeEffects(this);
       }
+      /**
+       * @function setupUIElements
+       * @description Setup method for initializing and storing sub-elements of the UI.
+       * @protected
+       */
       setupUIElements() {
       }
+      /**
+       * @function setupUILayout
+       * @description Setup method for creating the layout structure and injecting sub-elements into the DOM tree.
+       * @protected
+       */
       setupUILayout() {
       }
+      /**
+       * @function setupUIListeners
+       * @description Setup method for defining DOM and input event listeners.
+       * @protected
+       */
       setupUIListeners() {
+          attachListenersAndBehaviors(this);
       }
   }
-  (() => {
-      defineDefaultProperties(TurboProxiedElement);
-      defineMvcAccessors(TurboProxiedElement);
-      defineUIPrototype(TurboProxiedElement);
-  })();
+  addRegistryCategory(GradumView);
+  define(GradumView);
 
-  TurboIcon.config.defaultDirectory = "assets/";
-  TurboEventManager.instance.preventDefaultMouse = false;
-  TurboEventManager.instance.preventDefaultTouch = false;
+  GradumIcon.defaultProperties.defaultDirectory = "assets/";
+  GradumEventManager.instance.preventDefaultMouse = false;
+  GradumEventManager.instance.preventDefaultTouch = false;
 
   //First custom element, a square
-  class Square extends TurboElement {
+  class Square extends GradumElement {
       //Random position on creation
       position = {x: randomFromRange(0, 600), y: randomFromRange(0, 600)};
 
       //Adds parameter as a CSS class and fires first update()
       init(classes = "") {
-          turbo(this).addClass(classes);
+          gradum(this).addClass(classes);
           this.update();
           return this;
       }
@@ -19993,7 +25827,7 @@
       }
 
       update() {
-          turbo(this).setStyle("transform", `translate(${this.position.x}px, ${this.position.y}px)`);
+          gradum(this).setStyle("transform", `translate(${this.position.x}px, ${this.position.y}px)`);
       }
   }
 
@@ -20020,7 +25854,7 @@
 
       //Update the style
       update() {
-          turbo(this).setStyles({
+          gradum(this).setStyles({
               transform: `translate(${this.position.x}px, ${this.position.y}px)`,
               opacity: this.opacity
           });
@@ -20041,29 +25875,29 @@
   //Create a "move tool" button
   const moveTool = button({leftIcon: "move", text: "Move Tool", parent: document.body, classes: "moveTool"});
   //Turn it into a tool, and change its color when it is active
-  turbo(moveTool).makeTool("move", {onActivate: () => moveTool.style.backgroundColor = "#ff8888"});
+  gradum(moveTool).makeTool("move", {onActivate: () => moveTool.style.backgroundColor = "#ff8888"});
 
   //Add a behavior to the tool --> When the tool is active and the user is dragging, fire the callback
   //el is the element that is interacted with (the target of the interaction)
-  turbo(moveTool).addToolBehavior("turbo-drag", (e, el) => {
+  gradum(moveTool).addToolBehavior("gradum-drag", (e, el) => {
       //If el has a translate() function
       if (typeof el.translate === "function") {
           //Call it and pass it the delta position of the drag (the difference between the current position and
-          // the position captured at the previous "turbo-drag" event).
+          // the position captured at the previous "gradum-drag" event).
           el.translate(e.deltaPosition);
-          return EventPropagation.stopPropagation; //Stop the event from propagating
+          return Propagation.stopPropagation; //Stop the event from propagating
       }
   });
 
   //Create a new square that will contain an embedded tool
   const newSquare = element({tag: "test-square", parent: document.body}).init("square");
 
-  turbo(newSquare).onTool("click", "move", () => console.log("Clicked"));
+  gradum(newSquare).onTool("click", "move", () => console.log("Clicked"));
 
   //Create a handle or controller. It can be anything
   const embeddedTool = div({classes: "controller", parent: newSquare});
   //Turn the handle into a tool and embed it in the square
-  turbo(embeddedTool)
+  gradum(embeddedTool)
       .makeTool("move")
       .embedTool(newSquare);
 

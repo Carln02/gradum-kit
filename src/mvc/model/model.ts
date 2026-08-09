@@ -14,6 +14,14 @@ import {areEqual} from "../../utils/computations/equity";
 
 const META = Symbol("__meta__");
 
+/**
+ * @internal
+ * @type {ObserverData}
+ * @description One observer registration on a model: the observer itself plus the key path it watches.
+ * @property {GradumObserver} observer - The registered observer.
+ * @property {KeyType[]} keys - The key path it is attached to. May contain `GradumModel.ALL`.
+ * @property {boolean} [deep] - Whether it also fires for levels deeper than the registered path.
+ */
 type ObserverData<
     DataType = any,
     ComponentType extends object = any,
@@ -24,6 +32,13 @@ type ObserverData<
     deep?: boolean,
 };
 
+/**
+ * @internal
+ * @type {ListenerData}
+ * @description One key-path listener registration on a model, used to relay changes from nested models.
+ * @property {(keys: KeyType[], value: any) => void} listener - Called with the changed path and its new value.
+ * @property {KeyType[]} keys - The key path being listened to.
+ */
 type ListenerData = {
     listener: (keys: KeyType[], value: any) => void,
     keys: KeyType[],
@@ -32,10 +47,10 @@ type ListenerData = {
 /**
  * @class GradumModel
  * @group MVC
- * @category GradumModel
+ * @category Model
  *
  * @template DataType - The type of the data held in the model.
- * @template {KeyType} KeyType - The type of the data's keys.
+ * @template {KeyType} DataKeyType - The type of the data's keys.
  * @template {KeyType} IdType - The type of the data's ID.
  * @template ComponentType - The type of instances managed by attached observers.
  * @template DataEntryType - The type of data associated with each observer instance.
@@ -56,6 +71,18 @@ class GradumModel<
      */
     public static readonly ALL = Symbol("ALL");
 
+    /**
+     * @function from
+     * @static
+     * @template {object} DataType - The type of the data to wrap.
+     * @template {KeyType} IdType - The type of the data's ID.
+     * @description Wrap plain data in a proxy that reads and writes through a model, so the data can be used
+     * directly while still producing signals. Reach the underlying model through the proxy's `$model` key.
+     * Assigning an unknown key creates a signal for it.
+     * @param {DataType} [data={}] - The data to wrap.
+     * @param {IdType} [id] - The ID to give the backing model.
+     * @returns {GradumModelProxy<DataType, IdType>} The proxied data.
+     */
     public static from<
         DataType extends object = any,
         IdType extends KeyType = any
@@ -128,17 +155,44 @@ class GradumModel<
      */
     public readonly onKeyChanged = new Delegate<(value: any, ...keys: KeyType[]) => void>();
 
+    /**
+     * @description Delegate fired when this model is pointed at different data. Receives the previous data
+     * followed by the new data. Use it to set up watchers that depend on `this.data`.
+     */
     public readonly onDataChanged = new Delegate<(oldData: any, newData: any) => void>();
 
+    /**
+     * @description Hook invoked by {@link GradumModel.fireCallback}. Assign it to route named callbacks from
+     * the model out to whatever owns it.
+     */
     public fireCallbackHook: (key: string, ...values: any[]) => void;
 
+    /**
+     * @protected
+     * @description Whether {@link GradumModel.initialize} has already run on this model.
+     */
     protected isInitialized: boolean = false;
 
     private readonly signals: Map<DataKeyType, SignalBox<unknown>> = new Map();
 
+    /**
+     * @protected
+     * @readonly
+     * @description Every observer attached to this model, with the key path each one watches.
+     */
     protected readonly changeObservers: Set<ObserverData<DataEntryType, ComponentType, DataKeyType>> = new Set();
 
+    /**
+     * @protected
+     * @readonly
+     * @description Child models created for nested keys, one per key that has been nested.
+     */
     protected readonly nestedModels: Map<DataKeyType, GradumModel> = new Map();
+
+    /**
+     * @protected
+     * @description Listeners relaying changes from nested models up to this one.
+     */
     protected nestedListeners: Set<ListenerData> = new Set();
 
     /**
@@ -563,7 +617,7 @@ class GradumModel<
      * @description Check whether an entry exists at the given flat key.
      * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
      * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
-     * @returns {boolean}
+     * @returns {boolean} `true` if an entry exists at that flat key.
      */
     public hasFlat(flatKey: FlatKeyType, depth?: number): boolean {
         const keys = this.scopeKey(flatKey as any, depth);
@@ -668,7 +722,7 @@ class GradumModel<
     }
 
     /**
-     * @property keys
+     * @readonly
      * @description All keys currently present in the model.
      */
     public get keys(): DataKeyType[] {
@@ -676,15 +730,15 @@ class GradumModel<
     }
 
     /**
-     * @property values
-     * @description All values in the model, in the order of {@link keys}.
+     * @readonly
+     * @description All values in the model, in the order of {@link GradumModel.keys}.
      */
     public get values(): any[] {
         return this.keys.map(key => this.get(key));
     }
 
     /**
-     * @property dataSize
+     * @readonly
      * @description Number of entries in the model.
      */
     public get dataSize(): number {
@@ -695,7 +749,7 @@ class GradumModel<
      * @function flatSize
      * @description Return the total number of entries reachable from this model at the given depth.
      * @param {number} depth - How many levels deep to count.
-     * @returns {number}
+     * @returns {number} The number of entries at that depth, counting every branch.
      */
     public flatSize(depth: number): number {
         return GradumModel.flattenSize(this.data, depth);
@@ -707,6 +761,16 @@ class GradumModel<
      *
      */
 
+    /**
+     * @protected
+     * @function diffCheck
+     * @description Whether two data containers are similar enough to be swapped in place by
+     * {@link GradumModel.diffAction} rather than triggering a full clear and re-initialize. True for two plain
+     * objects, two arrays, or two Maps.
+     * @param {DataType} oldData - The data being replaced.
+     * @param {DataType} newData - The data to adopt.
+     * @returns {boolean} `true` if the swap can be done in place.
+     */
     protected diffCheck(oldData: DataType, newData: DataType): boolean {
         if (!oldData || !newData) return false;
         if (Array.isArray(oldData) && Array.isArray(newData)) return true;
@@ -717,6 +781,15 @@ class GradumModel<
         return Object.getPrototypeOf(oldData) === Object.prototype && Object.getPrototypeOf(newData) === Object.prototype;
     }
 
+    /**
+     * @protected
+     * @function diffAction
+     * @description Swap in new data while keeping existing nested models and signals alive, re-pointing each
+     * child at its counterpart in the new data instead of tearing the tree down. Only called when
+     * {@link GradumModel.diffCheck} accepts the pair.
+     * @param {DataType} oldData - The data being replaced.
+     * @param {DataType} newData - The data to adopt.
+     */
     protected diffAction(oldData: DataType, newData: DataType) {
         this._data = newData;
 
@@ -760,7 +833,7 @@ class GradumModel<
     /**
      * @function entries
      * @description Return all `[key, value]` pairs in the model.
-     * @returns {[KeyType, any][]}
+     * @returns {[KeyType, any][]} The pairs, in the order of {@link GradumModel.keys}.
      */
     public entries(): [DataKeyType, any][] {
         return this.keys.map(key => [key, this.get(key)]);
@@ -822,7 +895,7 @@ class GradumModel<
      * @function toJSON
      * @description Convert the model's data into a JSON-serializable form.
      * Maps become plain objects. For non-object data types, the raw value is returned.
-     * @returns {object | DataType}
+     * @returns {object | DataType} A plain copy of the data, safe to pass to `JSON.stringify`.
      */
     public toJSON(): object | DataType {
         if (typeof this.data !== "object") return this.data;
@@ -843,22 +916,22 @@ class GradumModel<
 
     /**
      * @function makeSignal
+     * @template Type - The type of the signal's value.
      * @description Return an existing reactive {@link SignalBox} for the given key, or create one if absent.
      * The signal reads via {@link get} and writes via {@link set}.
-     * @template Type - The type of the signal's value.
      * @param {KeyType} key - The key to create a signal for.
-     * @returns {SignalBox<Type>}
+     * @returns {SignalBox<Type>} The signal for that key. Reading or writing it keeps the model's data in sync.
      */
     public makeSignal<Type = any>(key: DataKeyType): SignalBox<Type>;
 
     /**
      * @function makeSignal
+     * @template Type - The type of the signal's value.
      * @description Return an existing reactive {@link SignalBox} for the given key path, or create one if absent.
      * The last key in the path is the signal's target; preceding keys navigate to the parent nested model.
      * The signal reads via {@link get} and writes via {@link set}.
-     * @template Type - The type of the signal's value.
      * @param {...KeyType[]} keys - Key path, with the last key as the signal target.
-     * @returns {SignalBox<Type>}
+     * @returns {SignalBox<Type>} The signal for that key path. Reading or writing it keeps the model's data in sync.
      */
     public makeSignal<Type = any>(...keys: KeyType[]): SignalBox<Type>;
     public makeSignal<Type = any>(...keys: KeyType[]): SignalBox<Type> {
@@ -867,11 +940,11 @@ class GradumModel<
 
     /**
      * @function makeSignals
+     * @template Type - The type of the signals' values.
      * @description Return reactive {@link SignalBox} instances for multiple keys at the given path.
      * Pass {@link GradumModel.ALL} at any level of the path to expand all entries at that level.
-     * @template Type - The type of the signals' values.
      * @param {...KeyType[]} keys - Key path to the signal targets. Use `ALL` at any level to target all entries there.
-     * @returns {SignalBox<Type>[]}
+     * @returns {SignalBox<Type>[]} One signal per key at that path, in the order the keys appear.
      */
     public makeSignals<Type = any>(...keys: KeyType[]): SignalBox<Type>[] {
         if (keys.length === 0) keys = [GradumModel.ALL];
@@ -893,7 +966,7 @@ class GradumModel<
      * @function getSignal
      * @description Retrieve an existing {@link SignalBox} for the given key, or `undefined` if none exists.
      * @param {KeyType} key - The key whose signal to retrieve.
-     * @returns {SignalBox<any>}
+     * @returns {SignalBox<any>} The existing signal, or `undefined` if the key has none.
      */
     public getSignal(key: DataKeyType): SignalBox<any>;
 
@@ -902,7 +975,7 @@ class GradumModel<
      * @description Retrieve an existing {@link SignalBox} for the given key path, or `undefined` if none exists.
      * The last key in the path is the signal's target; preceding keys navigate to the parent nested model.
      * @param {...KeyType[]} keys - Key path, with the last key as the signal target.
-     * @returns {SignalBox<any>}
+     * @returns {SignalBox<any>} The existing signal, or `undefined` if the key path has none.
      */
     public getSignal(...keys: KeyType[]): SignalBox<any>;
     public getSignal(...keys: KeyType[]): SignalBox<any> {
@@ -918,7 +991,7 @@ class GradumModel<
     /**
      * @function nestAll
      * @description Return `[this]`.
-     * @returns {[this]}
+     * @returns {[this]} This model, wrapped in an array so the result matches the other overloads.
      */
     public nestAll(): [this];
 
@@ -972,7 +1045,7 @@ class GradumModel<
      * @function nest
      * @description Create or retrieve a single nested {@link GradumModel} at the given key.
      * @param {KeyType} key - The key of the nested model.
-     * @returns {GradumModel}
+     * @returns {GradumModel} The nested model at that key, created on first access and reused after.
      */
     public nest<NestedDataType = any, NestedKeyType extends KeyType = any>(
         key: DataKeyType
@@ -982,7 +1055,7 @@ class GradumModel<
      * @function nest
      * @description Create or retrieve a single nested {@link GradumModel} at the given key path.
      * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
-     * @returns {GradumModel}
+     * @returns {GradumModel} The nested model at that key path, created on first access and reused after.
      */
     public nest<NestedDataType = any, NestedKeyType extends KeyType = any>(
         ...keys: KeyType[]
@@ -993,7 +1066,7 @@ class GradumModel<
      * @description Create or retrieve a single nested {@link GradumModel} at the given key path,
      * with custom initialization properties.
      * @param {...[...KeyType[], GradumModelProperties]} keysAndProperties - Key path followed by optional properties.
-     * @returns {GradumModel}
+     * @returns {GradumModel} The nested model at that key path, created on first access and reused after.
      */
     public nest<NestedDataType = any, NestedKeyType extends KeyType = any>(
         ...keysAndProperties: [...KeyType[], GradumModelProperties]
@@ -1007,7 +1080,7 @@ class GradumModel<
     /**
      * @function getNested
      * @description Return `this`.
-     * @returns {GradumModel}
+     * @returns {GradumModel} This model, so an empty path resolves to the root.
      */
     public getNested(): GradumModel;
 
@@ -1015,7 +1088,7 @@ class GradumModel<
      * @function getNested
      * @description Retrieve an already-created nested model at the given key, or `undefined` if none exists.
      * @param {KeyType} key - The key of the nested model.
-     * @returns {GradumModel | undefined}
+     * @returns {GradumModel | undefined} The nested model, or `undefined` if that key was never nested.
      */
     public getNested(key: DataKeyType): GradumModel;
 
@@ -1023,7 +1096,7 @@ class GradumModel<
      * @function getNested
      * @description Retrieve an already-created nested model at the given key path, or `undefined` if none exists.
      * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
-     * @returns {GradumModel | undefined}
+     * @returns {GradumModel | undefined} The nested model, or `undefined` if that path was never nested.
      */
     public getNested(...keys: KeyType[]): GradumModel;
     public getNested(...keys: KeyType[]): GradumModel {
@@ -1048,7 +1121,7 @@ class GradumModel<
      * @param {GradumObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
      * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe. Use `ALL` at
      * any level to process all entries there.
-     * @returns {GradumObserver<DataEntryType, ComponentType, KeyType>}
+     * @returns {GradumObserver} The attached observer. Keep the reference to read its instances or destroy it later.
      */
     public generateObserver(
         properties: GradumObserverProperties<DataEntryType, ComponentType, DataKeyType> = {},
@@ -1087,7 +1160,7 @@ class GradumModel<
      * Use when you need to react to any nested change regardless of depth.
      * @param {GradumObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
      * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe.
-     * @returns {GradumObserver<DataEntryType, ComponentType, KeyType>}
+     * @returns {GradumObserver} The attached observer. Keep the reference to read its instances or destroy it later.
      */
     public generateDeepObserver(
         properties: GradumObserverProperties<DataEntryType, ComponentType, DataKeyType> = {},
@@ -1118,6 +1191,17 @@ class GradumModel<
         return observer;
     }
 
+    /**
+     * @protected
+     * @function initializeObserverOnPath
+     * @description Walk the data along an observer's key path and report every existing entry to it, so an
+     * observer attached to already-populated data still sees what is there. Paths containing
+     * {@link GradumModel.ALL} fan out across every entry at that level.
+     * @param {any} data - The data to walk.
+     * @param {GradumObserver} observer - The observer to notify.
+     * @param {KeyType[]} keys - The remaining key path to walk.
+     * @param {KeyType[]} prefixKeys - The path already walked, passed back to the observer.
+     */
     protected initializeObserverOnPath(data: any, observer: GradumObserver, keys: KeyType[], prefixKeys: KeyType[], deep: boolean = false) {
         if (keys.length === 0) {
             if (!this.isInitialized) return;
@@ -1221,7 +1305,7 @@ class GradumModel<
      * - Fully numeric paths into array-backed data produce a numeric global leaf index.
      * - All other paths produce a `"k0|k1|k2|..."` string, with symbols encoded as `"@@description"`.
      * @param {...KeyType[]} keys - The key path to serialize.
-     * @returns {FlatKeyType}
+     * @returns {FlatKeyType} The flat key: a number for a fully numeric path, otherwise a `"k0|k1"` string.
      */
     public flattenKey(...keys: KeyType[]): FlatKeyType {
         const stringFLatKey = () => keys.map(k =>
@@ -1251,7 +1335,7 @@ class GradumModel<
      * @description Convert a flat string key back into a key path. Reverses the string form of {@link flattenKey}.
      * Segments starting with `"@@"` are decoded back to symbols.
      * @param {string} flatKey - The flat string key to convert.
-     * @returns {KeyType[]}
+     * @returns {KeyType[]} The key path the flat key was built from.
      */
     public scopeKey(flatKey: string): KeyType[];
 
@@ -1261,7 +1345,7 @@ class GradumModel<
      * Reverses the numeric form of {@link flattenKey}.
      * @param {number} flatKey - The numeric index to convert.
      * @param {number} depth - The depth of the key path to reconstruct.
-     * @returns {KeyType[]}
+     * @returns {KeyType[]} The numeric key path that global index maps to at the given depth.
      */
     public scopeKey(flatKey: number, depth: number): KeyType[];
     public scopeKey(flatKey: FlatKeyType, depth?: number): KeyType[] {
@@ -1313,7 +1397,7 @@ class GradumModel<
      * By default, unless manually defined in the handler, if the element's class name is MyElement
      * and the handler's class name is MyElementSomethingHandler, the key would be "something".
      * @param {string} key - The handler's key.
-     * @return {GradumHandler} - The handler.
+     * @returns {GradumHandler} The handler registered under that key, or `undefined` if there is none.
      */
     public getHandler(key: string): GradumHandler {
         return this.handlers?.get(key);
@@ -1329,11 +1413,25 @@ class GradumModel<
         this.handlers?.set(handler.keyName, handler);
     }
 
+    /**
+     * @function setDataWithoutInitializing
+     * @description Point the model at new data without running {@link GradumModel.initialize} on it, so
+     * observers and signals are not re-created. Use it when the caller will initialize at a moment of its
+     * own choosing; prefer assigning `data` otherwise.
+     * @param {DataType} data - The data to adopt.
+     */
     public setDataWithoutInitializing(data: DataType) {
         this.clear(false);
         this._data = data;
     }
 
+    /**
+     * @function fireCallback
+     * @description Fire a named callback through {@link GradumModel.fireCallbackHook}. Does nothing if no
+     * hook has been assigned.
+     * @param {string} key - The name of the callback to fire.
+     * @param {...any[]} values - Arguments forwarded to the hook.
+     */
     public fireCallback(key: string, ...values: any[]) {
         this.fireCallbackHook?.(key, ...values);
     }

@@ -6,6 +6,11 @@ type ElementData = {
     defaultFeedforwardProperties: GradumElementProperties
 };
 
+/**
+ * @internal
+ * @class ElementFunctionsUtils
+ * @description Shared helpers and per-element state behind the element functions on {@link GradumSelector}.
+ */
 export class ElementFunctionsUtils {
     private dataMap = new WeakMap<Node, ElementData>;
 

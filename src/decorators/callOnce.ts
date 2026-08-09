@@ -5,10 +5,11 @@ const onceRegistry = new WeakMap<(...args: any[]) => any, (...args: any[]) => an
  * @group Decorators
  * @category Augmentation
  *
- * @template {(...args: any[]) => any} Type
- * @description Function wrapper that ensures the passed function is called only once.
- * Subsequent calls will just return the cached computed result (if any) of the first call of that function.
- * @param {Type} fn - The function to process.
+ * @template {(...args: any[]) => any} Type - The type of the wrapped function.
+ * @description Wrap a function so its body runs only on the first call. Later calls skip the body and
+ * return the first call's result.
+ * @param {Type} fn - The function to wrap.
+ * @returns {Type} A function with the same signature as `fn`, whose body runs at most once.
  *
  * @example
  * ```ts

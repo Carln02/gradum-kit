@@ -18,7 +18,7 @@ selected event types and can optionally stop propagation.</p>
 </div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">PreventDefaultOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#types">types</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#phase">phase</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;capture&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;bubble&quot;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#stop">stop</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;stop&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;immediate&quot;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#preventdefaulton">preventDefaultOn</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">type</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">e</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Event" class="tsd-signature-type external" target="_blank">Event</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#clearpreviouslisteners">clearPreviousListeners</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#manager">manager</a><span class="tsd-signature-symbol">?:</span> <a href="../classes/GradumEventManager.html" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/event/event.types.ts:44</li></ul></aside>
+<li>Defined in src/gradumFunctions/event/event.types.ts:42</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -42,14 +42,14 @@ selected event types and can optionally stop propagation.</p>
 <div class="tsd-comment tsd-typography"><p>List of event types to affect. If omitted, defaults to <a href="../variables/BasicInputEvents.html" class="tsd-kind-variable">BasicInputEvents</a>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/event/event.types.ts:45</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/event/event.types.ts:43</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="phase"><code class="tsd-tag">Optional</code><span>phase</span><a href="#phase" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">phase</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;capture&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;bubble&quot;</span></div>
 <div class="tsd-comment tsd-typography"><p>Which phase to prevent. Defaults to <code>&quot;bubble&quot;</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/event/event.types.ts:46</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/event/event.types.ts:44</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="stop"><code class="tsd-tag">Optional</code><span>stop</span><a href="#stop" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">stop</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;stop&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;immediate&quot;</span></div>
@@ -61,7 +61,7 @@ selected event types and can optionally stop propagation.</p>
 </ul>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/event/event.types.ts:47</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/event/event.types.ts:45</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preventdefaulton"><code class="tsd-tag">Optional</code><span>prevent<wbr/>Default<wbr/>On</span><a href="#preventdefaulton" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">preventDefaultOn</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">type</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">e</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Event" class="tsd-signature-type external" target="_blank">Event</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span></div>
@@ -69,7 +69,7 @@ selected event types and can optionally stop propagation.</p>
 call <code>preventDefault</code>. Return <code>true</code> to prevent default for that event.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/event/event.types.ts:48</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/event/event.types.ts:46</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clearpreviouslisteners"><code class="tsd-tag">Optional</code><span>clear<wbr/>Previous<wbr/>Listeners</span><a href="#clearpreviouslisteners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">clearPreviousListeners</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -77,14 +77,14 @@ call <code>preventDefault</code>. Return <code>true</code> to prevent default fo
 before installing new ones.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/event/event.types.ts:49</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/event/event.types.ts:47</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="manager"><code class="tsd-tag">Optional</code><span>manager</span><a href="#manager" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">manager</span><span class="tsd-signature-symbol">?:</span> <a href="../classes/GradumEventManager.html" class="tsd-signature-type tsd-kind-class">GradumEventManager</a></div>
 <div class="tsd-comment tsd-typography"><p>Event manager to use. Defaults to <a href="../classes/GradumEventManager.html#instance" class="tsd-kind-accessor">GradumEventManager.instance</a>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/event/event.types.ts:50</li></ul></aside></section></section></details></div>
+<li>Defined in src/gradumFunctions/event/event.types.ts:48</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

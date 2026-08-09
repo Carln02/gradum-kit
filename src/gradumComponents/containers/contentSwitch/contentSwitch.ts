@@ -10,6 +10,23 @@ import {GradumSelectElement} from "../../basics/selectElement/selectElement";
 import {Reifect} from "../../wrappers/reifect/reifect";
 import {StatelessReifectProperties} from "../../wrappers/reifect/reifect.types";
 
+/**
+ * @class GradumContentSwitch
+ * @group Components
+ * @category GradumContentSwitch
+ *
+ * @extends GradumSelectElement
+ * @template ValueType - The type of the value held by each entry.
+ * @template SecondaryValueType - The type of each entry's secondary value.
+ * @template {HTMLElement} EntryType - The type of the entry elements.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Shows one entry at a time and animates the swap when the selection changes. Registered
+ * as `<gradum-content-switch>`. Selection works as on any {@link GradumSelectElement}; this adds the
+ * transition between the outgoing and incoming entry, configured through {@link GradumContentSwitch.mode}.
+ */
 class GradumContentSwitch<
     ValueType = string,
     SecondaryValueType = string,
@@ -19,14 +36,26 @@ class GradumContentSwitch<
     ModelType extends GradumModel<DataType> = GradumModel,
     EmitterType extends GradumEmitter = GradumEmitter
 > extends GradumSelectElement<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> {
+    /**
+     * @static
+     * @description Default properties assigned to a new content switch. Entries cross over 0.3 seconds.
+     */
     public static defaultProperties = {transitionDuration: 0.3};
 
     public declare readonly properties: GradumContentSwitchProperties<ViewType, DataType, ModelType, EmitterType>;
 
+    /**
+     * @description The transition played when the selected entry changes. Assigning a new mode rebuilds
+     * the movement reifect, so the next switch uses it. Defaults to `ContentSwitchMode.fadeRight`.
+     */
     @auto({defaultValue: ContentSwitchMode.fadeRight}) public set mode(value: ContentSwitchMode) {
         this.reloadMovementReifect();
     }
 
+    /**
+     * @description The reifect controlling how each entry itself fades. Assigning a properties object
+     * builds a {@link Reifect} from it, and the result is attached to every current entry.
+     */
     @auto({
         preprocessValue: function (value) {
             if (!value) return;
@@ -39,6 +68,11 @@ class GradumContentSwitch<
     }
     public get entryTransitionReifect(): Reifect {return;}
 
+    /**
+     * @description The reifect controlling how entries slide, which {@link GradumContentSwitch.mode}
+     * regenerates. Assigning a properties object builds a {@link Reifect} from it, and the result is
+     * attached to every current entry.
+     */
     @auto({
         preprocessValue: function (value) {
             if (!value) return;
@@ -50,6 +84,12 @@ class GradumContentSwitch<
     }
     public get movementReifect(): Reifect {return;}
 
+    /**
+     * @description How long the entry transition lasts, in seconds. Assigning a value rewrites the entry
+     * reifect's CSS transition, creating that reifect if it does not exist yet. Values of `0` or less are
+     * ignored. Defaults to `0.3`.
+     * @override
+     */
     @auto({override: true}) public set transitionDuration(value: number) {
         if (value <= 0) return;
         if (!this.entryTransitionReifect) this.entryTransitionReifect = new Reifect({});

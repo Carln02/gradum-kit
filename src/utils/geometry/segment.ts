@@ -1,8 +1,17 @@
 import {Point} from "../../gradumComponents/datatypes/point/point";
 
 /**
+ * @function closestPointOnSegment
  * @group Utilities
  * @category Geometry
+ *
+ * @description Find the point of a line segment nearest to a given point. The result is clamped to the
+ * segment, so it never lands on the infinite line beyond the endpoints.
+ * @param {Point} p - The point to measure from.
+ * @param {Point} a - Start of the segment.
+ * @param {Point} b - End of the segment.
+ * @returns {Point} A new point on the segment; the arguments are left unchanged. A zero-length segment
+ * returns `a` itself.
  */
 function closestPointOnSegment(p: Point, a: Point, b: Point): Point {
     const ab = b.sub(a);
@@ -15,8 +24,18 @@ function closestPointOnSegment(p: Point, a: Point, b: Point): Point {
 }
 
 /**
+ * @function intersectSegments
  * @group Utilities
  * @category Geometry
+ *
+ * @description Find where two line segments cross, if they do. Only a crossing within both segments counts;
+ * an intersection that would fall beyond either one is not reported.
+ * @param {Point} a - Start of the first segment.
+ * @param {Point} b - End of the first segment.
+ * @param {Point} c - Start of the second segment.
+ * @param {Point} d - End of the second segment.
+ * @returns {Point} A new point at the crossing, or `null` if the segments do not cross. Parallel segments
+ * always return `null`, including collinear ones that overlap.
  */
 function intersectSegments(a: Point, b: Point, c: Point, d: Point): Point {
     const r = b.sub(a);

@@ -23,22 +23,58 @@ import {areSimilar} from "../../../utils/computations/equity";
  * @group Components
  * @category StatefulReifect
  *
- * @description A class to manage and apply dynamic state-based properties, styles, classes, and transitions to a
- * set of objects.
- *
  * @template {string | number | symbol} State - The type of the reifier's states.
  * @template {object} ClassType - The object type this reifier will be applied to.
+ * @description A class to manage and apply dynamic state-based properties, styles, classes, and transitions to a
+ * set of objects.
  */
 class StatefulReifect<State extends string | number | symbol = any, ClassType extends object = object> {
+    /**
+     * @static
+     * @readonly
+     * @protected
+     * @description The categories of value a reifect can apply to an object.
+     */
     protected static readonly fields = ["properties", "classes", "styles", "replaceWith"] as const;
+    /**
+     * @static
+     * @readonly
+     * @protected
+     * @description Property names the reifect handles itself. Anything else given in its configuration is
+     * treated as a property to set on the attached objects.
+     */
     protected static readonly knownFields = new Set(["states", "attachedObjects", "initialState", ...this.fields]);
 
+    /**
+     * @static
+     * @readonly
+     * @protected
+     * @description Style properties that several reifects may contribute to at once, and so are recombined
+     * rather than overwritten when more than one reifect is attached to the same object.
+     */
     protected static readonly chainableStyleFields = new Set(["transition", "transitionDelay",
         "transitionTimingFunction", "transitionDuration", "transform"]);
 
+    /**
+     * @protected
+     * @readonly
+     * @description Matches a CSS duration, capturing the number and its unit, so durations given as strings
+     * can be read back as seconds.
+     */
     protected readonly timeRegex: RegExp = /^(\d+(?:\.\d+)?)(ms|s)?$/i;
 
+    /**
+     * @protected
+     * @readonly
+     * @description Per-object state, keyed weakly so attaching a reifect does not keep an object alive.
+     */
     protected readonly attachedObjectsData: WeakMap<ClassType, ReifectObjectData<State, ClassType>> = new WeakMap();
+    /**
+     * @protected
+     * @readonly
+     * @description Every object this reifect is attached to, in attachment order. Objects dropped elsewhere
+     * disappear from the list on their own.
+     */
     protected readonly attachedObjects: GradumNodeList<ClassType> = new GradumNodeList();
 
     /**
@@ -64,7 +100,6 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
      * - A record of `{state: {key: value} pairs or an interpolation function that would return a record of
      * {key: value} pairs}`.
      * - An interpolation function that would return a record of `{key: value}` pairs based on the state value.
-     *
      * The interpolation function would take as arguments:
      * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
      * defined for the whole field (and not for a specific state).
@@ -82,7 +117,6 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
      * - A record of `{state: {CSS property: value} pairs or an interpolation function that would return a record of
      * {key: value} pairs}`.
      * - An interpolation function that would return a record of `{key: value}` pairs based on the state value.
-     *
      * The interpolation function would take as arguments:
      * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
      * defined for the whole field (and not for a specific state).
@@ -102,7 +136,6 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
      * return any of the latter}`.
      * - An interpolation function that would return a string of space-separated classes or an array of classes based
      * on the state value.
-     *
      * The interpolation function would take as arguments:
      * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
      * defined for the whole field (and not for a specific state).
@@ -120,7 +153,6 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
      * - A record of `{state: object to be replaced with, or an interpolation function that would return an object
      * to be replaced with}`.
      * - An interpolation function that would return the object to be replaced with based on the state value.
-     *
      * The interpolation function would take as arguments:
      * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
      * defined for the whole field (and not for a specific state).
@@ -216,7 +248,6 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
     }
 
     /**
-     * @protected
      * @function attachObject
      * @description Function used to generate a data entry for the given object, and add it to the attached list at
      * the provided index (if any).
@@ -230,6 +261,7 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
      * - `total: number`: the total number of objects in the applied list.
      * - `object: ClassType`: the object itself.
      * @returns {ReifectObjectData<State, ClassType>} - The created data entry.
+     * @protected
      */
     protected attachObject(object: ClassType, onSwitch?: ReifectOnSwitchCallback<State, ClassType>,
                            index?: number): ReifectObjectData<State, ClassType> {
@@ -256,10 +288,11 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
     }
 
     /**
-     * @protected
      * @function detachObject
-     * @description Function used to remove a data entry from the attached objects list.
-     * @param object
+     * @protected
+     * @description Stop tracking an object, so the reifect no longer applies to it. Does nothing if the
+     * object was never attached.
+     * @param {ClassType} object - The object to detach.
      */
     protected detachObject(object: ClassType) {
         if (!object || !this.attachedObjects.has(object)) return;
@@ -339,11 +372,11 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
     }
 
     /**
-     * @protected
      * @function parseState
      * @description Parses a boolean into the corresponding state value.
      * @param {State | boolean} value - The value to parse.
      * @returns {State} The parsed value, or `null` if the boolean could not be parsed.
+     * @protected
      */
     protected parseState(value: State | boolean): State {
         if (typeof value != "boolean") return this.states.includes(value) ? value : this.states[0];
@@ -433,6 +466,13 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
     }
 
     //TODO FIXXXX
+    /**
+     * @function unapply
+     * @description Remove everything this reifect applied, returning the objects to how they were before.
+     * @param {ClassType | ClassType[]} [objects] - The objects to clear. Defaults to every attached object.
+     * @param {ReifectAppliedOptions} [options] - Options controlling reach and recomputation.
+     * @returns {this} Itself, allowing for method chaining.
+     */
     public unapply(objects?: ClassType | ClassType[], options?: ReifectAppliedOptions<State, ClassType>): this {
         if (!this.enabled) return this;
         options = this.initializeOptions(options, objects);
@@ -696,6 +736,14 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
 
     //General methods (to be overridden for custom functionalities)
 
+    /**
+     * @function filterEnabledObjects
+     * @protected
+     * @description Decide whether an object should be acted on, warning when one is skipped because the
+     * reifect was disabled for it. Override to change which objects a reifect reaches.
+     * @param {ReifectObjectData} data - The object's tracked state.
+     * @returns {boolean} Whether the reifect applies to this object.
+     */
     protected filterEnabledObjects(data: ReifectObjectData<State, ClassType>): boolean {
         if (!data.enabled || !data.enabled.global) {
             console.warn("The reified properties instance you are trying to set on an object is " +
@@ -707,6 +755,15 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
 
     //Utilities
 
+    /**
+     * @function processRawProperties
+     * @protected
+     * @description Resolve an object's per-state values from the reifect's configuration and cache them, so
+     * interpolated values are computed once instead of on every state switch. The resolution runs inside an
+     * effect, so the cache refreshes by itself when a value it read changes.
+     * @param {ClassType} object - The object to resolve values for.
+     * @param {StatefulReifectCoreProperties} [override] - Values to resolve instead of the reifect's own.
+     */
     protected processRawProperties(object: ClassType, override?: StatefulReifectCoreProperties<State, ClassType>) {
         if (!object) return;
         const data = this.getData(object);

@@ -1,6 +1,13 @@
 /**
+ * @function areEqual
  * @group Utilities
  * @category Equity
+ *
+ * @template Type - The type of the compared entries.
+ * @description Check whether every entry is the same value, compared with `Object.is`. Use it for identity;
+ * reach for {@link areSimilar} when two distinct objects holding the same content should count as equal.
+ * @param {...Type[]} entries - The entries to compare. Fewer than two entries always counts as equal.
+ * @returns {boolean} `true` if all entries are the same value.
  */
 function areEqual<Type = any>(...entries: Type[]): boolean {
     if (entries.length < 2) return true;
@@ -10,6 +17,18 @@ function areEqual<Type = any>(...entries: Type[]): boolean {
     return true;
 }
 
+/**
+ * @function areSimilar
+ * @group Utilities
+ * @category Equity
+ *
+ * @template Type - The type of the compared entries.
+ * @description Check whether every entry holds the same content, even if they are different objects. Falls
+ * back through three strategies per pair: identity, the entries' own `equals` method if they define one, then
+ * matching JSON and string representations. Non-objects that are not identical are never similar.
+ * @param {...Type[]} entries - The entries to compare. Fewer than two entries always counts as similar.
+ * @returns {boolean} `true` if all entries are equivalent in content.
+ */
 function areSimilar<Type = any>(...entries: Type[]): boolean {
     if (entries.length < 2) return true;
     for (let i = 0; i < entries.length - 1; i++) {
@@ -32,8 +51,15 @@ function areSimilar<Type = any>(...entries: Type[]): boolean {
 }
 
 /**
+ * @function equalToAny
  * @group Utilities
  * @category Equity
+ *
+ * @template Type - The type of the compared entries.
+ * @description Check whether one entry matches at least one of the given values, compared loosely (`==`).
+ * @param {Type} entry - The entry to look for.
+ * @param {...Type[]} values - The values to match against. Passing none counts as a match.
+ * @returns {boolean} `true` if `entry` equals any of the values.
  */
 function equalToAny<Type = any>(entry: Type, ...values: Type[]): boolean {
     if (values.length < 1) return true;
@@ -44,8 +70,16 @@ function equalToAny<Type = any>(entry: Type, ...values: Type[]): boolean {
 }
 
 /**
+ * @function eachEqualToAny
  * @group Utilities
  * @category Equity
+ *
+ * @template Type - The type of the compared entries.
+ * @description Check whether every entry matches at least one of the allowed values, compared loosely (`==`).
+ * Use it to validate that a set of inputs all fall within a known set.
+ * @param {Type[]} values - The allowed values.
+ * @param {...Type[]} entries - The entries to check. Passing none counts as a match.
+ * @returns {boolean} `true` if every entry equals one of the allowed values.
  */
 function eachEqualToAny<Type = any>(values: Type[], ...entries: Type[]): boolean {
     if (entries.length < 1) return true;

@@ -15,7 +15,8 @@ type StylesRoot = ShadowRoot | HTMLHeadElement;
  * @group Types
  * @category Style
  *
- * @description A type that represents the types that are accepted as styles entries (mainly by the HTMLElement.setStyles()
+ * @description A type that represents the types that are accepted as styles entries (mainly by the
+ * HTMLElement.setStyles()
  * method). It includes strings, numbers, and records of CSS attributes to strings or numbers.
  */
 type StylesType = string | number | PartialRecord<keyof CSSStyleDeclaration, string | number>

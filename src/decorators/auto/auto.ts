@@ -25,7 +25,6 @@ const utils = new AutoUtils();
  *
  * *Note: If you want to chain decorators, place `@auto` closest to the property to ensure it runs first and sets
  * up the accessor for other decorators.*
- *
  * @param {AutoOptions} [options] - Options object to define custom behaviors.
  *
  * @example

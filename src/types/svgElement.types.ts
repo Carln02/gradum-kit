@@ -1,6 +1,10 @@
 /**
+ * @type {SVGTagMap}
  * @group Types
  * @category SVG Element
+ *
+ * @description The SVG tag-to-element map, minus `style`. That one tag is excluded because it collides
+ * with the HTML `<style>` element of the same name, which would make the combined tag maps ambiguous.
  */
 type SVGTagMap = Omit<SVGElementTagNameMap, "style">;
 

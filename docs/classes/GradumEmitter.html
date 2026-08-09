@@ -75,10 +75,16 @@ MVC structure to fire events or listen to some, with various methods.</p>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">model</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">model</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a></span>
+<div class="tsd-comment tsd-typography"><p>The model whose key changes this emitter relays.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create an emitter, optionally bound to a model so key-path events can be fired against it.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/emitter/emitter.ts:34</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/mvc/emitter/emitter.ts:39</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -87,7 +93,7 @@ MVC structure to fire events or listen to some, with various methods.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">callbacks</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map containing all custom callbacks.</p>
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map containing all custom callbacks.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/emitter/emitter.ts:21</li></ul></aside></section>
@@ -96,7 +102,7 @@ MVC structure to fire events or listen to some, with various methods.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">dataCallbacks</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><br/>    <a href="../types/FlatKeyType.html" class="tsd-signature-type tsd-kind-type-alias">FlatKeyType</a><span class="tsd-signature-symbol">,</span><br/>    <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">keys</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map containing all data callbacks.</p>
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Map containing all data callbacks.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/emitter/emitter.ts:27</li></ul></aside></section>
@@ -105,7 +111,7 @@ MVC structure to fire events or listen to some, with various methods.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">model</span><span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The attached MVC model.</p>
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The attached MVC model.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/emitter/emitter.ts:32</li></ul></aside></section></section></details>
@@ -132,10 +138,10 @@ MVC structure to fire events or listen to some, with various methods.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a callback for the given event name.</p>
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a callback for the given event name.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/emitter/emitter.ts:44</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/emitter/emitter.ts:49</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="remove"><span>remove</span><a href="#remove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -157,10 +163,10 @@ all callbacks for the event are removed.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove a specific callback from the given event, or all callbacks if omitted.</p>
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove a specific callback from the given event, or all callbacks if omitted.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/emitter/emitter.ts:56</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/emitter/emitter.ts:61</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="fire"><span>fire</span><a href="#fire" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -181,10 +187,10 @@ all callbacks for the event are removed.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Trigger all callbacks registered for the given event name.</p>
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Trigger all callbacks registered for the given event name.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/emitter/emitter.ts:67</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/emitter/emitter.ts:72</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addkey"><span>add<wbr/>Key</span><a href="#addkey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -205,11 +211,11 @@ all callbacks for the event are removed.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a callback fired when the entry at the given key path changes in the model.
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a callback fired when the entry at the given key path changes in the model.
 The callback receives the new value as its first argument, followed by the key path as spread arguments.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/emitter/emitter.ts:78</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/emitter/emitter.ts:83</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removekey"><span>remove<wbr/>Key</span><a href="#removekey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -231,10 +237,10 @@ all callbacks for this path are removed.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove a specific callback for the given key path, or all callbacks if omitted.</p>
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove a specific callback for the given key path, or all callbacks if omitted.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/emitter/emitter.ts:91</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/emitter/emitter.ts:96</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="firekey"><span>fire<wbr/>Key</span><a href="#firekey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -255,11 +261,11 @@ all callbacks for this path are removed.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Trigger all callbacks registered for the given key path.
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Trigger all callbacks registered for the given key path.
 Called automatically when the model fires a change notification at this path.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/emitter/emitter.ts:104</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/emitter/emitter.ts:109</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="resolveflatkey"><code class="tsd-tag">Protected</code><span>resolve<wbr/>Flat<wbr/>Key</span><a href="#resolveflatkey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -274,13 +280,14 @@ Called automatically when the model fires a change notification at this path.</p
 <li><span><span class="tsd-kind-parameter">keys</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">[]</span></span>
 <div class="tsd-comment tsd-typography"><p>The key path to flatten.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="../types/FlatKeyType.html" class="tsd-signature-type tsd-kind-type-alias">FlatKeyType</a></h4>
+<h4 class="tsd-returns-title">Returns <a href="../types/FlatKeyType.html" class="tsd-signature-type tsd-kind-type-alias">FlatKeyType</a></h4><p>The flat key, suitable for use as a map key.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert a key path to a stable flat string key for internal storage lookup. Joins with <code>&quot;|&quot;</code>.</p>
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert a key path to a stable flat string key for internal storage lookup. Joins with <code>&quot;|&quot;</code>.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/emitter/emitter.ts:116</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/mvc/emitter/emitter.ts:121</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

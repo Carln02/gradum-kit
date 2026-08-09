@@ -9,20 +9,19 @@ import {GradumIcon} from "./icon";
  * @group Components
  * @category GradumIcon
  *
- * @description Properties object that extends GradumElementProperties with properties specific to icons.
- * @extends GradumProperties
- *
- * @property {string} icon - The name of the icon.
- * @property {string} [iconColor] - The color of the icon.
- * @property {((svgManipulation: SVGElement) => {})} [onLoaded] - Custom function that takes an SVG element to execute on the
- * SVG icon (if it is one) once it is loaded. This property will be disregarded if the icon is not of type SVG.
- *
- * @property {string} [type] - Custom type of the icon, overrides the default type assigned to
- * GradumIcon.config.type (whose default value is "svgManipulation").
- * @property {string} [directory] - Custom directory to the icon, overrides the default directory assigned to
- * GradumIcon.config.directory.
- * @property {boolean} [unsetDefaultClasses] - Set to true to not add the default classes specified in
- * GradumIcon.config.defaultClasses to this instance of Icon.
+ * @extends GradumElementProperties
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumIcon}. Values left out fall back to
+ * {@link GradumIcon.defaultProperties}.
+ * @property {string} icon - Name of the icon, file extension included to override the resolved type.
+ * @property {string} [iconColor] - Color applied to the icon.
+ * @property {(svg: SVGElement) => void} [onLoaded] - Called with the loaded SVG element, to modify it once
+ * it is available. Ignored for icons that are not SVGs.
+ * @property {string} [type] - File type of the icon, used when the name carries no extension.
+ * @property {string} [directory] - Directory the icon is loaded from.
  */
 type GradumIconProperties<
     ViewType extends GradumView = GradumView,

@@ -5,15 +5,24 @@ import {GradumNodeList} from "./nodeList";
  * @group Components
  * @category GradumNodeList
  *
- * @description Union type representing any value that can be added to or removed from a
- * {@link GradumNodeList}. Accepts a {@link GradumNodeList}, a live DOM {@link HTMLCollection},
- * a {@link NodeListOf}, a {@link Set}, or a plain array.
- *
  * @template {object} EntryType - The type of the nodes held in the collection.
+ * @description Anything a {@link GradumNodeList} accepts as a source of entries: another list, a live DOM
+ * `HTMLCollection` or `NodeListOf`, a `Set`, or a plain array. Live DOM collections keep reflecting the
+ * document after being added, so the list stays in sync with them.
  */
 type NodeListType<EntryType extends object = object> = GradumNodeList<EntryType> | HTMLCollection
     | NodeListOf<EntryType & Node> | Set<EntryType> | EntryType[];
 
+/**
+ * @type {NodeListSlot}
+ * @group Components
+ * @category GradumNodeList
+ *
+ * @template {object} EntryType - The type of the nodes held in the collection.
+ * @description One slot of a {@link GradumNodeList}: either a single entry, or a whole sub-collection
+ * counted as one position. Unlike {@link NodeListType} it excludes `Set` and array, which are flattened
+ * into individual slots when added.
+ */
 type NodeListSlot<EntryType extends object = object> = GradumNodeList<EntryType> | HTMLCollection
     | NodeListOf<EntryType & Node> | EntryType;
 

@@ -14,16 +14,31 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="getsupermethod"><span class="tsd-kind-call-signature">getSuperMethod</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">object</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">wrapperFn</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function" class="tsd-signature-type external" target="_blank">Function</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function" class="tsd-signature-type external" target="_blank">Function</a><a href="#getsupermethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getSuperMethod</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">object</span>: <span class="tsd-signature-type">object</span></span></li>
-<li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">PropertyKey</span></span></li>
-<li><span><span class="tsd-kind-parameter">wrapperFn</span>: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function" class="tsd-signature-type external" target="_blank">Function</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function" class="tsd-signature-type external" target="_blank">Function</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">object</span>: <span class="tsd-signature-type">object</span></span>
+<div class="tsd-comment tsd-typography"><p>The object whose ancestors to search.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">PropertyKey</span></span>
+<div class="tsd-comment tsd-typography"><p>The member to look for.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">wrapperFn</span>: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function" class="tsd-signature-type external" target="_blank">Function</a></span>
+<div class="tsd-comment tsd-typography"><p>The wrapping function to skip over.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function" class="tsd-signature-type external" target="_blank">Function</a></h4><p>The inherited implementation, or <code>undefined</code> if there is none.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the inherited implementation a wrapper is standing in for, so a decorator or patched
+method can call through to it. The wrapper itself is skipped, which is what stops a patched method from
+finding and recursing into itself.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/dataManipulation/prototype.ts:57</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/dataManipulation/prototype.ts:97</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

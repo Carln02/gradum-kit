@@ -5,7 +5,9 @@ import {stylesheet} from "../../../elementCreation/miscElements";
 
 /**
  * @internal
- * @description Default font weights, sub-names, and styles when loading a font family.
+ * @description The weight-to-sub-name mapping assumed for a font family when
+ * {@link FontProperties.stylesPerWeights} is not given. Covers weights 100 through 900 in the naming
+ * convention most distributed families follow, such as `Inter-SemiBoldItalic`.
  */
 const defaultFamilyWeights = {
     900: {"Black": "normal", "BlackItalic": "italic"},
@@ -21,11 +23,15 @@ const defaultFamilyWeights = {
 
 /**
  * @internal
- * @param name
- * @param path
- * @param format
- * @param weight
- * @param style
+ * @function createFontFace
+ * @description Build one `@font-face` rule for a single weight and style of a font. Each rule lists the same
+ * URL under several formats so the browser can pick whichever it supports.
+ * @param {string} name - The font family name to register.
+ * @param {string} path - Path to the font file.
+ * @param {string} format - The preferred format, listed first in the rule.
+ * @param {string | number} weight - The weight the rule applies to.
+ * @param {string} style - The style the rule applies to, such as `"normal"` or `"italic"`.
+ * @returns {string} The `@font-face` rule as CSS text.
  */
 function createFontFace(name: string, path: string, format: string, weight: string | number, style: string): string {
     return css`
@@ -40,10 +46,16 @@ function createFontFace(name: string, path: string, format: string, weight: stri
 }
 
 /**
+ * @function loadLocalFont
  * @group Utilities
  * @category Font
- * @description Loads a local font file, or a family of fonts from a directory.
- * @param {FontProperties} font - The font properties
+ *
+ * @description Register a local font with the document, so it can be used by family name in CSS. Generates
+ * the `@font-face` rules and injects them as a stylesheet. Whether one file or a whole family is loaded is
+ * inferred from the path — see {@link FontProperties}.
+ * *Note: the passed object is filled in with the defaults it was missing, so it is modified in place.*
+ * @param {FontProperties} font - Describes the font to load. Logs an error if `name` or `pathOrDirectory`
+ * is missing.
  */
 function loadLocalFont(font: FontProperties) {
     if (!font.name || !font.pathOrDirectory) console.error("Please specify font name and path/directory");

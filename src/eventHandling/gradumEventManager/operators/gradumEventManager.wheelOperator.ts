@@ -6,6 +6,13 @@ import {GradumOperator} from "../../../mvc/operator/operator";
 import {Point} from "../../../gradumComponents/datatypes/point/point";
 import {GradumEventName, GradumEventNameEntry} from "../../../types/eventNaming.types";
 
+/**
+ * @internal
+ * @class GradumEventManagerWheelOperator
+ * @extends GradumOperator
+ * @description Translates native wheel input into {@link GradumWheelEvent}s, choosing between a scroll
+ * and a pinch and inferring whether the input came from a mouse or a trackpad.
+ */
 export class GradumEventManagerWheelOperator extends GradumOperator<GradumEventManager, any, GradumEventManagerModel> {
     public keyName: string = "wheel";
 

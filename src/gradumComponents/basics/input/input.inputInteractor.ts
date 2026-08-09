@@ -4,21 +4,43 @@ import {listener} from "../../../decorators/listener/listener";
 import {gradum} from "../../../gradumFunctions/gradumFunctions";
 import {Propagation} from "../../../gradumFunctions/event/event.types";
 
+/**
+ * @internal
+ * @class GradumInputInputInteractor
+ * @description The interactor {@link GradumInput} attaches to itself to keep its value and size in step
+ * with what the user types. It also holds back updates during IME composition, so mid-composition text
+ * is not read as a committed value.
+ */
 export class GradumInputInputInteractor extends GradumInteractor<GradumInput> {
+    /**
+     * @description The key this interactor is registered under on its input.
+     */
     public keyName = "__input__interactor__";
 
     private _composing = false;
     private _resizeQueued = false;
 
+    /**
+     * @readonly
+     * @description The element the listeners are bound to — the input's inner `<input>` or `<textarea>`
+     * rather than the component itself.
+     */
     public get target() {
         return this.element.element;
     }
 
+    /**
+     * @function initialize
+     * @description Bind the listeners that keep the input's value and size in step with what is typed.
+     */
     public initialize() {
         super.initialize();
         gradum(this.target).bypassManagerOn = () => true;
     }
 
+    /**
+     * @inheritDoc
+     */
     protected setupChangedCallbacks() {
         super.setupChangedCallbacks();
         this.emitter.add("valueSet", () => this.handleInput());

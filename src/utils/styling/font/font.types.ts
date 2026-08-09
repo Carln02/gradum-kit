@@ -3,16 +3,18 @@
  * @group Utilities
  * @category Font
  *
- * @description An object representing a local font, or a family of fonts.
- *
- * @property {string} name - The name of the font. The font's filename should also match.
- * @property {string} pathOrDirectory - The path to the local font file, or the path to the local font family's directory.
- * @property {Record<string, string> | Record<number, Record<string, string>>} [weight] - If loading a single font, a
- * record in the form {weight: style}. Defaults to {"normal": "normal"}. If loading a family, a record in the form
- * {weight: {fontSubName: style}}, such that every font file in the family is named in the form fontName-fontSubName.
- * Defaults to an object containing common sub-names and styles for weights from 100 to 900.
- * @property {string} [format] - The format of the font. Defaults to "woff2".
- * @property {string} [extension] - The extension of the font file(s). Defaults to ".ttf".
+ * @description Describes a local font to load with {@link loadLocalFont} — either a single file or a whole
+ * family living in one directory. Which of the two is inferred from `pathOrDirectory`: a path with a file
+ * extension is treated as one font, a path without one as a directory of them.
+ * @property {string} name - The font family name to register it under. For a family, each file must also be
+ * named `name-subName`, matching the keys of `stylesPerWeights`.
+ * @property {string} pathOrDirectory - Path to the font file, or to the directory holding the family.
+ * @property {Record<string, string> | Record<number, Record<string, string>>} [stylesPerWeights] - For a single
+ * font, a `{weight: style}` record, defaulting to `{"normal": "normal"}`. For a family, a
+ * `{weight: {subName: style}}` record, defaulting to common sub-names and styles for weights 100 through 900.
+ * @property {string} [format="woff2"] - The font format declared in the generated `@font-face` rule.
+ * @property {string} [extension=".ttf"] - The file extension of the family's files. A missing leading dot is
+ * added for you.
  */
 type FontProperties = {
     name: string,

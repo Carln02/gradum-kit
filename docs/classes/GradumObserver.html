@@ -18,9 +18,6 @@
 <h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Generic observer that keeps a set of component instances organized by key path.
 Useful to maintain UI components or other per-entry objects synchronized with a data source
 (<a href="GradumModel.html" class="tsd-kind-class">GradumModel</a>).</p>
-</div>
-<div class="tsd-tag-template">
-<h4 class="tsd-anchor-link" id="template-keytype">Template: KeyType<a href="#template-keytype" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The key type used at each level of the path.</p>
 </div></div></section>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -31,8 +28,10 @@ Useful to maintain UI components or other per-entry objects synchronized with a 
 <li><span id="componenttype"><span class="tsd-kind-type-parameter">ComponentType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span> = <span class="tsd-signature-type">any</span></span>
 <div class="tsd-comment tsd-typography"><p>The instance type created/managed by the observer.</p>
 </div></li>
-<li><span id="datakeytype"><span class="tsd-kind-type-parameter">DataKeyType</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> = <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a></span></li></ul></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="6904">
+<li><span id="datakeytype"><span class="tsd-kind-type-parameter">DataKeyType</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> = <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a></span>
+<div class="tsd-comment tsd-typography"><p>The key type used at each level of the path.</p>
+</div></li></ul></section>
+<section class="tsd-panel tsd-hierarchy" data-refl="6908">
 <h4>Hierarchy (<a href="../hierarchy.html#GradumObserver">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="GradumNestedMap.html" class="tsd-signature-type tsd-kind-class">GradumNestedMap</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">&gt;</span>
@@ -116,7 +115,9 @@ Useful to maintain UI components or other per-entry objects synchronized with a 
 <li><span id="constructorgradumobservercomponenttype"><span class="tsd-kind-type-parameter">ComponentType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span> = <span class="tsd-signature-type">any</span></span>
 <div class="tsd-comment tsd-typography"><p>The instance type created/managed by the observer.</p>
 </div></li>
-<li><span id="constructorgradumobserverdatakeytype"><span class="tsd-kind-type-parameter">DataKeyType</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> = <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a></span></li></ul></section>
+<li><span id="constructorgradumobserverdatakeytype"><span class="tsd-kind-type-parameter">DataKeyType</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> = <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a></span>
+<div class="tsd-comment tsd-typography"><p>The key type used at each level of the path.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -139,10 +140,14 @@ or <code>data</code> / <code>dataId</code> fields. <code>onDeleted</code> remove
 <section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="nestedmap"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>nested<wbr/>Map</span><a href="#nestedmap" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">nestedMap</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GradumNestedMapNode</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">nestedMap</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GradumNestedMapNode</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The root of the nested structure holding this map's entries.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#nestedmap">nestedMap</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:18</li></ul></aside></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:29</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="_isinitialized"><code class="tsd-tag">Protected</code><span>_<wbr/>is<wbr/>Initialized</span><a href="#_isinitialized" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_isInitialized</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div><aside class="tsd-sources">
@@ -153,7 +158,7 @@ or <code>data</code> / <code>dataId</code> fields. <code>onDeleted</code> remove
 <div class="tsd-signature"><span class="tsd-kind-property">onAdded</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datatype">DataType</a><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">self</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumObserver</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#datatype">DataType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">keys</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span> <span class="tsd-signature-symbol">|</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate called when a change is reported at a key path for which no component instance exists yet.
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate called when a change is reported at a key path for which no component instance exists yet.
 Handlers may return a newly-created component instance, which will be stored and passed to subsequent
 <code>onUpdated</code> calls.</p>
 </div></div><aside class="tsd-sources">
@@ -164,7 +169,7 @@ Handlers may return a newly-created component instance, which will be stored and
 <div class="tsd-signature"><span class="tsd-kind-property">onUpdated</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datatype">DataType</a><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">instance</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">self</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumObserver</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#datatype">DataType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">keys</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate called when a change is reported at a key path that already has an associated instance.</p>
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate called when a change is reported at a key path that already has an associated instance.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/model/observer.ts:46</li></ul></aside></section>
@@ -173,7 +178,7 @@ Handlers may return a newly-created component instance, which will be stored and
 <div class="tsd-signature"><span class="tsd-kind-property">onDeleted</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-symbol">(</span><br/>        <span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datatype">DataType</a><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">instance</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-kind-parameter">self</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumObserver</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#datatype">DataType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">keys</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate called when a key path is reported as deleted.</p>
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate called when a key path is reported as deleted.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/model/observer.ts:55</li></ul></aside></section>
@@ -182,7 +187,7 @@ Handlers may return a newly-created component instance, which will be stored and
 <div class="tsd-signature"><span class="tsd-kind-property">onInitialize</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">self</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumObserver</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#datatype">DataType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired once when the observer is initialized. Useful for initial population.</p>
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired once when the observer is initialized. Useful for initial population.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/model/observer.ts:64</li></ul></aside></section>
@@ -191,7 +196,7 @@ Handlers may return a newly-created component instance, which will be stored and
 <div class="tsd-signature"><span class="tsd-kind-property">onDestroy</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">self</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumObserver</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#datatype">DataType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired when the observer is destroyed.</p>
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired when the observer is destroyed.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/model/observer.ts:70</li></ul></aside></section></section></details>
@@ -207,11 +212,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">[</span><a class="tsd-signature-type tsd-kind-type-parameter" href="GradumNestedMap.html#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumNestedMap.html#valuetype">ValueType</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf <code>[key, value]</code> pairs in the nested map, sorted alphabetically by key.</p>
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf <code>[key, value]</code> pairs in the nested map, sorted alphabetically by key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumNestedMap.entries</p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:217</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:228</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="keys"><span>keys</span><a href="#keys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -221,11 +226,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumNestedMap.html#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf keys in the nested map, sorted alphabetically.</p>
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf keys in the nested map, sorted alphabetically.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumNestedMap.keys</p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:241</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:252</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="values"><span>values</span><a href="#values" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -235,11 +240,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumNestedMap.html#valuetype">ValueType</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf values in the nested map, sorted alphabetically by key.</p>
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf values in the nested map, sorted alphabetically by key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumNestedMap.values</p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:265</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:276</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="paths"><span>paths</span><a href="#paths" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -249,11 +254,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumNestedMap.html#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf key paths in the map.</p>
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All leaf key paths in the map.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumNestedMap.paths</p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:289</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:300</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -263,11 +268,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Number of all leaf entries in the nested map.</p>
+<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Number of all leaf entries in the nested map.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumNestedMap.size</p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:313</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:324</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="isinitialized"><span>is<wbr/>Initialized</span><a href="#isinitialized" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -277,7 +282,7 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the observer has been initialized (i.e. <a href="#initialize" class="tsd-kind-method">initialize</a> has been called).</p>
+<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the observer has been initialized (i.e. <a href="#initialize" class="tsd-kind-method">initialize</a> has been called).</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/model/observer.ts:135</li></ul></aside></div></li></ul></section></section></details>
@@ -302,11 +307,11 @@ Handlers may return a newly-created component instance, which will be stored and
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given key path.</p>
+<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given key path.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#get">get</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:32</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:43</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getflat"><span>get<wbr/>Flat</span><a href="#getflat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -328,11 +333,11 @@ Handlers may return a newly-created component instance, which will be stored and
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#getflat">getFlat</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:48</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:59</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getkey"><span>get<wbr/>Key</span><a href="#getkey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -351,11 +356,11 @@ Handlers may return a newly-created component instance, which will be stored and
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key path of the first occurrence of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key path of the first occurrence of the given value.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#getkey">getKey</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:59</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:70</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getkeys"><span>get<wbr/>Keys</span><a href="#getkeys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -374,11 +379,11 @@ Handlers may return a newly-created component instance, which will be stored and
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key paths of all occurrences of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key paths of all occurrences of the given value.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#getkeys">getKeys</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:69</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:80</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getflatkey"><span>get<wbr/>Flat<wbr/>Key</span><a href="#getflatkey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -397,11 +402,11 @@ Handlers may return a newly-created component instance, which will be stored and
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the flat key of the first occurrence of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the flat key of the first occurrence of the given value.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#getflatkey">getFlatKey</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:79</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:90</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="set"><span>set</span><a href="#set" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -422,11 +427,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Store a value at the given key path. Intermediate nodes are created automatically.</p>
+<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Store a value at the given key path. Intermediate nodes are created automatically.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#set">set</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:97</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:108</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setflat"><span>set<wbr/>Flat</span><a href="#setflat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -450,11 +455,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Store a value at the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Store a value at the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#setflat">setFlat</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:115</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:126</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="has"><span>has</span><a href="#has" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -472,11 +477,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an entry exists at the given key path.</p>
+<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an entry exists at the given key path.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#has">has</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:132</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:143</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="hasflat"><span>has<wbr/>Flat</span><a href="#hasflat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -497,11 +502,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an entry exists at the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an entry exists at the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#hasflat">hasFlat</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:146</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:157</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="hasvalue"><span>has<wbr/>Value</span><a href="#hasvalue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -519,11 +524,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether the given value exists anywhere in the map.</p>
+<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether the given value exists anywhere in the map.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#hasvalue">hasValue</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:157</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:168</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="removevalue"><span>remove<wbr/>Value</span><a href="#removevalue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -541,11 +546,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the first occurrence of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the first occurrence of the given value.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#removevalue">removeValue</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:183</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:194</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="removevalues"><span>remove<wbr/>Values</span><a href="#removevalues" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -563,11 +568,11 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all occurrences of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all occurrences of the given value.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#removevalues">removeValues</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:193</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:204</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getentriesat"><span>get<wbr/>Entries<wbr/>At</span><a href="#getentriesat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -585,12 +590,12 @@ Handlers may return a newly-created component instance, which will be stored and
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">[</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf <code>[key, value]</code> pairs under the given path, sorted alphabetically by key.
+<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf <code>[key, value]</code> pairs under the given path, sorted alphabetically by key.
 Pass no keys to get all leaf entries in the map.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#getentriesat">getEntriesAt</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:210</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:221</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getkeysat"><span>get<wbr/>Keys<wbr/>At</span><a href="#getkeysat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -608,12 +613,12 @@ Pass no keys to get all leaf entries in the map.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf keys under the given path, sorted alphabetically.
+<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf keys under the given path, sorted alphabetically.
 Pass no keys to get all leaf keys in the map.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#getkeysat">getKeysAt</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:234</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:245</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getvaluesat"><span>get<wbr/>Values<wbr/>At</span><a href="#getvaluesat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -631,12 +636,12 @@ Pass no keys to get all leaf keys in the map.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf values under the given path, sorted alphabetically by key.
+<h4 class="tsd-anchor-link" id="description-28">Description<a href="#description-28" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf values under the given path, sorted alphabetically by key.
 Pass no keys to get all leaf values in the map.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#getvaluesat">getValuesAt</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:258</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:269</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getpathsat"><span>get<wbr/>Paths<wbr/>At</span><a href="#getpathsat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -654,12 +659,12 @@ Pass no keys to get all leaf values in the map.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-28">Description<a href="#description-28" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf key paths under the given path.
+<h4 class="tsd-anchor-link" id="description-29">Description<a href="#description-29" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all leaf key paths under the given path.
 Pass no keys to get all leaf paths in the map.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#getpathsat">getPathsAt</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:282</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:293</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getsizeat"><span>get<wbr/>Size<wbr/>At</span><a href="#getsizeat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -677,12 +682,12 @@ Pass no keys to get all leaf paths in the map.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-29">Description<a href="#description-29" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the number of leaf entries under the given path.
+<h4 class="tsd-anchor-link" id="description-30">Description<a href="#description-30" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the number of leaf entries under the given path.
 Pass no keys to get the number of all leaf entries.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#getsizeat">getSizeAt</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:306</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:317</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="flattenkey"><span>flatten<wbr/>Key</span><a href="#flattenkey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -701,7 +706,7 @@ Pass no keys to get the number of all leaf entries.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-30">Description<a href="#description-30" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Serialize a key path into a single flat key.</p>
+<h4 class="tsd-anchor-link" id="description-31">Description<a href="#description-31" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Serialize a key path into a single flat key.</p>
 <ul>
 <li>Fully numeric paths produce a numeric global leaf index.</li>
 <li>All other paths produce a <code>&quot;k0|k1|k2|...&quot;</code> string.</li>
@@ -709,7 +714,7 @@ Pass no keys to get the number of all leaf entries.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#flattenkey">flattenKey</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:331</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:342</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="scopekey"><span>scope<wbr/>Key</span><a href="#scopekey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -731,7 +736,7 @@ Pass no keys to get the number of all leaf entries.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-31">Description<a href="#description-31" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert a flat key back into a key path. Reverses <a href="#flattenkey" class="tsd-kind-method">flattenKey</a>.</p>
+<h4 class="tsd-anchor-link" id="description-32">Description<a href="#description-32" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert a flat key back into a key path. Reverses <a href="#flattenkey" class="tsd-kind-method">flattenKey</a>.</p>
 <ul>
 <li>A string <code>&quot;k0|k1|k2&quot;</code> becomes <code>[k0, k1, k2]</code>.</li>
 <li>A numeric global leaf index becomes the corresponding numeric path.</li>
@@ -739,7 +744,7 @@ Pass no keys to get the number of all leaf entries.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#scopekey">scopeKey</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:358</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:369</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="findpaths"><code class="tsd-tag">Protected</code><span>find<wbr/>Paths</span><a href="#findpaths" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -756,7 +761,7 @@ Pass no keys to get the number of all leaf entries.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#findpaths">findPaths</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:390</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:401</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="getflatcompatiblekey"><code class="tsd-tag">Protected</code><span>get<wbr/>Flat<wbr/>Compatible<wbr/>Key</span><a href="#getflatcompatiblekey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -770,7 +775,7 @@ Pass no keys to get the number of all leaf entries.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#getflatcompatiblekey">getFlatCompatibleKey</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:416</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/nestedMap/nestedMap.ts:427</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="remove"><span>remove</span><a href="#remove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -788,7 +793,7 @@ Pass no keys to get the number of all leaf entries.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-32">Description<a href="#description-32" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the instance at the given key path from the map and call <code>instance.remove()</code> if available.</p>
+<h4 class="tsd-anchor-link" id="description-33">Description<a href="#description-33" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the instance at the given key path from the map and call <code>instance.remove()</code> if available.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#remove">remove</a></p>
 <ul>
@@ -810,7 +815,7 @@ Pass no keys to get the number of all leaf entries.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-33">Description<a href="#description-33" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the instance at the given key path from the map without calling <code>instance.remove()</code>,
+<h4 class="tsd-anchor-link" id="description-34">Description<a href="#description-34" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the instance at the given key path from the map without calling <code>instance.remove()</code>,
 detaching it from the observer.</p>
 </div></div><aside class="tsd-sources">
 <ul>
@@ -826,7 +831,7 @@ detaching it from the observer.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-34">Description<a href="#description-34" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Initialization method that fires <code>onInitialize</code>. No-op if already initialized.</p>
+<h4 class="tsd-anchor-link" id="description-35">Description<a href="#description-35" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Initialization method that fires <code>onInitialize</code>. No-op if already initialized.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/model/observer.ts:143</li></ul></aside></div></li></ul></section>
@@ -847,7 +852,7 @@ detaching it from the observer.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-35">Description<a href="#description-35" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all managed instances, reset the observer to an uninitialized state, and optionally
+<h4 class="tsd-anchor-link" id="description-36">Description<a href="#description-36" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all managed instances, reset the observer to an uninitialized state, and optionally
 call <code>instance.remove()</code> on each instance.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumNestedMap.html">GradumNestedMap</a>.<a href="GradumNestedMap.html#clear">clear</a></p>
@@ -870,7 +875,7 @@ call <code>instance.remove()</code> on each instance.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-36">Description<a href="#description-36" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all managed instances, reset the observer to an uninitialized state, optionally
+<h4 class="tsd-anchor-link" id="description-37">Description<a href="#description-37" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove all managed instances, reset the observer to an uninitialized state, optionally
 call <code>instance.remove()</code> on each instance, and fire <code>onDestroy</code>.</p>
 </div></div><aside class="tsd-sources">
 <ul>
@@ -898,7 +903,7 @@ call <code>instance.remove()</code> on each instance, and fire <code>onDestroy</
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-37">Description<a href="#description-37" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Notify the observer of a change at the given key path.
+<h4 class="tsd-anchor-link" id="description-38">Description<a href="#description-38" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Notify the observer of a change at the given key path.
 Fires <code>onDeleted</code> if <code>deleted</code> is <code>true</code> and an instance exists, <code>onAdded</code> if no instance exists yet
 (storing the returned instance if any), and <code>onUpdated</code> otherwise.</p>
 </div></div><aside class="tsd-sources">

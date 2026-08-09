@@ -21,14 +21,21 @@ import {YAbstractType, YDoc} from "../../types/yjs.types";
 
 const utils = new ElementFunctionsUtils();
 
+/**
+ * @internal
+ * @function setupElementFunctions
+ * @description Install the element functions (`setProperties`, `clone`, `destroy`, `feedforward`, ...) onto the
+ * {@link GradumSelector} prototype. Called once by
+ * {@link gradumify}; the matching `exclude` option skips it.
+ */
 export function setupElementFunctions() {
     /**
-     * Sets the declared properties to the element.
+     * @template Tag - The HTML tag of the element.
+     * @description Apply the given properties to the element.
      * @param {GradumProperties<Tag>} [properties] - The properties object.
      * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
      * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
      * @returns {this} Itself, allowing for method chaining.
-     * @template Tag
      */
     GradumSelector.prototype.setProperties = function _setProperties<Tag extends ValidTag>
     (this: GradumSelector<ValidElement<Tag>>, properties: GradumProperties<Tag> = {} as GradumProperties<Tag>,

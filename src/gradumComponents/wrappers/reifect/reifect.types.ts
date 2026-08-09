@@ -5,11 +5,10 @@ import {StylesType} from "../../../gradumFunctions/style/style.types";
  * @group Components
  * @category Reifect
  *
+ * @template Type - The type of the configured value.
+ * @template State - The set of states the reifect can switch between.
+ * @template ClassType - The type of the attached object.
  * @description A configuration type for properties based on states or interpolated values.
- *
- * @template Type
- * @template State
- * @template ClassType
  */
 type StatelessPropertyConfig<Type, ClassType extends object = Element> = Type | ReifectInterpolator<Type, ClassType>;
 

@@ -9,9 +9,21 @@ import {GradumEmitter} from "../../mvc/emitter/emitter";
 import {gradum} from "../gradumFunctions";
 import {MvcGenerationProperties, MvcProperties} from "./mvc.types";
 
+/**
+ * @internal
+ * @description The names of the MVC roles an element can hold, in the order they are attached. Used to
+ * split MVC entries out of a properties object and to drive the generic add/get/remove paths.
+ */
 export const MvcFields = ["model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
 const utils = new MvcFunctionsUtils();
 
+/**
+ * @internal
+ * @function setupMvcFunctions
+ * @description Install the MVC functions (`model`, `view`, `emitter`, and the add/get/remove methods for each
+ * role) onto the {@link GradumSelector} prototype. Called once by
+ * {@link gradumify}; the matching `exclude` option skips it.
+ */
 export function setupMvcFunctions() {
     Object.defineProperty(GradumSelector.prototype, "mvc", {
         get(this: GradumSelector): MvcProperties {

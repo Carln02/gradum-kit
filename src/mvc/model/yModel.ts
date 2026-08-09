@@ -7,8 +7,19 @@ import {GradumModelProperties} from "./model.types";
 import {KeyType} from "../../types/basic.types";
 
 /**
+ * @class GradumYModel
  * @group MVC
- * @category GradumModel
+ * @category Model
+ *
+ * @extends GradumModel
+ * @template DataType - The type of the data held in the model.
+ * @template {KeyType} DataKeyType - The type of the data's keys.
+ * @template {KeyType} IdType - The type of the data's ID.
+ * @template {object} ComponentType - The type of instances managed by attached observers.
+ * @template DataEntryType - The type of data associated with each observer instance.
+ * @description A {@link GradumModel} whose data lives in a Y.js structure, so edits propagate to every other
+ * client sharing the document. Reads and writes go through the same API as a plain model; changes arriving
+ * from Y.js — local or remote — are turned into the usual signal and observer notifications.
  */
 class GradumYModel<
     DataType = any,
@@ -174,6 +185,9 @@ class GradumYModel<
         super.clear(clearData);
     }
 
+    /**
+     * @inheritDoc
+     */
     protected diffCheck(oldData: DataType, newData: DataType): boolean {
         if (oldData instanceof YAbstractType || newData instanceof YAbstractType) return false;
         return super.diffCheck(oldData, newData);
@@ -228,6 +242,13 @@ class GradumYModel<
         }
     }
 
+    /**
+     * @protected
+     * @function attachNestedObservers
+     * @description Start observing a Y.js type and everything nested inside it, so changes anywhere in the
+     * subtree reach this model. Types already being observed are skipped, so repeated calls are cheap.
+     * @param {any} value - The Y.js type to observe. Non-Y values are ignored.
+     */
     protected attachNestedObservers(value: any) {
         if (value instanceof YAbstractType) {
             if (!this.observedYTypes.has(value)) {
@@ -246,6 +267,13 @@ class GradumYModel<
         }
     }
 
+    /**
+     * @protected
+     * @function detachNestedObservers
+     * @description Stop observing a Y.js type and everything nested inside it, releasing the observers
+     * attached by {@link GradumYModel.attachNestedObservers}.
+     * @param {any} value - The Y.js type to stop observing. Non-Y values are ignored.
+     */
     protected detachNestedObservers(value: any) {
         if (value instanceof YAbstractType) {
             if (this.observedYTypes.has(value)) {

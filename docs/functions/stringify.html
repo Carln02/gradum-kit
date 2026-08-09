@@ -14,23 +14,25 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="stringify"><span class="tsd-kind-call-signature">stringify</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><a href="#stringify" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>stringify</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">any</span></span>
-<div class="tsd-comment tsd-typography"><p>The variable to convert to string</p>
+<div class="tsd-comment tsd-typography"><p>The value to render.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><ul>
-<li>The string representation of the value</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><p>The string form, or <code>undefined</code> when the value is <code>null</code> or <code>undefined</code>.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Converts the passed variable into a string.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Render any value as a string that <a href="parse.html" class="tsd-kind-function">parse</a> can turn back into an equivalent value. Dates
+become ISO strings, arrays are stringified entry by entry, and DOM elements collapse to the placeholder
+<code>&quot;[DOM ELEMENT]&quot;</code> rather than being serialized.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/dataManipulation/string.ts:11</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/dataManipulation/string.ts:14</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

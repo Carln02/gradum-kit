@@ -10,11 +10,25 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">GradumMap</a></li></ul>
 <h1>Class GradumMap&lt;KeyType, ValueType&gt;</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>GradumMap</p>
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A <a href="https://developer.mozilla.org/en-US/docs/Web/API/Map">Map</a> that hands out copies
+instead of references, so callers cannot mutate stored values by accident. It also adds array
+accessors and the usual <code>map</code>/<code>filter</code>/<code>merge</code> helpers, which return new maps rather than mutating
+this one. Set <a href="#enforceimmutability" class="tsd-kind-property">enforceImmutability</a> to <code>false</code> to get plain reference semantics back.</p>
+</div></div></section>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="keytype"><span class="tsd-kind-type-parameter">KeyType</span></span></li>
-<li><span id="valuetype"><span class="tsd-kind-type-parameter">ValueType</span></span></li></ul></section>
+<li><span id="keytype"><span class="tsd-kind-type-parameter">KeyType</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the keys.</p>
+</div></li>
+<li><span id="valuetype"><span class="tsd-kind-type-parameter">ValueType</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the stored values.</p>
+</div></li></ul></section>
 <section class="tsd-panel tsd-hierarchy" data-refl="3441">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
@@ -22,7 +36,7 @@
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">GradumMap</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:5</li></ul></aside>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:14</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -64,8 +78,12 @@
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="constructorgradummapkeytype"><span class="tsd-kind-type-parameter">KeyType</span></span></li>
-<li><span id="constructorgradummapvaluetype"><span class="tsd-kind-type-parameter">ValueType</span></span></li></ul></section>
+<li><span id="constructorgradummapkeytype"><span class="tsd-kind-type-parameter">KeyType</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the keys.</p>
+</div></li>
+<li><span id="constructorgradummapvaluetype"><span class="tsd-kind-type-parameter">ValueType</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the stored values.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -80,8 +98,12 @@
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="constructorgradummapkeytype-1"><span class="tsd-kind-type-parameter">KeyType</span></span></li>
-<li><span id="constructorgradummapvaluetype-1"><span class="tsd-kind-type-parameter">ValueType</span></span></li></ul></section>
+<li><span id="constructorgradummapkeytype-1"><span class="tsd-kind-type-parameter">KeyType</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the keys.</p>
+</div></li>
+<li><span id="constructorgradummapvaluetype-1"><span class="tsd-kind-type-parameter">ValueType</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the stored values.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -96,9 +118,15 @@
 <section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="enforceimmutability"><span>enforce<wbr/>Immutability</span><a href="#enforceimmutability" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">enforceImmutability</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">enforceImmutability</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether values are copied on the way in and out. While <code>true</code> (the default), stored
+objects are cloned, so mutating a value you read back does not affect the map. Set it to <code>false</code>
+to store and return the original references.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:6</li></ul></aside></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:20</li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -108,18 +136,28 @@
 <li>
 <div class="tsd-signature" id="firstfirst"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">first</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The first value in insertion order, or <code>null</code> when the map is empty. Copied unless
+<a href="#enforceimmutability" class="tsd-kind-property">enforceImmutability</a> is <code>false</code>.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:17</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:49</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="last"><span>last</span><a href="#last" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="lastlast"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">last</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The last value in insertion order, or <code>null</code> when the map is empty. Copied unless
+<a href="#enforceimmutability" class="tsd-kind-property">enforceImmutability</a> is <code>false</code>.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:23</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:60</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -129,52 +167,75 @@
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="set-1"><span class="tsd-kind-call-signature">set</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><a href="#set-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Adds a new element with a specified key and value to the Map. If an element with the same key already exists, the element will be updated.</p>
-</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">key</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a></span></li>
-<li><span><span class="tsd-kind-parameter">value</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">key</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a></span>
+<div class="tsd-comment tsd-typography"><p>The key to store under.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">value</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a></span>
+<div class="tsd-comment tsd-typography"><p>The value to store.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4><p>Itself, allowing for method chaining.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Store a value at the given key. The value is copied first unless
+<a href="#enforceimmutability" class="tsd-kind-property">enforceImmutability</a> is <code>false</code>.</p>
+</div></div><aside class="tsd-sources">
 <p>Overrides <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map/set" class="external" target="_blank">Map.set</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:8</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:29</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="get"><span>get</span><a href="#get" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="get-1"><span class="tsd-kind-call-signature">get</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><a href="#get-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Returns a specified element from the Map object. If the value that is associated to the provided key is an object, then you will get a reference to that object and any change made to that object will effectively modify it inside the Map.</p>
-</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">key</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a></h4><p>Returns the element associated with the specified key. If no element is associated with the specified key, undefined is returned.</p>
-<aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">key</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a></span>
+<div class="tsd-comment tsd-typography"><p>The key to read.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a></h4><p>A copy of the stored value, or the value itself when
+<a href="#enforceimmutability" class="tsd-kind-property">enforceImmutability</a> is <code>false</code>. <code>undefined</code> if the key is not set.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Read the value at the given key.</p>
+</div></div><aside class="tsd-sources">
 <p>Overrides <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map/get" class="external" target="_blank">Map.get</a></p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:12</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:39</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="keysarray"><span>keys<wbr/>Array</span><a href="#keysarray" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="keysarray-1"><span class="tsd-kind-call-signature">keysArray</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span><a href="#keysarray-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">[]</span></h4><p>A new array of the map's keys.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All keys as an array, in insertion order.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:29</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:70</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="valuesarray"><span>values<wbr/>Array</span><a href="#valuesarray" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="valuesarray-1"><span class="tsd-kind-call-signature">valuesArray</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">[]</span><a href="#valuesarray-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">[]</span></h4><p>A new array of the map's values. The values themselves are not copied.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All values as an array, in insertion order.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:33</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:78</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="mapkeys"><span>map<wbr/>Keys</span><a href="#mapkeys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -184,14 +245,24 @@
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="mapkeysc"><span class="tsd-kind-type-parameter">C</span></span></li></ul></section>
+<li><span id="mapkeysc"><span class="tsd-kind-type-parameter">C</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the new keys.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#mapkeysc">C</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#mapkeysc">C</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#mapkeysc">C</a></span>
+<div class="tsd-comment tsd-typography"><p>Returns the new key for each entry.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#mapkeysc">C</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new map. This map is left unchanged. Entries whose callback
+returns the same key collapse into one.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Derive a new map with the same values under recomputed keys.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:49</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:101</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="mapvalues"><span>map<wbr/>Values</span><a href="#mapvalues" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -201,14 +272,23 @@
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="mapvaluesc"><span class="tsd-kind-type-parameter">C</span></span></li></ul></section>
+<li><span id="mapvaluesc"><span class="tsd-kind-type-parameter">C</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the new values.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#mapvaluesc">C</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#mapvaluesc">C</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#mapvaluesc">C</a></span>
+<div class="tsd-comment tsd-typography"><p>Returns the new value for each entry.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#mapvaluesc">C</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new map. This map is left unchanged.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Derive a new map with the same keys and recomputed values.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:57</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:115</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="filter"><span>filter</span><a href="#filter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -218,10 +298,17 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">callback</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>Returns <code>true</code> to keep an entry.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new map holding the kept entries. This map is left unchanged.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Select the entries matching a predicate.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:65</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:128</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="merge"><span>merge</span><a href="#merge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -231,10 +318,18 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">map</span>: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">&gt;</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">map</span>: <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map" class="tsd-signature-type external" target="_blank">Map</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>The map to read entries from. It is left unchanged.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumMap</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#keytype">KeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#valuetype">ValueType</a><span class="tsd-signature-symbol">&gt;</span></h4><p>Itself, allowing for method chaining.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Copy every entry of another map into this one, overwriting on key collisions.
+Unlike <a href="#mapkeys" class="tsd-kind-method">mapKeys</a>, <a href="#mapvalues" class="tsd-kind-method">mapValues</a>, and <a href="#filter" class="tsd-kind-method">filter</a>, this mutates the map it is called on.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/map/map.ts:73</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/gradumComponents/datatypes/map/map.ts:142</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

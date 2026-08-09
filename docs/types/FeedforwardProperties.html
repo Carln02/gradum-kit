@@ -22,16 +22,24 @@
 <h5><code class="tsd-tag">Optional</code><span class="tsd-kind-property">cloneOptions</span><span class="tsd-signature-symbol">?: </span><a href="CloneElementOptions.html" class="tsd-signature-type tsd-kind-type-alias">CloneElementOptions</a></h5></li>
 <li class="tsd-parameter">
 <h5><code class="tsd-tag">Optional</code><span class="tsd-kind-property">wrap</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span></h5>
-<div class="tsd-comment tsd-typography"><p>When true, the clone is placed inside a <code>GradumMovable</code> positioning wrapper and the wrapper
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>When true, the clone is placed inside a <code>GradumMovable</code> positioning wrapper and the wrapper
 is returned instead of the clone. The wrapper exposes <code>position</code> (alias <code>translation</code>) and
 <code>rotation</code> accessors that apply pure CSS transforms to the wrapper — callers position the
 preview without ever touching the clone's semantic fields. The clone's own <code>transform</code> is
 neutralized via an injected <code>!important</code> stylesheet rule (an MVC clone's view keeps
 rendering its snapshot transform otherwise, overriding any caller positioning). The
 original clone remains accessible on the wrapper's <code>content</code> / <code>feedforwardClone</code> properties.</p>
-</div></li></ul></div><aside class="tsd-sources">
+</div></div></li></ul></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Controls the preview element <a href="../classes/GradumSelector.html#feedforward" class="tsd-kind-method">GradumSelector.feedforward</a> produces — everything
+<a href="GradumElementProperties.html" class="tsd-kind-type-alias">GradumElementProperties</a> accepts, plus how the preview is cloned, wrapped, and torn down. Used to
+show the user what an interaction is about to do before they commit to it.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/element/element.types.ts:36</li></ul></aside></div>
+<li>Defined in src/gradumFunctions/element/element.types.ts:60</li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

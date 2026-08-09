@@ -46,14 +46,14 @@ declare module "../gradumSelector" {
         /**
          * @function bringToFront
          * @description Brings the element to the front amongst its siblings in the DOM.
-         * @return {this} Itself for chaining.
+         * @returns {this} Itself for chaining.
          */
         bringToFront(): this;
 
         /**
          * @function sendToBack
          * @description Sends the element to the back amongst its siblings in the DOM.
-         * @return {this} Itself for chaining.
+         * @returns {this} Itself for chaining.
          */
         sendToBack(): this;
 

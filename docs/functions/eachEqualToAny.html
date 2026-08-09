@@ -14,19 +14,33 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="eachequaltoany"><span class="tsd-kind-call-signature">eachEqualToAny</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#eachequaltoanytype">Type</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">values</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#eachequaltoanytype">Type</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">entries</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#eachequaltoanytype">Type</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#eachequaltoany" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>eachEqualToAny</p>
+</div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="eachequaltoanytype"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span></li></ul></section>
+<li><span id="eachequaltoanytype"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the compared entries.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">values</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#eachequaltoanytype">Type</a><span class="tsd-signature-symbol">[]</span></span></li>
-<li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">entries</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#eachequaltoanytype">Type</a><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">values</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#eachequaltoanytype">Type</a><span class="tsd-signature-symbol">[]</span></span>
+<div class="tsd-comment tsd-typography"><p>The allowed values.</p>
+</div></li>
+<li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">entries</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#eachequaltoanytype">Type</a><span class="tsd-signature-symbol">[]</span></span>
+<div class="tsd-comment tsd-typography"><p>The entries to check. Passing none counts as a match.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> if every entry equals one of the allowed values.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether every entry matches at least one of the allowed values, compared loosely (<code>==</code>).
+Use it to validate that a set of inputs all fall within a known set.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/computations/equity.ts:50</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/computations/equity.ts:84</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -1,6 +1,6 @@
-import {button, gradum, randomFromRange, GradumElement, trim, element, GradumIcon, div, GradumEventManager, EventPropagation} from "../../../build/gradum-kit.esm.js";
+import {button, gradum, randomFromRange, GradumElement, trim, element, GradumIcon, div, GradumEventManager, Propagation} from "../../../build/gradum-kit.esm.js";
 
-GradumIcon.config.defaultDirectory = "assets/";
+GradumIcon.defaultProperties.defaultDirectory = "assets/";
 GradumEventManager.instance.preventDefaultMouse = false;
 GradumEventManager.instance.preventDefaultTouch = false;
 
@@ -82,7 +82,7 @@ gradum(moveTool).addToolBehavior("gradum-drag", (e, el) => {
         //Call it and pass it the delta position of the drag (the difference between the current position and
         // the position captured at the previous "gradum-drag" event).
         el.translate(e.deltaPosition);
-        return EventPropagation.stopPropagation; //Stop the event from propagating
+        return Propagation.stopPropagation; //Stop the event from propagating
     }
 });
 

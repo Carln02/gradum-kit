@@ -13,12 +13,13 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type representing objects passed as context for resolving constrainers. Given as first parameter to
-solvers when executing them via solveConstrainer.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The context handed to a solver as its first argument, naming the constrainer, the object
+being processed, and the event that triggered it. Passed when solving through
+<a href="../classes/GradumSelector.html#solveconstrainer" class="tsd-kind-method">GradumSelector.solveConstrainer</a>.</p>
 </div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">ConstrainerCallbackProperties</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#constrainer">constrainer</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#constrainerhost">constrainerHost</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#target">target</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#event">event</a><span class="tsd-signature-symbol">?:</span> <a href="https://developer.mozilla.org/docs/Web/API/Event" class="tsd-signature-type external" target="_blank">Event</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#eventtype">eventType</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#eventtarget">eventTarget</a><span class="tsd-signature-symbol">?:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#toolname">toolName</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#eventoptions">eventOptions</a><span class="tsd-signature-symbol">?:</span> <a href="ListenerOptions.html" class="tsd-signature-type tsd-kind-type-alias">ListenerOptions</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#manager">manager</a><span class="tsd-signature-symbol">?:</span> <a href="../classes/GradumEventManager.html" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:49</li></ul></aside>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:51</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -45,57 +46,57 @@ solvers when executing them via solveConstrainer.</p>
 <div class="tsd-comment tsd-typography"><p>The targeted constrainer. Defaults to <code>currentConstrainer</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:50</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:52</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="constrainerhost"><code class="tsd-tag">Optional</code><span>constrainer<wbr/>Host</span><a href="#constrainerhost" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">constrainerHost</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">object</span></div>
 <div class="tsd-comment tsd-typography"><p>The object to which the target constrainer is attached.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:51</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:53</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="target"><code class="tsd-tag">Optional</code><span>target</span><a href="#target" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">target</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">object</span></div>
 <div class="tsd-comment tsd-typography"><p>The current object being processed by the solver. Property set by
-solveConstrainer when processing every object in the constrainer's list.</p>
+<a href="../classes/GradumSelector.html#solveconstrainer" class="tsd-kind-method">GradumSelector.solveConstrainer</a> when processing every object in the constrainer's list.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:52</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:54</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="event"><code class="tsd-tag">Optional</code><span>event</span><a href="#event" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">event</span><span class="tsd-signature-symbol">?:</span> <a href="https://developer.mozilla.org/docs/Web/API/Event" class="tsd-signature-type external" target="_blank">Event</a></div>
 <div class="tsd-comment tsd-typography"><p>The event (if any) that fired the resolving of the constrainer.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:53</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:55</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="eventtype"><code class="tsd-tag">Optional</code><span>event<wbr/>Type</span><a href="#eventtype" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">eventType</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The type of the event.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:54</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:56</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="eventtarget"><code class="tsd-tag">Optional</code><span>event<wbr/>Target</span><a href="#eventtarget" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">eventTarget</span><span class="tsd-signature-symbol">?:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></div>
 <div class="tsd-comment tsd-typography"><p>The target of the event.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:55</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:57</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="toolname"><code class="tsd-tag">Optional</code><span>tool<wbr/>Name</span><a href="#toolname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">toolName</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The name of the active tool when the event was fired.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:56</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:58</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="eventoptions"><code class="tsd-tag">Optional</code><span>event<wbr/>Options</span><a href="#eventoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">eventOptions</span><span class="tsd-signature-symbol">?:</span> <a href="ListenerOptions.html" class="tsd-signature-type tsd-kind-type-alias">ListenerOptions</a></div>
 <div class="tsd-comment tsd-typography"><p>The options of the event.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:57</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:59</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="manager"><code class="tsd-tag">Optional</code><span>manager</span><a href="#manager" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">manager</span><span class="tsd-signature-symbol">?:</span> <a href="../classes/GradumEventManager.html" class="tsd-signature-type tsd-kind-class">GradumEventManager</a></div>
@@ -103,7 +104,7 @@ solveConstrainer when processing every object in the constrainer's list.</p>
 instantiated event manager.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:58</li></ul></aside></section></section></details></div>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:60</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

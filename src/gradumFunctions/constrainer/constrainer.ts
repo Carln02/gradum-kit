@@ -15,6 +15,13 @@ import {GradumNodeList} from "../../gradumComponents/datatypes/nodeList/nodeList
 
 const utils = new ConstrainerFunctionsUtils();
 
+/**
+ * @internal
+ * @function setupConstrainerFunctions
+ * @description Install the constrainer functions (`makeConstrainer`, `solveConstrainer`, `mutate`, ...) onto the
+ * {@link GradumSelector} prototype. Called once by
+ * {@link gradumify}; the matching `exclude` option skips it.
+ */
 export function setupConstrainerFunctions() {
     GradumSelector.prototype.makeConstrainer = function _makeConstrainer(
         this: GradumSelector,

@@ -20,8 +20,8 @@ import {GradumDropdownProperties} from "./dropdown.types";
  * @group Components
  * @category GradumDropdown
  *
- * @description Dropdown class for creating Gradum button elements.
  * @extends GradumElement
+ * @description Dropdown class for creating Gradum button elements.
  */
 class GradumDropdown<
     ValueType = string,
@@ -34,16 +34,27 @@ class GradumDropdown<
 > extends GradumSelectElement<ValueType, SecondaryValueType, EntryType, ViewType, DataType, ModelType, EmitterType> {
     //TODO MOVE DEFAULT CLICK TO MAIN CONFIG
      public declare readonly properties: GradumDropdownProperties;
+    /**
+     * @static
+     * @description Default properties assigned to a new dropdown. Its selector is rendered as an `<h4>`.
+     */
     public static defaultProperties: GradumDropdownProperties = {
         selectorTag: "h4",
     };
 
+    /**
+     * @readonly
+     * @description The selection logic backing this dropdown. Clicking an entry closes the popup.
+     */
     public readonly select: GradumSelect<ValueType, SecondaryValueType, EntryType> = GradumSelect.create({
         onEntryClicked: () => this.openPopup(false)
     }) as any;
 
     private popupOpen: boolean = false;
 
+    /**
+     * @description The tag used to build the selector element that shows the current selection.
+     */
     public selectorTag: HTMLTag;
 
     @auto({

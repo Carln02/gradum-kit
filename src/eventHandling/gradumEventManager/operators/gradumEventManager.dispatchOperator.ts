@@ -9,6 +9,20 @@ import {GradumKeyEventName, GradumMoveEventName} from "../../../types/eventNamin
 import {GradumDragEvent} from "../../events/gradumDragEvent";
 import {Propagation} from "../../../gradumFunctions/event/event.types";
 
+/**
+ * @internal
+ * @class GradumEventManagerDispatchOperator
+ * @extends GradumOperator
+ * @description Dispatches Gradum events along the composed path. It runs two sequential passes: a
+ * capture pass from the document down to the target, which invokes tool `@behavior` methods, then a
+ * bubble pass back up, which invokes interactor `@listener` methods and `gradum(el).on()` listeners.
+ * Each pass stops early when a handler returns anything other than `Propagation.propagate`.
+ *
+ * *Note: move events are the exception. Their composed path is the drag origin's ancestor chain, which
+ * omits elements merely sitting under the cursor, so they are dispatched in a single pass over the
+ * z-stack at the pointer instead — topmost first, stopping at the first handler that does not
+ * propagate. A move handler therefore sees neither a capture pass nor a bubble pass.*
+ */
 export class GradumEventManagerDispatchOperator extends GradumOperator<GradumEventManager, any, GradumEventManagerModel> {
     public keyName: string = "dispatch";
 

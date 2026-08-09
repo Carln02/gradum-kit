@@ -13,7 +13,7 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Type representing a configuration object to add a new callback to the given constrainer.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Options for registering a checker, mutator, or solver on an existing constrainer.</p>
 </div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">ConstrainerAddCallbackProperties</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a> <span class="tsd-signature-keyword">extends</span> <a href="ConstrainerChecker.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerChecker</a><br/>    <span class="tsd-signature-symbol">|</span> <a href="ConstrainerMutator.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerMutator</a><br/>    <span class="tsd-signature-symbol">|</span> <a href="ConstrainerSolver.html" class="tsd-signature-type tsd-kind-type-alias">ConstrainerSolver</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#name">name</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#callback">callback</a><span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#constrainer">constrainer</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#priority">priority</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
 <section class="tsd-panel">
@@ -23,7 +23,7 @@
 <div class="tsd-comment tsd-typography"><p>The type of callback.</p>
 </div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:117</li></ul></aside>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:131</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -45,28 +45,28 @@
 <div class="tsd-comment tsd-typography"><p>The name of the callback to add.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:118</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:132</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="callback"><code class="tsd-tag">Optional</code><span>callback</span><a href="#callback" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">callback</span><span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#type">Type</a></div>
 <div class="tsd-comment tsd-typography"><p>The callback to add.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:119</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:133</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="constrainer"><code class="tsd-tag">Optional</code><span>constrainer</span><a href="#constrainer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">constrainer</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The constrainer to add the callback to.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:120</li></ul></aside></section>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:134</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="priority"><code class="tsd-tag">Optional</code><span>priority</span><a href="#priority" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">priority</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The priority of the callback.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:121</li></ul></aside></section></section></details></div>
+<li>Defined in src/gradumFunctions/constrainer/constrainer.types.ts:135</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

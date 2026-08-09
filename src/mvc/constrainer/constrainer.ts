@@ -24,7 +24,11 @@ import {addRegistryCategory, define} from "../../decorators/define/define";
  * @template {GradumView} ViewType - The element's view type, if any.
  * @template {GradumModel} ModelType - The element's model type, if any.
  * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- * @description Class representing an constrainer in MVC, bound to the provided element.
+ * @description Keeps a set of objects satisfying a constraint. Attach one to an element and it watches a
+ * list of objects, and whenever a trigger object is interacted with it runs the solvers declared with
+ * `@solver` until the constraint holds again — capped by `maxPasses` so propagation cannot cycle forever.
+ * Checkers (`@checker`) report whether the constraint already holds; mutators (`@mutator`) adjust values
+ * as part of resolving.
  */
 class GradumConstrainer<
     ElementType extends object = object,
@@ -115,6 +119,13 @@ class GradumConstrainer<
         return gradum(this).getConstrainerQueue(this.constrainerName);
     }
 
+    /**
+     * @constructor
+     * @description Create a constrainer bound to an element. If no object list is supplied, it defaults to the
+     * element's children, and the trigger list defaults to that same object list.
+     * @param {GradumConstrainerProperties} properties - The element to attach to, plus the constrainer name,
+     * priority, active state, and activation callbacks.
+     */
     public constructor(properties: GradumConstrainerProperties<ElementType, ViewType, ModelType, EmitterType>) {
         super(properties);
 
@@ -136,8 +147,8 @@ class GradumConstrainer<
     /**
      * @function initialize
      * @override
-     * @description Initialization function that calls {@link makeConstrainer} on `this.element`, sets it up, and attaches
-     * all the defined solvers.
+     * @description Initialization function that calls {@link GradumSelector.makeConstrainer} on `this.element`, sets
+     * it up, and attaches all the defined solvers.
      */
     public initialize(): void {
         super.initialize();
@@ -185,7 +196,7 @@ class GradumConstrainer<
      * @description Retrieve how many times the given object has been processed for the current resolving session
      * of the constrainer.
      * @param {object} object - The object to query.
-     * @return {number} - Number of passes already performed on this object.
+     * @returns {number} Number of passes already performed on this object.
      */
     public getObjectPasses(object: object): number {
         return gradum(this).getObjectPassesForConstrainer(object, this.constrainerName);
@@ -196,7 +207,7 @@ class GradumConstrainer<
      * @description Retrieve custom per-object data for this constrainer. It is reset on every new
      * resolving session.
      * @param {object} object - The object to query.
-     * @return {Record<string, any>} - The stored data object (or an empty object if none).
+     * @returns {Record<string, any>} The stored data object (or an empty object if none).
      */
     public getObjectData(object: object): Record<string, any> {
         return gradum(this).getObjectDataForConstrainer(object, this.constrainerName);
@@ -207,7 +218,7 @@ class GradumConstrainer<
      * @description Set custom per-object data for this constrainer. It is reset on every new resolving session.
      * @param {object} object - The object to update.
      * @param {Record<string, any>} [data] - The new data object to associate with this object.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public setObjectData(object: object, data?: Record<string, any>): this {
         return gradum(this).setObjectDataForConstrainer(object, data, this.constrainerName);
@@ -220,7 +231,7 @@ class GradumConstrainer<
      * @param {ConstrainerAddCallbackProperties<ConstrainerChecker>} properties - Configuration object, including the
      * checker `callback` to be executed, the `name` of the checker to access it later, the name of the attached
      * `constrainer`, and the `priority` of the checker.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public addChecker(properties: ConstrainerAddCallbackProperties<ConstrainerChecker>): this {
         gradum(this).addChecker({...properties, constrainer: this.constrainerName});
@@ -231,7 +242,7 @@ class GradumConstrainer<
      * @function removeChecker
      * @description Remove a checker from this constrainer by its name.
      * @param {string} name - The checker name.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public removeChecker(name: string): this {
         gradum(this).removeChecker(name, this.constrainerName);
@@ -241,7 +252,7 @@ class GradumConstrainer<
     /**
      * @function clearCheckers
      * @description Remove all checkers attached to this constrainer.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public clearCheckers(): this {
         gradum(this).clearCheckers(this.constrainerName);
@@ -252,7 +263,7 @@ class GradumConstrainer<
      * @function check
      * @description Evaluate all checkers for this constrainer and return whether the event should proceed or halt.
      * @param {ConstrainerCallbackProperties} [properties] - Context passed to each checker.
-     * @return {boolean} - Whether the constrainer passes all checks.
+     * @returns {boolean} Whether the constrainer passes all checks.
      */
     public check(properties?: ConstrainerCallbackProperties): boolean {
         return gradum(this).checkConstrainer({...properties, constrainer: this.constrainerName});
@@ -263,7 +274,7 @@ class GradumConstrainer<
      * @description Register a mutator in the constrainer. Mutators compute or transform a value based on the context.
      * @param {ConstrainerAddCallbackProperties<ConstrainerMutator>} properties - Configuration object, including the
      * mutator `callback` to be executed, the `name` of the mutator to access it later, and the `priority` of the mutator.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public addMutator(properties: ConstrainerAddCallbackProperties<ConstrainerMutator>): this {
         gradum(this).addMutator({...properties, constrainer: this.constrainerName});
@@ -274,7 +285,7 @@ class GradumConstrainer<
      * @function removeMutator
      * @description Remove a mutator from this constrainer by its name.
      * @param {string} name - The mutator name.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public removeMutator(name: string): this {
         gradum(this).removeMutator(name, this.constrainerName);
@@ -284,7 +295,7 @@ class GradumConstrainer<
     /**
      * @function clearMutators
      * @description Remove all mutators attached to this constrainer.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public clearMutators(): this {
         gradum(this).clearMutators(this.constrainerName);
@@ -297,7 +308,7 @@ class GradumConstrainer<
      * @description Execute a mutator for this constrainer and return the resulting value.
      * @param {ConstrainerMutatorProperties<Type>} [properties] - Context object, including the
      * `mutation` to execute, and the input `value` to mutate.
-     * @return {Type} - The mutated result.
+     * @returns {Type} The mutated result.
      */
     public mutate<Type = any>(properties?: ConstrainerMutatorProperties<Type>): Type {
         return gradum(this).mutate<Type>({...properties, constrainer: this.constrainerName});
@@ -310,7 +321,7 @@ class GradumConstrainer<
      * one after the other.
      * @param {ConstrainerAddCallbackProperties<ConstrainerSolver>} properties - Configuration object, including the
      * solver `callback` to be executed, the `name` of the solver to access it later, and the `priority` of the solver.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public addSolver(properties: ConstrainerAddCallbackProperties<ConstrainerSolver>): this {
         gradum(this).addSolver({...properties, constrainer: this.constrainerName});
@@ -321,7 +332,7 @@ class GradumConstrainer<
      * @function removeSolver
      * @description Remove the given function from the constrainer's list of solvers.
      * @param {string} name - The solver's name.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public removeSolver(name: string): this {
         gradum(this).removeSolver(name, this.constrainerName);
@@ -331,7 +342,7 @@ class GradumConstrainer<
     /**
      * @function clearSolvers
      * @description Remove all solvers attached to the constrainer.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public clearSolvers(): this {
         gradum(this).clearSolvers(this.constrainerName);
@@ -343,7 +354,7 @@ class GradumConstrainer<
      * @description Solve the constrainer by executing all of its attached solvers. Each solver will be executed
      * on every object in the constrainer's queue, incrementing its number of passes in the process.
      * @param {ConstrainerCallbackProperties} [properties] - Options object to configure the context.
-     * @return {this} - Itself for chaining.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public solve(properties: ConstrainerCallbackProperties = {}): this {
         gradum(this).solveConstrainer({...properties, constrainer: this.constrainerName});

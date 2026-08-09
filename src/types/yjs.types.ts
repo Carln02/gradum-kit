@@ -24,8 +24,17 @@ declare module "yjs" {
 }
 
 /**
+ * @type {YDocumentProperties}
  * @group Types
  * @category Yjs
+ *
+ * @template {GradumView} ViewType - The element's view type.
+ * @template {object} DataType - The element's data type.
+ * @template {GradumModel<DataType>} ModelType - The element's model type.
+ * @template {GradumEmitter} EmitterType - The element's emitter type.
+ * @description Properties for an element backed by a Y.js document. Everything
+ * {@link GradumElementProperties} accepts, plus the document the element's data lives in.
+ * @property {YDoc} document - The Y.js document backing this element.
  */
 type YDocumentProperties<
     ViewType extends GradumView = GradumView<any, any>,

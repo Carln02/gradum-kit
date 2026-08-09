@@ -15,14 +15,12 @@ const effectUtils = new EffectUtils(utils);
  * @group Decorators
  * @category Signal
  *
- * @description Create a standalone reactive signal box.
- * Returns a {@link SignalBox} wrapping the initial value.
- *
- * @template Value
+ * @template Value - The type of the value held by the signal.
+ * @description Create a standalone reactive signal from an initial value.
  * @param {Value} [initial] - Initial value stored by the signal.
- * @param {object} [target] - The target to which the signal is bound.
- * @param {...PropertyKey[]} keys - The key path at which the signal will be stored in the target.
- * @returns {SignalBox<Value>} A reactive box for reading/updating the value.
+ * @param {object} [target] - The object to bind the signal to. Omit it for a free-standing signal.
+ * @param {...KeyType[]} keys - The key path at which the signal is stored in the target.
+ * @returns {SignalBox<Value>} A reactive box for reading and updating the value.
  *
  * @example
  * ```ts
@@ -38,15 +36,14 @@ function signal<Value>(initial?: Value, target?: object, ...keys: KeyType[]): Si
  * @group Decorators
  * @category Signal
  *
- * @description Create a standalone reactive signal box that mirrors a getter and a setter.
- * Returns a {@link SignalBox} wrapping the initial value.
- *
- * @template Value
+ * @template Value - The type of the value held by the signal.
+ * @description Create a standalone reactive signal backed by an existing getter and setter, rather than
+ * by its own storage. Use it to make a value that already lives somewhere else reactive.
  * @param {() => Value} get - Getter that returns the value.
  * @param {(value: Value) => void} set - Setter that changes the value and emits the signal.
- * @param {object} [target] - The target to which the signal is bound.
- * @param {...PropertyKey[]} keys - The key path at which the signal will be stored in the target.
- * @returns {SignalBox<Value>} A reactive box for reading/updating the value.
+ * @param {object} [target] - The object to bind the signal to. Omit it for a free-standing signal.
+ * @param {...KeyType[]} keys - The key path at which the signal is stored in the target.
+ * @returns {SignalBox<Value>} A reactive box for reading and updating the value.
  *
  * @example
  * ```ts
@@ -118,10 +115,11 @@ function signal(...args: any): any {
  * @group Decorators
  * @category Signal
  *
- * @description Decorator that binds a reactive signal to a key path in the model's data,
- * read via `this.get(...keys)` and written via `this.set(value, ...keys)`.
- *
- * @param {...string[]} keys - The key path into the model's data. Defaults to the decorated member name if omitted.
+ * @description Stage-3 decorator that turns a field on a {@link GradumModel} into a reactive property
+ * stored in the model's data, rather than on the instance. Use it for state that must be persisted or
+ * synced — on a {@link GradumYModel} the value lives in the underlying Y.js structure. Use `@signal`
+ * instead for state that should stay in memory.
+ * @param {...KeyType[]} keys - The key path into the model's data. Defaults to the decorated member name if omitted.
  *
  * @example
  * ```ts
@@ -199,10 +197,10 @@ function modelSignal(...keys: KeyType[]) {
  * @group Decorators
  * @category Signal
  *
- * @description Decorator that binds a reactive signal to a nested {@link GradumModel} instance at the given key path.
- * - Getter returns the nested model instance via `this.getNested(...keys)`.
- * - Setter assigns the new value to the nested model's root data via `this.getNested(...keys).data = value`.
- *
+ * @description Stage-3 decorator that exposes a nested collection as a {@link GradumModel} rather than as
+ * raw data. Reading the property gives back the nested model, so you can attach a {@link GradumObserver}
+ * to it; assigning replaces the data it wraps. Use it when you need to observe a collection — reach for
+ * `@modelSignal` when the raw value is enough.
  * @param {...string[]} keys - The key path navigating to the nested model.
  *
  * @example
@@ -271,7 +269,6 @@ function nestedModelSignal(...keys: string[]) {
  * `@isolatedModelSignal`, because `GradumModel.get()` reads through the parent's data container
  * rather than routing through registered nested models. Access sub-keys directly through the
  * nested model instead: `(this.myField as MyNestedModel).subKey`.
- *
  * @param {...string[]} keys - The key path identifying the nested model slot. Defaults to the
  * decorated property name if omitted.
  *
@@ -330,7 +327,6 @@ function isolatedModelSignal(...keys: string[]) {
  *
  * @description Bind a standalone effect callback to any signal it includes. The callback will be fired everytime
  * the signal's value changes.
- *
  * @param {() => void} callback - The callback to process.
  * @returns {() => void} A callback that, once called, disposes of the created effect.
  *
@@ -403,11 +399,12 @@ function effect(...args: any[]): any {
  * @group Decorators
  * @category Signal
  *
- * @template Type
- * @description Retrieve the signal at the given `key` inside `target`.
- * @param {object} target - The target to which the signal is bound.
+ * @template Type - The type of the value held by the signal.
+ * @description Retrieve the signal backing a reactive property, to read or subscribe to it without
+ * going through the property itself.
+ * @param {object} target - The object the signal is bound to.
  * @param {PropertyKey} key - The key of the signal inside `target`.
- * @return {SignalEntry<Type>} - The signal entry.
+ * @returns {SignalEntry<Type>} The signal, or `undefined` if `key` is not reactive on `target`.
  */
 function getSignal<Type = any>(target: object, key: PropertyKey): SignalEntry<Type> {
     return utils.getSignal(target, key);
@@ -418,8 +415,8 @@ function getSignal<Type = any>(target: object, key: PropertyKey): SignalEntry<Ty
  * @group Decorators
  * @category Signal
  *
- * @template Type
- * @description Set the value of the signal at the given `key` inside `target`.
+ * @template Type - The type of the value held by the signal.
+ * @description Write to a reactive property through its signal, notifying subscribers and effects.
  * @param {object} target - The target to which the signal is bound.
  * @param {PropertyKey} key - The key of the signal inside `target`.
  * @param {Type} value - The new value of the signal.

@@ -57,6 +57,14 @@ class GradumInteractor<
      */
     public readonly options: ListenerOptions;
 
+    /**
+     * @constructor
+     * @description Create an interactor bound to an element. Anything omitted from `properties` falls back to
+     * the value already declared on the instance, then to a default — the event manager to
+     * {@link GradumEventManager.instance}, and the listener options to an empty object.
+     * @param {GradumInteractorProperties} properties - The element to attach to, plus the tool name, target,
+     * event manager, and listener options.
+     */
     public constructor(properties: GradumInteractorProperties<ElementType, ViewType, ModelType, EmitterType>) {
         super(properties);
         this.manager = properties.manager ?? this.manager ?? GradumEventManager.instance;

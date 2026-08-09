@@ -2,6 +2,13 @@ import {GradumSelector} from "../gradumSelector";
 import {isUndefined} from "../../utils/dataManipulation/misc";
 import {ApplyDefaultsMergeProperties, ApplyDefaultsOptions} from "./misc.types";
 
+/**
+ * @internal
+ * @function setupMiscFunctions
+ * @description Install the miscellaneous object helpers (`apply`, `applyDefaults`, `extract`, `getDifference`,
+ * ...) onto the {@link GradumSelector} prototype. Called once by
+ * {@link gradumify}; the matching `exclude` option skips it.
+ */
 export function setupMiscFunctions() {
     /**
      * @description Execute a callback on the node while still benefiting from chaining.

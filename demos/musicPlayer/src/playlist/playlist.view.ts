@@ -1,7 +1,7 @@
 import {
     css,
     DefaultEventName,
-    drawer, effect,
+    effect,
     richElement,
     Side,
     gradum,
@@ -24,7 +24,7 @@ export class PlaylistView extends GradumView<Playlist, PlaylistModel> {
 
     protected setupUIElements() {
         super.setupUIElements();
-        this.drawer = drawer({side: Side.bottom, hideOverflow: true, offset: {open: 20}});
+        this.drawer = GradumDrawer.create({side: Side.bottom, hideOverflow: true, offset: {open: 20}});
         this.toggle = richElement({leftIcon: "album-cover"});
         this.emptyDrawer = richElement({
             classes: "empty-playlist-placeholder",

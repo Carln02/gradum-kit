@@ -11,6 +11,13 @@ const selectedKey = Symbol("__selected__");
 const selectedClass = Symbol("__selectedClass__");
 const defaultSelectedClassesKey = Symbol("__default_selected_classes__");
 
+/**
+ * @internal
+ * @function setupStyleFunctions
+ * @description Install the style functions (`setStyle`, `setStyles`, `selected`, `closestRoot`, ...) onto the
+ * {@link GradumSelector} prototype. Called once by
+ * {@link gradumify}; the matching `exclude` option skips it.
+ */
 export function setupStyleFunctions() {
     /**
      * @description The closest root to the element in the document (the closest ShadowRoot, or the document's head).

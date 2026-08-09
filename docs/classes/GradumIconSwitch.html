@@ -120,46 +120,60 @@
 <section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="customloaders"><code class="tsd-tag">Static</code> <code class="tsd-tag">Readonly</code><span>custom<wbr/>Loaders</span><a href="#customloaders" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">customLoaders</span><span class="tsd-signature-symbol">:</span> <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">path</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = {}</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">customLoaders</span><span class="tsd-signature-symbol">:</span> <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">path</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = {}</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static">Static<a href="#static" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Extra icon loaders, keyed by file extension. Register one to teach every icon how to
+load a format the built-in SVG and image loaders do not cover.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#customloaders">customLoaders</a></p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:33</li></ul></aside></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:39</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="defaultproperties"><code class="tsd-tag">Static</code><span>default<wbr/>Properties</span><a href="#defaultproperties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">defaultProperties</span><span class="tsd-signature-symbol">:</span> <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype" class="tsd-signature-type external" target="_blank">Partial</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/GradumIconProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumIconProperties</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static-1">Static<a href="#static-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Default properties assigned to a new instance.</p>
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Default properties assigned to a new icon. Icons are treated as SVG unless told otherwise.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#defaultproperties">defaultProperties</a></p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:34</li></ul></aside></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:44</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="onloaded"><span>on<wbr/>Loaded</span><a href="#onloaded" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">onLoaded</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">element</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">onLoaded</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">element</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Called with the loaded element once the icon finishes loading. Loading is asynchronous
+for SVGs, so use this rather than reading the element straight after assigning an icon name.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#onloaded">onLoaded</a></p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:43</li></ul></aside></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:57</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="type"><span>type</span><a href="#type" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">type</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The type of the icon.</p>
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The type of the icon.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#type">type</a></p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:55</li></ul></aside></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:69</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="directory"><span>directory</span><a href="#directory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">directory</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The user-provided (or statically configured) directory to the icon's file.</p>
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The user-provided (or statically configured) directory to the icon's file.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#directory">directory</a></p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:67</li></ul></aside></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:81</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="properties"><code class="tsd-tag">Readonly</code><span>properties</span><a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">properties</span><span class="tsd-signature-symbol">:</span> <a href="../types/GradumIconSwitchProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumIconSwitchProperties</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
@@ -171,31 +185,31 @@
 <div class="tsd-signature"><span class="tsd-kind-property">onAttach</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired when the element is attached to DOM.</p>
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired when the element is attached to DOM.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#onattach">onAttach</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:65</li></ul></aside></section>
+<li>Defined in src/gradumElement/gradumElement.ts:84</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="ondetach"><code class="tsd-tag">Readonly</code><span>on<wbr/>Detach</span><a href="#ondetach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onDetach</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired when the element is detached from the DOM.</p>
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired when the element is detached from the DOM.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#ondetach">onDetach</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:70</li></ul></aside></section>
+<li>Defined in src/gradumElement/gradumElement.ts:89</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="onadopt"><code class="tsd-tag">Readonly</code><span>on<wbr/>Adopt</span><a href="#onadopt" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onAdopt</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired when the element is adopted by a new parent in the DOM.</p>
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired when the element is adopted by a new parent in the DOM.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#onadopt">onAdopt</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:75</li></ul></aside></section>
+<li>Defined in src/gradumElement/gradumElement.ts:94</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="tagname"><code class="tsd-tag">Readonly</code><span>tag<wbr/>Name</span><a href="#tagname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">tagName</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
@@ -207,23 +221,28 @@
 <div class="tsd-signature"><span class="tsd-kind-property">initialized</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the element was initialized already or not.</p>
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the element was initialized already or not.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#initialized">initialized</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/default/default.types.ts:31</li></ul></aside></section>
+<li>Defined in src/gradumElement/setup/default/default.types.ts:39</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="defaultfeedforwardproperties"><span>default<wbr/>Feedforward<wbr/>Properties</span><a href="#defaultfeedforwardproperties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">defaultFeedforwardProperties</span><span class="tsd-signature-symbol">:</span> <a href="../types/GradumElementProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumElementProperties</a></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">defaultFeedforwardProperties</span><span class="tsd-signature-symbol">:</span> <a href="../types/GradumElementProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumElementProperties</a></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The properties passed on to children created through <a href="#feedforward" class="tsd-kind-method">feedforward</a>, letting a
+parent seed its descendants with shared defaults.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#defaultfeedforwardproperties">defaultFeedforwardProperties</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/default/default.types.ts:33</li></ul></aside></section>
+<li>Defined in src/gradumElement/setup/default/default.types.ts:45</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="view"><span>view</span><a href="#view" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">view</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The view (if any) of the element.</p>
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The view (if any) of the element.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#view">view</a></p>
 <ul>
@@ -233,7 +252,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">model</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The model (if any) of the element.</p>
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The model (if any) of the element.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#model">model</a></p>
 <ul>
@@ -243,7 +262,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">emitter</span><span class="tsd-signature-symbol">:</span> <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The emitter (if any) of the element.</p>
+<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The emitter (if any) of the element.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#emitter">emitter</a></p>
 <ul>
@@ -253,7 +272,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">data</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datatype">DataType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The main data block (if any) attached to the element, taken from its model (if any).</p>
+<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The main data block (if any) attached to the element, taken from its model (if any).</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#data">data</a></p>
 <ul>
@@ -263,7 +282,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">dataId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The ID of the main data block (if any) of the element, taken from its model (if any).</p>
+<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The ID of the main data block (if any) of the element, taken from its model (if any).</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#dataid">dataId</a></p>
 <ul>
@@ -273,7 +292,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">dataIndex</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The numerical index of the main data block (if any) of the element, taken from its model (if any).</p>
+<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The numerical index of the main data block (if any) of the element, taken from its model (if any).</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#dataindex">dataIndex</a></p>
 <ul>
@@ -283,7 +302,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">dataSize</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The size (number) of the main data block (if any) of the element, taken from its model (if any).</p>
+<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The size (number) of the main data block (if any) of the element, taken from its model (if any).</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#datasize">dataSize</a></p>
 <ul>
@@ -293,7 +312,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">operators</span><span class="tsd-signature-symbol">:</span> <a href="GradumOperator.html" class="tsd-signature-type tsd-kind-class">GradumOperator</a><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>        <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The operators (if any) attached to the element's MVC structure.</p>
+<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The operators (if any) attached to the element's MVC structure.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#operators">operators</a></p>
 <ul>
@@ -303,7 +322,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">handlers</span><span class="tsd-signature-symbol">:</span> <a href="GradumHandler.html" class="tsd-signature-type tsd-kind-class">GradumHandler</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The handlers (if any) attached to the element's model.
+<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The handlers (if any) attached to the element's model.
 Returns an empty array if no model is set.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#handlers">handlers</a></p>
@@ -314,7 +333,7 @@ Returns an empty array if no model is set.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">interactors</span><span class="tsd-signature-symbol">:</span> <a href="GradumInteractor.html" class="tsd-signature-type tsd-kind-class">GradumInteractor</a><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>        <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The interactors (if any) attached to the element's MVC structure.</p>
+<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The interactors (if any) attached to the element's MVC structure.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#interactors">interactors</a></p>
 <ul>
@@ -324,7 +343,7 @@ Returns an empty array if no model is set.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">tools</span><span class="tsd-signature-symbol">:</span> <a href="GradumTool.html" class="tsd-signature-type tsd-kind-class">GradumTool</a><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>        <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The tools (if any) attached to the element's MVC structure.</p>
+<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The tools (if any) attached to the element's MVC structure.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#tools">tools</a></p>
 <ul>
@@ -334,7 +353,7 @@ Returns an empty array if no model is set.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">constrainers</span><span class="tsd-signature-symbol">:</span> <a href="GradumConstrainer.html" class="tsd-signature-type tsd-kind-class">GradumConstrainer</a><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>        <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The constrainers (if any) attached to the element's MVC structure.</p>
+<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The constrainers (if any) attached to the element's MVC structure.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#constrainers">constrainers</a></p>
 <ul>
@@ -344,24 +363,34 @@ Returns an empty array if no model is set.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">unsetDefaultClasses</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether to set the default CSS classes defined in the static config on the element or not. Setting
+<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether to set the default CSS classes defined in the static config on the element or not. Setting
 it will accordingly add/remove the CSS classes from the element.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#unsetdefaultclasses">unsetDefaultClasses</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/ui/ui.types.ts:9</li></ul></aside></section>
+<li>Defined in src/gradumElement/setup/ui/ui.types.ts:13</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="shadowdom"><span>shadow<wbr/>DOM</span><a href="#shadowdom" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">shadowDOM</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">shadowDOM</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the element renders its children into a shadow root. Assigning <code>true</code> attaches
+one if the element does not already have it.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#shadowdom">shadowDOM</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/ui/ui.types.ts:11</li></ul></aside></section>
+<li>Defined in src/gradumElement/setup/ui/ui.types.ts:19</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="defaultclasses"><span>default<wbr/>Classes</span><a href="#defaultclasses" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">defaultClasses</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">defaultClasses</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The CSS classes applied to every instance of this element class. Assigning a new value
+swaps the previous classes out for the new ones, unless <code>unsetDefaultClasses</code> is set.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#defaultclasses">defaultClasses</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/ui/ui.types.ts:13</li></ul></aside></section></section></details>
+<li>Defined in src/gradumElement/setup/ui/ui.types.ts:25</li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -374,11 +403,11 @@ it will accordingly add/remove the CSS classes from the element.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The path to the icon's source file.</p>
+<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The path to the icon's source file.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumIcon.path</p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:72</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:86</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="icon"><span>icon</span><a href="#icon" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -392,12 +421,12 @@ it will accordingly add/remove the CSS classes from the element.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The name (or path) of the icon. Might include the file extension (to override the icon's type).
+<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The name (or path) of the icon. Might include the file extension (to override the icon's type).
 Setting it will update the icon accordingly.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumIcon.icon</p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:83</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:97</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="iconcolor"><span>icon<wbr/>Color</span><a href="#iconcolor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -407,11 +436,11 @@ Setting it will update the icon accordingly.</p>
 <h4 class="tsd-returns-title">Returns <a href="Color.html" class="tsd-signature-type tsd-kind-class">Color</a></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The assigned color to the icon (if any)</p>
+<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The assigned color to the icon (if any)</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from GradumIcon.iconColor</p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:92</li></ul></aside></div></li>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:106</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="iconcoloriconcolor-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">iconColor</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="Color.html" class="tsd-signature-type tsd-kind-class">Color</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -422,16 +451,20 @@ Setting it will update the icon accordingly.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Inherited from GradumIcon.iconColor</p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:93</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:107</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="switchreifect"><span>switch<wbr/>Reifect</span><a href="#switchreifect" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="switchreifectswitchreifect"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">switchReifect</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="StatefulReifect.html" class="tsd-signature-type tsd-kind-class">StatefulReifect</a><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumIcon.html" class="tsd-signature-type tsd-kind-class">GradumIcon</a><span class="tsd-signature-symbol">&lt;</span><br/>        <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>            <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>            <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="StatefulReifect.html" class="tsd-signature-type tsd-kind-class">StatefulReifect</a><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumIcon.html" class="tsd-signature-type tsd-kind-class">GradumIcon</a><span class="tsd-signature-symbol">&lt;</span><br/>        <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>            <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>            <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="StatefulReifect.html" class="tsd-signature-type tsd-kind-class">StatefulReifect</a><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a><span class="tsd-signature-symbol">,</span><br/>    <a href="GradumIcon.html" class="tsd-signature-type tsd-kind-class">GradumIcon</a><span class="tsd-signature-symbol">&lt;</span><br/>        <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>            <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>            <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-28">Description<a href="#description-28" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The reifect that swaps the icon between its states. Assign reifect properties to build one.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/iconSwitch/iconSwitch.ts:25</li></ul></aside></div></li>
+<li>Defined in src/gradumComponents/basics/icon/iconSwitch/iconSwitch.ts:28</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="switchreifectswitchreifect-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">switchReifect</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="StatefulReifect.html" class="tsd-signature-type tsd-kind-class">StatefulReifect</a><span class="tsd-signature-symbol">&lt;</span><br/>            <a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a><span class="tsd-signature-symbol">,</span><br/>            <a href="GradumIcon.html" class="tsd-signature-type tsd-kind-class">GradumIcon</a><span class="tsd-signature-symbol">&lt;</span><br/>                <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>                    <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>                    <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>                    <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>                <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>                <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>                <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>                <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">&gt;</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../types/StatefulReifectProperties.html" class="tsd-signature-type tsd-kind-type-alias">StatefulReifectProperties</a><span class="tsd-signature-symbol">&lt;</span><br/>            <a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a><span class="tsd-signature-symbol">,</span><br/>            <a href="GradumIcon.html" class="tsd-signature-type tsd-kind-class">GradumIcon</a><span class="tsd-signature-symbol">&lt;</span><br/>                <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>                    <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>                    <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>                    <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>                <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>                <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>                <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>                <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -441,7 +474,7 @@ Setting it will update the icon accordingly.</p>
 <li><span><span class="tsd-kind-parameter">value</span>: <br/>    <span class="tsd-signature-symbol">|</span> <a href="StatefulReifect.html" class="tsd-signature-type tsd-kind-class">StatefulReifect</a><span class="tsd-signature-symbol">&lt;</span><br/>        <a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumIcon.html" class="tsd-signature-type tsd-kind-class">GradumIcon</a><span class="tsd-signature-symbol">&lt;</span><br/>            <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>                <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>                <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>                <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>            <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>            <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><br/>    <span class="tsd-signature-symbol">|</span> <a href="../types/StatefulReifectProperties.html" class="tsd-signature-type tsd-kind-type-alias">StatefulReifectProperties</a><span class="tsd-signature-symbol">&lt;</span><br/>        <a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a><span class="tsd-signature-symbol">,</span><br/>        <a href="GradumIcon.html" class="tsd-signature-type tsd-kind-class">GradumIcon</a><span class="tsd-signature-symbol">&lt;</span><br/>            <a href="GradumView.html" class="tsd-signature-type tsd-kind-class">GradumView</a><span class="tsd-signature-symbol">&lt;</span><br/>                <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>                <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>                <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>            <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span><br/>            <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>            <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a><span class="tsd-signature-symbol">&lt;</span><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/iconSwitch/iconSwitch.ts:32</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/basics/icon/iconSwitch/iconSwitch.ts:35</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="defaultstate"><span>default<wbr/>State</span><a href="#defaultstate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -454,7 +487,7 @@ Setting it will update the icon accordingly.</p>
 <li><span><span class="tsd-kind-parameter">value</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/iconSwitch/iconSwitch.ts:37</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/basics/icon/iconSwitch/iconSwitch.ts:40</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="appendstatetoiconname"><span>append<wbr/>State<wbr/>To<wbr/>Icon<wbr/>Name</span><a href="#appendstatetoiconname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -467,62 +500,97 @@ Setting it will update the icon accordingly.</p>
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/iconSwitch/iconSwitch.ts:41</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/gradumComponents/basics/icon/iconSwitch/iconSwitch.ts:44</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="loadsvg"><code class="tsd-tag">Protected</code><span>load<wbr/>Svg</span><a href="#loadsvg" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
-<li class="tsd-is-inherited">
+<li class="tsd-is-protected tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="loadsvg-1"><span class="tsd-kind-call-signature">loadSvg</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">path</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><a href="https://developer.mozilla.org/docs/Web/API/SVGElement" class="tsd-signature-type external" target="_blank">SVGElement</a><span class="tsd-signature-symbol">&gt;</span><a href="#loadsvg-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>loadSvg</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">path</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><a href="https://developer.mozilla.org/docs/Web/API/SVGElement" class="tsd-signature-type external" target="_blank">SVGElement</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">path</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The path to the SVG file.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><a href="https://developer.mozilla.org/docs/Web/API/SVGElement" class="tsd-signature-type external" target="_blank">SVGElement</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The loaded SVG element.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-29">Description<a href="#description-29" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Fetch an SVG file and return its root element. Results are cached, so the same path is
+only fetched once.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#loadsvg">loadSvg</a></p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:111</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:133</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="loadimg"><code class="tsd-tag">Protected</code><span>load<wbr/>Img</span><a href="#loadimg" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
-<li class="tsd-is-inherited">
+<li class="tsd-is-protected tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="loadimg-1"><span class="tsd-kind-call-signature">loadImg</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">path</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/HTMLImageElement" class="tsd-signature-type external" target="_blank">HTMLImageElement</a><a href="#loadimg-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>loadImg</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">path</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/HTMLImageElement" class="tsd-signature-type external" target="_blank">HTMLImageElement</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">path</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The path to the image file.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/HTMLImageElement" class="tsd-signature-type external" target="_blank">HTMLImageElement</a></h4><p>The created image element.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-30">Description<a href="#description-30" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Build an <code>&lt;img&gt;</code> element for a raster icon, using the icon's name as its alt text.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#loadimg">loadImg</a></p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:115</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:144</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="updatecolor"><code class="tsd-tag">Protected</code><span>update<wbr/>Color</span><a href="#updatecolor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
-<li class="tsd-is-inherited">
+<li class="tsd-is-protected tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="updatecolor-1"><span class="tsd-kind-call-signature">updateColor</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">?:</span> <a href="Color.html" class="tsd-signature-type tsd-kind-class">Color</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#updatecolor-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>updateColor</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">value</span>: <a href="Color.html" class="tsd-signature-type tsd-kind-class">Color</a><span class="tsd-signature-symbol"> = ...</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">value</span>: <a href="Color.html" class="tsd-signature-type tsd-kind-class">Color</a><span class="tsd-signature-symbol"> = ...</span></span>
+<div class="tsd-comment tsd-typography"><p>The color to apply. Defaults to the icon's own color.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-31">Description<a href="#description-31" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Recolor the icon by setting its fill. Only applies to SVG icons; raster images are left
+as they are.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#updatecolor">updateColor</a></p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:119</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:155</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="generateicon"><code class="tsd-tag">Protected</code><span>generate<wbr/>Icon</span><a href="#generateicon" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
-<li class="tsd-is-inherited">
+<li class="tsd-is-protected tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="generateicon-1"><span class="tsd-kind-call-signature">generateIcon</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#generateicon-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>generateIcon</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-32">Description<a href="#description-32" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Load the icon for the current name and type, and swap it in as this element's content.
+Reuses the existing element when only the source changed.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#generateicon">generateIcon</a></p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/icon.ts:123</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/basics/icon/icon.ts:165</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="initialize"><span>initialize</span><a href="#initialize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -534,20 +602,19 @@ Setting it will update the icon accordingly.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Initializes the element. It sets up the UI by calling the methods <code>setupUIElements</code>,
-<code>setupUILayout</code>, <code>setupUIListeners</code>, and <code>setupChangedCallbacks</code> (in this order, if they are defined).
-This function is called automatically in <code>.setProperties()</code> and when instantiating an
-element via <code>element()</code>. It is called only once per element (as it checks with the reflected <code>initialized</code> flag).</p>
+<h4 class="tsd-anchor-link" id="description-33">Description<a href="#description-33" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Set the icon up and apply its default state.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#initialize">initialize</a></p>
 <ul>
-<li>Defined in src/gradumComponents/basics/icon/iconSwitch/iconSwitch.ts:51</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/basics/icon/iconSwitch/iconSwitch.ts:58</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="create"><code class="tsd-tag">Static</code><span>create</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="create-1"><span class="tsd-kind-call-signature">create</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#createtype">Type</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-keyword">new</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="GradumElement.html" class="tsd-signature-type tsd-kind-class">GradumElement</a><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#createpropertiestype">PropertiesType</a> <span class="tsd-signature-keyword">extends</span> <a href="../types/GradumElementProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumElementProperties</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">this</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumButton.html#createtype">Type</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">properties</span><span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumButton.html#createpropertiestype">PropertiesType</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypetype" class="tsd-signature-type external" target="_blank">InstanceType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="GradumButton.html#createtype">Type</a><span class="tsd-signature-symbol">&gt;</span><a href="#create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>create</p>
+</div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
@@ -557,25 +624,48 @@ element via <code>element()</code>. It is called only once per element (as it ch
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">this</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumButton.html#createtype">Type</a></span></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumButton.html#createpropertiestype">PropertiesType</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypetype" class="tsd-signature-type external" target="_blank">InstanceType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="GradumButton.html#createtype">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumButton.html#createpropertiestype">PropertiesType</a></span>
+<div class="tsd-comment tsd-typography"><p>Properties to set on the new instance.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypetype" class="tsd-signature-type external" target="_blank">InstanceType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="GradumButton.html#createtype">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The created instance.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static-2">Static<a href="#static-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-34">Description<a href="#description-34" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Instantiate this class with the given properties. Defaults declared by every class in the
+inheritance chain are applied first, nearest ancestor last, so a subclass' <code>defaultProperties</code> win over
+its parent's. The return type follows the class it is called on, so a subclass gets its own type back.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#create">create</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:47</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumElement.ts:56</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="customcreate"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Static</code><span>custom<wbr/>Create</span><a href="#customcreate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
-<li class="tsd-is-inherited">
+<li class="tsd-is-protected tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="customcreate-1"><span class="tsd-kind-call-signature">customCreate</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">properties</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span><a href="#customcreate-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">properties</span>: <span class="tsd-signature-type">object</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">properties</span>: <span class="tsd-signature-type">object</span></span>
+<div class="tsd-comment tsd-typography"><p>Properties to set on the new instance, defaults already merged in.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4><p>The created instance.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static-3">Static<a href="#static-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>customCreate</p>
+</div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-35">Description<a href="#description-35" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The construction step behind <a href="GradumButton.html#create" class="tsd-kind-method">create</a>. Override it to change how instances of a class
+are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
+<code>create</code> performs.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#customcreate">customCreate</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:54</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumElement.ts:73</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setupchangedcallbacks"><code class="tsd-tag">Protected</code><span>setup<wbr/>Changed<wbr/>Callbacks</span><a href="#setupchangedcallbacks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -587,11 +677,11 @@ element via <code>element()</code>. It is called only once per element (as it ch
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method intended to initialize change listeners and callbacks. Called on <code>initialize()</code>.</p>
+<h4 class="tsd-anchor-link" id="description-36">Description<a href="#description-36" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method intended to initialize change listeners and callbacks. Called on <code>initialize()</code>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#setupchangedcallbacks">setupChangedCallbacks</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:82</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumElement.ts:101</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setupuielements"><code class="tsd-tag">Protected</code><span>setup<wbr/>UI<wbr/>Elements</span><a href="#setupuielements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -603,12 +693,12 @@ element via <code>element()</code>. It is called only once per element (as it ch
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method intended to initialize all direct sub-elements attached to this element, and store
+<h4 class="tsd-anchor-link" id="description-37">Description<a href="#description-37" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method intended to initialize all direct sub-elements attached to this element, and store
 them in fields. Called on <code>initialize()</code>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#setupuielements">setupUIElements</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:91</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumElement.ts:110</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setupuilayout"><code class="tsd-tag">Protected</code><span>setup<wbr/>UI<wbr/>Layout</span><a href="#setupuilayout" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -620,12 +710,12 @@ them in fields. Called on <code>initialize()</code>.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method to create the layout structure of the element by adding all created sub-elements to
+<h4 class="tsd-anchor-link" id="description-38">Description<a href="#description-38" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method to create the layout structure of the element by adding all created sub-elements to
 this element's child tree. Called on <code>initialize()</code>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#setupuilayout">setupUILayout</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:100</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumElement.ts:119</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setupuilisteners"><code class="tsd-tag">Protected</code><span>setup<wbr/>UI<wbr/>Listeners</span><a href="#setupuilisteners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -637,12 +727,12 @@ this element's child tree. Called on <code>initialize()</code>.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method to initialize and define all input/DOM event listeners of the element. Called on
+<h4 class="tsd-anchor-link" id="description-39">Description<a href="#description-39" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method to initialize and define all input/DOM event listeners of the element. Called on
 <code>initialize()</code>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#setupuilisteners">setupUIListeners</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:109</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumElement.ts:128</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="connectedcallback"><span>connected<wbr/>Callback</span><a href="#connectedcallback" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -654,11 +744,11 @@ this element's child tree. Called on <code>initialize()</code>.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-28">Description<a href="#description-28" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>function called when the element is attached to the DOM.</p>
+<h4 class="tsd-anchor-link" id="description-40">Description<a href="#description-40" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>function called when the element is attached to the DOM.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#connectedcallback">connectedCallback</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:116</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumElement.ts:135</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="disconnectedcallback"><span>disconnected<wbr/>Callback</span><a href="#disconnectedcallback" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -670,11 +760,11 @@ this element's child tree. Called on <code>initialize()</code>.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-29">Description<a href="#description-29" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>function called when the element is detached from the DOM.</p>
+<h4 class="tsd-anchor-link" id="description-41">Description<a href="#description-41" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>function called when the element is detached from the DOM.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#disconnectedcallback">disconnectedCallback</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:139</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumElement.ts:158</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="adoptedcallback"><span>adopted<wbr/>Callback</span><a href="#adoptedcallback" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -686,11 +776,11 @@ this element's child tree. Called on <code>initialize()</code>.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-30">Description<a href="#description-30" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>function called when the element is adopted by a new parent in the DOM.</p>
+<h4 class="tsd-anchor-link" id="description-42">Description<a href="#description-42" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>function called when the element is adopted by a new parent in the DOM.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#adoptedcallback">adoptedCallback</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumElement.ts:147</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumElement.ts:166</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="destroy"><span>destroy</span><a href="#destroy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -703,39 +793,60 @@ this element's child tree. Called on <code>initialize()</code>.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-31">Description<a href="#description-31" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Destroys the node by removing it from the document and removing all its bound listeners.</p>
+<h4 class="tsd-anchor-link" id="description-43">Description<a href="#description-43" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Destroys the node by removing it from the document and removing all its bound listeners.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#destroy">destroy</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/default/default.types.ts:15</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/setup/default/default.types.ts:23</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="feedforward"><span>feedforward</span><a href="#feedforward" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="feedforward-1"><span class="tsd-kind-call-signature">feedforward</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">properties</span><span class="tsd-signature-symbol">?:</span> <a href="../types/FeedforwardProperties.html" class="tsd-signature-type tsd-kind-type-alias">FeedforwardProperties</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">this</span><a href="#feedforward-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>feedforward</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/FeedforwardProperties.html" class="tsd-signature-type tsd-kind-type-alias">FeedforwardProperties</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/FeedforwardProperties.html" class="tsd-signature-type tsd-kind-type-alias">FeedforwardProperties</a></span>
+<div class="tsd-comment tsd-typography"><p>Properties to feed forward. Defaults to
+<code>defaultFeedforwardProperties</code>.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-44">Description<a href="#description-44" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Push this element's feedforward properties down to its children, so newly added
+descendants pick up the same defaults.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#feedforward">feedforward</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/default/default.types.ts:35</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/setup/default/default.types.ts:55</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="clone"><span>clone</span><a href="#clone" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="clone-1"><span class="tsd-kind-call-signature">clone</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../types/CloneElementOptions.html" class="tsd-signature-type tsd-kind-type-alias">CloneElementOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">this</span><a href="#clone-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>clone</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../types/CloneElementOptions.html" class="tsd-signature-type tsd-kind-type-alias">CloneElementOptions</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../types/CloneElementOptions.html" class="tsd-signature-type tsd-kind-type-alias">CloneElementOptions</a></span>
+<div class="tsd-comment tsd-typography"><p>What to carry over to the copy.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>The cloned element.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-45">Description<a href="#description-45" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create a copy of this element. By default the copy carries the same properties and
+children but none of the bound listeners.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumIcon.html">GradumIcon</a>.<a href="GradumIcon.html#clone">clone</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/default/default.types.ts:37</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/gradumElement/setup/default/default.types.ts:64</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

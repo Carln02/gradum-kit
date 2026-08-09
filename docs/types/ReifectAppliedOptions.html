@@ -10,14 +10,24 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">ReifectAppliedOptions</a></li></ul>
 <h1>Type Alias ReifectAppliedOptions&lt;State, ClassType&gt;</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Options controlling one application of a reifect — how widely it reaches, and how much of
+its cached per-object data it recomputes first.</p>
+</div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">ReifectAppliedOptions</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a> <span class="tsd-signature-keyword">extends</span> <a href="KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#classtype">ClassType</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span> <span class="tsd-signature-symbol">=</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#attachobjects">attachObjects</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#executeforall">executeForAll</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#recomputeindices">recomputeIndices</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#recomputeproperties">recomputeProperties</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#applystylesinstantly">applyStylesInstantly</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#propertiesoverride">propertiesOverride</a><span class="tsd-signature-symbol">?:</span> <a href="StatefulReifectCoreProperties.html" class="tsd-signature-type tsd-kind-type-alias">StatefulReifectCoreProperties</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#classtype">ClassType</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="state"><span class="tsd-kind-type-parameter">State</span> <span class="tsd-signature-keyword">extends</span> <a href="KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> = <span class="tsd-signature-type">any</span></span></li>
-<li><span id="classtype"><span class="tsd-kind-type-parameter">ClassType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span> = <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a></span></li></ul></section><aside class="tsd-sources">
+<li><span id="state"><span class="tsd-kind-type-parameter">State</span> <span class="tsd-signature-keyword">extends</span> <a href="KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> = <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>The set of states the reifect can switch between.</p>
+</div></li>
+<li><span id="classtype"><span class="tsd-kind-type-parameter">ClassType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span> = <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a></span>
+<div class="tsd-comment tsd-typography"><p>The type of the attached object.</p>
+</div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:127</li></ul></aside>
+<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:205</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -37,34 +47,48 @@
 <section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="attachobjects"><code class="tsd-tag">Optional</code><span>attach<wbr/>Objects</span><a href="#attachobjects" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">attachObjects</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">attachObjects</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Attach any object passed in that is not attached yet.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:128</li></ul></aside></section>
+<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:206</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="executeforall"><code class="tsd-tag">Optional</code><span>execute<wbr/>For<wbr/>All</span><a href="#executeforall" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">executeForAll</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">executeForAll</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Apply to every attached object rather than only the one given.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:129</li></ul></aside></section>
+<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:207</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="recomputeindices"><code class="tsd-tag">Optional</code><span>recompute<wbr/>Indices</span><a href="#recomputeindices" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">recomputeIndices</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">recomputeIndices</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Recompute each object's index and total before applying.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:130</li></ul></aside></section>
+<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:208</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="recomputeproperties"><code class="tsd-tag">Optional</code><span>recompute<wbr/>Properties</span><a href="#recomputeproperties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">recomputeProperties</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">recomputeProperties</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Re-resolve interpolated values before applying.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:131</li></ul></aside></section>
+<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:209</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="applystylesinstantly"><code class="tsd-tag">Optional</code><span>apply<wbr/>Styles<wbr/>Instantly</span><a href="#applystylesinstantly" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">applyStylesInstantly</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">applyStylesInstantly</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Set styles directly instead of on the next frame, skipping
+any CSS transition.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:132</li></ul></aside></section>
+<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:210</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="propertiesoverride"><code class="tsd-tag">Optional</code><span>properties<wbr/>Override</span><a href="#propertiesoverride" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">propertiesOverride</span><span class="tsd-signature-symbol">?:</span> <a href="StatefulReifectCoreProperties.html" class="tsd-signature-type tsd-kind-type-alias">StatefulReifectCoreProperties</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#classtype">ClassType</a><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">propertiesOverride</span><span class="tsd-signature-symbol">?:</span> <a href="StatefulReifectCoreProperties.html" class="tsd-signature-type tsd-kind-type-alias">StatefulReifectCoreProperties</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#state">State</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#classtype">ClassType</a><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-comment tsd-typography"><p>Values to use for this
+application in place of the reifect's own.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:133</li></ul></aside></section></section></details></div>
+<li>Defined in src/gradumComponents/wrappers/statefulReifect/statefulReifect.types.ts:211</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

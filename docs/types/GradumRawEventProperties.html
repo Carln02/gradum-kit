@@ -10,9 +10,16 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">GradumRawEventProperties</a></li></ul>
 <h1>Type Alias GradumRawEventProperties</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The fields every Gradum event is built from. The concrete property types
+(<a href="GradumEventProperties.html" class="tsd-kind-type-alias">GradumEventProperties</a>, <a href="GradumDragEventProperties.html" class="tsd-kind-type-alias">GradumDragEventProperties</a>, ...) extend this with whatever
+positional data their event carries.</p>
+</div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">GradumRawEventProperties</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#clickmode">clickMode</a><span class="tsd-signature-symbol">?:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#inputdevice">inputDevice</a><span class="tsd-signature-symbol">?:</span> <a href="../enums/InputDevice.html" class="tsd-signature-type tsd-kind-enum">InputDevice</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#keys">keys</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#eventname">eventName</a><span class="tsd-signature-symbol">?:</span> <a href="GradumEventNameEntry.html" class="tsd-signature-type tsd-kind-type-alias">GradumEventNameEntry</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#eventmanager">eventManager</a><span class="tsd-signature-symbol">?:</span> <a href="../classes/GradumEventManager.html" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#toolname">toolName</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#authorizescaling">authorizeScaling</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span>)<span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#scaleposition">scalePosition</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">position</span><span class="tsd-signature-symbol">:</span> <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#eventinitdict">eventInitDict</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">EventInit</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.types.ts:20</li></ul></aside>
+<li>Defined in src/eventHandling/events/gradumEvent.types.ts:47</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -35,49 +42,73 @@
 <section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clickmode"><code class="tsd-tag">Optional</code><span>click<wbr/>Mode</span><a href="#clickmode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">clickMode</span><span class="tsd-signature-symbol">?:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">clickMode</span><span class="tsd-signature-symbol">?:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a></div>
+<div class="tsd-comment tsd-typography"><p>The pointer button or input mode the event belongs to. Defaults to
+the manager's current click mode.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.types.ts:21</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.types.ts:48</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="inputdevice"><code class="tsd-tag">Optional</code><span>input<wbr/>Device</span><a href="#inputdevice" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">inputDevice</span><span class="tsd-signature-symbol">?:</span> <a href="../enums/InputDevice.html" class="tsd-signature-type tsd-kind-enum">InputDevice</a></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">inputDevice</span><span class="tsd-signature-symbol">?:</span> <a href="../enums/InputDevice.html" class="tsd-signature-type tsd-kind-enum">InputDevice</a></div>
+<div class="tsd-comment tsd-typography"><p>The device that produced the event. Defaults to
+<code>InputDevice.unknown</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.types.ts:22</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.types.ts:49</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="keys"><code class="tsd-tag">Optional</code><span>keys</span><a href="#keys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">keys</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">keys</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+<div class="tsd-comment tsd-typography"><p>Keys held when the event fired. Defaults to the manager's current keys.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.types.ts:23</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.types.ts:50</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="eventname"><code class="tsd-tag">Optional</code><span>event<wbr/>Name</span><a href="#eventname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">eventName</span><span class="tsd-signature-symbol">?:</span> <a href="GradumEventNameEntry.html" class="tsd-signature-type tsd-kind-type-alias">GradumEventNameEntry</a></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">eventName</span><span class="tsd-signature-symbol">?:</span> <a href="GradumEventNameEntry.html" class="tsd-signature-type tsd-kind-type-alias">GradumEventNameEntry</a></div>
+<div class="tsd-comment tsd-typography"><p>The name the event is dispatched under.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.types.ts:24</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.types.ts:51</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="eventmanager"><code class="tsd-tag">Optional</code><span>event<wbr/>Manager</span><a href="#eventmanager" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">eventManager</span><span class="tsd-signature-symbol">?:</span> <a href="../classes/GradumEventManager.html" class="tsd-signature-type tsd-kind-class">GradumEventManager</a></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">eventManager</span><span class="tsd-signature-symbol">?:</span> <a href="../classes/GradumEventManager.html" class="tsd-signature-type tsd-kind-class">GradumEventManager</a></div>
+<div class="tsd-comment tsd-typography"><p>The manager firing the event. Defaults to
+<a href="../classes/GradumEventManager.html#instance" class="tsd-kind-accessor">GradumEventManager.instance</a>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.types.ts:25</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.types.ts:52</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="toolname"><code class="tsd-tag">Optional</code><span>tool<wbr/>Name</span><a href="#toolname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">toolName</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">toolName</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
+<div class="tsd-comment tsd-typography"><p>The tool the event is attributed to, if any.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.types.ts:26</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.types.ts:53</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="authorizescaling"><code class="tsd-tag">Optional</code><span>authorize<wbr/>Scaling</span><a href="#authorizescaling" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">authorizeScaling</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span>)</div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">authorizeScaling</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span>)</div>
+<div class="tsd-comment tsd-typography"><p>Whether scaled positions are computed.
+Pass a callback to decide per read.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.types.ts:27</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.types.ts:54</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="scaleposition"><code class="tsd-tag">Optional</code><span>scale<wbr/>Position</span><a href="#scaleposition" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">scalePosition</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">position</span><span class="tsd-signature-symbol">:</span> <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">scalePosition</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">position</span><span class="tsd-signature-symbol">:</span> <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="../classes/Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div>
+<div class="tsd-comment tsd-typography"><p>Converts a screen position into document
+space. Defaults to returning the position unchanged.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.types.ts:28</li></ul></aside></section>
+<li>Defined in src/eventHandling/events/gradumEvent.types.ts:55</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="eventinitdict"><code class="tsd-tag">Optional</code><span>event<wbr/>Init<wbr/>Dict</span><a href="#eventinitdict" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">eventInitDict</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">EventInit</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">eventInitDict</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">EventInit</span></div>
+<div class="tsd-comment tsd-typography"><p>Native event options, merged over the defaults of <code>bubbles</code>
+and <code>cancelable</code> set to <code>true</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/events/gradumEvent.types.ts:29</li></ul></aside></section></section></details></div>
+<li>Defined in src/eventHandling/events/gradumEvent.types.ts:56</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

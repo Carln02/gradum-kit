@@ -3,6 +3,12 @@ import {SignalBox, SignalEntry} from "./reactivity.types";
 import {getFirstDescriptorInChain} from "../../utils/dataManipulation/prototype";
 import {isUndefined} from "../../utils/dataManipulation/misc";
 
+/**
+ * @internal
+ * @class SignalUtils
+ * @description Creates the signals behind `@signal`, `@modelSignal`, `@nestedModelSignal`, and
+ * `@isolatedModelSignal`, and installs the accessors that route property reads and writes through them.
+ */
 export class SignalUtils {
     public constructor(private readonly utils: ReactivityUtils) {}
 

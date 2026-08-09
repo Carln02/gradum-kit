@@ -18,9 +18,9 @@ import {define} from "../../../decorators/define/define";
  * @group Components
  * @category GradumSelect
  *
+ * @extends GradumElement
  * @description Base class for creating a selection menu
 
- * @extends GradumElement
  */
 class GradumSelect<
     ValueType = string,
@@ -29,6 +29,11 @@ class GradumSelect<
 > extends GradumBaseElement {
     public declare readonly properties: GradumSelectProperties<ValueType, SecondaryValueType, EntryType>;
 
+    /**
+     * @static
+     * @description Default properties assigned to a new selection: selected entries get the `selected` class,
+     * and disabled entries are hidden.
+     */
     public static defaultProperties: GradumSelectProperties = {
         selectedEntriesClasses: "selected",
         onEnabled: (b, entry) => {
@@ -43,6 +48,10 @@ class GradumSelect<
 
     private parentObserver: MutationObserver;
     private readonly _onSelect: Delegate<(b: boolean, entry: EntryType, index: number) => void> = new Delegate();
+    /**
+     * @description Fired whenever an entry is selected or deselected, with the new state, the entry, and its
+     * index. Assigning a function subscribes it rather than replacing the existing subscribers.
+     */
     public get onSelect(): Delegate<(b: boolean, entry: EntryType, index: number) => void> {
         return this._onSelect;
     }
@@ -52,6 +61,10 @@ class GradumSelect<
     }
 
     private readonly _onEnabled: Delegate<(b: boolean, entry: EntryType, index: number) => void> = new Delegate();
+    /**
+     * @description Fired whenever an entry is enabled or disabled. Assigning a function subscribes it rather
+     * than replacing the existing subscribers.
+     */
     public get onEnabled(): Delegate<(b: boolean, entry: EntryType, index: number) => void> {
         return this._onEnabled;
     }
@@ -61,6 +74,10 @@ class GradumSelect<
     }
 
     private readonly _onEntryAdded: Delegate<(entry: EntryType, index: number) => void> = new Delegate();
+    /**
+     * @description Fired whenever an entry is added. Assigning a function subscribes it rather than replacing
+     * the existing subscribers.
+     */
     public get onEntryAdded(): Delegate<(entry: EntryType, index: number) => void> {
         return this._onEntryAdded;
     }
@@ -70,6 +87,10 @@ class GradumSelect<
     }
 
     private readonly _onEntryRemoved: Delegate<(entry: EntryType) => void> = new Delegate();
+    /**
+     * @description Fired whenever an entry is removed. Assigning a function subscribes it rather than
+     * replacing the existing subscribers.
+     */
     public get onEntryRemoved(): Delegate<(entry: EntryType) => void> {
         return this._onEntryRemoved;
     }
@@ -79,6 +100,10 @@ class GradumSelect<
     }
 
     private readonly _onEntryClicked: Delegate<(entry: EntryType, e: Event) => void> = new Delegate();
+    /**
+     * @description Fired whenever an entry is clicked, whether or not the click changes the selection.
+     * Assigning a function subscribes it rather than replacing the existing subscribers.
+     */
     public get onEntryClicked(): Delegate<(entry: EntryType, e: Event) => void> {
         return this._onEntryClicked;
     }
@@ -88,7 +113,7 @@ class GradumSelect<
     }
 
     /**
-     * The dropdown's entries.
+     * @description This selection's entries, in order. Assigning a new list replaces them all.
      */
     public get entries(): EntryType[] {
         return this._entries;
@@ -121,7 +146,7 @@ class GradumSelect<
     }
 
     /**
-     * @description The dropdown's values. Setting it will update the dropdown accordingly.
+     * @description The values of this selection's entries. Assigning a new list rebuilds the entries to match.
      */
     public get values(): ValueType[] {
         return this.entries.map(entry => this.getValue(entry));
@@ -217,6 +242,15 @@ class GradumSelect<
         }
     }) public entriesClasses: string | string[];
 
+    /**
+     * @function customCreate
+     * @static
+     * @protected
+     * @description Build a selection, deferring the initial entries and selected values until the element
+     * exists so they are not lost during construction.
+     * @param {GradumSelectProperties} properties - The selection's configuration.
+     * @returns {object} The created selection.
+     */
     protected static customCreate(properties: GradumSelectProperties): object {
         const {selectedValues, parent} = properties;
         const obj = super.customCreate({...properties, selectedValues: undefined, parent: undefined}) as GradumSelect;
@@ -226,7 +260,7 @@ class GradumSelect<
     }
 
     /**
-     * @description Dropdown constructor
+     * @description Create a selection.
      */
     public constructor() {
         super();
@@ -314,10 +348,12 @@ class GradumSelect<
     }
 
     /**
-     * @description Select an entry.
-     * @param {string | EntryType} value - The DropdownEntry (or its string value) to select.
-     * @param selected
-     * @return {GradumSelect} - This Dropdown for chaining.
+     * @function select
+     * @description Select or deselect an entry. In single-selection mode selecting one entry deselects
+     * whichever was selected before.
+     * @param {ValueType | EntryType} value - The entry to select, or the value identifying it.
+     * @param {boolean} [selected=true] - Whether to select the entry, or deselect it.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public select(value: ValueType | EntryType, selected: boolean = true): this {
         if (isNull(value) || isUndefined(value)) return this;
@@ -355,11 +391,12 @@ class GradumSelect<
     }
 
     /**
-     * @description Select an entry.
-     * @param {number} index - The index of the entry to select
-     * @param {(index: number, entriesCount: number, zero?: number) => number} [preprocess=trim] - Callback to execute
-     * on the index to preprocess it. Defaults to trim().
-     * @return {GradumSelect} - This Dropdown for chaining.
+     * @function selectByIndex
+     * @description Select the entry at the given index.
+     * @param {number} index - The index of the entry to select.
+     * @param {(index: number, entriesCount: number, zero?: number) => number} [preprocess=trim] - Applied to the
+     * index before use. Defaults to `trim`, which clamps it into range; pass `mod` to wrap around instead.
+     * @returns {this} Itself, allowing for method chaining.
      */
     public selectByIndex(index: number, preprocess: (index: number, entriesCount: number, zero?: number)
         => number = trim): this {

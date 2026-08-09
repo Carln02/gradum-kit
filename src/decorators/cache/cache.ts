@@ -13,7 +13,6 @@ import {cacheKeySymbolFor, initInvalidation, keyFromArgs} from "./cache.utils";
  * - **Method**: caches the return value **per unique arguments** (using a stable key from args).
  * - **Getter**: caches the value **once per instance** until invalidated.
  * - **Accessor**: wraps the `get` path like a cached getter; the `set` path invalidates cached value.
- *
  * @param {CacheOptions} [options] - Optional caching configuration to define when to clear it (on event, after
  * timeout, on next frame, on callback, etc.).
  *

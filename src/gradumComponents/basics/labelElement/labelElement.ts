@@ -12,6 +12,21 @@ import {div} from "../../../elementCreation/basicElements";
 import {GradumLabelElementProperties} from "./labelElement.types";
 import {element} from "../../../elementCreation/element";
 
+/**
+ * @class GradumLabelElement
+ * @group Components
+ * @category GradumLabelElement
+ *
+ * @extends GradumRichElement
+ * @template {ValidTag} ElementTag - The tag of the main element in the rich element.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description A rich element with an HTML `<label>` attached to it. Setting {@link GradumLabelElement.label}
+ * to a non-empty string creates the label and puts it before the content; setting it to an empty value
+ * removes it again.
+ */
 class GradumLabelElement<
     ElementTag extends ValidTag = any,
     ViewType extends GradumView = GradumView<any, any>,
@@ -24,8 +39,17 @@ class GradumLabelElement<
     @signal public defaultId: string = "gradum-id-" + randomId();
 
     @signal protected labelElement: HTMLLabelElement;
+    /**
+     * @description The wrapper holding everything except the label. It becomes the element's child handler, so
+     * children added later land inside it rather than beside the label.
+     */
     public content: HTMLElement;
 
+    /**
+     * @description The label's text. Assigning a non-empty string creates the `<label>` and places it before
+     * the content; assigning an empty value removes it. The label is linked to the inner element's `id`, so
+     * clicking it focuses that element.
+     */
     public set label(value: string) {
         if (!value || value.length === 0) {
             if (this.labelElement) this.labelElement.remove();
@@ -58,11 +82,17 @@ class GradumLabelElement<
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     protected setupUIElements() {
         super.setupUIElements();
         this.content = div();
     }
 
+    /**
+     * @inheritDoc
+     */
     protected setupUILayout() {
         super.setupUILayout();
         gradum(this.content).addChild(gradum(this).childrenArray);

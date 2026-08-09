@@ -22,6 +22,9 @@ class GradumIconSwitch<
 > extends GradumIcon<ViewType, DataType, ModelType, EmitterType> {
      public declare readonly properties: GradumIconSwitchProperties<any>;
 
+    /**
+     * @description The reifect that swaps the icon between its states. Assign reifect properties to build one.
+     */
     public get switchReifect(): StatefulReifect<State, GradumIcon> {return}
 
     @auto({
@@ -48,6 +51,10 @@ class GradumIconSwitch<
         }
     }
 
+    /**
+     * @function initialize
+     * @description Set the icon up and apply its default state.
+     */
     public initialize() {
         super.initialize();
         if (this.defaultState) this.switchReifect?.apply(this.defaultState, this);

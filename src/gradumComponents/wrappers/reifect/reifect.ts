@@ -10,10 +10,9 @@ import {PartialRecord} from "../../../types/basic.types";
  * @group Components
  * @category Reifect
  *
+ * @template {object} ClassType - The object type this reifier will be applied to.
  * @description A class to manage and apply dynamic properties, styles, classes, and transitions to a
  * set of objects.
- *
- * @template {object} ClassType - The object type this reifier will be applied to.
  */
 class Reifect<ClassType extends object = Node> extends StatefulReifect<"default", ClassType> {
     /**
@@ -29,7 +28,6 @@ class Reifect<ClassType extends object = Node> extends StatefulReifect<"default"
      * @description The properties to be assigned to the objects. It could take:
      * - A record of `{key: value}` pairs.
      * - An interpolation function that would return a record of `{key: value}` pairs.
-     *
      * The interpolation function would take as arguments:
      * - `index: number`: the index of the object in the applied list.
      * - `total: number`: the total number of objects in the applied list.
@@ -47,7 +45,6 @@ class Reifect<ClassType extends object = Node> extends StatefulReifect<"default"
      * @description The styles to be assigned to the objects (only if they are eligible elements). It could take:
      * - A record of `{CSS property: value}` pairs.
      * - An interpolation function that would return a record of `{key: value}` pairs.
-     *
      * The interpolation function would take as arguments:
      * - `index: number`: the index of the object in the applied list.
      * - `total: number`: the total number of objects in the applied list.
@@ -66,7 +63,6 @@ class Reifect<ClassType extends object = Node> extends StatefulReifect<"default"
      * - A string of space-separated classes.
      * - An array of classes.
      * - An interpolation function that would return a string of space-separated classes or an array of classes.
-     *
      * The interpolation function would take as arguments:
      * - `index: number`: the index of the object in the applied list.
      * - `total: number`: the total number of objects in the applied list.
@@ -84,7 +80,6 @@ class Reifect<ClassType extends object = Node> extends StatefulReifect<"default"
      * @description The object that should replace (in the DOM as well if eligible) the attached objects. It could take:
      * - The object to be replaced with.
      * - An interpolation function that would return the object to be replaced with.
-     *
      * The interpolation function would take as arguments:
      * - `index: number`: the index of the object in the applied list.
      * - `total: number`: the total number of objects in the applied list.

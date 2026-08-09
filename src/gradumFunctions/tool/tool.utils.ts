@@ -19,6 +19,11 @@ type ToolData = {
     behaviors: ListenerSet<Node, ToolBehaviorCallback>
 };
 
+/**
+ * @internal
+ * @class ToolFunctionsUtils
+ * @description Shared helpers and per-element state behind the tool functions on {@link GradumSelector}.
+ */
 export class ToolFunctionsUtils {
     private elements: WeakMap<Node, WeakMap<GradumEventManager, ElementData>> = new WeakMap();
     private tools: WeakMap<GradumEventManager, Map<string, ToolData>> = new WeakMap();

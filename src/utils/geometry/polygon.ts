@@ -2,8 +2,15 @@ import {Point} from "../../gradumComponents/datatypes/point/point";
 import {intersectSegments} from "./segment";
 
 /**
+ * @function isPointInConvexPolygon
  * @group Utilities
  * @category Geometry
+ *
+ * @description Check whether a point lies inside a convex polygon, borders included.
+ * *Note: the polygon must be convex; a concave one gives wrong answers.*
+ * @param {Point} p - The point to test.
+ * @param {Point[]} poly - The polygon's vertices, in order around its outline.
+ * @returns {boolean} `true` if the point is inside or on the border.
  */
 function isPointInConvexPolygon(p: Point, poly: Point[]): boolean {
     let sign = 0;
@@ -22,8 +29,17 @@ function isPointInConvexPolygon(p: Point, poly: Point[]): boolean {
 }
 
 /**
+ * @function segmentIntersectsPolygon
  * @group Utilities
  * @category Geometry
+ *
+ * @description Find where a line segment first meets a polygon. A segment lying wholly inside the polygon
+ * crosses no edge, so one of its endpoints is returned instead — meaning a non-null result means "touches",
+ * not strictly "crosses an edge".
+ * @param {Point} a - Start of the segment.
+ * @param {Point} b - End of the segment.
+ * @param {Point[]} poly - The polygon's vertices, in order around its outline.
+ * @returns {Point | null} The meeting point, or `null` if the segment misses the polygon entirely.
  */
 function segmentIntersectsPolygon(a: Point, b: Point, poly: Point[]): Point | null {
     for (let i = 0; i < poly.length; i++) {
@@ -38,8 +54,15 @@ function segmentIntersectsPolygon(a: Point, b: Point, poly: Point[]): Point | nu
 }
 
 /**
+ * @function projectPolygonOntoAxis
  * @group Utilities
  * @category Geometry
+ *
+ * @description Flatten a polygon onto an axis and return the span it covers there. This is the building block
+ * of the separating-axis test in {@link hasSeparatingAxisForPolygons}.
+ * @param {Point[]} points - The polygon's vertices.
+ * @param {Point} axis - The axis to project onto. Need not be normalized.
+ * @returns {[number, number]} The minimum and maximum positions along the axis.
  */
 function projectPolygonOntoAxis(points: Point[], axis: Point): [number, number] {
     const len = Math.hypot(axis.x, axis.y) || 1;
@@ -55,8 +78,16 @@ function projectPolygonOntoAxis(points: Point[], axis: Point): [number, number] 
 }
 
 /**
+ * @function hasSeparatingAxisForPolygons
  * @group Utilities
  * @category Geometry
+ *
+ * @description Check whether any edge of the first polygon yields an axis that separates the two, proving
+ * they cannot overlap. This is one half of the test — it must be run both ways round, which is what
+ * {@link polygonsIntersect} does.
+ * @param {Point[]} polyA - The polygon whose edges supply the candidate axes.
+ * @param {Point[]} polyB - The polygon to test against.
+ * @returns {boolean} `true` if a separating axis exists, meaning the polygons are apart.
  */
 function hasSeparatingAxisForPolygons(polyA: Point[], polyB: Point[]): boolean {
     for (let i = 0; i < polyA.length; i++) {
@@ -74,8 +105,15 @@ function hasSeparatingAxisForPolygons(polyA: Point[], polyB: Point[]): boolean {
 }
 
 /**
+ * @function polygonsIntersect
  * @group Utilities
  * @category Geometry
+ *
+ * @description Check whether two convex polygons overlap, using the separating-axis test in both directions.
+ * *Note: both polygons must be convex.*
+ * @param {Point[]} a - The first polygon's vertices.
+ * @param {Point[]} b - The second polygon's vertices.
+ * @returns {boolean} `true` if the polygons overlap.
  */
 function polygonsIntersect(a: Point[], b: Point[]): boolean {
     return !hasSeparatingAxisForPolygons(a, b) && !hasSeparatingAxisForPolygons(b, a);

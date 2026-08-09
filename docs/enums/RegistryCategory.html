@@ -11,33 +11,16 @@
 <li><a href="" aria-current="page">RegistryCategory</a></li></ul>
 <h1>Enumeration RegistryCategory</h1></div>
 <section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>RegistryCategory</p>
-</div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Categorizes registered classes by their base type in the Gradum Kit registry.
-Categories are ordered from most to least specific within each group, which determines
-how inferCategory resolves ambiguous inheritance chains.</p>
-<p><strong>Gradum Kit elements</strong> (most to least specific):</p>
-<ul>
-<li><code>GradumProxiedElement</code>, <code>GradumElement</code>, <code>GradumBaseElement</code>, <code>GradumHeadlessElement</code></li>
-</ul>
-<p><strong>Native DOM elements</strong> (most to least specific):</p>
-<ul>
-<li><code>SVGElement</code>, <code>MathMLElement</code>, <code>HTMLElement</code>, <code>Element</code>, <code>Node</code></li>
-</ul>
-<p><strong>MVC pieces:</strong></p>
-<ul>
-<li><code>GradumOperator</code>, <code>GradumHandler</code>, <code>GradumInteractor</code>, <code>GradumTool</code>, <code>GradumConstrainer</code>,
-<code>GradumView</code>, <code>GradumEmitter</code>, <code>GradumModel</code></li>
-</ul>
-<p><strong>Fallback:</strong></p>
-<ul>
-<li><code>Other</code> — for classes that do not match any recognized base type.</li>
-</ul>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The bucket a class is filed under in the Gradum Kit registry, and the value
+<a href="../functions/getRegisteredByCategories.html" class="tsd-kind-function">getRegisteredByCategories</a> groups by. <a href="../functions/define.html" class="tsd-kind-function">define</a> infers it by walking the class'
+inheritance chain; within each family below the categories are listed most to least specific, and
+the first match wins, so a class extending <a href="#gradumelement" class="tsd-kind-enum-member">GradumElement</a> is filed as <code>GradumElement</code> rather
+than the <code>HTMLElement</code> it also inherits from.</p>
 </div></div></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/define/define.types.ts:37</li></ul></aside>
+<li>Defined in src/decorators/define/define.types.ts:44</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -69,94 +52,130 @@ how inferCategory resolves ambiguous inheritance chains.</p>
 <section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gradumelement"><span>Gradum<wbr/>Element</span><a href="#gradumelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumElement&quot;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in src/decorators/define/define.types.ts:38</li></ul></aside></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="gradumbaseelement"><span>Gradum<wbr/>Base<wbr/>Element</span><a href="#gradumbaseelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumBaseElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumBaseElement&quot;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in src/decorators/define/define.types.ts:39</li></ul></aside></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="gradumheadlesselement"><span>Gradum<wbr/>Headless<wbr/>Element</span><a href="#gradumheadlesselement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumHeadlessElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumHeadlessElement&quot;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in src/decorators/define/define.types.ts:40</li></ul></aside></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="gradumproxiedelement"><span>Gradum<wbr/>Proxied<wbr/>Element</span><a href="#gradumproxiedelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumProxiedElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumProxiedElement&quot;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in src/decorators/define/define.types.ts:41</li></ul></aside></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="htmlelement"><span>HTML<wbr/>Element</span><a href="#htmlelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">HTMLElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;HTMLElement&quot;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in src/decorators/define/define.types.ts:43</li></ul></aside></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="svgelement"><span>SVG<wbr/>Element</span><a href="#svgelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">SVGElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;SVGElement&quot;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in src/decorators/define/define.types.ts:44</li></ul></aside></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="mathmlelement"><span>Math<wbr/>ML<wbr/>Element</span><a href="#mathmlelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">MathMLElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;MathMLElement&quot;</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumElement&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Gradum element extending <code>HTMLElement</code>.</p>
+</div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/decorators/define/define.types.ts:45</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="element"><span>Element</span><a href="#element" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">Element</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Element&quot;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="gradumbaseelement"><span>Gradum<wbr/>Base<wbr/>Element</span><a href="#gradumbaseelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumBaseElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumBaseElement&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Shared element foundation.</p>
+</div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/decorators/define/define.types.ts:46</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="node"><span>Node</span><a href="#node" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">Node</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Node&quot;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="gradumheadlesselement"><span>Gradum<wbr/>Headless<wbr/>Element</span><a href="#gradumheadlesselement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumHeadlessElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumHeadlessElement&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Element without a DOM node.</p>
+</div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/decorators/define/define.types.ts:47</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="gradummodel"><span>Gradum<wbr/>Model</span><a href="#gradummodel" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumModel</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumModel&quot;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="gradumproxiedelement"><span>Gradum<wbr/>Proxied<wbr/>Element</span><a href="#gradumproxiedelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumProxiedElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumProxiedElement&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Gradum elements, most specific first.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/define/define.types.ts:49</li></ul></aside></section>
+<li>Defined in src/decorators/define/define.types.ts:48</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="gradumview"><span>Gradum<wbr/>View</span><a href="#gradumview" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumView</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumView&quot;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="htmlelement"><span>HTML<wbr/>Element</span><a href="#htmlelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">HTMLElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;HTMLElement&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Native HTML element.</p>
+</div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/decorators/define/define.types.ts:50</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="gradumemitter"><span>Gradum<wbr/>Emitter</span><a href="#gradumemitter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumEmitter</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumEmitter&quot;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="svgelement"><span>SVG<wbr/>Element</span><a href="#svgelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">SVGElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;SVGElement&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Native DOM elements, most specific first.</p>
+</div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/decorators/define/define.types.ts:51</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="gradumoperator"><span>Gradum<wbr/>Operator</span><a href="#gradumoperator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumOperator</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumOperator&quot;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="mathmlelement"><span>Math<wbr/>ML<wbr/>Element</span><a href="#mathmlelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">MathMLElement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;MathMLElement&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Native MathML element.</p>
+</div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/decorators/define/define.types.ts:52</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="gradumhandler"><span>Gradum<wbr/>Handler</span><a href="#gradumhandler" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumHandler</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumHandler&quot;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="element"><span>Element</span><a href="#element" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">Element</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Element&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Any other native element.</p>
+</div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/decorators/define/define.types.ts:53</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="graduminteractor"><span>Gradum<wbr/>Interactor</span><a href="#graduminteractor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumInteractor</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumInteractor&quot;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="node"><span>Node</span><a href="#node" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">Node</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Node&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Any other DOM node.</p>
+</div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/decorators/define/define.types.ts:54</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="gradumtool"><span>Gradum<wbr/>Tool</span><a href="#gradumtool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumTool</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumTool&quot;</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in src/decorators/define/define.types.ts:55</li></ul></aside></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="gradumconstrainer"><span>Gradum<wbr/>Constrainer</span><a href="#gradumconstrainer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumConstrainer</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumConstrainer&quot;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="gradummodel"><span>Gradum<wbr/>Model</span><a href="#gradummodel" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumModel</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumModel&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Model.</p>
+</div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/decorators/define/define.types.ts:56</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="other"><span>Other</span><a href="#other" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-enum-member">Other</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Other&quot;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="gradumview"><span>Gradum<wbr/>View</span><a href="#gradumview" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumView</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumView&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>View.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/define/define.types.ts:58</li></ul></aside></section></section></details></div>
+<li>Defined in src/decorators/define/define.types.ts:57</li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="gradumemitter"><span>Gradum<wbr/>Emitter</span><a href="#gradumemitter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumEmitter</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumEmitter&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Emitter.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in src/decorators/define/define.types.ts:58</li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="gradumoperator"><span>Gradum<wbr/>Operator</span><a href="#gradumoperator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumOperator</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumOperator&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>MVC pieces.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in src/decorators/define/define.types.ts:59</li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="gradumhandler"><span>Gradum<wbr/>Handler</span><a href="#gradumhandler" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumHandler</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumHandler&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Model-only helper.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in src/decorators/define/define.types.ts:60</li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="graduminteractor"><span>Gradum<wbr/>Interactor</span><a href="#graduminteractor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumInteractor</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumInteractor&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Tool-event listener holder.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in src/decorators/define/define.types.ts:61</li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="gradumtool"><span>Gradum<wbr/>Tool</span><a href="#gradumtool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumTool</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumTool&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Capture-phase behavior holder.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in src/decorators/define/define.types.ts:62</li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="gradumconstrainer"><span>Gradum<wbr/>Constrainer</span><a href="#gradumconstrainer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">GradumConstrainer</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;GradumConstrainer&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Constraint solver.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in src/decorators/define/define.types.ts:63</li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="other"><span>Other</span><a href="#other" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-enum-member">Other</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Other&quot;</span></div>
+<div class="tsd-comment tsd-typography"><p>Classes matching no recognized base type.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in src/decorators/define/define.types.ts:65</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

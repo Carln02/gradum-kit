@@ -1,6 +1,11 @@
 import {alphabeticalSorting} from "../../../utils/dataManipulation/misc";
 import {stringify} from "../../../utils/dataManipulation/string";
 
+/**
+ * @internal
+ * @class GradumNestedMapNode
+ * @description One level of a {@link GradumNestedMap}. Holds either child nodes or leaf values.
+ */
 class GradumNestedMapNode<KeyType, ValueType> extends Map<KeyType, ValueType> {
 }
 
@@ -9,12 +14,18 @@ class GradumNestedMapNode<KeyType, ValueType> extends Map<KeyType, ValueType> {
  * @group Components
  * @category GradumNestedMap
  *
- * @description A map of arbitrary nesting depth, addressed via `...keys` paths.
- *
  * @template ValueType - The type of stored values.
  * @template KeyType - The type of keys at each level of the path. Defaults to `string | symbol | number`.
+ * @description A map of arbitrary nesting depth, addressed by a `...keys` path rather than a single key.
+ * Entries can also be reached by a flat key that collapses a whole path into one value, so a nested
+ * structure can be indexed as if it were flat.
  */
 class GradumNestedMap<ValueType = any, KeyType = string | symbol | number> {
+    /**
+     * @protected
+     * @readonly
+     * @description The root of the nested structure holding this map's entries.
+     */
     protected readonly nestedMap: GradumNestedMapNode<KeyType, any> = new GradumNestedMapNode();
 
     /*

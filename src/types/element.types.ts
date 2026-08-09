@@ -56,7 +56,6 @@ type HTMLElementMutableFields<Tag extends ValidTag = ValidTag> =
  * @group Types
  * @category Element
  * @description Represents an element's definition of its tag and its namespace (both optional).
- *
  * @property {string} [tag="div"] - The HTML tag of the element (e.g., "div", "span", "input"). Defaults to "div."
  * @property {string} [namespace] - The namespace of the element. Defaults to HTML. If "svgManipulation" or "mathML"
  * is provided, the corresponding namespace will be used to create the element. Otherwise, the custom namespace
@@ -67,9 +66,36 @@ type ElementTagDefinition<Tag extends ValidTag = "div"> = {
     namespace?: string;
 };
 
+/**
+ * @type {GradumElementTagNameMap}
+ * @group Types
+ * @category Element
+ *
+ * @description Maps custom element tag names to their classes. Empty by design — every component adds its
+ * own entry by augmenting this interface, which is what folds custom tags into {@link ElementTagMap} so
+ * they resolve to a concrete class. Augment it the same way to make your own elements type-aware.
+ *
+ * @example
+ * ```ts
+ * declare module "gradum-kit" {
+ *    interface GradumElementTagNameMap {
+ *       "my-widget": MyWidget;
+ *    }
+ * }
+ * ```
+ */
 interface GradumElementTagNameMap {
 }
 
+/**
+ * @type {GradumElementPropertiesMap}
+ * @group Types
+ * @category Element
+ *
+ * @description Maps custom element tag names to their properties types, the counterpart of
+ * {@link GradumElementTagNameMap}. Augment it alongside that one so the properties accepted when creating
+ * your element are resolved from its tag.
+ */
 interface GradumElementPropertiesMap {
 }
 

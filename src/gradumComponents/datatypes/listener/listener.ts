@@ -48,8 +48,9 @@ class Listener<
 
     /**
      * @constructor
+     * @description Create a listener from its configuration. A {@link GradumSelector} passed as `target`
+     * is unwrapped to the element it wraps.
      * @param {ListenerProperties<TargetType, CallbackType>} properties - Listener configuration.
-     * @description Creates a {@link Listener}.
      */
     public constructor(properties: ListenerProperties<TargetType, CallbackType>) {
         if (properties.target instanceof GradumSelector) properties.target = properties.target.element;

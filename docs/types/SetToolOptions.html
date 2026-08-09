@@ -13,11 +13,12 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Object representing options passed to the ToolManager's setTool() function.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Options for <a href="../classes/GradumEventManager.html#settool" class="tsd-kind-method">GradumEventManager.setTool</a>, controlling the side effects of making a
+tool current beyond the assignment itself.</p>
 </div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">SetToolOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#select">select</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#activate">activate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#setasnoaction">setAsNoAction</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:64</li></ul></aside>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:109</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -35,25 +36,25 @@
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="select"><code class="tsd-tag">Optional</code><span>select</span><a href="#select" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">select</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p>Indicate whether to visually select the tool on all toolbars, defaults to true</p>
+<div class="tsd-comment tsd-typography"><p>Whether to visually select the tool on every toolbar showing it.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:65</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:110</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="activate"><code class="tsd-tag">Optional</code><span>activate</span><a href="#activate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">activate</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p>Indicate whether to fire activation on the tool when setting it, defaults to true</p>
+<div class="tsd-comment tsd-typography"><p>Whether to fire the tool's activation callback.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:66</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:111</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setasnoaction"><code class="tsd-tag">Optional</code><span>set<wbr/>As<wbr/>No<wbr/>Action</span><a href="#setasnoaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">setAsNoAction</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p>Indicate whether the tool will also be set as the tool for ClickMode == none, defaults
-to true if the click mode is left.</p>
+<div class="tsd-comment tsd-typography"><p>Whether the tool also becomes the one used for
+<code>ClickMode.none</code>. Defaults to <code>true</code> when the click mode is <code>ClickMode.left</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:67</li></ul></aside></section></section></details></div>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:112</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

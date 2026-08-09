@@ -31,6 +31,11 @@ class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKeyType ext
      */
     public model?: ModelType;
 
+    /**
+     * @constructor
+     * @description Create an emitter, optionally bound to a model so key-path events can be fired against it.
+     * @param {ModelType} [model] - The model whose key changes this emitter relays.
+     */
     public constructor(model?: ModelType) {
         if (model) this.model = model;
     }
@@ -111,7 +116,7 @@ class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKeyType ext
      * @function resolveFlatKey
      * @description Convert a key path to a stable flat string key for internal storage lookup. Joins with `"|"`.
      * @param {DataKeyType[]} keys - The key path to flatten.
-     * @returns {FlatKeyType}
+     * @returns {FlatKeyType} The flat key, suitable for use as a map key.
      */
     protected resolveFlatKey(keys: DataKeyType[]): FlatKeyType {
         return keys.map(k => typeof k === "symbol" ? `@@${k.description ?? ""}` : String(k)).join("|");

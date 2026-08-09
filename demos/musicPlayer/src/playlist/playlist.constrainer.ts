@@ -1,10 +1,10 @@
-import {GradumSubstrate} from "../../../../build/gradum-kit.esm";
+import {GradumConstrainer} from "../../../../build/gradum-kit.esm";
 import {Playlist} from "./playlist";
 import {PlaylistView} from "./playlist.view";
 import {PlaylistModel} from "./playlist.model";
 import {Song} from "../song/song";
 
-export class PlaylistSubstrate extends GradumSubstrate<Playlist, PlaylistView, PlaylistModel> {
+export class PlaylistConstrainer extends GradumConstrainer<Playlist, PlaylistView, PlaylistModel> {
     public keyName = "substrate";
     public substrateName = "playlist";
 

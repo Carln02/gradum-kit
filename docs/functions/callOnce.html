@@ -20,18 +20,21 @@
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="calloncetype"><span class="tsd-kind-type-parameter">Type</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">any</span></span></li></ul></section>
+<li><span id="calloncetype"><span class="tsd-kind-type-parameter">Type</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the wrapped function.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">fn</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#calloncetype">Type</a></span>
-<div class="tsd-comment tsd-typography"><p>The function to process.</p>
+<div class="tsd-comment tsd-typography"><p>The function to wrap.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#calloncetype">Type</a></h4>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#calloncetype">Type</a></h4><p>A function with the same signature as <code>fn</code>, whose body runs at most once.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Function wrapper that ensures the passed function is called only once.
-Subsequent calls will just return the cached computed result (if any) of the first call of that function.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Wrap a function so its body runs only on the first call. Later calls skip the body and
+return the first call's result.</p>
 </div>
 <div class="tsd-tag-example">
 <h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-9">const</span><span class="hl-1"> </span><span class="hl-15">init</span><span class="hl-1"> = </span><span class="hl-0">callOnce</span><span class="hl-1">(</span><span class="hl-9">function</span><span class="hl-1"> () { ... });</span><br/><span class="hl-9">const</span><span class="hl-1"> </span><span class="hl-15">out</span><span class="hl-1"> = </span><span class="hl-0">init</span><span class="hl-1">();</span>
@@ -39,7 +42,7 @@ Subsequent calls will just return the cached computed result (if any) of the fir
 
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/callOnce.ts:19</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/decorators/callOnce.ts:20</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

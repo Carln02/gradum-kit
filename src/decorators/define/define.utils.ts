@@ -1,10 +1,27 @@
 import {GradumSelector} from "../../gradumFunctions/gradumSelector";
 import {RegistryCategory, RegistryEntry} from "./define.types";
 
+/**
+ * @internal
+ * @type {DefineDataEntry}
+ * @description Per-node state for the attribute bridge, used to stop an attribute write from
+ * re-entering the property setter that produced it.
+ * @property {boolean} [attributeBridgePass] - Whether the node is currently inside a bridged write.
+ */
 type DefineDataEntry = {
     attributeBridgePass?: boolean;
 };
 
+/**
+ * @internal
+ * @type {DefinePrototypeEntry}
+ * @description Per-prototype record of the hooks `@define` has already installed, so a class in an
+ * inheritance chain is only patched once.
+ * @property {boolean} [setupAttributeChangedCallback] - Whether `attributeChangedCallback` was wrapped.
+ * @property {boolean} [setupConnectedCallback] - Whether `connectedCallback` was wrapped.
+ * @property {string} [name] - The registered element name for this prototype.
+ * @property {boolean} [wrappedCreate] - Whether the static `create` was wrapped.
+ */
 type DefinePrototypeEntry = {
     setupAttributeChangedCallback?: boolean;
     setupConnectedCallback?: boolean;
@@ -12,6 +29,13 @@ type DefinePrototypeEntry = {
     wrappedCreate?: boolean;
 };
 
+/**
+ * @internal
+ * @class DefineDecoratorUtils
+ * @description Backing store for {@link define}. Holds the class registry that the lookup functions
+ * ({@link findRegistered}, {@link getRegisteredEntry}, ...) read from, and tracks which prototypes have
+ * already had their custom-element hooks installed.
+ */
 export class DefineDecoratorUtils {
     public readonly registry: Map<string, Map<string, RegistryEntry>> = new Map();
     private readonly categoryMap: WeakMap<object, string> = new WeakMap();

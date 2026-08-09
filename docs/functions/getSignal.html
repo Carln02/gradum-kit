@@ -20,26 +20,27 @@
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="getsignaltype"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span></li></ul></section>
+<li><span id="getsignaltype"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the value held by the signal.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">target</span>: <span class="tsd-signature-type">object</span></span>
-<div class="tsd-comment tsd-typography"><p>The target to which the signal is bound.</p>
+<div class="tsd-comment tsd-typography"><p>The object the signal is bound to.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">PropertyKey</span></span>
 <div class="tsd-comment tsd-typography"><p>The key of the signal inside <code>target</code>.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="../types/SignalEntry.html" class="tsd-signature-type tsd-kind-type-alias">SignalEntry</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#getsignaltype">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><ul>
-<li>The signal entry.</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <a href="../types/SignalEntry.html" class="tsd-signature-type tsd-kind-type-alias">SignalEntry</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#getsignaltype">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The signal, or <code>undefined</code> if <code>key</code> is not reactive on <code>target</code>.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the signal at the given <code>key</code> inside <code>target</code>.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the signal backing a reactive property, to read or subscribe to it without
+going through the property itself.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/reactivity/reactivity.ts:412</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/decorators/reactivity/reactivity.ts:409</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

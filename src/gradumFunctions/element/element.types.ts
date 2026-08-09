@@ -7,8 +7,22 @@ import {
 import {GradumElementProperties} from "../../gradumElement/gradumElement.types";
 
 /**
+ * @type {CloneElementOptions}
  * @group Types
  * @category Element
+ *
+ * @description Controls what {@link GradumSelector.clone} carries over to the copy. By default a clone gets
+ * the origin's own fields but shares object and node references; these options let you deepen or narrow
+ * that per field.
+ * @property {PropertyKey[]} [exclude] - Fields to leave off the clone entirely.
+ * @property {PropertyKey[]} [forceInclude] - Fields to copy even though they would normally be skipped.
+ * @property {PropertyKey[]} [deepClone] - Fields to deep-clone rather than copy by reference.
+ * @property {PropertyKey[]} [copyReference] - Fields to copy by reference even under a deep-clone setting.
+ * @property {boolean} [copyNodes] - Whether to copy fields holding DOM nodes.
+ * @property {boolean} [deepCloneObjects] - Whether to deep-clone every object-valued field.
+ * @property {boolean} [deepCloneNodes] - Whether to deep-clone every node-valued field.
+ * @property {boolean} [snapshotData] - Whether the clone's model gets a detached snapshot of the data
+ * instead of a live reference. See the note on the field.
  */
 type CloneElementOptions = {
     exclude?: PropertyKey[],
@@ -21,7 +35,7 @@ type CloneElementOptions = {
     deepCloneNodes?: boolean,
 
     /**
-     * When true, the clone's model receives a detached snapshot of the origin's data
+     * @description When true, the clone's model receives a detached snapshot of the origin's data
      * (via `toJSON()` when available — e.g. Y.js types — else `structuredClone`) instead
      * of a live reference. Required for previews of MVC/synced elements: a reference copy
      * would make the clone a live twin whose field writes go through the shared model.
@@ -30,8 +44,18 @@ type CloneElementOptions = {
 };
 
 /**
+ * @type {FeedforwardProperties}
  * @group Types
  * @category Element
+ *
+ * @extends GradumElementProperties
+ * @description Controls the preview element {@link GradumSelector.feedforward} produces — everything
+ * {@link GradumElementProperties} accepts, plus how the preview is cloned, wrapped, and torn down. Used to
+ * show the user what an interaction is about to do before they commit to it.
+ * @property {boolean} [removeOnPointerRelease] - Whether the preview removes itself when the pointer is released.
+ * @property {string} [type] - A label identifying the kind of feedforward, for callers that show several.
+ * @property {CloneElementOptions} [cloneOptions] - How to clone the origin element into the preview.
+ * @property {boolean} [wrap] - Whether to wrap the clone in a positioning wrapper. See the note on the field.
  */
 type FeedforwardProperties = GradumElementProperties & {
     removeOnPointerRelease?: boolean,
@@ -39,7 +63,7 @@ type FeedforwardProperties = GradumElementProperties & {
     cloneOptions?: CloneElementOptions,
 
     /**
-     * When true, the clone is placed inside a `GradumMovable` positioning wrapper and the wrapper
+     * @description When true, the clone is placed inside a `GradumMovable` positioning wrapper and the wrapper
      * is returned instead of the clone. The wrapper exposes `position` (alias `translation`) and
      * `rotation` accessors that apply pure CSS transforms to the wrapper — callers position the
      * preview without ever touching the clone's semantic fields. The clone's own `transform` is
@@ -51,10 +75,10 @@ type FeedforwardProperties = GradumElementProperties & {
 };
 
 /**
+ * @type {GradumProperties}
  * @group Types
  * @category Element
  *
- * @type {GradumProperties}
  * @template {ValidTag} Tag - The HTML (or other) tag of the element, if passing it as a property. Defaults to "div".
  * @template {GradumView} ViewType - The element's view type, if any.
  * @template {object} DataType - The element's data type, if any.
@@ -66,7 +90,6 @@ type FeedforwardProperties = GradumElementProperties & {
  * properties if set.
  * Any HTML attribute can be passed as key to be processed by the class/function. The type has the following
  * described custom properties:
- *
  * @property {string} [id] - The ID of the element.
  * @property {string | string[]} [classes] - The CSS class(es) to apply to the element (either a string of
  * space-separated classes or an array of class names).

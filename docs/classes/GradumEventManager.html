@@ -15,13 +15,19 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Class that manages default mouse, trackpad, and touch events, and accordingly fires custom events for
-easier management of input.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Listens to native mouse, trackpad, touch, and keyboard input and turns it into Gradum's
+richer events — <a href="GradumEvent.html" class="tsd-kind-class">GradumEvent</a>, <a href="GradumDragEvent.html" class="tsd-kind-class">GradumDragEvent</a>, <a href="GradumKeyEvent.html" class="tsd-kind-class">GradumKeyEvent</a>, and
+<a href="GradumWheelEvent.html" class="tsd-kind-class">GradumWheelEvent</a> — so a click, a long press, and a drag arrive as distinct, named events
+rather than something each component has to derive itself. It also owns the current tool per
+<a href="../enums/ClickMode.html" class="tsd-kind-enum">ClickMode</a>, and can map screen coordinates into document space for every event it fires.</p>
+<p>Most applications need only one, reached through <a href="#instance" class="tsd-kind-accessor">GradumEventManager.instance</a>.</p>
 </div></div></section>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="tooltype"><span class="tsd-kind-type-parameter">ToolType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">string</span> = <span class="tsd-signature-type">string</span></span></li></ul></section>
+<li><span id="tooltype"><span class="tsd-kind-type-parameter">ToolType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">string</span> = <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The union of tool names this manager recognizes.</p>
+</div></li></ul></section>
 <section class="tsd-panel tsd-hierarchy" data-refl="870">
 <h4>Hierarchy (<a href="../hierarchy.html#GradumEventManager">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
@@ -29,7 +35,7 @@ easier management of input.</p>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">GradumEventManager</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:49</li></ul></aside>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:56</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -116,125 +122,183 @@ easier management of input.</p>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="constructorgradumeventmanagertooltype"><span class="tsd-kind-type-parameter">ToolType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">string</span> = <span class="tsd-signature-type">string</span></span></li></ul></section>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span id="constructorgradumeventmanagertooltype"><span class="tsd-kind-type-parameter">ToolType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">string</span> = <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The union of tool names this manager recognizes.</p>
+</div></li></ul></section>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create an event manager and register it in <a href="#allmanagers" class="tsd-kind-accessor">GradumEventManager.allManagers</a>.
+The first one created becomes <a href="#instance" class="tsd-kind-accessor">GradumEventManager.instance</a>.</p>
+</div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:114</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:190</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-2">Properties<a href="#properties-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="managers"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Static</code><span>managers</span><a href="#managers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">managers</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">managers</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static">Static<a href="#static" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Every manager that has been created, in creation order.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:50</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:62</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="properties"><code class="tsd-tag">Readonly</code><span>properties</span><a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">properties</span><span class="tsd-signature-symbol">:</span> <a href="../types/GradumEventManagerProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumEventManagerProperties</a></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">properties</span><span class="tsd-signature-symbol">:</span> <a href="../types/GradumEventManagerProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumEventManagerProperties</a></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The properties this manager was created with.</p>
+</div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#properties">properties</a></p>
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:69</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:99</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="defaultproperties"><code class="tsd-tag">Static</code><span>default<wbr/>Properties</span><a href="#defaultproperties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">defaultProperties</span><span class="tsd-signature-symbol">:</span> <a href="../types/GradumEventManagerProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumEventManagerProperties</a><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static-1">Static<a href="#static-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Default properties assigned to a new instance.</p>
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC pieces and event-type switches a new manager starts with. Every event family is
+enabled by default; pass the matching <a href="../types/EnabledGradumEventTypes.html" class="tsd-kind-type-alias">EnabledGradumEventTypes</a> flag to <code>create</code> to turn one off.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#defaultproperties">defaultProperties</a></p>
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:71</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:106</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="keyoperator"><code class="tsd-tag">Protected</code><span>key<wbr/>Operator</span><a href="#keyoperator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">keyOperator</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GradumEventManagerKeyOperator</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:90</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:125</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="wheeloperator"><code class="tsd-tag">Protected</code><span>wheel<wbr/>Operator</span><a href="#wheeloperator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">wheelOperator</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GradumEventManagerWheelOperator</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:91</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:126</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="pointeroperator"><code class="tsd-tag">Protected</code><span>pointer<wbr/>Operator</span><a href="#pointeroperator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">pointerOperator</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GradumEventManagerPointerOperator</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:92</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:127</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="dispatchoperator"><code class="tsd-tag">Protected</code><span>dispatch<wbr/>Operator</span><a href="#dispatchoperator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">dispatchOperator</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GradumEventManagerDispatchOperator</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:93</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:128</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="inputdevice"><span>input<wbr/>Device</span><a href="#inputdevice" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">inputDevice</span><span class="tsd-signature-symbol">:</span> <a href="../enums/InputDevice.html" class="tsd-signature-type tsd-kind-enum">InputDevice</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The currently identified input device. It is not 100% accurate, especially when differentiating
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The currently identified input device. It is not 100% accurate, especially when differentiating
 between mouse and trackpad.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:99</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:134</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="oninputdevicechange"><span>on<wbr/>Input<wbr/>Device<wbr/>Change</span><a href="#oninputdevicechange" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">onInputDeviceChange</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">device</span><span class="tsd-signature-symbol">:</span> <a href="../enums/InputDevice.html" class="tsd-signature-type tsd-kind-enum">InputDevice</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="oninputdevicechange"><code class="tsd-tag">Readonly</code><span>on<wbr/>Input<wbr/>Device<wbr/>Change</span><a href="#oninputdevicechange" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">onInputDeviceChange</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">device</span><span class="tsd-signature-symbol">:</span> <a href="../enums/InputDevice.html" class="tsd-signature-type tsd-kind-enum">InputDevice</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Fired whenever the identified input device changes.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:100</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:140</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="currentclick"><span>current<wbr/>Click</span><a href="#currentclick" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">currentClick</span><span class="tsd-signature-symbol">:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="currentclick"><code class="tsd-tag">Readonly</code><span>current<wbr/>Click</span><a href="#currentclick" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">currentClick</span><span class="tsd-signature-symbol">:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The pointer button or input mode currently in use.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:101</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:146</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="currentkeys"><span>current<wbr/>Keys</span><a href="#currentkeys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">currentKeys</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
+<h3 class="tsd-anchor-link" id="currentkeys"><code class="tsd-tag">Readonly</code><span>current<wbr/>Keys</span><a href="#currentkeys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">currentKeys</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The keyboard keys currently held down.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:102</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:152</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="ontoolchange"><span>on<wbr/>Tool<wbr/>Change</span><a href="#ontoolchange" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<h3 class="tsd-anchor-link" id="ontoolchange"><code class="tsd-tag">Readonly</code><span>on<wbr/>Tool<wbr/>Change</span><a href="#ontoolchange" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onToolChange</span><span class="tsd-signature-symbol">:</span> <a href="Delegate.html" class="tsd-signature-type tsd-kind-class">Delegate</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">oldTool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">newTool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">type</span><span class="tsd-signature-symbol">:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Delegate fired when a tool is changed on a certain click button/mode</p>
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Fired when the tool held by a click mode changes, with the previous tool, the new
+tool, and the mode.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:107</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:159</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="authorizeeventscaling"><span>authorize<wbr/>Event<wbr/>Scaling</span><a href="#authorizeeventscaling" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">authorizeEventScaling</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span>)</div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">authorizeEventScaling</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span>)</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether events fired by this manager compute scaled positions. Assign a callback to
+decide per event.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:109</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:165</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="scaleeventposition"><span>scale<wbr/>Event<wbr/>Position</span><a href="#scaleeventposition" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">scaleEventPosition</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">position</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">scaleEventPosition</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">position</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Converts a screen position into document space for every event this manager fires.
+Set it so events stay correct under a panned or zoomed canvas.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:110</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:171</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="movethreshold"><span>move<wbr/>Threshold</span><a href="#movethreshold" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">moveThreshold</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">moveThreshold</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>How far, in pixels, a pointer must travel before the interaction counts as a drag
+rather than a click. Defaults to <code>10</code>.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:111</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:177</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="longpressduration"><span>long<wbr/>Press<wbr/>Duration</span><a href="#longpressduration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">longPressDuration</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">longPressDuration</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>How long, in milliseconds, a pointer must be held still before a long press fires.
+Defaults to <code>500</code>.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:112</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:183</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="initialized"><code class="tsd-tag">Readonly</code><span>initialized</span><a href="#initialized" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">initialized</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the element was initialized already or not.</p>
+<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the element was initialized already or not.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#initialized">initialized</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/default/default.types.ts:31</li></ul></aside></section>
+<li>Defined in src/gradumElement/setup/default/default.types.ts:39</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="defaultfeedforwardproperties"><span>default<wbr/>Feedforward<wbr/>Properties</span><a href="#defaultfeedforwardproperties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">defaultFeedforwardProperties</span><span class="tsd-signature-symbol">:</span> <a href="../types/GradumElementProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumElementProperties</a></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">defaultFeedforwardProperties</span><span class="tsd-signature-symbol">:</span> <a href="../types/GradumElementProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumElementProperties</a></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The properties passed on to children created through <a href="#feedforward" class="tsd-kind-method">feedforward</a>, letting a
+parent seed its descendants with shared defaults.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#defaultfeedforwardproperties">defaultFeedforwardProperties</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/default/default.types.ts:33</li></ul></aside></section></section></details>
+<li>Defined in src/gradumElement/setup/default/default.types.ts:45</li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -244,18 +308,31 @@ between mouse and trackpad.</p>
 <li>
 <div class="tsd-signature" id="instanceinstance"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">instance</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static-2">Static<a href="#static-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The default manager. Creating one on first access, so reading this is always safe.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:52</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:69</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="allmanagers"><code class="tsd-tag">Static</code><span>all<wbr/>Managers</span><a href="#allmanagers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="allmanagersallmanagers"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">allManagers</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static-3">Static<a href="#static-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Every manager currently registered. Reading gives a copy, so mutating the result does
+not affect the registry; assign a new array to replace it.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:57</li></ul></aside></div></li>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:79</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="allmanagersallmanagers-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">allManagers</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">managers</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -265,16 +342,20 @@ between mouse and trackpad.</p>
 <li><span><span class="tsd-kind-parameter">managers</span>: <a href="" class="tsd-signature-type tsd-kind-class">GradumEventManager</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:61</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:83</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="model"><span>model</span><a href="#model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="modelmodel"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">model</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GradumEventManagerModel</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">GradumEventManagerModel</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">GradumEventManagerModel</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>This manager's model, holding its live input state.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:65</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:91</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="keyeventsenabled"><span>key<wbr/>Events<wbr/>Enabled</span><a href="#keyeventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -285,9 +366,14 @@ between mouse and trackpad.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether keyboard input is listened to and turned into <a href="GradumKeyEvent.html" class="tsd-kind-class">GradumKeyEvent</a>s. Setting it
+to <code>false</code> reverts key handling to the native event names.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:130</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:215</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="wheeleventsenabled"><span>wheel<wbr/>Events<wbr/>Enabled</span><a href="#wheeleventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -298,9 +384,14 @@ between mouse and trackpad.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether wheel input is listened to and turned into <a href="GradumWheelEvent.html" class="tsd-kind-class">GradumWheelEvent</a>s. Setting it to
+<code>false</code> reverts wheel handling to the native event names.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:141</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:230</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="moveeventsenabled"><span>move<wbr/>Events<wbr/>Enabled</span><a href="#moveeventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -311,9 +402,14 @@ between mouse and trackpad.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether pointer movement produces Gradum move events. Setting it to <code>false</code> reverts move
+handling to the native event names.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:147</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:240</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="mouseeventsenabled"><span>mouse<wbr/>Events<wbr/>Enabled</span><a href="#mouseeventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -324,9 +420,14 @@ between mouse and trackpad.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether mouse input is processed. Setting it to <code>false</code> reverts mouse handling to the native
+event names.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:151</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:248</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="toucheventsenabled"><span>touch<wbr/>Events<wbr/>Enabled</span><a href="#toucheventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -337,9 +438,14 @@ between mouse and trackpad.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether touch input is processed. Setting it to <code>false</code> reverts touch handling to the native
+event names.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:167</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:268</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clickeventsenabled"><span>click<wbr/>Events<wbr/>Enabled</span><a href="#clickeventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -350,9 +456,14 @@ between mouse and trackpad.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether click, click start/end, and long-press events fire. Setting it to <code>false</code> reverts
+click handling to the native event names.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:181</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:286</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="drageventsenabled"><span>drag<wbr/>Events<wbr/>Enabled</span><a href="#drageventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -363,18 +474,29 @@ between mouse and trackpad.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether drag and drag start/end events fire. Setting it to <code>false</code> reverts drag handling to
+the native event names.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:185</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:294</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="enabled"><span>enabled</span><a href="#enabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="enabledenabled"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">enabled</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether the manager is processing input. Reading combines the manager's own setting
+with any active lock, so a lock can disable it without overwriting the underlying value; assigning
+changes only the manager's own setting.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:216</li></ul></aside></div></li>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:335</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="enabledenabled-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">enabled</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -384,16 +506,21 @@ between mouse and trackpad.</p>
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:220</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:339</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preventdefaultwheel"><span>prevent<wbr/>Default<wbr/>Wheel</span><a href="#preventdefaultwheel" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="preventdefaultwheelpreventdefaultwheel"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">preventDefaultWheel</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether wheel input has its native default suppressed, blocking browser page zoom and
+scroll. Combines the manager's setting with any active lock, as <a href="#enabled" class="tsd-kind-accessor">GradumEventManager.enabled</a> does.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:224</li></ul></aside></div></li>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:347</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="preventdefaultwheelpreventdefaultwheel-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">preventDefaultWheel</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -403,16 +530,21 @@ between mouse and trackpad.</p>
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:228</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:351</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preventdefaultmouse"><span>prevent<wbr/>Default<wbr/>Mouse</span><a href="#preventdefaultmouse" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="preventdefaultmousepreventdefaultmouse"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">preventDefaultMouse</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-28">Description<a href="#description-28" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether mouse input has its native default suppressed. Combines the manager's setting
+with any active lock, as <a href="#enabled" class="tsd-kind-accessor">GradumEventManager.enabled</a> does.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:232</li></ul></aside></div></li>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:359</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="preventdefaultmousepreventdefaultmouse-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">preventDefaultMouse</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -422,16 +554,22 @@ between mouse and trackpad.</p>
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:236</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:363</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preventdefaulttouch"><span>prevent<wbr/>Default<wbr/>Touch</span><a href="#preventdefaulttouch" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="preventdefaulttouchpreventdefaulttouch"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">preventDefaultTouch</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-29">Description<a href="#description-29" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether touch input has its native default suppressed, blocking native scrolling and
+pinch-zoom. Combines the manager's setting with any active lock, as
+<a href="#enabled" class="tsd-kind-accessor">GradumEventManager.enabled</a> does.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:240</li></ul></aside></div></li>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:372</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="preventdefaulttouchpreventdefaulttouch-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">preventDefaultTouch</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -441,16 +579,22 @@ between mouse and trackpad.</p>
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:244</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:376</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preventdefaults"><span>prevent<wbr/>Defaults</span><a href="#preventdefaults" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="preventdefaultspreventdefaults"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">preventDefaults</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-30">Description<a href="#description-30" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All three prevent-default settings at once. <em>Note: the getter and setter are not
+symmetric — reading gives <code>true</code> when <strong>any</strong> of wheel, mouse, or touch is suppressed, while
+assigning sets <strong>all three</strong> to the given value.</em></p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:248</li></ul></aside></div></li>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:385</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="preventdefaultspreventdefaults-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">preventDefaults</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -460,7 +604,7 @@ between mouse and trackpad.</p>
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:252</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:389</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="toolsarray"><span>tools<wbr/>Array</span><a href="#toolsarray" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -470,10 +614,10 @@ between mouse and trackpad.</p>
 <h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>All attached tools in an array</p>
+<h4 class="tsd-anchor-link" id="description-31">Description<a href="#description-31" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Every registered tool instance, across all tool names, flattened into one array.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:270</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:408</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -488,275 +632,401 @@ between mouse and trackpad.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Initializes the element. It sets up the UI by calling the methods <code>setupUIElements</code>,
-<code>setupUILayout</code>, <code>setupUIListeners</code>, and <code>setupChangedCallbacks</code> (in this order, if they are defined).
-This function is called automatically in <code>.setProperties()</code> and when instantiating an
-element via <code>element()</code>. It is called only once per element (as it checks with the reflected <code>initialized</code> flag).</p>
+<h4 class="tsd-anchor-link" id="description-32">Description<a href="#description-32" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Start listening to pointer input on the document and clear any lock. Called
+automatically by the element lifecycle.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#initialize">initialize</a></p>
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:119</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:200</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="lock"><span>lock</span><a href="#lock" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="lock-1"><span class="tsd-kind-call-signature">lock</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">origin</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <a href="../types/GradumEventManagerStateProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumEventManagerStateProperties</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#lock-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>lock</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">origin</span>: <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></span>
-<div class="tsd-comment tsd-typography"><p>The element that initiated the lock state.</p>
+<div class="tsd-comment tsd-typography"><p>The node establishing the lock.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">value</span>: <a href="../types/GradumEventManagerStateProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumEventManagerStateProperties</a></span>
-<div class="tsd-comment tsd-typography"><p>The state properties to set.</p>
+<div class="tsd-comment tsd-typography"><p>The state to impose while the lock is held.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Sets the lock state for the event manager.</p>
+<h4 class="tsd-anchor-link" id="description-33">Description<a href="#description-33" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Temporarily override the manager's state on behalf of one node, for the duration of
+an interaction. Use it to impose settings mid-gesture — suppressing native touch scrolling while a
+drag is in flight, say — then call <a href="#unlock" class="tsd-kind-method">GradumEventManager.unlock</a> to hand them back. Any
+existing lock is released first, so locks do not nest.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:203</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:316</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="unlock"><span>unlock</span><a href="#unlock" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="unlock-1"><span class="tsd-kind-call-signature">unlock</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#unlock-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>unlock</p>
+</div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Resets the lock state to the default values.</p>
+<h4 class="tsd-anchor-link" id="description-34">Description<a href="#description-34" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Release the current lock, so the manager's own state applies again.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:212</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:326</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcurrenttool"><span>get<wbr/>Current<wbr/>Tool</span><a href="#getcurrenttool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="getcurrenttool-1"><span class="tsd-kind-call-signature">getCurrentTool</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">mode</span><span class="tsd-signature-symbol">?:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><a href="#getcurrenttool-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getCurrentTool</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">mode</span>: <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol"> = ...</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">mode</span>: <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol"> = ...</span></span>
+<div class="tsd-comment tsd-typography"><p>The click mode to read. Defaults to the mode
+currently in use.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></h4><p>The tool held by that mode, or <code>undefined</code> if it holds none.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-35">Description<a href="#description-35" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Get the tool instance currently held by a click mode.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:276</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:421</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcurrenttools"><span>get<wbr/>Current<wbr/>Tools</span><a href="#getcurrenttools" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="getcurrenttools-1"><span class="tsd-kind-call-signature">getCurrentTools</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">mode</span><span class="tsd-signature-symbol">?:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span><a href="#getcurrenttools-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getCurrentTools</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">mode</span>: <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol"> = ...</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span></h4>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">mode</span>: <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol"> = ...</span></span>
+<div class="tsd-comment tsd-typography"><p>The click mode to read. Defaults to the mode
+currently in use.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span></h4><p>All instances of that tool, or an empty array if the mode holds none.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Returns the instances of the tool currently held by the provided click mode</p>
+<h4 class="tsd-anchor-link" id="description-36">Description<a href="#description-36" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Get every instance sharing the name of the tool currently held by a click mode. Use
+it when several elements — toolbar buttons in different places, say — represent the same tool.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:284</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:433</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getcurrenttoolname"><span>get<wbr/>Current<wbr/>Tool<wbr/>Name</span><a href="#getcurrenttoolname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="getcurrenttoolname-1"><span class="tsd-kind-call-signature">getCurrentToolName</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">mode</span><span class="tsd-signature-symbol">?:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a><a href="#getcurrenttoolname-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getCurrentToolName</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">mode</span>: <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol"> = ...</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a></h4>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">mode</span>: <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol"> = ...</span></span>
+<div class="tsd-comment tsd-typography"><p>The click mode to read. Defaults to the mode
+currently in use.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a></h4><p>The tool's name, or <code>undefined</code> if the mode holds none.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Returns the name of the tool currently held by the provided click mode</p>
+<h4 class="tsd-anchor-link" id="description-37">Description<a href="#description-37" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Get the name of the tool currently held by a click mode.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:292</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:444</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettoolname"><span>get<wbr/>Tool<wbr/>Name</span><a href="#gettoolname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="gettoolname-1"><span class="tsd-kind-call-signature">getToolName</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">tool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a><a href="#gettoolname-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getToolName</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">tool</span>: <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">tool</span>: <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></span>
+<div class="tsd-comment tsd-typography"><p>The tool instance to look up.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a></h4><p>The registered name, or <code>undefined</code> if the node is not a registered tool.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-38">Description<a href="#description-38" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Get the name a tool instance is registered under.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:296</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:454</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getsimilartools"><span>get<wbr/>Similar<wbr/>Tools</span><a href="#getsimilartools" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="getsimilartools-1"><span class="tsd-kind-call-signature">getSimilarTools</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">tool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span><a href="#getsimilartools-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getSimilarTools</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">tool</span>: <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">tool</span>: <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></span>
+<div class="tsd-comment tsd-typography"><p>The tool instance to match against.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span></h4><p>All instances sharing its name, or an empty array if it is not registered.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-39">Description<a href="#description-39" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Get every instance registered under the same name as the given tool, including the
+tool itself.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:303</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:468</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettoolsbyname"><span>get<wbr/>Tools<wbr/>By<wbr/>Name</span><a href="#gettoolsbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="gettoolsbyname-1"><span class="tsd-kind-call-signature">getToolsByName</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">name</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span><a href="#gettoolsbyname-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getToolsByName</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">name</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span></h4>
+<li><span><span class="tsd-kind-parameter">name</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a></span>
+<div class="tsd-comment tsd-typography"><p>The tool name to look up.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span></h4><p>All instances registered under that name, or an empty array if there are none.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Returns the tool with the given name (or undefined)</p>
+<h4 class="tsd-anchor-link" id="description-40">Description<a href="#description-40" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Get every tool instance registered under a name.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:314</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:481</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettoolbyname"><span>get<wbr/>Tool<wbr/>By<wbr/>Name</span><a href="#gettoolbyname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="gettoolbyname-1"><span class="tsd-kind-call-signature">getToolByName</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">name</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">predicate</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">tool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><a href="#gettoolbyname-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getToolByName</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">name</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a></span></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">predicate</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">tool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></h4>
+<li><span><span class="tsd-kind-parameter">name</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a></span>
+<div class="tsd-comment tsd-typography"><p>The tool name to look up.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">predicate</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">tool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>Chooses which instance to return. Without it, the
+first registered instance is returned.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></h4><p>The matching instance, or <code>undefined</code> if there is none.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Returns the first tool with the given name (or undefined)</p>
+<h4 class="tsd-anchor-link" id="description-41">Description<a href="#description-41" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Get a single tool instance registered under a name. Pass a predicate to choose among
+several instances.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:324</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:495</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettoolsbykey"><span>get<wbr/>Tools<wbr/>By<wbr/>Key</span><a href="#gettoolsbykey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="gettoolsbykey-1"><span class="tsd-kind-call-signature">getToolsByKey</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span><a href="#gettoolsbykey-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getToolsByKey</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span></h4>
+<li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The key the tool is mapped to.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">[]</span></h4><p>All instances bound to that key, or an empty array if the key maps to nothing.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Returns the tools associated with the given key</p>
+<h4 class="tsd-anchor-link" id="description-42">Description<a href="#description-42" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Get every tool instance bound to a keyboard key.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:333</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:506</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="gettoolbykey"><span>get<wbr/>Tool<wbr/>By<wbr/>Key</span><a href="#gettoolbykey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="gettoolbykey-1"><span class="tsd-kind-call-signature">getToolByKey</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">predicate</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">tool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><a href="#gettoolbykey-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getToolByKey</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span></span></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">predicate</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">tool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></h4>
+<li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The key the tool is mapped to.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">predicate</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">tool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Element" class="tsd-signature-type external" target="_blank">Element</a><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>Chooses which instance to return. Without it, the
+first one is returned.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></h4><p>The matching instance, or <code>undefined</code> if there is none.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Returns the first tool associated with the given key</p>
+<h4 class="tsd-anchor-link" id="description-43">Description<a href="#description-43" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Get a single tool instance bound to a keyboard key. Pass a predicate to choose among
+several instances.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:344</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:521</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addtool"><span>add<wbr/>Tool</span><a href="#addtool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="addtool-1"><span class="tsd-kind-call-signature">addTool</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">toolName</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">tool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#addtool-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>addTool</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">toolName</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a></span></li>
-<li><span><span class="tsd-kind-parameter">tool</span>: <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></span></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
+<li><span><span class="tsd-kind-parameter">toolName</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#tooltype">ToolType</a></span>
+<div class="tsd-comment tsd-typography"><p>The name to register the instance under.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">tool</span>: <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></span>
+<div class="tsd-comment tsd-typography"><p>The tool instance.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>A keyboard key that selects this tool when pressed.</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Adds a tool to the tools map, identified by its name. Optionally, provide a key to bind the tool to.</p>
+<h4 class="tsd-anchor-link" id="description-44">Description<a href="#description-44" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Register a tool instance under a name, so the manager can make it current and find it
+again. Several instances may share one name.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:355</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:534</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="settool"><span>set<wbr/>Tool</span><a href="#settool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="settool-1"><span class="tsd-kind-call-signature">setTool</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">tool</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">type</span><span class="tsd-signature-symbol">:</span> <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../types/SetToolOptions.html" class="tsd-signature-type tsd-kind-type-alias">SetToolOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#settool-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>setTool</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">tool</span>: <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></span></li>
-<li><span><span class="tsd-kind-parameter">type</span>: <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a></span></li>
-<li><span><span class="tsd-kind-parameter">options</span>: <a href="../types/SetToolOptions.html" class="tsd-signature-type tsd-kind-type-alias">SetToolOptions</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
+<li><span><span class="tsd-kind-parameter">tool</span>: <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></span>
+<div class="tsd-comment tsd-typography"><p>The tool instance to make current. Pass <code>undefined</code> to clear the mode.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">type</span>: <a href="../enums/ClickMode.html" class="tsd-signature-type tsd-kind-enum">ClickMode</a></span>
+<div class="tsd-comment tsd-typography"><p>The click mode to bind the tool to.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../types/SetToolOptions.html" class="tsd-signature-type tsd-kind-type-alias">SetToolOptions</a><span class="tsd-signature-symbol"> = {}</span></span>
+<div class="tsd-comment tsd-typography"><p>Whether to select and activate the tool, and whether it also
+becomes the tool for <code>ClickMode.none</code>.</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Sets the provided tool as a current tool associated with the provided type</p>
+<h4 class="tsd-anchor-link" id="description-45">Description<a href="#description-45" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Make a tool the current one for a click mode, so interactions in that mode are
+attributed to it. The previously held tool is deselected and deactivated first, and
+<a href="#ontoolchange" class="tsd-kind-property">GradumEventManager.onToolChange</a> fires once the swap is done. Passing a tool that is not
+registered with this manager does nothing.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:368</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:552</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="settoolbykey"><span>set<wbr/>Tool<wbr/>By<wbr/>Key</span><a href="#settoolbykey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="settoolbykey-1"><span class="tsd-kind-call-signature">setToolByKey</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#settoolbykey-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>setToolByKey</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+<li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The key whose tool should become current.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>Whether a tool was bound to that key and therefore set.</p>
+
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Sets tool associated with the provided key as the current tool for the key mode</p>
+<h4 class="tsd-anchor-link" id="description-46">Description<a href="#description-46" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Make the tool bound to a keyboard key current for <code>ClickMode.key</code>. The tool is
+activated but not visually selected.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:403</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:590</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setupcustomdispatcher"><span>setup<wbr/>Custom<wbr/>Dispatcher</span><a href="#setupcustomdispatcher" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="setupcustomdispatcher-1"><span class="tsd-kind-call-signature">setupCustomDispatcher</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">type</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setupcustomdispatcher-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>setupCustomDispatcher</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">type</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">type</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The event type to dispatch.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-47">Description<a href="#description-47" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Start dispatching an additional event type through the Gradum two-pass dispatch, so
+tool behaviors and interactor listeners receive it like any built-in Gradum event. Registering the
+same type twice is a no-op.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:418</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:612</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="applyandhookevents"><code class="tsd-tag">Protected</code><span>apply<wbr/>And<wbr/>Hook<wbr/>Events</span><a href="#applyandhookevents" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
-<li class="">
+<li class="tsd-is-protected">
 <div class="tsd-signature tsd-anchor-link" id="applyandhookevents-1"><span class="tsd-kind-call-signature">applyAndHookEvents</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">gradumEventNames</span><span class="tsd-signature-symbol">:</span> <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">defaultEventNames</span><span class="tsd-signature-symbol">:</span> <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">applyGradumEvents</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#applyandhookevents-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>applyAndHookEvents</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">gradumEventNames</span>: <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></span></li>
-<li><span><span class="tsd-kind-parameter">defaultEventNames</span>: <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></span></li>
-<li><span><span class="tsd-kind-parameter">applyGradumEvents</span>: <span class="tsd-signature-type">boolean</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">gradumEventNames</span>: <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>The Gradum names for this family.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">defaultEventNames</span>: <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type" class="tsd-signature-type external" target="_blank">Record</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>The native names to fall back to.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">applyGradumEvents</span>: <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>Whether to use the Gradum names and hook the dispatcher, or
+revert to the native names and unhook it.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-48">Description<a href="#description-48" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Switch a family of events between its Gradum names and its native names, and hook or
+unhook the dispatcher for each. Backs the <code>*EventsEnabled</code> setters.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:422</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:626</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="destroy"><span>destroy</span><a href="#destroy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -769,17 +1039,20 @@ element via <code>element()</code>. It is called only once per element (as it ch
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Destroys the node by removing it from the document and removing all its bound listeners.</p>
+<h4 class="tsd-anchor-link" id="description-49">Description<a href="#description-49" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Shut the manager down: disable every event family, unhook its dispatchers, and clear
+the tool-change subscribers. Registered tools are left in place.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#destroy">destroy</a></p>
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:431</li></ul></aside></div></li></ul></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.ts:641</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="create"><code class="tsd-tag">Static</code><span>create</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="create-1"><span class="tsd-kind-call-signature">create</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createtype">Type</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-keyword">new</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="GradumBaseElement.html" class="tsd-signature-type tsd-kind-class">GradumBaseElement</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">this</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createtype">Type</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">properties</span><span class="tsd-signature-symbol">?:</span> <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypetype" class="tsd-signature-type external" target="_blank">InstanceType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createtype">Type</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">&quot;properties&quot;</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypetype" class="tsd-signature-type external" target="_blank">InstanceType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createtype">Type</a><span class="tsd-signature-symbol">&gt;</span><a href="#create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>create</p>
+</div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
@@ -788,53 +1061,97 @@ element via <code>element()</code>. It is called only once per element (as it ch
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">this</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#createtype">Type</a></span></li>
-<li><span><span class="tsd-kind-parameter">properties</span>: <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypetype" class="tsd-signature-type external" target="_blank">InstanceType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createtype">Type</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">&quot;properties&quot;</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypetype" class="tsd-signature-type external" target="_blank">InstanceType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createtype">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypetype" class="tsd-signature-type external" target="_blank">InstanceType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createtype">Type</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">&quot;properties&quot;</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> = {}</span></span>
+<div class="tsd-comment tsd-typography"><p>Properties to set on the new instance.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypetype" class="tsd-signature-type external" target="_blank">InstanceType</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createtype">Type</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The created instance.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static-4">Static<a href="#static-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-50">Description<a href="#description-50" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Instantiate this class with the given properties. Defaults declared by every class in the
+inheritance chain are applied first, nearest ancestor last, so a subclass' <code>defaultProperties</code> win over
+its parent's. The return type follows the class it is called on, so a subclass gets its own type back.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#create">create</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumBaseElement/gradumBaseElement.ts:23</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumBaseElement/gradumBaseElement.ts:32</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="customcreate"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Static</code><span>custom<wbr/>Create</span><a href="#customcreate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
-<li class="tsd-is-inherited">
+<li class="tsd-is-protected tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="customcreate-1"><span class="tsd-kind-call-signature">customCreate</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">properties</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span><a href="#customcreate-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Function</code>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">properties</span>: <span class="tsd-signature-type">object</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">properties</span>: <span class="tsd-signature-type">object</span></span>
+<div class="tsd-comment tsd-typography"><p>Properties to set on the new instance, defaults already merged in.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4><p>The created instance.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static-5">Static<a href="#static-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>customCreate</p>
+</div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-51">Description<a href="#description-51" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The construction step behind <a href="#create" class="tsd-kind-method">create</a>. Override it to change how instances of a class
+are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
+<code>create</code> performs.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#customcreate">customCreate</a></p>
 <ul>
-<li>Defined in src/gradumElement/gradumBaseElement/gradumBaseElement.ts:28</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/gradumBaseElement/gradumBaseElement.ts:47</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="feedforward"><span>feedforward</span><a href="#feedforward" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="feedforward-1"><span class="tsd-kind-call-signature">feedforward</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">properties</span><span class="tsd-signature-symbol">?:</span> <a href="../types/FeedforwardProperties.html" class="tsd-signature-type tsd-kind-type-alias">FeedforwardProperties</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">this</span><a href="#feedforward-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>feedforward</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/FeedforwardProperties.html" class="tsd-signature-type tsd-kind-type-alias">FeedforwardProperties</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/FeedforwardProperties.html" class="tsd-signature-type tsd-kind-type-alias">FeedforwardProperties</a></span>
+<div class="tsd-comment tsd-typography"><p>Properties to feed forward. Defaults to
+<code>defaultFeedforwardProperties</code>.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>Itself, allowing for method chaining.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-52">Description<a href="#description-52" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Push this element's feedforward properties down to its children, so newly added
+descendants pick up the same defaults.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#feedforward">feedforward</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/default/default.types.ts:35</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumElement/setup/default/default.types.ts:55</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="clone"><span>clone</span><a href="#clone" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-is-inherited">
 <div class="tsd-signature tsd-anchor-link" id="clone-1"><span class="tsd-kind-call-signature">clone</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../types/CloneElementOptions.html" class="tsd-signature-type tsd-kind-type-alias">CloneElementOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">this</span><a href="#clone-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>clone</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../types/CloneElementOptions.html" class="tsd-signature-type tsd-kind-type-alias">CloneElementOptions</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../types/CloneElementOptions.html" class="tsd-signature-type tsd-kind-type-alias">CloneElementOptions</a></span>
+<div class="tsd-comment tsd-typography"><p>What to carry over to the copy.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4><p>The cloned element.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-53">Description<a href="#description-53" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create a copy of this element. By default the copy carries the same properties and
+children but none of the bound listeners.</p>
+</div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumBaseElement.html">GradumBaseElement</a>.<a href="GradumBaseElement.html#clone">clone</a></p>
 <ul>
-<li>Defined in src/gradumElement/setup/default/default.types.ts:37</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/gradumElement/setup/default/default.types.ts:64</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

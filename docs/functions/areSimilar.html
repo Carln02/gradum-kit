@@ -14,18 +14,31 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="aresimilar"><span class="tsd-kind-call-signature">areSimilar</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#aresimilartype">Type</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">entries</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#aresimilartype">Type</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#aresimilar" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>areSimilar</p>
+</div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="aresimilartype"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span></li></ul></section>
+<li><span id="aresimilartype"><span class="tsd-kind-type-parameter">Type</span> = <span class="tsd-signature-type">any</span></span>
+<div class="tsd-comment tsd-typography"><p>The type of the compared entries.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">entries</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#aresimilartype">Type</a><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">entries</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#aresimilartype">Type</a><span class="tsd-signature-symbol">[]</span></span>
+<div class="tsd-comment tsd-typography"><p>The entries to compare. Fewer than two entries always counts as similar.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> if all entries are equivalent in content.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether every entry holds the same content, even if they are different objects. Falls
+back through three strategies per pair: identity, the entries' own <code>equals</code> method if they define one, then
+matching JSON and string representations. Non-objects that are not identical are never similar.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/computations/equity.ts:13</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/computations/equity.ts:32</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

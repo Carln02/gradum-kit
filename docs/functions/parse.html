@@ -14,23 +14,25 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="parse"><span class="tsd-kind-call-signature">parse</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">str</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><a href="#parse" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>parse</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">str</span>: <span class="tsd-signature-type">string</span></span>
-<div class="tsd-comment tsd-typography"><p>The string to convert back to its original type</p>
+<div class="tsd-comment tsd-typography"><p>The string to convert back.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4><ul>
-<li>The original value</li>
-</ul>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4><p>The recovered value, or the original string if it matched no known form.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Attempts to convert the passed string back to its original type.</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Turn a string produced by <a href="stringify.html" class="tsd-kind-function">stringify</a> back into a value, recovering booleans, <code>null</code>,
+numbers, bigints, objects, and arrays. Anything it cannot place comes back unchanged as the original string.
+<em>Note: strings that look like function source are evaluated, so only parse input you trust.</em></p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/dataManipulation/string.ts:47</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/dataManipulation/string.ts:53</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -26,9 +26,20 @@ class GradumMarkingMenu<
     private readonly transition: StatefulReifect<InOut>;
     private currentOrigin: Point;
 
+    /**
+     * @description How far the pointer must travel, in pixels, before a drag counts as choosing an entry
+     * rather than a stray movement.
+     */
     public minDragDistance: number = 20;
 
+    /**
+     * @description The radius of the ring the entries are arranged on, along its wider axis, in pixels.
+     */
     public semiMajor: number = 50;
+    /**
+     * @description The radius of the ring the entries are arranged on, along its narrower axis, in pixels.
+     * Set it differently from the wider radius to lay the entries out on an ellipse.
+     */
     public semiMinor: number = 45;
 
     @auto({

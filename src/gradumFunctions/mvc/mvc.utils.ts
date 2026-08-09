@@ -22,8 +22,18 @@ type MvcData = {
     emitterKeyCallback: (value: any, ...keys: KeyType[]) => void;
 };
 
+/**
+ * @internal
+ * @description Key under which a raw DOM node stores the {@link GradumProxiedElement} wrapping it, so MVC
+ * pieces are constructed against the public wrapper rather than the underlying node.
+ */
 export const proxyWrapperSymbol = Symbol("__proxyWrapper__");
 
+/**
+ * @internal
+ * @class MvcFunctionsUtils
+ * @description Shared helpers and per-element state behind the MVC functions on {@link GradumSelector}.
+ */
 export class MvcFunctionsUtils {
     private dataMap = new WeakMap<object, MvcData>;
     private modelLookupMap = new WeakMap<GradumModel, Set<object>>;
@@ -182,10 +192,10 @@ export class MvcFunctionsUtils {
      * @description Utility that derives a shorter "essence" key name for an MVC piece from its constructor name.
      * It strips the element/class name prefix (if any) and the type suffix (e.g., "Operator", "Tool") to
      * produce a key that reads well in camelCase (e.g., `MyElementSnapOperator` -> `snap`).
-     * @param element
+     * @param {object} element - The element the piece is attached to, whose name is stripped from the prefix.
      * @param {new (...args: any[]) => any} constructor - The constructor to derive the name from.
      * @param {string} type - The type suffix to strip (e.g., "Operator", "Handler", "Tool", "Constrainer").
-     * @returns {string} - A lower-cased, camel-style key name derived from the constructor.
+     * @returns {string} A lower-cased, camel-style key name derived from the constructor.
      */
     public extractClassEssenceName(element: object, constructor: new (...args: any[]) => any, type: string): string {
         let className = constructor.name;

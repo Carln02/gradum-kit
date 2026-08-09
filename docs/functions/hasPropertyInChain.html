@@ -14,15 +14,27 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="haspropertyinchain"><span class="tsd-kind-call-signature">hasPropertyInChain</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">object</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">PropertyKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#haspropertyinchain" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>hasPropertyInChain</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">object</span>: <span class="tsd-signature-type">object</span></span></li>
-<li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">PropertyKey</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">object</span>: <span class="tsd-signature-type">object</span></span>
+<div class="tsd-comment tsd-typography"><p>The object to search from.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">PropertyKey</span></span>
+<div class="tsd-comment tsd-typography"><p>The property to look for.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> if the property is declared anywhere in the chain.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an object or any of its ancestors declares a property as its own. Unlike <code>in</code>,
+the search stops before <code>Object.prototype</code>, so built-ins such as <code>toString</code> do not count as a match.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/dataManipulation/prototype.ts:19</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/dataManipulation/prototype.ts:34</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

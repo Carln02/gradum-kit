@@ -21,12 +21,12 @@ const cache: WeakMap<object, GradumSelector<object>> = new WeakMap();
  * @function gradum
  * @group GradumSelector
  *
- * @template {ValidTag} Tag
+ * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
  * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `gr()`,
  * `g()`, or `$()` for the same behavior.
  * @param {Tag} [tag="div"] - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Gradum<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
+ * @returns {Gradum<ValidElement<Tag>>} The instantiated, wrapped, and proxied element.
  */
 function gradum<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
 
@@ -35,14 +35,14 @@ function gradum<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Ta
  * @function gradum
  * @group GradumSelector
  *
- * @template {object} Type
+ * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
  * with useful functions for manipulating it. You can alternatively use `gr()`, `g()`, or `$()` for the same behavior.
  * @param {Type} object - The object to wrap.
  * @param {boolean} [raw=false] - If set to true, the selector will operate directly on the provided object, even
  * if it contains an inner `element` field. Useful when you want to set properties on a proxied wrapper itself rather
  * than its underlying DOM element.
- * @return {Gradum<Type>} - The wrapped, proxied object.
+ * @returns {Gradum<Type>} The wrapped, proxied object.
  */
 function gradum<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type>;
 
@@ -55,7 +55,7 @@ function gradum<Type extends object = Node>(object: Type, raw?: boolean): Gradum
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
  * `gr()`, `g()`, or `$()` for the same behavior.
  * @param {string} tag - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Gradum<Element>} - The instantiated, wrapped, and proxied element.
+ * @returns {Gradum<Element>} The instantiated, wrapped, and proxied element.
  */
 function gradum(tag?: string): Gradum<Element>;
 function gradum(tagOrElement?: object | string, raw: boolean = false): Gradum {
@@ -86,12 +86,12 @@ function gradum(tagOrElement?: object | string, raw: boolean = false): Gradum {
  * @function gr
  * @group GradumSelector
  *
- * @template {ValidTag} Tag
+ * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
  * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `gradum()`,
  * `g()`, or `$()` for the same behavior.
  * @param {Tag} [tag="div"] - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Gradum<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
+ * @returns {Gradum<ValidElement<Tag>>} The instantiated, wrapped, and proxied element.
  */
 function gr<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
 
@@ -100,14 +100,14 @@ function gr<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
  * @function gr
  * @group GradumSelector
  *
- * @template {object} Type
+ * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
  * with useful functions for manipulating it. You can alternatively use `gradum()`, `g()`, or `$()` for the same behavior.
  * @param {Type} object - The object to wrap.
  * @param {boolean} [raw=false] - If set to true, the selector will operate directly on the provided object, even
  * if it contains an inner `element` field. Useful when you want to set properties on a proxied wrapper itself rather
  * than its underlying DOM element.
- * @return {Gradum<Type>} - The wrapped, proxied object.
+ * @returns {Gradum<Type>} The wrapped, proxied object.
  */
 function gr<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type>;
 
@@ -120,7 +120,7 @@ function gr<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Typ
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
  * `gradum()`, `g()`, or `$()` for the same behavior.
  * @param {string} tag - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Gradum<Element>} - The instantiated, wrapped, and proxied element.
+ * @returns {Gradum<Element>} The instantiated, wrapped, and proxied element.
  */
 function gr(tag: string): Gradum<Element>;
 function gr(tagOrElement?: object | string, raw: boolean = false): Gradum {
@@ -132,12 +132,12 @@ function gr(tagOrElement?: object | string, raw: boolean = false): Gradum {
  * @function g
  * @group GradumSelector
  *
- * @template {ValidTag} Tag
+ * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
  * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `gradum()`,
  * `gr()`, or `$()` for the same behavior.
  * @param {Tag} [tag="div"] - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Gradum<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
+ * @returns {Gradum<ValidElement<Tag>>} The instantiated, wrapped, and proxied element.
  */
 function g<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
 
@@ -146,14 +146,14 @@ function g<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
  * @function g
  * @group GradumSelector
  *
- * @template {object} Type
+ * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
  * with useful functions for manipulating it. You can alternatively use `gradum()`, `gr()`, or `$()` for the same behavior.
  * @param {Type} object - The object to wrap.
  * @param {boolean} [raw=false] - If set to true, the selector will operate directly on the provided object, even
  * if it contains an inner `element` field. Useful when you want to set properties on a proxied wrapper itself rather
  * than its underlying DOM element.
- * @return {Gradum<Type>} - The wrapped, proxied object.
+ * @returns {Gradum<Type>} The wrapped, proxied object.
  */
 function g<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type>;
 
@@ -166,7 +166,7 @@ function g<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
  * `gradum()`, `gr()`, or `$()` for the same behavior.
  * @param {string} tag - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Gradum<Element>} - The instantiated, wrapped, and proxied element.
+ * @returns {Gradum<Element>} The instantiated, wrapped, and proxied element.
  */
 function g(tag: string): Gradum<Element>;
 function g(tagOrElement?: object | string, raw: boolean = false): Gradum {
@@ -178,12 +178,12 @@ function g(tagOrElement?: object | string, raw: boolean = false): Gradum {
  * @function $
  * @group GradumSelector
  *
- * @template {ValidTag} Tag
+ * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
  * in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use `gradum()`,
  * `gr()`, or `g()` for the same behavior.
  * @param {Tag} [tag="div"] - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Gradum<ValidElement<Tag>>} - The instantiated, wrapped, and proxied element.
+ * @returns {Gradum<ValidElement<Tag>>} The instantiated, wrapped, and proxied element.
  */
 function $<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
 
@@ -192,14 +192,14 @@ function $<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
  * @function $
  * @group GradumSelector
  *
- * @template {object} Type
+ * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
  * with useful functions for manipulating it. You can alternatively use `gradum()`, `gr()`, or `g()` for the same behavior.
  * @param {Type} object - The object to wrap.
  * @param {boolean} [raw=false] - If set to true, the selector will operate directly on the provided object, even
  * if it contains an inner `element` field. Useful when you want to set properties on a proxied wrapper itself rather
  * than its underlying DOM element.
- * @return {Gradum<Type>} - The wrapped, proxied object.
+ * @returns {Gradum<Type>} The wrapped, proxied object.
  */
 function $<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type>;
 
@@ -212,7 +212,7 @@ function $<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
  * `gradum()`, `gr()`, or `g()` for the same behavior.
  * @param {string} tag - The HTML tag of the element to instantiate. If not defined, the tag will be set to "div".
- * @return {Gradum<Element>} - The instantiated, wrapped, and proxied element.
+ * @returns {Gradum<Element>} The instantiated, wrapped, and proxied element.
  */
 function $(tag: string): Gradum<Element>;
 function $(tagOrElement?: object | string, raw: boolean = false): Gradum {
@@ -220,7 +220,19 @@ function $(tagOrElement?: object | string, raw: boolean = false): Gradum {
 }
 
 /**
+ * @function gradumify
  * @group GradumSelector
+ *
+ * @description Install every selector function onto the {@link GradumSelector} prototype. Runs once — later
+ * calls are no-ops — and is invoked automatically the first time {@link gradum} is called, so you rarely
+ * need it directly. Call it yourself only to opt a family of functions out before anything else runs.
+ * @param {GradumifyOptions} [options={}] - Which function families to skip.
+ *
+ * @example
+ * ```ts
+ * // Install everything except the tool and constrainer functions.
+ * gradumify({excludeToolFunctions: true, excludeConstrainerFunctions: true});
+ * ```
  */
 const gradumify = callOnce(function (options: GradumifyOptions = {}) {
     if (!options.excludeHierarchyFunctions) setupHierarchyFunctions();

@@ -14,16 +14,30 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="pointinsiderect"><span class="tsd-kind-call-signature">pointInsideRect</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">point</span><span class="tsd-signature-symbol">:</span> <a href="../types/Coordinate.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">rect</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">margin</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#pointinsiderect" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>pointInsideRect</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">point</span>: <a href="../types/Coordinate.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate</a></span></li>
-<li><span><span class="tsd-kind-parameter">rect</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span></li>
-<li><span><span class="tsd-kind-parameter">margin</span>: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 5</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">point</span>: <a href="../types/Coordinate.html" class="tsd-signature-type tsd-kind-type-alias">Coordinate</a></span>
+<div class="tsd-comment tsd-typography"><p>The point to test.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">rect</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span>
+<div class="tsd-comment tsd-typography"><p>The rectangle to test against.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">margin</span>: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 5</span></span>
+<div class="tsd-comment tsd-typography"><p>How far outside the rectangle still counts as inside, in pixels.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p><code>true</code> if the point is inside the rectangle grown by <code>margin</code>.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether a point falls within a rectangle, with a tolerance band so a near miss still
+counts — useful for hit-testing against a pointer, which rarely lands exactly on target.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/geometry/rect.ts:27</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/geometry/rect.ts:51</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

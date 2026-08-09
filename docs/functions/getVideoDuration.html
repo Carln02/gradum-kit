@@ -14,14 +14,26 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="getvideoduration"><span class="tsd-kind-call-signature">getVideoDuration</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">input</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/API/Blob" class="tsd-signature-type external" target="_blank">Blob</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><a href="#getvideoduration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>getVideoDuration</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">input</span>: <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/API/Blob" class="tsd-signature-type external" target="_blank">Blob</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">input</span>: <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/API/Blob" class="tsd-signature-type external" target="_blank">Blob</a></span>
+<div class="tsd-comment tsd-typography"><p>The video to measure, as a blob or a URL. URLs are fetched anonymously, so
+a remote server must allow cross-origin reads.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4><p>The duration in seconds. Rejects if the metadata cannot be loaded.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Read how long a video is without displaying it, by loading just its metadata into a detached
+element. Streams whose duration is not known upfront are handled by seeking to the end to force the browser
+to resolve it. The element and any temporary object URL are cleaned up before the promise settles.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/dataManipulation/video.ts:3</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/dataManipulation/video.ts:15</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

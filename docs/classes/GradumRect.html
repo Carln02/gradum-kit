@@ -12,15 +12,22 @@
 <h1>Class GradumRect</h1></div>
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>GradumRect</p>
-</div></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="3879">
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A rectangle that can be rotated, unlike the axis-aligned
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/DOMRect">DOMRect</a> it extends. Its geometry helpers
+(<a href="#closestpoint" class="tsd-kind-method">GradumRect.closestPoint</a>, <a href="#distanceto" class="tsd-kind-method">GradumRect.distanceTo</a>, <a href="#overlaps" class="tsd-kind-method">GradumRect.overlaps</a>) all
+account for the rotation, and accept a point, a segment, or another rect.</p>
+</div></div></section>
+<section class="tsd-panel tsd-hierarchy" data-refl="3884">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">GradumRect</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:16</li></ul></aside>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:22</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -65,24 +72,39 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumRectProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumRectProperties</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumRect</a></h4><aside class="tsd-sources">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumRectProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumRectProperties</a><span class="tsd-signature-symbol"> = {}</span></span>
+<div class="tsd-comment tsd-typography"><p>The rectangle's position, size, rotation, and anchor.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumRect</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create a rectangle. Give either <code>angleRad</code> or <code>angleDeg</code> to rotate it; omitting both
+leaves it axis-aligned.</p>
+</div></div><aside class="tsd-sources">
 <p>Overrides DOMRect.constructor</p>
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:20</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:39</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="anglerad"><span>angle<wbr/>Rad</span><a href="#anglerad" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">angleRad</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">angleRad</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The rectangle's rotation in radians, about its centre.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:17</li></ul></aside></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:26</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="anchor"><span>anchor</span><a href="#anchor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">anchor</span><span class="tsd-signature-symbol">:</span> <a href="AnchorPoint.html" class="tsd-signature-type tsd-kind-class">AnchorPoint</a></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">anchor</span><span class="tsd-signature-symbol">:</span> <a href="AnchorPoint.html" class="tsd-signature-type tsd-kind-class">AnchorPoint</a></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The anchor the rectangle is positioned from.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:18</li></ul></aside></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:31</li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -92,9 +114,14 @@
 <li>
 <div class="tsd-signature" id="angledegangledeg"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">angleDeg</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The rectangle's rotation in degrees. Reads and writes the same rotation as
+<a href="#anglerad" class="tsd-kind-property">GradumRect.angleRad</a>, converted.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:51</li></ul></aside></div></li>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:101</li></ul></aside></div></li>
 <li>
 <div class="tsd-signature" id="angledegangledeg-1"><span class="tsd-signature-keyword">set</span> <span class="tsd-kind-set-signature">angleDeg</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span></div>
 <div class="tsd-description">
@@ -104,54 +131,73 @@
 <li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">number</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:55</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:105</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="center"><span>center</span><a href="#center" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="centercenter"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">center</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The rectangle's centre point.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:59</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:113</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="xaxis"><span>x<wbr/>Axis</span><a href="#xaxis" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="xaxisxaxis"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">xAxis</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The unit vector along the rectangle's own x axis, pointing along its width once rotated.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:63</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:121</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="yaxis"><span>y<wbr/>Axis</span><a href="#yaxis" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="yaxisyaxis"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">yAxis</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The unit vector along the rectangle's own y axis, pointing along its height once rotated.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:67</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:129</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="half"><span>half</span><a href="#half" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="halfhalf"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">half</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Half the rectangle's width and height, as a point.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:71</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:137</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="points"><span>points</span><a href="#points" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li>
 <div class="tsd-signature" id="pointspoints"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">points</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">]</span></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Corners in world/screen coords (clockwise)</p>
-</div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">[</span><a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">]</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">[</span><a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">]</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The rectangle's four corners in screen coordinates, clockwise from the top-left,
+with the rotation applied.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:76</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:146</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -160,148 +206,274 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="fromsegment-1"><span class="tsd-kind-call-signature">fromSegment</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">a</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">b</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">thickness</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">properties</span><span class="tsd-signature-symbol">?:</span> <a href="../types/GradumRectProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumRectProperties</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumRect</a><a href="#fromsegment-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>fromSegment</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">a</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li>
-<li><span><span class="tsd-kind-parameter">b</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li>
-<li><span><span class="tsd-kind-parameter">thickness</span>: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 1</span></span></li>
-<li><span><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumRectProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumRectProperties</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumRect</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">a</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The segment's start.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">b</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The segment's end.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thickness</span>: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 1</span></span>
+<div class="tsd-comment tsd-typography"><p>The rectangle's height, across the segment.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumRectProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumRectProperties</a><span class="tsd-signature-symbol"> = {}</span></span>
+<div class="tsd-comment tsd-typography"><p>Extra properties. The computed rotation wins over
+any angle given here.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumRect</a></h4><p>The rectangle covering the segment.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static">Static<a href="#static" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Build a rectangle covering the segment between two points: centred on the segment,
+as long as it, and rotated to match its direction.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:27</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:58</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="fromdomrect"><code class="tsd-tag">Static</code><span>from<wbr/>DOM<wbr/>Rect</span><a href="#fromdomrect" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="fromdomrect-1"><span class="tsd-kind-call-signature">fromDOMRect</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">rect</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">properties</span><span class="tsd-signature-symbol">?:</span> <a href="../types/GradumRectProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumRectProperties</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumRect</a><a href="#fromdomrect-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>fromDOMRect</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">rect</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span></li>
-<li><span><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumRectProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumRectProperties</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumRect</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">rect</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span>
+<div class="tsd-comment tsd-typography"><p>The rect to copy position and size from.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumRectProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumRectProperties</a><span class="tsd-signature-symbol"> = {}</span></span>
+<div class="tsd-comment tsd-typography"><p>Extra properties, such as a rotation to apply.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumRect</a></h4><p>The converted rectangle.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static-1">Static<a href="#static-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Build a rectangle from a plain <code>DOMRect</code>, such as one returned by
+<code>getBoundingClientRect()</code>.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:40</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:80</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="render"><span>render</span><a href="#render" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="render-1"><span class="tsd-kind-call-signature">render</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/HTMLElement" class="tsd-signature-type external" target="_blank">HTMLElement</a><a href="#render-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/HTMLElement" class="tsd-signature-type external" target="_blank">HTMLElement</a></h4><aside class="tsd-sources">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>render</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/API/HTMLElement" class="tsd-signature-type external" target="_blank">HTMLElement</a></h4><p>The generated element. It is not attached to the document.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create a translucent red <code>div</code> matching this rectangle's position, size, and rotation.
+Meant for debugging geometry — append the result to the document to see where the rect actually is.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:44</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:90</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="closestpoint"><span>closest<wbr/>Point</span><a href="#closestpoint" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="closestpoint-1"><span class="tsd-kind-call-signature">closestPoint</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">point</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><a href="#closestpoint-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Closest point on (or inside) this rotated rect to p</p>
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>closestPoint</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">point</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">point</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The point to measure to.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><p>The nearest point on this rectangle.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the point on this rectangle nearest to the given point. Points inside the
+rectangle return themselves.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:89</li></ul></aside></div></li>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:165</li></ul></aside></div></li>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="closestpoint-2"><span class="tsd-kind-call-signature">closestPoint</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">point1</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">point2</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><a href="#closestpoint-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Closest point on (or inside) this rotated rect to p</p>
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>closestPoint</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">point1</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li>
-<li><span><span class="tsd-kind-parameter">point2</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">point1</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The segment's start.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">point2</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The segment's end.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><p>The nearest point on this rectangle.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the point on this rectangle nearest to the segment between two points. Returns
+the intersection if the segment crosses the rectangle.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:90</li></ul></aside></div></li>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:175</li></ul></aside></div></li>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="closestpoint-3"><span class="tsd-kind-call-signature">closestPoint</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">rect</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><a href="#closestpoint-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Closest point on (or inside) this rotated rect to p</p>
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>closestPoint</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">rect</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">rect</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span>
+<div class="tsd-comment tsd-typography"><p>The rectangle to measure to.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></h4><p>The nearest point on this rectangle.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-15">Description<a href="#description-15" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the point on this rectangle nearest to another rectangle. Accepts a plain
+<code>DOMRect</code> or a rotated <a href="#" class="tsd-kind-class">GradumRect</a>.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:91</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:184</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="distanceto"><span>distance<wbr/>To</span><a href="#distanceto" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="distanceto-1"><span class="tsd-kind-call-signature">distanceTo</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">point</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#distanceto-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>distanceTo</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">point</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">point</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The point to measure to.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><p>The distance, or <code>0</code> if the point is inside this rectangle.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-16">Description<a href="#description-16" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Measure the shortest distance from this rectangle to a point.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:194</li></ul></aside></div></li>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:293</li></ul></aside></div></li>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="distanceto-2"><span class="tsd-kind-call-signature">distanceTo</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">point1</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">point2</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#distanceto-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>distanceTo</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">point1</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li>
-<li><span><span class="tsd-kind-parameter">point2</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">point1</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The segment's start.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">point2</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The segment's end.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><p>The distance, or <code>0</code> if the segment crosses this rectangle.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-17">Description<a href="#description-17" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Measure the shortest distance from this rectangle to the segment between two points.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:195</li></ul></aside></div></li>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:302</li></ul></aside></div></li>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="distanceto-3"><span class="tsd-kind-call-signature">distanceTo</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">rect</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#distanceto-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>distanceTo</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">rect</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">rect</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span>
+<div class="tsd-comment tsd-typography"><p>The rectangle to measure to.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><p>The distance, or <code>0</code> if the two overlap.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-18">Description<a href="#description-18" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Measure the shortest distance from this rectangle to another rectangle.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:196</li></ul></aside></div></li></ul></section>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:310</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="overlaps"><span>overlaps</span><a href="#overlaps" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="overlaps-1"><span class="tsd-kind-call-signature">overlaps</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">other</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#overlaps-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>overlaps</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">other</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">other</span>: <a href="https://developer.mozilla.org/docs/Web/API/DOMRect" class="tsd-signature-type external" target="_blank">DOMRect</a></span>
+<div class="tsd-comment tsd-typography"><p>The rectangle to test against.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>Whether the two overlap.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-19">Description<a href="#description-19" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Test whether this rectangle overlaps another. Accepts a plain <code>DOMRect</code> or a rotated
+<a href="#" class="tsd-kind-class">GradumRect</a>.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:225</li></ul></aside></div></li>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:346</li></ul></aside></div></li>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="overlaps-2"><span class="tsd-kind-call-signature">overlaps</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">point</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#overlaps-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>overlaps</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">point</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">point</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The point to test.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>Whether the point is contained.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-20">Description<a href="#description-20" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Test whether a point lies on or inside this rectangle.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:226</li></ul></aside></div></li>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:354</li></ul></aside></div></li>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="overlaps-3"><span class="tsd-kind-call-signature">overlaps</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">a</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">b</span><span class="tsd-signature-symbol">:</span> <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#overlaps-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>overlaps</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">a</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li>
-<li><span><span class="tsd-kind-parameter">b</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">a</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The segment's start.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">b</span>: <a href="Point.html" class="tsd-signature-type tsd-kind-class">Point</a></span>
+<div class="tsd-comment tsd-typography"><p>The segment's end.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>Whether the segment intersects this rectangle.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-21">Description<a href="#description-21" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Test whether the segment between two points crosses this rectangle.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:227</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/gradumComponents/datatypes/rect/rect.ts:363</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -9,7 +9,6 @@ import {ListenerSet} from "../../gradumComponents/datatypes/listener/listenerSet
  * @category Event
  *
  * @description Enum dictating the propagation of an event.
- *
  * @property {Propagation.propagate} propagate - Continue normal propagation.
  * @property {Propagation.stopPropagation} stopPropagation - Stop propagation to parent targets.
  * @property {Propagation.stopImmediatePropagation} stopImmediatePropagation - Stop propagation and prevent any
@@ -28,7 +27,6 @@ enum Propagation {
  *
  * @description Options for {@link GradumSelector.preventDefault}, which prevents default browser behaviors for
  * selected event types and can optionally stop propagation.
- *
  * @property {string[]} [types] - List of event types to affect. If omitted, defaults to {@link BasicInputEvents}.
  * @property {"capture" | "bubble"} [phase] - Which phase to prevent. Defaults to `"bubble"`.
  * @property {false | "stop" | "immediate"} [stop] - Whether to stop propagation when handling the event:
@@ -89,8 +87,8 @@ declare module "../gradumSelector" {
 
         /**
          * @function on
-         * @description Adds an event listener to the element.
          * @template {Node} Type - The type of the element.
+         * @description Adds an event listener to the element.
          * @param {string} type - The type of the event.
          * @param {ListenerCallback<Type>} listener - The function that receives a notification.
          * @param {ListenerOptions} [options] - An options object that specifies characteristics
@@ -142,7 +140,7 @@ declare module "../gradumSelector" {
          * @param {ListenerCallback} listener - The function that receives a notification.
          * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
-         * @returns {boolean} - Whether the element has the given listener.
+         * @returns {boolean} Whether the element has the given listener.
          */
         hasListener(type: string, listener: ListenerCallback, manager?: GradumEventManager): boolean;
 
@@ -155,7 +153,7 @@ declare module "../gradumSelector" {
          * @param {ListenerCallback} listener - The function that receives a notification.
          * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
-         * @returns {boolean} - Whether the element has the given listener.
+         * @returns {boolean} Whether the element has the given listener.
          */
         hasToolListener(type: string, toolName: string, listener: ListenerCallback,
                     manager?: GradumEventManager): boolean;
@@ -168,7 +166,7 @@ declare module "../gradumSelector" {
          * to check for listeners not bound to a tool.
          * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
-         * @returns {boolean} - Whether the element has a listener of this type.
+         * @returns {boolean} Whether the element has a listener of this type.
          */
         hasListenersByType(type: string, toolName?: string, manager?: GradumEventManager): boolean;
 

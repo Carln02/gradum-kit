@@ -3,7 +3,7 @@
  * @group Decorators
  * @category Augmentation
  *
- * @template Type
+ * @template Type - The type of the decorated property.
  * @description Options for configuring the `@auto` decorator.
  * @property {boolean} [override] - If true, will try to override the defined property in `super`.
  * @property {boolean} [cancelIfUnchanged=true] - If true, cancels the setter if the new value is the same as the

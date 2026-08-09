@@ -5,13 +5,23 @@ import {SvgNamespace, SvgTags} from "../types/svgElement.types";
 import {MathMLNamespace, MathMLTags} from "../types/mathMlElement.types";
 
 /**
+ * @function generateTagFunction
  * @group Element Creation
  * @category Creation Functions
  *
- * @description returns a function that generates an HTML element with the provided tag that takes GradumProperties
- * as input.
- * @param {keyof ElementTagMap} tag - The tag to generate the function from.
- * @return The function
+ * @template {ValidTag} Tag - The tag the generated function creates.
+ * @description Build a creation function bound to one tag, so callers no longer have to pass the tag
+ * themselves. Use it to add a shorthand builder for a tag this library does not already ship one for —
+ * the result behaves like the built-in {@link div} and {@link span}.
+ * @param {Tag} tag - The tag the returned function creates.
+ * @returns {(properties?: GradumProperties<Tag>) => ValidElement<Tag>} A function that creates an
+ * element of that tag from the given properties.
+ *
+ * @example
+ * ```ts
+ * const section = generateTagFunction("section");
+ * const el = section({classes: "panel"});
+ * ```
  */
 function generateTagFunction<Tag extends ValidTag>(tag: Tag) {
     return (properties: GradumProperties<Tag> = {} as GradumProperties<Tag>): ValidElement<Tag> => {
@@ -21,13 +31,17 @@ function generateTagFunction<Tag extends ValidTag>(tag: Tag) {
 }
 
 /**
+ * @function element
  * @group Element Creation
  * @category Creation Functions
  *
- * @description Create an element with the specified properties (and the specified namespace if applicable).
- * @param {GradumProperties<Tag>} [properties] - Object containing properties of the element.
- * @returns {ValidElement<Tag>} The created element.
- * @template Tag
+ * @template {ValidTag} Tag - The tag of the element to create.
+ * @description Create an element from a properties object and apply those properties to it. The
+ * namespace is taken from `properties.namespace`: pass `"svg"` or `"mathML"` for those documents, or a
+ * namespace URI directly. Use {@link blindElement} instead to have the namespace inferred from the tag.
+ * @param {GradumProperties<Tag>} [properties] - Object containing properties of the element. Defaults
+ * to a `<div>` when no tag is given.
+ * @returns {ValidElement<Tag>} The created element, with the given properties already applied.
  */
 function element<Tag extends ValidTag>(properties: GradumProperties<Tag> = {} as GradumProperties<Tag>): ValidElement<Tag> {
     let element: Element;
@@ -45,13 +59,17 @@ function element<Tag extends ValidTag>(properties: GradumProperties<Tag> = {} as
 }
 
 /**
+ * @function blindElement
  * @group Element Creation
  * @category Creation Functions
  *
- * @description Create an element with the specified properties. Supports SVG and MathML.
- * @param {GradumProperties<Tag>} [properties] - Object containing properties of the element.
- * @returns {ValidElement<Tag>} The created element.
- * @template Tag
+ * @template {ValidTag} Tag - The tag of the element to create.
+ * @description Create an element from a properties object, working out the namespace from the tag alone
+ * — SVG tags land in the SVG namespace, MathML tags in the MathML one, everything else in HTML. Use it
+ * when the tag is only known at runtime; use {@link element} when you can state the namespace yourself.
+ * @param {GradumProperties<Tag>} [properties] - Object containing properties of the element. Defaults
+ * to a `<div>` when no tag is given.
+ * @returns {ValidElement<Tag>} The created element, with the given properties already applied.
  */
 function blindElement<Tag extends ValidTag>(properties: GradumProperties<Tag> = {} as GradumProperties<Tag>): ValidElement<Tag> {
     let element: Element;
@@ -64,24 +82,24 @@ function blindElement<Tag extends ValidTag>(properties: GradumProperties<Tag> = 
 }
 
 /**
- * @group Element Creation
- * @category Tag Functions
- *
- * @description Evaluates whether the provided string is an SVG tag.
- * @param {string} [tag] - The string to evaluate
- * @return A boolean indicating whether the tag is in the SVG namespace or not.
+ * @internal
+ * @function isSvgTag
+ * @description Whether a tag belongs to the SVG namespace. Recognizes the known SVG tag list, plus any
+ * tag starting with `svg`.
+ * @param {string} [tag] - The tag to test.
+ * @returns {boolean} `true` if the tag should be created in the SVG namespace.
  */
 function isSvgTag(tag?: string): boolean {
     return SvgTags.has(tag as any) || tag?.startsWith("svg");
 }
 
 /**
- * @group Element Creation
- * @category Tag Functions
- *
- * @description Evaluates whether the provided string is a MathML tag.
- * @param {string} [tag] - The string to evaluate
- * @return A boolean indicating whether the tag is in the MathML namespace or not.
+ * @internal
+ * @function isMathMLTag
+ * @description Whether a tag belongs to the MathML namespace. Recognizes the known MathML tag list, plus
+ * any tag starting with `math`.
+ * @param {string} [tag] - The tag to test.
+ * @returns {boolean} `true` if the tag should be created in the MathML namespace.
  */
 function isMathMLTag(tag?: string): boolean {
     return MathMLTags.has(tag as any) || tag?.startsWith("math");

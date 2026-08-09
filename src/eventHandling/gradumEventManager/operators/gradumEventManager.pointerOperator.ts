@@ -10,6 +10,15 @@ import {GradumWheelEvent} from "../../events/gradumWheelEvent";
 import {clearCache} from "../../../decorators/cache/cache";
 import {GradumEventName, GradumEventNameEntry} from "../../../types/eventNaming.types";
 
+/**
+ * @internal
+ * @class GradumEventManagerPointerOperator
+ * @extends GradumOperator
+ * @description Turns raw pointer input into Gradum's click, long-press, move, and drag events. It tracks
+ * every active pointer so multi-touch gestures stay coherent, and decides what an interaction is by
+ * watching it: a press becomes a long press once it outlives `longPressDuration`, or a drag once it
+ * travels past `moveThreshold`.
+ */
 export class GradumEventManagerPointerOperator extends GradumOperator<GradumEventManager, any, GradumEventManagerModel> {
     public keyName = "pointer";
 
@@ -215,10 +224,12 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
     }
 
     /**
-     * @description Fires a custom Gradum click event at the click target with the click position
-     * @param p
-     * @param eventName
      * @private
+     * @function fireClick
+     * @description Fire a click-family event at whichever element sits under the given position.
+     * @param {Point} p - The screen position the click happened at. Nothing fires when it is undefined.
+     * @param {GradumEventNameEntry} [eventName=GradumEventName.click] - The event name to fire, letting the
+     * same path emit click start, click end, and long press.
      */
     private fireClick(p: Point, eventName: GradumEventNameEntry = GradumEventName.click) {
         if (!p) return;
@@ -227,10 +238,14 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
     }
 
     /**
-     * @description Fires a custom Gradum drag event at the target with the origin of the drag, the last drag position, and the current position
-     * @param positions
-     * @param eventName
      * @private
+     * @function fireDrag
+     * @description Fire a drag-family event at the drag's origin element, carrying the origin, the previous
+     * position, and the current position of every active pointer.
+     * @param {GradumMap<number, Point>} positions - Current position per pointer id. Nothing fires when it
+     * is undefined.
+     * @param {GradumEventNameEntry} [eventName=GradumEventName.drag] - The event name to fire, letting the
+     * same path emit drag start, drag, and drag end.
      */
     private fireDrag(positions: GradumMap<number, Point>, eventName: GradumEventNameEntry = GradumEventName.drag) {
         if (!positions) return;

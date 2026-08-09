@@ -14,22 +14,29 @@
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="fetchsvg"><span class="tsd-kind-call-signature">fetchSvg</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">path</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">logError</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><a href="https://developer.mozilla.org/docs/Web/API/SVGElement" class="tsd-signature-type external" target="_blank">SVGElement</a><span class="tsd-signature-symbol">&gt;</span><a href="#fetchsvg" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description">
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>fetchSvg</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">path</span>: <span class="tsd-signature-type">string</span></span>
-<div class="tsd-comment tsd-typography"><p>The path to the SVG</p>
+<div class="tsd-comment tsd-typography"><p>The path or URL to fetch the SVG from.</p>
 </div></li>
-<li><span><span class="tsd-kind-parameter">logError</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><a href="https://developer.mozilla.org/docs/Web/API/SVGElement" class="tsd-signature-type external" target="_blank">SVGElement</a><span class="tsd-signature-symbol">&gt;</span></h4><p>An SVGElement promise</p>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">logError</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></span>
+<div class="tsd-comment tsd-typography"><p>Whether to also log failures to the console. The promise rejects either
+way.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><a href="https://developer.mozilla.org/docs/Web/API/SVGElement" class="tsd-signature-type external" target="_blank">SVGElement</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The parsed SVG element. Rejects on an empty path, a failed request, or
+markup that does not parse.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Fetches an SVG from the given path</p>
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Fetch an SVG file and parse it into a live element, ready to be inserted into the document.
+Because the markup is parsed rather than placed in an <code>&lt;img&gt;</code>, the result can be styled and scripted.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/utils/dataManipulation/svg.ts:12</li></ul></aside></div></li></ul></section></div>
+<li>Defined in src/utils/dataManipulation/svg.ts:16</li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

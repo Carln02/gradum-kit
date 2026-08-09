@@ -33,7 +33,7 @@ the custom defined target.</p>
 <li><span id="emittertype"><span class="tsd-kind-type-parameter">EmitterType</span> <span class="tsd-signature-keyword">extends</span> <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a> = <a href="GradumEmitter.html" class="tsd-signature-type tsd-kind-class">GradumEmitter</a></span>
 <div class="tsd-comment tsd-typography"><p>The element's MVC emitter type.</p>
 </div></li></ul></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="6479">
+<section class="tsd-panel tsd-hierarchy" data-refl="6483">
 <h4>Hierarchy (<a href="../hierarchy.html#GradumInteractor">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="GradumOperator.html" class="tsd-signature-type tsd-kind-class">GradumOperator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">&gt;</span>
@@ -99,11 +99,20 @@ the custom defined target.</p>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumInteractorProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumInteractorProperties</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">&gt;</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumInteractor</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumInteractorProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumInteractorProperties</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>The element to attach to, plus the tool name, target,
+event manager, and listener options.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumInteractor</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create an interactor bound to an element. Anything omitted from <code>properties</code> falls back to
+the value already declared on the instance, then to a default — the event manager to
+<a href="GradumEventManager.html#instance" class="tsd-kind-accessor">GradumEventManager.instance</a>, and the listener options to an empty object.</p>
+</div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in src/mvc/interactor/interactor.ts:60</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/mvc/interactor/interactor.ts:68</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -112,7 +121,7 @@ the custom defined target.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">keyName</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-1">Description<a href="#description-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The key of the interactor. Used to retrieve it in the main component. If not set, if the element's
+<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The key of the interactor. Used to retrieve it in the main component. If not set, if the element's
 class name is MyElement and the interactor's class name is MyElementSomethingInteractor, the key would
 default to &quot;something&quot;.</p>
 </div></div><aside class="tsd-sources">
@@ -124,7 +133,7 @@ default to &quot;something&quot;.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">toolName</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-2">Description<a href="#description-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The name of the tool (if any) to listen for.</p>
+<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The name of the tool (if any) to listen for.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/interactor/interactor.ts:45</li></ul></aside></section>
@@ -133,7 +142,7 @@ default to &quot;something&quot;.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">manager</span><span class="tsd-signature-symbol">:</span> <a href="GradumEventManager.html" class="tsd-signature-type tsd-kind-class">GradumEventManager</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-3">Description<a href="#description-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The associated event manager. Defaults to <code>GradumEventManager.instance</code>.</p>
+<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The associated event manager. Defaults to <code>GradumEventManager.instance</code>.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/interactor/interactor.ts:51</li></ul></aside></section>
@@ -142,7 +151,7 @@ default to &quot;something&quot;.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">options</span><span class="tsd-signature-symbol">:</span> <a href="../types/ListenerOptions.html" class="tsd-signature-type tsd-kind-type-alias">ListenerOptions</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-4">Description<a href="#description-4" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Optional custom options to define per event type.</p>
+<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Optional custom options to define per event type.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/interactor/interactor.ts:58</li></ul></aside></section>
@@ -151,7 +160,7 @@ default to &quot;something&quot;.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">element</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#elementtype">ElementType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-5">Description<a href="#description-5" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The element it is bound to.</p>
+<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The element it is bound to.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#element">element</a></p>
 <ul>
@@ -161,7 +170,7 @@ default to &quot;something&quot;.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">view</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#viewtype">ViewType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-6">Description<a href="#description-6" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC view.</p>
+<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC view.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#view">view</a></p>
 <ul>
@@ -171,7 +180,7 @@ default to &quot;something&quot;.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">model</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#modeltype">ModelType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-7">Description<a href="#description-7" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC model.</p>
+<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC model.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#model">model</a></p>
 <ul>
@@ -181,7 +190,7 @@ default to &quot;something&quot;.</p>
 <div class="tsd-signature"><span class="tsd-kind-property">emitter</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#emittertype">EmitterType</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-8">Description<a href="#description-8" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC emitter.</p>
+<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The MVC emitter.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#emitter">emitter</a></p>
 <ul>
@@ -194,7 +203,7 @@ default to &quot;something&quot;.</p>
 <div class="tsd-signature"><span class="tsd-kind-accessor">target</span><span class="tsd-signature-symbol">:</span> <a href="https://developer.mozilla.org/docs/Web/API/Node" class="tsd-signature-type external" target="_blank">Node</a></div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-9">Description<a href="#description-9" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The target of the event listeners. Defaults to the element itself.</p>
+<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The target of the event listeners. Defaults to the element itself.</p>
 </div></div><aside class="tsd-sources">
 <ul>
 <li>Defined in src/mvc/interactor/interactor.ts:39</li></ul></aside></section></section></details>
@@ -212,12 +221,12 @@ default to &quot;something&quot;.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-10">Description<a href="#description-10" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Called in the constructor. Use for setup that should happen at instantiation,
+<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Called in the constructor. Use for setup that should happen at instantiation,
 before <code>this.initialize()</code> is called.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#setup">setup</a></p>
 <ul>
-<li>Defined in src/mvc/operator/operator.ts:70</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/operator/operator.ts:77</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="initialize"><span>initialize</span><a href="#initialize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -229,11 +238,11 @@ before <code>this.initialize()</code> is called.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-11">Description<a href="#description-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Initializes the operator. Specifically, it will set up the change callbacks.</p>
+<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Initializes the operator. Specifically, it will set up the change callbacks.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#initialize">initialize</a></p>
 <ul>
-<li>Defined in src/mvc/operator/operator.ts:76</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/operator/operator.ts:83</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setupuilisteners"><code class="tsd-tag">Protected</code><span>setup<wbr/>UI<wbr/>Listeners</span><a href="#setupuilisteners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -245,11 +254,11 @@ before <code>this.initialize()</code> is called.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-12">Description<a href="#description-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method for defining DOM and input event listeners.</p>
+<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method for defining DOM and input event listeners.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#setupuilisteners">setupUIListeners</a></p>
 <ul>
-<li>Defined in src/mvc/operator/operator.ts:86</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/operator/operator.ts:93</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setupchangedcallbacks"><code class="tsd-tag">Protected</code><span>setup<wbr/>Changed<wbr/>Callbacks</span><a href="#setupchangedcallbacks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -261,11 +270,11 @@ before <code>this.initialize()</code> is called.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-13">Description<a href="#description-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method intended to initialize change listeners and callbacks.</p>
+<h4 class="tsd-anchor-link" id="description-14">Description<a href="#description-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Setup method intended to initialize change listeners and callbacks.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumOperator.html">GradumOperator</a>.<a href="GradumOperator.html#setupchangedcallbacks">setupChangedCallbacks</a></p>
 <ul>
-<li>Defined in src/mvc/operator/operator.ts:95</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/mvc/operator/operator.ts:102</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

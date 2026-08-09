@@ -19,7 +19,10 @@ import {addRegistryCategory, define} from "../../decorators/define/define";
  * @template {GradumView} ViewType - The element's view type, if any.
  * @template {GradumModel} ModelType - The element's model type, if any.
  * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- * @description Class representing a tool in MVC, bound to the provided element.
+ * @description A named mode that changes what interacting with an element does. Its `@behavior` methods run
+ * during the capture phase of the event loop, before any interactor sees the event, so a tool can claim an
+ * interaction and stop it reaching the element underneath. Only the active tool for a given click mode
+ * receives events.
  */
 class GradumTool<
     ElementType extends object = object,
@@ -69,6 +72,15 @@ class GradumTool<
      */
     public readonly key: string;
 
+    /**
+     * @constructor
+     * @description Create a tool bound to an element. Anything omitted from `properties` falls back to the
+     * value already declared on the instance, then to a default — the event manager to
+     * {@link GradumEventManager.instance}, the activation event to the default click name, and the click mode
+     * to `ClickMode.left`.
+     * @param {GradumToolProperties} properties - The element to attach to, plus the tool name, embedded
+     * target, activation event, click mode, mapped key, and activation callbacks.
+     */
     public constructor(properties: GradumToolProperties<ElementType, ViewType, ModelType, EmitterType>) {
         super(properties);
         this.toolName = properties.toolName ?? this.toolName ?? undefined;
@@ -87,8 +99,8 @@ class GradumTool<
     /**
      * @function initialize
      * @override
-     * @description Initialization function that calls {@link makeTool} on `this.element`, sets it up, and attaches
-     * all the defined tool behaviors.
+     * @description Initialization function that calls {@link GradumSelector.makeTool} on `this.element`, sets it up,
+     * and attaches all the defined tool behaviors.
      */
     public initialize(): void {
         if (this.toolName) gradum(this).makeTool(this.toolName, {

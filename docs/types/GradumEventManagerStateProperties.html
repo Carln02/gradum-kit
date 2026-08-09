@@ -10,9 +10,15 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">GradumEventManagerStateProperties</a></li></ul>
 <h1>Type Alias GradumEventManagerStateProperties</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Whether a <a href="../classes/GradumEventManager.html" class="tsd-kind-class">GradumEventManager</a> is running, and which native default actions it
+suppresses while it does.</p>
+</div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">GradumEventManagerStateProperties</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#enabled">enabled</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#preventdefaultwheel">preventDefaultWheel</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#preventdefaultmouse">preventDefaultMouse</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#preventdefaulttouch">preventDefaultTouch</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:9</li></ul></aside>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:20</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -30,24 +36,35 @@
 <section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="enabled"><code class="tsd-tag">Optional</code><span>enabled</span><a href="#enabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">enabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">enabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether the manager processes input at all. Set it to <code>false</code> to
+silence every Gradum event without tearing the manager down.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:10</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:21</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preventdefaultwheel"><code class="tsd-tag">Optional</code><span>prevent<wbr/>Default<wbr/>Wheel</span><a href="#preventdefaultwheel" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">preventDefaultWheel</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">preventDefaultWheel</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether to call <code>preventDefault</code> on wheel input,
+suppressing native page zoom and scroll.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:11</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:22</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preventdefaultmouse"><code class="tsd-tag">Optional</code><span>prevent<wbr/>Default<wbr/>Mouse</span><a href="#preventdefaultmouse" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">preventDefaultMouse</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">preventDefaultMouse</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether to call <code>preventDefault</code> on mouse input.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:12</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:23</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preventdefaulttouch"><code class="tsd-tag">Optional</code><span>prevent<wbr/>Default<wbr/>Touch</span><a href="#preventdefaulttouch" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">preventDefaultTouch</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">preventDefaultTouch</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether to call <code>preventDefault</code> on touch input,
+suppressing native scrolling and pinch-zoom.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:13</li></ul></aside></section></section></details></div>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:24</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

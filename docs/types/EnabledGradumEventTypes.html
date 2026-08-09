@@ -10,9 +10,16 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">EnabledGradumEventTypes</a></li></ul>
 <h1>Type Alias EnabledGradumEventTypes</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Which families of Gradum events a manager fires. The first four switch off input
+<em>sources</em>; the last three switch off <em>interpretations</em> the manager derives from them, so you can keep
+pointer input while dropping, say, drag events. All default to <code>true</code>.</p>
+</div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">EnabledGradumEventTypes</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#keyeventsenabled">keyEventsEnabled</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#wheeleventsenabled">wheelEventsEnabled</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#mouseeventsenabled">mouseEventsEnabled</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#toucheventsenabled">touchEventsEnabled</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#clickeventsenabled">clickEventsEnabled</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#drageventsenabled">dragEventsEnabled</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#moveeventsenabled">moveEventsEnabled</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:20</li></ul></aside>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:43</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -33,39 +40,53 @@
 <section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="keyeventsenabled"><code class="tsd-tag">Optional</code><span>key<wbr/>Events<wbr/>Enabled</span><a href="#keyeventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">keyEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">keyEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether keyboard input produces <a href="../classes/GradumKeyEvent.html" class="tsd-kind-class">GradumKeyEvent</a>s.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:21</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:44</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="wheeleventsenabled"><code class="tsd-tag">Optional</code><span>wheel<wbr/>Events<wbr/>Enabled</span><a href="#wheeleventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">wheelEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">wheelEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether wheel input produces <a href="../classes/GradumWheelEvent.html" class="tsd-kind-class">GradumWheelEvent</a>s.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:22</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:45</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="mouseeventsenabled"><code class="tsd-tag">Optional</code><span>mouse<wbr/>Events<wbr/>Enabled</span><a href="#mouseeventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">mouseEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">mouseEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether mouse input is processed.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:23</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:46</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="toucheventsenabled"><code class="tsd-tag">Optional</code><span>touch<wbr/>Events<wbr/>Enabled</span><a href="#toucheventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">touchEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">touchEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether touch input is processed.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:24</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:47</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clickeventsenabled"><code class="tsd-tag">Optional</code><span>click<wbr/>Events<wbr/>Enabled</span><a href="#clickeventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">clickEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">clickEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether click, long-press, and click start/end events fire.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:26</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:49</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="drageventsenabled"><code class="tsd-tag">Optional</code><span>drag<wbr/>Events<wbr/>Enabled</span><a href="#drageventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">dragEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">dragEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether drag and drag start/end events fire.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:27</li></ul></aside></section>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:50</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="moveeventsenabled"><code class="tsd-tag">Optional</code><span>move<wbr/>Events<wbr/>Enabled</span><a href="#moveeventsenabled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">moveEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">moveEventsEnabled</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether move events fire.</p>
+</div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:28</li></ul></aside></section></section></details></div>
+<li>Defined in src/eventHandling/gradumEventManager/gradumEventManager.types.ts:51</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

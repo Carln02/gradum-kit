@@ -19,7 +19,7 @@ These options apply equally to cached <strong>methods</strong>, <strong>getters<
 </div></div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">CacheOptions</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#timeout">timeout</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#onevent">onEvent</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#oncallback">onCallback</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#oncallbackfrequency">onCallbackFrequency</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#onfieldchange">onFieldChange</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function" class="tsd-signature-type external" target="_blank">Function</a> <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function" class="tsd-signature-type external" target="_blank">Function</a>)<span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#clearonnextframe">clearOnNextFrame</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/cache/cache.types.ts:37</li></ul></aside>
+<li>Defined in src/decorators/cache/cache.types.ts:31</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -44,7 +44,7 @@ These options apply equally to cached <strong>methods</strong>, <strong>getters<
 Useful for time-based caching where values should refresh periodically.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/cache/cache.types.ts:38</li></ul></aside></section>
+<li>Defined in src/decorators/cache/cache.types.ts:32</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="onevent"><code class="tsd-tag">Optional</code><span>on<wbr/>Event</span><a href="#onevent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onEvent</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
@@ -53,7 +53,7 @@ immediately clear the cache.
 This allows integration with custom event systems or reactive models.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/cache/cache.types.ts:39</li></ul></aside></section>
+<li>Defined in src/decorators/cache/cache.types.ts:33</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="oncallback"><code class="tsd-tag">Optional</code><span>on<wbr/>Callback</span><a href="#oncallback" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onCallback</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise" class="tsd-signature-type external" target="_blank">Promise</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></div>
@@ -61,7 +61,7 @@ This allows integration with custom event systems or reactive models.</p>
 If it returns <code>true</code>, the cache is cleared.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/cache/cache.types.ts:40</li></ul></aside></section>
+<li>Defined in src/decorators/cache/cache.types.ts:34</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="oncallbackfrequency"><code class="tsd-tag">Optional</code><span>on<wbr/>Callback<wbr/>Frequency</span><a href="#oncallbackfrequency" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onCallbackFrequency</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
@@ -69,7 +69,7 @@ If it returns <code>true</code>, the cache is cleared.</p>
 Ignored if <code>onCallback</code> is not provided.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/cache/cache.types.ts:41</li></ul></aside></section>
+<li>Defined in src/decorators/cache/cache.types.ts:35</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="onfieldchange"><code class="tsd-tag">Optional</code><span>on<wbr/>Field<wbr/>Change</span><a href="#onfieldchange" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onFieldChange</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function" class="tsd-signature-type external" target="_blank">Function</a> <span class="tsd-signature-symbol">|</span> (<span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function" class="tsd-signature-type external" target="_blank">Function</a>)<span class="tsd-signature-symbol">[]</span></div>
@@ -78,7 +78,7 @@ Whenever any of these fields or functions change, the cache for the decorated me
 Can be a string, a function reference, or an array of both.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/cache/cache.types.ts:42</li></ul></aside></section>
+<li>Defined in src/decorators/cache/cache.types.ts:36</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clearonnextframe"><code class="tsd-tag">Optional</code><span>clear<wbr/>On<wbr/>Next<wbr/>Frame</span><a href="#clearonnextframe" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">clearOnNextFrame</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -86,7 +86,7 @@ Can be a string, a function reference, or an array of both.</p>
 Useful when the cached value is only valid for the current render/update cycle.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/decorators/cache/cache.types.ts:43</li></ul></aside></section></section></details></div>
+<li>Defined in src/decorators/cache/cache.types.ts:37</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

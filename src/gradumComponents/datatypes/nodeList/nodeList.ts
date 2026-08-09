@@ -8,11 +8,13 @@ import {trim} from "../../../utils/computations/misc";
  * @group Components
  * @category GradumNodeList
  *
- * @description A composable, Set-like collection for managing nodes. Supports individual nodes, live DOM
- * collections ({@link HTMLCollection} or {@link NodeListOf}), and nested {@link GradumNodeList} instances as
- * sub-lists. Changes to sub-lists and live DOM collections propagate automatically on iteration.
- *
  * @template {object} Type - The type of the nodes held in the list.
+ * @description A composable, Set-like collection of nodes. A single list can mix individual nodes, live
+ * DOM collections ([HTMLCollection](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection) or
+ * [NodeList](https://developer.mozilla.org/en-US/docs/Web/API/NodeList)), and nested
+ * {@link GradumNodeList}s. Iteration resolves all of them in order and de-duplicates, so entries added
+ * to a sub-list or to the DOM show up without re-registering anything. Entries are held weakly, so a
+ * node removed from the document drops out of the list on its own.
  */
 class GradumNodeList<Type extends object = object> {
     private slots: WeakRef<NodeListSlot<Type>>[] = [];
@@ -23,7 +25,7 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @description Delegate fired whenever an entry is added to or removed from the list, including entries
-     * from nested {@link GradumNodeList}s, {@link HTMLCollection}s, and {@link NodeListOf} instances.
+     * from nested {@link GradumNodeList}s, `HTMLCollection`s, and `NodeListOf` instances.
      */
     public onChanged: Delegate<(entry: Type, state: "added" | "removed") => void> = new Delegate();
 
@@ -36,7 +38,7 @@ class GradumNodeList<Type extends object = object> {
     }
 
     /**
-     * @description Whether to observe added {@link HTMLCollection}s and {@link NodeListOf} instances for DOM
+     * @description Whether to observe added `HTMLCollection`s and `NodeListOf` instances for DOM
      * mutations, automatically firing {@link onChanged} when nodes are added or removed from the DOM.
      */
     @auto({cancelIfUnchanged: true}) public set observeDomLists(value: boolean) {
@@ -52,7 +54,7 @@ class GradumNodeList<Type extends object = object> {
     }
 
     /**
-     * @description A {@link Set} snapshot of all entries in this list, without duplicates.
+     * @description A `Set` snapshot of all entries in this list, without duplicates.
      */
     public get list(): Set<Type> {
         return new Set<Type>(this);
@@ -82,8 +84,8 @@ class GradumNodeList<Type extends object = object> {
     }
 
     /**
-     * @description The number of slots in this list. Individual entries, {@link HTMLCollection}s,
-     * {@link NodeListOf} instances, and nested {@link GradumNodeList}s each count as one slot, regardless
+     * @description The number of slots in this list. Individual entries, `HTMLCollection`s,
+     * `NodeListOf` instances, and nested {@link GradumNodeList}s each count as one slot, regardless
      * of how many entries they contain. For the number of resolved entries, see {@link size}.
      */
     public get slotCount(): number {
@@ -92,10 +94,10 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @function isGradumNodeList
-     * @protected
      * @description Type guard — returns true if the given value is a {@link GradumNodeList}.
      * @param {any} entry - The value to check.
      * @returns {boolean} Whether the value is a {@link GradumNodeList}.
+     * @protected
      */
     protected isGradumNodeList(entry: any): entry is GradumNodeList<Type> {
         return entry instanceof GradumNodeList;
@@ -103,11 +105,11 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @function isDomList
-     * @protected
-     * @description Type guard — returns true if the given value is an {@link HTMLCollection} or
-     * {@link NodeListOf}.
+     * @description Type guard — returns true if the given value is an `HTMLCollection` or
+     * `NodeListOf`.
      * @param {any} entry - The value to check.
      * @returns {boolean} Whether the value is a DOM list.
+     * @protected
      */
     protected isDomList(entry: any): entry is HTMLCollection | NodeListOf<Type & Node> {
         return entry instanceof NodeList || entry instanceof HTMLCollection;
@@ -115,10 +117,10 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @function isSet
-     * @protected
-     * @description Type guard — returns true if the given value is a {@link Set} or an array.
+     * @description Type guard — returns true if the given value is a `Set` or an array.
      * @param {any} entry - The value to check.
      * @returns {boolean} Whether the value is a Set or array.
+     * @protected
      */
     protected isSet(entry: any): entry is Set<Type> | Type[] {
         return entry instanceof Set || Array.isArray(entry);
@@ -126,11 +128,11 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @function isEntry
-     * @protected
      * @description Type guard — returns true if the given value is an individual node entry (i.e. not a
-     * {@link GradumNodeList}, DOM list, Set, array, or {@link WeakRef}).
+     * {@link GradumNodeList}, DOM list, Set, array, or `WeakRef`).
      * @param {any} entry - The value to check.
      * @returns {boolean} Whether the value is an individual entry.
+     * @protected
      */
     protected isEntry(entry: any): entry is Type {
         return typeof entry === "object" && entry !== null
@@ -158,10 +160,12 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @function resolveSlot
-     * @description Resolves a slot {@link WeakRef} into its constituent entries. Yields all entries from
-     * sub-lists and DOM lists, or the single entry for individual node slots. Yields nothing if the
-     * referent has been garbage collected.
+     * @description Expand a single slot into the entries it currently stands for — every entry of a
+     * sub-list or DOM list, or the one node of an individual slot. Yields nothing once the slot's
+     * referent has been garbage-collected, which is how dead entries leave the list.
      * @param {WeakRef<NodeListSlot<Type>>} slot - The slot to resolve.
+     * @returns {IterableIterator<Type>} The entries this slot resolves to, in order.
+     * @protected
      */
     protected* resolveSlot(slot: WeakRef<NodeListSlot<Type>>): IterableIterator<Type> {
         const obj = slot.deref();
@@ -171,6 +175,13 @@ class GradumNodeList<Type extends object = object> {
         else yield obj;
     }
 
+    /**
+     * @description Run a callback for each resolved unique entry, in slot order. Ignored and duplicate
+     * entries are skipped.
+     * @param {(value: Type, set: this) => void} callback - Called once per entry.
+     * @param {any} [thisArg] - Value to bind as `this` inside the callback.
+     * @returns {this} Itself, allowing for method chaining.
+     */
     public forEach(callback: (value: Type, set: this) => void, thisArg?: any): this {
         for (const entry of this) {
             callback.call(thisArg, entry, entry, this);
@@ -181,7 +192,7 @@ class GradumNodeList<Type extends object = object> {
     /**
      * @function add
      * @description Adds one or more entries to the end of the list. Entries may be individual nodes,
-     * arrays, {@link Set}s, {@link HTMLCollection}s, {@link NodeListOf} instances, or nested
+     * arrays, `Set`s, `HTMLCollection`s, `NodeListOf` instances, or nested
      * {@link GradumNodeList}s.
      * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
      * @returns {this} Itself, allowing for method chaining.
@@ -194,7 +205,7 @@ class GradumNodeList<Type extends object = object> {
     /**
      * @function addAt
      * @description Adds one or more entries at the given resolved size index. The index refers to the position
-     * among resolved unique entries, not slots. Arrays and {@link Set}s are expanded inline.
+     * among resolved unique entries, not slots. Arrays and `Set`s are expanded inline.
      * @param {number} index - The resolved entry index to insert at.
      * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
      * @returns {this} Itself, allowing for method chaining.
@@ -206,7 +217,7 @@ class GradumNodeList<Type extends object = object> {
     /**
      * @function addAtSlot
      * @description Adds one or more entries at the given slot index. Subsequent entries are inserted
-     * consecutively after the previous one. Arrays and {@link Set}s are expanded inline, each item
+     * consecutively after the previous one. Arrays and `Set`s are expanded inline, each item
      * occupying the next slot index.
      * @param {number} index - The slot index to insert at.
      * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
@@ -220,7 +231,7 @@ class GradumNodeList<Type extends object = object> {
     /**
      * @function remove
      * @description Removes one or more entries from the list. Entries may be individual nodes, arrays,
-     * {@link Set}s, {@link HTMLCollection}s, {@link NodeListOf} instances, or nested
+     * `Set`s, `HTMLCollection`s, `NodeListOf` instances, or nested
      * {@link GradumNodeList}s.
      * @param {...(NodeListType<Type> | Type)[]} entries - The entries to remove.
      * @returns {this} Itself, allowing for method chaining.
@@ -301,7 +312,7 @@ class GradumNodeList<Type extends object = object> {
      * @function has
      * @description Checks whether the given entry or entries are present in the list.
      * - For {@link GradumNodeList}s and DOM lists, checks if they belong to this list.
-     * - For arrays and {@link Set}s, returns true only if every item is present.
+     * - For arrays and `Set`s, returns true only if every item is present.
      * @param {Type | NodeListType<Type>} entry - The entry or entries to check.
      * @returns {boolean} Whether the entry or entries are present in the list.
      */
@@ -336,12 +347,13 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @function addEntry
-     * @description Core insertion method. Inserts a single entry, DOM list, sub-list, or expands an
-     * array/Set inline. Skips already-present entries and duplicate slots. Registers sub-list handlers
-     * and DOM observers as needed.
+     * @description Add one value of any accepted shape. Arrays and sets are expanded so each item takes
+     * its own slot; everything else occupies a single slot. Values already present are ignored, and
+     * sub-lists and DOM lists start being watched from here.
      * @param {Type | NodeListType<Type>} entry - The entry to add.
      * @param {number} [index] - The slot index to insert at. Defaults to the end of the slot array.
      * @returns {number} The next available slot index after this insertion, for consecutive chaining.
+     * @protected
      */
     protected addEntry(entry: Type | NodeListType<Type>, index?: number): number {
         if (index === undefined) index = this.slots.length;
@@ -373,10 +385,11 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @function removeEntry
-     * @description Core removal method. Removes a single entry, DOM list, sub-list, or expands an
-     * array/Set inline. Marks removed individual entries in {@link ignoredMap}. Disconnects observers
-     * and unregisters sub-list handlers as needed.
+     * @description Remove one value of any accepted shape. Arrays and sets are expanded and removed
+     * item by item. An individual entry stays suppressed even if a sub-list or DOM list it belongs to
+     * still resolves to it, and sub-lists and DOM lists stop being watched from here.
      * @param {Type | NodeListType<Type>} entry - The entry to remove.
+     * @protected
      */
     protected removeEntry(entry: Type | NodeListType<Type>): void {
         if (!entry) return;
@@ -412,13 +425,13 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @function insertOrRemoveSlot
-     * @description Low-level slot mutation. On `"added"`, clamps the index and splices a new
-     * {@link WeakRef} into {@link slots}. On `"removed"`, finds the slot by identity and splices it out.
-     * Fires {@link onChanged} for all resolved entries of the slot.
+     * @description Insert or drop a single slot and announce it, firing {@link onChanged} once per
+     * entry the slot resolves to. An out-of-range insertion index is clamped to the ends.
      * @param {NodeListSlot<Type>} slot - The slot value to insert or remove.
      * @param {"added" | "removed"} state - Whether to insert or remove the slot.
      * @param {number} [index] - Slot index for insertion. Ignored on removal.
      * @returns {number} The next available slot index after the operation, for consecutive chaining.
+     * @protected
      */
     protected insertOrRemoveSlot(slot: NodeListSlot<Type>, state: "added" | "removed", index?: number): number {
         if (state === "added") {
@@ -439,7 +452,7 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @function attachObserver
-     * @description Attaches a {@link MutationObserver} to the parent of the first node in the given DOM
+     * @description Attaches a `MutationObserver` to the parent of the first node in the given DOM
      * list, firing {@link onChanged} when nodes matching the list are added to or removed from the DOM.
      * Does nothing if an observer is already attached for this list, or if no parent node is found.
      * @param {HTMLCollection | NodeListOf<Type & Node>} domList - The DOM list to observe.
@@ -472,6 +485,14 @@ class GradumNodeList<Type extends object = object> {
         this.domListObservers.set(domList, observer);
     }
 
+    /**
+     * @function sizeIndexToSlotIndex
+     * @description Translate a position among resolved entries into the slot index that holds it. The
+     * two differ whenever a slot resolves to more than one entry, as DOM lists and sub-lists do.
+     * @param {number} sizeIndex - The resolved entry index, clamped to the current size.
+     * @returns {number} The matching slot index.
+     * @protected
+     */
     protected sizeIndexToSlotIndex(sizeIndex: number): number {
         const size = this.size;
         sizeIndex = trim(sizeIndex, size, 0, size);
@@ -488,12 +509,12 @@ class GradumNodeList<Type extends object = object> {
 
     /**
      * @function findContainingSlot
-     * @protected
      * @description Finds the slot that directly contains or resolves to the given entry.
      * Returns the slot itself if the entry is a direct slot, the nested {@link GradumNodeList}
      * that contains it, or the DOM list that contains it.
      * @param {Type} entry - The entry to locate.
      * @returns {NodeListSlot<Type> | undefined} The containing slot, or undefined if not found.
+     * @protected
      */
     protected findContainingSlot(entry: Type): NodeListSlot<Type> {
         for (const slot of this.slots) {

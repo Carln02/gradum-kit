@@ -1,6 +1,12 @@
 import {Effect} from "./reactivity.types";
 import {ReactivityUtils} from "./reactivity.utils";
 
+/**
+ * @internal
+ * @class EffectUtils
+ * @description Builds and runs {@link Effect} objects for the `@effect` decorator. Handles dependency
+ * collection, cleanup between runs, and teardown.
+ */
 export class EffectUtils {
     public constructor(private readonly utils: ReactivityUtils) {}
 

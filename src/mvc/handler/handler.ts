@@ -7,9 +7,10 @@ import {addRegistryCategory, define} from "../../decorators/define/define";
  * @group MVC
  * @category Handler
  *
- * @description The MVC base handler class. It's an extension of the model, and its main job is to provide some utility
- * functions to manipulate some of (or all of) the model's data.
  * @template {GradumModel} ModelType - The element's MVC model type.
+ * @description Holds model-level logic that would otherwise crowd the model itself. A handler sees only
+ * `this.model` — no element and no view — so use it for computations and edits over the model's data, and
+ * reach for a {@link GradumOperator} when the DOM is involved. Register one with the `@handler` decorator.
  */
 class GradumHandler<ModelType extends GradumModel = GradumModel> {
     /**
@@ -20,11 +21,18 @@ class GradumHandler<ModelType extends GradumModel = GradumModel> {
     public keyName: string;
 
     /**
-     * @description The MVC model.
-     * @protected
+     * @description The model this handler operates on. Assigned by the MVC wiring when the handler is
+     * registered, so it is set by the time `initialize` runs.
      */
     public model: ModelType;
 
+    /**
+     * @constructor
+     * @description Create a handler. Handlers are normally constructed without arguments — the MVC wiring
+     * binds {@link GradumHandler.model} when the handler is registered on its model.
+     * @param {ModelType} [model] - The model to bind. *Note: this argument is currently ignored, because the
+     * assignment is guarded on the field rather than on the parameter.*
+     */
     public constructor(model?: ModelType) {
         if (this.model) this.model = model;
         this.setup();

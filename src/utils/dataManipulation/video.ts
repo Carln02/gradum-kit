@@ -1,5 +1,17 @@
 import {video} from "../../elementCreation/basicElements";
 
+/**
+ * @function getVideoDuration
+ * @group Utilities
+ * @category Misc
+ *
+ * @description Read how long a video is without displaying it, by loading just its metadata into a detached
+ * element. Streams whose duration is not known upfront are handled by seeking to the end to force the browser
+ * to resolve it. The element and any temporary object URL are cleaned up before the promise settles.
+ * @param {Blob | string} input - The video to measure, as a blob or a URL. URLs are fetched anonymously, so
+ * a remote server must allow cross-origin reads.
+ * @returns {Promise<number>} The duration in seconds. Rejects if the metadata cannot be loaded.
+ */
 async function getVideoDuration(input: Blob | string): Promise<number> {
     const el = video({preload: "metadata"});
 

@@ -1,5 +1,10 @@
 import {GradumSelector} from "../gradumSelector";
 
+/**
+ * @internal
+ * @class StyleFunctionsUtils
+ * @description Shared helpers and per-element state behind the style functions on {@link GradumSelector}.
+ */
 export class StyleFunctionsUtils {
     private dataMap = new WeakMap<Node, Record<string, any>>;
 

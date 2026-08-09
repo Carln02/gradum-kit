@@ -9,6 +9,12 @@ import {Propagation} from "../event/event.types";
 
 const utils = new ToolFunctionsUtils();
 
+/**
+ * @internal
+ * @function setupToolFunctions
+ * @description Install the tool functions (`makeTool`, `applyTool`, `embedTool`, ...) onto the
+ * {@link GradumSelector} prototype. Called once by {@link gradumify}; the matching `exclude` option skips it.
+ */
 export function setupToolFunctions() {
     /*
      *

@@ -12,11 +12,30 @@ import {css} from "../../../utils/styling/css";
  * @class GradumRect
  * @group Components
  * @category GradumRect
+ *
+ * @extends DOMRect
+ * @description A rectangle that can be rotated, unlike the axis-aligned
+ * [DOMRect](https://developer.mozilla.org/en-US/docs/Web/API/DOMRect) it extends. Its geometry helpers
+ * ({@link GradumRect.closestPoint}, {@link GradumRect.distanceTo}, {@link GradumRect.overlaps}) all
+ * account for the rotation, and accept a point, a segment, or another rect.
  */
 class GradumRect extends DOMRect {
+    /**
+     * @description The rectangle's rotation in radians, about its centre.
+     */
     public angleRad: number = 0;
+
+    /**
+     * @description The anchor the rectangle is positioned from.
+     */
     public anchor: AnchorPoint;
 
+    /**
+     * @constructor
+     * @description Create a rectangle. Give either `angleRad` or `angleDeg` to rotate it; omitting both
+     * leaves it axis-aligned.
+     * @param {GradumRectProperties} [properties={}] - The rectangle's position, size, rotation, and anchor.
+     */
     constructor(properties: GradumRectProperties = {}) {
         super(properties.x ?? 0, properties.y ?? 0, properties.width ?? 0, properties.height ?? 0);
         if (properties.angleRad !== undefined) this.angleRad = properties.angleRad;
@@ -24,6 +43,18 @@ class GradumRect extends DOMRect {
         this.anchor = properties.anchor instanceof AnchorPoint ? properties.anchor : new AnchorPoint(properties.anchor);
     }
 
+    /**
+     * @function fromSegment
+     * @static
+     * @description Build a rectangle covering the segment between two points: centred on the segment,
+     * as long as it, and rotated to match its direction.
+     * @param {Point} a - The segment's start.
+     * @param {Point} b - The segment's end.
+     * @param {number} [thickness=1] - The rectangle's height, across the segment.
+     * @param {GradumRectProperties} [properties={}] - Extra properties. The computed rotation wins over
+     * any angle given here.
+     * @returns {GradumRect} The rectangle covering the segment.
+     */
     public static fromSegment(a: Point, b: Point, thickness: number = 1, properties: GradumRectProperties = {}): GradumRect {
         const dx = b.x - a.x;
         const dy = b.y - a.y;
@@ -37,10 +68,25 @@ class GradumRect extends DOMRect {
         return new GradumRect({x, y, width: length, height: thickness, ...properties, angleRad});
     }
 
+    /**
+     * @function fromDOMRect
+     * @static
+     * @description Build a rectangle from a plain `DOMRect`, such as one returned by
+     * `getBoundingClientRect()`.
+     * @param {DOMRect} rect - The rect to copy position and size from.
+     * @param {GradumRectProperties} [properties={}] - Extra properties, such as a rotation to apply.
+     * @returns {GradumRect} The converted rectangle.
+     */
     public static fromDOMRect(rect: DOMRect, properties: GradumRectProperties = {}): GradumRect {
         return new GradumRect({x: rect.x, y: rect.y, width: rect.width, height: rect.height, ...properties});
     }
 
+    /**
+     * @function render
+     * @description Create a translucent red `div` matching this rectangle's position, size, and rotation.
+     * Meant for debugging geometry — append the result to the document to see where the rect actually is.
+     * @returns {HTMLElement} The generated element. It is not attached to the document.
+     */
     public render() {
         return element({tag: "div", style: css`position: absolute; 
                 width: ${this.width}px; height: ${this.height}px; 
@@ -48,6 +94,10 @@ class GradumRect extends DOMRect {
                 transform: rotate(${this.angleRad}rad)`}) as HTMLElement;
     }
 
+    /**
+     * @description The rectangle's rotation in degrees. Reads and writes the same rotation as
+     * {@link GradumRect.angleRad}, converted.
+     */
     public get angleDeg(): number {
         return (this.angleRad * 180) / Math.PI;
     }
@@ -56,23 +106,43 @@ class GradumRect extends DOMRect {
         this.angleRad = (value * Math.PI) / 180;
     }
 
+    /**
+     * @readonly
+     * @description The rectangle's centre point.
+     */
     public get center(): Point {
         return new Point(this.x + this.width / 2, this.y + this.height / 2);
     }
 
+    /**
+     * @readonly
+     * @description The unit vector along the rectangle's own x axis, pointing along its width once rotated.
+     */
     public get xAxis(): Point {
         return new Point(Math.cos(this.angleRad), Math.sin(this.angleRad));
     }
 
+    /**
+     * @readonly
+     * @description The unit vector along the rectangle's own y axis, pointing along its height once rotated.
+     */
     public get yAxis(): Point {
         return new Point(-Math.sin(this.angleRad), Math.cos(this.angleRad));
     }
 
+    /**
+     * @readonly
+     * @description Half the rectangle's width and height, as a point.
+     */
     public get half(): Point {
         return new Point(this.width / 2, this.height / 2);
     }
 
-    /** Corners in world/screen coords (clockwise) */
+    /**
+     * @readonly
+     * @description The rectangle's four corners in screen coordinates, clockwise from the top-left,
+     * with the rotation applied.
+     */
     public get points(): [Point, Point, Point, Point] {
         const c = this.center;
         const ux = this.xAxis;
@@ -85,10 +155,33 @@ class GradumRect extends DOMRect {
         return [c.sub(ex).sub(ey), c.add(ex).sub(ey), c.add(ex).add(ey), c.sub(ex).add(ey)];
     }
 
-    /** Closest point on (or inside) this rotated rect to p */
+    /**
+     * @function closestPoint
+     * @description Find the point on this rectangle nearest to the given point. Points inside the
+     * rectangle return themselves.
+     * @param {Point} point - The point to measure to.
+     * @returns {Point} The nearest point on this rectangle.
+     */
     public closestPoint(point: Point): Point;
-    public closestPoint(point1: Point, point2: Point): Point; // segment AB
-    public closestPoint(rect: DOMRect): Point;                 // other rect (AABB or GradumRect)
+
+    /**
+     * @function closestPoint
+     * @description Find the point on this rectangle nearest to the segment between two points. Returns
+     * the intersection if the segment crosses the rectangle.
+     * @param {Point} point1 - The segment's start.
+     * @param {Point} point2 - The segment's end.
+     * @returns {Point} The nearest point on this rectangle.
+     */
+    public closestPoint(point1: Point, point2: Point): Point;
+
+    /**
+     * @function closestPoint
+     * @description Find the point on this rectangle nearest to another rectangle. Accepts a plain
+     * `DOMRect` or a rotated {@link GradumRect}.
+     * @param {DOMRect} rect - The rectangle to measure to.
+     * @returns {Point} The nearest point on this rectangle.
+     */
+    public closestPoint(rect: DOMRect): Point;
     public closestPoint(...args: any[]): Point {
         // (1) Point -> Closest point ON THIS rect to that point
         if (args.length === 1 && args[0] instanceof Point) {
@@ -191,8 +284,29 @@ class GradumRect extends DOMRect {
         return;
     }
 
+    /**
+     * @function distanceTo
+     * @description Measure the shortest distance from this rectangle to a point.
+     * @param {Point} point - The point to measure to.
+     * @returns {number} The distance, or `0` if the point is inside this rectangle.
+     */
     public distanceTo(point: Point): number;
+
+    /**
+     * @function distanceTo
+     * @description Measure the shortest distance from this rectangle to the segment between two points.
+     * @param {Point} point1 - The segment's start.
+     * @param {Point} point2 - The segment's end.
+     * @returns {number} The distance, or `0` if the segment crosses this rectangle.
+     */
     public distanceTo(point1: Point, point2: Point): number;
+
+    /**
+     * @function distanceTo
+     * @description Measure the shortest distance from this rectangle to another rectangle.
+     * @param {DOMRect} rect - The rectangle to measure to.
+     * @returns {number} The distance, or `0` if the two overlap.
+     */
     public distanceTo(rect: DOMRect): number;
     public distanceTo(...args: any[]): number {
         // Point
@@ -222,9 +336,31 @@ class GradumRect extends DOMRect {
         return NaN;
     }
 
+    /**
+     * @function overlaps
+     * @description Test whether this rectangle overlaps another. Accepts a plain `DOMRect` or a rotated
+     * {@link GradumRect}.
+     * @param {DOMRect} other - The rectangle to test against.
+     * @returns {boolean} Whether the two overlap.
+     */
     public overlaps(other: DOMRect): boolean;
+
+    /**
+     * @function overlaps
+     * @description Test whether a point lies on or inside this rectangle.
+     * @param {Point} point - The point to test.
+     * @returns {boolean} Whether the point is contained.
+     */
     public overlaps(point: Point): boolean;
-    public overlaps(a: Point, b: Point): boolean; // segment AB
+
+    /**
+     * @function overlaps
+     * @description Test whether the segment between two points crosses this rectangle.
+     * @param {Point} a - The segment's start.
+     * @param {Point} b - The segment's end.
+     * @returns {boolean} Whether the segment intersects this rectangle.
+     */
+    public overlaps(a: Point, b: Point): boolean;
     public overlaps(...args: any[]): boolean {
         // (1) Point
         if (args.length === 1 && args[0] instanceof Point) {

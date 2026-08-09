@@ -17,6 +17,12 @@ const showTransition = new StatefulReifect({
     styles: (state) => `visibility: ${state}`
 });
 
+/**
+ * @internal
+ * @function setupReifectFunctions
+ * @description Install the reifect functions (`show`, `applyReifect`, `attachReifect`, ...) onto the
+ * {@link GradumSelector} prototype. Called once by {@link gradumify}; the matching `exclude` option skips it.
+ */
 export function setupReifectFunctions() {
     /**
      * @description Adds a readonly "reifects" property to Node prototype.

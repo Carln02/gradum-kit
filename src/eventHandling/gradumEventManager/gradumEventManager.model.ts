@@ -15,6 +15,15 @@ import {GradumWeakSet} from "../../gradumComponents/datatypes/weakSet/weakSet";
 import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
 import {signal} from "../../decorators/reactivity/reactivity";
 
+/**
+ * @internal
+ * @class GradumEventManagerModel
+ * @extends GradumModel
+ * @description Holds a {@link GradumEventManager}'s live input state: which pointers are down and where
+ * they started, the current click mode and action mode, the keys held, the registered tools and their
+ * key bindings, and the thresholds separating a click from a drag or a long press. The manager's
+ * operators read and update this as raw input arrives.
+ */
 export class GradumEventManagerModel extends GradumModel {
     @handler() public utils: GradumEventManagerUtilsHandler;
 
@@ -32,7 +41,8 @@ export class GradumEventManagerModel extends GradumModel {
         = new Delegate<(device: InputDevice) => void>();
 
     /**
-     * @description Delegate fired when a tool is changed on a certain click button/mode
+     * @description Delegate fired when the tool bound to a click mode changes, receiving the old tool, the
+     * new tool, and the mode it changed on.
      */
     public readonly onToolChange: Delegate<(oldTool: Node, newTool: Node, type: ClickMode) => void> = new Delegate();
 

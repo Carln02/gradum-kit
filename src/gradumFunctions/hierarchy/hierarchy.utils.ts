@@ -1,5 +1,10 @@
 import {GradumSelector} from "../gradumSelector";
 
+/**
+ * @internal
+ * @class HierarchyFunctionsUtils
+ * @description Shared helpers and per-element state behind the DOM hierarchy functions on {@link GradumSelector}.
+ */
 export class HierarchyFunctionsUtils {
     private dataMap = new WeakMap<Node, Record<string, any>>;
 

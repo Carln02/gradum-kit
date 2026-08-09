@@ -10,9 +10,14 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">SVGTagMap</a></li></ul>
 <h1>Type Alias SVGTagMap</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">SVGTagMap</span><span class="tsd-signature-symbol">:</span> <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#omittype-keys" class="tsd-signature-type external" target="_blank">Omit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">SVGElementTagNameMap</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">&quot;style&quot;</span><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-type-alias">SVGTagMap</span><span class="tsd-signature-symbol">:</span> <a href="https://www.typescriptlang.org/docs/handbook/utility-types.html#omittype-keys" class="tsd-signature-type external" target="_blank">Omit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">SVGElementTagNameMap</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">&quot;style&quot;</span><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description">Description<a href="#description" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>The SVG tag-to-element map, minus <code>style</code>. That one tag is excluded because it collides
+with the HTML <code>&lt;style&gt;</code> element of the same name, which would make the combined tag maps ambiguous.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/types/svgElement.types.ts:5</li></ul></aside></div>
+<li>Defined in src/types/svgElement.types.ts:9</li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
