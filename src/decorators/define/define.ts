@@ -12,7 +12,7 @@ const utils = new DefineDecoratorUtils();
  * @decorator
  * @function define
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Stage-3 **class** decorator factory that registers a class in the Gradum Kit registry
  * and, if the class extends a DOM element, also registers it as a custom HTML element. Specifically, it:
@@ -49,7 +49,7 @@ function define(className: string, elementName?: string, options?: DefineOptions
 /**
  * @function define
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Imperative equivalent of the `@define` decorator. Applies identical registration
  * and setup logic without requiring decorator syntax — useful for dynamically registering classes
@@ -218,7 +218,7 @@ function applyDefine<T extends { new(...args: any[]): HTMLElement }>(
 /**
  * @function findRegistered
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Finds a registered entry by name, optionally scoped to a specific category.
  * If no category is provided, searches across all categories and returns the first match.
@@ -238,7 +238,7 @@ function findRegistered(name: string, category?: RegistryCategory): RegistryEntr
 /**
  * @function getRegisteredByCategories
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Returns all registered entries across one or more specified categories.
  * @param {...RegistryCategory[]} categories - The categories to retrieve entries from.
@@ -251,7 +251,7 @@ function getRegisteredByCategories(...categories: RegistryCategory[]): RegistryE
 /**
  * @function getAllRegistered
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Returns all registered entries across every category in the registry.
  * @returns {RegistryEntry[]} An array of all registry entries.
@@ -263,7 +263,7 @@ function getAllRegistered(): RegistryEntry[] {
 /**
  * @function getRegisteredMvc
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Returns all registered entries belonging to MVC-related categories:
  * `GradumOperator`, `GradumEmitter`, `GradumHandler`, `GradumInteractor`, `GradumModel`,
@@ -279,7 +279,7 @@ function getRegisteredMvc(): RegistryEntry[] {
 /**
  * @function getRegisteredElements
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Returns all registered entries belonging to element-related categories:
  * `GradumElement`, `GradumProxiedElement`, `Element`, `HTMLElement`, `SVGElement`, and `MathMLElement`.
@@ -294,7 +294,7 @@ function getRegisteredElements(): RegistryEntry[] {
 /**
  * @function addRegistryCategory
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Associates a class constructor with a {@link RegistryCategory} in the Gradum Kit registry's
  * category inference map. When {@link define} is called on a subclass, it walks the prototype chain and
@@ -325,7 +325,7 @@ function addRegistryCategory(type: new (...args: any[]) => object, category?: Re
 /**
  * @function getRegisteredEntry
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Returns the registry entry for a given class instance, looked up by its constructor.
  * Walks the instance's prototype chain until it finds a registered constructor, so subclasses that

@@ -22,7 +22,7 @@ import {Propagation} from "../../../gradumFunctions/event/event.types";
 //TODO TRY TO SEE IF HIDDEN OVERFLOW ELEMENT CAN CONTAIN ELEMENT THAT OVERFLOWS PAST PARENT
 /**
  * @group Components
- * @category GradumDrawer
+ * @category Containers
  */
 class GradumDrawer<
     ViewType extends GradumView = GradumView<any, any>,
@@ -396,7 +396,7 @@ class GradumDrawer<
 /**
  * @function drawer
  * @group Components
- * @category GradumDrawer
+ * @category Containers
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.

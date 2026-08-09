@@ -10,7 +10,7 @@ import {GradumIconSwitch} from "./iconSwitch";
 /**
  * @type {GradumIconSwitchProperties}
  * @group Components
- * @category GradumIconSwitch
+ * @category Basics
  *
  * @extends GradumIconProperties
  * @template {string | number | symbol} State - The set of states the icon can switch between.

@@ -7,7 +7,7 @@ import {GradumRichElementProperties} from "../richElement/richElement.types";
 /**
  * @type {GradumLabelElementProperties}
  * @group Components
- * @category GradumLabelElement
+ * @category Basics
  *
  * @extends GradumRichElementProperties
  * @template {ValidTag} ElementTag - The tag of the main element.

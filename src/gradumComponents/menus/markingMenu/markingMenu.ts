@@ -12,7 +12,7 @@ import {GradumMarkingMenuProperties} from "./markingMenu.types";
 
 /**
  * @group Components
- * @category GradumMarkingMenu
+ * @category Menus
  */
 class GradumMarkingMenu<
     ValueType = string,

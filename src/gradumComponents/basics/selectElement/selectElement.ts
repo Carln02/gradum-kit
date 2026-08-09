@@ -15,7 +15,7 @@ import {StatelessReifectProperties} from "../../wrappers/reifect/reifect.types";
 /**
  * @class GradumSelectElement
  * @group Components
- * @category GradumSelectElement
+ * @category Basics
  *
  * @extends GradumElement
  * @description Select element class for creating Gradum button elements.

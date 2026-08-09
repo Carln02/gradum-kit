@@ -1,6 +1,6 @@
 /**
  * @enum {Direction}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description The axis a component lays out, scrolls, or moves along.
@@ -14,7 +14,7 @@ enum Direction {
 
 /**
  * @enum {SideH}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description One of the two horizontal sides. Use {@link Side} when vertical sides are also valid.
@@ -28,7 +28,7 @@ enum SideH {
 
 /**
  * @enum {SideV}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description One of the two vertical sides. Use {@link Side} when horizontal sides are also valid.
@@ -42,7 +42,7 @@ enum SideV {
 
 /**
  * @enum {Side}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description Any one of the four sides of a rectangle or element — which edge a
@@ -61,7 +61,7 @@ enum Side {
 
 /**
  * @enum {InOut}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description Whether a motion travels toward a centre or away from it, such as the direction of a
@@ -76,7 +76,7 @@ enum InOut {
 
 /**
  * @enum {OnOff}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description A two-state toggle, for states better named on/off than `true`/`false`.
@@ -90,7 +90,7 @@ enum OnOff {
 
 /**
  * @enum {Open}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description Whether a container currently exposes its content.
@@ -104,7 +104,7 @@ enum Open {
 
 /**
  * @enum {Shown}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description Whether an element is displayed. Used as the pair of states a reifect transitions
@@ -119,7 +119,7 @@ enum Shown {
 
 /**
  * @enum {AccessLevel}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description How widely a member is exposed, mirroring the TypeScript access modifiers.
@@ -135,7 +135,7 @@ enum AccessLevel {
 
 /**
  * @enum {Range}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description Which end of a bounded range a value refers to.
@@ -149,7 +149,7 @@ enum Range {
 
 /**
  * @enum {Anchor}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description A reference point on a rectangle — the nine combinations of a vertical and a horizontal

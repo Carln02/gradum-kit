@@ -21,7 +21,7 @@ import {areSimilar} from "../../../utils/computations/equity";
 /**
  * @class StatefulReifect
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {string | number | symbol} State - The type of the reifier's states.
  * @template {object} ClassType - The object type this reifier will be applied to.

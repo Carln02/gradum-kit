@@ -1,7 +1,7 @@
 /**
  * @function blobToUrl
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Read a blob into a `data:` URL that embeds its content, so it can be stored or sent as text.
  * The result is self-contained and needs no cleanup, unlike `URL.createObjectURL`, but is larger than the
@@ -20,7 +20,7 @@ function blobToUrl(blob: Blob): Promise<string> {
 /**
  * @function urlToBlob
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Fetch a URL and hand back its content as a blob. Works with `data:` URLs as well as remote
  * ones, making it the inverse of {@link blobToUrl}.

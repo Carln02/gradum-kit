@@ -10,7 +10,7 @@ import {GradumContentSwitch} from "./contentSwitch";
 /**
  * @enum {ContentSwitchMode}
  * @group Components
- * @category GradumContentSwitch
+ * @category Containers
  *
  * @description How a {@link GradumContentSwitch} animates from the outgoing entry to the incoming one.
  * @property {ContentSwitchMode.fadeLeft} fadeLeft - The new entry fades in while sliding leftwards.
@@ -26,7 +26,7 @@ enum ContentSwitchMode {
 /**
  * @type {GradumContentSwitchProperties}
  * @group Components
- * @category GradumContentSwitch
+ * @category Containers
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.

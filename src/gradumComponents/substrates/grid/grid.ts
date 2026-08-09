@@ -6,7 +6,7 @@ import {GradumEmitter} from "../../../mvc/emitter/emitter";
 /**
  * @class GradumGrid
  * @group Components
- * @category GradumGrid
+ * @category Wrappers
  *
  * @extends GradumElement
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.

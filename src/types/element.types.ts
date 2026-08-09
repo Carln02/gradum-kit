@@ -3,22 +3,22 @@ import {HTMLTag, ValidHTMLElement} from "./htmlElement.types";
 import {MathMLTag, ValidMathMLElement} from "./mathMlElement.types";
 
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description A type that represents a union of HTML, SVG, and MathML tag name maps.`
  */
 type ElementTagMap = HTMLElementTagNameMap & SVGTagMap & MathMLElementTagNameMap & GradumElementTagNameMap;
 
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Ensures that only valid tags are used, i.e., those that map to elements.
  */
 type ValidTag<Tag extends keyof ElementTagMap = keyof ElementTagMap> = Tag;
 
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Ensures that only valid elements are used, i.e., those that extend Element.
  */
 type ValidElement<Tag extends ValidTag = ValidTag> = Tag extends HTMLTag ? ValidHTMLElement<Tag>
@@ -28,15 +28,15 @@ type ValidElement<Tag extends ValidTag = ValidTag> = Tag extends HTMLTag ? Valid
                 : Element)));
 
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Ensures that only valid elements are used, i.e., those that extend Element.
  */
 type ValidNode<Tag = ValidTag> = Tag extends ValidTag ? ValidElement<Tag> : Node;
 
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Type of non-function properties of an element.
  */
 type HTMLElementNonFunctions<Tag extends ValidTag = ValidTag> = {
@@ -44,8 +44,8 @@ type HTMLElementNonFunctions<Tag extends ValidTag = ValidTag> = {
 }[keyof ValidElement<Tag>];
 
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Represents mutable fields of an HTML element, excluding specific fields.
  */
 type HTMLElementMutableFields<Tag extends ValidTag = ValidTag> =
@@ -53,8 +53,8 @@ type HTMLElementMutableFields<Tag extends ValidTag = ValidTag> =
 
 /**
  * @type {ElementTagDefinition}
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Represents an element's definition of its tag and its namespace (both optional).
  * @property {string} [tag="div"] - The HTML tag of the element (e.g., "div", "span", "input"). Defaults to "div."
  * @property {string} [namespace] - The namespace of the element. Defaults to HTML. If "svgManipulation" or "mathML"
@@ -68,8 +68,8 @@ type ElementTagDefinition<Tag extends ValidTag = "div"> = {
 
 /**
  * @type {GradumElementTagNameMap}
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  *
  * @description Maps custom element tag names to their classes. Empty by design — every component adds its
  * own entry by augmenting this interface, which is what folds custom tags into {@link ElementTagMap} so
@@ -89,8 +89,8 @@ interface GradumElementTagNameMap {
 
 /**
  * @type {GradumElementPropertiesMap}
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  *
  * @description Maps custom element tag names to their properties types, the counterpart of
  * {@link GradumElementTagNameMap}. Augment it alongside that one so the properties accepted when creating

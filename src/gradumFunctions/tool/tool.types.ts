@@ -7,8 +7,8 @@ import {Propagation} from "../event/event.types";
 
 /**
  * @type {MakeToolOptions}
- * @group Types
- * @category Tool
+ * @group GradumSelector
+ * @category Tools
  *
  * @description Options used to create a new tool attached to an element via {@link GradumSelector.makeTool}.
  * @property {() => void} [onActivate] - Function to execute when the tool is activated.
@@ -35,8 +35,8 @@ type MakeToolOptions<ElementType extends object = object> = {
 
 /**
  * @type {ToolBehaviorCallback}
- * @group Types
- * @category Tool
+ * @group GradumSelector
+ * @category Tools
  *
  * @description Function signature for a tool behavior. Returning `true` marks the behavior as handled/consumed,
  * leading to stopping the propagation of the event.
@@ -49,8 +49,8 @@ type ToolBehaviorCallback<TargetType extends Node = Node> = (event: Event, targe
 
 /**
  * @type {ToolBehaviorOptions}
- * @group Types
- * @category Tool
+ * @group GradumSelector
+ * @category Tools
  *
  * @description Options object passed to tool behaviors at execution time.
  * @property {boolean} [isEmbedded] - Indicates if the tool is embedded in a target node.
@@ -73,6 +73,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function makeTool
+         * @category Tools
          * @description Turns the element into a tool identified by `toolName`, optionally wiring activation and
          * key mapping. By default, this function also sets up an event listener on the element to activate the
          * tool on click. This behavior can be overridden via the `options` parameter.
@@ -85,6 +86,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function isTool
+         * @category Tools
          * @description Whether this element is registered as a tool for the provided manager.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @returns {boolean} True if the element is a tool, false otherwise.
@@ -93,6 +95,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getToolNames
+         * @category Tools
          * @description Returns all tool names registered on this element for the provided manager.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @returns {string[]} The list of tool names.
@@ -101,6 +104,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getToolName
+         * @category Tools
          * @description Returns the first registered tool name on this element for the provided manager.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @returns {string} The first tool name, if any.
@@ -115,6 +119,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function onToolActivate
+         * @category Tools
          * @description Retrieve the delegate fired when this tool is activated in the corresponding manager.
          * @param {string} [toolName=this.getToolName()] - The name of the tool.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
@@ -124,6 +129,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function onToolDeactivate
+         * @category Tools
          * @description Retrieve the delegate fired when this tool is deactivated in the corresponding manager.
          * @param {string} [toolName=this.getToolName()] - The name of the tool.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
@@ -141,6 +147,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addToolBehavior
+         * @category Tools
          * @description Adds a behavior callback for a given tool and a given type. This callback will attempt to be
          * executed on the target element when a `type` event is fired and `toolName` is active. It is applied to
          * all instances of the tool.
@@ -156,6 +163,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function hasToolBehavior
+         * @category Tools
          * @description Checks whether there is at least one tool behavior for the pair "`type`, `toolName`."
          * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
          * @param {string} [toolName=this.getToolName()] - The tool name to check under. Defaults to this
@@ -167,6 +175,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeToolBehaviors
+         * @category Tools
          * @description Removes all behaviors for the pair "`type`, `toolName`" under the given manager.
          * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
          * @param {string} [toolName=this.getToolName()] - The tool name whose behaviors will be removed. Defaults to this
@@ -178,6 +187,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function applyTool
+         * @category Tools
          * @description Executes all behaviors registered for the pair "`type`, `toolName`" against this element.
          * @param {string} toolName - The name of the tool whose behaviors should run.
          * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
@@ -189,6 +199,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function clearToolBehaviors
+         * @category Tools
          * @description Clears all registered behaviors for the tools attached to this element.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @returns {this} Itself for chaining.
@@ -205,6 +216,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function embedTool
+         * @category Tools
          * @description Embeds this tool into a target node, so all interactions on the tool element apply to the
          * defined target.
          * @param {Node} target - The node to manipulate when interacting with the tool element itself.
@@ -215,6 +227,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function isEmbeddedTool
+         * @category Tools
          * @description Whether this tool is embedded under the provided manager.
          * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
          * @returns {boolean} True if an embedded target is present.
@@ -223,6 +236,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getEmbeddedToolTarget
+         * @category Tools
          * @description Returns the target node for this embedded tool under the provided manager.
          * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
          * @returns {Node} The embedded tool's target node, if any.
@@ -231,6 +245,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function ignoreTool
+         * @category Tools
          * @description Make the current element ignore the provided tool, so interacting with the tool on this
          * element will have no effect and propagate.
          * @param {string} toolName - The name of the tool to ignore.
@@ -243,6 +258,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function ignoreTool
+         * @category Tools
          * @description Make the current element ignore all tools, so interacting with any tool on this
          * element will have no effect and propagate.
          * @param {boolean} [ignore] - Whether to ignore the tools. Defaults to true.
@@ -253,6 +269,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function isToolIgnored
+         * @category Tools
          * @description Whether the current element is ignoring the provided tool.
          * @param {string} toolName - The name of the tool to check for.
          * @param {string} [type] - The type of the event. If undefined, all event types will be considered.

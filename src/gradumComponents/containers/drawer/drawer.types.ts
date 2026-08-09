@@ -12,7 +12,7 @@ import {GradumDrawer} from "./drawer";
 
 /**
  * @group Components
- * @category GradumDrawer
+ * @category Containers
  */
 type GradumDrawerProperties<
     ViewType extends GradumView = GradumView,

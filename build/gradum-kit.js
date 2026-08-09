@@ -63,8 +63,8 @@
 
 /**
  * @typedef {Object} KeyType
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @description Any value usable as an object key. Key paths throughout the MVC layer — model data,
  * observers, {@link GradumNestedMap} — are arrays of these.
@@ -72,8 +72,8 @@
 
 /**
  * @typedef {Object} FlatKeyType
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @description A whole key path collapsed into one value, so a nested entry can be addressed without an
  * array. Fully numeric paths flatten to a number; anything else to a `"k0|k1|k2"` string.
@@ -81,8 +81,8 @@
 
 /**
  * @typedef {Object} FlexRect
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @description A rectangle where every field is optional, for describing only the edges you care about.
  * Sides and dimensions may be mixed, and any that are omitted are left to the caller to infer.
@@ -98,8 +98,8 @@
 
 /**
  * @typedef {Object} Coordinate
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @template Type - The type of each component. Defaults to `number`.
  * @description A pair of values on the x and y axes. Generic so the same shape can carry something other
@@ -110,8 +110,8 @@
 
 /**
  * @typedef {Object} PartialRecord
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @template {keyof any} Property - The union of allowed keys.
  * @template Value - The type stored at each key.
@@ -272,8 +272,8 @@
 
 /**
  * @typedef {Object} PreventDefaultOptions
- * @group Types
- * @category Event
+ * @group GradumSelector
+ * @category Events
  *
  * @description Options for {@link GradumSelector.preventDefault}, which prevents default browser behaviors for
  * selected event types and can optionally stop propagation.
@@ -293,7 +293,7 @@
 /**
  * @typedef {Object} ListenerProperties
  * @group Components
- * @category Listener
+ * @category Data Structures
  *
  * @template {Node} TargetType - The type of the event target.
  * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
@@ -309,7 +309,7 @@
 /**
  * @typedef {Object} MatchListenerProperties
  * @group Components
- * @category Listener
+ * @category Data Structures
  *
  * @extends ListenerProperties
  * @template {Node} TargetType - The type of the event target.
@@ -322,7 +322,7 @@
 /**
  * @typedef {Object} ListenerOptions
  * @group Components
- * @category Listener
+ * @category Data Structures
  * @extends AddEventListenerOptions
  * @description Options used for listeners.
  * @property {boolean} [checkConstrainers] - If true, checks constrainers before execution. Defaults to true.
@@ -353,8 +353,8 @@
 
 /**
  * @typedef {Object} MakeToolOptions
- * @group Types
- * @category Tool
+ * @group GradumSelector
+ * @category Tools
  *
  * @description Options used to create a new tool attached to an element via {@link GradumSelector.makeTool}.
  * @property {() => void} [onActivate] - Function to execute when the tool is activated.
@@ -371,8 +371,8 @@
 
 /**
  * @typedef {Object} ToolBehaviorCallback
- * @group Types
- * @category Tool
+ * @group GradumSelector
+ * @category Tools
  *
  * @description Function signature for a tool behavior. Returning `true` marks the behavior as handled/consumed,
  * leading to stopping the propagation of the event.
@@ -384,8 +384,8 @@
 
 /**
  * @typedef {Object} ToolBehaviorOptions
- * @group Types
- * @category Tool
+ * @group GradumSelector
+ * @category Tools
  *
  * @description Options object passed to tool behaviors at execution time.
  * @property {boolean} [isEmbedded] - Indicates if the tool is embedded in a target node.
@@ -430,7 +430,7 @@
 /**
  * @typedef {Object} NodeListType
  * @group Components
- * @category GradumNodeList
+ * @category Data Structures
  *
  * @template {object} EntryType - The type of the nodes held in the collection.
  * @description Anything a {@link GradumNodeList} accepts as a source of entries: another list, a live DOM
@@ -441,7 +441,7 @@
 /**
  * @typedef {Object} NodeListSlot
  * @group Components
- * @category GradumNodeList
+ * @category Data Structures
  *
  * @template {object} EntryType - The type of the nodes held in the collection.
  * @description One slot of a {@link GradumNodeList}: either a single entry, or a whole sub-collection
@@ -451,8 +451,8 @@
 
 /**
  * @typedef {Object} SVGTagMap
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  *
  * @description The SVG tag-to-element map, minus `style`. That one tag is excluded because it collides
  * with the HTML `<style>` element of the same name, which would make the combined tag maps ambiguous.
@@ -460,8 +460,8 @@
 
 /**
  * @typedef {Object} ElementTagDefinition
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Represents an element's definition of its tag and its namespace (both optional).
  * @property {string} [tag="div"] - The HTML tag of the element (e.g., "div", "span", "input"). Defaults to "div."
  * @property {string} [namespace] - The namespace of the element. Defaults to HTML. If "svgManipulation" or "mathML"
@@ -471,8 +471,8 @@
 
 /**
  * @typedef {Object} GradumElementTagNameMap
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  *
  * @description Maps custom element tag names to their classes. Empty by design — every component adds its
  * own entry by augmenting this interface, which is what folds custom tags into {@link ElementTagMap} so
@@ -490,8 +490,8 @@
 
 /**
  * @typedef {Object} GradumElementPropertiesMap
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  *
  * @description Maps custom element tag names to their properties types, the counterpart of
  * {@link GradumElementTagNameMap}. Augment it alongside that one so the properties accepted when creating
@@ -500,7 +500,7 @@
 
 /**
  * @typedef {Object} CloneElementOptions
- * @group Types
+ * @group GradumSelector
  * @category Element
  *
  * @description Controls what {@link GradumSelector.clone} carries over to the copy. By default a clone gets
@@ -519,7 +519,7 @@
 
 /**
  * @typedef {Object} FeedforwardProperties
- * @group Types
+ * @group GradumSelector
  * @category Element
  *
  * @extends GradumElementProperties
@@ -534,7 +534,7 @@
 
 /**
  * @typedef {Object} GradumProperties
- * @group Types
+ * @group GradumSelector
  * @category Element
  *
  * @template {ValidTag} Tag - The HTML (or other) tag of the element, if passing it as a property. Defaults to "div".
@@ -570,8 +570,8 @@
 
 /**
  * @typedef {Object} GradumElementProperties
- * @group GradumElement
- * @category GradumElement
+ * @group MVC
+ * @category Element Classes
  *
  * @extends GradumProperties
  * @template {GradumView} ViewType - The element's view type, if any.
@@ -586,7 +586,7 @@
 /**
  * @typedef {Object} MvcProperties
  * @group MVC
- * @category MVC
+ * @category Configuration
  *
  * @template {GradumView} ViewType - The element's view type, if any.
  * @template {GradumModel} ModelType - The element's model type, if any.
@@ -616,7 +616,7 @@
 /**
  * @typedef {Object} MvcGenerationProperties
  * @group MVC
- * @category MVC
+ * @category Configuration
  *
  * @extends MvcProperties
  * @template {GradumView} ViewType - The element's view type, if any.
@@ -632,8 +632,8 @@
 
 /**
  * @typedef {Object} GradumHeadlessProperties
- * @group GradumElement
- * @category GradumHeadlessElement
+ * @group MVC
+ * @category Element Classes
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
@@ -788,8 +788,8 @@
 
 /**
  * @typedef {Object} MakeConstrainerOptions
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @description Options for turning an object into a constrainer with
  * {@link GradumSelector.makeConstrainer}.
@@ -803,8 +803,8 @@
 
 /**
  * @typedef {Object} ConstrainerCallbackProperties
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @description The context handed to a solver as its first argument, naming the constrainer, the object
  * being processed, and the event that triggered it. Passed when solving through
@@ -824,8 +824,8 @@
 
 /**
  * @typedef {Object} ConstrainerMutatorProperties
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @extends ConstrainerCallbackProperties
  * @template Type - The type of the value to mutate.
@@ -837,8 +837,8 @@
 
 /**
  * @typedef {Object} ConstrainerAddCallbackProperties
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  * @template {ConstrainerChecker | ConstrainerMutator | ConstrainerSolver} Type - The type of callback.
  *
  * @description Options for registering a checker, mutator, or solver on an existing constrainer.
@@ -851,7 +851,7 @@
 /**
  * @typedef {Object} DefineOptions
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Options object for the {@link define} decorator and imperative function.
  * @property {boolean} [injectAttributeBridge=true] - Whether to inject an `attributeChangedCallback`
@@ -862,7 +862,7 @@
 /**
  * @typedef {Object} RegistryEntry
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Represents a single entry in the Gradum Kit class registry, as stored and returned
  * by {@link findRegistered} and related query functions.
@@ -878,7 +878,7 @@
 
 /**
  * @typedef {Object} StylesRoot
- * @group Types
+ * @group GradumSelector
  * @category Style
  *
  * @description A type that represents entities that can hold a <style> object (Shadow root or HTML head).
@@ -886,7 +886,7 @@
 
 /**
  * @typedef {Object} StylesType
- * @group Types
+ * @group GradumSelector
  * @category Style
  *
  * @description A type that represents the types that are accepted as styles entries (mainly by the
@@ -897,7 +897,7 @@
 /**
  * @typedef {Object} GradumIconProperties
  * @group Components
- * @category GradumIcon
+ * @category Basics
  *
  * @extends GradumElementProperties
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
@@ -917,7 +917,7 @@
 /**
  * @typedef {Object} GradumRichElementProperties
  * @group Components
- * @category GradumRichElement
+ * @category Basics
  *
  * @extends GradumElementProperties
  * @template {ValidTag} ElementTag - The tag of the main element.
@@ -945,7 +945,7 @@
 /**
  * @typedef {Object} StateSpecificProperty
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {object} ClassType - The type of the attached object.
@@ -956,7 +956,7 @@
 /**
  * @typedef {Object} BasicPropertyConfig
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -967,7 +967,7 @@
 /**
  * @typedef {Object} PropertyConfig
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -979,7 +979,7 @@
 /**
  * @typedef {Object} ReifectObjectData
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -999,7 +999,7 @@
 /**
  * @typedef {Object} StatefulReifectCoreProperties
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -1014,7 +1014,7 @@
 /**
  * @typedef {Object} StatefulReifectProperties
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @extends StatefulReifectCoreProperties
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -1029,7 +1029,7 @@
 /**
  * @typedef {Object} ReifectAppliedOptions
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -1048,7 +1048,7 @@
 /**
  * @typedef {Object} ReifectEnabledObject
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @description Which parts of a reifect apply to a given object. Set `global` to `false` to disable the
  * reifect for that object entirely; the rest switch off one category each.
@@ -1062,7 +1062,7 @@
 /**
  * @typedef {Object} GradumIconSwitchProperties
  * @group Components
- * @category GradumIconSwitch
+ * @category Basics
  *
  * @extends GradumIconProperties
  * @template {string | number | symbol} State - The set of states the icon can switch between.
@@ -1082,7 +1082,7 @@
 /**
  * @typedef {Object} GradumInputProperties
  * @group Components
- * @category GradumInput
+ * @category Basics
  *
  * @template {"input" | "textarea"} InputTag - The tag of the inner input element.
  * @template ValueType - The type the input's string value is converted to and from.
@@ -1113,7 +1113,7 @@
 /**
  * @typedef {Object} GradumLabelElementProperties
  * @group Components
- * @category GradumLabelElement
+ * @category Basics
  *
  * @extends GradumRichElementProperties
  * @template {ValidTag} ElementTag - The tag of the main element.
@@ -1130,7 +1130,7 @@
 /**
  * @typedef {Object} GradumNumericalInputProperties
  * @group Components
- * @category GradumNumericalInput
+ * @category Basics
  *
  * @template ValueType - The type the input's string value is converted to and from.
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
@@ -1148,7 +1148,7 @@
 /**
  * @typedef {Object} GradumSelectProperties
  * @group Components
- * @category GradumSelect
+ * @category Basics
  *
  * @template ValueType - The type of the value each entry carries.
  * @template SecondaryValueType - The type of the secondary value each entry carries.
@@ -1180,7 +1180,7 @@
 /**
  * @typedef {Object} GradumSelectInputEventProperties
  * @group Components
- * @category GradumSelect
+ * @category Basics
  *
  * @extends GradumRawEventProperties
  * @template ValueType - The type of the value each entry carries.
@@ -1195,7 +1195,7 @@
 /**
  * @typedef {Object} GradumSelectElementProperties
  * @group Components
- * @category GradumSelectElement
+ * @category Basics
  *
  * @extends GradumElementProperties
  * @extends GradumSelectProperties
@@ -1215,7 +1215,7 @@
 /**
  * @typedef {Object} GradumContentSwitchProperties
  * @group Components
- * @category GradumContentSwitch
+ * @category Containers
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
@@ -1233,7 +1233,7 @@
 /**
  * @typedef {Object} ScopedKey
  * @group Components
- * @category GradumNestedMap
+ * @category Data Structures
  *
  * @template KeyType - The per-item key type.
  * @template BlockKeyType - The block-grouping key type.
@@ -1246,7 +1246,7 @@
 /**
  * @typedef {Object} BlockStoreType
  * @group Components
- * @category GradumNestedStore
+ * @category Data Structures
  *
  * @template {"array" | "map"} Type - How the blocks are stored. Defaults to `"map"`.
  * @template {object} BlockType - The type of one block.
@@ -1257,7 +1257,7 @@
 /**
  * @typedef {Object} GradumDropdownProperties
  * @group Components
- * @category GradumDropdown
+ * @category Menus
  *
  * @extends GradumProperties
  * @description Properties for configuring a Dropdown.
@@ -1276,7 +1276,7 @@
 /**
  * @typedef {Object} GradumButtonPopupProperties
  * @group Components
- * @category GradumButtonPopup
+ * @category Basics
  *
  * @extends GradumRichElementProperties
  * @template {ValidTag} ElementTag - The tag of the main element.
@@ -1293,6 +1293,7 @@
 /**
  * @typedef {Object} Gradum
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the wrapped object. Defaults to `Node`.
  * @description What {@link gradum} hands back: the wrapped object plus the whole selector API, intersected.
@@ -1303,6 +1304,7 @@
 /**
  * @typedef {Object} GradumifyOptions
  * @group GradumSelector
+ * @category Core
  *
  * @description Which families of selector functions {@link gradumify} should skip. Every family is installed
  * by default; set a flag to leave that family off the {@link GradumSelector} prototype. Excluding a family
@@ -1321,7 +1323,7 @@
 
 /**
  * @typedef {Object} ChildHandler
- * @group Types
+ * @group GradumSelector
  * @category Hierarchy
  *
  * @description A type that represents all entities that can hold and manage children (an element or a shadow root).
@@ -1329,7 +1331,7 @@
 
 /**
  * @typedef {Object} ApplyDefaultsOptions
- * @group Types
+ * @group GradumSelector
  * @category Misc
  *
  * @description Options for {@link GradumSelector.applyDefaults}.
@@ -1339,7 +1341,7 @@
 
 /**
  * @typedef {Object} YDocumentProperties
- * @group Types
+ * @group Utilities
  * @category Yjs
  *
  * @template {GradumView} ViewType - The element's view type.
@@ -1738,6 +1740,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumSelector
      * @group GradumSelector
+     * @category Core
      *
      * @template {object} Type - The type of the object it wraps.
      * @description Selector class that wraps an object and augments it with useful functions to manipulate it. It also
@@ -1745,7 +1748,8 @@ var Gradum = (function (exports, yjs) {
      */
     class GradumSelector {
         /**
-         * @description The underlying, wrapped object.
+         * @category Core
+         * @description The underlying, wrapped object. Every method on the selector reads and writes through it.
          */
         element;
         #generateProxy() {
@@ -1775,6 +1779,13 @@ var Gradum = (function (exports, yjs) {
                 }
             });
         }
+        /**
+         * @category Core
+         * @constructor
+         * @description Create a bare selector. Prefer {@link gradum} (or `g`, `gr`, `$`), which caches one
+         * selector per target and wires up {@link GradumSelector.element} for you. The instance returned is a
+         * proxy, so properties not found on the selector fall through to the wrapped object.
+         */
         constructor() {
             return this.#generateProxy();
         }
@@ -2184,7 +2195,7 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @constant
-     * @group Types
+     * @group GradumSelector
      * @category Misc
      * @description Default array-like keys to merge when applying defaults with {@link GradumSelector.applyDefaults}.
      */
@@ -2406,14 +2417,14 @@ var Gradum = (function (exports, yjs) {
     }
 
     /**
-     * @group Types
-     * @category SVG Element
+     * @group Core Types
+     * @category SVG Tags
      * @description URL to the SVG namespace.
      */
     const SvgNamespace = "http://www.w3.org/2000/svg";
     /**
-     * @group Types
-     * @category SVG Element
+     * @group Core Types
+     * @category SVG Tags
      * @description Set of Valid SVG tags.
      */
     const SvgTags = new Set([
@@ -2428,14 +2439,14 @@ var Gradum = (function (exports, yjs) {
     ]);
 
     /**
-     * @group Types
-     * @category MathML Element
+     * @group Core Types
+     * @category MathML Tags
      * @description URL to the MathML namespace.
      */
     const MathMLNamespace = "http://www.w3.org/1998/Math/MathML";
     /**
-     * @group Types
-     * @category MathML Element
+     * @group Core Types
+     * @category MathML Tags
      * @description Set of Valid MathML tags.
      */
     const MathMLTags = new Set([
@@ -2792,7 +2803,7 @@ var Gradum = (function (exports, yjs) {
     }
 
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description The key event names dispatched by {@link GradumEventManager}. Listen for these to receive
@@ -2805,7 +2816,7 @@ var Gradum = (function (exports, yjs) {
         keyReleased: "gradum-key-released"
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description The key events components listen for out of the box. Both map to their native DOM
@@ -2818,7 +2829,7 @@ var Gradum = (function (exports, yjs) {
         keyReleased: "keyup",
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description The click event names dispatched by {@link GradumEventManager}. These are pointer-type
@@ -2835,7 +2846,7 @@ var Gradum = (function (exports, yjs) {
         longPress: "gradum-long-press"
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description The click events components listen for out of the box. `click`, `clickStart`, and `clickEnd`
@@ -2853,7 +2864,7 @@ var Gradum = (function (exports, yjs) {
         longPress: GradumClickEventName.longPress
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description The pointer-move event name dispatched by {@link GradumEventManager}.
@@ -2863,7 +2874,7 @@ var Gradum = (function (exports, yjs) {
         move: "gradum-move"
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description The move event components listen for out of the box, mapped to its native DOM equivalent.
@@ -2873,7 +2884,7 @@ var Gradum = (function (exports, yjs) {
         move: "mousemove"
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description The drag event names dispatched by {@link GradumEventManager}. A drag begins once the pointer
@@ -2888,7 +2899,7 @@ var Gradum = (function (exports, yjs) {
         dragEnd: "gradum-drag-end"
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description The drag events components listen for out of the box. All three keep their Gradum names —
@@ -2904,7 +2915,7 @@ var Gradum = (function (exports, yjs) {
         dragEnd: GradumDragEventName.dragEnd,
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description The wheel event names dispatched by {@link GradumEventManager}, which separates a plain
@@ -2917,7 +2928,7 @@ var Gradum = (function (exports, yjs) {
         pinch: "gradum-pinch",
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description The wheel events components listen for out of the box. Both map to the native `wheel` event,
@@ -2931,7 +2942,7 @@ var Gradum = (function (exports, yjs) {
         pinch: "wheel",
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description Every event name {@link GradumEventManager} can dispatch, combining the key, click, move,
@@ -2947,7 +2958,7 @@ var Gradum = (function (exports, yjs) {
         selectInput: "gradum-select-input",
     };
     /**
-     * @group Types
+     * @group Event Handling
      * @category Event Names
      *
      * @description Object containing the names of events fired by default by the gradumComponents. Modifying it (prior to
@@ -3950,7 +3961,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class Delegate
      * @group Components
-     * @category Delegate
+     * @category Data Structures
      *
      * @template {(...args: any[]) => any} CallbackType - The type of callbacks accepted by the delegate.
      * @description A set of callbacks kept together and fired as one, used throughout the library wherever a
@@ -3985,7 +3996,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumNestedMap
      * @group Components
-     * @category GradumNestedMap
+     * @category Data Structures
      *
      * @template ValueType - The type of stored values.
      * @template KeyType - The type of keys at each level of the path. Defaults to `string | symbol | number`.
@@ -4576,7 +4587,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @enum {RegistryCategory}
      * @group Decorators
-     * @category Registry, Attributes & DOM
+     * @category Registry
      *
      * @description The bucket a class is filed under in the Gradum Kit registry, and the value
      * {@link getRegisteredByCategories} groups by. {@link define} infers it by walking the class'
@@ -4880,7 +4891,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function findRegistered
      * @group Decorators
-     * @category Registry, Attributes & DOM
+     * @category Registry
      *
      * @description Finds a registered entry by name, optionally scoped to a specific category.
      * If no category is provided, searches across all categories and returns the first match.
@@ -4901,7 +4912,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function getRegisteredByCategories
      * @group Decorators
-     * @category Registry, Attributes & DOM
+     * @category Registry
      *
      * @description Returns all registered entries across one or more specified categories.
      * @param {...RegistryCategory[]} categories - The categories to retrieve entries from.
@@ -4913,7 +4924,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function getAllRegistered
      * @group Decorators
-     * @category Registry, Attributes & DOM
+     * @category Registry
      *
      * @description Returns all registered entries across every category in the registry.
      * @returns {RegistryEntry[]} An array of all registry entries.
@@ -4924,7 +4935,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function getRegisteredMvc
      * @group Decorators
-     * @category Registry, Attributes & DOM
+     * @category Registry
      *
      * @description Returns all registered entries belonging to MVC-related categories:
      * `GradumOperator`, `GradumEmitter`, `GradumHandler`, `GradumInteractor`, `GradumModel`,
@@ -4937,7 +4948,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function getRegisteredElements
      * @group Decorators
-     * @category Registry, Attributes & DOM
+     * @category Registry
      *
      * @description Returns all registered entries belonging to element-related categories:
      * `GradumElement`, `GradumProxiedElement`, `Element`, `HTMLElement`, `SVGElement`, and `MathMLElement`.
@@ -4949,7 +4960,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function addRegistryCategory
      * @group Decorators
-     * @category Registry, Attributes & DOM
+     * @category Registry
      *
      * @description Associates a class constructor with a {@link RegistryCategory} in the Gradum Kit registry's
      * category inference map. When {@link define} is called on a subclass, it walks the prototype chain and
@@ -4979,7 +4990,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function getRegisteredEntry
      * @group Decorators
-     * @category Registry, Attributes & DOM
+     * @category Registry
      *
      * @description Returns the registry entry for a given class instance, looked up by its constructor.
      * Walks the instance's prototype chain until it finds a registered constructor, so subclasses that
@@ -7152,8 +7163,8 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @class GradumElement
-     * @group GradumElement
-     * @category GradumElement
+     * @group MVC
+     * @category Element Classes
      *
      * @extends HTMLElement
      * @template {GradumView} ViewType - The element's view type, if initializing MVC.
@@ -7293,8 +7304,8 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @class GradumBaseElement
-     * @group GradumElement
-     * @category GradumBaseElement
+     * @group MVC
+     * @category Element Classes
      *
      * @template {GradumView} ViewType - The element's view type, if initializing MVC.
      * @template {object} DataType - The element's data type, if initializing MVC.
@@ -7346,8 +7357,8 @@ var Gradum = (function (exports, yjs) {
     const elementSymbol = Symbol("___element___");
     /**
      * @class GradumProxiedElement
-     * @group GradumElement
-     * @category GradumProxiedElement
+     * @group MVC
+     * @category Element Classes
      *
      * @template {GradumView} ViewType - The element's view type, if initializing MVC.
      * @template {object} DataType - The element's data type, if initializing MVC.
@@ -7465,8 +7476,8 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @class GradumHeadlessElement
-     * @group GradumElement
-     * @category GradumHeadlessElement
+     * @group MVC
+     * @category Element Classes
      *
      * @template {GradumView} ViewType - The element's view type, if initializing MVC.
      * @template {object} DataType - The element's data type, if initializing MVC.
@@ -7560,7 +7571,7 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @group Components
-     * @category Point
+     * @category Data Structures
      */
     class Point {
         /**
@@ -7840,7 +7851,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumMovable
      * @group Components
-     * @category GradumMovable
+     * @category Wrappers
      *
      * @extends GradumElement
      * @description Positioning wrapper that places arbitrary content via pure CSS transforms.
@@ -8387,8 +8398,8 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @enum {Propagation}
-     * @group Types
-     * @category Event
+     * @group GradumSelector
+     * @category Events
      *
      * @description Enum dictating the propagation of an event.
      * @property {Propagation.propagate} propagate - Continue normal propagation.
@@ -8403,8 +8414,8 @@ var Gradum = (function (exports, yjs) {
         Propagation["stopImmediatePropagation"] = "stopImmediatePropagation";
     })(exports.Propagation || (exports.Propagation = {}));
     /**
-     * @group Types
-     * @category Event
+     * @group GradumSelector
+     * @category Events
      * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
      */
     const BasicInputEvents = [
@@ -8415,8 +8426,8 @@ var Gradum = (function (exports, yjs) {
         "wheel"
     ];
     /**
-     * @group Types
-     * @category Event
+     * @group GradumSelector
+     * @category Events
      * @description Event types that should usually be registered as **non-passive** when you intend to call
      *  * `preventDefault()` (e.g., scroll/touch/pointer interactions).
      */
@@ -8427,7 +8438,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @enum {ActionMode}
      * @group Event Handling
-     * @category Enums
+     * @category Event Modes
      *
      * @description What the manager has decided the current interaction is. A press starts as `click` and
      * becomes `longPress` or `drag` once it outlasts `longPressDuration` or travels past `moveThreshold`.
@@ -8446,7 +8457,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @enum {ClickMode}
      * @group Event Handling
-     * @category Enums
+     * @category Event Modes
      *
      * @description Which pointer button or input mode an interaction belongs to. The manager holds one
      * current tool per mode, so a different tool can be bound to each button.
@@ -8469,7 +8480,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @enum {InputDevice}
      * @group Event Handling
-     * @category Enums
+     * @category Event Modes
      *
      * @description The device the manager believes is driving input. *Note: this is inferred from event
      * shape and is not fully reliable, particularly between `mouse` and `trackpad`.*
@@ -8682,7 +8693,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumMap
      * @group Components
-     * @category GradumMap
+     * @category Data Structures
      *
      * @extends Map
      * @template KeyType - The type of the keys.
@@ -8937,7 +8948,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @enum {ClosestOrigin}
      * @group Event Handling
-     * @category Enums
+     * @category Event Modes
      *
      * @description Where {@link GradumEvent.closest} starts searching from when looking for a matching
      * ancestor.
@@ -10059,7 +10070,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumWeakSet
      * @group Components
-     * @category GradumWeakSet
+     * @category Data Structures
      *
      * @template {object} Type - The type of the held objects.
      * @description A set that holds its members weakly, so membership never keeps an object alive. Unlike
@@ -10914,7 +10925,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class Listener
      * @group Components
-     * @category Listener
+     * @category Data Structures
      *
      * @template {Node} TargetType - The type of the event target.
      * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
@@ -11019,7 +11030,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class ListenerSet
      * @group Components
-     * @category Listener
+     * @category Data Structures
      *
      * @template {Node} TargetType - The type of the event target.
      * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
@@ -11972,7 +11983,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumQueue
      * @group Components
-     * @category GradumQueue
+     * @category Data Structures
      *
      * @template Type - The type of the queued values.
      * @description A first-in, first-out queue. {@link push} adds to the back, {@link pop} takes from the
@@ -12118,7 +12129,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumNodeList
      * @group Components
-     * @category GradumNodeList
+     * @category Data Structures
      *
      * @template {object} Type - The type of the nodes held in the list.
      * @description A composable, Set-like collection of nodes. A single list can mix individual nodes, live
@@ -13622,7 +13633,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class StatefulReifect
      * @group Components
-     * @category StatefulReifect
+     * @category Reifects
      *
      * @template {string | number | symbol} State - The type of the reifier's states.
      * @template {object} ClassType - The object type this reifier will be applied to.
@@ -14501,7 +14512,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class Reifect
      * @group Components
-     * @category Reifect
+     * @category Reifects
      *
      * @template {object} ClassType - The object type this reifier will be applied to.
      * @description A class to manage and apply dynamic properties, styles, classes, and transitions to a
@@ -14594,7 +14605,7 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @enum {Direction}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description The axis a component lays out, scrolls, or moves along.
@@ -14608,7 +14619,7 @@ var Gradum = (function (exports, yjs) {
     })(exports.Direction || (exports.Direction = {}));
     /**
      * @enum {SideH}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description One of the two horizontal sides. Use {@link Side} when vertical sides are also valid.
@@ -14622,7 +14633,7 @@ var Gradum = (function (exports, yjs) {
     })(exports.SideH || (exports.SideH = {}));
     /**
      * @enum {SideV}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description One of the two vertical sides. Use {@link Side} when horizontal sides are also valid.
@@ -14636,7 +14647,7 @@ var Gradum = (function (exports, yjs) {
     })(exports.SideV || (exports.SideV = {}));
     /**
      * @enum {Side}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description Any one of the four sides of a rectangle or element — which edge a
@@ -14655,7 +14666,7 @@ var Gradum = (function (exports, yjs) {
     })(exports.Side || (exports.Side = {}));
     /**
      * @enum {InOut}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description Whether a motion travels toward a centre or away from it, such as the direction of a
@@ -14670,7 +14681,7 @@ var Gradum = (function (exports, yjs) {
     })(exports.InOut || (exports.InOut = {}));
     /**
      * @enum {OnOff}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description A two-state toggle, for states better named on/off than `true`/`false`.
@@ -14684,7 +14695,7 @@ var Gradum = (function (exports, yjs) {
     })(exports.OnOff || (exports.OnOff = {}));
     /**
      * @enum {Open}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description Whether a container currently exposes its content.
@@ -14698,7 +14709,7 @@ var Gradum = (function (exports, yjs) {
     })(exports.Open || (exports.Open = {}));
     /**
      * @enum {Shown}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description Whether an element is displayed. Used as the pair of states a reifect transitions
@@ -14713,7 +14724,7 @@ var Gradum = (function (exports, yjs) {
     })(exports.Shown || (exports.Shown = {}));
     /**
      * @enum {AccessLevel}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description How widely a member is exposed, mirroring the TypeScript access modifiers.
@@ -14729,7 +14740,7 @@ var Gradum = (function (exports, yjs) {
     })(exports.AccessLevel || (exports.AccessLevel = {}));
     /**
      * @enum {Range}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description Which end of a bounded range a value refers to.
@@ -14743,7 +14754,7 @@ var Gradum = (function (exports, yjs) {
     })(exports.Range || (exports.Range = {}));
     /**
      * @enum {Anchor}
-     * @group Types
+     * @group Core Types
      * @category Enums
      *
      * @description A reference point on a rectangle — the nine combinations of a vertical and a horizontal
@@ -14987,6 +14998,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function gradumify
      * @group GradumSelector
+     * @category Core
      *
      * @description Install every selector function onto the {@link GradumSelector} prototype. Runs once — later
      * calls are no-ops — and is invoked automatically the first time {@link gradum} is called, so you rarely
@@ -15458,7 +15470,7 @@ var Gradum = (function (exports, yjs) {
      * @decorator
      * @function observe
      * @group Decorators
-     * @category Registry, Attributes & DOM
+     * @category Attributes
      *
      * @description Stage-3 decorator for fields, getters, setters, and accessors that reflects a property to an HTML
      * attribute. So when the value of the property changes, it is reflected in the element's HTML attributes.
@@ -15690,7 +15702,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function textToElement
      * @group Utilities
-     * @category Element
+     * @category DOM
      *
      * @description Parse a string of HTML into a live element. Only the first top-level element of the string is
      * returned, so wrap multiple siblings in a container if you need all of them.
@@ -15705,7 +15717,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function createProxy
      * @group Utilities
-     * @category Element
+     * @category DOM
      *
      * @template {object} SelfType - The type of the primary object.
      * @template {object} ProxiedType - The type of the fallback object.
@@ -16237,7 +16249,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumIcon
      * @group Components
-     * @category GradumIcon
+     * @category Basics
      *
      * @extends GradumElement
      * @description Icon class for creating icon elements.
@@ -16457,7 +16469,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumRichElement
      * @group Components
-     * @category GradumRichElement
+     * @category Basics
      *
      * @extends GradumElement
      * @template {ValidTag} ElementTag - The tag of the main element to create the rich element from.
@@ -16687,7 +16699,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumButton
      * @group Components
-     * @category GradumButton
+     * @category Basics
      *
      * @extends GradumElement
      * @description Button class for creating Gradum button elements.
@@ -16698,7 +16710,7 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @group Components
-     * @category GradumIconSwitch
+     * @category Basics
      */
     let GradumIconSwitch = (() => {
         let _classSuper = GradumIcon;
@@ -16764,7 +16776,7 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @group Components
-     * @category GradumIconToggle
+     * @category Basics
      */
     let GradumIconToggle = (() => {
         let _classSuper = GradumIcon;
@@ -16992,7 +17004,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumLabelElement
      * @group Components
-     * @category GradumLabelElement
+     * @category Basics
      *
      * @extends GradumRichElement
      * @template {ValidTag} ElementTag - The tag of the main element in the rich element.
@@ -17098,7 +17110,7 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @group Components
-     * @category GradumInput
+     * @category Basics
      */
     let GradumInput = (() => {
         let _classSuper = GradumLabelElement;
@@ -17388,7 +17400,7 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @group Components
-     * @category GradumNumericalInput
+     * @category Basics
      */
     class GradumNumericalInput extends GradumInput {
         /**
@@ -17473,7 +17485,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumSelect
      * @group Components
-     * @category GradumSelect
+     * @category Basics
      *
      * @extends GradumElement
      * @description Base class for creating a selection menu
@@ -18060,7 +18072,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumSelectElement
      * @group Components
-     * @category GradumSelectElement
+     * @category Basics
      *
      * @extends GradumElement
      * @description Select element class for creating Gradum button elements.
@@ -18344,7 +18356,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @enum {ContentSwitchMode}
      * @group Components
-     * @category GradumContentSwitch
+     * @category Containers
      *
      * @description How a {@link GradumContentSwitch} animates from the outgoing entry to the incoming one.
      * @property {ContentSwitchMode.fadeLeft} fadeLeft - The new entry fades in while sliding leftwards.
@@ -18361,7 +18373,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumContentSwitch
      * @group Components
-     * @category GradumContentSwitch
+     * @category Containers
      *
      * @extends GradumSelectElement
      * @template ValueType - The type of the value held by each entry.
@@ -18515,7 +18527,7 @@ var Gradum = (function (exports, yjs) {
     //TODO TRY TO SEE IF HIDDEN OVERFLOW ELEMENT CAN CONTAIN ELEMENT THAT OVERFLOWS PAST PARENT
     /**
      * @group Components
-     * @category GradumDrawer
+     * @category Containers
      */
     let GradumDrawer = (() => {
         let _classSuper = GradumElement;
@@ -18926,7 +18938,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function drawer
      * @group Components
-     * @category GradumDrawer
+     * @category Containers
      *
      * @template {GradumView} ViewType - The element's view type, if initializing MVC.
      * @template {object} DataType - The element's data type, if initializing MVC.
@@ -18944,7 +18956,7 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @group Components
-     * @category GradumPopup
+     * @category Containers
      */
     exports.PopupFallbackMode = void 0;
     (function (PopupFallbackMode) {
@@ -18958,7 +18970,7 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @group Components
-     * @category GradumPopup
+     * @category Containers
      */
     let GradumPopup = (() => {
         let _classSuper = GradumElement;
@@ -19188,7 +19200,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class AnchorPoint
      * @group Components
-     * @category AnchorPoint
+     * @category Data Structures
      *
      * @description A position within a box, expressed either as one of the nine named {@link Anchor} values
      * or as a free {@link Point} in percentages from `-100` to `100`. The two forms are interchangeable —
@@ -19538,7 +19550,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumRect
      * @group Components
-     * @category GradumRect
+     * @category Data Structures
      *
      * @extends DOMRect
      * @description A rectangle that can be rotated, unlike the axis-aligned
@@ -19805,7 +19817,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumDropdown
      * @group Components
-     * @category GradumDropdown
+     * @category Menus
      *
      * @extends GradumElement
      * @description Dropdown class for creating Gradum button elements.
@@ -19927,7 +19939,7 @@ var Gradum = (function (exports, yjs) {
 
     /**
      * @group Components
-     * @category GradumMarkingMenu
+     * @category Menus
      */
     let GradumMarkingMenu = (() => {
         let _classSuper = GradumElement;
@@ -20009,7 +20021,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumSelectWheel
      * @group Components
-     * @category GradumSelectWheel
+     * @category Menus
      *
      * @extends GradumSelectElement
      * @description A swipeable selection wheel. Entries are always position absolute, fanned out by a
@@ -20482,7 +20494,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumButtonPopup
      * @group Components
-     * @category GradumButtonPopup
+     * @category Basics
      *
      * @extends GradumButton
      * @template {ValidTag} ElementTag - The tag of the button's main element.
@@ -20553,7 +20565,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @class GradumGrid
      * @group Components
-     * @category GradumGrid
+     * @category Wrappers
      *
      * @extends GradumElement
      * @template {GradumView} ViewType - The element's view type, if initializing MVC.
@@ -21139,7 +21151,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function replaceUrlParams
      * @group Utilities
-     * @category Misc
+     * @category URL
      *
      * @description Set query parameters on the current URL without adding a history entry, so the change cannot
      * be undone with the browser's back button. Use {@link pushUrlParams} when the change should be navigable.
@@ -21154,7 +21166,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function getUrlParam
      * @group Utilities
-     * @category Misc
+     * @category URL
      *
      * @description Read one query parameter from the current URL.
      * @param {string} name - The parameter to read.
@@ -21167,7 +21179,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function pushUrlParams
      * @group Utilities
-     * @category Misc
+     * @category URL
      *
      * @description Set query parameters on the current URL and add a history entry, so the change can be undone
      * with the browser's back button. Use {@link replaceUrlParams} when it should not be navigable.
@@ -21181,7 +21193,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function clearUrlParams
      * @group Utilities
-     * @category Misc
+     * @category URL
      *
      * @description Strip every query parameter from the current URL without adding a history entry.
      */
@@ -21248,7 +21260,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function blobToUrl
      * @group Utilities
-     * @category Misc
+     * @category URL
      *
      * @description Read a blob into a `data:` URL that embeds its content, so it can be stored or sent as text.
      * The result is self-contained and needs no cleanup, unlike `URL.createObjectURL`, but is larger than the
@@ -21266,7 +21278,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function urlToBlob
      * @group Utilities
-     * @category Misc
+     * @category URL
      *
      * @description Fetch a URL and hand back its content as a blob. Works with `data:` URLs as well as remote
      * ones, making it the inverse of {@link blobToUrl}.
@@ -21282,7 +21294,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function getVideoDuration
      * @group Utilities
-     * @category Misc
+     * @category Media
      *
      * @description Read how long a video is without displaying it, by loading just its metadata into a detached
      * element. Streams whose duration is not known upfront are handled by seeking to the end to force the browser
@@ -21549,7 +21561,7 @@ var Gradum = (function (exports, yjs) {
     /**
      * @function getEventPosition
      * @group Utilities
-     * @category Event
+     * @category Geometry
      *
      * @description Read the pointer position out of an event, whichever kind it is. A {@link GradumEvent} yields
      * its scaled position, so the result already accounts for a panned or zoomed canvas; a native pointer event

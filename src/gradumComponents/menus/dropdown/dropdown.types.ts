@@ -10,7 +10,7 @@ import {GradumDropdown} from "./dropdown";
 /**
  * @type {GradumDropdownProperties}
  * @group Components
- * @category GradumDropdown
+ * @category Menus
  *
  * @extends GradumProperties
  * @description Properties for configuring a Dropdown.

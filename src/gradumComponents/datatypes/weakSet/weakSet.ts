@@ -1,7 +1,7 @@
 /**
  * @class GradumWeakSet
  * @group Components
- * @category GradumWeakSet
+ * @category Data Structures
  *
  * @template {object} Type - The type of the held objects.
  * @description A set that holds its members weakly, so membership never keeps an object alive. Unlike

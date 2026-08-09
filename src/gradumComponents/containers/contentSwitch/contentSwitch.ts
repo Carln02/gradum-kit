@@ -13,7 +13,7 @@ import {StatelessReifectProperties} from "../../wrappers/reifect/reifect.types";
 /**
  * @class GradumContentSwitch
  * @group Components
- * @category GradumContentSwitch
+ * @category Containers
  *
  * @extends GradumSelectElement
  * @template ValueType - The type of the value held by each entry.

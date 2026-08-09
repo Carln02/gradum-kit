@@ -15,7 +15,7 @@ export type EntryData = {
 /**
  * @type {GradumSelectProperties}
  * @group Components
- * @category GradumSelect
+ * @category Basics
  *
  * @template ValueType - The type of the value each entry carries.
  * @template SecondaryValueType - The type of the secondary value each entry carries.
@@ -74,7 +74,7 @@ type GradumSelectProperties<
 /**
  * @type {GradumSelectInputEventProperties}
  * @group Components
- * @category GradumSelect
+ * @category Basics
  *
  * @extends GradumRawEventProperties
  * @template ValueType - The type of the value each entry carries.

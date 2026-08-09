@@ -15,7 +15,7 @@ import {element} from "../../../elementCreation/element";
 /**
  * @class GradumLabelElement
  * @group Components
- * @category GradumLabelElement
+ * @category Basics
  *
  * @extends GradumRichElement
  * @template {ValidTag} ElementTag - The tag of the main element in the rich element.

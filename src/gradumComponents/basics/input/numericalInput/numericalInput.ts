@@ -7,7 +7,7 @@ import {GradumNumericalInputProperties} from "./numericalInput.types";
 
 /**
  * @group Components
- * @category GradumNumericalInput
+ * @category Basics
  */
 class GradumNumericalInput<
     ViewType extends GradumView = GradumView<any, any>,

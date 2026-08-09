@@ -1,7 +1,7 @@
 /**
  * @class GradumMap
  * @group Components
- * @category GradumMap
+ * @category Data Structures
  *
  * @extends Map
  * @template KeyType - The type of the keys.

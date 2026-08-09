@@ -71,7 +71,7 @@ class SimpleDelegate<CallbackType extends (...args: any[]) => any> {
 /**
  * @class Delegate
  * @group Components
- * @category Delegate
+ * @category Data Structures
  *
  * @template {(...args: any[]) => any} CallbackType - The type of callbacks accepted by the delegate.
  * @description A set of callbacks kept together and fired as one, used throughout the library wherever a

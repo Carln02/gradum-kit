@@ -16,8 +16,8 @@ import {addRegistryCategory} from "../decorators/define/define";
 
 /**
  * @class GradumElement
- * @group GradumElement
- * @category GradumElement
+ * @group MVC
+ * @category Element Classes
  *
  * @extends HTMLElement
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.

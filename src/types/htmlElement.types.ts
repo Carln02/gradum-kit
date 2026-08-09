@@ -1,13 +1,13 @@
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Ensures that only valid tags are used, i.e., those that map to elements.
  */
 type HTMLTag<Tag extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = Tag;
 
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Ensures that only valid elements are used, i.e., those that extend Element.
  */
 type ValidHTMLElement<Tag extends HTMLTag = HTMLTag> = HTMLElementTagNameMap[Tag] extends

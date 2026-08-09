@@ -10,7 +10,7 @@ import {ValidElement, ValidTag} from "../../../types/element.types";
 /**
  * @type {GradumRichElementProperties}
  * @group Components
- * @category GradumRichElement
+ * @category Basics
  *
  * @extends GradumElementProperties
  * @template {ValidTag} ElementTag - The tag of the main element.

@@ -18,7 +18,7 @@ import {GradumIconProperties} from "./icon.types";
 /**
  * @class GradumIcon
  * @group Components
- * @category GradumIcon
+ * @category Basics
  *
  * @extends GradumElement
  * @description Icon class for creating icon elements.

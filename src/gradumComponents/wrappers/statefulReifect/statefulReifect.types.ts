@@ -4,7 +4,7 @@ import {KeyType, PartialRecord} from "../../../types/basic.types";
 /**
  * @callback ReifectInterpolator
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {object} ClassType - The type of the attached object.
@@ -21,7 +21,7 @@ type ReifectInterpolator<Type, ClassType extends object = Element> =
 /**
  * @callback StateInterpolator
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -40,7 +40,7 @@ type StateInterpolator<Type, State extends KeyType, ClassType extends object = E
 /**
  * @type {StateSpecificProperty}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {object} ClassType - The type of the attached object.
@@ -53,7 +53,7 @@ type StateSpecificProperty<Type, ClassType extends object = Element> =
 /**
  * @type {BasicPropertyConfig}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -65,7 +65,7 @@ type BasicPropertyConfig<Type, State extends KeyType> = PartialRecord<State, Typ
 /**
  * @type {PropertyConfig}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -81,7 +81,7 @@ type PropertyConfig<Type, State extends KeyType, ClassType extends object = Elem
 /**
  * @callback ReifectOnSwitchCallback
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -97,7 +97,7 @@ type ReifectOnSwitchCallback<State extends KeyType, ClassType extends object = E
 /**
  * @type {ReifectObjectData}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -145,7 +145,7 @@ type ReifectObjectComputedProperties<State extends KeyType, ClassType extends ob
 /**
  * @type {StatefulReifectCoreProperties}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -166,7 +166,7 @@ type StatefulReifectCoreProperties<State extends KeyType, ClassType extends obje
 /**
  * @type {StatefulReifectProperties}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @extends StatefulReifectCoreProperties
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -187,7 +187,7 @@ type StatefulReifectProperties<State extends KeyType, ClassType extends object =
 /**
  * @type {ReifectAppliedOptions}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -214,7 +214,7 @@ type ReifectAppliedOptions<State extends KeyType = any, ClassType extends object
 /**
  * @type {ReifectEnabledObject}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @description Which parts of a reifect apply to a given object. Set `global` to `false` to disable the
  * reifect for that object entirely; the rest switch off one category each.

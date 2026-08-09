@@ -8,8 +8,8 @@ import {GradumElementUiInterface} from "./setup/ui/ui.types";
 
 /**
  * @type {GradumElementProperties}
- * @group GradumElement
- * @category GradumElement
+ * @group MVC
+ * @category Element Classes
  *
  * @extends GradumProperties
  * @template {GradumView} ViewType - The element's view type, if any.

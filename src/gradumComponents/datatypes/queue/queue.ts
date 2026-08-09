@@ -1,7 +1,7 @@
 /**
  * @class GradumQueue
  * @group Components
- * @category GradumQueue
+ * @category Data Structures
  *
  * @template Type - The type of the queued values.
  * @description A first-in, first-out queue. {@link push} adds to the back, {@link pop} takes from the

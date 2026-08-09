@@ -5,8 +5,8 @@ import {ListenerSet} from "../../gradumComponents/datatypes/listener/listenerSet
 
 /**
  * @enum {Propagation}
- * @group Types
- * @category Event
+ * @group GradumSelector
+ * @category Events
  *
  * @description Enum dictating the propagation of an event.
  * @property {Propagation.propagate} propagate - Continue normal propagation.
@@ -22,8 +22,8 @@ enum Propagation {
 
 /**
  * @type {PreventDefaultOptions}
- * @group Types
- * @category Event
+ * @group GradumSelector
+ * @category Events
  *
  * @description Options for {@link GradumSelector.preventDefault}, which prevents default browser behaviors for
  * selected event types and can optionally stop propagation.
@@ -49,8 +49,8 @@ type PreventDefaultOptions = {
 };
 
 /**
- * @group Types
- * @category Event
+ * @group GradumSelector
+ * @category Events
  * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
  */
 const BasicInputEvents = [
@@ -62,8 +62,8 @@ const BasicInputEvents = [
 ] as const;
 
 /**
- * @group Types
- * @category Event
+ * @group GradumSelector
+ * @category Events
  * @description Event types that should usually be registered as **non-passive** when you intend to call
  *  * `preventDefault()` (e.g., scroll/touch/pointer interactions).
  */
@@ -74,11 +74,13 @@ const NonPassiveEvents = [
 declare module "../gradumSelector" {
     interface GradumSelector {
         /**
+         * @category Events
          * @description Readonly set of listeners bound to this node.
          */
         readonly boundListeners: ListenerSet;
 
         /**
+         * @category Events
          * @description If you want the element to bypass the event manager and allow native events to seep through
          * (in case you are preventing default events), you can set this field to a predicate that
          * defines when to bypass the manager according to the passed event.
@@ -87,6 +89,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function on
+         * @category Events
          * @template {Node} Type - The type of the element.
          * @description Adds an event listener to the element.
          * @param {string} type - The type of the event.
@@ -102,6 +105,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function onTool
+         * @category Events
          * @template {Node} Type - The type of the element.
          * @description Adds an event listener to the element.
          * @param {string} type - The type of the event.
@@ -119,6 +123,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function executeAction
+         * @category Events
          * @description Execute the listeners bound on this element for the given `type` and `toolName`. Simulates
          * firing a `type` event on the element with `toolName` active.
          * @param {string} type -  The type of the event.
@@ -135,6 +140,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function hasListener
+         * @category Events
          * @description Checks if the given event listener is bound to the element (in its boundListeners list).
          * @param {string} type - The type of the event. Set to null or undefined to get all event types.
          * @param {ListenerCallback} listener - The function that receives a notification.
@@ -146,6 +152,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function hasToolListener
+         * @category Events
          * @description Checks if the given event listener is bound to the element (in its boundListeners list).
          * @param {string} type - The type of the event. Set to null or undefined to get all event types.
          * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
@@ -160,6 +167,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function hasListenersByType
+         * @category Events
          * @description Checks if the element has bound listeners of the given type (in its boundListeners list).
          * @param {string} type - The type of the event. Set to null or undefined to get all event types.
          * @param {string} toolName - The name of the tool to consider (if any). Set to null or undefined
@@ -172,6 +180,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeListener
+         * @category Events
          * @description Removes an event listener that is bound to the element (in its boundListeners list).
          * @param {string} type - The type of the event.
          * @param {ListenerCallback} listener - The function that receives a notification.
@@ -183,6 +192,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeToolListener
+         * @category Events
          * @description Removes an event listener that is bound to the element (in its boundListeners list).
          * @param {string} type - The type of the event.
          * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
@@ -196,6 +206,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeListenersByType
+         * @category Events
          * @description Removes all event listeners bound to the element (in its boundListeners list) assigned to the
          * specified type.
          * @param {string} type - The type of the event. Set to null or undefined to consider all types.
@@ -209,6 +220,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeAllListeners
+         * @category Events
          * @description Removes all event listeners bound to the element (in its boundListeners list).
          * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
@@ -217,6 +229,7 @@ declare module "../gradumSelector" {
         removeAllListeners(manager?: GradumEventManager): this;
 
         /**
+         * @category Events
          * @description Prevent default browser behavior on the provided event types. By default, all basic input events
          * will be processed.
          * @param {PreventDefaultOptions} [options] - An options object to customize the behavior of the function.

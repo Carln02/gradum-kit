@@ -8,7 +8,7 @@ import {GradumButtonPopup} from "./buttonPopup";
 /**
  * @type {GradumButtonPopupProperties}
  * @group Components
- * @category GradumButtonPopup
+ * @category Basics
  *
  * @extends GradumRichElementProperties
  * @template {ValidTag} ElementTag - The tag of the main element.

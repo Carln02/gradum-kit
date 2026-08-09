@@ -5,7 +5,7 @@ import {auto} from "../../../decorators/auto/auto";
 /**
  * @class AnchorPoint
  * @group Components
- * @category AnchorPoint
+ * @category Data Structures
  *
  * @description A position within a box, expressed either as one of the nine named {@link Anchor} values
  * or as a free {@link Point} in percentages from `-100` to `100`. The two forms are interchangeable —

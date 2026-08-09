@@ -7,7 +7,7 @@ import {GradumIcon} from "./icon";
 /**
  * @type {GradumIconProperties}
  * @group Components
- * @category GradumIcon
+ * @category Basics
  *
  * @extends GradumElementProperties
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.

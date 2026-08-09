@@ -2,7 +2,7 @@ import {ValidElement, ValidTag} from "../../types/element.types";
 
 /**
  * @type {ChildHandler}
- * @group Types
+ * @group GradumSelector
  * @category Hierarchy
  *
  * @description A type that represents all entities that can hold and manage children (an element or a shadow root).
@@ -15,6 +15,7 @@ declare module "../gradumSelector" {
         //Readonly fields
 
         /**
+         * @category Hierarchy
          * @description The child handler object associated with the node. It is the node itself (if it is handling
          * its children) or its shadow root (if defined). Set it to change the node where the children are added/
          * removed/queried from when manipulating the node's children.
@@ -22,21 +23,25 @@ declare module "../gradumSelector" {
         childHandler: ChildHandler;
 
         /**
+         * @category Hierarchy
          * @description Static array of all the child nodes of the node.
          */
         readonly childNodesArray: Node[];
 
         /**
+         * @category Hierarchy
          * @description Static array of all the child elements of the node.
          */
         readonly childrenArray: Element[];
 
         /**
+         * @category Hierarchy
          * @description Static array of all the sibling nodes (including the node itself) of the node.
          */
         readonly siblingNodes: Node[];
 
         /**
+         * @category Hierarchy
          * @description Static array of all the sibling elements (including the element itself, if it is one) of the node.
          */
         readonly siblings: Element[];
@@ -45,6 +50,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function bringToFront
+         * @category Hierarchy
          * @description Brings the element to the front amongst its siblings in the DOM.
          * @returns {this} Itself for chaining.
          */
@@ -52,6 +58,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function sendToBack
+         * @category Hierarchy
          * @description Sends the element to the back amongst its siblings in the DOM.
          * @returns {this} Itself for chaining.
          */
@@ -59,6 +66,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function remove
+         * @category Hierarchy
          * @description Removes the node from the document.
          * @returns {this} Itself, allowing for method chaining.
          */
@@ -68,6 +76,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addToParent
+         * @category Hierarchy
          * @description Add the element to the given parent node
          * @param {Node} parent - The parent node to attach the element to.
          * @param {number} [index] - The position at which to add the element relative to the parent's child list.
@@ -82,6 +91,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addChild
+         * @category Hierarchy
          * @description Add one or more children to the element.
          * @param {Node | Node[]} [children] - Array of (or single) child nodes.
          * @param {number} [index] - The position at which to add the child relative to the parent's child list.
@@ -94,6 +104,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function remChild
+         * @category Hierarchy
          * @description Remove one or more children from the element.
          * @param {Node | Node[]} [children] - Array of (or single) child nodes.
          * @returns {this} Itself, allowing for method chaining.
@@ -102,6 +113,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addChildBefore
+         * @category Hierarchy
          * @description Add one or more children to the element before the provided sibling. If the
          * sibling is not found in the parent's children, the nodes will be added to the end of the parent's child list.
          * @param {Node | Node[]} [children] - Array of (or single) child nodes to insert before sibling.
@@ -112,6 +124,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeChildAt
+         * @category Hierarchy
          * @description Remove one or more child nodes from the element.
          * @param {number} [index] - The index of the child(ren) to remove.
          * @param {number} [count=1] - The number of children to remove.
@@ -123,6 +136,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeAllChildren
+         * @category Hierarchy
          * @description Remove all children of the node.
          * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
          * representing all the nodes to remove. Defaults to the node's `childrenArray`.
@@ -134,6 +148,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function childAt
+         * @category Hierarchy
          * @description Returns the child of the parent node at the given index. Any number inputted (including
          * negatives) will be reduced modulo length of the list size.
          * @param {number} [index] - The index of the child to retrieve.
@@ -145,6 +160,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function indexOfChild
+         * @category Hierarchy
          * @description Returns the index of the given child.
          * @param {Node} [child] - The child element to find.
          * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
@@ -155,6 +171,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function hasChild
+         * @category Hierarchy
          * @description Identify whether one or more children belong to this parent node.
          * @param {Node | Node[]} [children] - Array of (or single) child nodes.
          * @returns {boolean} A boolean indicating whether the provided nodes belong to the parent or not.
@@ -163,6 +180,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function findInSubTree
+         * @category Hierarchy
          * @description Finds whether one or more children belong to this node.
          * @param {Node | Node[]} [children] - The child or children to check.
          * @returns {boolean} True if the children belong to the node, false otherwise.
@@ -173,6 +191,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function findInParents
+         * @category Hierarchy
          * @description Finds whether this node is within the given parent(s).
          * @param {Node | Node[]} [parents] - The parent(s) to check.
          * @returns {boolean} True if the node is within the given parents, false otherwise.
@@ -181,6 +200,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function indexInParent
+         * @category Hierarchy
          * @description Finds whether one or more children belong to this node.
          * @param {Node[]} [referenceList=this.siblings] - The siblings list to use as computation
          * reference for index placement. Defaults to the node's `siblings`.
@@ -191,6 +211,7 @@ declare module "../gradumSelector" {
         /**
          * @overload
          * @function closest
+         * @category Hierarchy
          * @description Finds the closest ancestor of the current element (or the current element itself) that matches
          * that is an instance of the element associated with the given tag name.
          * @param {Type} type - The (valid) tag name.
@@ -201,6 +222,7 @@ declare module "../gradumSelector" {
         /**
          * @overload
          * @function closest
+         * @category Hierarchy
          * @description Finds the closest ancestor of the current element (or the current element itself) that matches
          * the provided CSS selector.
          * @param {Type} type - The (valid) CSS selector string.
@@ -211,6 +233,7 @@ declare module "../gradumSelector" {
         /**
          * @overload
          * @function closest
+         * @category Hierarchy
          * @template {Element} Type - The type of element to find.
          * @description Finds the closest ancestor of the current element (or the current element itself) that is an
          * instance of the given class.

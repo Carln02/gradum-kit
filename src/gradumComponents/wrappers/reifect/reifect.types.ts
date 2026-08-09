@@ -3,7 +3,7 @@ import {StylesType} from "../../../gradumFunctions/style/style.types";
 
 /**
  * @group Components
- * @category Reifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template State - The set of states the reifect can switch between.
@@ -14,7 +14,7 @@ type StatelessPropertyConfig<Type, ClassType extends object = Element> = Type | 
 
 /**
  * @group Components
- * @category Reifect
+ * @category Reifects
  */
 type StatelessReifectCoreProperties<ClassType extends object = Element> = {
     styles?: StatelessPropertyConfig<StylesType, ClassType>,
@@ -25,7 +25,7 @@ type StatelessReifectCoreProperties<ClassType extends object = Element> = {
 
 /**
  * @group Components
- * @category Reifect
+ * @category Reifects
  */
 type StatelessReifectProperties<ClassType extends object = Element> =
     StatelessReifectCoreProperties<ClassType> & {

@@ -18,7 +18,7 @@ import {GradumDropdownProperties} from "./dropdown.types";
 /**
  * @class GradumDropdown
  * @group Components
- * @category GradumDropdown
+ * @category Menus
  *
  * @extends GradumElement
  * @description Dropdown class for creating Gradum button elements.

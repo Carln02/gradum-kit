@@ -9,7 +9,7 @@ import {effect, signal} from "../../../decorators/reactivity/reactivity";
 /**
  * @class GradumMovable
  * @group Components
- * @category GradumMovable
+ * @category Wrappers
  *
  * @extends GradumElement
  * @description Positioning wrapper that places arbitrary content via pure CSS transforms.

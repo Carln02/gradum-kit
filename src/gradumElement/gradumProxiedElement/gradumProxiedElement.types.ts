@@ -9,8 +9,8 @@ import {GradumElementUiInterface} from "../setup/ui/ui.types";
 import {ValidTag} from "../../types/element.types";
 
 /**
- * @group GradumElement
- * @category GradumProxiedElement
+ * @group MVC
+ * @category Element Classes
  */
 type GradumProxiedProperties<
     Tag extends ValidTag = "div",

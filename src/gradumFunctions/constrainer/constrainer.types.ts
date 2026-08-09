@@ -8,8 +8,8 @@ import {GradumNodeList} from "../../gradumComponents/datatypes/nodeList/nodeList
 
 /**
  * @type {MakeConstrainerOptions}
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @description Options for turning an object into a constrainer with
  * {@link GradumSelector.makeConstrainer}.
@@ -30,8 +30,8 @@ type MakeConstrainerOptions = {
 
 /**
  * @type {ConstrainerCallbackProperties}
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @description The context handed to a solver as its first argument, naming the constrainer, the object
  * being processed, and the event that triggered it. Passed when solving through
@@ -62,8 +62,8 @@ type ConstrainerCallbackProperties = {
 
 /**
  * @type {ConstrainerMutatorProperties}
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @extends ConstrainerCallbackProperties
  * @template Type - The type of the value to mutate.
@@ -79,8 +79,8 @@ type ConstrainerMutatorProperties<Type = any> = ConstrainerCallbackProperties & 
 
 /**
  * @callback ConstrainerChecker
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @description Signature for a constrainer checker: decides whether the constraint currently holds for the
  * object being processed. Returning `false` stops the event that triggered the check.
@@ -92,8 +92,8 @@ type ConstrainerChecker = (properties: ConstrainerCallbackProperties, ...args: a
 
 /**
  * @callback ConstrainerMutator
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  * @template Type - The type of the value being mutated.
  *
  * @description Signature for a constrainer mutator: transforms a value as part of resolving a constraint.
@@ -106,8 +106,8 @@ type ConstrainerMutator<Type = any> = (properties: ConstrainerMutatorProperties<
 
 /**
  * @callback ConstrainerSolver
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @description Signature for a constrainer solver: adjusts the object so the constraint is satisfied.
  * @param {ConstrainerCallbackProperties} properties - The constrainer context for this pass.
@@ -118,8 +118,8 @@ type ConstrainerSolver = (properties: ConstrainerCallbackProperties, ...args: an
 
 /**
  * @type {ConstrainerAddCallbackProperties}
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  * @template {ConstrainerChecker | ConstrainerMutator | ConstrainerSolver} Type - The type of callback.
  *
  * @description Options for registering a checker, mutator, or solver on an existing constrainer.
@@ -138,12 +138,14 @@ type ConstrainerAddCallbackProperties<Type extends ConstrainerChecker | Constrai
 declare module "../gradumSelector" {
     interface GradumSelector {
         /**
+         * @category Constrainers
          * @description Array of all the constrainers attached to this element.
          */
         readonly constrainersNames: string[];
 
         /**
          * @function makeConstrainer
+         * @category Constrainers
          * @description Creates a new constrainer attached to this element. Useful to maintain certain constraints or
          * ensure some behaviors persist on a list of objects (by attaching solvers to this constrainer).
          * @param {string} name - The name of the new constrainer.
@@ -155,12 +157,14 @@ declare module "../gradumSelector" {
         //ACTIVATION
 
         /**
+         * @category Constrainers
          * @description Array of active constrainers on this element.
          */
         readonly activeConstrainers: string[];
 
         /**
          * @function activateConstrainer
+         * @category Constrainers
          * @description Activate the given constrainer.
          * @param {string[]} constrainers - The name of the constrainer(s) to activate. Defaults to the first active constrainer.
          * @returns {this} Itself for chaining.
@@ -169,6 +173,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function deactivateConstrainer
+         * @category Constrainers
          * @description Deactivate the given constrainer.
          * @param {string[]} constrainers - The name of the constrainer(s) to deactivate. Defaults to the first active constrainer.
          * @returns {this} Itself for chaining.
@@ -177,6 +182,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function toggleConstrainer
+         * @category Constrainers
          * @description Toggle the active state of the given constrainer.
          * @param {string} constrainer - The name of the constrainer to toggle. Defaults to the first active constrainer.
          * @param {boolean} [force] - If set, the constrainer's active state will be set to this value.
@@ -186,6 +192,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function activateOnlyConstrainer
+         * @category Constrainers
          * @description Activate the provided constrainer and deactivate all other constrainers attached to this element.
          * @param {string} constrainer - The constrainer name to activate as the single active constrainer. Defaults to the
          * first active constrainer.
@@ -195,6 +202,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function activateAllConstrainers
+         * @category Constrainers
          * @description Activate all the constrainers attached to this element.
          * @returns {this} Itself for chaining.
          */
@@ -202,6 +210,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function deactivateAllConstrainers
+         * @category Constrainers
          * @description Deactivate all the constrainers attached to this element.
          * @returns {this} Itself for chaining.
          */
@@ -209,6 +218,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function onConstrainerActivate
+         * @category Constrainers
          * @description Get the delegate fired when the constrainer of the given name is activated.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {Delegate<() => void>} The delegate.
@@ -217,6 +227,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function onConstrainerDeactivate
+         * @category Constrainers
          * @description Get the delegate fired when the constrainer of the given name is deactivated.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {Delegate<() => void>} The delegate.
@@ -227,6 +238,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getConstrainerPriority
+         * @category Constrainers
          * @description Get the priority of the targeted constrainer. Higher priority constrainers (lower number) should
          * be resolved first.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -236,6 +248,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function setConstrainerPriority
+         * @category Constrainers
          * @description Set the priority of the targeted constrainer. Higher priority constrainers (lower number) should
          * be resolved first.
          * @param {number} priority - The priority value to set.
@@ -248,6 +261,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getConstrainerObjectList
+         * @category Constrainers
          * @description Retrieve the list of objects that are constrained by the given constrainer.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {GradumNodeList} The list of objects. To manipulate, check {@link GradumNodeList}.
@@ -256,6 +270,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function onConstrainerObjectListChange
+         * @category Constrainers
          * @description Get the delegate fired whenever an object is added to or removed from the constrainer's object list.
          * Defaults to the children of the element the constrainer is attached to.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -267,6 +282,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getConstrainerTriggerList
+         * @category Constrainers
          * @description Retrieve the list of objects that trigger the given constrainer to resolve.
          * Interacting with any of these objects would typically lead to the solving of the given constrainer.
          * Defaults to the constrainer's object list.
@@ -279,6 +295,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getConstrainerQueue
+         * @category Constrainers
          * @description Retrieve the current queue to be processed by the constrainer while resolving.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {GradumQueue<object>} The current constrainer queue.
@@ -287,6 +304,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getDefaultConstrainerQueue
+         * @category Constrainers
          * @description Retrieve the default queue template for the constrainer, used when starting a new resolving pass.
          * It defaults to the constrainer's object list.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -296,6 +314,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function setDefaultConstrainerQueue
+         * @category Constrainers
          * @description Define the default queue template for the constrainer, used when starting a new resolving pass.
          * @param {object[] | GradumQueue<object>} queue - The queue (or list to build a queue from).
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -307,6 +326,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getObjectPassesForConstrainer
+         * @category Constrainers
          * @description Retrieve how many times the given object has been processed for the current resolving session
          * of the constrainer.
          * @param {object} object - The object to query.
@@ -317,6 +337,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getMaxPassesForConstrainer
+         * @category Constrainers
          * @description Get the maximum number of passes allowed per object for this constrainer during resolving.
          * This helps prevent infinite cycles in constraint propagation.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -326,6 +347,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function setMaxPassesForConstrainer
+         * @category Constrainers
          * @description Set the maximum number of passes allowed per object for this constrainer during resolving. This
          * helps prevent infinite cycles in constraint propagation.
          * @param {number} passes - Maximum number of passes.
@@ -338,6 +360,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getObjectDataForConstrainer
+         * @category Constrainers
          * @description Retrieve custom per-object data for this constrainer. It is reset on every new
          * resolving session.
          * @param {object} object - The object to query.
@@ -348,6 +371,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function setObjectDataForConstrainer
+         * @category Constrainers
          * @description Set custom per-object data for this constrainer. It is reset on every new resolving session.
          * @param {object} object - The object to update.
          * @param {Record<string, any>} [data] - The new data object to associate with this object.
@@ -360,6 +384,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addChecker
+         * @category Constrainers
          * @description Register a checker in the constrainer. Checkers dictate whether the event should continue
          * executing depending on the provided context (event, tool, target, etc.).
          * @param {ConstrainerAddCallbackProperties<ConstrainerChecker>} properties - Configuration object, including the
@@ -371,6 +396,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeChecker
+         * @category Constrainers
          * @description Remove a checker from the given constrainer by its name.
          * @param {string} name - The checker name.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -380,6 +406,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function clearCheckers
+         * @category Constrainers
          * @description Remove all checkers attached to the given constrainer.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {this} Itself for chaining.
@@ -388,6 +415,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function checkConstrainer
+         * @category Constrainers
          * @description Evaluate all checkers for the targeted constrainer and return whether the event should proceed or halt.
          * @param {ConstrainerCallbackProperties} [properties] - Context passed to each checker.
          * @returns {boolean} Whether the constrainer passes all checks.
@@ -396,6 +424,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function checkConstrainersForEvent
+         * @category Constrainers
          * @description Evaluate checkers for all relevant constrainers for a given event context.
          * @param {ConstrainerCallbackProperties} [properties] - Event context.
          * @returns {boolean} Whether all the checkers allowed the event to proceed.
@@ -406,6 +435,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addMutator
+         * @category Constrainers
          * @description Register a mutator in the constrainer. Mutators compute or transform a value based on the context.
          * @param {ConstrainerAddCallbackProperties<ConstrainerMutator>} properties - Configuration object, including the
          * mutator `callback` to be executed, the `name` of the mutator to access it later, the name of the attached
@@ -416,6 +446,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeMutator
+         * @category Constrainers
          * @description Remove a mutator from the given constrainer by its name.
          * @param {string} name - The mutator name.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -425,6 +456,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function clearMutators
+         * @category Constrainers
          * @description Remove all mutators attached to the given constrainer.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {this} Itself for chaining.
@@ -433,6 +465,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function mutate
+         * @category Constrainers
          * @template Type - The type of the value to mutate
          * @description Execute a mutator for the targeted constrainer and return the resulting value.
          * @param {ConstrainerMutatorProperties<Type>} [properties] - Context object, including the
@@ -445,6 +478,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addSolver
+         * @category Constrainers
          * @description Register a solver in the constrainer. Solvers typically execute after an event is fired to
          * ensure the constrainer's constraints are maintained. They process all objects in the constrainer's queue,
          * one after the other.
@@ -457,6 +491,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeSolver
+         * @category Constrainers
          * @description Remove the given function from the constrainer's list of solvers.
          * @param {string} name - The solver's name.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -466,6 +501,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function clearSolvers
+         * @category Constrainers
          * @description Remove all solvers attached to the constrainer.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {this} Itself for chaining.
@@ -474,6 +510,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function solveConstrainer
+         * @category Constrainers
          * @description Solve the constrainer by executing all of its attached solvers. Each solver will be executed
          * on every object in the constrainer's queue, incrementing its number of passes in the process.
          * @param {ConstrainerCallbackProperties} [properties] - Options object to configure the context.
@@ -483,6 +520,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function solveConstrainersForEvent
+         * @category Constrainers
          * @description Solve all relevant constrainers for a given event context.
          * @param {ConstrainerCallbackProperties} [properties] - Event context to pass to solvers.
          * @returns {this} Itself for chaining.

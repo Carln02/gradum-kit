@@ -11,7 +11,7 @@ import {GradumIconSwitchProperties} from "./iconSwitch.types";
 
 /**
  * @group Components
- * @category GradumIconSwitch
+ * @category Basics
  */
 class GradumIconSwitch<
     State extends string | number | symbol = OnOff,

@@ -1,7 +1,7 @@
 /**
  * @type {ScopedKey}
  * @group Components
- * @category GradumNestedMap
+ * @category Data Structures
  *
  * @template KeyType - The per-item key type.
  * @template BlockKeyType - The block-grouping key type.
@@ -18,7 +18,7 @@ type ScopedKey<KeyType = any, BlockKeyType = any> = {
 /**
  * @type {BlockStoreType}
  * @group Components
- * @category GradumNestedStore
+ * @category Data Structures
  *
  * @template {"array" | "map"} Type - How the blocks are stored. Defaults to `"map"`.
  * @template {object} BlockType - The type of one block.

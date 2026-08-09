@@ -115,7 +115,7 @@ type SetToolOptions = {
 /**
  * @enum {ActionMode}
  * @group Event Handling
- * @category Enums
+ * @category Event Modes
  *
  * @description What the manager has decided the current interaction is. A press starts as `click` and
  * becomes `longPress` or `drag` once it outlasts `longPressDuration` or travels past `moveThreshold`.
@@ -134,7 +134,7 @@ enum ActionMode {
 /**
  * @enum {ClickMode}
  * @group Event Handling
- * @category Enums
+ * @category Event Modes
  *
  * @description Which pointer button or input mode an interaction belongs to. The manager holds one
  * current tool per mode, so a different tool can be bound to each button.
@@ -157,7 +157,7 @@ enum ClickMode {
 /**
  * @enum {InputDevice}
  * @group Event Handling
- * @category Enums
+ * @category Event Modes
  *
  * @description The device the manager believes is driving input. *Note: this is inferred from event
  * shape and is not fully reliable, particularly between `mouse` and `trackpad`.*

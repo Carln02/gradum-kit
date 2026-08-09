@@ -3,7 +3,7 @@ import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
 
 /**
  * @type {StylesRoot}
- * @group Types
+ * @group GradumSelector
  * @category Style
  *
  * @description A type that represents entities that can hold a <style> object (Shadow root or HTML head).
@@ -12,7 +12,7 @@ type StylesRoot = ShadowRoot | HTMLHeadElement;
 
 /**
  * @type {StylesType}
- * @group Types
+ * @group GradumSelector
  * @category Style
  *
  * @description A type that represents the types that are accepted as styles entries (mainly by the
@@ -24,22 +24,35 @@ type StylesType = string | number | PartialRecord<keyof CSSStyleDeclaration, str
 declare module "../gradumSelector" {
     interface GradumSelector {
         /**
+         * @category Style
          * @description The closest root to the element in the document (the closest ShadowRoot, or the document's head).
          */
         readonly closestRoot: StylesRoot;
 
         /**
+         * @category Style
          * @description Whether the element is selected or not. Setting it on an Element will accordingly toggle on it
          * the "selected" CSS class (or whichever default selected class was set for this element) and update the UI.
          */
         selected: boolean;
 
+        /**
+         * @category Style
+         * @description The CSS classes applied when the element is selected. Assigning a new value moves the
+         * classes over if the element is currently selected.
+         */
         defaultSelectedClasses: string | string[];
 
+        /**
+         * @readonly
+         * @category Style
+         * @description Delegate fired whenever the element's selected state changes. Receives the new state.
+         */
         readonly onSelected: Delegate<(value: boolean) => void>;
 
         /**
          * @function setStyle
+         * @category Style
          * @description Set a certain style attribute of the element to the provided value.
          * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to set.
          * @param {string | number} value - THe value to append.
@@ -51,6 +64,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function appendStyle
+         * @category Style
          * @description Append the provided value to a certain style attribute.
          * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to append to.
          * @param {string | number} value - The value to append.
@@ -63,6 +77,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function setStyles
+         * @category Style
          * @description Parses and applies the given CSS to the element's inline styles.
          * @param {StylesType} styles - Acceptable styles to set.
          * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next

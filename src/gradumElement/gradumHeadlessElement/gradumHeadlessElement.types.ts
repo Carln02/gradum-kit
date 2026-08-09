@@ -7,8 +7,8 @@ import {MvcGenerationProperties} from "../../gradumFunctions/mvc/mvc.types";
 
 /**
  * @type {GradumHeadlessProperties}
- * @group GradumElement
- * @category GradumHeadlessElement
+ * @group MVC
+ * @category Element Classes
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.

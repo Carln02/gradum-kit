@@ -10,7 +10,7 @@ import {ValidTag} from "../../../types/element.types";
 /**
  * @class GradumButton
  * @group Components
- * @category GradumButton
+ * @category Basics
  *
  * @extends GradumElement
  * @description Button class for creating Gradum button elements.

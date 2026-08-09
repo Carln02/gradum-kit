@@ -7,7 +7,7 @@ import {GradumNumericalInput} from "./numericalInput";
 /**
  * @type {GradumNumericalInputProperties}
  * @group Components
- * @category GradumNumericalInput
+ * @category Basics
  *
  * @template ValueType - The type the input's string value is converted to and from.
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.

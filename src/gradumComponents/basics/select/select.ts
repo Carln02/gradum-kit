@@ -16,7 +16,7 @@ import {define} from "../../../decorators/define/define";
 /**
  * @class GradumSelect
  * @group Components
- * @category GradumSelect
+ * @category Basics
  *
  * @extends GradumElement
  * @description Base class for creating a selection menu

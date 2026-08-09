@@ -36,7 +36,7 @@ export type MvcManyInstancesOrConstructors<Type, PropertiesType = any> = MvcInst
 /**
  * @type {MvcProperties}
  * @group MVC
- * @category MVC
+ * @category Configuration
  *
  * @template {GradumView} ViewType - The element's view type, if any.
  * @template {GradumModel} ModelType - The element's model type, if any.
@@ -82,7 +82,7 @@ type MvcProperties<
 /**
  * @type {MvcGenerationProperties}
  * @group MVC
- * @category MVC
+ * @category Configuration
  *
  * @extends MvcProperties
  * @template {GradumView} ViewType - The element's view type, if any.
@@ -108,6 +108,12 @@ type MvcGenerationProperties<
 declare module "../gradumSelector" {
     interface GradumSelector<Type extends object = Node> {
 
+        /**
+         * @readonly
+         * @category MVC
+         * @description Every MVC piece bound to the element — its view, model, emitter, and the operator, handler,
+         * interactor, tool, and constrainer collections — in one object.
+         */
         readonly mvc: MvcProperties;
 
         // -------------------------------------------------------------------------
@@ -115,16 +121,19 @@ declare module "../gradumSelector" {
         // -------------------------------------------------------------------------
 
         /**
+         * @category MVC
          * @description The model of the element's MVC structure.
          */
         model: any;
 
         /**
+         * @category MVC
          * @description The view of the element's MVC structure.
          */
         view: any;
 
         /**
+         * @category MVC
          * @description The emitter of the element's MVC structure.
          */
         emitter: any;
@@ -134,23 +143,33 @@ declare module "../gradumSelector" {
         // -------------------------------------------------------------------------
 
         /**
+         * @category MVC
          * @description The main data block attached to the element's model.
          */
         data: any;
 
+        /**
+         * @readonly
+         * @category MVC
+         * @description A key-value store attached to the element, backed by its own model. Use it for flags
+         * that tools and behaviors read off an element — `selectable`, `dragAndDroppable`, and the like.
+         */
         readonly metadata: GradumModel<object>;
 
         /**
+         * @category MVC
          * @description The ID of the main data block of the element's model.
          */
         dataId: string;
 
         /**
+         * @category MVC
          * @description The numerical index of the main data block of the element's model.
          */
         dataIndex: number;
 
         /**
+         * @category MVC
          * @description The size (number) of the main data block of the element's model.
          */
         readonly dataSize: number;
@@ -160,27 +179,32 @@ declare module "../gradumSelector" {
         // -------------------------------------------------------------------------
 
         /**
+         * @category MVC
          * @description The operators of the element's MVC structure.
          */
         operators: GradumOperator[];
 
         /**
+         * @category MVC
          * @description The handlers attached to the element's model.
          * Returns an empty array if no model is set.
          */
         handlers: GradumHandler[];
 
         /**
+         * @category MVC
          * @description The interactors of the element's MVC structure.
          */
         interactors: GradumInteractor[];
 
         /**
+         * @category MVC
          * @description The tools of the element's MVC structure.
          */
         tools: GradumTool[];
 
         /**
+         * @category MVC
          * @description The constrainers of the element's MVC structure.
          */
         constrainers: GradumConstrainer[];
@@ -191,6 +215,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function setMvc
+         * @category MVC
          * @description Configures the MVC structure for the element. Sets the provided MVC pieces (model, view,
          * emitter, operators, handlers, interactors, tools, constrainers) on the element, initializes a default
          * emitter if none is provided, and initializes all MVC pieces unless explicitly disabled.
@@ -201,6 +226,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function initializeMvc
+         * @category MVC
          * @description Initializes all MVC pieces attached to the element, in the following order: view,
          * operators, interactors, tools, constrainers, and model. The model is initialized last to allow
          * the view and operators to set up their change callbacks first.
@@ -210,6 +236,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getMvcDifference
+         * @category MVC
          * @template {GradumView} ViewType - The element's view type.
          * @template {object} DataType - The element's data type.
          * @template {GradumModel<DataType>} ModelType - The element's model type.
@@ -239,6 +266,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getOperator
+         * @category MVC
          * @description Retrieves the attached MVC operator with the given key.
          * @param {string} key - The operator's key.
          * @returns {GradumOperator} The operator.
@@ -247,6 +275,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addOperator
+         * @category MVC
          * @description Adds the given operator to the element's MVC structure.
          * @param {GradumOperator} operator - The operator to add.
          * @returns {this} Itself, allowing for method chaining.
@@ -255,6 +284,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeOperator
+         * @category MVC
          * @description Removes the given operator from the element's MVC structure and unlinks it.
          * @param {string | GradumOperator} keyOrInstance - The operator's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
@@ -267,6 +297,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getHandler
+         * @category MVC
          * @description Retrieves the attached MVC handler with the given key.
          * Returns undefined if no model is set.
          * @param {string} key - The handler's key.
@@ -276,6 +307,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addHandler
+         * @category MVC
          * @description Adds the given handler to the element's model.
          * If no model is set, this operation is a no-op.
          * @param {GradumHandler} handler - The handler to add.
@@ -285,6 +317,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeHandler
+         * @category MVC
          * @description Removes the given handler from the element's model and unlinks it.
          * If no model is set, this operation is a no-op.
          * @param {string | GradumHandler} keyOrInstance - The handler's key or instance to remove.
@@ -298,6 +331,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getInteractor
+         * @category MVC
          * @description Retrieves the attached MVC interactor with the given key.
          * @param {string} key - The interactor's key.
          * @returns {GradumInteractor} The interactor.
@@ -306,6 +340,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addInteractor
+         * @category MVC
          * @description Adds the given interactor to the element's MVC structure.
          * @param {GradumInteractor} interactor - The interactor to add.
          * @returns {this} Itself, allowing for method chaining.
@@ -314,6 +349,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeInteractor
+         * @category MVC
          * @description Removes the given interactor from the element's MVC structure and unlinks it.
          * @param {string | GradumInteractor} keyOrInstance - The interactor's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
@@ -326,6 +362,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getTool
+         * @category MVC
          * @description Retrieves the attached MVC tool with the given key.
          * @param {string} key - The tool's key.
          * @returns {GradumTool} The tool.
@@ -334,6 +371,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addTool
+         * @category MVC
          * @description Adds the given tool to the element's MVC structure.
          * @param {GradumTool} tool - The tool to add.
          * @returns {this} Itself, allowing for method chaining.
@@ -342,6 +380,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeTool
+         * @category MVC
          * @description Removes the given tool from the element's MVC structure and unlinks it.
          * @param {string | GradumTool} keyOrInstance - The tool's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
@@ -354,6 +393,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function getConstrainer
+         * @category MVC
          * @description Retrieves the attached MVC constrainer with the given key.
          * @param {string} key - The constrainer's key.
          * @returns {GradumConstrainer} The constrainer.
@@ -362,6 +402,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function addConstrainer
+         * @category MVC
          * @description Adds the given constrainer to the element's MVC structure.
          * @param {GradumConstrainer} constrainer - The constrainer to add.
          * @returns {this} Itself, allowing for method chaining.
@@ -370,6 +411,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function removeConstrainer
+         * @category MVC
          * @description Removes the given constrainer from the element's MVC structure and unlinks it.
          * @param {string | GradumConstrainer} keyOrInstance - The constrainer's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.

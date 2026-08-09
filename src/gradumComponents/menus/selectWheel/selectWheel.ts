@@ -20,7 +20,7 @@ import {GradumSelectElement} from "../../basics/selectElement/selectElement";
 /**
  * @class GradumSelectWheel
  * @group Components
- * @category GradumSelectWheel
+ * @category Menus
  *
  * @extends GradumSelectElement
  * @description A swipeable selection wheel. Entries are always position absolute, fanned out by a

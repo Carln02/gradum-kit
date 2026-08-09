@@ -8,7 +8,7 @@ import {GradumSelectElement} from "./selectElement";
 /**
  * @type {GradumSelectElementProperties}
  * @group Components
- * @category GradumSelectElement
+ * @category Basics
  *
  * @extends GradumElementProperties
  * @extends GradumSelectProperties

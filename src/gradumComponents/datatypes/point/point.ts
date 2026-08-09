@@ -3,7 +3,7 @@ import {trim} from "../../../utils/computations/misc";
 
 /**
  * @group Components
- * @category Point
+ * @category Data Structures
  */
 class Point {
     /**

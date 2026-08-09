@@ -12,7 +12,7 @@ class GradumNestedMapNode<KeyType, ValueType> extends Map<KeyType, ValueType> {
 /**
  * @class GradumNestedMap
  * @group Components
- * @category GradumNestedMap
+ * @category Data Structures
  *
  * @template ValueType - The type of stored values.
  * @template KeyType - The type of keys at each level of the path. Defaults to `string | symbol | number`.

@@ -8,7 +8,7 @@ import {PartialRecord} from "../../../types/basic.types";
 /**
  * @class Reifect
  * @group Components
- * @category Reifect
+ * @category Reifects
  *
  * @template {object} ClassType - The object type this reifier will be applied to.
  * @description A class to manage and apply dynamic properties, styles, classes, and transitions to a

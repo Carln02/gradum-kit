@@ -7,7 +7,7 @@ import {GradumPopup} from "./popup";
 
 /**
  * @group Components
- * @category GradumPopup
+ * @category Containers
  */
 type GradumPopupProperties<
     ViewType extends GradumView = GradumView,
@@ -25,7 +25,7 @@ type GradumPopupProperties<
 
 /**
  * @group Components
- * @category GradumPopup
+ * @category Containers
  */
 enum PopupFallbackMode {
     invert = "invert",

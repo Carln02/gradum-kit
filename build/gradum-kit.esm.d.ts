@@ -224,8 +224,8 @@ declare function callOncePerInstance<Type extends object>(value: (this: Type, ..
 
 /**
  * @type {KeyType}
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @description Any value usable as an object key. Key paths throughout the MVC layer — model data,
  * observers, {@link GradumNestedMap} — are arrays of these.
@@ -233,8 +233,8 @@ declare function callOncePerInstance<Type extends object>(value: (this: Type, ..
 type KeyType = string | number | symbol;
 /**
  * @type {FlatKeyType}
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @description A whole key path collapsed into one value, so a nested entry can be addressed without an
  * array. Fully numeric paths flatten to a number; anything else to a `"k0|k1|k2"` string.
@@ -242,8 +242,8 @@ type KeyType = string | number | symbol;
 type FlatKeyType = string | number;
 /**
  * @type {FlexRect}
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @description A rectangle where every field is optional, for describing only the edges you care about.
  * Sides and dimensions may be mixed, and any that are omitted are left to the caller to infer.
@@ -268,8 +268,8 @@ type FlexRect = {
 };
 /**
  * @type {Coordinate}
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @template Type - The type of each component. Defaults to `number`.
  * @description A pair of values on the x and y axes. Generic so the same shape can carry something other
@@ -283,8 +283,8 @@ type Coordinate<Type = number> = {
 };
 /**
  * @type {PartialRecord}
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @template {keyof any} Property - The union of allowed keys.
  * @template Value - The type stored at each key.
@@ -296,7 +296,7 @@ type PartialRecord<Property extends keyof any, Value> = {
 
 /**
  * @group Components
- * @category Point
+ * @category Data Structures
  */
 declare class Point {
     /**
@@ -651,7 +651,7 @@ declare class SimpleDelegate<CallbackType extends (...args: any[]) => any> {
 /**
  * @class Delegate
  * @group Components
- * @category Delegate
+ * @category Data Structures
  *
  * @template {(...args: any[]) => any} CallbackType - The type of callbacks accepted by the delegate.
  * @description A set of callbacks kept together and fired as one, used throughout the library wherever a
@@ -683,7 +683,7 @@ declare class GradumNestedMapNode<KeyType, ValueType> extends Map<KeyType, Value
 /**
  * @class GradumNestedMap
  * @group Components
- * @category GradumNestedMap
+ * @category Data Structures
  *
  * @template ValueType - The type of stored values.
  * @template KeyType - The type of keys at each level of the path. Defaults to `string | symbol | number`.
@@ -2136,7 +2136,7 @@ declare class GradumOperator<ElementType extends object = object, ViewType exten
 /**
  * @class Listener
  * @group Components
- * @category Listener
+ * @category Data Structures
  *
  * @template {Node} TargetType - The type of the event target.
  * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
@@ -2199,7 +2199,7 @@ declare class Listener<TargetType extends Node = Node, CallbackType extends List
 /**
  * @class ListenerSet
  * @group Components
- * @category Listener
+ * @category Data Structures
  *
  * @template {Node} TargetType - The type of the event target.
  * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
@@ -2264,8 +2264,8 @@ declare class ListenerSet<TargetType extends Node = Node, CallbackType extends L
 
 /**
  * @enum {Propagation}
- * @group Types
- * @category Event
+ * @group GradumSelector
+ * @category Events
  *
  * @description Enum dictating the propagation of an event.
  * @property {Propagation.propagate} propagate - Continue normal propagation.
@@ -2280,8 +2280,8 @@ declare enum Propagation {
 }
 /**
  * @type {PreventDefaultOptions}
- * @group Types
- * @category Event
+ * @group GradumSelector
+ * @category Events
  *
  * @description Options for {@link GradumSelector.preventDefault}, which prevents default browser behaviors for
  * selected event types and can optionally stop propagation.
@@ -2306,14 +2306,14 @@ type PreventDefaultOptions = {
     manager?: GradumEventManager;
 };
 /**
- * @group Types
- * @category Event
+ * @group GradumSelector
+ * @category Events
  * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
  */
 declare const BasicInputEvents: readonly ["mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu", "dragstart", "selectstart", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "wheel"];
 /**
- * @group Types
- * @category Event
+ * @group GradumSelector
+ * @category Events
  * @description Event types that should usually be registered as **non-passive** when you intend to call
  *  * `preventDefault()` (e.g., scroll/touch/pointer interactions).
  */
@@ -2321,7 +2321,7 @@ declare const NonPassiveEvents: readonly ["wheel", "touchstart", "touchmove", "t
 /**
  * @type {ListenerProperties}
  * @group Components
- * @category Listener
+ * @category Data Structures
  *
  * @template {Node} TargetType - The type of the event target.
  * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
@@ -2344,7 +2344,7 @@ type ListenerProperties<TargetType extends Node = Node, CallbackType extends Lis
 /**
  * @type {MatchListenerProperties}
  * @group Components
- * @category Listener
+ * @category Data Structures
  *
  * @extends ListenerProperties
  * @template {Node} TargetType - The type of the event target.
@@ -2359,7 +2359,7 @@ type MatchListenerProperties<TargetType extends Node = Node, CallbackType extend
 /**
  * @callback ListenerCallback
  * @group Components
- * @category Listener
+ * @category Data Structures
  * @template {Node} Type - The type of the event target.
  * @description Callback signature for listeners. Receives the native event and the resolved target.
  * @param {Event} e - The native event.
@@ -2370,7 +2370,7 @@ type ListenerCallback<Type extends Node = Node> = ((e: Event, el: Type) => Propa
 /**
  * @type {ListenerOptions}
  * @group Components
- * @category Listener
+ * @category Data Structures
  * @extends AddEventListenerOptions
  * @description Options used for listeners.
  * @property {boolean} [checkConstrainers] - If true, checks constrainers before execution. Defaults to true.
@@ -2463,7 +2463,7 @@ declare class GradumInteractor<ElementType extends object = object, ViewType ext
 }
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The key event names dispatched by {@link GradumEventManager}. Listen for these to receive
@@ -2476,7 +2476,7 @@ declare const GradumKeyEventName: {
     readonly keyReleased: "gradum-key-released";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The key events components listen for out of the box. Both map to their native DOM
@@ -2489,7 +2489,7 @@ declare const DefaultKeyEventName: {
     readonly keyReleased: "keyup";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The click event names dispatched by {@link GradumEventManager}. These are pointer-type
@@ -2506,7 +2506,7 @@ declare const GradumClickEventName: {
     readonly longPress: "gradum-long-press";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The click events components listen for out of the box. `click`, `clickStart`, and `clickEnd`
@@ -2524,7 +2524,7 @@ declare const DefaultClickEventName: {
     readonly longPress: "gradum-long-press";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The pointer-move event name dispatched by {@link GradumEventManager}.
@@ -2534,7 +2534,7 @@ declare const GradumMoveEventName: {
     readonly move: "gradum-move";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The move event components listen for out of the box, mapped to its native DOM equivalent.
@@ -2544,7 +2544,7 @@ declare const DefaultMoveEventName: {
     readonly move: "mousemove";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The drag event names dispatched by {@link GradumEventManager}. A drag begins once the pointer
@@ -2559,7 +2559,7 @@ declare const GradumDragEventName: {
     readonly dragEnd: "gradum-drag-end";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The drag events components listen for out of the box. All three keep their Gradum names —
@@ -2575,7 +2575,7 @@ declare const DefaultDragEventName: {
     readonly dragEnd: "gradum-drag-end";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The wheel event names dispatched by {@link GradumEventManager}, which separates a plain
@@ -2588,7 +2588,7 @@ declare const GradumWheelEventName: {
     readonly pinch: "gradum-pinch";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The wheel events components listen for out of the box. Both map to the native `wheel` event,
@@ -2602,7 +2602,7 @@ declare const DefaultWheelEventName: {
     readonly pinch: "wheel";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description Every event name {@link GradumEventManager} can dispatch, combining the key, click, move,
@@ -2625,7 +2625,7 @@ declare const GradumEventName: {
     readonly longPress: "gradum-long-press";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description Object containing the names of events fired by default by the gradumComponents. Modifying it (prior to
@@ -2656,14 +2656,14 @@ declare const DefaultEventName: {
     keyReleased: "keyup";
 };
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The name of any event in {@link DefaultEventName}, such as `"clickStart"` or `"focusIn"`.
  */
 type DefaultEventNameKey = keyof typeof DefaultEventName;
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The event-name string of any entry in {@link DefaultEventName}, such as `"mousedown"`.
@@ -2671,14 +2671,14 @@ type DefaultEventNameKey = keyof typeof DefaultEventName;
  */
 type DefaultEventNameEntry = typeof DefaultEventName[DefaultEventNameKey];
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The name of any event in {@link GradumEventName}, such as `"dragStart"`.
  */
 type GradumEventNameKey = keyof typeof GradumEventName;
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The event-name string of any entry in {@link GradumEventName}, such as `"gradum-drag-start"`.
@@ -2687,8 +2687,8 @@ type GradumEventNameEntry = typeof GradumEventName[GradumEventNameKey];
 
 /**
  * @type {MakeToolOptions}
- * @group Types
- * @category Tool
+ * @group GradumSelector
+ * @category Tools
  *
  * @description Options used to create a new tool attached to an element via {@link GradumSelector.makeTool}.
  * @property {() => void} [onActivate] - Function to execute when the tool is activated.
@@ -2713,8 +2713,8 @@ type MakeToolOptions<ElementType extends object = object> = {
 };
 /**
  * @type {ToolBehaviorCallback}
- * @group Types
- * @category Tool
+ * @group GradumSelector
+ * @category Tools
  *
  * @description Function signature for a tool behavior. Returning `true` marks the behavior as handled/consumed,
  * leading to stopping the propagation of the event.
@@ -2726,8 +2726,8 @@ type MakeToolOptions<ElementType extends object = object> = {
 type ToolBehaviorCallback<TargetType extends Node = Node> = (event: Event, target: TargetType, options?: ToolBehaviorOptions) => Propagation | any;
 /**
  * @type {ToolBehaviorOptions}
- * @group Types
- * @category Tool
+ * @group GradumSelector
+ * @category Tools
  *
  * @description Options object passed to tool behaviors at execution time.
  * @property {boolean} [isEmbedded] - Indicates if the tool is embedded in a target node.
@@ -2852,7 +2852,7 @@ type GradumConstrainerProperties<ElementType extends object = object, ViewType e
 /**
  * @class GradumQueue
  * @group Components
- * @category GradumQueue
+ * @category Data Structures
  *
  * @template Type - The type of the queued values.
  * @description A first-in, first-out queue. {@link push} adds to the back, {@link pop} takes from the
@@ -2937,7 +2937,7 @@ declare class GradumQueue<Type = any> {
 /**
  * @type {NodeListType}
  * @group Components
- * @category GradumNodeList
+ * @category Data Structures
  *
  * @template {object} EntryType - The type of the nodes held in the collection.
  * @description Anything a {@link GradumNodeList} accepts as a source of entries: another list, a live DOM
@@ -2948,7 +2948,7 @@ type NodeListType<EntryType extends object = object> = GradumNodeList<EntryType>
 /**
  * @type {NodeListSlot}
  * @group Components
- * @category GradumNodeList
+ * @category Data Structures
  *
  * @template {object} EntryType - The type of the nodes held in the collection.
  * @description One slot of a {@link GradumNodeList}: either a single entry, or a whole sub-collection
@@ -2960,7 +2960,7 @@ type NodeListSlot<EntryType extends object = object> = GradumNodeList<EntryType>
 /**
  * @class GradumNodeList
  * @group Components
- * @category GradumNodeList
+ * @category Data Structures
  *
  * @template {object} Type - The type of the nodes held in the list.
  * @description A composable, Set-like collection of nodes. A single list can mix individual nodes, live
@@ -3473,34 +3473,34 @@ interface GradumElementMvcInterface<ViewType extends GradumView = GradumView<any
 
 /**
  * @type {SVGTagMap}
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  *
  * @description The SVG tag-to-element map, minus `style`. That one tag is excluded because it collides
  * with the HTML `<style>` element of the same name, which would make the combined tag maps ambiguous.
  */
 type SVGTagMap = Omit<SVGElementTagNameMap, "style">;
 /**
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  * @description Ensures that only valid tags are used, i.e., those that map to elements.
  */
 type SVGTag<Tag extends keyof SVGElementTagNameMap = keyof SVGElementTagNameMap> = Tag;
 /**
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  * @description Ensures that only valid elements are used, i.e., those that extend Element.
  */
 type ValidSVGElement<Tag extends SVGTag = SVGTag> = SVGElementTagNameMap[Tag] extends SVGElement ? SVGElementTagNameMap[Tag] : SVGElement;
 /**
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  * @description URL to the SVG namespace.
  */
 declare const SvgNamespace = "http://www.w3.org/2000/svg";
 /**
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  * @description Set of Valid SVG tags.
  */
 declare const SvgTags: Set<keyof SVGElementTagNameMap>;
@@ -3668,14 +3668,14 @@ declare global {
 }
 
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Ensures that only valid tags are used, i.e., those that map to elements.
  */
 type HTMLTag<Tag extends keyof HTMLElementTagNameMap = keyof HTMLElementTagNameMap> = Tag;
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Ensures that only valid elements are used, i.e., those that extend Element.
  */
 type ValidHTMLElement<Tag extends HTMLTag = HTMLTag> = HTMLElementTagNameMap[Tag] extends HTMLElement ? HTMLElementTagNameMap[Tag] : HTMLElement;
@@ -3823,26 +3823,26 @@ declare global {
 }
 
 /**
- * @group Types
- * @category MathML Element
+ * @group Core Types
+ * @category MathML Tags
  * @description Ensures that only valid tags are used, i.e., those that map to elements.
  */
 type MathMLTag<Tag extends keyof MathMLElementTagNameMap = keyof MathMLElementTagNameMap> = Tag;
 /**
- * @group Types
- * @category MathML Element
+ * @group Core Types
+ * @category MathML Tags
  * @description Ensures that only valid elements are used, i.e., those that extend Element.
  */
 type ValidMathMLElement<Tag extends MathMLTag = MathMLTag> = MathMLElementTagNameMap[Tag] extends MathMLElement ? MathMLElementTagNameMap[Tag] : MathMLElement;
 /**
- * @group Types
- * @category MathML Element
+ * @group Core Types
+ * @category MathML Tags
  * @description URL to the MathML namespace.
  */
 declare const MathMLNamespace = "http://www.w3.org/1998/Math/MathML";
 /**
- * @group Types
- * @category MathML Element
+ * @group Core Types
+ * @category MathML Tags
  * @description Set of Valid MathML tags.
  */
 declare const MathMLTags: Set<keyof MathMLElementTagNameMap>;
@@ -3910,47 +3910,47 @@ declare global {
 }
 
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description A type that represents a union of HTML, SVG, and MathML tag name maps.`
  */
 type ElementTagMap = HTMLElementTagNameMap & SVGTagMap & MathMLElementTagNameMap & GradumElementTagNameMap;
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Ensures that only valid tags are used, i.e., those that map to elements.
  */
 type ValidTag<Tag extends keyof ElementTagMap = keyof ElementTagMap> = Tag;
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Ensures that only valid elements are used, i.e., those that extend Element.
  */
 type ValidElement<Tag extends ValidTag = ValidTag> = Tag extends HTMLTag ? ValidHTMLElement<Tag> : (Tag extends SVGTag ? ValidSVGElement<Tag> : (Tag extends MathMLTag ? ValidMathMLElement<Tag> : (ElementTagMap[Tag] extends Element ? ElementTagMap[Tag] : Element)));
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Ensures that only valid elements are used, i.e., those that extend Element.
  */
 type ValidNode<Tag = ValidTag> = Tag extends ValidTag ? ValidElement<Tag> : Node;
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Type of non-function properties of an element.
  */
 type HTMLElementNonFunctions<Tag extends ValidTag = ValidTag> = {
     [ElementField in keyof ValidElement<Tag>]: ValidElement<Tag>[ElementField] extends Function ? never : ElementField;
 }[keyof ValidElement<Tag>];
 /**
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Represents mutable fields of an HTML element, excluding specific fields.
  */
 type HTMLElementMutableFields<Tag extends ValidTag = ValidTag> = Omit<Partial<Pick<ValidElement<Tag>, HTMLElementNonFunctions<Tag>>>, "children" | "className" | "style">;
 /**
  * @type {ElementTagDefinition}
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  * @description Represents an element's definition of its tag and its namespace (both optional).
  * @property {string} [tag="div"] - The HTML tag of the element (e.g., "div", "span", "input"). Defaults to "div."
  * @property {string} [namespace] - The namespace of the element. Defaults to HTML. If "svgManipulation" or "mathML"
@@ -3963,8 +3963,8 @@ type ElementTagDefinition<Tag extends ValidTag = "div"> = {
 };
 /**
  * @type {GradumElementTagNameMap}
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  *
  * @description Maps custom element tag names to their classes. Empty by design — every component adds its
  * own entry by augmenting this interface, which is what folds custom tags into {@link ElementTagMap} so
@@ -3983,8 +3983,8 @@ interface GradumElementTagNameMap {
 }
 /**
  * @type {GradumElementPropertiesMap}
- * @group Types
- * @category Element
+ * @group Core Types
+ * @category Element Tags
  *
  * @description Maps custom element tag names to their properties types, the counterpart of
  * {@link GradumElementTagNameMap}. Augment it alongside that one so the properties accepted when creating
@@ -4031,7 +4031,7 @@ declare global {
 
 /**
  * @type {CloneElementOptions}
- * @group Types
+ * @group GradumSelector
  * @category Element
  *
  * @description Controls what {@link GradumSelector.clone} carries over to the copy. By default a clone gets
@@ -4065,7 +4065,7 @@ type CloneElementOptions = {
 };
 /**
  * @type {FeedforwardProperties}
- * @group Types
+ * @group GradumSelector
  * @category Element
  *
  * @extends GradumElementProperties
@@ -4094,7 +4094,7 @@ type FeedforwardProperties = GradumElementProperties & {
 };
 /**
  * @type {GradumProperties}
- * @group Types
+ * @group GradumSelector
  * @category Element
  *
  * @template {ValidTag} Tag - The HTML (or other) tag of the element, if passing it as a property. Defaults to "div".
@@ -4169,8 +4169,8 @@ interface GradumElementUiInterface {
 }
 
 /**
- * @group GradumElement
- * @category GradumProxiedElement
+ * @group MVC
+ * @category Element Classes
  */
 type GradumProxiedProperties<Tag extends ValidTag = "div", ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumProperties<Tag> & GradumHeadlessProperties<ViewType, DataType, ModelType, EmitterType> & {
     unsetDefaultClasses?: boolean;
@@ -4180,8 +4180,8 @@ type GradumProxiedProperties<Tag extends ValidTag = "div", ViewType extends Grad
 };
 /**
  * @type {GradumElementProperties}
- * @group GradumElement
- * @category GradumElement
+ * @group MVC
+ * @category Element Classes
  *
  * @extends GradumProperties
  * @template {GradumView} ViewType - The element's view type, if any.
@@ -4271,7 +4271,7 @@ type MvcManyInstancesOrConstructors<Type, PropertiesType = any> = MvcInstanceOrC
 /**
  * @type {MvcProperties}
  * @group MVC
- * @category MVC
+ * @category Configuration
  *
  * @template {GradumView} ViewType - The element's view type, if any.
  * @template {GradumModel} ModelType - The element's model type, if any.
@@ -4310,7 +4310,7 @@ type MvcProperties<ViewType extends GradumView = GradumView<any, any>, ModelType
 /**
  * @type {MvcGenerationProperties}
  * @group MVC
- * @category MVC
+ * @category Configuration
  *
  * @extends MvcProperties
  * @template {GradumView} ViewType - The element's view type, if any.
@@ -4329,8 +4329,8 @@ type MvcGenerationProperties<ViewType extends GradumView = GradumView<any, any>,
 };
 /**
  * @type {GradumHeadlessProperties}
- * @group GradumElement
- * @category GradumHeadlessElement
+ * @group MVC
+ * @category Element Classes
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
@@ -4363,7 +4363,7 @@ declare class GradumEventManagerUtilsHandler extends GradumHandler<GradumEventMa
 /**
  * @class GradumMap
  * @group Components
- * @category GradumMap
+ * @category Data Structures
  *
  * @extends Map
  * @template KeyType - The type of the keys.
@@ -4451,7 +4451,7 @@ declare class GradumMap<KeyType, ValueType> extends Map<KeyType, ValueType> {
 /**
  * @class GradumWeakSet
  * @group Components
- * @category GradumWeakSet
+ * @category Data Structures
  *
  * @template {object} Type - The type of the held objects.
  * @description A set that holds its members weakly, so membership never keeps an object alive. Unlike
@@ -4660,7 +4660,7 @@ type SetToolOptions = {
 /**
  * @enum {ActionMode}
  * @group Event Handling
- * @category Enums
+ * @category Event Modes
  *
  * @description What the manager has decided the current interaction is. A press starts as `click` and
  * becomes `longPress` or `drag` once it outlasts `longPressDuration` or travels past `moveThreshold`.
@@ -4678,7 +4678,7 @@ declare enum ActionMode {
 /**
  * @enum {ClickMode}
  * @group Event Handling
- * @category Enums
+ * @category Event Modes
  *
  * @description Which pointer button or input mode an interaction belongs to. The manager holds one
  * current tool per mode, so a different tool can be bound to each button.
@@ -4700,7 +4700,7 @@ declare enum ClickMode {
 /**
  * @enum {InputDevice}
  * @group Event Handling
- * @category Enums
+ * @category Event Modes
  *
  * @description The device the manager believes is driving input. *Note: this is inferred from event
  * shape and is not fully reliable, particularly between `mouse` and `trackpad`.*
@@ -4790,7 +4790,7 @@ declare class GradumEventManagerPointerOperator extends GradumOperator<GradumEve
 /**
  * @enum {ClosestOrigin}
  * @group Event Handling
- * @category Enums
+ * @category Event Modes
  *
  * @description Where {@link GradumEvent.closest} starts searching from when looking for a matching
  * ancestor.
@@ -5045,8 +5045,8 @@ declare class GradumEventManagerDispatchOperator extends GradumOperator<GradumEv
 
 /**
  * @class GradumBaseElement
- * @group GradumElement
- * @category GradumBaseElement
+ * @group MVC
+ * @category Element Classes
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
@@ -5416,8 +5416,8 @@ declare class GradumEventManager<ToolType extends string = string> extends Gradu
 
 /**
  * @type {MakeConstrainerOptions}
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @description Options for turning an object into a constrainer with
  * {@link GradumSelector.makeConstrainer}.
@@ -5437,8 +5437,8 @@ type MakeConstrainerOptions = {
 };
 /**
  * @type {ConstrainerCallbackProperties}
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @description The context handed to a solver as its first argument, naming the constrainer, the object
  * being processed, and the event that triggered it. Passed when solving through
@@ -5468,8 +5468,8 @@ type ConstrainerCallbackProperties = {
 };
 /**
  * @type {ConstrainerMutatorProperties}
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @extends ConstrainerCallbackProperties
  * @template Type - The type of the value to mutate.
@@ -5484,8 +5484,8 @@ type ConstrainerMutatorProperties<Type = any> = ConstrainerCallbackProperties & 
 };
 /**
  * @callback ConstrainerChecker
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @description Signature for a constrainer checker: decides whether the constraint currently holds for the
  * object being processed. Returning `false` stops the event that triggered the check.
@@ -5496,8 +5496,8 @@ type ConstrainerMutatorProperties<Type = any> = ConstrainerCallbackProperties & 
 type ConstrainerChecker = (properties: ConstrainerCallbackProperties, ...args: any[]) => boolean;
 /**
  * @callback ConstrainerMutator
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  * @template Type - The type of the value being mutated.
  *
  * @description Signature for a constrainer mutator: transforms a value as part of resolving a constraint.
@@ -5509,8 +5509,8 @@ type ConstrainerChecker = (properties: ConstrainerCallbackProperties, ...args: a
 type ConstrainerMutator<Type = any> = (properties: ConstrainerMutatorProperties<Type>, ...args: any[]) => Type;
 /**
  * @callback ConstrainerSolver
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  *
  * @description Signature for a constrainer solver: adjusts the object so the constraint is satisfied.
  * @param {ConstrainerCallbackProperties} properties - The constrainer context for this pass.
@@ -5520,8 +5520,8 @@ type ConstrainerMutator<Type = any> = (properties: ConstrainerMutatorProperties<
 type ConstrainerSolver = (properties: ConstrainerCallbackProperties, ...args: any[]) => Propagation | void;
 /**
  * @type {ConstrainerAddCallbackProperties}
- * @group Types
- * @category Constrainer
+ * @group GradumSelector
+ * @category Constrainers
  * @template {ConstrainerChecker | ConstrainerMutator | ConstrainerSolver} Type - The type of callback.
  *
  * @description Options for registering a checker, mutator, or solver on an existing constrainer.
@@ -5606,7 +5606,7 @@ declare function mutator(properties?: ConstrainerAddCallbackProperties<Constrain
 /**
  * @type {DefineOptions}
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Options object for the {@link define} decorator and imperative function.
  * @property {boolean} [injectAttributeBridge=true] - Whether to inject an `attributeChangedCallback`
@@ -5619,7 +5619,7 @@ type DefineOptions = {
 /**
  * @enum {RegistryCategory}
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description The bucket a class is filed under in the Gradum Kit registry, and the value
  * {@link getRegisteredByCategories} groups by. {@link define} infers it by walking the class'
@@ -5668,7 +5668,7 @@ declare enum RegistryCategory {
 /**
  * @type {RegistryEntry}
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Represents a single entry in the Gradum Kit class registry, as stored and returned
  * by {@link findRegistered} and related query functions.
@@ -5692,7 +5692,7 @@ type RegistryEntry = {
  * @decorator
  * @function define
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Stage-3 **class** decorator factory that registers a class in the Gradum Kit registry
  * and, if the class extends a DOM element, also registers it as a custom HTML element. Specifically, it:
@@ -5728,7 +5728,7 @@ declare function define(className: string, elementName?: string, options?: Defin
 /**
  * @function define
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Imperative equivalent of the `@define` decorator. Applies identical registration
  * and setup logic without requiring decorator syntax — useful for dynamically registering classes
@@ -5766,7 +5766,7 @@ declare function define<Type extends new (...args: any[]) => any>(Base: Type, el
 /**
  * @function findRegistered
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Finds a registered entry by name, optionally scoped to a specific category.
  * If no category is provided, searches across all categories and returns the first match.
@@ -5778,7 +5778,7 @@ declare function findRegistered(name: string, category?: RegistryCategory): Regi
 /**
  * @function getRegisteredByCategories
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Returns all registered entries across one or more specified categories.
  * @param {...RegistryCategory[]} categories - The categories to retrieve entries from.
@@ -5788,7 +5788,7 @@ declare function getRegisteredByCategories(...categories: RegistryCategory[]): R
 /**
  * @function getAllRegistered
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Returns all registered entries across every category in the registry.
  * @returns {RegistryEntry[]} An array of all registry entries.
@@ -5797,7 +5797,7 @@ declare function getAllRegistered(): RegistryEntry[];
 /**
  * @function getRegisteredMvc
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Returns all registered entries belonging to MVC-related categories:
  * `GradumOperator`, `GradumEmitter`, `GradumHandler`, `GradumInteractor`, `GradumModel`,
@@ -5808,7 +5808,7 @@ declare function getRegisteredMvc(): RegistryEntry[];
 /**
  * @function getRegisteredElements
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Returns all registered entries belonging to element-related categories:
  * `GradumElement`, `GradumProxiedElement`, `Element`, `HTMLElement`, `SVGElement`, and `MathMLElement`.
@@ -5818,7 +5818,7 @@ declare function getRegisteredElements(): RegistryEntry[];
 /**
  * @function addRegistryCategory
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Associates a class constructor with a {@link RegistryCategory} in the Gradum Kit registry's
  * category inference map. When {@link define} is called on a subclass, it walks the prototype chain and
@@ -5846,7 +5846,7 @@ declare function addRegistryCategory(type: new (...args: any[]) => object, categ
 /**
  * @function getRegisteredEntry
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Returns the registry entry for a given class instance, looked up by its constructor.
  * Walks the instance's prototype chain until it finds a registered constructor, so subclasses that
@@ -6090,7 +6090,7 @@ declare global {
  * @decorator
  * @function observe
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Attributes
  *
  * @description Stage-3 decorator for fields, getters, setters, and accessors that reflects a property to an HTML
  * attribute. So when the value of the property changes, it is reflected in the element's HTML attributes.
@@ -6755,7 +6755,7 @@ declare function spacer<Tag extends HTMLTag>(properties?: GradumProperties<Tag>)
 
 /**
  * @type {StylesRoot}
- * @group Types
+ * @group GradumSelector
  * @category Style
  *
  * @description A type that represents entities that can hold a <style> object (Shadow root or HTML head).
@@ -6763,7 +6763,7 @@ declare function spacer<Tag extends HTMLTag>(properties?: GradumProperties<Tag>)
 type StylesRoot = ShadowRoot | HTMLHeadElement;
 /**
  * @type {StylesType}
- * @group Types
+ * @group GradumSelector
  * @category Style
  *
  * @description A type that represents the types that are accepted as styles entries (mainly by the
@@ -6909,8 +6909,8 @@ declare class GradumWheelEvent extends GradumEvent {
 
 /**
  * @class GradumElement
- * @group GradumElement
- * @category GradumElement
+ * @group MVC
+ * @category Element Classes
  *
  * @extends HTMLElement
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
@@ -7191,7 +7191,7 @@ declare class Color {
 /**
  * @type {GradumIconProperties}
  * @group Components
- * @category GradumIcon
+ * @category Basics
  *
  * @extends GradumElementProperties
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
@@ -7218,7 +7218,7 @@ type GradumIconProperties<ViewType extends GradumView = GradumView, DataType ext
 /**
  * @class GradumIcon
  * @group Components
- * @category GradumIcon
+ * @category Basics
  *
  * @extends GradumElement
  * @description Icon class for creating icon elements.
@@ -7312,7 +7312,7 @@ declare class GradumIcon<ViewType extends GradumView = GradumView<any, any>, Dat
 /**
  * @type {GradumRichElementProperties}
  * @group Components
- * @category GradumRichElement
+ * @category Basics
  *
  * @extends GradumElementProperties
  * @template {ValidTag} ElementTag - The tag of the main element.
@@ -7351,7 +7351,7 @@ type GradumRichElementProperties<ElementTag extends ValidTag = any, ViewType ext
 /**
  * @class GradumRichElement
  * @group Components
- * @category GradumRichElement
+ * @category Basics
  *
  * @extends GradumElement
  * @template {ValidTag} ElementTag - The tag of the main element to create the rich element from.
@@ -7440,7 +7440,7 @@ declare class GradumRichElement<ElementTag extends ValidTag = any, ViewType exte
 /**
  * @class GradumButton
  * @group Components
- * @category GradumButton
+ * @category Basics
  *
  * @extends GradumElement
  * @description Button class for creating Gradum button elements.
@@ -7451,7 +7451,7 @@ declare class GradumButton<ElementTag extends ValidTag = any, ViewType extends G
 /**
  * @callback ReifectInterpolator
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {object} ClassType - The type of the attached object.
@@ -7466,7 +7466,7 @@ type ReifectInterpolator<Type, ClassType extends object = Element> = (index: num
 /**
  * @callback StateInterpolator
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -7483,7 +7483,7 @@ type StateInterpolator<Type, State extends KeyType, ClassType extends object = E
 /**
  * @type {StateSpecificProperty}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {object} ClassType - The type of the attached object.
@@ -7494,7 +7494,7 @@ type StateSpecificProperty<Type, ClassType extends object = Element> = Type | Re
 /**
  * @type {BasicPropertyConfig}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -7505,7 +7505,7 @@ type BasicPropertyConfig<Type, State extends KeyType> = PartialRecord<State, Typ
 /**
  * @type {PropertyConfig}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -7517,7 +7517,7 @@ type PropertyConfig<Type, State extends KeyType, ClassType extends object = Elem
 /**
  * @callback ReifectOnSwitchCallback
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -7531,7 +7531,7 @@ type ReifectOnSwitchCallback<State extends KeyType, ClassType extends object = E
 /**
  * @type {ReifectObjectData}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -7577,7 +7577,7 @@ type ReifectObjectComputedProperties<State extends KeyType, ClassType extends ob
 /**
  * @type {StatefulReifectCoreProperties}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -7597,7 +7597,7 @@ type StatefulReifectCoreProperties<State extends KeyType, ClassType extends obje
 /**
  * @type {StatefulReifectProperties}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @extends StatefulReifectCoreProperties
  * @template {KeyType} State - The set of states the reifect can switch between.
@@ -7616,7 +7616,7 @@ type StatefulReifectProperties<State extends KeyType, ClassType extends object =
 /**
  * @type {ReifectAppliedOptions}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {KeyType} State - The set of states the reifect can switch between.
  * @template {object} ClassType - The type of the attached object.
@@ -7642,7 +7642,7 @@ type ReifectAppliedOptions<State extends KeyType = any, ClassType extends object
 /**
  * @type {ReifectEnabledObject}
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @description Which parts of a reifect apply to a given object. Set `global` to `false` to disable the
  * reifect for that object entirely; the rest switch off one category each.
@@ -7663,7 +7663,7 @@ type ReifectEnabledObject = {
 /**
  * @class StatefulReifect
  * @group Components
- * @category StatefulReifect
+ * @category Reifects
  *
  * @template {string | number | symbol} State - The type of the reifier's states.
  * @template {object} ClassType - The object type this reifier will be applied to.
@@ -7951,7 +7951,7 @@ declare class StatefulReifect<State extends string | number | symbol = any, Clas
 
 /**
  * @enum {Direction}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description The axis a component lays out, scrolls, or moves along.
@@ -7964,7 +7964,7 @@ declare enum Direction {
 }
 /**
  * @enum {SideH}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description One of the two horizontal sides. Use {@link Side} when vertical sides are also valid.
@@ -7977,7 +7977,7 @@ declare enum SideH {
 }
 /**
  * @enum {SideV}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description One of the two vertical sides. Use {@link Side} when horizontal sides are also valid.
@@ -7990,7 +7990,7 @@ declare enum SideV {
 }
 /**
  * @enum {Side}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description Any one of the four sides of a rectangle or element — which edge a
@@ -8008,7 +8008,7 @@ declare enum Side {
 }
 /**
  * @enum {InOut}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description Whether a motion travels toward a centre or away from it, such as the direction of a
@@ -8022,7 +8022,7 @@ declare enum InOut {
 }
 /**
  * @enum {OnOff}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description A two-state toggle, for states better named on/off than `true`/`false`.
@@ -8035,7 +8035,7 @@ declare enum OnOff {
 }
 /**
  * @enum {Open}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description Whether a container currently exposes its content.
@@ -8048,7 +8048,7 @@ declare enum Open {
 }
 /**
  * @enum {Shown}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description Whether an element is displayed. Used as the pair of states a reifect transitions
@@ -8062,7 +8062,7 @@ declare enum Shown {
 }
 /**
  * @enum {AccessLevel}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description How widely a member is exposed, mirroring the TypeScript access modifiers.
@@ -8077,7 +8077,7 @@ declare enum AccessLevel {
 }
 /**
  * @enum {Range}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description Which end of a bounded range a value refers to.
@@ -8090,7 +8090,7 @@ declare enum Range {
 }
 /**
  * @enum {Anchor}
- * @group Types
+ * @group Core Types
  * @category Enums
  *
  * @description A reference point on a rectangle — the nine combinations of a vertical and a horizontal
@@ -8120,7 +8120,7 @@ declare enum Anchor {
 /**
  * @type {GradumIconSwitchProperties}
  * @group Components
- * @category GradumIconSwitch
+ * @category Basics
  *
  * @extends GradumIconProperties
  * @template {string | number | symbol} State - The set of states the icon can switch between.
@@ -8144,7 +8144,7 @@ type GradumIconSwitchProperties<State extends string | number | symbol, ViewType
 
 /**
  * @group Components
- * @category GradumIconSwitch
+ * @category Basics
  */
 declare class GradumIconSwitch<State extends string | number | symbol = OnOff, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumIcon<ViewType, DataType, ModelType, EmitterType> {
     readonly properties: GradumIconSwitchProperties<any>;
@@ -8164,7 +8164,7 @@ declare class GradumIconSwitch<State extends string | number | symbol = OnOff, V
 
 /**
  * @group Components
- * @category GradumIconToggle
+ * @category Basics
  */
 type GradumIconToggleProperties<ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumIconProperties<ViewType, DataType, ModelType, EmitterType> & {
     toggled?: boolean;
@@ -8175,7 +8175,7 @@ type GradumIconToggleProperties<ViewType extends GradumView = GradumView, DataTy
 
 /**
  * @group Components
- * @category GradumIconToggle
+ * @category Basics
  */
 declare class GradumIconToggle<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumIcon<ViewType, DataType, ModelType, EmitterType> {
     readonly properties: GradumIconToggleProperties;
@@ -8208,7 +8208,7 @@ declare class GradumIconToggle<ViewType extends GradumView = GradumView<any, any
 /**
  * @type {GradumInputProperties}
  * @group Components
- * @category GradumInput
+ * @category Basics
  *
  * @template {"input" | "textarea"} InputTag - The tag of the inner input element.
  * @template ValueType - The type the input's string value is converted to and from.
@@ -8253,7 +8253,7 @@ type GradumInputProperties<InputTag extends "input" | "textarea" = "input", Valu
 /**
  * @type {GradumLabelElementProperties}
  * @group Components
- * @category GradumLabelElement
+ * @category Basics
  *
  * @extends GradumRichElementProperties
  * @template {ValidTag} ElementTag - The tag of the main element.
@@ -8274,7 +8274,7 @@ type GradumLabelElementProperties<ElementTag extends ValidTag = any, ViewType ex
 /**
  * @class GradumLabelElement
  * @group Components
- * @category GradumLabelElement
+ * @category Basics
  *
  * @extends GradumRichElement
  * @template {ValidTag} ElementTag - The tag of the main element in the rich element.
@@ -8317,7 +8317,7 @@ declare class GradumLabelElement<ElementTag extends ValidTag = any, ViewType ext
 
 /**
  * @group Components
- * @category GradumInput
+ * @category Basics
  */
 declare class GradumInput<InputTag extends "input" | "textarea" = "input", ValueType = string, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumLabelElement<InputTag, ViewType, DataType, ModelType, EmitterType> {
     readonly properties: GradumInputProperties<InputTag, ValueType, ViewType, DataType, ModelType, EmitterType>;
@@ -8431,7 +8431,7 @@ declare class GradumInput<InputTag extends "input" | "textarea" = "input", Value
 /**
  * @type {GradumNumericalInputProperties}
  * @group Components
- * @category GradumNumericalInput
+ * @category Basics
  *
  * @template ValueType - The type the input's string value is converted to and from.
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
@@ -8454,7 +8454,7 @@ type GradumNumericalInputProperties<ValueType = string, ViewType extends GradumV
 
 /**
  * @group Components
- * @category GradumNumericalInput
+ * @category Basics
  */
 declare class GradumNumericalInput<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumInput<"input", number, ViewType, DataType, ModelType, EmitterType> {
     readonly properties: GradumNumericalInputProperties<number, ViewType, DataType, ModelType, EmitterType>;
@@ -8503,7 +8503,7 @@ type EntryData = {
 /**
  * @type {GradumSelectProperties}
  * @group Components
- * @category GradumSelect
+ * @category Basics
  *
  * @template ValueType - The type of the value each entry carries.
  * @template SecondaryValueType - The type of the secondary value each entry carries.
@@ -8553,7 +8553,7 @@ type GradumSelectProperties<ValueType = string, SecondaryValueType = string, Ent
 /**
  * @type {GradumSelectInputEventProperties}
  * @group Components
- * @category GradumSelect
+ * @category Basics
  *
  * @extends GradumRawEventProperties
  * @template ValueType - The type of the value each entry carries.
@@ -8572,7 +8572,7 @@ type GradumSelectInputEventProperties<ValueType = string, SecondaryValueType = s
 /**
  * @class GradumSelect
  * @group Components
- * @category GradumSelect
+ * @category Basics
  *
  * @extends GradumElement
  * @description Base class for creating a selection menu
@@ -8752,7 +8752,7 @@ declare class GradumSelectInputEvent<ValueType = string, SecondaryValueType = st
 /**
  * @type {GradumSelectElementProperties}
  * @group Components
- * @category GradumSelectElement
+ * @category Basics
  *
  * @extends GradumElementProperties
  * @extends GradumSelectProperties
@@ -8774,7 +8774,7 @@ type GradumSelectElementProperties<ValueType = string, SecondaryValueType = stri
 };
 /**
  * @group Components
- * @category Reifect
+ * @category Reifects
  *
  * @template Type - The type of the configured value.
  * @template State - The set of states the reifect can switch between.
@@ -8784,7 +8784,7 @@ type GradumSelectElementProperties<ValueType = string, SecondaryValueType = stri
 type StatelessPropertyConfig<Type, ClassType extends object = Element> = Type | ReifectInterpolator<Type, ClassType>;
 /**
  * @group Components
- * @category Reifect
+ * @category Reifects
  */
 type StatelessReifectCoreProperties<ClassType extends object = Element> = {
     styles?: StatelessPropertyConfig<StylesType, ClassType>;
@@ -8794,7 +8794,7 @@ type StatelessReifectCoreProperties<ClassType extends object = Element> = {
 };
 /**
  * @group Components
- * @category Reifect
+ * @category Reifects
  */
 type StatelessReifectProperties<ClassType extends object = Element> = StatelessReifectCoreProperties<ClassType> & {
     attachedObjects?: ClassType[];
@@ -8803,7 +8803,7 @@ type StatelessReifectProperties<ClassType extends object = Element> = StatelessR
 /**
  * @class Reifect
  * @group Components
- * @category Reifect
+ * @category Reifects
  *
  * @template {object} ClassType - The object type this reifier will be applied to.
  * @description A class to manage and apply dynamic properties, styles, classes, and transitions to a
@@ -8868,7 +8868,7 @@ declare class Reifect<ClassType extends object = Node> extends StatefulReifect<"
 /**
  * @class GradumSelectElement
  * @group Components
- * @category GradumSelectElement
+ * @category Basics
  *
  * @extends GradumElement
  * @description Select element class for creating Gradum button elements.
@@ -8960,7 +8960,7 @@ declare class GradumSelectElement<ValueType = string, SecondaryValueType = strin
 /**
  * @enum {ContentSwitchMode}
  * @group Components
- * @category GradumContentSwitch
+ * @category Containers
  *
  * @description How a {@link GradumContentSwitch} animates from the outgoing entry to the incoming one.
  * @property {ContentSwitchMode.fadeLeft} fadeLeft - The new entry fades in while sliding leftwards.
@@ -8975,7 +8975,7 @@ declare enum ContentSwitchMode {
 /**
  * @type {GradumContentSwitchProperties}
  * @group Components
- * @category GradumContentSwitch
+ * @category Containers
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
@@ -8998,7 +8998,7 @@ type GradumContentSwitchProperties<ViewType extends GradumView = GradumView<any,
 /**
  * @class GradumContentSwitch
  * @group Components
- * @category GradumContentSwitch
+ * @category Containers
  *
  * @extends GradumSelectElement
  * @template ValueType - The type of the value held by each entry.
@@ -9055,7 +9055,7 @@ declare class GradumContentSwitch<ValueType = string, SecondaryValueType = strin
 
 /**
  * @group Components
- * @category GradumDrawer
+ * @category Containers
  */
 type GradumDrawerProperties<ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
     side?: Side;
@@ -9072,7 +9072,7 @@ type GradumDrawerProperties<ViewType extends GradumView = GradumView, DataType e
 
 /**
  * @group Components
- * @category GradumDrawer
+ * @category Containers
  */
 declare class GradumDrawer<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EMitterType extends GradumEmitter = GradumEmitter> extends GradumElement<ViewType, DataType, ModelType, EMitterType> {
     readonly properties: GradumDrawerProperties;
@@ -9208,7 +9208,7 @@ declare class GradumDrawer<ViewType extends GradumView = GradumView<any, any>, D
 /**
  * @function drawer
  * @group Components
- * @category GradumDrawer
+ * @category Containers
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
@@ -9222,7 +9222,7 @@ declare function drawer<ViewType extends GradumView = GradumView<any, any>, Data
 
 /**
  * @group Components
- * @category GradumPopup
+ * @category Containers
  */
 type GradumPopupProperties<ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
     anchor?: Element;
@@ -9234,7 +9234,7 @@ type GradumPopupProperties<ViewType extends GradumView = GradumView, DataType ex
 };
 /**
  * @group Components
- * @category GradumPopup
+ * @category Containers
  */
 declare enum PopupFallbackMode {
     invert = "invert",
@@ -9244,7 +9244,7 @@ declare enum PopupFallbackMode {
 
 /**
  * @group Components
- * @category GradumPopup
+ * @category Containers
  */
 declare class GradumPopup<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumElement<ViewType, DataType, ModelType, EmitterType> {
     readonly properties: GradumPopupProperties;
@@ -9326,7 +9326,7 @@ declare class GradumPopup<ViewType extends GradumView = GradumView<any, any>, Da
 /**
  * @class AnchorPoint
  * @group Components
- * @category AnchorPoint
+ * @category Data Structures
  *
  * @description A position within a box, expressed either as one of the nine named {@link Anchor} values
  * or as a free {@link Point} in percentages from `-100` to `100`. The two forms are interchangeable —
@@ -9373,7 +9373,7 @@ declare class AnchorPoint {
 /**
  * @type {ScopedKey}
  * @group Components
- * @category GradumNestedMap
+ * @category Data Structures
  *
  * @template KeyType - The per-item key type.
  * @template BlockKeyType - The block-grouping key type.
@@ -9389,7 +9389,7 @@ type ScopedKey<KeyType = any, BlockKeyType = any> = {
 /**
  * @type {BlockStoreType}
  * @group Components
- * @category GradumNestedStore
+ * @category Data Structures
  *
  * @template {"array" | "map"} Type - How the blocks are stored. Defaults to `"map"`.
  * @template {object} BlockType - The type of one block.
@@ -9401,7 +9401,7 @@ type BlockStoreType<Type extends "array" | "map" = "map", BlockType extends obje
 /**
  * @type GradumRectProperties
  * @group Components
- * @category GradumRect
+ * @category Data Structures
  */
 type GradumRectProperties = {
     x?: number;
@@ -9416,7 +9416,7 @@ type GradumRectProperties = {
 /**
  * @class GradumRect
  * @group Components
- * @category GradumRect
+ * @category Data Structures
  *
  * @extends DOMRect
  * @description A rectangle that can be rotated, unlike the axis-aligned
@@ -9577,7 +9577,7 @@ declare class GradumRect extends DOMRect {
 /**
  * @type {GradumDropdownProperties}
  * @group Components
- * @category GradumDropdown
+ * @category Menus
  *
  * @extends GradumProperties
  * @description Properties for configuring a Dropdown.
@@ -9603,7 +9603,7 @@ type GradumDropdownProperties<ValueType = string, SecondaryValueType = string, E
 /**
  * @class GradumDropdown
  * @group Components
- * @category GradumDropdown
+ * @category Menus
  *
  * @extends GradumElement
  * @description Dropdown class for creating Gradum button elements.
@@ -9642,7 +9642,7 @@ declare class GradumDropdown<ValueType = string, SecondaryValueType = string, En
 
 /**
  * @group Components
- * @category GradumMarkingMenu
+ * @category Menus
  */
 type GradumMarkingMenuProperties<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel> = GradumElementProperties<ViewType, DataType, ModelType> & {
     transition?: StatefulReifect<InOut> | StatefulReifectProperties<InOut>;
@@ -9655,7 +9655,7 @@ type GradumMarkingMenuProperties<ValueType = string, SecondaryValueType = string
 
 /**
  * @group Components
- * @category GradumMarkingMenu
+ * @category Menus
  */
 declare class GradumMarkingMenu<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel> extends GradumElement<ViewType, DataType, ModelType> {
     readonly properties: GradumMarkingMenuProperties;
@@ -9681,7 +9681,7 @@ declare class GradumMarkingMenu<ValueType = string, SecondaryValueType = string,
 
 /**
  * @group Components
- * @category GradumSelectWheel
+ * @category Menus
  */
 type GradumSelectWheelProperties<ValueType = string, SecondaryValueType = string, EntryType extends HTMLElement = HTMLElement, ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumElementProperties<ViewType, DataType, ModelType, EmitterType> & {
     direction?: Direction;
@@ -9694,7 +9694,7 @@ type GradumSelectWheelProperties<ValueType = string, SecondaryValueType = string
 };
 /**
  * @group Components
- * @category GradumSelectWheel
+ * @category Menus
  */
 type GradumSelectWheelStylingProperties = {
     element: HTMLElement;
@@ -9708,7 +9708,7 @@ type GradumSelectWheelStylingProperties = {
 /**
  * @class GradumSelectWheel
  * @group Components
- * @category GradumSelectWheel
+ * @category Menus
  *
  * @extends GradumSelectElement
  * @description A swipeable selection wheel. Entries are always position absolute, fanned out by a
@@ -9905,7 +9905,7 @@ declare class GradumSelectWheel<ValueType = string, SecondaryValueType = string,
 /**
  * @type {GradumButtonPopupProperties}
  * @group Components
- * @category GradumButtonPopup
+ * @category Basics
  *
  * @extends GradumRichElementProperties
  * @template {ValidTag} ElementTag - The tag of the main element.
@@ -9926,7 +9926,7 @@ type GradumButtonPopupProperties<ElementTag extends ValidTag = any, ViewType ext
 /**
  * @class GradumButtonPopup
  * @group Components
- * @category GradumButtonPopup
+ * @category Basics
  *
  * @extends GradumButton
  * @template {ValidTag} ElementTag - The tag of the button's main element.
@@ -9952,7 +9952,7 @@ declare class GradumButtonPopup<ElementTag extends ValidTag = any, ViewType exte
 /**
  * @class GradumGrid
  * @group Components
- * @category GradumGrid
+ * @category Wrappers
  *
  * @extends GradumElement
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
@@ -9970,7 +9970,7 @@ declare class GradumGrid<ViewType extends GradumView = GradumView<any, any>, Dat
 /**
  * @class GradumMovable
  * @group Components
- * @category GradumMovable
+ * @category Wrappers
  *
  * @extends GradumElement
  * @description Positioning wrapper that places arbitrary content via pure CSS transforms.
@@ -10012,8 +10012,8 @@ declare class GradumMovable<ContentType extends Element = Element> extends Gradu
 
 /**
  * @class GradumHeadlessElement
- * @group GradumElement
- * @category GradumHeadlessElement
+ * @group MVC
+ * @category Element Classes
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
@@ -10052,8 +10052,8 @@ declare class GradumHeadlessElement<ViewType extends GradumView = GradumView<any
 
 /**
  * @class GradumProxiedElement
- * @group GradumElement
- * @category GradumProxiedElement
+ * @group MVC
+ * @category Element Classes
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.
@@ -10124,6 +10124,7 @@ declare class GradumProxiedElement<ElementTag extends ValidTag = ValidTag, ViewT
 /**
  * @class GradumSelector
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the object it wraps.
  * @description Selector class that wraps an object and augments it with useful functions to manipulate it. It also
@@ -10132,15 +10133,24 @@ declare class GradumProxiedElement<ElementTag extends ValidTag = ValidTag, ViewT
 declare class GradumSelector<Type extends object = Node> {
     #private;
     /**
-     * @description The underlying, wrapped object.
+     * @category Core
+     * @description The underlying, wrapped object. Every method on the selector reads and writes through it.
      */
     element: Type;
+    /**
+     * @category Core
+     * @constructor
+     * @description Create a bare selector. Prefer {@link gradum} (or `g`, `gr`, `$`), which caches one
+     * selector per target and wires up {@link GradumSelector.element} for you. The instance returned is a
+     * proxy, so properties not found on the selector fall through to the wrapped object.
+     */
     constructor();
 }
 
 /**
  * @type {Gradum}
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the wrapped object. Defaults to `Node`.
  * @description What {@link gradum} hands back: the wrapped object plus the whole selector API, intersected.
@@ -10151,6 +10161,7 @@ type Gradum<Type extends object = Node> = GradumSelector<Type> & Type;
 /**
  * @type {GradumifyOptions}
  * @group GradumSelector
+ * @category Core
  *
  * @description Which families of selector functions {@link gradumify} should skip. Every family is installed
  * by default; set a flag to leave that family off the {@link GradumSelector} prototype. Excluding a family
@@ -10182,6 +10193,7 @@ type GradumifyOptions = {
  * @overload
  * @function gradum
  * @group GradumSelector
+ * @category Core
  *
  * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
@@ -10195,6 +10207,7 @@ declare function gradum<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidEl
  * @overload
  * @function gradum
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
@@ -10210,6 +10223,7 @@ declare function gradum<Type extends object = Node>(object: Type, raw?: boolean)
  * @overload
  * @function gradum
  * @group GradumSelector
+ * @category Core
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
@@ -10222,6 +10236,7 @@ declare function gradum(tag?: string): Gradum<Element>;
  * @overload
  * @function gr
  * @group GradumSelector
+ * @category Core
  *
  * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
@@ -10235,6 +10250,7 @@ declare function gr<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElemen
  * @overload
  * @function gr
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
@@ -10250,6 +10266,7 @@ declare function gr<Type extends object = Node>(object: Type, raw?: boolean): Gr
  * @overload
  * @function gr
  * @group GradumSelector
+ * @category Core
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
@@ -10262,6 +10279,7 @@ declare function gr(tag: string): Gradum<Element>;
  * @overload
  * @function g
  * @group GradumSelector
+ * @category Core
  *
  * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
@@ -10275,6 +10293,7 @@ declare function g<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement
  * @overload
  * @function g
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
@@ -10290,6 +10309,7 @@ declare function g<Type extends object = Node>(object: Type, raw?: boolean): Gra
  * @overload
  * @function g
  * @group GradumSelector
+ * @category Core
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
@@ -10302,6 +10322,7 @@ declare function g(tag: string): Gradum<Element>;
  * @overload
  * @function $
  * @group GradumSelector
+ * @category Core
  *
  * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
@@ -10315,6 +10336,7 @@ declare function $<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement
  * @overload
  * @function $
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
@@ -10330,6 +10352,7 @@ declare function $<Type extends object = Node>(object: Type, raw?: boolean): Gra
  * @overload
  * @function $
  * @group GradumSelector
+ * @category Core
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
@@ -10341,6 +10364,7 @@ declare function $(tag: string): Gradum<Element>;
 /**
  * @function gradumify
  * @group GradumSelector
+ * @category Core
  *
  * @description Install every selector function onto the {@link GradumSelector} prototype. Runs once — later
  * calls are no-ops — and is invoked automatically the first time {@link gradum} is called, so you rarely
@@ -10357,7 +10381,7 @@ declare const gradumify: (options?: GradumifyOptions) => void;
 
 /**
  * @type {ChildHandler}
- * @group Types
+ * @group GradumSelector
  * @category Hierarchy
  *
  * @description A type that represents all entities that can hold and manage children (an element or a shadow root).
@@ -10365,14 +10389,14 @@ declare const gradumify: (options?: GradumifyOptions) => void;
 type ChildHandler = Node | ShadowRoot;
 /**
  * @constant
- * @group Types
+ * @group GradumSelector
  * @category Misc
  * @description Default array-like keys to merge when applying defaults with {@link GradumSelector.applyDefaults}.
  */
 declare const ApplyDefaultsMergeProperties: readonly ["interactors", "tools", "constrainers", "operators", "handlers"];
 /**
  * @type {ApplyDefaultsOptions}
- * @group Types
+ * @group GradumSelector
  * @category Misc
  *
  * @description Options for {@link GradumSelector.applyDefaults}.
@@ -10400,7 +10424,7 @@ declare module "yjs" {
 }
 /**
  * @type {YDocumentProperties}
- * @group Types
+ * @group Utilities
  * @category Yjs
  *
  * @template {GradumView} ViewType - The element's view type.
@@ -10682,7 +10706,7 @@ declare function randomString(length?: number): string;
 /**
  * @function replaceUrlParams
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Set query parameters on the current URL without adding a history entry, so the change cannot
  * be undone with the browser's back button. Use {@link pushUrlParams} when the change should be navigable.
@@ -10696,7 +10720,7 @@ declare function replaceUrlParams(...params: {
 /**
  * @function getUrlParam
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Read one query parameter from the current URL.
  * @param {string} name - The parameter to read.
@@ -10706,7 +10730,7 @@ declare function getUrlParam(name: string): string;
 /**
  * @function pushUrlParams
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Set query parameters on the current URL and add a history entry, so the change can be undone
  * with the browser's back button. Use {@link replaceUrlParams} when it should not be navigable.
@@ -10719,7 +10743,7 @@ declare function pushUrlParams(...params: {
 /**
  * @function clearUrlParams
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Strip every query parameter from the current URL without adding a history entry.
  */
@@ -10785,7 +10809,7 @@ declare function formatMmSs(seconds: number, separator?: string): string;
 /**
  * @function blobToUrl
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Read a blob into a `data:` URL that embeds its content, so it can be stored or sent as text.
  * The result is self-contained and needs no cleanup, unlike `URL.createObjectURL`, but is larger than the
@@ -10797,7 +10821,7 @@ declare function blobToUrl(blob: Blob): Promise<string>;
 /**
  * @function urlToBlob
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Fetch a URL and hand back its content as a blob. Works with `data:` URLs as well as remote
  * ones, making it the inverse of {@link blobToUrl}.
@@ -10809,7 +10833,7 @@ declare function urlToBlob(url: string): Promise<Blob>;
 /**
  * @function textToElement
  * @group Utilities
- * @category Element
+ * @category DOM
  *
  * @description Parse a string of HTML into a live element. Only the first top-level element of the string is
  * returned, so wrap multiple siblings in a container if you need all of them.
@@ -10820,7 +10844,7 @@ declare function textToElement(text: string): Element;
 /**
  * @function createProxy
  * @group Utilities
- * @category Element
+ * @category DOM
  *
  * @template {object} SelfType - The type of the primary object.
  * @template {object} ProxiedType - The type of the fallback object.
@@ -10999,7 +11023,7 @@ declare function fetchSvg(path: string, logError?: boolean): Promise<SVGElement>
 /**
  * @function getVideoDuration
  * @group Utilities
- * @category Misc
+ * @category Media
  *
  * @description Read how long a video is without displaying it, by loading just its metadata into a detached
  * element. Streams whose duration is not known upfront are handled by seeking to the end to force the browser
@@ -11130,7 +11154,7 @@ declare function deepObserveAll(data: AbstractType, callback: (event: YEvent, ta
 /**
  * @function getEventPosition
  * @group Utilities
- * @category Event
+ * @category Geometry
  *
  * @description Read the pointer position out of an event, whichever kind it is. A {@link GradumEvent} yields
  * its scaled position, so the result already accounts for a panned or zoomed canvas; a native pointer event
@@ -11352,10 +11376,12 @@ export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStore
 // Flattened from relative module augmentations
 interface GradumSelector {
         /**
+         * @category Events
          * @description Readonly set of listeners bound to this node.
          */
         readonly boundListeners: ListenerSet;
         /**
+         * @category Events
          * @description If you want the element to bypass the event manager and allow native events to seep through
          * (in case you are preventing default events), you can set this field to a predicate that
          * defines when to bypass the manager according to the passed event.
@@ -11363,6 +11389,7 @@ interface GradumSelector {
         bypassManagerOn: (e: Event) => boolean | GradumEventManagerStateProperties;
         /**
          * @function on
+         * @category Events
          * @template {Node} Type - The type of the element.
          * @description Adds an event listener to the element.
          * @param {string} type - The type of the event.
@@ -11376,6 +11403,7 @@ interface GradumSelector {
         on<Type extends Node>(type: string, listener: ListenerCallback<Type>, options?: ListenerOptions, manager?: GradumEventManager): this;
         /**
          * @function onTool
+         * @category Events
          * @template {Node} Type - The type of the element.
          * @description Adds an event listener to the element.
          * @param {string} type - The type of the event.
@@ -11391,6 +11419,7 @@ interface GradumSelector {
         onTool<Type extends Node>(type: string, toolName: string, listener: ListenerCallback<Type>, options?: ListenerOptions, manager?: GradumEventManager): this;
         /**
          * @function executeAction
+         * @category Events
          * @description Execute the listeners bound on this element for the given `type` and `toolName`. Simulates
          * firing a `type` event on the element with `toolName` active.
          * @param {string} type -  The type of the event.
@@ -11405,6 +11434,7 @@ interface GradumSelector {
         executeAction(type: string, toolName: string, event: Event, options?: ListenerOptions, manager?: GradumEventManager): Propagation;
         /**
          * @function hasListener
+         * @category Events
          * @description Checks if the given event listener is bound to the element (in its boundListeners list).
          * @param {string} type - The type of the event. Set to null or undefined to get all event types.
          * @param {ListenerCallback} listener - The function that receives a notification.
@@ -11415,6 +11445,7 @@ interface GradumSelector {
         hasListener(type: string, listener: ListenerCallback, manager?: GradumEventManager): boolean;
         /**
          * @function hasToolListener
+         * @category Events
          * @description Checks if the given event listener is bound to the element (in its boundListeners list).
          * @param {string} type - The type of the event. Set to null or undefined to get all event types.
          * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
@@ -11427,6 +11458,7 @@ interface GradumSelector {
         hasToolListener(type: string, toolName: string, listener: ListenerCallback, manager?: GradumEventManager): boolean;
         /**
          * @function hasListenersByType
+         * @category Events
          * @description Checks if the element has bound listeners of the given type (in its boundListeners list).
          * @param {string} type - The type of the event. Set to null or undefined to get all event types.
          * @param {string} toolName - The name of the tool to consider (if any). Set to null or undefined
@@ -11438,6 +11470,7 @@ interface GradumSelector {
         hasListenersByType(type: string, toolName?: string, manager?: GradumEventManager): boolean;
         /**
          * @function removeListener
+         * @category Events
          * @description Removes an event listener that is bound to the element (in its boundListeners list).
          * @param {string} type - The type of the event.
          * @param {ListenerCallback} listener - The function that receives a notification.
@@ -11448,6 +11481,7 @@ interface GradumSelector {
         removeListener(type: string, listener: ListenerCallback, manager?: GradumEventManager): this;
         /**
          * @function removeToolListener
+         * @category Events
          * @description Removes an event listener that is bound to the element (in its boundListeners list).
          * @param {string} type - The type of the event.
          * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
@@ -11460,6 +11494,7 @@ interface GradumSelector {
         removeToolListener(type: string, toolName: string, listener: ListenerCallback, manager?: GradumEventManager): this;
         /**
          * @function removeListenersByType
+         * @category Events
          * @description Removes all event listeners bound to the element (in its boundListeners list) assigned to the
          * specified type.
          * @param {string} type - The type of the event. Set to null or undefined to consider all types.
@@ -11472,6 +11507,7 @@ interface GradumSelector {
         removeListenersByType(type: string, toolName?: string, manager?: GradumEventManager): this;
         /**
          * @function removeAllListeners
+         * @category Events
          * @description Removes all event listeners bound to the element (in its boundListeners list).
          * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
          * or a new instantiated one if none already exist.
@@ -11479,6 +11515,7 @@ interface GradumSelector {
          */
         removeAllListeners(manager?: GradumEventManager): this;
         /**
+         * @category Events
          * @description Prevent default browser behavior on the provided event types. By default, all basic input events
          * will be processed.
          * @param {PreventDefaultOptions} [options] - An options object to customize the behavior of the function.
@@ -11488,6 +11525,7 @@ interface GradumSelector {
 interface GradumSelector {
         /**
          * @function makeTool
+         * @category Tools
          * @description Turns the element into a tool identified by `toolName`, optionally wiring activation and
          * key mapping. By default, this function also sets up an event listener on the element to activate the
          * tool on click. This behavior can be overridden via the `options` parameter.
@@ -11499,6 +11537,7 @@ interface GradumSelector {
         makeTool(toolName: string, options?: MakeToolOptions): this;
         /**
          * @function isTool
+         * @category Tools
          * @description Whether this element is registered as a tool for the provided manager.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @returns {boolean} True if the element is a tool, false otherwise.
@@ -11506,6 +11545,7 @@ interface GradumSelector {
         isTool(manager?: GradumEventManager): boolean;
         /**
          * @function getToolNames
+         * @category Tools
          * @description Returns all tool names registered on this element for the provided manager.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @returns {string[]} The list of tool names.
@@ -11513,6 +11553,7 @@ interface GradumSelector {
         getToolNames(manager?: GradumEventManager): string[];
         /**
          * @function getToolName
+         * @category Tools
          * @description Returns the first registered tool name on this element for the provided manager.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @returns {string} The first tool name, if any.
@@ -11520,6 +11561,7 @@ interface GradumSelector {
         getToolName(manager?: GradumEventManager): string;
         /**
          * @function onToolActivate
+         * @category Tools
          * @description Retrieve the delegate fired when this tool is activated in the corresponding manager.
          * @param {string} [toolName=this.getToolName()] - The name of the tool.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
@@ -11528,6 +11570,7 @@ interface GradumSelector {
         onToolActivate(toolName?: string, manager?: GradumEventManager): Delegate<() => void>;
         /**
          * @function onToolDeactivate
+         * @category Tools
          * @description Retrieve the delegate fired when this tool is deactivated in the corresponding manager.
          * @param {string} [toolName=this.getToolName()] - The name of the tool.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
@@ -11536,6 +11579,7 @@ interface GradumSelector {
         onToolDeactivate(toolName?: string, manager?: GradumEventManager): Delegate<() => void>;
         /**
          * @function addToolBehavior
+         * @category Tools
          * @description Adds a behavior callback for a given tool and a given type. This callback will attempt to be
          * executed on the target element when a `type` event is fired and `toolName` is active. It is applied to
          * all instances of the tool.
@@ -11549,6 +11593,7 @@ interface GradumSelector {
         addToolBehavior(type: string, callback: ToolBehaviorCallback, toolName?: string, manager?: GradumEventManager): this;
         /**
          * @function hasToolBehavior
+         * @category Tools
          * @description Checks whether there is at least one tool behavior for the pair "`type`, `toolName`."
          * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
          * @param {string} [toolName=this.getToolName()] - The tool name to check under. Defaults to this
@@ -11559,6 +11604,7 @@ interface GradumSelector {
         hasToolBehavior(type: string, toolName?: string, manager?: GradumEventManager): boolean;
         /**
          * @function removeToolBehaviors
+         * @category Tools
          * @description Removes all behaviors for the pair "`type`, `toolName`" under the given manager.
          * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
          * @param {string} [toolName=this.getToolName()] - The tool name whose behaviors will be removed. Defaults to this
@@ -11569,6 +11615,7 @@ interface GradumSelector {
         removeToolBehaviors(type: string, toolName?: string, manager?: GradumEventManager): this;
         /**
          * @function applyTool
+         * @category Tools
          * @description Executes all behaviors registered for the pair "`type`, `toolName`" against this element.
          * @param {string} toolName - The name of the tool whose behaviors should run.
          * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
@@ -11579,6 +11626,7 @@ interface GradumSelector {
         applyTool(toolName: string, type: string, event: Event, manager?: GradumEventManager): Propagation;
         /**
          * @function clearToolBehaviors
+         * @category Tools
          * @description Clears all registered behaviors for the tools attached to this element.
          * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
          * @returns {this} Itself for chaining.
@@ -11586,6 +11634,7 @@ interface GradumSelector {
         clearToolBehaviors(manager?: GradumEventManager): this;
         /**
          * @function embedTool
+         * @category Tools
          * @description Embeds this tool into a target node, so all interactions on the tool element apply to the
          * defined target.
          * @param {Node} target - The node to manipulate when interacting with the tool element itself.
@@ -11595,6 +11644,7 @@ interface GradumSelector {
         embedTool(target: Node, manager?: GradumEventManager): this;
         /**
          * @function isEmbeddedTool
+         * @category Tools
          * @description Whether this tool is embedded under the provided manager.
          * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
          * @returns {boolean} True if an embedded target is present.
@@ -11602,6 +11652,7 @@ interface GradumSelector {
         isEmbeddedTool(manager?: GradumEventManager): boolean;
         /**
          * @function getEmbeddedToolTarget
+         * @category Tools
          * @description Returns the target node for this embedded tool under the provided manager.
          * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
          * @returns {Node} The embedded tool's target node, if any.
@@ -11609,6 +11660,7 @@ interface GradumSelector {
         getEmbeddedToolTarget(manager?: GradumEventManager): Node;
         /**
          * @function ignoreTool
+         * @category Tools
          * @description Make the current element ignore the provided tool, so interacting with the tool on this
          * element will have no effect and propagate.
          * @param {string} toolName - The name of the tool to ignore.
@@ -11620,6 +11672,7 @@ interface GradumSelector {
         ignoreTool(toolName: string, type?: string, ignore?: boolean, manager?: GradumEventManager): this;
         /**
          * @function ignoreTool
+         * @category Tools
          * @description Make the current element ignore all tools, so interacting with any tool on this
          * element will have no effect and propagate.
          * @param {boolean} [ignore] - Whether to ignore the tools. Defaults to true.
@@ -11629,6 +11682,7 @@ interface GradumSelector {
         ignoreAllTools(ignore?: boolean, manager?: GradumEventManager): this;
         /**
          * @function isToolIgnored
+         * @category Tools
          * @description Whether the current element is ignoring the provided tool.
          * @param {string} toolName - The name of the tool to check for.
          * @param {string} [type] - The type of the event. If undefined, all event types will be considered.
@@ -11672,6 +11726,7 @@ interface GradumConstrainer {
 interface GradumSelector<Type extends object = Node> {
         /**
          * @function setProperties
+         * @category Element
          * @template {ValidTag} Tag - The HTML tag of the element (for accurate autocompletion of available properties).
          * @description Sets the declared properties to the element (if possible).
          * @param {GradumProperties<Tag>} properties - The properties object.
@@ -11680,14 +11735,28 @@ interface GradumSelector<Type extends object = Node> {
          * @returns {this} Itself, allowing for method chaining.
          */
         setProperties<Tag extends ValidTag>(properties: GradumProperties<Tag>, setOnlyBaseProperties?: boolean): this;
+        /**
+         * @category Element
+         * @description Read every own field of the element as a plain object, so it can be diffed or cloned.
+         * @returns {Record<string, any>} The element's fields, keyed by name.
+         */
         getFields(): Record<string, any>;
+        /**
+         * @category Element
+         * @description Create a copy of the element. By default the copy carries the same properties and children,
+         * but none of the bound listeners.
+         * @param {CloneElementOptions} [options] - What to carry over to the copy.
+         * @returns {Type} The cloned element.
+         */
         clone(options?: CloneElementOptions): Type;
         /**
+         * @category Element
          * @description Destroys the element by removing it from the document and removing all its bound listeners.
          * @returns {this} Itself, allowing for method chaining.
          */
         destroy(): this;
         /**
+         * @category Element
          * @description Sets the value of an attribute on the element.
          * @param {string} name The name of the attribute.
          * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent
@@ -11696,22 +11765,38 @@ interface GradumSelector<Type extends object = Node> {
          */
         setAttribute(name: string, value?: string | number | boolean): this;
         /**
+         * @category Element
          * @description Removes an attribute from the element.
          * @param {string} name The name of the attribute to remove.
          * @returns {this} Itself, allowing for method chaining.
          */
         removeAttribute(name: string): this;
         /**
+         * @category Element
          * @description Causes the element to lose focus.
          * @returns {this} Itself, allowing for method chaining.
          */
         blur(): this;
         /**
+         * @category Element
          * @description Sets focus on the element.
          * @returns {this} Itself, allowing for method chaining.
          */
         focus(): this;
+        /**
+         * @category Element
+         * @description Push the element's feedforward properties down to its children, so newly added descendants
+         * pick up the same defaults.
+         * @param {FeedforwardProperties} [options] - Properties to feed forward. Defaults to
+         * {@link GradumSelector.defaultFeedforwardProperties}.
+         * @returns {Type} The element, allowing for method chaining.
+         */
         feedforward(options?: FeedforwardProperties): Type;
+        /**
+         * @category Element
+         * @description The properties passed on to children created through {@link GradumSelector.feedforward},
+         * letting a parent seed its descendants with shared defaults.
+         */
         defaultFeedforwardProperties: GradumElementProperties;
     }
 interface GradumProxiedElement extends GradumElementDefaultInterface {
@@ -11730,59 +11815,84 @@ interface GradumElement<ViewType extends GradumView = GradumView<any, any>, Data
 interface GradumElement extends GradumElementUiInterface {
     }
 interface GradumSelector<Type extends object = Node> {
+        /**
+         * @readonly
+         * @category MVC
+         * @description Every MVC piece bound to the element — its view, model, emitter, and the operator, handler,
+         * interactor, tool, and constrainer collections — in one object.
+         */
         readonly mvc: MvcProperties;
         /**
+         * @category MVC
          * @description The model of the element's MVC structure.
          */
         model: any;
         /**
+         * @category MVC
          * @description The view of the element's MVC structure.
          */
         view: any;
         /**
+         * @category MVC
          * @description The emitter of the element's MVC structure.
          */
         emitter: any;
         /**
+         * @category MVC
          * @description The main data block attached to the element's model.
          */
         data: any;
+        /**
+         * @readonly
+         * @category MVC
+         * @description A key-value store attached to the element, backed by its own model. Use it for flags
+         * that tools and behaviors read off an element — `selectable`, `dragAndDroppable`, and the like.
+         */
         readonly metadata: GradumModel<object>;
         /**
+         * @category MVC
          * @description The ID of the main data block of the element's model.
          */
         dataId: string;
         /**
+         * @category MVC
          * @description The numerical index of the main data block of the element's model.
          */
         dataIndex: number;
         /**
+         * @category MVC
          * @description The size (number) of the main data block of the element's model.
          */
         readonly dataSize: number;
         /**
+         * @category MVC
          * @description The operators of the element's MVC structure.
          */
         operators: GradumOperator[];
         /**
+         * @category MVC
          * @description The handlers attached to the element's model.
          * Returns an empty array if no model is set.
          */
         handlers: GradumHandler[];
         /**
+         * @category MVC
          * @description The interactors of the element's MVC structure.
          */
         interactors: GradumInteractor[];
         /**
+         * @category MVC
          * @description The tools of the element's MVC structure.
          */
         tools: GradumTool[];
         /**
+         * @category MVC
          * @description The constrainers of the element's MVC structure.
          */
         constrainers: GradumConstrainer[];
         /**
          * @function setMvc
+         * @category MVC
          * @description Configures the MVC structure for the element. Sets the provided MVC pieces (model, view,
          * emitter, operators, handlers, interactors, tools, constrainers) on the element, initializes a default
          * emitter if none is provided, and initializes all MVC pieces unless explicitly disabled.
@@ -11792,6 +11902,7 @@ interface GradumSelector<Type extends object = Node> {
         setMvc(properties: MvcGenerationProperties): this;
         /**
          * @function initializeMvc
+         * @category MVC
          * @description Initializes all MVC pieces attached to the element, in the following order: view,
          * operators, interactors, tools, constrainers, and model. The model is initialized last to allow
          * the view and operators to set up their change callbacks first.
@@ -11800,6 +11911,7 @@ interface GradumSelector<Type extends object = Node> {
         initializeMvc(): this;
         /**
          * @function getMvcDifference
+         * @category MVC
          * @template {GradumView} ViewType - The element's view type.
          * @template {object} DataType - The element's data type.
          * @template {GradumModel<DataType>} ModelType - The element's model type.
@@ -11818,6 +11930,7 @@ interface GradumSelector<Type extends object = Node> {
         getMvcDifference<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>>(properties?: MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>): MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>;
         /**
          * @function getOperator
+         * @category MVC
          * @description Retrieves the attached MVC operator with the given key.
          * @param {string} key - The operator's key.
          * @returns {GradumOperator} The operator.
@@ -11825,6 +11938,7 @@ interface GradumSelector<Type extends object = Node> {
         getOperator(key: string): GradumOperator;
         /**
          * @function addOperator
+         * @category MVC
          * @description Adds the given operator to the element's MVC structure.
          * @param {GradumOperator} operator - The operator to add.
          * @returns {this} Itself, allowing for method chaining.
@@ -11832,6 +11946,7 @@ interface GradumSelector<Type extends object = Node> {
         addOperator(operator: GradumOperator): this;
         /**
          * @function removeOperator
+         * @category MVC
          * @description Removes the given operator from the element's MVC structure and unlinks it.
          * @param {string | GradumOperator} keyOrInstance - The operator's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
@@ -11839,6 +11954,7 @@ interface GradumSelector<Type extends object = Node> {
         removeOperator(keyOrInstance: string | GradumOperator): this;
         /**
          * @function getHandler
+         * @category MVC
          * @description Retrieves the attached MVC handler with the given key.
          * Returns undefined if no model is set.
          * @param {string} key - The handler's key.
@@ -11847,6 +11963,7 @@ interface GradumSelector<Type extends object = Node> {
         getHandler(key: string): GradumHandler;
         /**
          * @function addHandler
+         * @category MVC
          * @description Adds the given handler to the element's model.
          * If no model is set, this operation is a no-op.
          * @param {GradumHandler} handler - The handler to add.
@@ -11855,6 +11972,7 @@ interface GradumSelector<Type extends object = Node> {
         addHandler(handler: GradumHandler): this;
         /**
          * @function removeHandler
+         * @category MVC
          * @description Removes the given handler from the element's model and unlinks it.
          * If no model is set, this operation is a no-op.
          * @param {string | GradumHandler} keyOrInstance - The handler's key or instance to remove.
@@ -11863,6 +11981,7 @@ interface GradumSelector<Type extends object = Node> {
         removeHandler(keyOrInstance: string | GradumHandler): this;
         /**
          * @function getInteractor
+         * @category MVC
          * @description Retrieves the attached MVC interactor with the given key.
          * @param {string} key - The interactor's key.
          * @returns {GradumInteractor} The interactor.
@@ -11870,6 +11989,7 @@ interface GradumSelector<Type extends object = Node> {
         getInteractor(key: string): GradumInteractor;
         /**
          * @function addInteractor
+         * @category MVC
          * @description Adds the given interactor to the element's MVC structure.
          * @param {GradumInteractor} interactor - The interactor to add.
          * @returns {this} Itself, allowing for method chaining.
@@ -11877,6 +11997,7 @@ interface GradumSelector<Type extends object = Node> {
         addInteractor(interactor: GradumInteractor): this;
         /**
          * @function removeInteractor
+         * @category MVC
          * @description Removes the given interactor from the element's MVC structure and unlinks it.
          * @param {string | GradumInteractor} keyOrInstance - The interactor's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
@@ -11884,6 +12005,7 @@ interface GradumSelector<Type extends object = Node> {
         removeInteractor(keyOrInstance: string | GradumInteractor): this;
         /**
          * @function getTool
+         * @category MVC
          * @description Retrieves the attached MVC tool with the given key.
          * @param {string} key - The tool's key.
          * @returns {GradumTool} The tool.
@@ -11891,6 +12013,7 @@ interface GradumSelector<Type extends object = Node> {
         getTool(key: string): GradumTool;
         /**
          * @function addTool
+         * @category MVC
          * @description Adds the given tool to the element's MVC structure.
          * @param {GradumTool} tool - The tool to add.
          * @returns {this} Itself, allowing for method chaining.
@@ -11898,6 +12021,7 @@ interface GradumSelector<Type extends object = Node> {
         addTool(tool: GradumTool): this;
         /**
          * @function removeTool
+         * @category MVC
          * @description Removes the given tool from the element's MVC structure and unlinks it.
          * @param {string | GradumTool} keyOrInstance - The tool's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
@@ -11905,6 +12029,7 @@ interface GradumSelector<Type extends object = Node> {
         removeTool(keyOrInstance: string | GradumTool): this;
         /**
          * @function getConstrainer
+         * @category MVC
          * @description Retrieves the attached MVC constrainer with the given key.
          * @param {string} key - The constrainer's key.
          * @returns {GradumConstrainer} The constrainer.
@@ -11912,6 +12037,7 @@ interface GradumSelector<Type extends object = Node> {
         getConstrainer(key: string): GradumConstrainer;
         /**
          * @function addConstrainer
+         * @category MVC
          * @description Adds the given constrainer to the element's MVC structure.
          * @param {GradumConstrainer} constrainer - The constrainer to add.
          * @returns {this} Itself, allowing for method chaining.
@@ -11919,6 +12045,7 @@ interface GradumSelector<Type extends object = Node> {
         addConstrainer(constrainer: GradumConstrainer): this;
         /**
          * @function removeConstrainer
+         * @category MVC
          * @description Removes the given constrainer from the element's MVC structure and unlinks it.
          * @param {string | GradumConstrainer} keyOrInstance - The constrainer's key or instance to remove.
          * @returns {this} Itself, allowing for method chaining.
@@ -11931,11 +12058,13 @@ interface GradumHeadlessElement<ViewType extends GradumView = GradumView<any, an
     }
 interface GradumSelector {
         /**
+         * @category Constrainers
          * @description Array of all the constrainers attached to this element.
          */
         readonly constrainersNames: string[];
         /**
          * @function makeConstrainer
+         * @category Constrainers
          * @description Creates a new constrainer attached to this element. Useful to maintain certain constraints or
          * ensure some behaviors persist on a list of objects (by attaching solvers to this constrainer).
          * @param {string} name - The name of the new constrainer.
@@ -11944,11 +12073,13 @@ interface GradumSelector {
          */
         makeConstrainer(name: string, options?: MakeConstrainerOptions): this;
         /**
+         * @category Constrainers
          * @description Array of active constrainers on this element.
          */
         readonly activeConstrainers: string[];
         /**
          * @function activateConstrainer
+         * @category Constrainers
          * @description Activate the given constrainer.
          * @param {string[]} constrainers - The name of the constrainer(s) to activate. Defaults to the first active constrainer.
          * @returns {this} Itself for chaining.
@@ -11956,6 +12087,7 @@ interface GradumSelector {
         activateConstrainer(...constrainers: string[]): this;
         /**
          * @function deactivateConstrainer
+         * @category Constrainers
          * @description Deactivate the given constrainer.
          * @param {string[]} constrainers - The name of the constrainer(s) to deactivate. Defaults to the first active constrainer.
          * @returns {this} Itself for chaining.
@@ -11963,6 +12095,7 @@ interface GradumSelector {
         deactivateConstrainer(...constrainers: string[]): this;
         /**
          * @function toggleConstrainer
+         * @category Constrainers
          * @description Toggle the active state of the given constrainer.
          * @param {string} constrainer - The name of the constrainer to toggle. Defaults to the first active constrainer.
          * @param {boolean} [force] - If set, the constrainer's active state will be set to this value.
@@ -11971,6 +12104,7 @@ interface GradumSelector {
         toggleConstrainer(constrainer?: string, force?: boolean): this;
         /**
          * @function activateOnlyConstrainer
+         * @category Constrainers
          * @description Activate the provided constrainer and deactivate all other constrainers attached to this element.
          * @param {string} constrainer - The constrainer name to activate as the single active constrainer. Defaults to the
          * first active constrainer.
@@ -11979,18 +12113,21 @@ interface GradumSelector {
         activateOnlyConstrainer(constrainer: string): this;
         /**
          * @function activateAllConstrainers
+         * @category Constrainers
          * @description Activate all the constrainers attached to this element.
          * @returns {this} Itself for chaining.
          */
         activateAllConstrainers(): this;
         /**
          * @function deactivateAllConstrainers
+         * @category Constrainers
          * @description Deactivate all the constrainers attached to this element.
          * @returns {this} Itself for chaining.
          */
         deactivateAllConstrainers(): this;
         /**
          * @function onConstrainerActivate
+         * @category Constrainers
          * @description Get the delegate fired when the constrainer of the given name is activated.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {Delegate<() => void>} The delegate.
@@ -11998,6 +12135,7 @@ interface GradumSelector {
         onConstrainerActivate(constrainer?: string): Delegate<() => void>;
         /**
          * @function onConstrainerDeactivate
+         * @category Constrainers
          * @description Get the delegate fired when the constrainer of the given name is deactivated.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {Delegate<() => void>} The delegate.
@@ -12005,6 +12143,7 @@ interface GradumSelector {
         onConstrainerDeactivate(constrainer?: string): Delegate<() => void>;
         /**
          * @function getConstrainerPriority
+         * @category Constrainers
          * @description Get the priority of the targeted constrainer. Higher priority constrainers (lower number) should
          * be resolved first.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -12013,6 +12152,7 @@ interface GradumSelector {
         getConstrainerPriority(constrainer?: string): number;
         /**
          * @function setConstrainerPriority
+         * @category Constrainers
          * @description Set the priority of the targeted constrainer. Higher priority constrainers (lower number) should
          * be resolved first.
          * @param {number} priority - The priority value to set.
@@ -12022,6 +12162,7 @@ interface GradumSelector {
         setConstrainerPriority(priority: number, constrainer?: string): this;
         /**
          * @function getConstrainerObjectList
+         * @category Constrainers
          * @description Retrieve the list of objects that are constrained by the given constrainer.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {GradumNodeList} The list of objects. To manipulate, check {@link GradumNodeList}.
@@ -12029,6 +12170,7 @@ interface GradumSelector {
         getConstrainerObjectList(constrainer?: string): GradumNodeList;
         /**
          * @function onConstrainerObjectListChange
+         * @category Constrainers
          * @description Get the delegate fired whenever an object is added to or removed from the constrainer's object list.
          * Defaults to the children of the element the constrainer is attached to.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -12037,6 +12179,7 @@ interface GradumSelector {
         onConstrainerObjectListChange(constrainer?: string): Delegate<(object: object, status: "added" | "removed") => void>;
         /**
          * @function getConstrainerTriggerList
+         * @category Constrainers
          * @description Retrieve the list of objects that trigger the given constrainer to resolve.
          * Interacting with any of these objects would typically lead to the solving of the given constrainer.
          * Defaults to the constrainer's object list.
@@ -12046,6 +12189,7 @@ interface GradumSelector {
         getConstrainerTriggerList(constrainer?: string): GradumNodeList;
         /**
          * @function getConstrainerQueue
+         * @category Constrainers
          * @description Retrieve the current queue to be processed by the constrainer while resolving.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {GradumQueue<object>} The current constrainer queue.
@@ -12053,6 +12197,7 @@ interface GradumSelector {
         getConstrainerQueue(constrainer?: string): GradumQueue<object>;
         /**
          * @function getDefaultConstrainerQueue
+         * @category Constrainers
          * @description Retrieve the default queue template for the constrainer, used when starting a new resolving pass.
          * It defaults to the constrainer's object list.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -12061,6 +12206,7 @@ interface GradumSelector {
         getDefaultConstrainerQueue(constrainer?: string): GradumQueue<object>;
         /**
          * @function setDefaultConstrainerQueue
+         * @category Constrainers
          * @description Define the default queue template for the constrainer, used when starting a new resolving pass.
          * @param {object[] | GradumQueue<object>} queue - The queue (or list to build a queue from).
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -12069,6 +12215,7 @@ interface GradumSelector {
         setDefaultConstrainerQueue(queue: object[] | GradumQueue<object>, constrainer?: string): this;
         /**
          * @function getObjectPassesForConstrainer
+         * @category Constrainers
          * @description Retrieve how many times the given object has been processed for the current resolving session
          * of the constrainer.
          * @param {object} object - The object to query.
@@ -12078,6 +12225,7 @@ interface GradumSelector {
         getObjectPassesForConstrainer(object: object, constrainer?: string): number;
         /**
          * @function getMaxPassesForConstrainer
+         * @category Constrainers
          * @description Get the maximum number of passes allowed per object for this constrainer during resolving.
          * This helps prevent infinite cycles in constraint propagation.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -12086,6 +12234,7 @@ interface GradumSelector {
         getMaxPassesForConstrainer(constrainer?: string): number;
         /**
          * @function setMaxPassesForConstrainer
+         * @category Constrainers
          * @description Set the maximum number of passes allowed per object for this constrainer during resolving. This
          * helps prevent infinite cycles in constraint propagation.
          * @param {number} passes - Maximum number of passes.
@@ -12095,6 +12244,7 @@ interface GradumSelector {
         setMaxPassesForConstrainer(passes: number, constrainer?: string): this;
         /**
          * @function getObjectDataForConstrainer
+         * @category Constrainers
          * @description Retrieve custom per-object data for this constrainer. It is reset on every new
          * resolving session.
          * @param {object} object - The object to query.
@@ -12104,6 +12254,7 @@ interface GradumSelector {
         getObjectDataForConstrainer(object: object, constrainer?: string): Record<string, any>;
         /**
          * @function setObjectDataForConstrainer
+         * @category Constrainers
          * @description Set custom per-object data for this constrainer. It is reset on every new resolving session.
          * @param {object} object - The object to update.
          * @param {Record<string, any>} [data] - The new data object to associate with this object.
@@ -12113,6 +12264,7 @@ interface GradumSelector {
         setObjectDataForConstrainer(object: object, data?: Record<string, any>, constrainer?: string): this;
         /**
          * @function addChecker
+         * @category Constrainers
          * @description Register a checker in the constrainer. Checkers dictate whether the event should continue
          * executing depending on the provided context (event, tool, target, etc.).
          * @param {ConstrainerAddCallbackProperties<ConstrainerChecker>} properties - Configuration object, including the
@@ -12123,6 +12275,7 @@ interface GradumSelector {
         addChecker(properties: ConstrainerAddCallbackProperties<ConstrainerChecker>): this;
         /**
          * @function removeChecker
+         * @category Constrainers
          * @description Remove a checker from the given constrainer by its name.
          * @param {string} name - The checker name.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -12131,6 +12284,7 @@ interface GradumSelector {
         removeChecker(name: string, constrainer?: string): this;
         /**
          * @function clearCheckers
+         * @category Constrainers
          * @description Remove all checkers attached to the given constrainer.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {this} Itself for chaining.
@@ -12138,6 +12292,7 @@ interface GradumSelector {
         clearCheckers(constrainer?: string): this;
         /**
          * @function checkConstrainer
+         * @category Constrainers
          * @description Evaluate all checkers for the targeted constrainer and return whether the event should proceed or halt.
          * @param {ConstrainerCallbackProperties} [properties] - Context passed to each checker.
          * @returns {boolean} Whether the constrainer passes all checks.
@@ -12145,6 +12300,7 @@ interface GradumSelector {
         checkConstrainer(properties?: ConstrainerCallbackProperties): boolean;
         /**
          * @function checkConstrainersForEvent
+         * @category Constrainers
          * @description Evaluate checkers for all relevant constrainers for a given event context.
          * @param {ConstrainerCallbackProperties} [properties] - Event context.
          * @returns {boolean} Whether all the checkers allowed the event to proceed.
@@ -12152,6 +12308,7 @@ interface GradumSelector {
         checkConstrainersForEvent(properties?: ConstrainerCallbackProperties): boolean;
         /**
          * @function addMutator
+         * @category Constrainers
          * @description Register a mutator in the constrainer. Mutators compute or transform a value based on the context.
          * @param {ConstrainerAddCallbackProperties<ConstrainerMutator>} properties - Configuration object, including the
          * mutator `callback` to be executed, the `name` of the mutator to access it later, the name of the attached
@@ -12161,6 +12318,7 @@ interface GradumSelector {
         addMutator(properties: ConstrainerAddCallbackProperties<ConstrainerMutator>): this;
         /**
          * @function removeMutator
+         * @category Constrainers
          * @description Remove a mutator from the given constrainer by its name.
          * @param {string} name - The mutator name.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -12169,6 +12327,7 @@ interface GradumSelector {
         removeMutator(name: string, constrainer?: string): this;
         /**
          * @function clearMutators
+         * @category Constrainers
          * @description Remove all mutators attached to the given constrainer.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {this} Itself for chaining.
@@ -12176,6 +12335,7 @@ interface GradumSelector {
         clearMutators(constrainer?: string): this;
         /**
          * @function mutate
+         * @category Constrainers
          * @template Type - The type of the value to mutate
          * @description Execute a mutator for the targeted constrainer and return the resulting value.
          * @param {ConstrainerMutatorProperties<Type>} [properties] - Context object, including the
@@ -12185,6 +12345,7 @@ interface GradumSelector {
         mutate<Type = any>(properties?: ConstrainerMutatorProperties<Type>): Type;
         /**
          * @function addSolver
+         * @category Constrainers
          * @description Register a solver in the constrainer. Solvers typically execute after an event is fired to
          * ensure the constrainer's constraints are maintained. They process all objects in the constrainer's queue,
          * one after the other.
@@ -12196,6 +12357,7 @@ interface GradumSelector {
         addSolver(properties: ConstrainerAddCallbackProperties<ConstrainerSolver>): this;
         /**
          * @function removeSolver
+         * @category Constrainers
          * @description Remove the given function from the constrainer's list of solvers.
          * @param {string} name - The solver's name.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
@@ -12204,6 +12366,7 @@ interface GradumSelector {
         removeSolver(name: string, constrainer?: string): this;
         /**
          * @function clearSolvers
+         * @category Constrainers
          * @description Remove all solvers attached to the constrainer.
          * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
          * @returns {this} Itself for chaining.
@@ -12211,6 +12374,7 @@ interface GradumSelector {
         clearSolvers(constrainer?: string): this;
         /**
          * @function solveConstrainer
+         * @category Constrainers
          * @description Solve the constrainer by executing all of its attached solvers. Each solver will be executed
          * on every object in the constrainer's queue, incrementing its number of passes in the process.
          * @param {ConstrainerCallbackProperties} [properties] - Options object to configure the context.
@@ -12219,6 +12383,7 @@ interface GradumSelector {
         solveConstrainer(properties?: ConstrainerCallbackProperties): this;
         /**
          * @function solveConstrainersForEvent
+         * @category Constrainers
          * @description Solve all relevant constrainers for a given event context.
          * @param {ConstrainerCallbackProperties} [properties] - Event context to pass to solvers.
          * @returns {this} Itself for chaining.
@@ -12227,18 +12392,31 @@ interface GradumSelector {
     }
 interface GradumSelector {
         /**
+         * @category Style
          * @description The closest root to the element in the document (the closest ShadowRoot, or the document's head).
          */
         readonly closestRoot: StylesRoot;
         /**
+         * @category Style
          * @description Whether the element is selected or not. Setting it on an Element will accordingly toggle on it
          * the "selected" CSS class (or whichever default selected class was set for this element) and update the UI.
          */
         selected: boolean;
+        /**
+         * @category Style
+         * @description The CSS classes applied when the element is selected. Assigning a new value moves the
+         * classes over if the element is currently selected.
+         */
         defaultSelectedClasses: string | string[];
+        /**
+         * @readonly
+         * @category Style
+         * @description Delegate fired whenever the element's selected state changes. Receives the new state.
+         */
         readonly onSelected: Delegate<(value: boolean) => void>;
         /**
          * @function setStyle
+         * @category Style
          * @description Set a certain style attribute of the element to the provided value.
          * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to set.
          * @param {string | number} value - THe value to append.
@@ -12249,6 +12427,7 @@ interface GradumSelector {
         setStyle(attribute: keyof CSSStyleDeclaration, value: string | number, instant?: boolean): this;
         /**
          * @function appendStyle
+         * @category Style
          * @description Append the provided value to a certain style attribute.
          * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to append to.
          * @param {string | number} value - The value to append.
@@ -12260,6 +12439,7 @@ interface GradumSelector {
         appendStyle(attribute: keyof CSSStyleDeclaration, value: string | number, separator?: string, instant?: boolean): this;
         /**
          * @function setStyles
+         * @category Style
          * @description Parses and applies the given CSS to the element's inline styles.
          * @param {StylesType} styles - Acceptable styles to set.
          * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next
@@ -12315,18 +12495,21 @@ interface GradumElementTagNameMap {
     }
 interface GradumSelector {
         /**
+         * @category Classes
          * @description Add one or more CSS classes to the element.
          * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
          * @returns {this} Itself, allowing for method chaining.
          */
         addClass(classes?: string | string[]): this;
         /**
+         * @category Classes
          * @description Remove one or more CSS classes from the element.
          * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
          * @returns {this} Itself, allowing for method chaining.
          */
         removeClass(classes?: string | string[]): this;
         /**
+         * @category Classes
          * @description Toggle one or more CSS classes in the element.
          * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
          * @param {boolean} force - (Optional) Boolean that turns the toggle into a one way-only operation. If set to false,
@@ -12335,6 +12518,7 @@ interface GradumSelector {
          */
         toggleClass(classes?: string | string[], force?: boolean): this;
         /**
+         * @category Classes
          * @description Check if the element's class list contains the provided class(es).
          * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
          * @returns {boolean} Whether the element carries every one of the given classes.
@@ -12345,47 +12529,56 @@ interface GradumSelector extends Node {
     }
 interface GradumSelector {
         /**
+         * @category Hierarchy
          * @description The child handler object associated with the node. It is the node itself (if it is handling
          * its children) or its shadow root (if defined). Set it to change the node where the children are added/
          * removed/queried from when manipulating the node's children.
          */
         childHandler: ChildHandler;
         /**
+         * @category Hierarchy
          * @description Static array of all the child nodes of the node.
          */
         readonly childNodesArray: Node[];
         /**
+         * @category Hierarchy
          * @description Static array of all the child elements of the node.
          */
         readonly childrenArray: Element[];
         /**
+         * @category Hierarchy
          * @description Static array of all the sibling nodes (including the node itself) of the node.
          */
         readonly siblingNodes: Node[];
         /**
+         * @category Hierarchy
          * @description Static array of all the sibling elements (including the element itself, if it is one) of the node.
          */
         readonly siblings: Element[];
         /**
          * @function bringToFront
+         * @category Hierarchy
          * @description Brings the element to the front amongst its siblings in the DOM.
          * @returns {this} Itself for chaining.
          */
         bringToFront(): this;
         /**
          * @function sendToBack
+         * @category Hierarchy
          * @description Sends the element to the back amongst its siblings in the DOM.
          * @returns {this} Itself for chaining.
          */
         sendToBack(): this;
         /**
          * @function remove
+         * @category Hierarchy
          * @description Removes the node from the document.
          * @returns {this} Itself, allowing for method chaining.
          */
         remove(): this;
         /**
          * @function addToParent
+         * @category Hierarchy
          * @description Add the element to the given parent node
          * @param {Node} parent - The parent node to attach the element to.
          * @param {number} [index] - The position at which to add the element relative to the parent's child list.
@@ -12397,6 +12590,7 @@ interface GradumSelector {
         addToParent(parent: Node, index?: number, referenceList?: Node[] | NodeListOf<Node>): this;
         /**
          * @function addChild
+         * @category Hierarchy
          * @description Add one or more children to the element.
          * @param {Node | Node[]} [children] - Array of (or single) child nodes.
          * @param {number} [index] - The position at which to add the child relative to the parent's child list.
@@ -12408,6 +12602,7 @@ interface GradumSelector {
         addChild(children?: Node | Node[], index?: number, referenceList?: Node[] | NodeListOf<Node>): this;
         /**
          * @function remChild
+         * @category Hierarchy
          * @description Remove one or more children from the element.
          * @param {Node | Node[]} [children] - Array of (or single) child nodes.
          * @returns {this} Itself, allowing for method chaining.
@@ -12415,6 +12610,7 @@ interface GradumSelector {
         remChild(children?: Node | Node[]): this;
         /**
          * @function addChildBefore
+         * @category Hierarchy
          * @description Add one or more children to the element before the provided sibling. If the
          * sibling is not found in the parent's children, the nodes will be added to the end of the parent's child list.
          * @param {Node | Node[]} [children] - Array of (or single) child nodes to insert before sibling.
@@ -12424,6 +12620,7 @@ interface GradumSelector {
         addChildBefore(children?: Node | Node[], sibling?: Node): this;
         /**
          * @function removeChildAt
+         * @category Hierarchy
          * @description Remove one or more child nodes from the element.
          * @param {number} [index] - The index of the child(ren) to remove.
          * @param {number} [count=1] - The number of children to remove.
@@ -12434,6 +12631,7 @@ interface GradumSelector {
         removeChildAt(index?: number, count?: number, referenceList?: Node[] | NodeListOf<Node>): this;
         /**
          * @function removeAllChildren
+         * @category Hierarchy
          * @description Remove all children of the node.
          * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
          * representing all the nodes to remove. Defaults to the node's `childrenArray`.
@@ -12442,6 +12640,7 @@ interface GradumSelector {
         removeAllChildren(referenceList?: Node[] | NodeListOf<Node>): this;
         /**
          * @function childAt
+         * @category Hierarchy
          * @description Returns the child of the parent node at the given index. Any number inputted (including
          * negatives) will be reduced modulo length of the list size.
          * @param {number} [index] - The index of the child to retrieve.
@@ -12452,6 +12651,7 @@ interface GradumSelector {
         childAt(index?: number, referenceList?: Node[] | NodeListOf<Node>): Node;
         /**
          * @function indexOfChild
+         * @category Hierarchy
          * @description Returns the index of the given child.
          * @param {Node} [child] - The child element to find.
          * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
@@ -12461,6 +12661,7 @@ interface GradumSelector {
         indexOfChild(child?: Node, referenceList?: Node[] | NodeListOf<Node>): number;
         /**
          * @function hasChild
+         * @category Hierarchy
          * @description Identify whether one or more children belong to this parent node.
          * @param {Node | Node[]} [children] - Array of (or single) child nodes.
          * @returns {boolean} A boolean indicating whether the provided nodes belong to the parent or not.
@@ -12468,6 +12669,7 @@ interface GradumSelector {
         hasChild(children?: Node | Node[]): boolean;
         /**
          * @function findInSubTree
+         * @category Hierarchy
          * @description Finds whether one or more children belong to this node.
          * @param {Node | Node[]} [children] - The child or children to check.
          * @returns {boolean} True if the children belong to the node, false otherwise.
@@ -12475,6 +12677,7 @@ interface GradumSelector {
         findInSubTree(children?: Node | Node[]): boolean;
         /**
          * @function findInParents
+         * @category Hierarchy
          * @description Finds whether this node is within the given parent(s).
          * @param {Node | Node[]} [parents] - The parent(s) to check.
          * @returns {boolean} True if the node is within the given parents, false otherwise.
@@ -12482,6 +12685,7 @@ interface GradumSelector {
         findInParents(parents?: Node | Node[]): boolean;
         /**
          * @function indexInParent
+         * @category Hierarchy
          * @description Finds whether one or more children belong to this node.
          * @param {Node[]} [referenceList=this.siblings] - The siblings list to use as computation
          * reference for index placement. Defaults to the node's `siblings`.
@@ -12491,6 +12695,7 @@ interface GradumSelector {
         /**
          * @overload
          * @function closest
+         * @category Hierarchy
          * @description Finds the closest ancestor of the current element (or the current element itself) that matches
          * that is an instance of the element associated with the given tag name.
          * @param {Type} type - The (valid) tag name.
@@ -12500,6 +12705,7 @@ interface GradumSelector {
         /**
          * @overload
          * @function closest
+         * @category Hierarchy
          * @description Finds the closest ancestor of the current element (or the current element itself) that matches
          * the provided CSS selector.
          * @param {Type} type - The (valid) CSS selector string.
@@ -12509,6 +12715,7 @@ interface GradumSelector {
         /**
          * @overload
          * @function closest
+         * @category Hierarchy
          * @template {Element} Type - The type of element to find.
          * @description Finds the closest ancestor of the current element (or the current element itself) that is an
          * instance of the given class.
@@ -12519,20 +12726,58 @@ interface GradumSelector {
     }
 interface GradumSelector {
         /**
+         * @category Misc
          * @description Execute a callback on the node while still benefiting from chaining.
          * @param {(el: this) => void} callback The function to execute, with 1 parameter representing the instance
          * itself.
          * @returns {this} Itself, allowing for method chaining.
          */
         execute(callback: ((el: this) => void)): this;
+        /**
+         * @category Misc
+         * @description Assign every given property onto the element, overwriting existing values.
+         * @param {object} properties - The properties to assign.
+         * @returns {this} Itself, allowing for method chaining.
+         */
         apply(properties: Partial<this["element"]> & Record<string, any>): this;
+        /**
+         * @category Misc
+         * @description Delete the given fields from the element.
+         * @param {(keyof this["element"] | string)[]} keys - The field names to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
         removeFields(keys: (keyof this["element"] | string)[]): this;
+        /**
+         * @category Misc
+         * @description Read the element's current values for the given keys, to capture them before overwriting.
+         * @param {(keyof this["element"] | string)[]} defaults - The field names to read.
+         * @returns {object} The current value of each requested field.
+         */
         getDefaults(defaults: (keyof this["element"] | string)[]): Partial<this["element"]> & Record<string, any>;
+        /**
+         * @category Misc
+         * @description The fields the element and the given object both have, with the element's values.
+         * @param {object} other - The object to compare against.
+         * @returns {object} The shared fields. Neither input is modified.
+         */
         getIntersection(other: Partial<this["element"]> & Record<string, any>): Partial<this["element"]> & Record<string, any>;
+        /**
+         * @category Misc
+         * @description The fields where the element and the given object disagree, with the element's values.
+         * @param {object} other - The object to compare against.
+         * @returns {object} The differing fields. Neither input is modified.
+         */
         getDifference(other: Partial<this["element"]> & Record<string, any>): Partial<this["element"]> & Record<string, any>;
+        /**
+         * @category Misc
+         * @description Read the given fields off the element into a plain object, leaving the element unchanged.
+         * @param {(keyof this["element"] | string)[]} keys - The field names to extract.
+         * @returns {object} The requested fields and their values.
+         */
         extract(keys: (keyof this["element"] | string)[]): Partial<this["element"]> & Record<string, any>;
         /**
          * @function applyDefaults
+         * @category Misc
          * @description Apply default properties to the underlying object, with optional smart merging for
          * array-like keys. By default, merging will happen on all MVC properties that accept arrays (like
          * `operators`, `handlers`, `tools`, etc.) to allow for concatenation of such MVC pieces.
@@ -12555,20 +12800,24 @@ interface GradumSelector {
     }
 interface GradumSelector {
         /**
+         * @category Reifects
          * @description Readonly shallow set of the reifects attached to this object.
          */
         readonly reifects: Set<StatefulReifect>;
         /**
+         * @category Reifects
          * @description The transition used by the element's show() and isShown methods. Directly modifying its
          * value will modify all elements' default showTransition. Unless this is the desired outcome, set it to a
          * new custom StatefulReifect.
          */
         showTransition: StatefulReifect<Shown>;
         /**
+         * @category Reifects
          * @description Boolean indicating whether the element is shown or not, based on its showTransition.
          */
         readonly isShown: boolean;
         /**
+         * @category Reifects
          * @description Show or hide the element (based on CSS) by transitioning in/out of the element's showTransition.
          * @param {boolean} b - Whether to show the element.
          * @param {ReifectAppliedOptions<Shown>} [options] - Options controlling how the transition is applied.
@@ -12577,6 +12826,7 @@ interface GradumSelector {
         show(b: boolean, options?: ReifectAppliedOptions<Shown>): this;
         /**
          * @function attachReifect
+         * @category Reifects
          * @description Attach one or more reifects to the object.
          * @param {StatefulReifect[]} reifects - The reifect(s) to attach.
          * @returns {this} Itself, allowing for method chaining.
@@ -12584,6 +12834,7 @@ interface GradumSelector {
         attachReifect(...reifects: StatefulReifect[]): this;
         /**
          * @function detachReifect
+         * @category Reifects
          * @description Detach one or more reifects from the object.
          * @param {StatefulReifect[]} reifects - The reifect(s) to detach.
          * @returns {this} Itself, allowing for method chaining.
@@ -12591,6 +12842,7 @@ interface GradumSelector {
         detachReifect(...reifects: StatefulReifect[]): this;
         /**
          * @function initializeReifect
+         * @category Reifects
          * @template {string | symbol | number} State - The type of the reifect's states.
          * @description Initializes the reifect at the given state for the corresponding object.
          * @param {StatefulReifect<State>} reifect - The reifect to initialize.
@@ -12602,6 +12854,7 @@ interface GradumSelector {
         initializeReifect<State extends string | symbol | number>(reifect?: StatefulReifect<State>, state?: State, options?: ReifectAppliedOptions<State>): this;
         /**
          * @function applyReifect
+         * @category Reifects
          * @template {string | symbol | number} State - The type of the reifect's states.
          * @description Applies the reifect at the given state for the corresponding object.
          * @param {StatefulReifect<State>} reifect - The reifect to apply.
@@ -12613,6 +12866,7 @@ interface GradumSelector {
         applyReifect<State extends string | symbol | number>(reifect: StatefulReifect<State>, state?: State, options?: ReifectAppliedOptions<State>): this;
         /**
          * @function toggleReifect
+         * @category Reifects
          * @template {string | symbol | number} State - The type of the reifect's states.
          * @description Toggles the reifect to the next state for the corresponding object.
          * @param {StatefulReifect<State>} reifect - The reifect to toggle.
@@ -12623,18 +12877,21 @@ interface GradumSelector {
         toggleReifect<State extends string | symbol | number>(reifect: StatefulReifect<State>, options?: ReifectAppliedOptions<State>): this;
         /**
          * @function reloadReifects
+         * @category Reifects
          * @description Reloads all reifects attached to this object. Doesn't recompute values.
          * @returns {this} Itself, allowing for method chaining.
          */
         reloadReifects(): this;
         /**
          * @function reloadReifectsChainableStyles
+         * @category Reifects
          * @description Reloads all transitions attached to this object. Doesn't recompute values.
          * @returns {this} Itself, allowing for method chaining.
          */
         reloadReifectsChainableStyles(applyInstantly?: boolean): this;
         /**
          * @function reifectEnabledState
+         * @category Reifects
          * @description Get the reifect enabled state of this object. If a reifect is provided, the enabled state of
          * the object for this specific reifect will be returned. otherwise, the global state of the object will
          * be returned.
@@ -12644,6 +12901,7 @@ interface GradumSelector {
         reifectEnabledState(reifect?: StatefulReifect): ReifectEnabledObject;
         /**
          * @function enableReifect
+         * @category Reifects
          * @description Set the reifect enabled state of this object. If a reifect is provided, the enabled state of
          * the object for this specific reifect will be updated. otherwise, the global state of the object will
          * be updated

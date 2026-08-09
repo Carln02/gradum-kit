@@ -9,11 +9,13 @@ import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
 declare module "../gradumSelector" {
     interface GradumSelector {
         /**
+         * @category Reifects
          * @description Readonly shallow set of the reifects attached to this object.
          */
         readonly reifects: Set<StatefulReifect>;
 
         /**
+         * @category Reifects
          * @description The transition used by the element's show() and isShown methods. Directly modifying its
          * value will modify all elements' default showTransition. Unless this is the desired outcome, set it to a
          * new custom StatefulReifect.
@@ -21,11 +23,13 @@ declare module "../gradumSelector" {
         showTransition: StatefulReifect<Shown>;
 
         /**
+         * @category Reifects
          * @description Boolean indicating whether the element is shown or not, based on its showTransition.
          */
         readonly isShown: boolean;
 
         /**
+         * @category Reifects
          * @description Show or hide the element (based on CSS) by transitioning in/out of the element's showTransition.
          * @param {boolean} b - Whether to show the element.
          * @param {ReifectAppliedOptions<Shown>} [options] - Options controlling how the transition is applied.
@@ -35,6 +39,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function attachReifect
+         * @category Reifects
          * @description Attach one or more reifects to the object.
          * @param {StatefulReifect[]} reifects - The reifect(s) to attach.
          * @returns {this} Itself, allowing for method chaining.
@@ -43,6 +48,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function detachReifect
+         * @category Reifects
          * @description Detach one or more reifects from the object.
          * @param {StatefulReifect[]} reifects - The reifect(s) to detach.
          * @returns {this} Itself, allowing for method chaining.
@@ -51,6 +57,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function initializeReifect
+         * @category Reifects
          * @template {string | symbol | number} State - The type of the reifect's states.
          * @description Initializes the reifect at the given state for the corresponding object.
          * @param {StatefulReifect<State>} reifect - The reifect to initialize.
@@ -65,6 +72,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function applyReifect
+         * @category Reifects
          * @template {string | symbol | number} State - The type of the reifect's states.
          * @description Applies the reifect at the given state for the corresponding object.
          * @param {StatefulReifect<State>} reifect - The reifect to apply.
@@ -79,6 +87,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function toggleReifect
+         * @category Reifects
          * @template {string | symbol | number} State - The type of the reifect's states.
          * @description Toggles the reifect to the next state for the corresponding object.
          * @param {StatefulReifect<State>} reifect - The reifect to toggle.
@@ -92,6 +101,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function reloadReifects
+         * @category Reifects
          * @description Reloads all reifects attached to this object. Doesn't recompute values.
          * @returns {this} Itself, allowing for method chaining.
          */
@@ -99,6 +109,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function reloadReifectsChainableStyles
+         * @category Reifects
          * @description Reloads all transitions attached to this object. Doesn't recompute values.
          * @returns {this} Itself, allowing for method chaining.
          */
@@ -106,6 +117,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function reifectEnabledState
+         * @category Reifects
          * @description Get the reifect enabled state of this object. If a reifect is provided, the enabled state of
          * the object for this specific reifect will be returned. otherwise, the global state of the object will
          * be returned.
@@ -116,6 +128,7 @@ declare module "../gradumSelector" {
 
         /**
          * @function enableReifect
+         * @category Reifects
          * @description Set the reifect enabled state of this object. If a reifect is provided, the enabled state of
          * the object for this specific reifect will be updated. otherwise, the global state of the object will
          * be updated

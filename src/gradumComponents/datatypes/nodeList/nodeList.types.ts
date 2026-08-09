@@ -3,7 +3,7 @@ import {GradumNodeList} from "./nodeList";
 /**
  * @type {NodeListType}
  * @group Components
- * @category GradumNodeList
+ * @category Data Structures
  *
  * @template {object} EntryType - The type of the nodes held in the collection.
  * @description Anything a {@link GradumNodeList} accepts as a source of entries: another list, a live DOM
@@ -16,7 +16,7 @@ type NodeListType<EntryType extends object = object> = GradumNodeList<EntryType>
 /**
  * @type {NodeListSlot}
  * @group Components
- * @category GradumNodeList
+ * @category Data Structures
  *
  * @template {object} EntryType - The type of the nodes held in the collection.
  * @description One slot of a {@link GradumNodeList}: either a single entry, or a whole sub-collection

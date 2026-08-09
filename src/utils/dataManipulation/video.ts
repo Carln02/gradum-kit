@@ -3,7 +3,7 @@ import {video} from "../../elementCreation/basicElements";
 /**
  * @function getVideoDuration
  * @group Utilities
- * @category Misc
+ * @category Media
  *
  * @description Read how long a video is without displaying it, by loading just its metadata into a detached
  * element. Streams whose duration is not known upfront are handled by seeking to the end to force the browser

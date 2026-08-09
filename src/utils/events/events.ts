@@ -4,7 +4,7 @@ import {Point} from "../../gradumComponents/datatypes/point/point";
 /**
  * @function getEventPosition
  * @group Utilities
- * @category Event
+ * @category Geometry
  *
  * @description Read the pointer position out of an event, whichever kind it is. A {@link GradumEvent} yields
  * its scaled position, so the result already accounts for a panned or zoomed canvas; a native pointer event

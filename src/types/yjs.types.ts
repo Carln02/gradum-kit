@@ -25,7 +25,7 @@ declare module "yjs" {
 
 /**
  * @type {YDocumentProperties}
- * @group Types
+ * @group Utilities
  * @category Yjs
  *
  * @template {GradumView} ViewType - The element's view type.

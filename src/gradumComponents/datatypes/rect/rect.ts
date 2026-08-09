@@ -11,7 +11,7 @@ import {css} from "../../../utils/styling/css";
 /**
  * @class GradumRect
  * @group Components
- * @category GradumRect
+ * @category Data Structures
  *
  * @extends DOMRect
  * @description A rectangle that can be rotated, unlike the axis-aligned

@@ -6,7 +6,7 @@ import {trim} from "../../../utils/computations/misc";
 /**
  * @class GradumNodeList
  * @group Components
- * @category GradumNodeList
+ * @category Data Structures
  *
  * @template {object} Type - The type of the nodes held in the list.
  * @description A composable, Set-like collection of nodes. A single list can mix individual nodes, live

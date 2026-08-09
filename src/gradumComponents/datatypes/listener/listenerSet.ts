@@ -4,7 +4,7 @@ import {ListenerCallback, ListenerProperties, MatchListenerProperties} from "./l
 /**
  * @class ListenerSet
  * @group Components
- * @category Listener
+ * @category Data Structures
  *
  * @template {Node} TargetType - The type of the event target.
  * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.

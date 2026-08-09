@@ -10,7 +10,7 @@ import {GradumSelectWheel} from "./selectWheel";
 
 /**
  * @group Components
- * @category GradumSelectWheel
+ * @category Menus
  */
 type GradumSelectWheelProperties<
     ValueType = string,
@@ -36,7 +36,7 @@ type GradumSelectWheelProperties<
 
 /**
  * @group Components
- * @category GradumSelectWheel
+ * @category Menus
  */
 type GradumSelectWheelStylingProperties = {
     element: HTMLElement,

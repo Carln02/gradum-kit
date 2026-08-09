@@ -1,7 +1,7 @@
 /**
  * @function replaceUrlParams
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Set query parameters on the current URL without adding a history entry, so the change cannot
  * be undone with the browser's back button. Use {@link pushUrlParams} when the change should be navigable.
@@ -17,7 +17,7 @@ function replaceUrlParams(...params: {name: string, value: string}[]) {
 /**
  * @function getUrlParam
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Read one query parameter from the current URL.
  * @param {string} name - The parameter to read.
@@ -31,7 +31,7 @@ function getUrlParam(name: string) {
 /**
  * @function pushUrlParams
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Set query parameters on the current URL and add a history entry, so the change can be undone
  * with the browser's back button. Use {@link replaceUrlParams} when it should not be navigable.
@@ -46,7 +46,7 @@ function pushUrlParams(...params: {name: string, value: string}[]) {
 /**
  * @function clearUrlParams
  * @group Utilities
- * @category Misc
+ * @category URL
  *
  * @description Strip every query parameter from the current URL without adding a history entry.
  */

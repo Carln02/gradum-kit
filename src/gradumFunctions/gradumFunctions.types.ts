@@ -3,6 +3,7 @@ import {GradumSelector} from "./gradumSelector";
 /**
  * @type {Gradum}
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the wrapped object. Defaults to `Node`.
  * @description What {@link gradum} hands back: the wrapped object plus the whole selector API, intersected.
@@ -14,6 +15,7 @@ type Gradum<Type extends object = Node> = GradumSelector<Type> & Type;
 /**
  * @type {GradumifyOptions}
  * @group GradumSelector
+ * @category Core
  *
  * @description Which families of selector functions {@link gradumify} should skip. Every family is installed
  * by default; set a flag to leave that family off the {@link GradumSelector} prototype. Excluding a family

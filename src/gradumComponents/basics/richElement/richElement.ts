@@ -15,7 +15,7 @@ import {signal} from "../../../decorators/reactivity/reactivity";
 /**
  * @class GradumRichElement
  * @group Components
- * @category GradumRichElement
+ * @category Basics
  *
  * @extends GradumElement
  * @template {ValidTag} ElementTag - The tag of the main element to create the rich element from.

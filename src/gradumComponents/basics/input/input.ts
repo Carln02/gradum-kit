@@ -17,7 +17,7 @@ import {GradumLabelElement} from "../labelElement/labelElement";
 
 /**
  * @group Components
- * @category GradumInput
+ * @category Basics
  */
 class GradumInput<
     InputTag extends "input" | "textarea" = "input",

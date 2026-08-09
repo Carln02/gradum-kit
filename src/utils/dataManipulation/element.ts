@@ -1,7 +1,7 @@
 /**
  * @function textToElement
  * @group Utilities
- * @category Element
+ * @category DOM
  *
  * @description Parse a string of HTML into a live element. Only the first top-level element of the string is
  * returned, so wrap multiple siblings in a container if you need all of them.
@@ -17,7 +17,7 @@ function textToElement(text: string): Element {
 /**
  * @function createProxy
  * @group Utilities
- * @category Element
+ * @category DOM
  *
  * @template {object} SelfType - The type of the primary object.
  * @template {object} ProxiedType - The type of the fallback object.

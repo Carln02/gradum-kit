@@ -1,7 +1,7 @@
 /**
  * @type {KeyType}
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @description Any value usable as an object key. Key paths throughout the MVC layer — model data,
  * observers, {@link GradumNestedMap} — are arrays of these.
@@ -10,8 +10,8 @@ type KeyType = string | number | symbol;
 
 /**
  * @type {FlatKeyType}
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @description A whole key path collapsed into one value, so a nested entry can be addressed without an
  * array. Fully numeric paths flatten to a number; anything else to a `"k0|k1|k2"` string.
@@ -20,8 +20,8 @@ type FlatKeyType = string | number;
 
 /**
  * @type {FlexRect}
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @description A rectangle where every field is optional, for describing only the edges you care about.
  * Sides and dimensions may be mixed, and any that are omitted are left to the caller to infer.
@@ -47,8 +47,8 @@ type FlexRect = {
 
 /**
  * @type {Coordinate}
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @template Type - The type of each component. Defaults to `number`.
  * @description A pair of values on the x and y axes. Generic so the same shape can carry something other
@@ -63,8 +63,8 @@ type Coordinate<Type = number> = {
 
 /**
  * @type {PartialRecord}
- * @group Types
- * @category Basics
+ * @group Core Types
+ * @category Primitives
  *
  * @template {keyof any} Property - The union of allowed keys.
  * @template Value - The type stored at each key.

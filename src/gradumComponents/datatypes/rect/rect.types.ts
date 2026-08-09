@@ -5,7 +5,7 @@ import {AnchorPoint} from "../anchorPoint/anchorPoint";
 /**
  * @type GradumRectProperties
  * @group Components
- * @category GradumRect
+ * @category Data Structures
  */
 type GradumRectProperties = {
     x?: number,

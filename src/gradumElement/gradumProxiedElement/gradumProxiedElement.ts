@@ -18,8 +18,8 @@ const elementSymbol = Symbol("___element___");
 
 /**
  * @class GradumProxiedElement
- * @group GradumElement
- * @category GradumProxiedElement
+ * @group MVC
+ * @category Element Classes
  *
  * @template {GradumView} ViewType - The element's view type, if initializing MVC.
  * @template {object} DataType - The element's data type, if initializing MVC.

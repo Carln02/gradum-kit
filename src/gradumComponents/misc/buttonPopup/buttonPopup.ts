@@ -14,7 +14,7 @@ import {GradumButtonPopupProperties} from "./buttonPopup.types";
 /**
  * @class GradumButtonPopup
  * @group Components
- * @category GradumButtonPopup
+ * @category Basics
  *
  * @extends GradumButton
  * @template {ValidTag} ElementTag - The tag of the button's main element.

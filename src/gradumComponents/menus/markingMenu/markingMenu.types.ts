@@ -8,7 +8,7 @@ import {GradumMarkingMenu} from "./markingMenu";
 
 /**
  * @group Components
- * @category GradumMarkingMenu
+ * @category Menus
  */
 type GradumMarkingMenuProperties<
     ValueType = string,

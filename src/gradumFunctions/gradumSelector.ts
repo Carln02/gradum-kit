@@ -1,6 +1,7 @@
 /**
  * @class GradumSelector
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the object it wraps.
  * @description Selector class that wraps an object and augments it with useful functions to manipulate it. It also
@@ -8,7 +9,8 @@
  */
 class GradumSelector<Type extends object = Node> {
     /**
-     * @description The underlying, wrapped object.
+     * @category Core
+     * @description The underlying, wrapped object. Every method on the selector reads and writes through it.
      */
     public element: Type;
 
@@ -38,6 +40,13 @@ class GradumSelector<Type extends object = Node> {
         });
     }
 
+    /**
+     * @category Core
+     * @constructor
+     * @description Create a bare selector. Prefer {@link gradum} (or `g`, `gr`, `$`), which caches one
+     * selector per target and wires up {@link GradumSelector.element} for you. The instance returned is a
+     * proxy, so properties not found on the selector fall through to the wrapped object.
+     */
     public constructor() {
         return this.#generateProxy();
     }

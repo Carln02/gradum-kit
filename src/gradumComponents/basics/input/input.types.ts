@@ -9,7 +9,7 @@ import {GradumInput} from "./input";
 /**
  * @type {GradumInputProperties}
  * @group Components
- * @category GradumInput
+ * @category Basics
  *
  * @template {"input" | "textarea"} InputTag - The tag of the inner input element.
  * @template ValueType - The type the input's string value is converted to and from.

@@ -1,6 +1,6 @@
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The key event names dispatched by {@link GradumEventManager}. Listen for these to receive
@@ -14,7 +14,7 @@ const GradumKeyEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The key events components listen for out of the box. Both map to their native DOM
@@ -28,7 +28,7 @@ const DefaultKeyEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The click event names dispatched by {@link GradumEventManager}. These are pointer-type
@@ -47,7 +47,7 @@ const GradumClickEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The click events components listen for out of the box. `click`, `clickStart`, and `clickEnd`
@@ -67,7 +67,7 @@ const DefaultClickEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The pointer-move event name dispatched by {@link GradumEventManager}.
@@ -78,7 +78,7 @@ const GradumMoveEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The move event components listen for out of the box, mapped to its native DOM equivalent.
@@ -89,7 +89,7 @@ const DefaultMoveEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The drag event names dispatched by {@link GradumEventManager}. A drag begins once the pointer
@@ -105,7 +105,7 @@ const GradumDragEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The drag events components listen for out of the box. All three keep their Gradum names —
@@ -122,7 +122,7 @@ const DefaultDragEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The wheel event names dispatched by {@link GradumEventManager}, which separates a plain
@@ -136,7 +136,7 @@ const GradumWheelEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The wheel events components listen for out of the box. Both map to the native `wheel` event,
@@ -151,7 +151,7 @@ const DefaultWheelEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description Every event name {@link GradumEventManager} can dispatch, combining the key, click, move,
@@ -169,7 +169,7 @@ const GradumEventName = {
 } as const;
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description Object containing the names of events fired by default by the gradumComponents. Modifying it (prior to
@@ -199,14 +199,14 @@ const DefaultEventName = {
 };
 
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The name of any event in {@link DefaultEventName}, such as `"clickStart"` or `"focusIn"`.
  */
 type DefaultEventNameKey = keyof typeof DefaultEventName;
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The event-name string of any entry in {@link DefaultEventName}, such as `"mousedown"`.
@@ -214,14 +214,14 @@ type DefaultEventNameKey = keyof typeof DefaultEventName;
  */
 type DefaultEventNameEntry = typeof DefaultEventName[DefaultEventNameKey];
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The name of any event in {@link GradumEventName}, such as `"dragStart"`.
  */
 type GradumEventNameKey = keyof typeof GradumEventName;
 /**
- * @group Types
+ * @group Event Handling
  * @category Event Names
  *
  * @description The event-name string of any entry in {@link GradumEventName}, such as `"gradum-drag-start"`.

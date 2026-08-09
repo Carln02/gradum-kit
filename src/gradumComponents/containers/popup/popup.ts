@@ -17,7 +17,7 @@ import {effect, signal} from "../../../decorators/reactivity/reactivity";
 
 /**
  * @group Components
- * @category GradumPopup
+ * @category Containers
  */
 class GradumPopup<
     ViewType extends GradumView = GradumView<any, any>,

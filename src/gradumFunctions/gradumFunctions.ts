@@ -20,6 +20,7 @@ const cache: WeakMap<object, GradumSelector<object>> = new WeakMap();
  * @overload
  * @function gradum
  * @group GradumSelector
+ * @category Core
  *
  * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
@@ -34,6 +35,7 @@ function gradum<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Ta
  * @overload
  * @function gradum
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
@@ -50,6 +52,7 @@ function gradum<Type extends object = Node>(object: Type, raw?: boolean): Gradum
  * @overload
  * @function gradum
  * @group GradumSelector
+ * @category Core
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
@@ -85,6 +88,7 @@ function gradum(tagOrElement?: object | string, raw: boolean = false): Gradum {
  * @overload
  * @function gr
  * @group GradumSelector
+ * @category Core
  *
  * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
@@ -99,6 +103,7 @@ function gr<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
  * @overload
  * @function gr
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
@@ -115,6 +120,7 @@ function gr<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Typ
  * @overload
  * @function gr
  * @group GradumSelector
+ * @category Core
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
@@ -131,6 +137,7 @@ function gr(tagOrElement?: object | string, raw: boolean = false): Gradum {
  * @overload
  * @function g
  * @group GradumSelector
+ * @category Core
  *
  * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
@@ -145,6 +152,7 @@ function g<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
  * @overload
  * @function g
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
@@ -161,6 +169,7 @@ function g<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type
  * @overload
  * @function g
  * @group GradumSelector
+ * @category Core
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
@@ -177,6 +186,7 @@ function g(tagOrElement?: object | string, raw: boolean = false): Gradum {
  * @overload
  * @function $
  * @group GradumSelector
+ * @category Core
  *
  * @template {ValidTag} Tag - The HTML tag of the element to instantiate.
  * @description All-in-one selector function that instantiates an element with the given tag and returns it wrapped
@@ -191,6 +201,7 @@ function $<Tag extends ValidTag = "div">(tag?: Tag): Gradum<ValidElement<Tag>>;
  * @overload
  * @function $
  * @group GradumSelector
+ * @category Core
  *
  * @template {object} Type - The type of the object to wrap.
  * @description All-in-one selector function that wraps the given object in a proxied selector that augments it
@@ -207,6 +218,7 @@ function $<Type extends object = Node>(object: Type, raw?: boolean): Gradum<Type
  * @overload
  * @function $
  * @group GradumSelector
+ * @category Core
  *
  * @description All-in-one selector function that instantiates an element with the given tag (if valid) and returns it
  * wrapped in a proxied selector that augments it with useful functions for manipulating it. You can alternatively use
@@ -222,6 +234,7 @@ function $(tagOrElement?: object | string, raw: boolean = false): Gradum {
 /**
  * @function gradumify
  * @group GradumSelector
+ * @category Core
  *
  * @description Install every selector function onto the {@link GradumSelector} prototype. Runs once — later
  * calls are no-ops — and is invoked automatically the first time {@link gradum} is called, so you rarely

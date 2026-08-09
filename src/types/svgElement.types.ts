@@ -1,7 +1,7 @@
 /**
  * @type {SVGTagMap}
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  *
  * @description The SVG tag-to-element map, minus `style`. That one tag is excluded because it collides
  * with the HTML `<style>` element of the same name, which would make the combined tag maps ambiguous.
@@ -9,30 +9,30 @@
 type SVGTagMap = Omit<SVGElementTagNameMap, "style">;
 
 /**
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  * @description Ensures that only valid tags are used, i.e., those that map to elements.
  */
 type SVGTag<Tag extends keyof SVGElementTagNameMap = keyof SVGElementTagNameMap> = Tag;
 
 /**
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  * @description Ensures that only valid elements are used, i.e., those that extend Element.
  */
 type ValidSVGElement<Tag extends SVGTag = SVGTag> = SVGElementTagNameMap[Tag] extends
     SVGElement ? SVGElementTagNameMap[Tag] : SVGElement;
 
 /**
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  * @description URL to the SVG namespace.
  */
 const SvgNamespace = "http://www.w3.org/2000/svg";
 
 /**
- * @group Types
- * @category SVG Element
+ * @group Core Types
+ * @category SVG Tags
  * @description Set of Valid SVG tags.
  */
 const SvgTags = new Set<SVGTag>([

@@ -1,29 +1,29 @@
 
 /**
- * @group Types
- * @category MathML Element
+ * @group Core Types
+ * @category MathML Tags
  * @description Ensures that only valid tags are used, i.e., those that map to elements.
  */
 type MathMLTag<Tag extends keyof MathMLElementTagNameMap = keyof MathMLElementTagNameMap> = Tag;
 
 /**
- * @group Types
- * @category MathML Element
+ * @group Core Types
+ * @category MathML Tags
  * @description Ensures that only valid elements are used, i.e., those that extend Element.
  */
 type ValidMathMLElement<Tag extends MathMLTag = MathMLTag> = MathMLElementTagNameMap[Tag] extends
     MathMLElement ? MathMLElementTagNameMap[Tag] : MathMLElement;
 
 /**
- * @group Types
- * @category MathML Element
+ * @group Core Types
+ * @category MathML Tags
  * @description URL to the MathML namespace.
  */
 const MathMLNamespace = "http://www.w3.org/1998/Math/MathML";
 
 /**
- * @group Types
- * @category MathML Element
+ * @group Core Types
+ * @category MathML Tags
  * @description Set of Valid MathML tags.
  */
 const MathMLTags = new Set<MathMLTag>([

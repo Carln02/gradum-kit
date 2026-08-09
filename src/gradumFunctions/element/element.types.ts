@@ -8,7 +8,7 @@ import {GradumElementProperties} from "../../gradumElement/gradumElement.types";
 
 /**
  * @type {CloneElementOptions}
- * @group Types
+ * @group GradumSelector
  * @category Element
  *
  * @description Controls what {@link GradumSelector.clone} carries over to the copy. By default a clone gets
@@ -45,7 +45,7 @@ type CloneElementOptions = {
 
 /**
  * @type {FeedforwardProperties}
- * @group Types
+ * @group GradumSelector
  * @category Element
  *
  * @extends GradumElementProperties
@@ -76,7 +76,7 @@ type FeedforwardProperties = GradumElementProperties & {
 
 /**
  * @type {GradumProperties}
- * @group Types
+ * @group GradumSelector
  * @category Element
  *
  * @template {ValidTag} Tag - The HTML (or other) tag of the element, if passing it as a property. Defaults to "div".
@@ -134,6 +134,7 @@ declare module "../gradumSelector" {
     interface GradumSelector<Type extends object = Node> {
         /**
          * @function setProperties
+         * @category Element
          * @template {ValidTag} Tag - The HTML tag of the element (for accurate autocompletion of available properties).
          * @description Sets the declared properties to the element (if possible).
          * @param {GradumProperties<Tag>} properties - The properties object.
@@ -143,17 +144,31 @@ declare module "../gradumSelector" {
          */
         setProperties<Tag extends ValidTag>(properties: GradumProperties<Tag>, setOnlyBaseProperties?: boolean): this;
 
+        /**
+         * @category Element
+         * @description Read every own field of the element as a plain object, so it can be diffed or cloned.
+         * @returns {Record<string, any>} The element's fields, keyed by name.
+         */
         getFields(): Record<string, any>;
 
+        /**
+         * @category Element
+         * @description Create a copy of the element. By default the copy carries the same properties and children,
+         * but none of the bound listeners.
+         * @param {CloneElementOptions} [options] - What to carry over to the copy.
+         * @returns {Type} The cloned element.
+         */
         clone(options?: CloneElementOptions): Type;
 
         /**
+         * @category Element
          * @description Destroys the element by removing it from the document and removing all its bound listeners.
          * @returns {this} Itself, allowing for method chaining.
          */
         destroy(): this;
 
         /**
+         * @category Element
          * @description Sets the value of an attribute on the element.
          * @param {string} name The name of the attribute.
          * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent
@@ -163,6 +178,7 @@ declare module "../gradumSelector" {
         setAttribute(name: string, value?: string | number | boolean): this;
 
         /**
+         * @category Element
          * @description Removes an attribute from the element.
          * @param {string} name The name of the attribute to remove.
          * @returns {this} Itself, allowing for method chaining.
@@ -170,19 +186,34 @@ declare module "../gradumSelector" {
         removeAttribute(name: string): this;
 
         /**
+         * @category Element
          * @description Causes the element to lose focus.
          * @returns {this} Itself, allowing for method chaining.
          */
         blur(): this;
 
         /**
+         * @category Element
          * @description Sets focus on the element.
          * @returns {this} Itself, allowing for method chaining.
          */
         focus(): this;
 
+        /**
+         * @category Element
+         * @description Push the element's feedforward properties down to its children, so newly added descendants
+         * pick up the same defaults.
+         * @param {FeedforwardProperties} [options] - Properties to feed forward. Defaults to
+         * {@link GradumSelector.defaultFeedforwardProperties}.
+         * @returns {Type} The element, allowing for method chaining.
+         */
         feedforward(options?: FeedforwardProperties): Type;
 
+        /**
+         * @category Element
+         * @description The properties passed on to children created through {@link GradumSelector.feedforward},
+         * letting a parent seed its descendants with shared defaults.
+         */
         defaultFeedforwardProperties: GradumElementProperties;
     }
 }

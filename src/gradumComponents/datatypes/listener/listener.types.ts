@@ -4,7 +4,7 @@ import {GradumEventManager} from "../../../eventHandling/gradumEventManager/grad
 /**
  * @type {ListenerProperties}
  * @group Components
- * @category Listener
+ * @category Data Structures
  *
  * @template {Node} TargetType - The type of the event target.
  * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
@@ -31,7 +31,7 @@ type ListenerProperties<
 /**
  * @type {MatchListenerProperties}
  * @group Components
- * @category Listener
+ * @category Data Structures
  *
  * @extends ListenerProperties
  * @template {Node} TargetType - The type of the event target.
@@ -50,7 +50,7 @@ type MatchListenerProperties<
 /**
  * @callback ListenerCallback
  * @group Components
- * @category Listener
+ * @category Data Structures
  * @template {Node} Type - The type of the event target.
  * @description Callback signature for listeners. Receives the native event and the resolved target.
  * @param {Event} e - The native event.
@@ -62,7 +62,7 @@ type ListenerCallback<Type extends Node = Node> = ((e: Event, el: Type) => Propa
 /**
  * @type {ListenerOptions}
  * @group Components
- * @category Listener
+ * @category Data Structures
  * @extends AddEventListenerOptions
  * @description Options used for listeners.
  * @property {boolean} [checkConstrainers] - If true, checks constrainers before execution. Defaults to true.

@@ -1,7 +1,7 @@
 /**
  * @type {DefineOptions}
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Options object for the {@link define} decorator and imperative function.
  * @property {boolean} [injectAttributeBridge=true] - Whether to inject an `attributeChangedCallback`
@@ -15,7 +15,7 @@ type DefineOptions = {
 /**
  * @enum {RegistryCategory}
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description The bucket a class is filed under in the Gradum Kit registry, and the value
  * {@link getRegisteredByCategories} groups by. {@link define} infers it by walking the class'
@@ -68,7 +68,7 @@ enum RegistryCategory {
 /**
  * @type {RegistryEntry}
  * @group Decorators
- * @category Registry, Attributes & DOM
+ * @category Registry
  *
  * @description Represents a single entry in the Gradum Kit class registry, as stored and returned
  * by {@link findRegistered} and related query functions.

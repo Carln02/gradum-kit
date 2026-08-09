@@ -10,7 +10,7 @@ import {GradumIconToggleProperties} from "./iconToggle.types";
 
 /**
  * @group Components
- * @category GradumIconToggle
+ * @category Basics
  */
 class GradumIconToggle<
     ViewType extends GradumView = GradumView<any, any>,

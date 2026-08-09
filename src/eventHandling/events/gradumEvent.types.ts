@@ -7,7 +7,7 @@ import {GradumEventNameEntry} from "../../types/eventNaming.types";
 /**
  * @enum {ClosestOrigin}
  * @group Event Handling
- * @category Enums
+ * @category Event Modes
  *
  * @description Where {@link GradumEvent.closest} starts searching from when looking for a matching
  * ancestor.

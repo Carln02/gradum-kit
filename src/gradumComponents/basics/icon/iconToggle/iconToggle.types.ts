@@ -6,7 +6,7 @@ import {GradumEmitter} from "../../../../mvc/emitter/emitter";
 
 /**
  * @group Components
- * @category GradumIconToggle
+ * @category Basics
  */
 type GradumIconToggleProperties<
     ViewType extends GradumView = GradumView,
