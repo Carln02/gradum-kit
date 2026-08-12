@@ -28744,7 +28744,6 @@
               gradum(this).setStyles({ width: this.model.elementSize + "px", height: this.model.elementSize + "px" });
           }
           updateText() {
-              console.log("JII");
               const text = gradum(this).metadata.get("isPusher") ? "Pusher" :
                   gradum(this).metadata.get("isSpacer") ? "Spacer" : undefined;
               gradum(this).removeAllChildren();
@@ -28858,6 +28857,7 @@
           click(e, target) {
               if (gradum(target).metadata?.get("modifiable")) {
                   gradum(target).metadata?.set(true, "isPusher");
+                  console.log(target);
                   return Propagation.stopPropagation;
               }
           }

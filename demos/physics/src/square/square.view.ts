@@ -22,7 +22,6 @@ export class SquareView extends GradumView<Square, SquareModel> {
     }
 
     @effect private updateText() {
-        console.log("JII")
         const text = gradum(this).metadata.get("isPusher") ? "Pusher" :
             gradum(this).metadata.get("isSpacer") ? "Spacer" : undefined;
         gradum(this).removeAllChildren();
