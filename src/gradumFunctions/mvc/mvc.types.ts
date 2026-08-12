@@ -149,12 +149,17 @@ declare module "../gradumSelector" {
         data: any;
 
         /**
-         * @readonly
          * @category MVC
-         * @description A key-value store attached to the element, backed by its own model. Use it for flags
-         * that tools and behaviors read off an element — `selectable`, `dragAndDroppable`, and the like.
+         * @description A key-value store attached to the element, backed by its own {@link GradumModel} and
+         * created on first read — so it is available whether or not the element has a model of its own. Use
+         * it for flags that tools and behaviors read off an element: `selectable`, `dragAndDroppable`, and
+         * the like. Assigning a plain object replaces the store's contents; assigning a model adopts it.
+         *
+         * Reads participate in effect tracking once a signal exists for the key, so
+         * `metadata.makeSignal("flag")` at setup makes `metadata.get("flag")` reactive inside an `@effect`.
          */
-        readonly metadata: GradumModel<object>;
+        get metadata(): GradumModel<object>;
+        set metadata(value: GradumModel<object> | object);
 
         /**
          * @category MVC

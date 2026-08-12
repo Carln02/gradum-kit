@@ -11809,6 +11809,21 @@
           return () => eff.dispose();
       }
   }
+  /**
+   * @function trackSignal
+   * @group Decorators
+   * @category Signal
+   *
+   * @description Register a signal as a dependency of the effect currently running, without reading through
+   * it. Use it when a value is fetched by some other route — a lookup, a data walk — but should still make the
+   * surrounding `@effect` re-run when that signal changes. Outside an effect it does nothing.
+   * @param {SignalEntry} entry - The signal to depend on.
+   */
+  function trackSignal(entry) {
+      if (!entry)
+          return;
+      utils$a.track(entry);
+  }
   function markDirty(target, ...keys) {
       const computedKey = keys.length > 1
           ? utils$a.getKeyFromPath(target, keys)
@@ -12870,7 +12885,6 @@
       utils$9.setCategory(type, type.name);
   }
 
-  const META = Symbol("__meta__");
   /**
    * @class GradumModel
    * @group MVC
@@ -13043,12 +13057,6 @@
               this.onDataChanged.fire(oldData, data);
           }
           /**
-           * @description The metadata held by this model. Separate from this model's data.
-           */
-          get meta() {
-              return this.nest(META);
-          }
-          /**
            * @constructor
            * @description Create a new GradumModel.
            * @param {GradumModelProperties} [properties] - Optional initialization properties.
@@ -13094,9 +13102,15 @@
               if (keys.length === 0)
                   return this.data;
               let current = this.data;
-              for (const key of keys) {
+              let nested = this;
+              for (let i = 0; i < keys.length; i++) {
                   if (!current || typeof current !== "object")
                       return undefined;
+                  const key = keys[i];
+                  if (nested && i === keys.length - 1)
+                      trackSignal(nested?.signals.get(key));
+                  else
+                      nested = nested?.nestedModels.get(key);
                   current = this.getAction(current, key);
               }
               return current;
@@ -14367,7 +14381,7 @@
    * @description The names of the MVC roles an element can hold, in the order they are attached. Used to
    * split MVC entries out of a properties object and to drive the generic add/get/remove paths.
    */
-  const MvcFields = ["model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
+  const MvcFields = ["metadata", "model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
   const utils$8 = new MvcFunctionsUtils();
   /**
    * @internal
@@ -14457,7 +14471,25 @@
       });
       Object.defineProperty(GradumSelector.prototype, "metadata", {
           get() {
-              return utils$8.peek(this.element)?.model?.meta;
+              if (!this.element)
+                  return undefined;
+              const mvc = utils$8.data(this.element);
+              if (!mvc)
+                  return undefined;
+              //Created on first read, so metadata is usable on any element — with or without a model.
+              mvc.metadata ??= GradumModel.create({ initialize: true });
+              return mvc.metadata;
+          },
+          set(value) {
+              if (!this.element)
+                  return;
+              const mvc = utils$8.data(this.element);
+              if (!mvc)
+                  return;
+              if (value instanceof GradumModel)
+                  mvc.metadata = value;
+              else
+                  mvc.metadata = GradumModel.create({ data: value ?? {}, initialize: true });
           },
           configurable: true, enumerable: true,
       });
@@ -28334,7 +28366,7 @@
            * @protected
            */
           isSpacer(el) {
-              return el instanceof Element && "isSpacer" in el && el.isSpacer === true;
+              return !!gradum(el).metadata?.get("isSpacer");
           }
           /**
            * @description Check if an element is a pusher.
@@ -28342,7 +28374,7 @@
            * @protected
            */
           isPusher(el) {
-              return el instanceof Element && "isPusher" in el && el.isPusher === true;
+              return !!gradum(el).metadata?.get("isPusher");
           }
           /**
            * @description Spacer solver (with higher priority - it executes on the target before the pusher solver).
@@ -28683,15 +28715,18 @@
       let _updatePosition_decorators;
       let _updateColor_decorators;
       let _updateSize_decorators;
+      let _updateText_decorators;
       return class SquareView extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _updatePosition_decorators = [effect];
               _updateColor_decorators = [effect];
               _updateSize_decorators = [effect];
+              _updateText_decorators = [effect];
               __esDecorate(this, null, _updatePosition_decorators, { kind: "method", name: "updatePosition", static: false, private: false, access: { has: obj => "updatePosition" in obj, get: obj => obj.updatePosition }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _updateColor_decorators, { kind: "method", name: "updateColor", static: false, private: false, access: { has: obj => "updateColor" in obj, get: obj => obj.updateColor }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(this, null, _updateSize_decorators, { kind: "method", name: "updateSize", static: false, private: false, access: { has: obj => "updateSize" in obj, get: obj => obj.updateSize }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _updateText_decorators, { kind: "method", name: "updateText", static: false, private: false, access: { has: obj => "updateText" in obj, get: obj => obj.updateText }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           //@effect methods will be called when the values of the signals they use change
@@ -28708,6 +28743,14 @@
           updateSize() {
               gradum(this).setStyles({ width: this.model.elementSize + "px", height: this.model.elementSize + "px" });
           }
+          updateText() {
+              console.log("JII");
+              const text = gradum(this).metadata.get("isPusher") ? "Pusher" :
+                  gradum(this).metadata.get("isSpacer") ? "Spacer" : undefined;
+              gradum(this).removeAllChildren();
+              if (text)
+                  gradum(this).addChild(p({ text }));
+          }
           constructor() {
               super(...arguments);
               __runInitializers(this, _instanceExtraInitializers);
@@ -28721,7 +28764,6 @@
   //Custom square element, defined as a custom element
   let Square = (() => {
       let _classSuper = GradumElement;
-      let _instanceExtraInitializers = [];
       let _color_decorators;
       let _color_initializers = [];
       let _color_extraInitializers = [];
@@ -28734,8 +28776,6 @@
       let _rotation_decorators;
       let _rotation_initializers = [];
       let _rotation_extraInitializers = [];
-      let _set_isPusher_decorators;
-      let _set_isSpacer_decorators;
       return class Square extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
@@ -28743,10 +28783,6 @@
               _elementSize_decorators = [expose("model")];
               _position_decorators = [expose("model")];
               _rotation_decorators = [expose("model")];
-              _set_isPusher_decorators = [auto({ defaultValue: false })];
-              _set_isSpacer_decorators = [auto({ defaultValue: false })];
-              __esDecorate(this, null, _set_isPusher_decorators, { kind: "setter", name: "isPusher", static: false, private: false, access: { has: obj => "isPusher" in obj, set: (obj, value) => { obj.isPusher = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _set_isSpacer_decorators, { kind: "setter", name: "isSpacer", static: false, private: false, access: { has: obj => "isSpacer" in obj, set: (obj, value) => { obj.isSpacer = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
               __esDecorate(null, null, _elementSize_decorators, { kind: "field", name: "elementSize", static: false, private: false, access: { has: obj => "elementSize" in obj, get: obj => obj.elementSize, set: (obj, value) => { obj.elementSize = value; } }, metadata: _metadata }, _elementSize_initializers, _elementSize_extraInitializers);
               __esDecorate(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
@@ -28754,29 +28790,19 @@
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           //Expose fields from the model
-          color = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _color_initializers, void 0));
+          color = __runInitializers(this, _color_initializers, void 0);
           elementSize = (__runInitializers(this, _color_extraInitializers), __runInitializers(this, _elementSize_initializers, void 0));
           position = (__runInitializers(this, _elementSize_extraInitializers), __runInitializers(this, _position_initializers, void 0));
           rotation = (__runInitializers(this, _position_extraInitializers), __runInitializers(this, _rotation_initializers, void 0));
           static defaultProperties = {
               view: SquareView,
               model: SquareModel,
-              isSpacer: false,
-              isPusher: false,
           };
-          set isPusher(value) {
-              if (value)
-                  this.isSpacer = false;
-              gradum(this).removeAllChildren();
-              if (value)
-                  gradum(this).addChild(p({ text: "Pusher" }));
-          }
-          set isSpacer(value) {
-              if (value)
-                  this.isPusher = false;
-              gradum(this).removeAllChildren();
-              if (value)
-                  gradum(this).addChild(p({ text: "Spacer" }));
+          initialize() {
+              gradum(this).metadata.set(true, "modifiable");
+              gradum(this).metadata.makeSignal("isPusher");
+              gradum(this).metadata.makeSignal("isSpacer");
+              super.initialize();
           }
           move(delta) {
               this.model.position = delta.add(this.model.position);
@@ -28830,8 +28856,10 @@
           }
           toolName = (__runInitializers(this, _instanceExtraInitializers), "makePusher"); //Define tool name
           click(e, target) {
-              if ("isPusher" in target && typeof target.isPusher === "boolean")
-                  target.isPusher = !target.isPusher;
+              if (gradum(target).metadata?.get("modifiable")) {
+                  gradum(target).metadata?.set(true, "isPusher");
+                  return Propagation.stopPropagation;
+              }
           }
       };
   })();
@@ -28850,8 +28878,10 @@
           }
           toolName = (__runInitializers(this, _instanceExtraInitializers), "makeSpacer"); //Define tool name
           click(e, target) {
-              if ("isSpacer" in target && typeof target.isSpacer === "boolean")
-                  target.isSpacer = !target.isSpacer;
+              if (gradum(target).metadata?.get("modifiable")) {
+                  gradum(target).metadata?.set(true, "isSpacer");
+                  return Propagation.stopPropagation;
+              }
           }
       };
   })();

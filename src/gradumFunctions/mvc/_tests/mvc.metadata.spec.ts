@@ -71,13 +71,38 @@ describe("GradumSelector.metadata", () => {
         expect(seen).toBe(true);
     });
 
-    it("does not drive an effect through a plain get()", async () => {
+    // `get()` is untracked by default, but once a signal exists for the key it participates in tracking —
+    // so `makeSignal(key)` at setup is enough to make plain `metadata.get(key)` reactive inside an effect.
+    it("drives an effect through a plain get() once the key has a signal", async () => {
+        const el = div();
+        gradum(el).metadata.makeSignal("isPusher");
+        gradum(el).metadata.makeSignal("isSpacer");
+
+        let runs = 0, text: string | undefined;
+        effect(() => {
+            runs++;
+            text = gradum(el).metadata.get("isPusher") ? "Pusher"
+                 : gradum(el).metadata.get("isSpacer") ? "Spacer" : undefined;
+        });
+        expect(text).toBeUndefined();
+
+        gradum(el).metadata.set(true, "isSpacer");
+        await tick();
+        expect(text).toBe("Spacer");
+
+        gradum(el).metadata.set(false, "isSpacer");
+        gradum(el).metadata.set(true, "isPusher");
+        await tick();
+        expect(text).toBe("Pusher");
+    });
+
+    it("leaves keys without a signal untracked", async () => {
         const el = div();
         let runs = 0;
-        effect(() => { runs++; gradum(el).metadata.get("x"); });
+        effect(() => { runs++; gradum(el).metadata.get("noSignal"); });
         const before = runs;
 
-        gradum(el).metadata.set(1, "x");
+        gradum(el).metadata.set(1, "noSignal");
         await tick();
 
         expect(runs).toBe(before);

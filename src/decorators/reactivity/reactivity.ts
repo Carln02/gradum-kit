@@ -395,6 +395,21 @@ function effect(...args: any[]): any {
 }
 
 /**
+ * @function trackSignal
+ * @group Decorators
+ * @category Signal
+ *
+ * @description Register a signal as a dependency of the effect currently running, without reading through
+ * it. Use it when a value is fetched by some other route — a lookup, a data walk — but should still make the
+ * surrounding `@effect` re-run when that signal changes. Outside an effect it does nothing.
+ * @param {SignalEntry} entry - The signal to depend on.
+ */
+function trackSignal(entry: SignalEntry): void {
+    if (!entry) return;
+    utils.track(entry);
+}
+
+/**
  * @function getSignal
  * @group Decorators
  * @category Signal
@@ -551,6 +566,7 @@ export {
     nestedModelSignal,
     isolatedModelSignal,
     getSignal,
+    trackSignal,
     markDirty,
     markDirtyPath,
     initializeEffects,

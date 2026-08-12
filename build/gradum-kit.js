@@ -3788,6 +3788,21 @@ var Gradum = (function (exports, yjs) {
         }
     }
     /**
+     * @function trackSignal
+     * @group Decorators
+     * @category Signal
+     *
+     * @description Register a signal as a dependency of the effect currently running, without reading through
+     * it. Use it when a value is fetched by some other route — a lookup, a data walk — but should still make the
+     * surrounding `@effect` re-run when that signal changes. Outside an effect it does nothing.
+     * @param {SignalEntry} entry - The signal to depend on.
+     */
+    function trackSignal(entry) {
+        if (!entry)
+            return;
+        utils$a.track(entry);
+    }
+    /**
      * @function getSignal
      * @group Decorators
      * @category Signal
@@ -5016,7 +5031,6 @@ var Gradum = (function (exports, yjs) {
         return undefined;
     }
 
-    const META = Symbol("__meta__");
     /**
      * @class GradumModel
      * @group MVC
@@ -5189,12 +5203,6 @@ var Gradum = (function (exports, yjs) {
                 this.onDataChanged.fire(oldData, data);
             }
             /**
-             * @description The metadata held by this model. Separate from this model's data.
-             */
-            get meta() {
-                return this.nest(META);
-            }
-            /**
              * @constructor
              * @description Create a new GradumModel.
              * @param {GradumModelProperties} [properties] - Optional initialization properties.
@@ -5240,9 +5248,15 @@ var Gradum = (function (exports, yjs) {
                 if (keys.length === 0)
                     return this.data;
                 let current = this.data;
-                for (const key of keys) {
+                let nested = this;
+                for (let i = 0; i < keys.length; i++) {
                     if (!current || typeof current !== "object")
                         return undefined;
+                    const key = keys[i];
+                    if (nested && i === keys.length - 1)
+                        trackSignal(nested?.signals.get(key));
+                    else
+                        nested = nested?.nestedModels.get(key);
                     current = this.getAction(current, key);
                 }
                 return current;
@@ -6513,7 +6527,7 @@ var Gradum = (function (exports, yjs) {
      * @description The names of the MVC roles an element can hold, in the order they are attached. Used to
      * split MVC entries out of a properties object and to drive the generic add/get/remove paths.
      */
-    const MvcFields = ["model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
+    const MvcFields = ["metadata", "model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
     const utils$8 = new MvcFunctionsUtils();
     /**
      * @internal
@@ -6603,7 +6617,25 @@ var Gradum = (function (exports, yjs) {
         });
         Object.defineProperty(GradumSelector.prototype, "metadata", {
             get() {
-                return utils$8.peek(this.element)?.model?.meta;
+                if (!this.element)
+                    return undefined;
+                const mvc = utils$8.data(this.element);
+                if (!mvc)
+                    return undefined;
+                //Created on first read, so metadata is usable on any element — with or without a model.
+                mvc.metadata ??= GradumModel.create({ initialize: true });
+                return mvc.metadata;
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                const mvc = utils$8.data(this.element);
+                if (!mvc)
+                    return;
+                if (value instanceof GradumModel)
+                    mvc.metadata = value;
+                else
+                    mvc.metadata = GradumModel.create({ data: value ?? {}, initialize: true });
             },
             configurable: true, enumerable: true,
         });
@@ -22019,6 +22051,7 @@ var Gradum = (function (exports, yjs) {
     exports.textToElement = textToElement;
     exports.textarea = textarea;
     exports.tool = tool;
+    exports.trackSignal = trackSignal;
     exports.trim = trim;
     exports.untrack = untrack;
     exports.urlToBlob = urlToBlob;

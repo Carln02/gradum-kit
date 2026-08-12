@@ -1,5 +1,5 @@
 
-import {define, GradumElement, Point, expose, auto, gradum, p, Color} from "../../../../build/gradum-kit.esm";
+import {define, GradumElement, Point, expose, auto, gradum, p, Color, GradumModel} from "../../../../build/gradum-kit.esm";
 import {SquareModel} from "./square.model";
 import {SquareView} from "./square.view";
 import "./square.css";
@@ -15,20 +15,13 @@ export class Square extends GradumElement<SquareView, any, SquareModel> {
     public static defaultProperties = {
         view: SquareView,
         model: SquareModel,
-        isSpacer: false,
-        isPusher: false,
     };
 
-    @auto({defaultValue: false}) public set isPusher(value: boolean) {
-        if (value) this.isSpacer = false;
-        gradum(this).removeAllChildren();
-        if (value) gradum(this).addChild(p({text: "Pusher"}));
-    }
-
-    @auto({defaultValue: false}) public set isSpacer(value: boolean) {
-        if (value) this.isPusher = false;
-        gradum(this).removeAllChildren();
-        if (value) gradum(this).addChild(p({text: "Spacer"}));
+    public initialize() {
+        gradum(this).metadata.set(true, "modifiable");
+        gradum(this).metadata.makeSignal("isPusher");
+        gradum(this).metadata.makeSignal("isSpacer");
+        super.initialize();
     }
 
     public move(delta: Point) {

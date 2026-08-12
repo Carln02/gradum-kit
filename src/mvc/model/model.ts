@@ -1,4 +1,4 @@
-import {initializeEffects, markDirtyPath, signal} from "../../decorators/reactivity/reactivity";
+import {initializeEffects, markDirtyPath, signal, trackSignal} from "../../decorators/reactivity/reactivity";
 import {GradumModelProperties, GradumModelProxy, GradumObserverProperties} from "./model.types";
 import {SignalBox} from "../../decorators/reactivity/reactivity.types";
 import {auto} from "../../decorators/auto/auto";
@@ -282,11 +282,19 @@ class GradumModel<
     public get(...keys: KeyType[]): any;
     public get(...keys: KeyType[]): any {
         if (keys.length === 0) return this.data;
+
         let current: any = this.data;
-        for (const key of keys) {
+        let nested: GradumModel = this;
+
+        for (let i = 0; i < keys.length; i++) {
             if (!current || typeof current !== "object") return undefined;
+            const key = keys[i] as DataKeyType;
+
+            if (nested && i === keys.length - 1) trackSignal(nested?.signals.get(key));
+            else nested = nested?.nestedModels.get(key);
             current = this.getAction(current, key);
         }
+
         return current;
     }
 

@@ -4,7 +4,8 @@ import {
     solver,
     ConstrainerCallbackProperties,
     GradumDragEvent,
-    GradumConstrainer
+    GradumConstrainer,
+    gradum
 } from "../../../../build/gradum-kit.esm";
 
 //Pusher constrainer
@@ -25,7 +26,7 @@ export class CanvasConstrainer extends GradumConstrainer {
      * @protected
      */
     protected isSpacer(el: object): boolean {
-        return el instanceof Element && "isSpacer" in el && el.isSpacer === true;
+        return !!gradum(el).metadata?.get("isSpacer");
     }
 
     /**
@@ -34,7 +35,7 @@ export class CanvasConstrainer extends GradumConstrainer {
      * @protected
      */
     protected isPusher(el: object): boolean {
-        return el instanceof Element && "isPusher" in el && el.isPusher === true;
+        return !!gradum(el).metadata?.get("isPusher");
     }
 
     /**
