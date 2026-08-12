@@ -28409,6 +28409,10 @@
                   return;
               //For each object overlapping with el, and given that el has been moved by delta
               this.processTargetWithContext(properties, (el, delta, overlap) => {
+                  //Spacers never budge. Without this the spacer gets pushed here, lands in the queue, and the
+                  //spacer solver then bounces it back — which is the "spacer jumps the other way" glitch.
+                  if (this.isSpacer(overlap))
+                      return;
                   //Push overlap so it's no longer over el, and retrieve the value.
                   const movedValue = this.pushElement(el, overlap, delta);
                   //If overlap wasn't pushed --> return.
@@ -28434,6 +28438,14 @@
               const el = properties.target;
               if (!el || !(el instanceof Element))
                   return;
+              //The drag tool already moved the event target before this solve ran, but that move is a model write
+              //and only reaches the DOM on the next animation frame. Seed its pending shift so the geometry below
+              //sees where the target actually is, not where it was painted. Object data is per-pass, so the flag
+              //keeps the seed from being applied twice when both solvers process the same target.
+              if (el === properties.eventTarget && !this.getObjectData(el).seededEventShift) {
+                  this.getObjectData(el).seededEventShift = true;
+                  this.addPendingShift(el, properties.event?.deltaPosition);
+              }
               //Compute delta. If the target has a stored movement, use it.
               const delta = this.getObjectData(el).movedDelta ??
                   //Otherwise, if the target is also the event target
@@ -28476,8 +28488,11 @@
               //If pusher will be moved and the vectors are in the same direction --> flip the normal.
               if (pushBack && alongN > 0)
                   normal = normal.mul(-1);
-              //Compute the vector along which to move the element.
-              const move = normal.mul(pushBack ? mtv.depth : alongN);
+              //Compute the vector along which to move the element. Both directions move by the penetration depth:
+              //that is the amount that actually separates the two boxes. Using the delta projection instead would
+              //under-correct whenever the overlap is deeper than this frame's movement — a fast drag, or a push
+              //propagated further down the chain — and leave the sliver of overlap behind.
+              const move = normal.mul(mtv.depth);
               //Update the element's position and return the vector if it was applied.
               return this.applyMove(pushBack ? pusher : pushed, move) ? move : undefined;
           }
@@ -28502,7 +28517,39 @@
               //Otherwise --> treat it as a coordinate, turn it into a point, and add to it delta.
               else
                   element.position = new Point(position).add(delta);
+              //Record the move so the rest of this pass measures the element where it now is.
+              this.addPendingShift(element, delta);
               return true;
+          }
+          /**
+           * @description Accumulate a move that has been written to the element's model but has not been painted yet.
+           * Positions are applied through a signal, so the transform only lands on the next animation frame — while a
+           * solve pass runs entirely within the current one. Every move made during the pass is recorded here and
+           * added back in {@link rectOf}, so each hop of the propagation measures against the corrected layout instead
+           * of the stale one. The store lives in the per-pass object data, so it resets on its own for the next pass.
+           * @param {Element} element - The element that moved.
+           * @param {Point} delta - The amount it moved by.
+           * @protected
+           */
+          addPendingShift(element, delta) {
+              if (!element || !delta)
+                  return;
+              const data = this.getObjectData(element);
+              data.pendingShift = data.pendingShift ? data.pendingShift.add(delta) : delta;
+          }
+          /**
+           * @description The element's box as it stands right now: its painted bounding rect, offset by everything
+           * this pass has moved it by but the browser has not drawn yet.
+           * @param {Element} element - The element to measure.
+           * @return {DOMRect} The corrected box.
+           * @protected
+           */
+          rectOf(element) {
+              const rect = element.getBoundingClientRect();
+              const shift = this.getObjectData(element).pendingShift;
+              if (!shift)
+                  return rect;
+              return new DOMRect(rect.x + shift.x, rect.y + shift.y, rect.width, rect.height);
           }
           /**
            * @description Retrieve all elements from the object list that overlap on the screen with the given element.
@@ -28535,9 +28582,9 @@
               //If any of them is not an element --> return.
               if (!(el1 instanceof Element) || !(el2 instanceof Element))
                   return false;
-              //Get bounding rects for each element.
-              const r1 = el1.getBoundingClientRect();
-              const r2 = el2.getBoundingClientRect();
+              //Get bounding rects for each element, corrected for moves this pass has not painted yet.
+              const r1 = this.rectOf(el1);
+              const r2 = this.rectOf(el2);
               //If any dimension is 0 or undefined --> return.
               if (!r1.width || !r1.height || !r2.width || !r2.height)
                   return false;
@@ -28548,8 +28595,8 @@
           mtvAxis(aEl, bEl) {
               if (!this.overlaps(aEl, bEl))
                   return null;
-              const a = aEl.getBoundingClientRect();
-              const b = bEl.getBoundingClientRect();
+              const a = this.rectOf(aEl);
+              const b = this.rectOf(bEl);
               const ax = a.x + a.width / 2, ay = a.y + a.height / 2;
               const bx = b.x + b.width / 2, by = b.y + b.height / 2;
               const dx = bx - ax, dy = by - ay;
