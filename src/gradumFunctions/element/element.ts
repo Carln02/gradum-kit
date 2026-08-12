@@ -8,6 +8,7 @@ import {stringify} from "../../utils/dataManipulation/string";
 import {gradum} from "../gradumFunctions";
 import {getPrototypeChain} from "../../utils/dataManipulation/prototype";
 import {equalToAny} from "../../utils/computations/equity";
+import {isUndefined} from "../../utils/dataManipulation/misc";
 import {ElementFunctionsUtils} from "./element.utils";
 import {GradumElementProperties} from "../../gradumElement/gradumElement.types";
 import {MvcFields} from "../mvc/mvc";
@@ -64,7 +65,10 @@ export function setupElementFunctions() {
                 this.model = model;
                 if (data && this.model) {
                     this.model.setDataWithoutInitializing(data);
-                    this.model.id = dataId;
+                    //Only assign when an id was actually supplied. Assigning unconditionally writes
+                    //`undefined` into the model's id, which on a model whose `id` is a @modelSignal lands
+                    //in the data itself and wipes the id that came in with `data`.
+                    if (!isUndefined(dataId)) this.model.id = dataId;
                 }
                 mvcUpdated = true;
             }

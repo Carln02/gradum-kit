@@ -8007,7 +8007,11 @@ function setupElementFunctions() {
                 this.model = model;
                 if (data && this.model) {
                     this.model.setDataWithoutInitializing(data);
-                    this.model.id = dataId;
+                    //Only assign when an id was actually supplied. Assigning unconditionally writes
+                    //`undefined` into the model's id, which on a model whose `id` is a @modelSignal lands
+                    //in the data itself and wipes the id that came in with `data`.
+                    if (!isUndefined(dataId))
+                        this.model.id = dataId;
                 }
                 mvcUpdated = true;
             }
@@ -17203,6 +17207,22 @@ let GradumInput = (() => {
             if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
         }
         /**
+         * @function create
+         * @static
+         * @description Instantiate an input, reading `InputTag` and `ValueType` back off the properties — so
+         * `GradumInput.create({inputTag: "textarea"})` is typed as a textarea input without a cast. Narrows
+         * {@link GradumElement.create}, which cannot see generics declared on a subclass.
+         * @template {{prototype: GradumElement}} This - The class `create` was called on. The constraint
+         * matches the base signature; the return type still narrows to this class.
+         * @template {"input" | "textarea"} InputTag - Inferred from `properties.inputTag`.
+         * @template ValueType - Inferred from the properties' value type.
+         * @param {GradumInputProperties} [properties] - Properties to set on the new input.
+         * @returns {GradumInput} The created input, typed as the class this was called on.
+         */
+        static create(properties) {
+            return super.create.call(this, properties);
+        }
+        /**
          * @static
          * @description Default properties assigned to a new input: an `<input>` element, wired to the
          * interactor that keeps its value and size in step with what the user types.
@@ -17597,6 +17617,23 @@ let GradumSelect = (() => {
             __esDecorate(null, null, _selectedEntriesClasses_decorators, { kind: "field", name: "selectedEntriesClasses", static: false, private: false, access: { has: obj => "selectedEntriesClasses" in obj, get: obj => obj.selectedEntriesClasses, set: (obj, value) => { obj.selectedEntriesClasses = value; } }, metadata: _metadata }, _selectedEntriesClasses_initializers, _selectedEntriesClasses_extraInitializers);
             __esDecorate(null, null, _entriesClasses_decorators, { kind: "field", name: "entriesClasses", static: false, private: false, access: { has: obj => "entriesClasses" in obj, get: obj => obj.entriesClasses, set: (obj, value) => { obj.entriesClasses = value; } }, metadata: _metadata }, _entriesClasses_initializers, _entriesClasses_extraInitializers);
             if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+        }
+        /**
+         * @function create
+         * @static
+         * @description Instantiate a selection, reading its value and entry types back off the properties — so
+         * the types come from `getValue`/`getSecondaryValue` rather than needing a cast. Narrows
+         * {@link GradumBaseElement.create}, which cannot see generics declared on a subclass.
+         * @template {{prototype: GradumBaseElement}} This - The class `create` was called on. The constraint
+         * matches the base signature; the return type still narrows to this class.
+         * @template ValueType - Inferred from `properties.getValue`.
+         * @template SecondaryValueType - Inferred from `properties.getSecondaryValue`.
+         * @template {object} EntryType - Inferred from the entries the accessors receive.
+         * @param {GradumSelectProperties} [properties] - Properties to set on the new selection.
+         * @returns {GradumSelect} The created selection, typed as the class this was called on.
+         */
+        static create(properties) {
+            return super.create.call(this, properties);
         }
         /**
          * @static

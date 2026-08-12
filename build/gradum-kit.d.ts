@@ -8342,6 +8342,22 @@ declare class GradumLabelElement<ElementTag extends ValidTag = any, ViewType ext
 declare class GradumInput<InputTag extends "input" | "textarea" = "input", ValueType = string, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel<DataType> = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> extends GradumLabelElement<InputTag, ViewType, DataType, ModelType, EmitterType> {
     readonly properties: GradumInputProperties<InputTag, ValueType, ViewType, DataType, ModelType, EmitterType>;
     /**
+     * @function create
+     * @static
+     * @description Instantiate an input, reading `InputTag` and `ValueType` back off the properties — so
+     * `GradumInput.create({inputTag: "textarea"})` is typed as a textarea input without a cast. Narrows
+     * {@link GradumElement.create}, which cannot see generics declared on a subclass.
+     * @template {{prototype: GradumElement}} This - The class `create` was called on. The constraint
+     * matches the base signature; the return type still narrows to this class.
+     * @template {"input" | "textarea"} InputTag - Inferred from `properties.inputTag`.
+     * @template ValueType - Inferred from the properties' value type.
+     * @param {GradumInputProperties} [properties] - Properties to set on the new input.
+     * @returns {GradumInput} The created input, typed as the class this was called on.
+     */
+    static create<This extends {
+        prototype: GradumElement;
+    }, InputTag extends "input" | "textarea" = "input", ValueType = string, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>>(this: This, properties?: This["prototype"]["properties"] & GradumInputProperties<InputTag, ValueType, ViewType, DataType, ModelType, EmitterType>): This["prototype"] & GradumInput<InputTag, ValueType, ViewType, DataType, ModelType, EmitterType>;
+    /**
      * @static
      * @description Default properties assigned to a new input: an `<input>` element, wired to the
      * interactor that keeps its value and size in step with what the user types.
@@ -8600,6 +8616,23 @@ type GradumSelectInputEventProperties<ValueType = string, SecondaryValueType = s
  */
 declare class GradumSelect<ValueType = string, SecondaryValueType = string, EntryType extends object = HTMLElement> extends GradumBaseElement {
     readonly properties: GradumSelectProperties<ValueType, SecondaryValueType, EntryType>;
+    /**
+     * @function create
+     * @static
+     * @description Instantiate a selection, reading its value and entry types back off the properties — so
+     * the types come from `getValue`/`getSecondaryValue` rather than needing a cast. Narrows
+     * {@link GradumBaseElement.create}, which cannot see generics declared on a subclass.
+     * @template {{prototype: GradumBaseElement}} This - The class `create` was called on. The constraint
+     * matches the base signature; the return type still narrows to this class.
+     * @template ValueType - Inferred from `properties.getValue`.
+     * @template SecondaryValueType - Inferred from `properties.getSecondaryValue`.
+     * @template {object} EntryType - Inferred from the entries the accessors receive.
+     * @param {GradumSelectProperties} [properties] - Properties to set on the new selection.
+     * @returns {GradumSelect} The created selection, typed as the class this was called on.
+     */
+    static create<This extends {
+        prototype: GradumBaseElement;
+    }, ValueType = string, SecondaryValueType = string, EntryType extends object = HTMLElement>(this: This, properties?: This["prototype"]["properties"] & GradumSelectProperties<ValueType, SecondaryValueType, EntryType>): This["prototype"] & GradumSelect<ValueType, SecondaryValueType, EntryType>;
     /**
      * @static
      * @description Default properties assigned to a new selection: selected entries get the `selected` class,
