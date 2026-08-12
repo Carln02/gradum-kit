@@ -12,8 +12,6 @@ import {FlatKeyType, KeyType} from "../../types/basic.types";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 import {areEqual} from "../../utils/computations/equity";
 
-const META = Symbol("__meta__");
-
 /**
  * @internal
  * @type {ObserverData}
@@ -222,13 +220,6 @@ class GradumModel<
 
         markDirtyPath(this, []);
         this.onDataChanged.fire(oldData, data);
-    }
-
-    /**
-     * @description The metadata held by this model. Separate from this model's data.
-     */
-    public get meta(): GradumModel<object> {
-        return this.nest(META);
     }
 
     /**

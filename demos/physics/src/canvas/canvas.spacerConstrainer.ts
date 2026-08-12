@@ -2,16 +2,16 @@ import {
     solver,
     ConstrainerCallbackProperties
 } from "../../../../build/gradum-kit.esm";
-import {CanvasSubstrate} from "./canvas.mainSubstrate";
+import {CanvasConstrainer} from "./canvas.mainConstrainer";
 
-//Pusher substrate
-export class CanvasSpacerSubstrate extends CanvasSubstrate {
-    //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("pusher").
+//Pusher constrainer
+export class CanvasSpacerConstrainer extends CanvasConstrainer {
+    //Define the constrainer's name. Equivalent to gradum(canvas).makeConstrainer("pusher").
     public constrainerName = "spacer";
 
     public initialize() {
         super.initialize();
-        //Remove the spacer solver because spacers are ignored in this substrate.
+        //Remove the spacer solver because spacers are ignored in this constrainer.
         this.removeSolver("pusherSolver");
         this.active = false;
     }

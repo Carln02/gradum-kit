@@ -16,6 +16,7 @@ import {MvcManyInstancesOrConstructors} from "./mvc.types";
  * @description The MVC pieces bound to one element — model, view, emitter, and the operator, interactor,
  * tool, and constrainer maps — plus the two callbacks the element registers on its emitter so model
  * changes reach it. Created on first access and kept per element.
+ * @property {GradumModel<object>} [metadata] - The element's key-value store, created on first access.
  * @property {GradumModel} [model] - The bound model, if one was set.
  * @property {GradumView} [view] - The bound view, if one was set.
  * @property {GradumEmitter} [emitter] - The bound emitter, if one was set.
@@ -27,6 +28,7 @@ import {MvcManyInstancesOrConstructors} from "./mvc.types";
  * @property {(value: any, ...keys: KeyType[]) => void} emitterKeyCallback - Relays key-path events to the element.
  */
 type MvcData = {
+    metadata?: GradumModel<object>;
     model?: GradumModel;
     view?: GradumView;
     emitter?: GradumEmitter;

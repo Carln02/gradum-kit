@@ -1,3 +1,4 @@
+
 import {define, GradumElement, Point, expose, auto, gradum, p, Color} from "../../../../build/gradum-kit.esm";
 import {SquareModel} from "./square.model";
 import {SquareView} from "./square.view";

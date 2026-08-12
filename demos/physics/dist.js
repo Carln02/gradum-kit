@@ -28275,13 +28275,43 @@
       };
   })();
 
-  //Pusher substrate
-  let CanvasSubstrate = (() => {
+  function styleInject(css, ref) {
+    if ( ref === void 0 ) ref = {};
+    var insertAt = ref.insertAt;
+
+    if (!css || typeof document === 'undefined') { return; }
+
+    var head = document.head || document.getElementsByTagName('head')[0];
+    var style = document.createElement('style');
+    style.type = 'text/css';
+
+    if (insertAt === 'top') {
+      if (head.firstChild) {
+        head.insertBefore(style, head.firstChild);
+      } else {
+        head.appendChild(style);
+      }
+    } else {
+      head.appendChild(style);
+    }
+
+    if (style.styleSheet) {
+      style.styleSheet.cssText = css;
+    } else {
+      style.appendChild(document.createTextNode(css));
+    }
+  }
+
+  var css_248z$2 = "my-canvas{display:block;height:100vh;width:100vw}";
+  styleInject(css_248z$2);
+
+  //Pusher constrainer
+  let CanvasConstrainer = (() => {
       let _classSuper = GradumConstrainer;
       let _instanceExtraInitializers = [];
       let _spacerSolver_decorators;
       let _pusherSolver_decorators;
-      return class CanvasSubstrate extends _classSuper {
+      return class CanvasConstrainer extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _spacerSolver_decorators = [solver({ priority: 5 })];
@@ -28290,7 +28320,7 @@
               __esDecorate(this, null, _pusherSolver_decorators, { kind: "method", name: "pusherSolver", static: false, private: false, access: { has: obj => "pusherSolver" in obj, get: obj => obj.pusherSolver }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("main").
+          //Define the constrainer's name. Equivalent to gradum(canvas).makeConstrainer("main").
           constrainerName = (__runInitializers(this, _instanceExtraInitializers), "main");
           //On initialize --> set default queue to be an empty array instead of all objects in the list
           //The queue will be dynamically populated with objects the user collides with
@@ -28450,7 +28480,7 @@
            */
           findOverlaps(element) {
               const out = [];
-              //For each element in the substrate's object list
+              //For each element in the constrainer's object list
               for (const el of Array.from(this.objectList)) {
                   //If it's not an Element or it is the reference element --> continue.
                   if (!(el instanceof Element) || el === element)
@@ -28500,27 +28530,27 @@
       };
   })();
 
-  //Pusher substrate
-  let CanvasPusherSubstrate = (() => {
-      let _classSuper = CanvasSubstrate;
+  //Pusher constrainer
+  let CanvasPusherConstrainer = (() => {
+      let _classSuper = CanvasConstrainer;
       let _instanceExtraInitializers = [];
       let _pusherSolver_decorators;
-      return class CanvasPusherSubstrate extends _classSuper {
+      return class CanvasPusherConstrainer extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _pusherSolver_decorators = [solver({ priority: 10 })];
               __esDecorate(this, null, _pusherSolver_decorators, { kind: "method", name: "pusherSolver", static: false, private: false, access: { has: obj => "pusherSolver" in obj, get: obj => obj.pusherSolver }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("pusher").
+          //Define the constrainer's name. Equivalent to gradum(canvas).makeConstrainer("pusher").
           constrainerName = (__runInitializers(this, _instanceExtraInitializers), "pusher");
           initialize() {
               super.initialize();
-              //Remove the spacer solver because spacers are ignored in this substrate.
+              //Remove the spacer solver because spacers are ignored in this constrainer.
               this.removeSolver("spacerSolver");
               this.active = false;
           }
-          //Redefine the pusher solver to treat interaction with any object in the substrate as a pusher.
+          //Redefine the pusher solver to treat interaction with any object in the constrainer as a pusher.
           pusherSolver(properties) {
               //For each element that overlaps with the target --> push it.
               this.processTargetWithContext(properties, (el, delta, overlap) => {
@@ -28535,53 +28565,23 @@
       };
   })();
 
-  function styleInject(css, ref) {
-    if ( ref === void 0 ) ref = {};
-    var insertAt = ref.insertAt;
-
-    if (!css || typeof document === 'undefined') { return; }
-
-    var head = document.head || document.getElementsByTagName('head')[0];
-    var style = document.createElement('style');
-    style.type = 'text/css';
-
-    if (insertAt === 'top') {
-      if (head.firstChild) {
-        head.insertBefore(style, head.firstChild);
-      } else {
-        head.appendChild(style);
-      }
-    } else {
-      head.appendChild(style);
-    }
-
-    if (style.styleSheet) {
-      style.styleSheet.cssText = css;
-    } else {
-      style.appendChild(document.createTextNode(css));
-    }
-  }
-
-  var css_248z$2 = "my-canvas{display:block;height:100vh;width:100vw}";
-  styleInject(css_248z$2);
-
-  //Pusher substrate
-  let CanvasSpacerSubstrate = (() => {
-      let _classSuper = CanvasSubstrate;
+  //Pusher constrainer
+  let CanvasSpacerConstrainer = (() => {
+      let _classSuper = CanvasConstrainer;
       let _instanceExtraInitializers = [];
       let _spacerSolver_decorators;
-      return class CanvasSpacerSubstrate extends _classSuper {
+      return class CanvasSpacerConstrainer extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _spacerSolver_decorators = [solver({ priority: 5 })];
               __esDecorate(this, null, _spacerSolver_decorators, { kind: "method", name: "spacerSolver", static: false, private: false, access: { has: obj => "spacerSolver" in obj, get: obj => obj.spacerSolver }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("pusher").
+          //Define the constrainer's name. Equivalent to gradum(canvas).makeConstrainer("pusher").
           constrainerName = (__runInitializers(this, _instanceExtraInitializers), "spacer");
           initialize() {
               super.initialize();
-              //Remove the spacer solver because spacers are ignored in this substrate.
+              //Remove the spacer solver because spacers are ignored in this constrainer.
               this.removeSolver("pusherSolver");
               this.active = false;
           }
@@ -28607,7 +28607,7 @@
 
   class Canvas extends GradumElement {
       static defaultProperties = {
-          constrainers: [CanvasPusherSubstrate, CanvasSubstrate, CanvasSpacerSubstrate],
+          constrainers: [CanvasPusherConstrainer, CanvasConstrainer, CanvasSpacerConstrainer],
       };
   }
   define(Canvas, "my-canvas");

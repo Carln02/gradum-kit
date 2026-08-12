@@ -6,6 +6,7 @@ import {GradumInteractor} from "../../mvc/interactor/interactor";
 import {GradumHandler} from "../../mvc/handler/handler";
 import {GradumOperator} from "../../mvc/operator/operator";
 import {GradumEmitter} from "../../mvc/emitter/emitter";
+import {GradumModel} from "../../mvc/model/model";
 import {gradum} from "../gradumFunctions";
 import {MvcGenerationProperties, MvcProperties} from "./mvc.types";
 
@@ -14,7 +15,7 @@ import {MvcGenerationProperties, MvcProperties} from "./mvc.types";
  * @description The names of the MVC roles an element can hold, in the order they are attached. Used to
  * split MVC entries out of a properties object and to drive the generic add/get/remove paths.
  */
-export const MvcFields = ["model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
+export const MvcFields = ["metadata", "model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
 const utils = new MvcFunctionsUtils();
 
 /**
@@ -105,7 +106,19 @@ export function setupMvcFunctions() {
 
     Object.defineProperty(GradumSelector.prototype, "metadata", {
         get(this: GradumSelector) {
-            return utils.peek(this.element)?.model?.meta;
+            if (!this.element) return undefined;
+            const mvc = utils.data(this.element);
+            if (!mvc) return undefined;
+            //Created on first read, so metadata is usable on any element — with or without a model.
+            mvc.metadata ??= GradumModel.create({initialize: true});
+            return mvc.metadata;
+        },
+        set(this: GradumSelector, value: GradumModel<object> | object) {
+            if (!this.element) return;
+            const mvc = utils.data(this.element);
+            if (!mvc) return;
+            if (value instanceof GradumModel) mvc.metadata = value;
+            else mvc.metadata = GradumModel.create({data: value ?? {}, initialize: true});
         },
         configurable: true, enumerable: true,
     });

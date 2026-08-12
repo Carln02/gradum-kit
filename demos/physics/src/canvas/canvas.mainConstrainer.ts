@@ -7,9 +7,9 @@ import {
     GradumConstrainer
 } from "../../../../build/gradum-kit.esm";
 
-//Pusher substrate
-export class CanvasSubstrate extends GradumConstrainer {
-    //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("main").
+//Pusher constrainer
+export class CanvasConstrainer extends GradumConstrainer {
+    //Define the constrainer's name. Equivalent to gradum(canvas).makeConstrainer("main").
     public constrainerName = "main";
 
     //On initialize --> set default queue to be an empty array instead of all objects in the list
@@ -167,7 +167,7 @@ export class CanvasSubstrate extends GradumConstrainer {
      */
     protected findOverlaps(element: Element): Element[] {
         const out: Element[] = [];
-        //For each element in the substrate's object list
+        //For each element in the constrainer's object list
         for (const el of Array.from(this.objectList)) {
             //If it's not an Element or it is the reference element --> continue.
             if (!(el instanceof Element) || el === element) continue;
