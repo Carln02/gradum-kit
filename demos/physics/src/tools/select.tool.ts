@@ -4,15 +4,6 @@ import {GradumTool, GradumDragEvent, gradum, Coordinate, Propagation, behavior} 
 export class SelectTool extends GradumTool {
     public toolName = "select"; //Define the tool name
 
-    //On activation --> add class
-    public onActivation() {
-        gradum(this.element).toggleClass("active-tool", true);
-    }
-
-    public onDeactivation() {
-        gradum(this.element).toggleClass("active-tool", false);
-    }
-
     //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "select", (e, el) => {...});
     @behavior() public drag(e: GradumDragEvent, el: Node) {
         try {

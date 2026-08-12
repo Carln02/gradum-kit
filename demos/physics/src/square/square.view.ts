@@ -6,10 +6,11 @@ import {Square} from "./square";
 export class SquareView extends GradumView<Square, SquareModel> {
     //@effect methods will be called when the values of the signals they use change
     @effect private updatePosition() {
-        const offset = this.model.centerAnchor ? this.model.elementSize / 2 : 0;
+        const compute = (axis: "x" | "y") => this.model.position[axis] -
+            (this.model.centerAnchor ? this.model.size[axis] / 2 : 0);
         gradum(this).setStyle("transform", `
-        translate(${this.model.position.x - offset}px, ${this.model.position.y - offset}px)
-        rotate(${this.model.rotation}rad)
+            translate(${compute("x")}px, ${compute("y")}px) 
+            rotate(${this.model.rotation}rad)
         `);
     }
 
@@ -18,7 +19,7 @@ export class SquareView extends GradumView<Square, SquareModel> {
     }
 
     @effect private updateSize() {
-        gradum(this).setStyles({width: this.model.elementSize + "px", height: this.model.elementSize + "px"});
+        gradum(this).setStyles({width: this.model.size.x + "px", height: this.model.size.y + "px"});
     }
 
     @effect private updateText() {

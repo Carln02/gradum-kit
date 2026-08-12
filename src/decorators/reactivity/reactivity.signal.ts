@@ -105,13 +105,24 @@ export class SignalUtils {
             };
 
             if (kind === "field" || kind === "accessor") {
+                const descriptor = getFirstDescriptorInChain(this, key);
                 const acc = value as { get?: (this: any) => Value; set?: (this: any, v: Value) => void };
-                if (acc?.get) customGetter = acc.get;
-                if (acc?.set) customSetter = acc.set;
+
+                //Read and write through whatever is already installed at this key, falling back to the
+                //member's own accessor pair when nothing is. A decorator applied closer to the declaration
+                //— `@signal @auto(...) accessor x` — has already redefined the property, and it is its
+                //getter and setter that carry the default value and the preprocessing. Going straight to
+                //the raw pair would step over them and strand the value in a slot nothing else reads.
+                if (descriptor?.get || descriptor?.set) {
+                    customGetter = descriptor.get;
+                    customSetter = descriptor.set;
+                } else {
+                    if (acc?.get) customGetter = acc.get;
+                    if (acc?.set) customSetter = acc.set;
+                }
 
                 const entry = ensureEntry(this, !customGetter && !baseGetter);
 
-                const descriptor = getFirstDescriptorInChain(this, key);
                 Object.defineProperty(this, key, {
                     configurable: descriptor?.configurable ?? true,
                     enumerable: descriptor?.enumerable ?? true,

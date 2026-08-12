@@ -1690,6 +1690,12 @@ function auto(options) {
                 options.callAfter?.call(this, next);
                 writeFlag = false;
             };
+            //The member's own accessor pair, for `accessor` and field members. Captured before the initial
+            //value is resolved, but not installed as the custom getter/setter until further below, so
+            //`baseRead` keeps behaving as it did while the initial value is being worked out.
+            const declared = (kind === "field" || kind === "accessor")
+                ? value
+                : undefined;
             if (isUndefined(baseRead.call(this))) {
                 let initialValue = kind === "field" ? value : undefined;
                 if (isUndefined(initialValue)) {
@@ -1698,16 +1704,25 @@ function auto(options) {
                     else if (options.initialValueCallback)
                         initialValue = options.initialValueCallback.call(this);
                 }
+                //Falling back to the value the member was declared with. Both an `accessor`'s slot and a
+                //plain field are already populated by the time this initializer runs, and redefining the
+                //property below would otherwise throw that value away, leaving the property `undefined`
+                //until something writes to it. `initialValue` still wins, being the more explicit of the two.
+                if (isUndefined(initialValue)) {
+                    if (kind === "accessor" && declared?.get)
+                        initialValue = declared.get.call(this);
+                    else if (kind === "field")
+                        initialValue = this[key];
+                }
                 if (!isUndefined(initialValue) && options.preprocessValue)
                     initialValue = options.preprocessValue.call(this, initialValue);
                 this[backing] = initialValue;
             }
             if (kind === "field" || kind === "accessor") {
-                const accessor = value;
-                if (accessor?.get)
-                    customGetter = accessor.get;
-                if (accessor?.set)
-                    customSetter = accessor.set;
+                if (declared?.get)
+                    customGetter = declared.get;
+                if (declared?.set)
+                    customSetter = declared.set;
                 const descriptor = getFirstDescriptorInChain(this, key) ?? { enumerable: true };
                 Object.defineProperty(this, key, {
                     configurable: true,
@@ -3489,13 +3504,24 @@ class SignalUtils {
                 return entry;
             };
             if (kind === "field" || kind === "accessor") {
-                const acc = value;
-                if (acc?.get)
-                    customGetter = acc.get;
-                if (acc?.set)
-                    customSetter = acc.set;
-                const entry = ensureEntry(this, !customGetter && !baseGetter);
                 const descriptor = getFirstDescriptorInChain(this, key);
+                const acc = value;
+                //Read and write through whatever is already installed at this key, falling back to the
+                //member's own accessor pair when nothing is. A decorator applied closer to the declaration
+                //— `@signal @auto(...) accessor x` — has already redefined the property, and it is its
+                //getter and setter that carry the default value and the preprocessing. Going straight to
+                //the raw pair would step over them and strand the value in a slot nothing else reads.
+                if (descriptor?.get || descriptor?.set) {
+                    customGetter = descriptor.get;
+                    customSetter = descriptor.set;
+                }
+                else {
+                    if (acc?.get)
+                        customGetter = acc.get;
+                    if (acc?.set)
+                        customSetter = acc.set;
+                }
+                const entry = ensureEntry(this, !customGetter && !baseGetter);
                 Object.defineProperty(this, key, {
                     configurable: descriptor?.configurable ?? true,
                     enumerable: descriptor?.enumerable ?? true,

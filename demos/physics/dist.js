@@ -10092,6 +10092,12 @@
                   options.callAfter?.call(this, next);
                   writeFlag = false;
               };
+              //The member's own accessor pair, for `accessor` and field members. Captured before the initial
+              //value is resolved, but not installed as the custom getter/setter until further below, so
+              //`baseRead` keeps behaving as it did while the initial value is being worked out.
+              const declared = (kind === "field" || kind === "accessor")
+                  ? value
+                  : undefined;
               if (isUndefined(baseRead.call(this))) {
                   let initialValue = kind === "field" ? value : undefined;
                   if (isUndefined(initialValue)) {
@@ -10100,16 +10106,25 @@
                       else if (options.initialValueCallback)
                           initialValue = options.initialValueCallback.call(this);
                   }
+                  //Falling back to the value the member was declared with. Both an `accessor`'s slot and a
+                  //plain field are already populated by the time this initializer runs, and redefining the
+                  //property below would otherwise throw that value away, leaving the property `undefined`
+                  //until something writes to it. `initialValue` still wins, being the more explicit of the two.
+                  if (isUndefined(initialValue)) {
+                      if (kind === "accessor" && declared?.get)
+                          initialValue = declared.get.call(this);
+                      else if (kind === "field")
+                          initialValue = this[key];
+                  }
                   if (!isUndefined(initialValue) && options.preprocessValue)
                       initialValue = options.preprocessValue.call(this, initialValue);
                   this[backing] = initialValue;
               }
               if (kind === "field" || kind === "accessor") {
-                  const accessor = value;
-                  if (accessor?.get)
-                      customGetter = accessor.get;
-                  if (accessor?.set)
-                      customSetter = accessor.set;
+                  if (declared?.get)
+                      customGetter = declared.get;
+                  if (declared?.set)
+                      customSetter = declared.set;
                   const descriptor = getFirstDescriptorInChain(this, key) ?? { enumerable: true };
                   Object.defineProperty(this, key, {
                       configurable: true,
@@ -11668,13 +11683,24 @@
                   return entry;
               };
               if (kind === "field" || kind === "accessor") {
-                  const acc = value;
-                  if (acc?.get)
-                      customGetter = acc.get;
-                  if (acc?.set)
-                      customSetter = acc.set;
-                  const entry = ensureEntry(this, !customGetter && !baseGetter);
                   const descriptor = getFirstDescriptorInChain(this, key);
+                  const acc = value;
+                  //Read and write through whatever is already installed at this key, falling back to the
+                  //member's own accessor pair when nothing is. A decorator applied closer to the declaration
+                  //— `@signal @auto(...) accessor x` — has already redefined the property, and it is its
+                  //getter and setter that carry the default value and the preprocessing. Going straight to
+                  //the raw pair would step over them and strand the value in a slot nothing else reads.
+                  if (descriptor?.get || descriptor?.set) {
+                      customGetter = descriptor.get;
+                      customSetter = descriptor.set;
+                  }
+                  else {
+                      if (acc?.get)
+                          customGetter = acc.get;
+                      if (acc?.set)
+                          customSetter = acc.set;
+                  }
+                  const entry = ensureEntry(this, !customGetter && !baseGetter);
                   Object.defineProperty(this, key, {
                       configurable: descriptor?.configurable ?? true,
                       enumerable: descriptor?.enumerable ?? true,
@@ -26838,7 +26864,7 @@
    * or as a free {@link Point} in percentages from `-100` to `100`. The two forms are interchangeable —
    * assign whichever is convenient and read back whichever you need.
    */
-  (() => {
+  let AnchorPoint = (() => {
       let _instanceExtraInitializers = [];
       let _set_value_decorators;
       return class AnchorPoint {
@@ -28280,13 +28306,6 @@
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           toolName = (__runInitializers(this, _instanceExtraInitializers), "select"); //Define the tool name
-          //On activation --> add class
-          onActivation() {
-              gradum(this.element).toggleClass("active-tool", true);
-          }
-          onDeactivation() {
-              gradum(this.element).toggleClass("active-tool", false);
-          }
           //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "select", (e, el) => {...});
           drag(e, el) {
               try {
@@ -28721,24 +28740,29 @@
       let _rotation_decorators;
       let _rotation_initializers = [];
       let _rotation_extraInitializers = [];
-      let _elementSize_decorators;
-      let _elementSize_initializers = [];
-      let _elementSize_extraInitializers = [];
       let _centerAnchor_decorators;
       let _centerAnchor_initializers = [];
       let _centerAnchor_extraInitializers = [];
+      let _size_decorators;
+      let _size_initializers = [];
+      let _size_extraInitializers = [];
       return class SquareModel extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _color_decorators = [signal];
               _position_decorators = [signal];
               _rotation_decorators = [signal];
-              _elementSize_decorators = [signal];
               _centerAnchor_decorators = [signal];
+              _size_decorators = [signal, auto({
+                      preprocessValue: (value) => {
+                          return value.bound(5, Infinity, 5, Infinity);
+                          // Math.max(value.x, 25), Math.max(value.y, 25))
+                      }
+                  })];
+              __esDecorate(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
               __esDecorate(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
               __esDecorate(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
               __esDecorate(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
-              __esDecorate(null, null, _elementSize_decorators, { kind: "field", name: "elementSize", static: false, private: false, access: { has: obj => "elementSize" in obj, get: obj => obj.elementSize, set: (obj, value) => { obj.elementSize = value; } }, metadata: _metadata }, _elementSize_initializers, _elementSize_extraInitializers);
               __esDecorate(null, null, _centerAnchor_decorators, { kind: "field", name: "centerAnchor", static: false, private: false, access: { has: obj => "centerAnchor" in obj, get: obj => obj.centerAnchor, set: (obj, value) => { obj.centerAnchor = value; } }, metadata: _metadata }, _centerAnchor_initializers, _centerAnchor_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
@@ -28746,11 +28770,13 @@
           color = __runInitializers(this, _color_initializers, Color.random([60, 90], [40, 70]));
           position = (__runInitializers(this, _color_extraInitializers), __runInitializers(this, _position_initializers, new Point()));
           rotation = (__runInitializers(this, _position_extraInitializers), __runInitializers(this, _rotation_initializers, 0));
-          elementSize = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _elementSize_initializers, 100));
-          centerAnchor = (__runInitializers(this, _elementSize_extraInitializers), __runInitializers(this, _centerAnchor_initializers, true));
+          centerAnchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _centerAnchor_initializers, true));
+          #size_accessor_storage = (__runInitializers(this, _centerAnchor_extraInitializers), __runInitializers(this, _size_initializers, new Point(100, 100)));
+          get size() { return this.#size_accessor_storage; }
+          set size(value) { this.#size_accessor_storage = value; }
           constructor() {
               super(...arguments);
-              __runInitializers(this, _centerAnchor_extraInitializers);
+              __runInitializers(this, _size_extraInitializers);
           }
       };
   })();
@@ -28778,17 +28804,18 @@
           }
           //@effect methods will be called when the values of the signals they use change
           updatePosition() {
-              const offset = this.model.centerAnchor ? this.model.elementSize / 2 : 0;
+              const compute = (axis) => this.model.position[axis] -
+                  (this.model.centerAnchor ? this.model.size[axis] / 2 : 0);
               gradum(this).setStyle("transform", `
-        translate(${this.model.position.x - offset}px, ${this.model.position.y - offset}px)
-        rotate(${this.model.rotation}rad)
+            translate(${compute("x")}px, ${compute("y")}px) 
+            rotate(${this.model.rotation}rad)
         `);
           }
           updateColor() {
               gradum(this).setStyle("backgroundColor", this.model.color.toString());
           }
           updateSize() {
-              gradum(this).setStyles({ width: this.model.elementSize + "px", height: this.model.elementSize + "px" });
+              gradum(this).setStyles({ width: this.model.size.x + "px", height: this.model.size.y + "px" });
           }
           updateText() {
               const text = gradum(this).metadata.get("isPusher") ? "Pusher" :
@@ -28813,9 +28840,9 @@
       let _color_decorators;
       let _color_initializers = [];
       let _color_extraInitializers = [];
-      let _elementSize_decorators;
-      let _elementSize_initializers = [];
-      let _elementSize_extraInitializers = [];
+      let _size_decorators;
+      let _size_initializers = [];
+      let _size_extraInitializers = [];
       let _position_decorators;
       let _position_initializers = [];
       let _position_extraInitializers = [];
@@ -28826,19 +28853,19 @@
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _color_decorators = [expose("model")];
-              _elementSize_decorators = [expose("model")];
+              _size_decorators = [expose("model")];
               _position_decorators = [expose("model")];
               _rotation_decorators = [expose("model")];
               __esDecorate(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
-              __esDecorate(null, null, _elementSize_decorators, { kind: "field", name: "elementSize", static: false, private: false, access: { has: obj => "elementSize" in obj, get: obj => obj.elementSize, set: (obj, value) => { obj.elementSize = value; } }, metadata: _metadata }, _elementSize_initializers, _elementSize_extraInitializers);
+              __esDecorate(null, null, _size_decorators, { kind: "field", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
               __esDecorate(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
               __esDecorate(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           //Expose fields from the model
           color = __runInitializers(this, _color_initializers, void 0);
-          elementSize = (__runInitializers(this, _color_extraInitializers), __runInitializers(this, _elementSize_initializers, void 0));
-          position = (__runInitializers(this, _elementSize_extraInitializers), __runInitializers(this, _position_initializers, void 0));
+          size = (__runInitializers(this, _color_extraInitializers), __runInitializers(this, _size_initializers, void 0));
+          position = (__runInitializers(this, _size_extraInitializers), __runInitializers(this, _position_initializers, void 0));
           rotation = (__runInitializers(this, _position_extraInitializers), __runInitializers(this, _rotation_initializers, void 0));
           static defaultProperties = {
               view: SquareView,
@@ -28856,8 +28883,19 @@
           rotate(angle) {
               this.model.rotation += angle;
           }
-          resize(delta) {
-              this.model.elementSize = delta.min;
+          resize(delta, anchor = Anchor.Center) {
+              //Increment size
+              const before = this.model.size;
+              this.model.size = before.add(delta);
+              //The model clamps size to a floor, so the growth that actually landed can be smaller than what was
+              //asked for. Shift by that instead of by delta, or the square keeps sliding once it has bottomed out.
+              const applied = this.model.size.sub(before);
+              //Bound the anchor between -0.5 and 0.5
+              anchor = new AnchorPoint(anchor).value.div(200);
+              //Shift the center of the element according to the anchor
+              const center = this.model.position.sub(applied.mul(anchor));
+              //Move the element to make it seem like its growing from the proper side
+              this.model.position = this.model.centerAnchor ? center : center.sub(applied.div(2));
           }
           constructor() {
               super(...arguments);
@@ -28904,7 +28942,6 @@
           click(e, target) {
               if (gradum(target).metadata?.get("modifiable")) {
                   gradum(target).metadata?.set(true, "isPusher");
-                  console.log(target);
                   return Propagation.stopPropagation;
               }
           }
@@ -29071,11 +29108,48 @@
   })();
   define(Bucket, "demo-bucket");
 
+  //Resize tool
+  let ResizeTool = (() => {
+      let _classSuper = GradumTool;
+      let _instanceExtraInitializers = [];
+      let _drag_decorators;
+      return class ResizeTool extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _drag_decorators = [behavior()];
+              __esDecorate(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          toolName = (__runInitializers(this, _instanceExtraInitializers), "resize"); //Define the tool name
+          anchor = Anchor.Center;
+          //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "resize", (e, el) => {...});
+          drag(e, el) {
+              try {
+                  let delta = e.deltaPosition.mul(2);
+                  //Holding Shift maintains the ratio
+                  if (e.keys.includes("Shift"))
+                      delta = new Point(delta.min, delta.min);
+                  if ("resize" in el && typeof el.resize === "function")
+                      el.resize(delta, this.anchor);
+                  else if ("size" in el && typeof el.size === "object")
+                      el.size = delta.add(el.size);
+                  else
+                      return Propagation.propagate;
+                  return Propagation.stopPropagation;
+              }
+              catch (e) {
+                  return Propagation.stopPropagation;
+              }
+          }
+      };
+  })();
+
   Canvas.create({ parent: document.body });
   Toolbar.create({
       parent: document.body,
       entries: [
           GradumButton.create({ text: "Select", tools: SelectTool, classes: "demo-button" }),
+          GradumButton.create({ text: "Resize", tools: ResizeTool, classes: "demo-button" }),
           GradumButton.create({ text: "Add Square", tools: AddSquareTool, classes: "demo-button" }),
           Bucket.create({ text: "Bucket", classes: "demo-button" }),
           GradumButton.create({ text: "Pusher Substrate", tools: PusherSubstrateTool, classes: "demo-button" }),

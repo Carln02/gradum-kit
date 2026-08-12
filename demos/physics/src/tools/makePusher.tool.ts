@@ -7,7 +7,6 @@ export class MakePusherTool extends GradumTool {
     @behavior() public click(e: GradumEvent, target: Node) {
         if (gradum(target).metadata?.get("modifiable")) {
             gradum(target).metadata?.set(true, "isPusher");
-            console.log(target);
             return Propagation.stopPropagation;
         }
     }

@@ -120,20 +120,34 @@ function auto(options?: AutoOptions) {
                 writeFlag = false;
             };
 
+            //The member's own accessor pair, for `accessor` and field members. Captured before the initial
+            //value is resolved, but not installed as the custom getter/setter until further below, so
+            //`baseRead` keeps behaving as it did while the initial value is being worked out.
+            const declared = (kind === "field" || kind === "accessor")
+                ? value as {get?: (this: any) => Value; set?: (this: any, v: Value) => void}
+                : undefined;
+
             if (isUndefined(baseRead.call(this))) {
                 let initialValue: any = kind === "field" ? value : undefined;
                 if (isUndefined(initialValue)) {
                     if (options.initialValue) initialValue = options.initialValue;
                     else if (options.initialValueCallback) initialValue = options.initialValueCallback.call(this);
                 }
+                //Falling back to the value the member was declared with. Both an `accessor`'s slot and a
+                //plain field are already populated by the time this initializer runs, and redefining the
+                //property below would otherwise throw that value away, leaving the property `undefined`
+                //until something writes to it. `initialValue` still wins, being the more explicit of the two.
+                if (isUndefined(initialValue)) {
+                    if (kind === "accessor" && declared?.get) initialValue = declared.get.call(this);
+                    else if (kind === "field") initialValue = this[key];
+                }
                 if (!isUndefined(initialValue) && options.preprocessValue) initialValue = options.preprocessValue.call(this, initialValue);
                 this[backing] = initialValue;
             }
 
             if (kind === "field" || kind === "accessor") {
-                const accessor = value as {get?: (this: any) => Value; set?: (this: any, v: Value) => void};
-                if (accessor?.get) customGetter = accessor.get;
-                if (accessor?.set) customSetter = accessor.set;
+                if (declared?.get) customGetter = declared.get;
+                if (declared?.set) customSetter = declared.set;
 
                 const descriptor = getFirstDescriptorInChain(this, key) ?? {enumerable: true};
                 Object.defineProperty(this, key, {
