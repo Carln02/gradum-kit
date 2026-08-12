@@ -1,12 +1,12 @@
-import {GradumTool} from "../../../../../build/gradum-kit.esm";
+import {GradumTool, behavior, Propagation} from "../../../../../build/gradum-kit.esm";
 
 export class DeleteTool extends GradumTool {
     public toolName = "delete";
 
-    public click(e: Event, target: Node): boolean {
+    @behavior() public click(e: Event, target: Node) {
         if ("delete" in target && typeof target.delete === "function") {
             target.delete();
-            return true;
+            return Propagation.stopPropagation;
         }
     }
 }

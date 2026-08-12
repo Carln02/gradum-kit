@@ -1,4 +1,4 @@
-import {gradum, Color, button} from "../../../build/gradum-kit.esm.js";
+import {gradum, Color, GradumButton, Propagation} from "../../../build/gradum-kit.esm.js";
 
 //Creating an element in JS and adding it to the document
 const heading = document.createElement("h1");
@@ -9,10 +9,11 @@ document.body.appendChild(heading);
 const colorChangingButton = document.createElement("button");
 colorChangingButton.textContent = "Change color";
 document.body.appendChild(colorChangingButton);
-colorChangingButton.addEventListener("click", () => colorChangingButton.style.backgroundColor = Color.random());
+colorChangingButton.addEventListener("gradum-click", () => colorChangingButton.style.backgroundColor = Color.random());
 
 //Do it in one line with the toolkit
-const addSquareButton = button({text: "+ Add Square", parent: document.body, onClick: (e, el) => el.style.backgroundColor = "lightblue"});
+const addSquareButton = GradumButton.create({text: "+ Add Square", parent: document.body,
+    onClick: (e, el) => el.style.backgroundColor = "lightblue"});
 
 //Creating a custom "Square" element
 class Square extends HTMLElement {
@@ -38,6 +39,6 @@ customElements.define("test-square", Square);
 gradum(addSquareButton).makeTool("addSquare");
 
 //Define interaction with tool
-gradum(document.body).onTool("click", "addSquare", (e) => {
-    document.createElement("test-square").init({x: e.clientX, y: e.clientY});
+gradum(document.body).onTool("gradum-click", "addSquare", (e) => {
+    document.createElement("test-square").init({x: e.position.x, y: e.position.y});
 });

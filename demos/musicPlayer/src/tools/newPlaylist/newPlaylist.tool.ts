@@ -1,29 +1,28 @@
 import {
     ClickMode,
-    randomColor,
     gradum,
     GradumElement,
     GradumEvent,
     GradumTool,
-    GradumView
+    GradumView, behavior, Propagation
 } from "../../../../../build/gradum-kit.esm";
 import {NewPlaylistModel} from "./newPlaylist.model";
-import {playlist} from "../../playlist/playlist";
+import {Playlist} from "../../playlist/playlist";
 
 export class NewPlaylistTool extends GradumTool<GradumElement, GradumView, NewPlaylistModel> {
     public toolName = "newPlaylist";
 
-    public onActivation() {
+    public onActivate() {
         gradum(this).toggleClass("selected", true);
     }
 
-    public onDeactivation() {
+    public onDeactivate() {
         gradum(this).toggleClass("selected", false);
     }
 
-    public click(e: GradumEvent, target: Node): boolean {
-        if (target !== this.model.target && target !== document.body) return;
-        gradum(this.model.target).addChild(playlist({
+    @behavior() public click(e: GradumEvent, target: Node) {
+        if (target !== this.model.target && target !== document.body) return Propagation.propagate;
+        gradum(this.model.target).addChild(Playlist.create({
             data: {
                 name: "Playlist " + NewPlaylistModel.playlistCount,
                 songs: [],
@@ -31,5 +30,6 @@ export class NewPlaylistTool extends GradumTool<GradumElement, GradumView, NewPl
             }
         }));
         NewPlaylistModel.playlistCount++;
+        return Propagation.stopPropagation;
     }
 }

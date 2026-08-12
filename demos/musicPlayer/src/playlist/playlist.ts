@@ -1,18 +1,23 @@
-import {Coordinate, define, element, expose, isUndefined, GradumElement, substrate} from "../../../../build/gradum-kit.esm";
+import {Coordinate, define, element, expose, isUndefined, GradumElement, constrainer} from "../../../../build/gradum-kit.esm";
 import {PlaylistView} from "./playlist.view";
 import {PlaylistData, PlaylistProperties} from "./playlist.types";
 import {PlaylistModel} from "./playlist.model";
 import "./playlist.css";
 import {Song} from "../song/song";
-import {PlaylistSubstrate} from "./playlist.substrate";
+import {PlaylistConstrainer} from "./playlist.constrainer";
 
-@define("gradum-playlist")
 export class Playlist extends GradumElement<PlaylistView, PlaylistData, PlaylistModel> {
+    public static defaultProperties = {
+        view: PlaylistView,
+        model: PlaylistModel,
+        constrainers: PlaylistConstrainer
+    };
+
     @expose("model") public origin: Coordinate;
-    @substrate("substrate") private substrate: PlaylistSubstrate;
+    @constrainer("constrainer") private constrainer: PlaylistConstrainer;
 
     public addSong(song: Song, yCoordinate: number) {
-        if (!this.substrate.testAddingSong(song)) return;
+        if (!this.constrainer.testAddingSong(song)) return;
         const targetIndex = this.getSongIndexFromCoordinate(yCoordinate);
         if (!isUndefined(targetIndex)) this.model.songs.splice(targetIndex, 0, song.id);
         else this.model.songs.push(song.id);
@@ -45,10 +50,4 @@ export class Playlist extends GradumElement<PlaylistView, PlaylistData, Playlist
     }
 }
 
-export function playlist(properties: PlaylistProperties = {}): Playlist {
-    if (!properties.tag) properties.tag = "gradum-playlist";
-    if (!properties.view) properties.view = PlaylistView;
-    if (!properties.model) properties.model = PlaylistModel;
-    if (!properties.substrates) properties.substrates = PlaylistSubstrate;
-    return element(properties) as Playlist;
-}
+define(Playlist, "gradum-playlist");

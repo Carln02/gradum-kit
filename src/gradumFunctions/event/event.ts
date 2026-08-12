@@ -139,6 +139,28 @@ export function setupEventFunctions() {
 
         if (this.bypassManagerOn) utils.bypassManager(this, manager, this.bypassManagerOn(event));
 
+        //Whether the event started inside a subtree that opted out of the given tool. Walks up from the
+        //event's target, crossing shadow boundaries, so ignoring a tool on a component also covers the inner
+        //nodes a click actually lands on. Memoized: executeAction is called once per element of the path.
+        const originIgnoresCache: Map<string, boolean> = new Map();
+        const originIgnoresTool = (tool?: string): boolean => {
+            if (!tool) return false;
+            if (originIgnoresCache.has(tool)) return originIgnoresCache.get(tool);
+
+            let ignored = false;
+            let node = (event?.target ?? undefined) as Node;
+            while (node) {
+                if (gradum(node).isToolIgnored(tool, type, manager)) {
+                    ignored = true;
+                    break;
+                }
+                node = node.parentNode ?? (node as unknown as ShadowRoot).host;
+            }
+
+            originIgnoresCache.set(tool, ignored);
+            return ignored;
+        };
+
         const checkConstrainers = (target: Node, tool?: string) => {
             if (!target) return;
             if (propagation === Propagation.stopImmediatePropagation) return;
@@ -162,6 +184,8 @@ export function setupEventFunctions() {
         };
 
         const runListeners = (target: Node, tool?: string) => {
+            if (tool && (gradum(target).isToolIgnored(tool, type, manager) || originIgnoresTool(tool))) return;
+
             const ts = target instanceof GradumSelector ? target : gradum(target);
             const boundSet = utils.getBoundListenersSet(target);
             const entries = utils.getBoundListeners({target, type, toolName: tool, options, manager});
@@ -184,7 +208,7 @@ export function setupEventFunctions() {
 
         const applyTool = (target: Node, tool?: string) => {
             if (options.capture || !tool) return;
-            if (gradum(target).isToolIgnored(tool, type, manager)) return;
+            if (gradum(target).isToolIgnored(tool, type, manager) || originIgnoresTool(tool)) return;
             checkConstrainers(target, tool);
             if (!this.hasToolBehavior(type, tool, manager)) return;
             if (propagation === Propagation.stopImmediatePropagation) return;

@@ -1,6 +1,6 @@
-import {DefaultEventName, div, gradum, gradumInput, GradumInput, GradumSelect, GradumView} from "../../../../build/gradum-kit.esm";
+import {DefaultEventName, div, gradum, GradumInput, GradumSelect, GradumView} from "../../../../build/gradum-kit.esm";
 import {SongsPanel} from "./songsPanel";
-import {Song, song} from "../song/song";
+import {Song} from "../song/song";
 
 export class SongsPanelView extends GradumView<SongsPanel> {
     private search: GradumInput;
@@ -9,19 +9,19 @@ export class SongsPanelView extends GradumView<SongsPanel> {
 
     protected setupUIElements() {
         super.setupUIElements();
-        this.search = gradumInput({rightIcon: "search", input: {type: "search", placeholder: "Search..."}});
+        this.search = GradumInput.create({rightIcon: "search", input: {type: "search", placeholder: "Search..."}});
         this.panel = div({classes: "songs-panel-container"});
 
-        this.select = new GradumSelect({
+        this.select = GradumSelect.create({
             parent: this.panel,
-            getValue: entry => entry.title,
-            getSecondaryValue: entry => entry.artist,
+            getValue: (entry: Song) => entry.title,
+            getSecondaryValue: (entry: Song) => entry.artist,
             onEnabled: (b, entry) => gradum(entry).setStyle("display", b ? "" : "none"),
-        });
+        }) as GradumSelect<string, string, Song>;
 
         this.model.data
             .sort((a, b) => a.title.localeCompare(b.title))
-            .forEach(entry => this.select.addEntry(song({data: entry})));
+            .forEach(entry => this.select.addEntry(Song.create({data: entry})));
     }
 
     protected setupUILayout() {

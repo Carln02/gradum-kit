@@ -107,9 +107,11 @@ describe("executeAction order + semantics", () => {
 
         const consumed = gradum(node).executeAction("click", "brush", new Event("x"));
 
-        expect(consumed).toBe(Propagation.stopPropagation);
-        expect(custom).toHaveBeenCalled();
+        // `ignoreTool` covers both halves of the tool system: the behaviors registered for the tool and
+        // the listeners bound with `onTool`. Nothing runs, so nothing consumes the event.
+        expect(custom).not.toHaveBeenCalled();
         expect(def).not.toHaveBeenCalled();
+        expect(consumed).toBe(Propagation.propagate);
     });
 
     it("ignored specific (tool,type): skips only that event type, others still work", () => {
@@ -125,11 +127,13 @@ describe("executeAction order + semantics", () => {
 
         gradum(node).ignoreTool("brush", "click");
 
+        // "click" is ignored for this tool, so neither its listener nor its behavior runs.
         const consumedClick = gradum(node).executeAction("click", "brush", new Event("x"));
-        expect(consumedClick).toBe(Propagation.stopPropagation);
-        expect(customClick).toHaveBeenCalled();
+        expect(customClick).not.toHaveBeenCalled();
         expect(defClick).not.toHaveBeenCalled();
+        expect(consumedClick).toBe(Propagation.propagate);
 
+        // "pointerdown" was not ignored, so it is unaffected.
         const consumedDown = gradum(node).executeAction("pointerdown", "brush", new Event("y"));
         expect(consumedDown).toBe(Propagation.stopPropagation);
         expect(customDown).toHaveBeenCalledTimes(1);

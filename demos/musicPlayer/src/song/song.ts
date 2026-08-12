@@ -5,8 +5,13 @@ import {SongModel} from "./song.model";
 import "./song.css";
 import {SongMoveInteractor} from "./song.moveInteractor";
 
-@define("gradum-song")
 export class Song extends GradumElement<SongView, SongData, SongModel> {
+    public static defaultProperties = {
+        view: SongView,
+        model: SongModel,
+        interactors: SongMoveInteractor
+    };
+
     @expose("model") public accessor id: string;
     @expose("model") public accessor title: string;
     @expose("model") public accessor artist: string;
@@ -21,10 +26,4 @@ export class Song extends GradumElement<SongView, SongData, SongModel> {
     }
 }
 
-export function song(properties: SongProperties = {}): Song {
-    if (!properties.tag) properties.tag = "gradum-song";
-    if (!properties.view) properties.view = SongView;
-    if (!properties.model) properties.model = SongModel;
-    if (!properties.interactors) properties.interactors = [SongMoveInteractor];
-    return element(properties) as Song;
-}
+define(Song, "gradum-song");

@@ -5,8 +5,8 @@ import {PlaylistModel} from "./playlist.model";
 import {Song} from "../song/song";
 
 export class PlaylistConstrainer extends GradumConstrainer<Playlist, PlaylistView, PlaylistModel> {
-    public keyName = "substrate";
-    public substrateName = "playlist";
+    public keyName = "constrainer";
+    public constrainerName = "playlist";
 
     public testAddingSong(song: Song) {
         return !this.model.songs.find(entry => entry === song.id);

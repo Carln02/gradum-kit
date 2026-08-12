@@ -2,17 +2,15 @@ import {
     css,
     DefaultEventName,
     effect,
-    richElement,
     Side,
     gradum,
     GradumDrawer,
     GradumRichElement,
-    GradumView,
-    EventPropagation
+    GradumView
 } from "../../../../build/gradum-kit.esm";
 import {Playlist} from "./playlist";
 import {PlaylistModel} from "./playlist.model";
-import {Song, song} from "../song/song";
+import {Song} from "../song/song";
 import {DataHandler} from "../dataHandler";
 
 export class PlaylistView extends GradumView<Playlist, PlaylistModel> {
@@ -25,8 +23,8 @@ export class PlaylistView extends GradumView<Playlist, PlaylistModel> {
     protected setupUIElements() {
         super.setupUIElements();
         this.drawer = GradumDrawer.create({side: Side.bottom, hideOverflow: true, offset: {open: 20}});
-        this.toggle = richElement({leftIcon: "album-cover"});
-        this.emptyDrawer = richElement({
+        this.toggle = GradumRichElement.create({leftIcon: "album-cover"});
+        this.emptyDrawer = GradumRichElement.create({
             classes: "empty-playlist-placeholder",
             leftIcon: "add-song",
             text: "Drag and drop songs here to add them to the playlist."
@@ -41,10 +39,7 @@ export class PlaylistView extends GradumView<Playlist, PlaylistModel> {
 
     protected setupUIListeners() {
         super.setupUIListeners();
-        gradum(this).on(DefaultEventName.click, () => {
-            this.drawer.open = !this.drawer.open;
-            return EventPropagation.stopPropagation;
-        });
+        gradum(this).on(DefaultEventName.click, () => this.drawer.open = !this.drawer.open);
     }
 
     @effect private updateName() {
@@ -53,10 +48,7 @@ export class PlaylistView extends GradumView<Playlist, PlaylistModel> {
         if (newEl) {
             (this.toggle.element as HTMLElement).contentEditable = "true";
             gradum(this.toggle.element).bypassManagerOn = () => true;
-            gradum(this.toggle.element).on(DefaultEventName.click, () => {
-                this.toggle.element.focus();
-                return EventPropagation.stopPropagation;
-            });
+            gradum(this.toggle.element).on(DefaultEventName.click, () => this.toggle.element.focus());
         }
     }
 
@@ -79,7 +71,7 @@ export class PlaylistView extends GradumView<Playlist, PlaylistModel> {
 
         this.model.songs.forEach(id =>
             DataHandler.getSong(id).then(data =>
-                this.songElements.push(song({data, parent: this.drawer}))
+                this.songElements.push(Song.create({data, parent: this.drawer}))
             ));
     }
 }

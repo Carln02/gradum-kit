@@ -1,4 +1,4 @@
-import {ClosestOrigin, Coordinate, gradum, GradumDragEvent, GradumInteractor} from "../../../../build/gradum-kit.esm";
+import {ClosestOrigin, Coordinate, gradum, GradumDragEvent, GradumInteractor, listener} from "../../../../build/gradum-kit.esm";
 import {SongView} from "./song.view";
 import {SongModel} from "./song.model";
 import {Song} from "./song";
@@ -7,6 +7,7 @@ import {Playlist} from "../playlist/playlist";
 
 export class SongMoveInteractor extends GradumInteractor<Song, SongView, SongModel> {
     public toolName = "select";
+
     private clone: Song;
     private clonePosition: Coordinate;
 
@@ -16,7 +17,7 @@ export class SongMoveInteractor extends GradumInteractor<Song, SongView, SongMod
         return parent instanceof Playlist ? parent : null;
     }
 
-    public dragStart(e: Event): boolean | void {
+    @listener() public dragStart(e: Event) {
         this.clone = this.element.cloneNode(true) as Song;
         const computedStyle = this.element.getBoundingClientRect();
         this.clonePosition = {x: computedStyle.left, y: computedStyle.top};
@@ -24,25 +25,22 @@ export class SongMoveInteractor extends GradumInteractor<Song, SongView, SongMod
         gradum(this.clone).setStyles({position: "absolute", top: 0, left: 0}).addToParent(document.body);
         this.updatePosition();
         this.model.state = SongState.moving;
-        return true;
     }
 
-    public drag(e: GradumDragEvent): boolean | void {
+    @listener() public drag(e: GradumDragEvent) {
         this.updatePosition(e.scaledDeltaPosition);
-        return true;
     }
 
-    public dragEnd(e: GradumDragEvent): boolean | void {
+    @listener() public dragEnd(e: GradumDragEvent) {
         this.clonePosition = undefined;
         this.clone.remove();
         this.clone = undefined;
         this.model.state = SongState.default;
 
         const targetPlaylist = e.closest(Playlist, false, ClosestOrigin.position);
-        if (!targetPlaylist) return true;
+        if (!targetPlaylist) return;
         this.originParent?.removeSong(this.element);
         targetPlaylist.addSong(this.element, e.scaledPosition.y);
-        return true;
     }
 
     private updatePosition(delta: Coordinate = {x: 0, y: 0}) {

@@ -11289,6 +11289,27 @@ var Gradum = (function (exports, yjs) {
             let propagation = exports.Propagation.propagate;
             if (this.bypassManagerOn)
                 utils$5.bypassManager(this, manager, this.bypassManagerOn(event));
+            //Whether the event started inside a subtree that opted out of the given tool. Walks up from the
+            //event's target, crossing shadow boundaries, so ignoring a tool on a component also covers the inner
+            //nodes a click actually lands on. Memoized: executeAction is called once per element of the path.
+            const originIgnoresCache = new Map();
+            const originIgnoresTool = (tool) => {
+                if (!tool)
+                    return false;
+                if (originIgnoresCache.has(tool))
+                    return originIgnoresCache.get(tool);
+                let ignored = false;
+                let node = (event?.target ?? undefined);
+                while (node) {
+                    if (gradum(node).isToolIgnored(tool, type, manager)) {
+                        ignored = true;
+                        break;
+                    }
+                    node = node.parentNode ?? node.host;
+                }
+                originIgnoresCache.set(tool, ignored);
+                return ignored;
+            };
             const checkConstrainers = (target, tool) => {
                 if (!target)
                     return;
@@ -11313,6 +11334,8 @@ var Gradum = (function (exports, yjs) {
                 checkConstrainers(target.parentNode, tool);
             };
             const runListeners = (target, tool) => {
+                if (tool && (gradum(target).isToolIgnored(tool, type, manager) || originIgnoresTool(tool)))
+                    return;
                 const ts = target instanceof GradumSelector ? target : gradum(target);
                 const boundSet = utils$5.getBoundListenersSet(target);
                 const entries = utils$5.getBoundListeners({ target, type, toolName: tool, options, manager });
@@ -11339,7 +11362,7 @@ var Gradum = (function (exports, yjs) {
             const applyTool = (target, tool) => {
                 if (options.capture || !tool)
                     return;
-                if (gradum(target).isToolIgnored(tool, type, manager))
+                if (gradum(target).isToolIgnored(tool, type, manager) || originIgnoresTool(tool))
                     return;
                 checkConstrainers(target, tool);
                 if (!this.hasToolBehavior(type, tool, manager))

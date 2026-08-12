@@ -1,8 +1,6 @@
-import {button, gradum, randomFromRange, GradumElement, trim, element, GradumIcon, div, GradumEventManager, Propagation} from "../../../build/gradum-kit.esm.js";
+import {GradumButton, gradum, randomFromRange, GradumElement, trim, element, GradumIcon, div, GradumEventManager, Propagation} from "../../../build/gradum-kit.esm.js";
 
-GradumIcon.defaultProperties.defaultDirectory = "assets/";
-GradumEventManager.instance.preventDefaultMouse = false;
-GradumEventManager.instance.preventDefaultTouch = false;
+GradumIcon.defaultProperties.directory = "assets";
 
 //First custom element, a square
 class Square extends GradumElement {
@@ -70,7 +68,7 @@ for (let i = 0; i < 12; i++) {
 }
 
 //Create a "move tool" button
-const moveTool = button({leftIcon: "move", text: "Move Tool", parent: document.body, classes: "moveTool"});
+const moveTool = GradumButton.create({leftIcon: "move", text: "Move Tool", parent: document.body, classes: "moveTool"});
 //Turn it into a tool, and change its color when it is active
 gradum(moveTool).makeTool("move", {onActivate: () => moveTool.style.backgroundColor = "#ff8888"});
 
