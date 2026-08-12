@@ -8,6 +8,12 @@
    */
 
   /**
+   * @template K
+   * @template V
+   * @typedef {Map<K,V>} GlobalMap
+   */
+
+  /**
    * Creates a new Map instance.
    *
    * @function
@@ -129,6 +135,58 @@
    */
   const from = Array.from;
 
+  /**
+   * True iff condition holds on every element in the Array.
+   *
+   * @function
+   * @template {ArrayLike<any>} ARR
+   *
+   * @param {ARR} arr
+   * @param {ARR extends ArrayLike<infer S> ? ((value:S, index:number, arr:ARR) => boolean) : any} f
+   * @return {boolean}
+   */
+  const every$1 = (arr, f) => {
+    for (let i = 0; i < arr.length; i++) {
+      if (!f(arr[i], i, arr)) {
+        return false
+      }
+    }
+    return true
+  };
+
+  /**
+   * True iff condition holds on some element in the Array.
+   *
+   * @function
+   * @template {ArrayLike<any>} ARR
+   *
+   * @param {ARR} arr
+   * @param {ARR extends ArrayLike<infer S> ? ((value:S, index:number, arr:ARR) => boolean) : never} f
+   * @return {boolean}
+   */
+  const some = (arr, f) => {
+    for (let i = 0; i < arr.length; i++) {
+      if (f(arr[i], i, arr)) {
+        return true
+      }
+    }
+    return false
+  };
+
+  /**
+   * @template T
+   * @param {number} len
+   * @param {function(number, Array<T>):T} f
+   * @return {Array<T>}
+   */
+  const unfold = (len, f) => {
+    const array = new Array(len);
+    for (let i = 0; i < len; i++) {
+      array[i] = f(i, array);
+    }
+    return array
+  };
+
   const isArray = Array.isArray;
 
   /**
@@ -244,8 +302,10 @@
   const max = (a, b) => a > b ? a : b;
 
   /**
+   * Check whether n is negative, while considering the -0 edge case. While `-0 < 0` is false, this
+   * function returns true for -0,-1,,.. and returns false for 0,1,2,...
    * @param {number} n
-   * @return {boolean} Wether n is negative. This function also differentiates between -0 and +0
+   * @return {boolean} Wether n is negative. This function also distinguishes between -0 and +0
    */
   const isNegativeZero = n => n !== 0 ? n < 0 : 1 / n < 0;
 
@@ -284,8 +344,19 @@
    */
 
 
+  const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER;
+  const MIN_SAFE_INTEGER = Number.MIN_SAFE_INTEGER;
+
   /* c8 ignore next */
   const isInteger = Number.isInteger || (num => typeof num === 'number' && isFinite(num) && floor(num) === num);
+
+  /**
+   * Utility module to work with strings.
+   *
+   * @module string
+   */
+
+  const fromCharCode = String.fromCharCode;
 
   /**
    * @param {string} s
@@ -312,7 +383,7 @@
 
   /**
    * @param {string} str
-   * @return {Uint8Array}
+   * @return {Uint8Array<ArrayBuffer>}
    */
   const _encodeUtf8Polyfill = str => {
     const encodedString = unescape(encodeURIComponent(str));
@@ -329,7 +400,7 @@
 
   /**
    * @param {string} str
-   * @return {Uint8Array}
+   * @return {Uint8Array<ArrayBuffer>}
    */
   const _encodeUtf8Native = str => utf8TextEncoder.encode(str);
 
@@ -353,6 +424,12 @@
     /* c8 ignore next */
     utf8TextDecoder = null;
   }
+
+  /**
+   * @param {string} source
+   * @param {number} n
+   */
+  const repeat = (source, n) => unfold(n, () => source).join('');
 
   /**
    * Efficient schema-less binary encoding with support for variable length encoding.
@@ -423,7 +500,7 @@
    *
    * @function
    * @param {Encoder} encoder
-   * @return {Uint8Array} The created ArrayBuffer.
+   * @return {Uint8Array<ArrayBuffer>} The created ArrayBuffer.
    */
   const toUint8Array = encoder => {
     const uint8arr = new Uint8Array(length(encoder));
@@ -665,6 +742,14 @@
   };
 
   /**
+   * @typedef {Array<AnyEncodable>} AnyEncodableArray
+   */
+
+  /**
+   * @typedef {undefined|null|number|bigint|boolean|string|{[k:string]:AnyEncodable}|AnyEncodableArray|Uint8Array} AnyEncodable
+   */
+
+  /**
    * Encode data with efficient binary format.
    *
    * Differences to JSON:
@@ -699,7 +784,7 @@
    *          lib0/encoding.js
    *
    * @param {Encoder} encoder
-   * @param {undefined|null|number|bigint|boolean|string|Object<string,any>|Array<any>|Uint8Array} data
+   * @param {AnyEncodable} data
    */
   const writeAny = (encoder, data) => {
     switch (typeof data) {
@@ -1142,12 +1227,38 @@
   /* c8 ignore next */
   const varStorage = _localStorage;
 
+  const EqualityTraitSymbol = Symbol('Equality');
+
   /**
-   * Utility functions for working with EcmaScript objects.
-   *
-   * @module object
+   * @typedef {{ [EqualityTraitSymbol]:(other:EqualityTrait)=>boolean }} EqualityTrait
    */
 
+  /**
+   *
+   * Utility function to compare any two objects.
+   *
+   * Note that it is expected that the first parameter is more specific than the latter one.
+   *
+   * @example js
+   *     class X { [traits.EqualityTraitSymbol] (other) { return other === this }  }
+   *     class X2 { [traits.EqualityTraitSymbol] (other) { return other === this }, x2 () { return 2 }  }
+   *     // this is fine
+   *     traits.equals(new X2(), new X())
+   *     // this is not, because the left type is less specific than the right one
+   *     traits.equals(new X(), new X2())
+   *
+   * @template {EqualityTrait} T
+   * @param {NoInfer<T>} a
+   * @param {T} b
+   * @return {boolean}
+   */
+  const equals = (a, b) => a === b || !!a?.[EqualityTraitSymbol]?.(b) || false;
+
+  /**
+   * @param {any} o
+   * @return {o is { [k:string]:any }}
+   */
+  const isObject = o => typeof o === 'object';
 
   /**
    * Object.assign
@@ -1216,7 +1327,7 @@
    * @param {Object<string,any>} b
    * @return {boolean}
    */
-  const equalFlat = (a, b) => a === b || (size(a) === size(b) && every(a, (val, key) => (val !== undefined || hasProperty(b, key)) && b[key] === val));
+  const equalFlat = (a, b) => a === b || (size(a) === size(b) && every(a, (val, key) => (val !== undefined || hasProperty(b, key)) && equals(b[key], val)));
 
   /**
    * Make an object immutable. This hurts performance and is usually not needed if you perform good
@@ -1265,6 +1376,88 @@
         callAll(fs, args, i + 1);
       }
     }
+  };
+
+  /* c8 ignore start */
+
+  /**
+   * @param {any} a
+   * @param {any} b
+   * @return {boolean}
+   */
+  const equalityDeep = (a, b) => {
+    if (a === b) {
+      return true
+    }
+    if (a == null || b == null || (a.constructor !== b.constructor && (a.constructor || Object) !== (b.constructor || Object))) {
+      return false
+    }
+    if (a[EqualityTraitSymbol] != null) {
+      return a[EqualityTraitSymbol](b)
+    }
+    switch (a.constructor) {
+      case ArrayBuffer:
+        a = new Uint8Array(a);
+        b = new Uint8Array(b);
+      // eslint-disable-next-line no-fallthrough
+      case Uint8Array: {
+        if (a.byteLength !== b.byteLength) {
+          return false
+        }
+        for (let i = 0; i < a.length; i++) {
+          if (a[i] !== b[i]) {
+            return false
+          }
+        }
+        break
+      }
+      case Set: {
+        if (a.size !== b.size) {
+          return false
+        }
+        for (const value of a) {
+          if (!b.has(value)) {
+            return false
+          }
+        }
+        break
+      }
+      case Map: {
+        if (a.size !== b.size) {
+          return false
+        }
+        for (const key of a.keys()) {
+          if (!b.has(key) || !equalityDeep(a.get(key), b.get(key))) {
+            return false
+          }
+        }
+        break
+      }
+      case undefined:
+      case Object:
+        if (size(a) !== size(b)) {
+          return false
+        }
+        for (const key in a) {
+          if (!hasProperty(a, key) || !equalityDeep(a[key], b[key])) {
+            return false
+          }
+        }
+        break
+      case Array:
+        if (a.length !== b.length) {
+          return false
+        }
+        for (let i = 0; i < a.length; i++) {
+          if (!equalityDeep(a[i], b[i])) {
+            return false
+          }
+        }
+        break
+      default:
+        return false
+    }
+    return true
   };
 
   /**
@@ -1361,7 +1554,7 @@
     hasParam('--' + name) || getVariable(name) !== null;
 
   /* c8 ignore next */
-  hasConf('production');
+  const production = hasConf('production');
 
   /* c8 ignore next 2 */
   const forceColor = isNode &&
@@ -1415,16 +1608,1230 @@
    */
   const create$1 = (left, right) => new Pair(left, right);
 
+  /**
+   * Fast Pseudo Random Number Generators.
+   *
+   * Given a seed a PRNG generates a sequence of numbers that cannot be reasonably predicted.
+   * Two PRNGs must generate the same random sequence of numbers if  given the same seed.
+   *
+   * @module prng
+   */
+
+
+  /**
+   * Generates a single random bool.
+   *
+   * @param {PRNG} gen A random number generator.
+   * @return {Boolean} A random boolean
+   */
+  const bool = gen => (gen.next() >= 0.5);
+
+  /**
+   * Generates a random integer with 53 bit resolution.
+   *
+   * @param {PRNG} gen A random number generator.
+   * @param {Number} min The lower bound of the allowed return values (inclusive).
+   * @param {Number} max The upper bound of the allowed return values (inclusive).
+   * @return {Number} A random integer on [min, max]
+   */
+  const int53 = (gen, min, max) => floor(gen.next() * (max + 1 - min) + min);
+
+  /**
+   * Generates a random integer with 32 bit resolution.
+   *
+   * @param {PRNG} gen A random number generator.
+   * @param {Number} min The lower bound of the allowed return values (inclusive).
+   * @param {Number} max The upper bound of the allowed return values (inclusive).
+   * @return {Number} A random integer on [min, max]
+   */
+  const int32 = (gen, min, max) => floor(gen.next() * (max + 1 - min) + min);
+
+  /**
+   * @deprecated
+   * Optimized version of prng.int32. It has the same precision as prng.int32, but should be preferred when
+   * openaring on smaller ranges.
+   *
+   * @param {PRNG} gen A random number generator.
+   * @param {Number} min The lower bound of the allowed return values (inclusive).
+   * @param {Number} max The upper bound of the allowed return values (inclusive). The max inclusive number is `binary.BITS31-1`
+   * @return {Number} A random integer on [min, max]
+   */
+  const int31 = (gen, min, max) => int32(gen, min, max);
+
+  /**
+   * @param {PRNG} gen
+   * @return {string} A single letter (a-z)
+   */
+  const letter = gen => fromCharCode(int31(gen, 97, 122));
+
+  /**
+   * @param {PRNG} gen
+   * @param {number} [minLen=0]
+   * @param {number} [maxLen=20]
+   * @return {string} A random word (0-20 characters) without spaces consisting of letters (a-z)
+   */
+  const word = (gen, minLen = 0, maxLen = 20) => {
+    const len = int31(gen, minLen, maxLen);
+    let str = '';
+    for (let i = 0; i < len; i++) {
+      str += letter(gen);
+    }
+    return str
+  };
+
+  /**
+   * Returns one element of a given array.
+   *
+   * @param {PRNG} gen A random number generator.
+   * @param {Array<T>} array Non empty Array of possible values.
+   * @return {T} One of the values of the supplied Array.
+   * @template T
+   */
+  const oneOf = (gen, array) => array[int31(gen, 0, array.length - 1)];
+  /* c8 ignore stop */
+
+  /**
+   * @experimental WIP
+   *
+   * Simple & efficient schemas for your data.
+   */
+
+
+  /**
+   * @typedef {string|number|bigint|boolean|null|undefined|symbol} Primitive
+   */
+
+  /**
+   * @typedef {{ [k:string|number|symbol]: any }} AnyObject
+   */
+
+  /**
+   * @template T
+   * @typedef {T extends Schema<infer X> ? X : T} Unwrap
+   */
+
+  /**
+   * @template T
+   * @typedef {T extends Schema<infer X> ? X : T} TypeOf
+   */
+
+  /**
+   * @template {readonly unknown[]} T
+   * @typedef {T extends readonly [Schema<infer First>, ...infer Rest] ? [First, ...UnwrapArray<Rest>] : [] } UnwrapArray
+   */
+
+  /**
+   * @template T
+   * @typedef {T extends Schema<infer S> ? Schema<S> : never} CastToSchema
+   */
+
+  /**
+   * @template {unknown[]} Arr
+   * @typedef {Arr extends [...unknown[], infer L] ? L : never} TupleLast
+   */
+
+  /**
+   * @template {unknown[]} Arr
+   * @typedef {Arr extends [...infer Fs, unknown] ? Fs : never} TuplePop
+   */
+
+  /**
+   * @template {readonly unknown[]} T
+   * @typedef {T extends []
+   *   ? {}
+   *   : T extends [infer First]
+   *   ? First
+   *   : T extends [infer First, ...infer Rest]
+   *   ? First & Intersect<Rest>
+   *   : never
+   * } Intersect
+   */
+
+  const schemaSymbol = Symbol('0schema');
+
+  class ValidationError {
+    constructor () {
+      /**
+       * Reverse errors
+       * @type {Array<{ path: string?, expected: string, has: string, message: string? }>}
+       */
+      this._rerrs = [];
+    }
+
+    /**
+     * @param {string?} path
+     * @param {string} expected
+     * @param {string} has
+     * @param {string?} message
+     */
+    extend (path, expected, has, message = null) {
+      this._rerrs.push({ path, expected, has, message });
+    }
+
+    toString () {
+      const s = [];
+      for (let i = this._rerrs.length - 1; i > 0; i--) {
+        const r = this._rerrs[i];
+        /* c8 ignore next */
+        s.push(repeat(' ', (this._rerrs.length - i) * 2) + `${r.path != null ? `[${r.path}] ` : ''}${r.has} doesn't match ${r.expected}. ${r.message}`);
+      }
+      return s.join('\n')
+    }
+  }
+
+  /**
+   * @param {any} a
+   * @param {any} b
+   * @return {boolean}
+   */
+  const shapeExtends = (a, b) => {
+    if (a === b) return true
+    if (a == null || b == null || a.constructor !== b.constructor) return false
+    if (a[EqualityTraitSymbol]) return equals(a, b) // last resort: check equality (do this before array and obj check which don't implement the equality trait)
+    if (isArray(a)) {
+      return every$1(a, aitem =>
+        some(b, bitem => shapeExtends(aitem, bitem))
+      )
+    } else if (isObject(a)) {
+      return every(a, (aitem, akey) =>
+        shapeExtends(aitem, b[akey])
+      )
+    }
+    /* c8 ignore next */
+    return false
+  };
+
+  /**
+   * @template T
+   * @implements {equalityTraits.EqualityTrait}
+   */
+  class Schema {
+    // this.shape must not be defined on Schema. Otherwise typecheck on metatypes (e.g. $$object) won't work as expected anymore
+    /**
+     * If true, the more things are added to the shape the more objects this schema will accept (e.g.
+     * union). By default, the more objects are added, the the fewer objects this schema will accept.
+     * @protected
+     */
+    static _dilutes = false
+
+    /**
+     * @param {Schema<any>} other
+     */
+    extends (other) {
+      let [a, b] = [/** @type {any} */(this).shape, /** @type {any} */ (other).shape];
+      if (/** @type {typeof Schema<any>} */ (this.constructor)._dilutes) [b, a] = [a, b];
+      return shapeExtends(a, b)
+    }
+
+    /**
+     * Overwrite this when necessary. By default, we only check the `shape` property which every shape
+     * should have.
+     * @param {Schema<any>} other
+     */
+    equals (other) {
+      // @ts-ignore
+      return this.constructor === other.constructor && equalityDeep(this.shape, other.shape)
+    }
+
+    [schemaSymbol] () { return true }
+
+    /**
+     * @param {object} other
+     */
+    [EqualityTraitSymbol] (other) {
+      return this.equals(/** @type {any} */ (other))
+    }
+
+    /**
+     * Use `schema.validate(obj)` with a typed parameter that is already of typed to be an instance of
+     * Schema. Validate will check the structure of the parameter and return true iff the instance
+     * really is an instance of Schema.
+     *
+     * @param {T} o
+     * @return {boolean}
+     */
+    validate (o) {
+      return this.check(o)
+    }
+
+    /* c8 ignore start */
+    /**
+     * Similar to validate, but this method accepts untyped parameters.
+     *
+     * @param {any} _o
+     * @param {ValidationError} [_err]
+     * @return {_o is T}
+     */
+    check (_o, _err) {
+      methodUnimplemented();
+    }
+    /* c8 ignore stop */
+
+    /**
+     * @type {Schema<T?>}
+     */
+    get nullable () {
+      // @ts-ignore
+      return $union(this, $null)
+    }
+
+    /**
+     * @type {$Optional<Schema<T>>}
+     */
+    get optional () {
+      return new $Optional(/** @type {Schema<T>} */ (this))
+    }
+
+    /**
+     * Cast a variable to a specific type. Returns the casted value, or throws an exception otherwise.
+     * Use this if you know that the type is of a specific type and you just want to convince the type
+     * system.
+     *
+     * **Do not rely on these error messages!**
+     * Performs an assertion check only if not in a production environment.
+     *
+     * @template OO
+     * @param {OO} o
+     * @return {Extract<OO, T> extends never ? T : (OO extends Array<never> ? T : Extract<OO,T>)}
+     */
+    cast (o) {
+      assert(o, this);
+      return /** @type {any} */ (o)
+    }
+
+    /**
+     * EXPECTO PATRONUM!! 🪄
+     * This function protects against type errors. Though it may not work in the real world.
+     *
+     * "After all this time?"
+     * "Always." - Snape, talking about type safety
+     *
+     * Ensures that a variable is a a specific type. Returns the value, or throws an exception if the assertion check failed.
+     * Use this if you know that the type is of a specific type and you just want to convince the type
+     * system.
+     *
+     * Can be useful when defining lambdas: `s.lambda(s.$number, s.$void).expect((n) => n + 1)`
+     *
+     * **Do not rely on these error messages!**
+     * Performs an assertion check if not in a production environment.
+     *
+     * @param {T} o
+     * @return {o extends T ? T : never}
+     */
+    expect (o) {
+      assert(o, this);
+      return o
+    }
+  }
+
+  /**
+   * @template {(new (...args:any[]) => any) | ((...args:any[]) => any)} Constr
+   * @typedef {Constr extends ((...args:any[]) => infer T) ? T : (Constr extends (new (...args:any[]) => any) ? InstanceType<Constr> : never)} Instance
+   */
+
+  /**
+   * @template {(new (...args:any[]) => any) | ((...args:any[]) => any)} C
+   * @extends {Schema<Instance<C>>}
+   */
+  class $ConstructedBy extends Schema {
+    /**
+     * @param {C} c
+     * @param {((o:Instance<C>)=>boolean)|null} check
+     */
+    constructor (c, check) {
+      super();
+      this.shape = c;
+      this._c = check;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is C extends ((...args:any[]) => infer T) ? T : (C extends (new (...args:any[]) => any) ? InstanceType<C> : never)} o
+     */
+    check (o, err = undefined) {
+      const c = o?.constructor === this.shape && (this._c == null || this._c(o));
+      /* c8 ignore next */
+      !c && err?.extend(null, this.shape.name, o?.constructor.name, o?.constructor !== this.shape ? 'Constructor match failed' : 'Check failed');
+      return c
+    }
+  }
+
+  /**
+   * @template {(new (...args:any[]) => any) | ((...args:any[]) => any)} C
+   * @param {C} c
+   * @param {((o:Instance<C>) => boolean)|null} check
+   * @return {CastToSchema<$ConstructedBy<C>>}
+   */
+  const $constructedBy = (c, check = null) => new $ConstructedBy(c, check);
+  $constructedBy($ConstructedBy);
+
+  /**
+   * Check custom properties on any object. You may want to overwrite the generated Schema<any>.
+   *
+   * @extends {Schema<any>}
+   */
+  class $Custom extends Schema {
+    /**
+     * @param {(o:any) => boolean} check
+     */
+    constructor (check) {
+      super();
+      /**
+       * @type {(o:any) => boolean}
+       */
+      this.shape = check;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} err
+     * @return {o is any}
+     */
+    check (o, err) {
+      const c = this.shape(o);
+      /* c8 ignore next */
+      !c && err?.extend(null, 'custom prop', o?.constructor.name, 'failed to check custom prop');
+      return c
+    }
+  }
+
+  /**
+   * @param {(o:any) => boolean} check
+   * @return {Schema<any>}
+   */
+  const $custom = (check) => new $Custom(check);
+  $constructedBy($Custom);
+
+  /**
+   * @template {Primitive} T
+   * @extends {Schema<T>}
+   */
+  class $Literal extends Schema {
+    /**
+     * @param {Array<T>} literals
+     */
+    constructor (literals) {
+      super();
+      this.shape = literals;
+    }
+
+    /**
+     *
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is T}
+     */
+    check (o, err) {
+      const c = this.shape.some(a => a === o);
+      /* c8 ignore next */
+      !c && err?.extend(null, this.shape.join(' | '), o.toString());
+      return c
+    }
+  }
+
+  /**
+   * @template {Primitive[]} T
+   * @param {T} literals
+   * @return {CastToSchema<$Literal<T[number]>>}
+   */
+  const $literal = (...literals) => new $Literal(literals);
+  const $$literal = $constructedBy($Literal);
+
+  /**
+   * @template {Array<string|Schema<string|number>>} Ts
+   * @typedef {Ts extends [] ? `` : (Ts extends [infer T] ? (Unwrap<T> extends (string|number) ? Unwrap<T> : never) : (Ts extends [infer T1, ...infer Rest] ? `${Unwrap<T1> extends (string|number) ? Unwrap<T1> : never}${Rest extends Array<string|Schema<string|number>> ? CastStringTemplateArgsToTemplate<Rest> : never}` : never))} CastStringTemplateArgsToTemplate
+   */
+
+  /**
+   * @param {string} str
+   * @return {string}
+   */
+  const _regexEscape = /** @type {any} */ (RegExp).escape || /** @type {(str:string) => string} */ (str =>
+    str.replace(/[().|&,$^[\]]/g, s => '\\' + s)
+  );
+
+  /**
+   * @param {string|Schema<any>} s
+   * @return {string[]}
+   */
+  const _schemaStringTemplateToRegex = s => {
+    if ($string.check(s)) {
+      return [_regexEscape(s)]
+    }
+    if ($$literal.check(s)) {
+      return /** @type {Array<string|number>} */ (s.shape).map(v => v + '')
+    }
+    if ($$number.check(s)) {
+      return ['[+-]?\\d+.?\\d*']
+    }
+    if ($$string.check(s)) {
+      return ['.*']
+    }
+    if ($$union.check(s)) {
+      return s.shape.map(_schemaStringTemplateToRegex).flat(1)
+    }
+    /* c8 ignore next 2 */
+    // unexpected schema structure (only supports unions and string in literal types)
+    unexpectedCase();
+  };
+
+  /**
+   * @template {Array<string|Schema<string|number>>} T
+   * @extends {Schema<CastStringTemplateArgsToTemplate<T>>}
+   */
+  class $StringTemplate extends Schema {
+    /**
+     * @param {T} shape
+     */
+    constructor (shape) {
+      super();
+      this.shape = shape;
+      this._r = new RegExp('^' + shape.map(_schemaStringTemplateToRegex).map(opts => `(${opts.join('|')})`).join('') + '$');
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is CastStringTemplateArgsToTemplate<T>}
+     */
+    check (o, err) {
+      const c = this._r.exec(o) != null;
+      /* c8 ignore next */
+      !c && err?.extend(null, this._r.toString(), o.toString(), 'String doesn\'t match string template.');
+      return c
+    }
+  }
+  $constructedBy($StringTemplate);
+
+  const isOptionalSymbol = Symbol('optional');
+  /**
+   * @template {Schema<any>} S
+   * @extends Schema<Unwrap<S>|undefined>
+   */
+  class $Optional extends Schema {
+    /**
+     * @param {S} shape
+     */
+    constructor (shape) {
+      super();
+      this.shape = shape;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is (Unwrap<S>|undefined)}
+     */
+    check (o, err) {
+      const c = o === undefined || this.shape.check(o);
+      /* c8 ignore next */
+      !c && err?.extend(null, 'undefined (optional)', '()');
+      return c
+    }
+
+    get [isOptionalSymbol] () { return true }
+  }
+  const $$optional = $constructedBy($Optional);
+
+  /**
+   * @extends Schema<never>
+   */
+  class $Never extends Schema {
+    /**
+     * @param {any} _o
+     * @param {ValidationError} [err]
+     * @return {_o is never}
+     */
+    check (_o, err) {
+      /* c8 ignore next */
+      err?.extend(null, 'never', typeof _o);
+      return false
+    }
+  }
+  $constructedBy($Never);
+
+  /**
+   * @template {{ [key: string|symbol|number]: Schema<any> }} S
+   * @typedef {{ [Key in keyof S as S[Key] extends $Optional<Schema<any>> ? Key : never]?: S[Key] extends $Optional<Schema<infer Type>> ? Type : never } & { [Key in keyof S as S[Key] extends $Optional<Schema<any>> ? never : Key]: S[Key] extends Schema<infer Type> ? Type : never }} $ObjectToType
+   */
+
+  /**
+   * @template {{[key:string|symbol|number]: Schema<any>}} S
+   * @extends {Schema<$ObjectToType<S>>}
+   */
+  class $Object extends Schema {
+    /**
+     * @param {S} shape
+     * @param {boolean} partial
+     */
+    constructor (shape, partial = false) {
+      super();
+      /**
+       * @type {S}
+       */
+      this.shape = shape;
+      this._isPartial = partial;
+    }
+
+    static _dilutes = true
+
+    /**
+     * @type {Schema<Partial<$ObjectToType<S>>>}
+     */
+    get partial () {
+      return new $Object(this.shape, true)
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} err
+     * @return {o is $ObjectToType<S>}
+     */
+    check (o, err) {
+      if (o == null) {
+        /* c8 ignore next */
+        err?.extend(null, 'object', 'null');
+        return false
+      }
+      return every(this.shape, (vv, vk) => {
+        const c = (this._isPartial && !hasProperty(o, vk)) || vv.check(o[vk], err);
+        !c && err?.extend(vk.toString(), vv.toString(), typeof o[vk], 'Object property does not match');
+        return c
+      })
+    }
+  }
+
+  /**
+   * @template S
+   * @typedef {Schema<{ [Key in keyof S as S[Key] extends $Optional<Schema<any>> ? Key : never]?: S[Key] extends $Optional<Schema<infer Type>> ? Type : never } & { [Key in keyof S as S[Key] extends $Optional<Schema<any>> ? never : Key]: S[Key] extends Schema<infer Type> ? Type : never }>} _ObjectDefToSchema
+   */
+
+  // I used an explicit type annotation instead of $ObjectToType, so that the user doesn't see the
+  // weird type definitions when inspecting type definions.
+  /**
+   * @template {{ [key:string|symbol|number]: Schema<any> }} S
+   * @param {S} def
+   * @return {_ObjectDefToSchema<S> extends Schema<infer S> ? Schema<{ [K in keyof S]: S[K] }> : never}
+   */
+  const $object = def => /** @type {any} */ (new $Object(def));
+  const $$object = $constructedBy($Object);
+  /**
+   * @type {Schema<{[key:string]: any}>}
+   */
+  const $objectAny = $custom(o => o != null && (o.constructor === Object || o.constructor == null));
+
+  /**
+   * @template {Schema<string|number|symbol>} Keys
+   * @template {Schema<any>} Values
+   * @extends {Schema<{ [key in Unwrap<Keys>]: Unwrap<Values> }>}
+   */
+  class $Record extends Schema {
+    /**
+     * @param {Keys} keys
+     * @param {Values} values
+     */
+    constructor (keys, values) {
+      super();
+      this.shape = {
+        keys, values
+      };
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} err
+     * @return {o is { [key in Unwrap<Keys>]: Unwrap<Values> }}
+     */
+    check (o, err) {
+      return o != null && every(o, (vv, vk) => {
+        const ck = this.shape.keys.check(vk, err);
+        /* c8 ignore next */
+        !ck && err?.extend(vk + '', 'Record', typeof o, ck ? 'Key doesn\'t match schema' : 'Value doesn\'t match value');
+        return ck && this.shape.values.check(vv, err)
+      })
+    }
+  }
+
+  /**
+   * @template {Schema<string|number|symbol>} Keys
+   * @template {Schema<any>} Values
+   * @param {Keys} keys
+   * @param {Values} values
+   * @return {CastToSchema<$Record<Keys,Values>>}
+   */
+  const $record = (keys, values) => new $Record(keys, values);
+  const $$record = $constructedBy($Record);
+
+  /**
+   * @template {Schema<any>[]} S
+   * @extends {Schema<{ [Key in keyof S]: S[Key] extends Schema<infer Type> ? Type : never }>}
+   */
+  class $Tuple extends Schema {
+    /**
+     * @param {S} shape
+     */
+    constructor (shape) {
+      super();
+      this.shape = shape;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} err
+     * @return {o is { [K in keyof S]: S[K] extends Schema<infer Type> ? Type : never }}
+     */
+    check (o, err) {
+      return o != null && every(this.shape, (vv, vk) => {
+        const c = /** @type {Schema<any>} */ (vv).check(o[vk], err);
+        /* c8 ignore next */
+        !c && err?.extend(vk.toString(), 'Tuple', typeof vv);
+        return c
+      })
+    }
+  }
+
+  /**
+   * @template {Array<Schema<any>>} T
+   * @param {T} def
+   * @return {CastToSchema<$Tuple<T>>}
+   */
+  const $tuple = (...def) => new $Tuple(def);
+  $constructedBy($Tuple);
+
+  /**
+   * @template {Schema<any>} S
+   * @extends {Schema<Array<S extends Schema<infer T> ? T : never>>}
+   */
+  class $Array extends Schema {
+    /**
+     * @param {Array<S>} v
+     */
+    constructor (v) {
+      super();
+      /**
+       * @type {Schema<S extends Schema<infer T> ? T : never>}
+       */
+      this.shape = v.length === 1 ? v[0] : new $Union(v);
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is Array<S extends Schema<infer T> ? T : never>} o
+     */
+    check (o, err) {
+      const c = isArray(o) && every$1(o, oi => this.shape.check(oi));
+      /* c8 ignore next */
+      !c && err?.extend(null, 'Array', '');
+      return c
+    }
+  }
+
+  /**
+   * @template {Array<Schema<any>>} T
+   * @param {T} def
+   * @return {Schema<Array<T extends Array<Schema<infer S>> ? S : never>>}
+   */
+  const $array = (...def) => new $Array(def);
+  const $$array = $constructedBy($Array);
+  /**
+   * @type {Schema<Array<any>>}
+   */
+  const $arrayAny = $custom(o => isArray(o));
+
+  /**
+   * @template T
+   * @extends {Schema<T>}
+   */
+  class $InstanceOf extends Schema {
+    /**
+     * @param {new (...args:any) => T} constructor
+     * @param {((o:T) => boolean)|null} check
+     */
+    constructor (constructor, check) {
+      super();
+      this.shape = constructor;
+      this._c = check;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} err
+     * @return {o is T}
+     */
+    check (o, err) {
+      const c = o instanceof this.shape && (this._c == null || this._c(o));
+      /* c8 ignore next */
+      !c && err?.extend(null, this.shape.name, o?.constructor.name);
+      return c
+    }
+  }
+
+  /**
+   * @template T
+   * @param {new (...args:any) => T} c
+   * @param {((o:T) => boolean)|null} check
+   * @return {Schema<T>}
+   */
+  const $instanceOf = (c, check = null) => new $InstanceOf(c, check);
+  $constructedBy($InstanceOf);
+
+  const $$schema = $instanceOf(Schema);
+
+  /**
+   * @template {Schema<any>[]} Args
+   * @typedef {(...args:UnwrapArray<TuplePop<Args>>)=>Unwrap<TupleLast<Args>>} _LArgsToLambdaDef
+   */
+
+  /**
+   * @template {Array<Schema<any>>} Args
+   * @extends {Schema<_LArgsToLambdaDef<Args>>}
+   */
+  class $Lambda extends Schema {
+    /**
+     * @param {Args} args
+     */
+    constructor (args) {
+      super();
+      this.len = args.length - 1;
+      this.args = $tuple(...args.slice(-1));
+      this.res = args[this.len];
+    }
+
+    /**
+     * @param {any} f
+     * @param {ValidationError} err
+     * @return {f is _LArgsToLambdaDef<Args>}
+     */
+    check (f, err) {
+      const c = f.constructor === Function && f.length <= this.len;
+      /* c8 ignore next */
+      !c && err?.extend(null, 'function', typeof f);
+      return c
+    }
+  }
+  const $$lambda = $constructedBy($Lambda);
+
+  /**
+   * @type {Schema<Function>}
+   */
+  const $function = $custom(o => typeof o === 'function');
+
+  /**
+   * @template {Array<Schema<any>>} T
+   * @extends {Schema<Intersect<UnwrapArray<T>>>}
+   */
+  class $Intersection extends Schema {
+    /**
+     * @param {T} v
+     */
+    constructor (v) {
+      super();
+      /**
+       * @type {T}
+       */
+      this.shape = v;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is Intersect<UnwrapArray<T>>}
+     */
+    check (o, err) {
+      // @ts-ignore
+      const c = every$1(this.shape, check => check.check(o, err));
+      /* c8 ignore next */
+      !c && err?.extend(null, 'Intersectinon', typeof o);
+      return c
+    }
+  }
+  $constructedBy($Intersection, o => o.shape.length > 0); // Intersection with length=0 is considered "any"
+
+  /**
+   * @template S
+   * @extends {Schema<S>}
+   */
+  class $Union extends Schema {
+    static _dilutes = true
+
+    /**
+     * @param {Array<Schema<S>>} v
+     */
+    constructor (v) {
+      super();
+      this.shape = v;
+    }
+
+    /**
+     * @param {any} o
+     * @param {ValidationError} [err]
+     * @return {o is S}
+     */
+    check (o, err) {
+      const c = some(this.shape, (vv) => vv.check(o, err));
+      err?.extend(null, 'Union', typeof o);
+      return c
+    }
+  }
+
+  /**
+   * @template {Array<any>} T
+   * @param {T} schemas
+   * @return {CastToSchema<$Union<Unwrap<ReadSchema<T>>>>}
+   */
+  const $union = (...schemas) => schemas.findIndex($s => $$union.check($s)) >= 0
+    ? $union(...schemas.map($s => $$1($s)).map($s => $$union.check($s) ? $s.shape : [$s]).flat(1))
+    : (schemas.length === 1
+        ? schemas[0]
+        : new $Union(schemas));
+  const $$union = /** @type {Schema<$Union<any>>} */ ($constructedBy($Union));
+
+  const _t = () => true;
+  /**
+   * @type {Schema<any>}
+   */
+  const $any = $custom(_t);
+  const $$any = /** @type {Schema<Schema<any>>} */ ($constructedBy($Custom, o => o.shape === _t));
+
+  /**
+   * @type {Schema<bigint>}
+   */
+  const $bigint = $custom(o => typeof o === 'bigint');
+  const $$bigint = /** @type {Schema<Schema<BigInt>>} */ ($custom(o => o === $bigint));
+
+  /**
+   * @type {Schema<symbol>}
+   */
+  const $symbol = $custom(o => typeof o === 'symbol');
+  /** @type {Schema<Schema<Symbol>>} */ ($custom(o => o === $symbol));
+
+  /**
+   * @type {Schema<number>}
+   */
+  const $number = $custom(o => typeof o === 'number');
+  const $$number = /** @type {Schema<Schema<number>>} */ ($custom(o => o === $number));
+
+  /**
+   * @type {Schema<string>}
+   */
+  const $string = $custom(o => typeof o === 'string');
+  const $$string = /** @type {Schema<Schema<string>>} */ ($custom(o => o === $string));
+
+  /**
+   * @type {Schema<boolean>}
+   */
+  const $boolean = $custom(o => typeof o === 'boolean');
+  const $$boolean = /** @type {Schema<Schema<Boolean>>} */ ($custom(o => o === $boolean));
+
+  /**
+   * @type {Schema<undefined>}
+   */
+  const $undefined = $literal(undefined);
+  /** @type {Schema<Schema<undefined>>} */ ($constructedBy($Literal, o => o.shape.length === 1 && o.shape[0] === undefined));
+
+  /**
+   * @type {Schema<void>}
+   */
+  $literal(undefined);
+
+  const $null = $literal(null);
+  const $$null = /** @type {Schema<Schema<null>>} */ ($constructedBy($Literal, o => o.shape.length === 1 && o.shape[0] === null));
+
+  $constructedBy(Uint8Array);
+  /** @type {Schema<Schema<Uint8Array>>} */ ($constructedBy($ConstructedBy, o => o.shape === Uint8Array));
+
+  /**
+   * @type {Schema<Primitive>}
+   */
+  const $primitive = $union($number, $string, $null, $undefined, $bigint, $boolean, $symbol);
+
+  /**
+   * @typedef {JSON[]} JSONArray
+   */
+  /**
+   * @typedef {Primitive|JSONArray|{ [key:string]:JSON }} JSON
+   */
+  /**
+   * @type {Schema<null|number|string|boolean|JSON[]|{[key:string]:JSON}>}
+   */
+  (() => {
+    const $jsonArr = /** @type {$Array<$any>} */ ($array($any));
+    const $jsonRecord = /** @type {$Record<$string,$any>} */ ($record($string, $any));
+    const $json = $union($number, $string, $null, $boolean, $jsonArr, $jsonRecord);
+    $jsonArr.shape = $json;
+    $jsonRecord.shape.values = $json;
+    return $json
+  })();
+
+  /**
+   * @template {any} IN
+   * @typedef {IN extends Schema<any> ? IN
+   *   : (IN extends string|number|boolean|null ? Schema<IN>
+   *     : (IN extends new (...args:any[])=>any ? Schema<InstanceType<IN>>
+   *       : (IN extends any[] ? Schema<{ [K in keyof IN]: Unwrap<ReadSchema<IN[K]>> }[number]>
+     *       : (IN extends object ? (_ObjectDefToSchema<{[K in keyof IN]:ReadSchema<IN[K]>}> extends Schema<infer S> ? Schema<{ [K in keyof S]: S[K] }> : never)
+     *         : never)
+   *         )
+   *       )
+   *     )
+   * } ReadSchemaOld
+   */
+
+  /**
+   * @template {any} IN
+   * @typedef {[Extract<IN,Schema<any>>,Extract<IN,string|number|boolean|null>,Extract<IN,new (...args:any[])=>any>,Extract<IN,any[]>,Extract<Exclude<IN,Schema<any>|string|number|boolean|null|(new (...args:any[])=>any)|any[]>,object>] extends [infer Schemas, infer Primitives, infer Constructors, infer Arrs, infer Obj]
+   *   ? Schema<
+   *       (Schemas extends Schema<infer S> ? S : never)
+   *     | Primitives
+   *     | (Constructors extends new (...args:any[])=>any ? InstanceType<Constructors> : never)
+   *     | (Arrs extends any[] ? { [K in keyof Arrs]: Unwrap<ReadSchema<Arrs[K]>> }[number] : never)
+   *     | (Obj extends object ? Unwrap<(_ObjectDefToSchema<{[K in keyof Obj]:ReadSchema<Obj[K]>}> extends Schema<infer S> ? Schema<{ [K in keyof S]: S[K] }> : never)> : never)>
+   *   : never
+   * } ReadSchema
+   */
+
+  /**
+   * @typedef {ReadSchema<{x:42}|{y:99}|Schema<string>|[1,2,{}]>} Q
+   */
+
+  /**
+   * @template IN
+   * @param {IN} o
+   * @return {ReadSchema<IN>}
+   */
+  const $$1 = o => {
+    if ($$schema.check(o)) {
+      return /** @type {any} */ (o)
+    } else if ($objectAny.check(o)) {
+      /**
+       * @type {any}
+       */
+      const o2 = {};
+      for (const k in o) {
+        o2[k] = $$1(o[k]);
+      }
+      return /** @type {any} */ ($object(o2))
+    } else if ($arrayAny.check(o)) {
+      return /** @type {any} */ ($union(...o.map($$1)))
+    } else if ($primitive.check(o)) {
+      return /** @type {any} */ ($literal(o))
+    } else if ($function.check(o)) {
+      return /** @type {any} */ ($constructedBy(/** @type {any} */ (o)))
+    }
+    /* c8 ignore next */
+    unexpectedCase();
+  };
+
+  /* c8 ignore start */
+  /**
+   * Assert that a variable is of this specific type.
+   * The assertion check is only performed in non-production environments.
+   *
+   * @type {<T>(o:any,schema:Schema<T>) => asserts o is T}
+   */
+  const assert = production
+    ? () => {}
+    : (o, schema) => {
+        const err = new ValidationError();
+        if (!schema.check(o, err)) {
+          throw create$3(`Expected value to be of type ${schema.constructor.name}.\n${err.toString()}`)
+        }
+      };
+  /* c8 ignore end */
+
+  /**
+   * @template In
+   * @template Out
+   * @typedef {{ if: Schema<In>, h: (o:In,state?:any)=>Out }} Pattern
+   */
+
+  /**
+   * @template {Pattern<any,any>} P
+   * @template In
+   * @typedef {ReturnType<Extract<P,Pattern<In extends number ? number : (In extends string ? string : In),any>>['h']>} PatternMatchResult
+   */
+
+  /**
+   * @todo move this to separate library
+   * @template {any} [State=undefined]
+   * @template {Pattern<any,any>} [Patterns=never]
+   */
+  class PatternMatcher {
+    /**
+     * @param {Schema<State>} [$state]
+     */
+    constructor ($state) {
+      /**
+       * @type {Array<Patterns>}
+       */
+      this.patterns = [];
+      this.$state = $state;
+    }
+
+    /**
+     * @template P
+     * @template R
+     * @param {P} pattern
+     * @param {(o:NoInfer<Unwrap<ReadSchema<P>>>,s:State)=>R} handler
+     * @return {PatternMatcher<State,Patterns|Pattern<Unwrap<ReadSchema<P>>,R>>}
+     */
+    if (pattern, handler) {
+      // @ts-ignore
+      this.patterns.push({ if: $$1(pattern), h: handler });
+      // @ts-ignore
+      return this
+    }
+
+    /**
+     * @template R
+     * @param {(o:any,s:State)=>R} h
+     */
+    else (h) {
+      return this.if($any, h)
+    }
+
+    /**
+     * @return {State extends undefined
+     *   ? <In extends Unwrap<Patterns['if']>>(o:In,state?:undefined)=>PatternMatchResult<Patterns,In>
+     *   : <In extends Unwrap<Patterns['if']>>(o:In,state:State)=>PatternMatchResult<Patterns,In>}
+     */
+    done () {
+      // @ts-ignore
+      return /** @type {any} */ (o, s) => {
+        for (let i = 0; i < this.patterns.length; i++) {
+          const p = this.patterns[i];
+          if (p.if.check(o)) {
+            // @ts-ignore
+            return p.h(o, s)
+          }
+        }
+        throw create$3('Unhandled pattern')
+      }
+    }
+  }
+
+  /**
+   * @template [State=undefined]
+   * @param {State} [state]
+   * @return {PatternMatcher<State extends undefined ? undefined : Unwrap<ReadSchema<State>>>}
+   */
+  const match = state => new PatternMatcher(/** @type {any} */ (state));
+
+  /**
+   * Helper function to generate a (non-exhaustive) sample set from a gives schema.
+   *
+   * @type {<T>(o:T,gen:prng.PRNG)=>T}
+   */
+  const _random = /** @type {any} */ (match(/** @type {Schema<prng.PRNG>} */ ($any))
+    .if($$number, (_o, gen) => int53(gen, MIN_SAFE_INTEGER, MAX_SAFE_INTEGER))
+    .if($$string, (_o, gen) => word(gen))
+    .if($$boolean, (_o, gen) => bool(gen))
+    .if($$bigint, (_o, gen) => BigInt(int53(gen, MIN_SAFE_INTEGER, MAX_SAFE_INTEGER)))
+    .if($$union, (o, gen) => random(gen, oneOf(gen, o.shape)))
+    .if($$object, (o, gen) => {
+      /**
+       * @type {any}
+       */
+      const res = {};
+      for (const k in o.shape) {
+        let prop = o.shape[k];
+        if ($$optional.check(prop)) {
+          if (bool(gen)) { continue }
+          prop = prop.shape;
+        }
+        res[k] = _random(prop, gen);
+      }
+      return res
+    })
+    .if($$array, (o, gen) => {
+      const arr = [];
+      const n = int32(gen, 0, 42);
+      for (let i = 0; i < n; i++) {
+        arr.push(random(gen, o.shape));
+      }
+      return arr
+    })
+    .if($$literal, (o, gen) => {
+      return oneOf(gen, o.shape)
+    })
+    .if($$null, (o, gen) => {
+      return null
+    })
+    .if($$lambda, (o, gen) => {
+      const res = random(gen, o.res);
+      return () => res
+    })
+    .if($$any, (o, gen) => random(gen, oneOf(gen, [
+      $number, $string, $null, $undefined, $bigint, $boolean,
+      $array($number),
+      $record($union('a', 'b', 'c'), $number)
+    ])))
+    .if($$record, (o, gen) => {
+      /**
+       * @type {any}
+       */
+      const res = {};
+      const keysN = int53(gen, 0, 3);
+      for (let i = 0; i < keysN; i++) {
+        const key = random(gen, o.shape.keys);
+        const val = random(gen, o.shape.values);
+        res[key] = val;
+      }
+      return res
+    })
+    .done());
+
+  /**
+   * @template S
+   * @param {prng.PRNG} gen
+   * @param {S} schema
+   * @return {Unwrap<ReadSchema<S>>}
+   */
+  const random = (gen, schema) => /** @type {any} */ (_random($$1(schema), gen));
+
   /* eslint-env browser */
 
 
+  /* c8 ignore start */
+  /**
+   * @type {Document}
+   */
+  const doc = /** @type {Document} */ (typeof document !== 'undefined' ? document : {});
+
+  /**
+   * @type {$.Schema<DocumentFragment>}
+   */
+  $custom(el => el.nodeType === DOCUMENT_FRAGMENT_NODE);
+
   /** @type {DOMParser} */ (typeof DOMParser !== 'undefined' ? new DOMParser() : null);
+
+  /**
+   * @type {$.Schema<Element>}
+   */
+  $custom(el => el.nodeType === ELEMENT_NODE);
+
+  /**
+   * @type {$.Schema<Text>}
+   */
+  $custom(el => el.nodeType === TEXT_NODE);
 
   /**
    * @param {Map<string,string>} m
    * @return {string}
    */
   const mapToStyleString = m => map(m, (value, key) => `${key}:${value};`).join('');
+
+  const ELEMENT_NODE = doc.ELEMENT_NODE;
+  const TEXT_NODE = doc.TEXT_NODE;
+  const DOCUMENT_NODE = doc.DOCUMENT_NODE;
+  const DOCUMENT_FRAGMENT_NODE = doc.DOCUMENT_FRAGMENT_NODE;
+
+  /**
+   * @type {$.Schema<Node>}
+   */
+  $custom(el => el.nodeType === DOCUMENT_NODE);
   /* c8 ignore stop */
 
   /**
@@ -1750,7 +3157,7 @@
         const left = dels[j - 1];
         const right = dels[i];
         if (left.clock + left.len >= right.clock) {
-          left.len = max(left.len, right.clock + right.len - left.clock);
+          dels[j - 1] = new DeleteItem(left.clock, max(left.len, right.clock + right.len - left.clock));
         } else {
           if (j < i) {
             dels[j] = right;
@@ -3186,17 +4593,21 @@
               // sort events by path length so that top-level events are fired first.
               events
                 .sort((event1, event2) => event1.path.length - event2.path.length);
-              // We don't need to check for events.length
-              // because we know it has at least one element
-              callEventHandlerListeners(type._dEH, events, transaction);
+              fs.push(() => {
+                // We don't need to check for events.length
+                // because we know it has at least one element
+                callEventHandlerListeners(type._dEH, events, transaction);
+              });
+            }
+          });
+          fs.push(() => doc.emit('afterTransaction', [transaction, doc]));
+          fs.push(() => {
+            if (transaction._needFormattingCleanup) {
+              cleanupYTextAfterTransaction(transaction);
             }
           });
         });
-        fs.push(() => doc.emit('afterTransaction', [transaction, doc]));
         callAll(fs, []);
-        if (transaction._needFormattingCleanup) {
-          cleanupYTextAfterTransaction(transaction);
-        }
       } finally {
         // Replace deleted items with ItemDeleted / GC.
         // This is where content is actually remove from the Yjs Doc.
@@ -3358,7 +4769,7 @@
        */
       this._changes = null;
       /**
-       * @type {null | Map<string, { action: 'add' | 'update' | 'delete', oldValue: any, newValue: any }>}
+       * @type {null | Map<string, { action: 'add' | 'update' | 'delete', oldValue: any }>}
        */
       this._keys = null;
       /**
@@ -3401,7 +4812,7 @@
     }
 
     /**
-     * @type {Map<string, { action: 'add' | 'update' | 'delete', oldValue: any, newValue: any }>}
+     * @type {Map<string, { action: 'add' | 'update' | 'delete', oldValue: any }>}
      */
     get keys () {
       if (this._keys === null) {
@@ -6742,12 +8153,10 @@
       const el = new YXmlElement(this.nodeName);
       const attrs = this.getAttributes();
       forEach(attrs, (value, key) => {
-        if (typeof value === 'string') {
-          el.setAttribute(key, value);
-        }
+        el.setAttribute(key, /** @type {any} */ (value));
       });
       // @ts-ignore
-      el.insert(0, this.toArray().map(item => item instanceof AbstractType ? item.clone() : item));
+      el.insert(0, this.toArray().map(v => v instanceof AbstractType ? v.clone() : v));
       return el
     }
 
@@ -8379,7 +9788,7 @@
    * @group Decorators
    * @category Augmentation
    *
-   * @template Type
+   * @template Type - The type of the decorated property.
    * @description Options for configuring the `@auto` decorator.
    * @property {boolean} [override] - If true, will try to override the defined property in `super`.
    * @property {boolean} [cancelIfUnchanged=true] - If true, cancels the setter if the new value is the same as the
@@ -8423,22 +9832,41 @@
   }
 
   /**
+   * @function isNull
    * @group Utilities
    * @category Null Check
+   *
+   * @description Check whether a value is `null`. Treats `undefined` as distinct, so pair it with
+   * {@link isUndefined} to cover both.
+   * @param {any} value - The value to test.
+   * @returns {boolean} `true` if the value is `null`.
    */
   function isNull(value) {
-      return value == null && value != undefined;
+      return value === null;
   }
   /**
+   * @function isUndefined
    * @group Utilities
    * @category Null Check
+   *
+   * @description Check whether a value is `undefined`. Uses a `typeof` test, so it is safe on names that were
+   * never declared, and it does not treat `null` as undefined.
+   * @param {any} value - The value to test.
+   * @returns {boolean} `true` if the value is `undefined`.
    */
   function isUndefined(value) {
       return typeof value == "undefined";
   }
   /**
+   * @function alphabeticalSorting
    * @group Utilities
    * @category Sorting
+   *
+   * @description Comparator for `Array.prototype.sort` that orders keys naturally: strings by locale, numbers
+   * by value, and symbols by their description. Pairs of mixed types are left in place.
+   * @param {string | number | symbol} a - The first key.
+   * @param {string | number | symbol} b - The second key.
+   * @returns {number} A negative number, zero, or a positive number, as `sort` expects.
    */
   function alphabeticalSorting(a, b) {
       if (typeof a === "symbol")
@@ -8453,8 +9881,16 @@
   }
 
   /**
+   * @function getFirstDescriptorInChain
    * @group Utilities
    * @category Prototype
+   *
+   * @description Find how a property is defined on an object or the closest ancestor that declares it, giving
+   * you the getter, setter, or value rather than just the resolved result. The search starts at the object
+   * itself and stops before `Object.prototype`, so inherited built-ins are never returned.
+   * @param {object} object - The object to search from.
+   * @param {PropertyKey} key - The property to look for.
+   * @returns {PropertyDescriptor} The nearest descriptor, or `undefined` if nothing in the chain declares it.
    */
   function getFirstDescriptorInChain(object, key) {
       let currentObject = object;
@@ -8467,8 +9903,15 @@
       return undefined;
   }
   /**
+   * @function getFirstPrototypeInChainWith
    * @group Utilities
    * @category Prototype
+   *
+   * @description Find the nearest ancestor prototype that declares a property, skipping the object itself. Use
+   * it to locate which class in a hierarchy a member came from.
+   * @param {object} object - The object to search from.
+   * @param {PropertyKey} key - The property to look for.
+   * @returns {any} The nearest prototype declaring it, or `undefined` if none does.
    */
   function getFirstPrototypeInChainWith(object, key) {
       let currentObject = Object.getPrototypeOf(object);
@@ -8481,8 +9924,17 @@
       return undefined;
   }
   /**
+   * @function getSuperMethod
    * @group Utilities
    * @category Prototype
+   *
+   * @description Find the inherited implementation a wrapper is standing in for, so a decorator or patched
+   * method can call through to it. The wrapper itself is skipped, which is what stops a patched method from
+   * finding and recursing into itself.
+   * @param {object} object - The object whose ancestors to search.
+   * @param {PropertyKey} key - The member to look for.
+   * @param {Function} wrapperFn - The wrapping function to skip over.
+   * @returns {Function} The inherited implementation, or `undefined` if there is none.
    */
   function getSuperMethod(object, key, wrapperFn) {
       let currentObject = Object.getPrototypeOf(object);
@@ -8496,8 +9948,16 @@
       return undefined;
   }
   /**
+   * @function getSuperDescriptor
    * @group Utilities
    * @category Prototype
+   *
+   * @description Find how a property is defined one level further up than {@link getFirstPrototypeInChainWith}
+   * looks, skipping both the object and its immediate prototype. Use it from inside a class to reach the
+   * definition its own prototype is overriding.
+   * @param {object} object - The object whose ancestors to search.
+   * @param {PropertyKey} key - The property to look for.
+   * @returns {PropertyDescriptor} The inherited descriptor, or `undefined` if none exists.
    */
   function getSuperDescriptor(object, key) {
       let currentObject = Object.getPrototypeOf(object);
@@ -8512,8 +9972,15 @@
       return undefined;
   }
   /**
+   * @function getPrototypeChain
    * @group Utilities
    * @category Prototype
+   *
+   * @description List an object's prototype chain, nearest first. Passing a class lists the class and its
+   * ancestors; passing an instance starts at its prototype. Used to walk a hierarchy and merge each level's
+   * static defaults.
+   * @param {object} object - The instance or class to walk.
+   * @returns {any[]} The chain from nearest to furthest, stopping before `Function.prototype`.
    */
   function getPrototypeChain(object) {
       const chain = [];
@@ -8542,7 +10009,6 @@
    *
    * *Note: If you want to chain decorators, place `@auto` closest to the property to ensure it runs first and sets
    * up the accessor for other decorators.*
-   *
    * @param {AutoOptions} [options] - Options object to define custom behaviors.
    *
    * @example
@@ -8614,7 +10080,7 @@
                   writeFlag = true;
                   options.callBefore?.call(this, value);
                   let next = options?.preprocessValue ? options.preprocessValue.call(this, value) : value;
-                  if ((options.cancelIfUnchanged ?? true) && baseRead.call(this) === next) {
+                  if ((options.cancelIfUnchanged ?? true) && Object.is(baseRead.call(this), next)) {
                       writeFlag = false;
                       return;
                   }
@@ -8674,16 +10140,18 @@
   }
 
   /**
-   * @class TurboSelector
-   * @group TurboSelector
+   * @class GradumSelector
+   * @group GradumSelector
+   * @category Core
    *
    * @template {object} Type - The type of the object it wraps.
    * @description Selector class that wraps an object and augments it with useful functions to manipulate it. It also
    * proxies the object, so you can access properties and methods on the underlying object directly through the selector.
    */
-  class TurboSelector {
+  class GradumSelector {
       /**
-       * @description The underlying, wrapped object.
+       * @category Core
+       * @description The underlying, wrapped object. Every method on the selector reads and writes through it.
        */
       element;
       #generateProxy() {
@@ -8713,15 +10181,27 @@
               }
           });
       }
+      /**
+       * @category Core
+       * @constructor
+       * @description Create a bare selector. Prefer {@link gradum} (or `g`, `gr`, `$`), which caches one
+       * selector per target and wires up {@link GradumSelector.element} for you. The instance returned is a
+       * proxy, so properties not found on the selector fall through to the wrapped object.
+       */
       constructor() {
           return this.#generateProxy();
       }
   }
 
+  /**
+   * @internal
+   * @class HierarchyFunctionsUtils
+   * @description Shared helpers and per-element state behind the DOM hierarchy functions on {@link GradumSelector}.
+   */
   class HierarchyFunctionsUtils {
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return {};
@@ -8732,6 +10212,12 @@
   }
 
   const utils$c = new HierarchyFunctionsUtils();
+  /**
+   * @internal
+   * @function setupHierarchyFunctions
+   * @description Install the DOM hierarchy functions (`addChild`, `closest`, `childHandler`, ...) onto the
+   * {@link GradumSelector} prototype. Called once by {@link gradumify}; the matching `exclude` option skips it.
+   */
   function setupHierarchyFunctions() {
       //Readonly fields
       /**
@@ -8739,9 +10225,9 @@
        * its children) or its shadow root (if defined). Set it to change the node where the children are added/removed/
        * queried from when manipulating the node's children.
        */
-      Object.defineProperty(TurboSelector.prototype, "childHandler", {
+      Object.defineProperty(GradumSelector.prototype, "childHandler", {
           set: function (value) {
-              if (value instanceof TurboSelector)
+              if (value instanceof GradumSelector)
                   value = value.element;
               utils$c.data(this).childHandler = value;
           },
@@ -8759,7 +10245,7 @@
       /**
        * @description Static array of all the child nodes of the node.
        */
-      Object.defineProperty(TurboSelector.prototype, "childNodesArray", {
+      Object.defineProperty(GradumSelector.prototype, "childNodesArray", {
           get: function () {
               if (!this.element)
                   return [];
@@ -8771,7 +10257,7 @@
       /**
        * @description Static array of all the child elements of the node.
        */
-      Object.defineProperty(TurboSelector.prototype, "childrenArray", {
+      Object.defineProperty(GradumSelector.prototype, "childrenArray", {
           get: function () {
               return this.childNodesArray.filter((node) => node.nodeType === 1);
           },
@@ -8781,7 +10267,7 @@
       /**
        * @description Static array of all the sibling nodes (including the node itself) of the node.
        */
-      Object.defineProperty(TurboSelector.prototype, "siblingNodes", {
+      Object.defineProperty(GradumSelector.prototype, "siblingNodes", {
           get: function () {
               const parent = this.element?.parentNode;
               if (!parent)
@@ -8794,7 +10280,7 @@
       /**
        * @description Static array of all the sibling elements (including the element itself, if it is one) of the node.
        */
-      Object.defineProperty(TurboSelector.prototype, "siblings", {
+      Object.defineProperty(GradumSelector.prototype, "siblings", {
           get: function () {
               const parent = this.element?.parentElement;
               if (!parent)
@@ -8805,14 +10291,14 @@
           enumerable: true
       });
       //Self manipulation
-      TurboSelector.prototype.bringToFront = function _bringToFront() {
+      GradumSelector.prototype.bringToFront = function _bringToFront() {
           const parent = this.element?.parentNode;
           if (!parent)
               return this;
           $(parent).addChild(this.element);
           return this;
       };
-      TurboSelector.prototype.sendToBack = function _sendToBack() {
+      GradumSelector.prototype.sendToBack = function _sendToBack() {
           const parent = this.element?.parentNode;
           if (!parent)
               return this;
@@ -8823,7 +10309,7 @@
        * @description Removes the node from the document.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.remove = function _remove() {
+      GradumSelector.prototype.remove = function _remove() {
           this.element?.parentNode?.removeChild(this.element);
           return this;
       };
@@ -8837,7 +10323,7 @@
        * use as computation reference for index placement. Defaults to the node's `childrenArray`.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.addChild = function _addChild(children, index, referenceList = this.childrenArray) {
+      GradumSelector.prototype.addChild = function _addChild(children, index, referenceList = this.childrenArray) {
           if (!this.element || !children)
               return this;
           if (index !== undefined && (index < 0 || index > referenceList.length))
@@ -8852,7 +10338,7 @@
                   children.forEach((child) => {
                       if (!child)
                           return;
-                      if (child instanceof TurboSelector)
+                      if (child instanceof GradumSelector)
                           child = child.element;
                       this.childHandler.appendChild(child);
                       //TODO
@@ -8869,7 +10355,7 @@
        * @param {Node | Node[]} [children] - Array of (or single) child nodes.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.remChild = function _remChild(children) {
+      GradumSelector.prototype.remChild = function _remChild(children) {
           if (!this.element || !children)
               return this;
           // Try to remove every provided child (according to its type)
@@ -8879,7 +10365,7 @@
               children.forEach(child => {
                   if (!child)
                       return;
-                  if (child instanceof TurboSelector)
+                  if (child instanceof GradumSelector)
                       child = child.element;
                   this.childHandler.removeChild(child);
               });
@@ -8896,7 +10382,7 @@
        * @param {Node} [sibling] - The sibling node to insert the children before.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.addChildBefore = function _addChildBefore(children, sibling) {
+      GradumSelector.prototype.addChildBefore = function _addChildBefore(children, sibling) {
           if (!this.element || !children)
               return this;
           if (!sibling)
@@ -8908,7 +10394,7 @@
               children.forEach((child) => {
                   if (!child)
                       return;
-                  if (child instanceof TurboSelector)
+                  if (child instanceof GradumSelector)
                       child = child.element;
                   this.childHandler.insertBefore(child, sibling);
               });
@@ -8926,7 +10412,7 @@
        * use as computation reference for index placement and count. Defaults to the node's `childrenArray`.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeChildAt = function _removeChildAt(index, count = 1, referenceList = this.childrenArray) {
+      GradumSelector.prototype.removeChildAt = function _removeChildAt(index, count = 1, referenceList = this.childrenArray) {
           if (!this.element || index === undefined || index < 0)
               return this;
           if (index >= referenceList.length)
@@ -8950,7 +10436,7 @@
        * representing all the nodes to remove. Defaults to the node's `childrenArray`.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeAllChildren = function _removeAllChildren(referenceList = this.childrenArray) {
+      GradumSelector.prototype.removeAllChildren = function _removeAllChildren(referenceList = this.childrenArray) {
           if (!this.element)
               return this;
           try {
@@ -8971,7 +10457,7 @@
        * use as computation reference for index placement. Defaults to the node's `childrenArray`.
        * @returns {Node | Element | null} The child at the given index, or `null` if the index is invalid.
        */
-      TurboSelector.prototype.childAt = function _childAt(index, referenceList = this.childrenArray) {
+      GradumSelector.prototype.childAt = function _childAt(index, referenceList = this.childrenArray) {
           if (!this.element || index === undefined)
               return null;
           if (index >= referenceList.length)
@@ -8987,7 +10473,7 @@
        * use as computation reference for index placement. Defaults to the node's `childrenArray`.
        * @returns {number} The index of the child node in the provided list, or -1 if the child is not found.
        */
-      TurboSelector.prototype.indexOfChild = function _indexOfChild(child, referenceList = this.childrenArray) {
+      GradumSelector.prototype.indexOfChild = function _indexOfChild(child, referenceList = this.childrenArray) {
           if (!this.element || !child)
               return -1;
           if (!(referenceList instanceof Array))
@@ -8999,7 +10485,7 @@
        * @param {Node | Node[]} [children] - Array of (or single) child nodes.
        * @returns {boolean} A boolean indicating whether the provided nodes belong to the parent or not.
        */
-      TurboSelector.prototype.hasChild = function _hasChild(children) {
+      GradumSelector.prototype.hasChild = function _hasChild(children) {
           if (!this.element || !children)
               return false;
           const nodesArray = Array.from(this.element?.childNodes);
@@ -9012,25 +10498,32 @@
           return true;
       };
       /**
-       * Finds the closest ancestor of the current element (or the current element itself) that matches the provided
-       * CSS selector or element type.
-       * @param {ValidTag | (new (...args: any[]) => Element)} type - The (valid) CSS selector string, or element
-       * constructor/class to match.
+       * @description Finds the closest ancestor of the current element (or the current element itself) that matches the
+       * provided type. Accepts either a constructor (matched via `instanceof`) or a string. When a string is
+       * given it is first resolved to a constructor via `customElements` (so `"my-component"` matches any
+       * element that is an `instanceof MyComponent`); if no custom element is registered for that name it
+       * falls back to a native CSS-selector walk via `Element.closest()`.
+       * @param {string | (new (...args: any[]) => Element)} type - Custom-element tag name, CSS selector,
+       * or element constructor to match.
        * @returns {Element | null} The matching ancestor element, or null if no match is found.
        */
-      TurboSelector.prototype.closest = function _closest(type) {
+      GradumSelector.prototype.closest = function _closest(type) {
           if (!this.element || !type || !(this.element instanceof Element))
               return null;
           if (typeof type === "string") {
+              const ctor = customElements.get(type);
+              if (ctor) {
+                  let el = this.element;
+                  while (el && !(el instanceof ctor))
+                      el = el.parentElement;
+                  return el || null;
+              }
               return this.element.closest(type);
           }
-          else if (typeof type === "function") {
-              let element = this.element;
-              while (element && !(element instanceof type))
-                  element = element.parentElement;
-              return element || null;
-          }
-          return null;
+          let el = this.element;
+          while (el && !(el instanceof type))
+              el = el.parentElement;
+          return el || null;
       };
       //Parent identification
       /**
@@ -9038,7 +10531,7 @@
        * @param {Node | Node[]} [parents] - The parent(s) to check.
        * @returns {boolean} True if the node is within the given parents, false otherwise.
        */
-      TurboSelector.prototype.findInParents = function _findInParents(parents) {
+      GradumSelector.prototype.findInParents = function _findInParents(parents) {
           if (!parents || !this.element)
               return false;
           if (parents instanceof Node)
@@ -9057,7 +10550,7 @@
        * @param {Node | Node[]} [children] - The child or children to check.
        * @returns {boolean} True if the children belong to the node, false otherwise.
        */
-      TurboSelector.prototype.findInSubTree = function _findInSubTree(children) {
+      GradumSelector.prototype.findInSubTree = function _findInSubTree(children) {
           if (!children || !this.element)
               return false;
           if (children instanceof Node)
@@ -9079,7 +10572,7 @@
        * reference for index placement. Defaults to the node's `siblings`.
        * @returns {boolean} True if the children belong to the node, false otherwise.
        */
-      TurboSelector.prototype.indexInParent = function _indexInParent(referenceList = this.siblings) {
+      GradumSelector.prototype.indexInParent = function _indexInParent(referenceList = this.siblings) {
           if (!referenceList || !this.element)
               return -1;
           return referenceList.indexOf(this.element);
@@ -9094,7 +10587,7 @@
        * use as computation reference for index placement. Defaults to the node's `childrenArray`.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.addToParent = function _addToParent(parent, index, referenceList) {
+      GradumSelector.prototype.addToParent = function _addToParent(parent, index, referenceList) {
           if (!this.element || !parent)
               return this;
           $(parent).addChild(this.element, index, referenceList);
@@ -9104,30 +10597,35 @@
 
   /**
    * @constant
-   * @group Types
+   * @group GradumSelector
    * @category Misc
-   * @description Default array-like keys to merge when applying defaults with {@link TurboSelector.applyDefaults}.
+   * @description Default array-like keys to merge when applying defaults with {@link GradumSelector.applyDefaults}.
    */
-  const ApplyDefaultsMergeProperties = ["interactors", "tools", "substrates", "controllers", "handlers"];
+  const ApplyDefaultsMergeProperties = ["interactors", "tools", "constrainers", "operators", "handlers"];
 
+  /**
+   * @internal
+   * @function setupMiscFunctions
+   * @description Install the miscellaneous object helpers (`apply`, `applyDefaults`, `extract`, `getDifference`,
+   * ...) onto the {@link GradumSelector} prototype. Called once by
+   * {@link gradumify}; the matching `exclude` option skips it.
+   */
   function setupMiscFunctions() {
       /**
        * @description Execute a callback on the node while still benefiting from chaining.
        * @param {(el: this) => void} callback The function to execute, with 1 parameter representing the instance itself.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.execute = function _execute(callback) {
+      GradumSelector.prototype.execute = function _execute(callback) {
           callback(this);
           return this;
       };
-      TurboSelector.prototype.apply = function apply(properties) {
+      GradumSelector.prototype.apply = function apply(properties) {
           if (!this.element || typeof this.element !== "object")
               return this;
           if (!properties || typeof properties !== "object")
               return this;
           for (const [key, value] of Object.entries(properties)) {
-              if (value === undefined)
-                  continue;
               try {
                   this.element[key] = value;
               }
@@ -9135,7 +10633,7 @@
           }
           return this;
       };
-      TurboSelector.prototype.removeFields = function removeFields(keys) {
+      GradumSelector.prototype.removeFields = function removeFields(keys) {
           if (!this.element || typeof this.element !== "object")
               return this;
           if (!keys || !Array.isArray(keys))
@@ -9146,14 +10644,14 @@
               }
               catch {
                   try {
-                      this.element[key] = undefined;
+                      delete this.element[key];
                   }
                   catch { }
               }
           }
           return this;
       };
-      TurboSelector.prototype.getDefaults = function getDefaults(defaults) {
+      GradumSelector.prototype.getDefaults = function getDefaults(defaults) {
           if (!this.element || typeof this.element !== "object")
               return {};
           if (!defaults || typeof defaults !== "object")
@@ -9165,7 +10663,7 @@
           }
           return result;
       };
-      TurboSelector.prototype.getIntersection = function getIntersection(other) {
+      GradumSelector.prototype.getIntersection = function getIntersection(other) {
           if (!this.element || typeof this.element !== "object")
               return {};
           if (!other || typeof other !== "object")
@@ -9177,7 +10675,7 @@
           }
           return result;
       };
-      TurboSelector.prototype.getDifference = function getDifference(other) {
+      GradumSelector.prototype.getDifference = function getDifference(other) {
           if (!this.element || typeof this.element !== "object")
               return {};
           if (!other || typeof other !== "object")
@@ -9189,7 +10687,7 @@
           }
           return result;
       };
-      TurboSelector.prototype.extract = function extract(keys) {
+      GradumSelector.prototype.extract = function extract(keys) {
           if (!this.element || typeof this.element !== "object")
               return {};
           if (!keys || !Array.isArray(keys))
@@ -9199,11 +10697,11 @@
               if (isUndefined(this.element[key]))
                   continue;
               result[key] = this.element[key];
-              this.element[key] = undefined;
+              delete this.element[key];
           }
           return result;
       };
-      TurboSelector.prototype.applyDefaults = function applyDefaults(defaults, options = {}) {
+      GradumSelector.prototype.applyDefaults = function applyDefaults(defaults, options = {}) {
           if (!this.element || typeof this.element !== "object")
               return this;
           if (!defaults || typeof defaults !== "object")
@@ -9229,12 +10727,20 @@
       };
   }
 
+  /**
+   * @internal
+   * @class ClassFunctionsUtils
+   * @description Shared helpers behind the CSS-class functions on {@link GradumSelector}.
+   */
   class ClassFunctionsUtils {
       /**
-       * @description Utility function to operate on the provided classes
-       * @param selector
-       * @param classes
-       * @param callback
+       * @function operateOnClasses
+       * @description Run a callback once per CSS class, accepting either a space-separated string or an array
+       * so every class function can take both forms.
+       * @param {GradumSelector} selector - The selector whose element the classes belong to.
+       * @param {string | string[]} [classes] - Classes separated by spaces, or an array of class names.
+       * @param {(classEntry: string) => void} [callback] - Called once per class name.
+       * @returns {GradumSelector} The given selector, allowing for method chaining.
        */
       operateOnClasses(selector, classes, callback = (() => { })) {
           if (!selector || !classes || !selector.element)
@@ -9254,13 +10760,20 @@
   }
 
   const utils$b = new ClassFunctionsUtils();
+  /**
+   * @internal
+   * @function setupClassFunctions
+   * @description Install the CSS-class functions (`addClass`, `removeClass`, `toggleClass`, `hasClass`) onto the
+   * {@link GradumSelector} prototype. Called once by
+   * {@link gradumify}; the matching `exclude` option skips it.
+   */
   function setupClassFunctions() {
       /**
        * @description Add one or more CSS classes to the element.
        * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.addClass = function _addClass(classes) {
+      GradumSelector.prototype.addClass = function _addClass(classes) {
           if (!(this.element instanceof Element))
               return this;
           return utils$b.operateOnClasses(this, classes, entry => this.element.classList.add(entry));
@@ -9270,7 +10783,7 @@
        * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeClass = function _removeClass(classes) {
+      GradumSelector.prototype.removeClass = function _removeClass(classes) {
           if (!(this.element instanceof Element))
               return this;
           return utils$b.operateOnClasses(this, classes, entry => this.element.classList.remove(entry));
@@ -9282,17 +10795,17 @@
        * then the class will only be removed, but not added. If set to true, then token will only be added, but not removed.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.toggleClass = function _toggleClass(classes, force) {
+      GradumSelector.prototype.toggleClass = function _toggleClass(classes, force) {
           if (!(this.element instanceof Element))
               return this;
           return utils$b.operateOnClasses(this, classes, entry => this.element.classList.toggle(entry, force));
       };
       /**
        * @description Check if the element's class list contains the provided class(es).
-       * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings
-       * @return A boolean indicating whether the provided classes are included
+       * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
+       * @returns {boolean} Whether the element carries every one of the given classes.
        */
-      TurboSelector.prototype.hasClass = function _hasClass(classes) {
+      GradumSelector.prototype.hasClass = function _hasClass(classes) {
           if (!classes || !(this.element instanceof Element))
               return false;
           if (typeof classes === "string")
@@ -9306,14 +10819,14 @@
   }
 
   /**
-   * @group Types
-   * @category SVG Element
+   * @group Core Types
+   * @category SVG Tags
    * @description URL to the SVG namespace.
    */
   const SvgNamespace = "http://www.w3.org/2000/svg";
   /**
-   * @group Types
-   * @category SVG Element
+   * @group Core Types
+   * @category SVG Tags
    * @description Set of Valid SVG tags.
    */
   const SvgTags = new Set([
@@ -9328,14 +10841,14 @@
   ]);
 
   /**
-   * @group Types
-   * @category MathML Element
+   * @group Core Types
+   * @category MathML Tags
    * @description URL to the MathML namespace.
    */
   const MathMLNamespace = "http://www.w3.org/1998/Math/MathML";
   /**
-   * @group Types
-   * @category MathML Element
+   * @group Core Types
+   * @category MathML Tags
    * @description Set of Valid MathML tags.
    */
   const MathMLTags = new Set([
@@ -9344,13 +10857,17 @@
       "msubsup", "msup", "mtable", "mtd", "mtext", "mtr", "munder", "munderover", "semantics",
   ]);
   /**
+   * @function element
    * @group Element Creation
    * @category Creation Functions
    *
-   * @description Create an element with the specified properties (and the specified namespace if applicable).
-   * @param {TurboProperties<Tag>} [properties] - Object containing properties of the element.
-   * @returns {ValidElement<Tag>} The created element.
-   * @template Tag
+   * @template {ValidTag} Tag - The tag of the element to create.
+   * @description Create an element from a properties object and apply those properties to it. The
+   * namespace is taken from `properties.namespace`: pass `"svg"` or `"mathML"` for those documents, or a
+   * namespace URI directly. Use {@link blindElement} instead to have the namespace inferred from the tag.
+   * @param {GradumProperties<Tag>} [properties] - Object containing properties of the element. Defaults
+   * to a `<div>` when no tag is given.
+   * @returns {ValidElement<Tag>} The created element, with the given properties already applied.
    */
   function element(properties = {}) {
       let element;
@@ -9365,17 +10882,21 @@
       else {
           element = document.createElement(properties.tag || "div");
       }
-      turbo(element).setProperties(properties);
+      gradum(element, true).setProperties(properties);
       return element;
   }
   /**
+   * @function blindElement
    * @group Element Creation
    * @category Creation Functions
    *
-   * @description Create an element with the specified properties. Supports SVG and MathML.
-   * @param {TurboProperties<Tag>} [properties] - Object containing properties of the element.
-   * @returns {ValidElement<Tag>} The created element.
-   * @template Tag
+   * @template {ValidTag} Tag - The tag of the element to create.
+   * @description Create an element from a properties object, working out the namespace from the tag alone
+   * — SVG tags land in the SVG namespace, MathML tags in the MathML one, everything else in HTML. Use it
+   * when the tag is only known at runtime; use {@link element} when you can state the namespace yourself.
+   * @param {GradumProperties<Tag>} [properties] - Object containing properties of the element. Defaults
+   * to a `<div>` when no tag is given.
+   * @returns {ValidElement<Tag>} The created element, with the given properties already applied.
    */
   function blindElement(properties = {}) {
       let element;
@@ -9385,94 +10906,101 @@
           element = document.createElementNS(MathMLNamespace, properties.tag || "math");
       else
           element = document.createElement(properties.tag || "div");
-      turbo(element).setProperties(properties);
+      gradum(element, true).setProperties(properties);
       return element;
   }
   /**
-   * @group Element Creation
-   * @category Tag Functions
-   *
-   * @description Evaluates whether the provided string is an SVG tag.
-   * @param {string} [tag] - The string to evaluate
-   * @return A boolean indicating whether the tag is in the SVG namespace or not.
+   * @internal
+   * @function isSvgTag
+   * @description Whether a tag belongs to the SVG namespace. Recognizes the known SVG tag list, plus any
+   * tag starting with `svg`.
+   * @param {string} [tag] - The tag to test.
+   * @returns {boolean} `true` if the tag should be created in the SVG namespace.
    */
   function isSvgTag(tag) {
       return SvgTags.has(tag) || tag?.startsWith("svg");
   }
   /**
-   * @group Element Creation
-   * @category Tag Functions
-   *
-   * @description Evaluates whether the provided string is a MathML tag.
-   * @param {string} [tag] - The string to evaluate
-   * @return A boolean indicating whether the tag is in the MathML namespace or not.
+   * @internal
+   * @function isMathMLTag
+   * @description Whether a tag belongs to the MathML namespace. Recognizes the known MathML tag list, plus
+   * any tag starting with `math`.
+   * @param {string} [tag] - The tag to test.
+   * @returns {boolean} `true` if the tag should be created in the MathML namespace.
    */
   function isMathMLTag(tag) {
       return MathMLTags.has(tag) || tag?.startsWith("math");
   }
   /**
+   * @function div
    * @group Element Creation
    * @category Base Elements
    *
-   * @description Creates a "div" element with the specified properties.
-   * @param {TurboProperties<"div">} [properties] - Object containing properties of the element.
-   * @returns {ValidElement<"div">} The created element.
+   * @description Creates a `<div>` element with the specified properties.
+   * @param {GradumProperties<"div">} [properties] - Object containing properties of the element.
+   * @returns {ValidElement<"div">} The created element, with the given properties already applied.
    */
   function div(properties = {}) {
       return element({ ...properties, tag: "div" });
   }
   /**
+   * @function img
    * @group Element Creation
    * @category Base Elements
    *
-   * @description Creates an "img" element with the specified properties.
-   * @param {TurboProperties<"img">} [properties] - Object containing properties of the element.
-   * @returns {ValidElement<"img">} The created element.
+   * @description Creates an `<img>` element with the specified properties.
+   * @param {GradumProperties<"img">} [properties] - Object containing properties of the element.
+   * @returns {ValidElement<"img">} The created element, with the given properties already applied.
    */
   function img(properties = {}) {
       return element({ ...properties, tag: "img" });
   }
   /**
+   * @function input
    * @group Element Creation
    * @category Base Elements
    *
-   * @description Creates an "input" element with the specified properties.
-   * @param {TurboProperties<"input">} [properties] - Object containing properties of the element.
-   * @returns {ValidElement<"input">} The created element.
+   * @description Creates an `<input>` element with the specified properties.
+   * @param {GradumProperties<"input">} [properties] - Object containing properties of the element.
+   * @returns {ValidElement<"input">} The created element, with the given properties already applied.
    */
   function input(properties = {}) {
       return element({ ...properties, tag: "input" });
   }
   /**
+   * @function p
    * @group Element Creation
    * @category Base Elements
    *
-   * @description Creates a "p" element with the specified properties.
-   * @param {TurboProperties<"p">} [properties] - Object containing properties of the element.
-   * @returns {ValidElement<"p">} The created element.
+   * @description Creates a `<p>` element with the specified properties.
+   * @param {GradumProperties<"p">} [properties] - Object containing properties of the element.
+   * @returns {ValidElement<"p">} The created element, with the given properties already applied.
    */
   function p(properties = {}) {
       return element({ ...properties, tag: "p" });
   }
   /**
+   * @function style
    * @group Element Creation
    * @category Base Elements
    *
-   * @description Creates a "style" element with the specified properties.
-   * @param {TurboProperties<"style">} [properties] - Object containing properties of the element.
-   * @returns {ValidElement<"style">} The created element.
+   * @description Creates a `<style>` element with the specified properties.
+   * @param {GradumProperties<"style">} [properties] - Object containing properties of the element.
+   * @returns {ValidElement<"style">} The created element, with the given properties already applied.
    */
   function style(properties = {}) {
       return element({ ...properties, tag: "style" });
   }
 
   /**
+   * @function stylesheet
    * @group Element Creation
-   * @category Base Elements
+   * @category Creation Functions
    *
-   * @description Adds the provided string as a new style element to the provided root.
-   * @param {string} [styles] - The css string. Use the css literal function for autocompletion.
-   * @param {StylesRoot} [root] - The root to which the style element will be added.
+   * @description Add a CSS string to the document as a new `<style>` element. Pass a shadow root to
+   * scope the styles to one component instead of the whole page. Does nothing if `styles` is empty.
+   * @param {string} [styles] - The CSS to add. Use the {@link css} literal function for autocompletion.
+   * @param {StylesRoot} [root=document.head] - The shadow root or document head to add the element to.
    */
   function stylesheet(styles, root = document.head) {
       if (!styles)
@@ -9482,105 +11010,164 @@
   }
 
   /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
+   *
+   * @description The key event names dispatched by {@link GradumEventManager}. Listen for these to receive
+   * the manager's normalized key events rather than the raw DOM ones.
+   * @property {string} keyPressed - Fired while a key is held down.
+   * @property {string} keyReleased - Fired when a key is let go.
    */
-  const TurboKeyEventName = {
-      keyPressed: "turbo-key-pressed",
-      keyReleased: "turbo-key-released"
+  const GradumKeyEventName = {
+      keyPressed: "gradum-key-pressed",
+      keyReleased: "gradum-key-released"
   };
   /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
+   *
+   * @description The key events components listen for out of the box. Both map to their native DOM
+   * equivalents, since the platform already provides them.
+   * @property {string} keyPressed - `keydown`.
+   * @property {string} keyReleased - `keyup`.
    */
   const DefaultKeyEventName = {
       keyPressed: "keydown",
       keyReleased: "keyup",
   };
   /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
+   *
+   * @description The click event names dispatched by {@link GradumEventManager}. These are pointer-type
+   * agnostic — a mouse, a touch, and a pen all produce the same names.
+   * @property {string} click - Fired on a completed click.
+   * @property {string} clickStart - Fired when the pointer goes down.
+   * @property {string} clickEnd - Fired when the pointer comes back up.
+   * @property {string} longPress - Fired when the pointer is held past the manager's long-press duration.
    */
-  const TurboClickEventName = {
-      click: "turbo-click",
-      clickStart: "turbo-click-start",
-      clickEnd: "turbo-click-end",
-      longPress: "turbo-long-press"
+  const GradumClickEventName = {
+      click: "gradum-click",
+      clickStart: "gradum-click-start",
+      clickEnd: "gradum-click-end",
+      longPress: "gradum-long-press"
   };
   /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
+   *
+   * @description The click events components listen for out of the box. `click`, `clickStart`, and `clickEnd`
+   * map to their native DOM equivalents; `longPress` keeps the Gradum name, because the platform has no
+   * equivalent and only {@link GradumEventManager} can produce it.
+   * @property {string} click - `click`.
+   * @property {string} clickStart - `mousedown`.
+   * @property {string} clickEnd - `mouseup`.
+   * @property {string} longPress - The Gradum long-press name.
    */
   const DefaultClickEventName = {
       click: "click",
       clickStart: "mousedown",
       clickEnd: "mouseup",
-      longPress: TurboClickEventName.longPress
+      longPress: GradumClickEventName.longPress
   };
   /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
+   *
+   * @description The pointer-move event name dispatched by {@link GradumEventManager}.
+   * @property {string} move - Fired as the pointer moves.
    */
-  const TurboMoveEventName = {
-      move: "turbo-move"
+  const GradumMoveEventName = {
+      move: "gradum-move"
   };
   /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
+   *
+   * @description The move event components listen for out of the box, mapped to its native DOM equivalent.
+   * @property {string} move - `mousemove`.
    */
   const DefaultMoveEventName = {
       move: "mousemove"
   };
   /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
+   *
+   * @description The drag event names dispatched by {@link GradumEventManager}. A drag begins once the pointer
+   * travels past the manager's move threshold while held.
+   * @property {string} drag - Fired repeatedly as the pointer moves during a drag.
+   * @property {string} dragStart - Fired once, when the drag begins.
+   * @property {string} dragEnd - Fired once, when the pointer is released.
    */
-  const TurboDragEventName = {
-      drag: "turbo-drag",
-      dragStart: "turbo-drag-start",
-      dragEnd: "turbo-drag-end"
+  const GradumDragEventName = {
+      drag: "gradum-drag",
+      dragStart: "gradum-drag-start",
+      dragEnd: "gradum-drag-end"
   };
   /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
+   *
+   * @description The drag events components listen for out of the box. All three keep their Gradum names —
+   * the native HTML drag-and-drop events are a separate mechanism, so {@link GradumEventManager} is the only
+   * source of these.
+   * @property {string} drag - The Gradum drag name.
+   * @property {string} dragStart - The Gradum drag-start name.
+   * @property {string} dragEnd - The Gradum drag-end name.
    */
   const DefaultDragEventName = {
-      drag: TurboDragEventName.drag,
-      dragStart: TurboDragEventName.dragStart,
-      dragEnd: TurboDragEventName.dragEnd,
+      drag: GradumDragEventName.drag,
+      dragStart: GradumDragEventName.dragStart,
+      dragEnd: GradumDragEventName.dragEnd,
   };
   /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
+   *
+   * @description The wheel event names dispatched by {@link GradumEventManager}, which separates a plain
+   * wheel turn from a pinch gesture.
+   * @property {string} scroll - Fired on a wheel turn without a modifier.
+   * @property {string} pinch - Fired on a trackpad pinch, which the browser reports as a modified wheel event.
    */
-  const TurboWheelEventName = {
-      scroll: "turbo-scroll",
-      pinch: "turbo-pinch",
+  const GradumWheelEventName = {
+      scroll: "gradum-scroll",
+      pinch: "gradum-pinch",
   };
   /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
+   *
+   * @description The wheel events components listen for out of the box. Both map to the native `wheel` event,
+   * since the browser reports scrolling and pinching through the same one — it is the manager that tells them
+   * apart and fires the distinct {@link GradumWheelEventName} names.
+   * @property {string} scroll - `wheel`.
+   * @property {string} pinch - `wheel`.
    */
   const DefaultWheelEventName = {
       scroll: "wheel",
       pinch: "wheel",
   };
   /**
-   * @group Types
-   * @category Event Names
-   */
-  const TurboEventName = {
-      ...TurboClickEventName,
-      ...TurboKeyEventName,
-      ...TurboMoveEventName,
-      ...TurboDragEventName,
-      ...TurboWheelEventName};
-  /**
-   * @group Types
+   * @group Event Handling
    * @category Event Names
    *
-   * @description Object containing the names of events fired by default by the turboComponents. Modifying it (prior to
-   * setting up new turbo components) will subsequently alter the events that the instantiated components will listen for.
+   * @description Every event name {@link GradumEventManager} can dispatch, combining the key, click, move,
+   * drag, and wheel families with the select-input event.
+   * @property {string} selectInput - Fired when a selection component's value changes.
+   */
+  const GradumEventName = {
+      ...GradumClickEventName,
+      ...GradumKeyEventName,
+      ...GradumMoveEventName,
+      ...GradumDragEventName,
+      ...GradumWheelEventName};
+  /**
+   * @group Event Handling
+   * @category Event Names
+   *
+   * @description Object containing the names of events fired by default by the gradumComponents. Modifying it (prior to
+   * setting up new gradum components) will subsequently alter the events that the instantiated components will listen for.
    */
   const DefaultEventName = {
       ...DefaultKeyEventName,
@@ -9602,12 +11189,15 @@
   };
 
   /**
+   * @function stringify
    * @group Utilities
    * @category String
    *
-   * @description Converts the passed variable into a string.
-   * @param value - The variable to convert to string
-   * @returns {string} - The string representation of the value
+   * @description Render any value as a string that {@link parse} can turn back into an equivalent value. Dates
+   * become ISO strings, arrays are stringified entry by entry, and DOM elements collapse to the placeholder
+   * `"[DOM ELEMENT]"` rather than being serialized.
+   * @param {any} value - The value to render.
+   * @returns {string} The string form, or `undefined` when the value is `null` or `undefined`.
    */
   function stringify(value) {
       if (value === null || value === undefined)
@@ -9641,12 +11231,15 @@
       }
   }
   /**
+   * @function parse
    * @group Utilities
    * @category String
    *
-   * @description Attempts to convert the passed string back to its original type.
-   * @param str - The string to convert back to its original type
-   * @returns {any} - The original value
+   * @description Turn a string produced by {@link stringify} back into a value, recovering booleans, `null`,
+   * numbers, bigints, objects, and arrays. Anything it cannot place comes back unchanged as the original string.
+   * *Note: strings that look like function source are evaluated, so only parse input you trust.*
+   * @param {string} str - The string to convert back.
+   * @returns {any} The recovered value, or the original string if it matched no known form.
    */
   function parse$1(str) {
       if (isUndefined(str))
@@ -9681,44 +11274,39 @@
       }
       return str;
   }
+
   /**
+   * @function areEqual
    * @group Utilities
-   * @category String
+   * @category Equity
    *
-   * @description Extracts the extension from the given filename or path (e.g.: ".png").
-   * @param {string} str - The filename or path
-   * @return The extension, or an empty string if not found.
+   * @template Type - The type of the compared entries.
+   * @description Check whether every entry is the same value, compared with `Object.is`. Use it for identity;
+   * reach for {@link areSimilar} when two distinct objects holding the same content should count as equal.
+   * @param {...Type[]} entries - The entries to compare. Fewer than two entries always counts as equal.
+   * @returns {boolean} `true` if all entries are the same value.
    */
-  function getFileExtension(str) {
-      if (!str || str.length == 0)
-          return "";
-      const match = str.match(/\.\S{1,4}$/);
-      return match ? match[0] : "";
+  function areEqual(...entries) {
+      if (entries.length < 2)
+          return true;
+      for (let i = 0; i < entries.length - 1; i++) {
+          if (!Object.is(entries[i], entries[i + 1]))
+              return false;
+      }
+      return true;
   }
   /**
+   * @function areSimilar
    * @group Utilities
-   * @category String
+   * @category Equity
    *
-   * @description converts the provided string from camelCase to kebab-case.
-   * @param {string} str - The string to convert
+   * @template Type - The type of the compared entries.
+   * @description Check whether every entry holds the same content, even if they are different objects. Falls
+   * back through three strategies per pair: identity, the entries' own `equals` method if they define one, then
+   * matching JSON and string representations. Non-objects that are not identical are never similar.
+   * @param {...Type[]} entries - The entries to compare. Fewer than two entries always counts as similar.
+   * @returns {boolean} `true` if all entries are equivalent in content.
    */
-  function camelToKebabCase(str) {
-      if (!str || str.length == 0)
-          return;
-      return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-  }
-  /**
-   * @group Utilities
-   * @category String
-   *
-   * @description converts the provided string from kebab-case to camelCase.
-   * @param {string} str - The string to convert
-   */
-  function kebabToCamelCase(str) {
-      if (!str || str.length == 0)
-          return;
-      return str.replace(/-([a-z])/g, g => g[1].toUpperCase());
-  }
   function areSimilar(...entries) {
       if (entries.length < 2)
           return true;
@@ -9750,8 +11338,15 @@
       return true;
   }
   /**
+   * @function equalToAny
    * @group Utilities
    * @category Equity
+   *
+   * @template Type - The type of the compared entries.
+   * @description Check whether one entry matches at least one of the given values, compared loosely (`==`).
+   * @param {Type} entry - The entry to look for.
+   * @param {...Type[]} values - The values to match against. Passing none counts as a match.
+   * @returns {boolean} `true` if `entry` equals any of the values.
    */
   function equalToAny(entry, ...values) {
       if (values.length < 1)
@@ -9763,10 +11358,15 @@
       return false;
   }
 
+  /**
+   * @internal
+   * @class ElementFunctionsUtils
+   * @description Shared helpers and per-element state behind the element functions on {@link GradumSelector}.
+   */
   class ElementFunctionsUtils {
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element || !this.dataMap.has(element)) {
               const entry = {
@@ -9838,6 +11438,10 @@
 
   /**
    * @internal
+   * @class ReactivityUtils
+   * @description Shared state store behind the reactivity decorators. Owns the per-constructor and
+   * per-instance maps that {@link SignalUtils} and {@link EffectUtils} read and write, and tracks which
+   * effect is currently running so signal reads can be attributed to it.
    */
   class ReactivityUtils {
       constructorMap = new WeakMap();
@@ -9941,6 +11545,17 @@
       markDirty(target, key) {
           this.getSignal(target, key)?.emit();
       }
+      markDirtyPath(target, keys) {
+          const changed = this.serializePath(keys);
+          for (const [boundPath, propertyKey] of this.data(target).pathMap) {
+              // An empty changed path means the root was replaced, which overlaps every bound path
+              if (changed === ""
+                  || boundPath === changed
+                  || boundPath.startsWith(changed + "|")
+                  || changed.startsWith(boundPath + "|"))
+                  this.markDirty(target, propertyKey);
+          }
+      }
       bindPath(target, propertyKey, keys) {
           this.data(target).pathMap.set(this.serializePath(keys), propertyKey);
       }
@@ -9961,6 +11576,12 @@
       }
   }
 
+  /**
+   * @internal
+   * @class SignalUtils
+   * @description Creates the signals behind `@signal`, `@modelSignal`, `@nestedModelSignal`, and
+   * `@isolatedModelSignal`, and installs the accessors that route property reads and writes through them.
+   */
   class SignalUtils {
       utils;
       constructor(utils) {
@@ -10097,6 +11718,12 @@
       }
   }
 
+  /**
+   * @internal
+   * @class EffectUtils
+   * @description Builds and runs {@link Effect} objects for the `@effect` decorator. Handles dependency
+   * collection, cleanup between runs, and teardown.
+   */
   class EffectUtils {
       utils;
       constructor(utils) {
@@ -10182,6 +11809,29 @@
           return () => eff.dispose();
       }
   }
+  function markDirty(target, ...keys) {
+      const computedKey = keys.length > 1
+          ? utils$a.getKeyFromPath(target, keys)
+          : keys[0];
+      return utils$a.markDirty(target, computedKey ?? keys[0]);
+  }
+  /**
+   * @function markDirtyPath
+   * @group Decorators
+   * @category Signal
+   *
+   * @description Marks as dirty every signal whose bound key path (registered via {@link modelSignal} or
+   * {@link nestedModelSignal}) overlaps the given changed key path, and fires their attached effects.
+   * A bound path overlaps the changed path when either is a prefix of (or equal to) the other:
+   * replacing a parent value invalidates signals bound deeper inside it, and changing a nested value
+   * invalidates signals bound to any of its ancestors. An empty `keys` array marks every bound path dirty,
+   * as it represents a change at the root.
+   * @param {object} target - The target to which the signals are bound.
+   * @param {KeyType[]} keys - The key path of the data that changed.
+   */
+  function markDirtyPath(target, keys) {
+      utils$a.markDirtyPath(target, keys);
+  }
   /**
    * @function initializeEffects
    * @group Decorators
@@ -10196,86 +11846,6 @@
   }
 
   /**
-   * @group Components
-   * @category TurboWeakSet
-   */
-  class TurboWeakSet {
-      _weakRefs;
-      constructor() {
-          this._weakRefs = new Set();
-      }
-      // Add an object as a WeakRef if it's not already in the set
-      add(obj) {
-          if (!this.has(obj))
-              this._weakRefs.add(new WeakRef(obj));
-          return this;
-      }
-      // Check if the set contains a WeakRef to the given object
-      has(obj) {
-          for (const weakRef of this._weakRefs) {
-              if (weakRef.deref() === obj)
-                  return true;
-          }
-          return false;
-      }
-      // Delete the WeakRef associated with the given object
-      delete(obj) {
-          for (const weakRef of this._weakRefs) {
-              if (weakRef.deref() === obj) {
-                  this._weakRefs.delete(weakRef);
-                  return true;
-              }
-          }
-          return false;
-      }
-      // Clean up any WeakRefs whose objects have been garbage-collected
-      cleanup() {
-          for (const weakRef of this._weakRefs) {
-              if (weakRef.deref() === undefined)
-                  this._weakRefs.delete(weakRef);
-          }
-      }
-      // Convert live objects in the TurboWeakSet to an array
-      toArray() {
-          const result = [];
-          for (const weakRef of this._weakRefs) {
-              const obj = weakRef.deref();
-              if (obj !== undefined)
-                  result.push(obj);
-              else
-                  this._weakRefs.delete(weakRef);
-          }
-          return result;
-      }
-      // Get the size of the TurboWeakSet (only live objects)
-      get size() {
-          return this.toArray().length;
-      }
-      // Clear all weak references
-      clear() {
-          this._weakRefs.clear();
-      }
-      forEach(callback, thisArg) {
-          for (const weakRef of this._weakRefs) {
-              const obj = weakRef.deref();
-              if (obj !== undefined)
-                  callback.call(thisArg, obj, obj, this);
-              else
-                  this._weakRefs.delete(weakRef);
-          }
-      }
-      *[Symbol.iterator]() {
-          for (const weakRef of this._weakRefs) {
-              const obj = weakRef.deref();
-              if (obj !== undefined)
-                  yield obj;
-              else
-                  this._weakRefs.delete(weakRef);
-          }
-      }
-  }
-
-  /**
    * @internal
    * @class SimpleDelegate
    * @template {(...args: any[]) => any} CallbackType - The type of callbacks accepted by the delegate.
@@ -10284,31 +11854,38 @@
   class SimpleDelegate {
       callbacks = new Set();
       /**
-       * @description Adds a callback to the list.
-       * @param callback - The callback function to add.
+       * @function add
+       * @description Register a callback. Adding the same callback twice has no effect.
+       * @param {CallbackType} callback - The callback to register.
        */
       add(callback) {
           this.callbacks.add(callback);
       }
       /**
-       * @description Removes a callback from the list.
-       * @param callback - The callback function to remove.
-       * @returns A boolean indicating whether the callback was found and removed.
+       * @function remove
+       * @description Unregister a callback.
+       * @param {CallbackType} callback - The callback to unregister.
+       * @returns {boolean} Whether the callback was registered and has been removed.
        */
       remove(callback) {
           return this.callbacks.delete(callback);
       }
       /**
-       * @description Checks whether a callback is in the list.
-       * @param callback - The callback function to check for.
-       * @returns A boolean indicating whether the callback was found.
+       * @function has
+       * @description Check whether a callback is registered.
+       * @param {CallbackType} callback - The callback to look for.
+       * @returns {boolean} Whether the callback is registered.
        */
       has(callback) {
           return this.callbacks.has(callback);
       }
       /**
-       * @description Invokes all callbacks with the provided arguments.
-       * @param args - The arguments to pass to the callbacks.
+       * @function fire
+       * @description Invoke every registered callback with the given arguments. A callback that throws is
+       * logged and skipped, so one failure does not stop the rest.
+       * @param {...Parameters<CallbackType>} args - Arguments passed to each callback.
+       * @returns {ReturnType<CallbackType>} The last value returned by a callback, ignoring those that
+       * returned `undefined`.
        */
       fire(...args) {
           let returnValue;
@@ -10325,7 +11902,8 @@
           return returnValue;
       }
       /**
-       * @description Clears added callbacks
+       * @function clear
+       * @description Unregister every callback.
        */
       clear() {
           this.callbacks.clear();
@@ -10334,18 +11912,24 @@
   /**
    * @class Delegate
    * @group Components
-   * @category Delegate
+   * @category Data Structures
+   *
    * @template {(...args: any[]) => any} CallbackType - The type of callbacks accepted by the delegate.
-   * @description Class representing a set of callbacks that can be maintained and executed together.
+   * @description A set of callbacks kept together and fired as one, used throughout the library wherever a
+   * component announces something (`onChanged`, `onSelected`, ...). Subscribe with {@link Delegate.add} and
+   * drop the subscription with {@link Delegate.remove}. Unlike its plain counterpart, this one announces
+   * its own subscriptions through {@link Delegate.onAdded}.
    */
   class Delegate extends SimpleDelegate {
       /**
-       * @description Delegate fired when a callback is added.
+       * @description Fired whenever a callback is registered on this delegate, with the new callback as its
+       * argument. Use it to react to something starting to listen.
        */
       onAdded = new SimpleDelegate();
       /**
-       * @description Adds a callback to the list.
-       * @param callback - The callback function to add.
+       * @function add
+       * @description Register a callback, then fire {@link Delegate.onAdded} with it.
+       * @param {CallbackType} callback - The callback to register.
        */
       add(callback) {
           super.add(callback);
@@ -10353,20 +11937,31 @@
       }
   }
 
-  class TurboNestedMapNode extends Map {
+  /**
+   * @internal
+   * @class GradumNestedMapNode
+   * @description One level of a {@link GradumNestedMap}. Holds either child nodes or leaf values.
+   */
+  class GradumNestedMapNode extends Map {
   }
   /**
-   * @class TurboNestedMap
+   * @class GradumNestedMap
    * @group Components
-   * @category TurboNestedMap
-   *
-   * @description A map of arbitrary nesting depth, addressed via `...keys` paths.
+   * @category Data Structures
    *
    * @template ValueType - The type of stored values.
    * @template KeyType - The type of keys at each level of the path. Defaults to `string | symbol | number`.
+   * @description A map of arbitrary nesting depth, addressed by a `...keys` path rather than a single key.
+   * Entries can also be reached by a flat key that collapses a whole path into one value, so a nested
+   * structure can be indexed as if it were flat.
    */
-  class TurboNestedMap {
-      nestedMap = new TurboNestedMapNode();
+  class GradumNestedMap {
+      /**
+       * @protected
+       * @readonly
+       * @description The root of the nested structure holding this map's entries.
+       */
+      nestedMap = new GradumNestedMapNode();
       /*
        *
        * GET
@@ -10381,7 +11976,7 @@
       get(...keys) {
           let node = this.nestedMap;
           for (const key of keys) {
-              if (!(node instanceof TurboNestedMapNode))
+              if (!(node instanceof GradumNestedMapNode))
                   return;
               node = node.get(key);
           }
@@ -10391,11 +11986,12 @@
        * @function getFlat
        * @description Retrieve the value at the given flat key.
        * @param {number | string} flatKey - A flat key produced by {@link flattenKey}.
+       * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
        * @returns {ValueType | undefined} The stored value, or `undefined` if not found.
        */
-      getFlat(flatKey) {
-          const keys = this.scopeKey(flatKey);
-          if (keys.length)
+      getFlat(flatKey, depth) {
+          const keys = this.scopeKey(flatKey, depth);
+          if (keys?.length)
               return this.get(...keys);
       }
       /**
@@ -10445,8 +12041,8 @@
           let node = this.nestedMap;
           for (let i = 0; i < keys.length - 1; i++) {
               const key = keys[i];
-              if (!node.has(key) || !(node.get(key) instanceof TurboNestedMapNode))
-                  node.set(key, new TurboNestedMapNode());
+              if (!node.has(key) || !(node.get(key) instanceof GradumNestedMapNode))
+                  node.set(key, new GradumNestedMapNode());
               node = node.get(key);
           }
           node.set(keys[keys.length - 1], value);
@@ -10456,10 +12052,11 @@
        * @description Store a value at the given flat key.
        * @param {ValueType} value - The value to store.
        * @param {number | string} flatKey - A flat key produced by {@link flattenKey}.
+       * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
        */
-      setFlat(value, flatKey) {
-          const keys = this.scopeKey(flatKey);
-          if (keys.length)
+      setFlat(value, flatKey, depth) {
+          const keys = this.scopeKey(flatKey, depth);
+          if (keys?.length)
               this.set(value, ...keys);
       }
       /*
@@ -10477,7 +12074,7 @@
           if (!keys.length)
               return false;
           const parent = this.get(...keys.slice(0, -1));
-          if (!(parent instanceof TurboNestedMapNode))
+          if (!(parent instanceof GradumNestedMapNode))
               return false;
           return parent.has(keys[keys.length - 1]);
       }
@@ -10485,11 +12082,12 @@
        * @function hasFlat
        * @description Check whether an entry exists at the given flat key.
        * @param {number | string} flatKey - A flat key produced by {@link flattenKey}.
+       * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
        * @returns {boolean}
        */
-      hasFlat(flatKey) {
-          const keys = this.scopeKey(flatKey);
-          return keys.length ? this.has(...keys) : false;
+      hasFlat(flatKey, depth) {
+          const keys = this.scopeKey(flatKey, depth);
+          return keys?.length ? this.has(...keys) : false;
       }
       /**
        * @function hasValue
@@ -10514,7 +12112,7 @@
           if (!keys.length)
               return;
           const parent = this.get(...keys.slice(0, -1));
-          if (parent instanceof TurboNestedMapNode)
+          if (parent instanceof GradumNestedMapNode)
               parent.delete(keys[keys.length - 1]);
       }
       /**
@@ -10661,9 +12259,9 @@
               return;
           if (compatible.every(k => typeof k === "number")) {
               let index = 0;
-              const allLeafPaths = this.findPaths(this.nestedMap);
+              const allLeafPaths = this.findPaths(this.nestedMap).filter(p => p.length === keys.length);
               for (const path of allLeafPaths) {
-                  if (path.length === keys.length && path.every((k, i) => k === keys[i]))
+                  if (path.every((k, i) => k === keys[i]))
                       return index;
                   index++;
               }
@@ -10676,15 +12274,18 @@
        * - A string `"k0|k1|k2"` becomes `[k0, k1, k2]`.
        * - A numeric global leaf index becomes the corresponding numeric path.
        * @param {number | string} flatKey - The flat key to convert.
+       * @param {number} [depth] - Optional depth of the entry for numerical flat keys.
        * @returns {KeyType[] | undefined} The key path, or `undefined` if conversion fails.
        */
-      scopeKey(flatKey) {
+      scopeKey(flatKey, depth) {
           if (typeof flatKey === "string") {
               const parts = flatKey.split("|");
               return parts.length >= 1 ? parts : undefined;
           }
           if (typeof flatKey === "number") {
-              const allLeafPaths = this.findPaths(this.nestedMap);
+              const allLeafPaths = depth !== undefined
+                  ? this.findPaths(this.nestedMap).filter(p => p.length === depth)
+                  : this.findPaths(this.nestedMap);
               if (flatKey < 0)
                   return allLeafPaths[0];
               if (flatKey >= allLeafPaths.length)
@@ -10706,14 +12307,14 @@
        *
        */
       findPaths(node, target, allPaths = true, prefix = []) {
-          if (!node || !(node instanceof TurboNestedMapNode))
+          if (!node || !(node instanceof GradumNestedMapNode))
               return [];
           const results = [];
           const entries = Array.from(node.entries())
               .sort((a, b) => alphabeticalSorting(a[0], b[0]));
           for (const [key, value] of entries) {
               const path = [...prefix, key];
-              if (value instanceof TurboNestedMapNode) {
+              if (value instanceof GradumNestedMapNode) {
                   const nested = this.findPaths(value, target, allPaths, path);
                   if (!allPaths && target !== undefined && nested.length)
                       return nested;
@@ -10741,54 +12342,56 @@
   }
 
   /**
-   * @class TurboObserver
+   * @class GradumObserver
    * @group MVC
-   * @category TurboModel
+   * @category Model
    *
-   * @extends TurboNestedMap
-   * @description Generic observer that keeps a set of component instances organized by key path.
-   * Useful to maintain UI components or other per-entry objects synchronized with a data source
-   * ({@link TurboModel}).
-   *
+   * @extends GradumNestedMap
    * @template DataType - The type of data handled by the observer.
    * @template {object} ComponentType - The instance type created/managed by the observer.
-   * @template {string | number | symbol} KeyType - The key type used at each level of the path.
+   * @template {KeyType} DataKeyType - The key type used at each level of the path.
+   * @description Generic observer that keeps a set of component instances organized by key path.
+   * Useful to maintain UI components or other per-entry objects synchronized with a data source
+   * ({@link GradumModel}).
+   *
    */
-  class TurboObserver extends TurboNestedMap {
+  class GradumObserver extends GradumNestedMap {
       _isInitialized = false;
+      prevData = new GradumNestedMap();
+      replaceOnUpdate;
       /**
-       * @property onAdded
+       * @readonly
        * @description Delegate called when a change is reported at a key path for which no component instance exists yet.
        * Handlers may return a newly-created component instance, which will be stored and passed to subsequent
        * `onUpdated` calls.
        */
       onAdded = new Delegate();
       /**
-       * @property onUpdated
+       * @readonly
        * @description Delegate called when a change is reported at a key path that already has an associated instance.
        */
       onUpdated = new Delegate();
       /**
-       * @property onDeleted
+       * @readonly
        * @description Delegate called when a key path is reported as deleted.
        */
       onDeleted = new Delegate();
       /**
-       * @property onInitialize
+       * @readonly
        * @description Delegate fired once when the observer is initialized. Useful for initial population.
        */
       onInitialize = new Delegate();
       /**
-       * @property onDestroy
+       * @readonly
        * @description Delegate fired when the observer is destroyed.
        */
       onDestroy = new Delegate();
       /**
        * @constructor
-       * @description Create a TurboObserver.
-       * By default, `onUpdated` updates the data of the mapped instance if it exposes a {@link TurboModel} model,
+       * @description Create a GradumObserver.
+       * By default, `onUpdated` updates the data of the mapped instance if it exposes a {@link GradumModel} model,
        * or `data` / `dataId` fields. `onDeleted` removes the instance from the map and the DOM.
-       * @param {TurboObserverProperties<DataType, ComponentType, KeyType>} [properties] - Initialization
+       * @param {GradumObserverProperties<DataType, ComponentType, KeyType>} [properties] - Initialization
        * options and lifecycle callbacks.
        */
       constructor(properties = {}) {
@@ -10801,14 +12404,10 @@
               else {
                   if (typeof instance !== "object")
                       return;
-                  if ("model" in instance && instance.model instanceof TurboModel)
-                      instance.model.set(data, ...keys);
-                  else {
-                      if ("data" in instance)
-                          instance.data = data;
-                      if ("dataId" in instance)
-                          instance.dataId = keys[keys.length - 1].toString();
-                  }
+                  if ("data" in instance)
+                      instance.data = data;
+                  if ("dataId" in instance)
+                      instance.dataId = keys[keys.length - 1].toString();
               }
           });
           this.onDeleted.add((data, instance, self, ...keys) => {
@@ -10817,6 +12416,8 @@
               else
                   this.removeValue(instance);
           });
+          if (properties.replaceOnUpdate)
+              this.replaceOnUpdate = properties.replaceOnUpdate;
           if (properties.onInitialize)
               this.onInitialize.add((self) => properties.onInitialize(self));
           if (properties.onDestroy)
@@ -10848,7 +12449,7 @@
           super.remove(...keys);
       }
       /**
-       * @property isInitialized
+       * @readonly
        * @description Whether the observer has been initialized (i.e. {@link initialize} has been called).
        */
       get isInitialized() {
@@ -10877,6 +12478,7 @@
                       instance.remove();
               });
           super.clear();
+          this.prevData.clear();
           this._isInitialized = false;
       }
       /**
@@ -10902,64 +12504,95 @@
           let instance = this.get(...keys);
           if (!instance && deleted)
               return;
-          else if (instance && deleted) {
-              this.onDeleted.fire(value, instance, this, ...keys);
+          if (instance && deleted) {
+              // Model-side deletions pass value = undefined by convention; recover the last
+              // seen value so onDeleted handlers know what was removed.
+              const prev = this.prevData.get(...keys);
+              this.prevData.remove(...keys);
+              this.onDeleted.fire(value ?? prev, instance, this, ...keys);
               return;
           }
-          else if (!instance) {
+          if (instance && this.replaceOnUpdate) {
+              const prev = this.prevData.get(...keys);
+              if (this.replaceOnUpdate(prev, value, instance, this, ...keys)) {
+                  // Semantically a different item at this key — destroy old, create new.
+                  this.prevData.remove(...keys);
+                  this.onDeleted.fire(prev, instance, this, ...keys);
+                  // Force-detach if the onDeleted handler didn't remove the instance.
+                  if (this.get(...keys) === instance)
+                      this.detach(...keys);
+                  instance = undefined;
+              }
+          }
+          if (!instance) {
               instance = this.onAdded.fire(value, this, ...keys);
               if (!instance)
                   return;
               this.set(instance, ...keys);
           }
+          this.prevData.set(value, ...keys);
           this.onUpdated.fire(value, instance, this, ...keys);
       }
   }
 
   /**
-   * @enum {string} RegistryCategory
+   * @enum {RegistryCategory}
    * @group Decorators
-   * @category Registry, Attributes & DOM
+   * @category Registry
    *
-   * @description Categorizes registered classes by their base type in the TurboDom registry.
-   * Categories are ordered from most to least specific within each group, which determines
-   * how {@link inferCategory} resolves ambiguous inheritance chains.
-   *
-   * **TurboDom elements** (most to least specific):
-   * - `TurboProxiedElement`, `TurboElement`, `TurboBaseElement`, `TurboHeadlessElement`
-   *
-   * **Native DOM elements** (most to least specific):
-   * - `SVGElement`, `MathMLElement`, `HTMLElement`, `Element`, `Node`
-   *
-   * **MVC pieces:**
-   * - `TurboController`, `TurboHandler`, `TurboInteractor`, `TurboTool`, `TurboSubstrate`,
-   *   `TurboView`, `TurboEmitter`, `TurboModel`
-   *
-   * **Fallback:**
-   * - `Other` — for classes that do not match any recognized base type.
+   * @description The bucket a class is filed under in the Gradum Kit registry, and the value
+   * {@link getRegisteredByCategories} groups by. {@link define} infers it by walking the class'
+   * inheritance chain; within each family below the categories are listed most to least specific, and
+   * the first match wins, so a class extending {@link GradumElement} is filed as `GradumElement` rather
+   * than the `HTMLElement` it also inherits from.
+   * @property {RegistryCategory.GradumProxiedElement} GradumProxiedElement - Gradum elements, most specific first.
+   * @property {RegistryCategory.GradumElement} GradumElement - Gradum element extending `HTMLElement`.
+   * @property {RegistryCategory.GradumBaseElement} GradumBaseElement - Shared element foundation.
+   * @property {RegistryCategory.GradumHeadlessElement} GradumHeadlessElement - Element without a DOM node.
+   * @property {RegistryCategory.SVGElement} SVGElement - Native DOM elements, most specific first.
+   * @property {RegistryCategory.MathMLElement} MathMLElement - Native MathML element.
+   * @property {RegistryCategory.HTMLElement} HTMLElement - Native HTML element.
+   * @property {RegistryCategory.Element} Element - Any other native element.
+   * @property {RegistryCategory.Node} Node - Any other DOM node.
+   * @property {RegistryCategory.GradumOperator} GradumOperator - MVC pieces.
+   * @property {RegistryCategory.GradumHandler} GradumHandler - Model-only helper.
+   * @property {RegistryCategory.GradumInteractor} GradumInteractor - Tool-event listener holder.
+   * @property {RegistryCategory.GradumTool} GradumTool - Capture-phase behavior holder.
+   * @property {RegistryCategory.GradumConstrainer} GradumConstrainer - Constraint solver.
+   * @property {RegistryCategory.GradumView} GradumView - View.
+   * @property {RegistryCategory.GradumEmitter} GradumEmitter - Emitter.
+   * @property {RegistryCategory.GradumModel} GradumModel - Model.
+   * @property {RegistryCategory.Other} Other - Classes matching no recognized base type.
    */
   var RegistryCategory;
   (function (RegistryCategory) {
-      RegistryCategory["TurboElement"] = "TurboElement";
-      RegistryCategory["TurboBaseElement"] = "TurboBaseElement";
-      RegistryCategory["TurboHeadlessElement"] = "TurboHeadlessElement";
-      RegistryCategory["TurboProxiedElement"] = "TurboProxiedElement";
+      RegistryCategory["GradumElement"] = "GradumElement";
+      RegistryCategory["GradumBaseElement"] = "GradumBaseElement";
+      RegistryCategory["GradumHeadlessElement"] = "GradumHeadlessElement";
+      RegistryCategory["GradumProxiedElement"] = "GradumProxiedElement";
       RegistryCategory["HTMLElement"] = "HTMLElement";
       RegistryCategory["SVGElement"] = "SVGElement";
       RegistryCategory["MathMLElement"] = "MathMLElement";
       RegistryCategory["Element"] = "Element";
       RegistryCategory["Node"] = "Node";
-      RegistryCategory["TurboModel"] = "TurboModel";
-      RegistryCategory["TurboView"] = "TurboView";
-      RegistryCategory["TurboEmitter"] = "TurboEmitter";
-      RegistryCategory["TurboController"] = "TurboController";
-      RegistryCategory["TurboHandler"] = "TurboHandler";
-      RegistryCategory["TurboInteractor"] = "TurboInteractor";
-      RegistryCategory["TurboTool"] = "TurboTool";
-      RegistryCategory["TurboSubstrate"] = "TurboSubstrate";
+      RegistryCategory["GradumModel"] = "GradumModel";
+      RegistryCategory["GradumView"] = "GradumView";
+      RegistryCategory["GradumEmitter"] = "GradumEmitter";
+      RegistryCategory["GradumOperator"] = "GradumOperator";
+      RegistryCategory["GradumHandler"] = "GradumHandler";
+      RegistryCategory["GradumInteractor"] = "GradumInteractor";
+      RegistryCategory["GradumTool"] = "GradumTool";
+      RegistryCategory["GradumConstrainer"] = "GradumConstrainer";
       RegistryCategory["Other"] = "Other";
   })(RegistryCategory || (RegistryCategory = {}));
 
+  /**
+   * @internal
+   * @class DefineDecoratorUtils
+   * @description Backing store for {@link define}. Holds the class registry that the lookup functions
+   * ({@link findRegistered}, {@link getRegisteredEntry}, ...) read from, and tracks which prototypes have
+   * already had their custom-element hooks installed.
+   */
   class DefineDecoratorUtils {
       registry = new Map();
       categoryMap = new WeakMap();
@@ -10970,7 +12603,7 @@
       // -------------------------------------------------------------------------
       /**
        * @description Registers a constructor's associated registry category. Called by each
-       * TurboDom base class after its definition to avoid circular import dependencies.
+       * Gradum Kit base class after its definition to avoid circular import dependencies.
        */
       setCategory(constructor, category) {
           this.categoryMap.set(constructor.prototype, category);
@@ -11010,7 +12643,7 @@
       // Define utils
       // -------------------------------------------------------------------------
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return {};
@@ -11051,6 +12684,35 @@
       }
   }
 
+  /**
+   * @function camelToKebabCase
+   * @group Utilities
+   * @category String
+   *
+   * @description Convert a camelCase string to kebab-case, the form HTML attributes and CSS properties use.
+   * @param {string} [str] - The string to convert.
+   * @returns {string} The kebab-case string, or `undefined` if the input was empty or missing.
+   */
+  function camelToKebabCase(str) {
+      if (!str || str.length == 0)
+          return;
+      return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+  }
+  /**
+   * @function kebabToCamelCase
+   * @group Utilities
+   * @category String
+   *
+   * @description Convert a kebab-case string to camelCase, the form JavaScript properties use.
+   * @param {string} [str] - The string to convert.
+   * @returns {string} The camelCase string, or `undefined` if the input was empty or missing.
+   */
+  function kebabToCamelCase(str) {
+      if (!str || str.length == 0)
+          return;
+      return str.replace(/-([a-z])/g, g => g[1].toUpperCase());
+  }
+
   const utils$9 = new DefineDecoratorUtils();
   function define(...args) {
       if (typeof args[0] === "function") {
@@ -11070,6 +12732,18 @@
           return applyDefine(Base, className, elementName, options);
       };
   }
+  /**
+   * @internal
+   * @function applyDefine
+   * @template {new (...args: any[]) => HTMLElement} T - The class being defined.
+   * @description The shared body behind {@link define} in both its decorator and imperative forms. Registers
+   * the class and, when it is an element, registers the custom element and installs its hooks.
+   * @param {T} Base - The class to define.
+   * @param {string} [className] - The name to register under. Defaults to the class' own name.
+   * @param {string} [elementName] - The custom element tag. Defaults to the kebab-cased class name.
+   * @param {DefineOptions} [options] - Options controlling the attribute bridge.
+   * @returns {T} The class, so callers can return it straight from a decorator.
+   */
   function applyDefine(Base, className, elementName, options = { injectAttributeBridge: true }) {
       const prototype = Base.prototype;
       utils$9.register(Base, className, prototype instanceof Element ? elementName : undefined);
@@ -11091,7 +12765,7 @@
               enumerable: false,
               writable: true,
               value: function (properties = {}) {
-                  turbo(properties).applyDefaults({ tag: elementName, ...(this.defaultProperties ?? {}) });
+                  gradum(properties).applyDefaults({ tag: elementName, ...(this.defaultProperties ?? {}) });
                   return originalCreate.call(this, properties);
               }
           });
@@ -11170,55 +12844,55 @@
    * @group Decorators
    * @category Registry
    *
-   * @description Associates a class constructor with a {@link RegistryCategory} in the TurboDom registry's
+   * @description Associates a class constructor with a {@link RegistryCategory} in the Gradum Kit registry's
    * category inference map. When {@link define} is called on a subclass, it walks the prototype chain and
    * uses this map to determine the appropriate category without requiring direct imports of the base classes
    * (which would cause circular dependencies).
    *
-   * This should be called once per base class, after its definition, by the TurboDom internals.
+   * This should be called once per base class, after its definition, by the Gradum Kit internals.
    * User-defined subclasses do not need to call this — category inference propagates automatically
    * through the prototype chain.
-   *
    * @param {new (...args: any[]) => object} type - The base class constructor to associate with a category.
    * @param {RegistryCategory} [category] - The category to associate with the class. Defaults to the
    * class name if omitted, which is useful when the class name matches a {@link RegistryCategory} value.
    *
    * @example
    * ```ts
-   * // At the bottom of turboModel.ts, after class definition:
-   * addRegistryCategory(TurboModel, RegistryCategory.TurboModel);
+   * // At the bottom of gradumModel.ts, after class definition:
+   * addRegistryCategory(GradumModel, RegistryCategory.GradumModel);
    *
    * // Later, when a subclass is defined:
-   * class MyModel extends TurboModel { ... }
-   * define(MyModel, "MyModel"); // infers RegistryCategory.TurboModel automatically
+   * class MyModel extends GradumModel { ... }
+   * define(MyModel, "MyModel"); // infers RegistryCategory.GradumModel automatically
    * ```
    */
   function addRegistryCategory(type, category) {
       utils$9.setCategory(type, type.name);
   }
 
+  const META = Symbol("__meta__");
   /**
-   * @class TurboModel
+   * @class GradumModel
    * @group MVC
-   * @category TurboModel
+   * @category Model
    *
    * @template DataType - The type of the data held in the model.
-   * @template {KeyType} KeyType - The type of the data's keys.
+   * @template {KeyType} DataKeyType - The type of the data's keys.
    * @template {KeyType} IdType - The type of the data's ID.
    * @template ComponentType - The type of instances managed by attached observers.
    * @template DataEntryType - The type of data associated with each observer instance.
    *
    * @description Wrapper around a plain JS container (object, Array, or Map) that exposes a
-   * consistent API for reads/writes, signals, and {@link TurboObserver}s.
+   * consistent API for reads/writes, signals, and {@link GradumObserver}s.
    */
-  let TurboModel = (() => {
+  let GradumModel = (() => {
       let _enabledCallbacks_decorators;
       let _enabledCallbacks_initializers = [];
       let _enabledCallbacks_extraInitializers = [];
       let _bubbleChanges_decorators;
       let _bubbleChanges_initializers = [];
       let _bubbleChanges_extraInitializers = [];
-      return class TurboModel {
+      return class GradumModel {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
               __esDecorate$1(this, null, _enabledCallbacks_decorators, { kind: "accessor", name: "enabledCallbacks", static: false, private: false, access: { has: obj => "enabledCallbacks" in obj, get: obj => obj.enabledCallbacks, set: (obj, value) => { obj.enabledCallbacks = value; } }, metadata: _metadata }, _enabledCallbacks_initializers, _enabledCallbacks_extraInitializers);
@@ -11230,10 +12904,21 @@
            * to target all entries at a certain level inside the data.
            */
           static ALL = Symbol("ALL");
+          /**
+           * @function from
+           * @static
+           * @template {object} DataType - The type of the data to wrap.
+           * @template {KeyType} IdType - The type of the data's ID.
+           * @description Wrap plain data in a proxy that reads and writes through a model, so the data can be used
+           * directly while still producing signals. Reach the underlying model through the proxy's `$model` key.
+           * Assigning an unknown key creates a signal for it.
+           * @param {DataType} [data={}] - The data to wrap.
+           * @param {IdType} [id] - The ID to give the backing model.
+           * @returns {GradumModelProxy<DataType, IdType>} The proxied data.
+           */
           static from(data = {}, id) {
-              const model = new TurboModel({ data, id });
-              model.makeSignals(TurboModel.ALL);
-              const proxy = new Proxy(data, {
+              const model = GradumModel.create({ data, id, initialize: true, makeSignals: true });
+              return new Proxy(data, {
                   get(target, key) {
                       if (key === "$model")
                           return model;
@@ -11246,16 +12931,37 @@
                       return true;
                   }
               });
-              return proxy;
           }
           /**
-           * @description The default constructor used to create nested {@link TurboModel} instances.
+           * @function create
+           * @static
+           * @description Instantiate a model, then optionally initialize it and make its signals. The return type
+           * follows the class it is called on, so `GradumYModel.create(...)` yields a {@link GradumYModel} with its
+           * Y-specific members intact.
+           *
+           * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`. The latter
+           * instantiates this class' generics with their constraints (`object`, `KeyType`, `unknown`) instead of
+           * their `any` defaults, which breaks inference at every call site.*
+           * @template {{prototype: GradumModel}} This - The class `create` was called on.
+           * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
+           * @returns {GradumModel} The created model, typed as the class this was called on.
            */
-          modelConstructor = TurboModel;
+          static create(properties = {}) {
+              const model = new this(properties);
+              if (properties.initialize)
+                  model.initialize();
+              if (properties.makeSignals)
+                  model.makeSignals(GradumModel.ALL);
+              return model;
+          }
           /**
-           * @description The default constructor used to create {@link TurboObserver} instances via {@link generateObserver}.
+           * @description The default constructor used to create nested {@link GradumModel} instances.
            */
-          observerConstructor = TurboObserver;
+          modelConstructor = GradumModel;
+          /**
+           * @description The default constructor used to create {@link GradumObserver} instances via {@link generateObserver}.
+           */
+          observerConstructor = GradumObserver;
           /**
            * @description Map of MVC handlers bound to this model.
            */
@@ -11277,11 +12983,39 @@
            * by the key path as spread arguments.
            */
           onKeyChanged = (__runInitializers$1(this, _bubbleChanges_extraInitializers), new Delegate());
+          /**
+           * @description Delegate fired when this model is pointed at different data. Receives the previous data
+           * followed by the new data. Use it to set up watchers that depend on `this.data`.
+           */
+          onDataChanged = new Delegate();
+          /**
+           * @description Hook invoked by {@link GradumModel.fireCallback}. Assign it to route named callbacks from
+           * the model out to whatever owns it.
+           */
+          fireCallbackHook;
+          /**
+           * @protected
+           * @description Whether {@link GradumModel.initialize} has already run on this model.
+           */
           isInitialized = false;
           signals = new Map();
-          changeObservers = new TurboWeakSet();
+          /**
+           * @protected
+           * @readonly
+           * @description Every observer attached to this model, with the key path each one watches.
+           */
+          changeObservers = new Set();
+          /**
+           * @protected
+           * @readonly
+           * @description Child models created for nested keys, one per key that has been nested.
+           */
           nestedModels = new Map();
-          nestListeners = new Set();
+          /**
+           * @protected
+           * @description Listeners relaying changes from nested models up to this one.
+           */
+          nestedListeners = new Set();
           /**
            * @description The ID of the data held by this model.
            */
@@ -11294,15 +13028,30 @@
               return this._data;
           }
           set data(data) {
-              this.clear(false);
-              this._data = data;
-              if (data)
-                  this.initialize();
+              const oldData = this._data;
+              if (areEqual(oldData, data))
+                  return;
+              if (this.diffCheck(oldData, data))
+                  this.diffAction(oldData, data);
+              else {
+                  this.clear(false);
+                  this._data = data;
+                  if (data)
+                      this.initialize();
+              }
+              markDirtyPath(this, []);
+              this.onDataChanged.fire(oldData, data);
+          }
+          /**
+           * @description The metadata held by this model. Separate from this model's data.
+           */
+          get meta() {
+              return this.nest(META);
           }
           /**
            * @constructor
-           * @description Create a new TurboModel.
-           * @param {TurboModelProperties} [properties] - Optional initialization properties.
+           * @description Create a new GradumModel.
+           * @param {GradumModelProperties} [properties] - Optional initialization properties.
            */
           constructor(properties = {}) {
               this.id = properties.id;
@@ -11312,10 +13061,7 @@
               if (typeof properties.bubbleChanges === "boolean")
                   this.bubbleChanges = properties.bubbleChanges;
               this.setup();
-              if (properties.initialize)
-                  this.initialize();
-              if (properties.makeSignals)
-                  this.makeSignals(TurboModel.ALL);
+              this.onDataChanged.fire(undefined, this._data);
           }
           /**
            * @function setup
@@ -11464,29 +13210,46 @@
            * @function internalSet
            * @description Write a value at a key, propagating the change to a nested model if one exists,
            * and firing {@link keyChanged} if the value actually changed.
-           * @param {TurboModel} model - The owning model (used for nested model lookup and change notification),
+           * @param {GradumModel} model - The owning model (used for nested model lookup and change notification),
            * or `undefined` if operating on a non-root container.
            * @param {any} data - The container to write to.
            * @param {KeyType} key - The key to write.
            * @param {any} value - The value to set.
            */
           internalSet(model, data, value, key) {
+              if (isUndefined(key)) {
+                  if (!model || areEqual(model.data, value))
+                      return false;
+                  model.data = value;
+                  return true;
+              }
               if (model) {
                   const nested = model.getNested(key);
                   if (nested)
                       nested.data = value;
               }
-              if (!data)
-                  return;
+              if (!data || typeof data !== "object")
+                  return false;
               const prev = this.getAction(data, key);
-              if (Object.is(prev, value))
-                  return;
+              if (prev === value || Object.is(prev, value))
+                  return false;
               this.setAction(data, value, key);
-              if (model)
-                  model.keyChanged([key], value);
+              return true;
           }
           set(value, ...keys) {
-              this.routeMutation(keys, (data, key) => this.internalSet(data === this.data ? this : undefined, data, value, key), (model, keys) => model.set(value, ...keys));
+              let bool;
+              if (keys.length < 2)
+                  bool = this.internalSet(this, this.data, value, keys[0]);
+              else {
+                  const nested = this.getNested(keys[0]);
+                  if (nested)
+                      bool = nested.set(value, ...keys.slice(1));
+                  else
+                      bool = this.internalSet(undefined, this.get(keys[0], ...keys.slice(1, -1)), value, keys[keys.length - 1]);
+              }
+              if (bool)
+                  this.keyChanged(keys, value);
+              return bool;
           }
           /**
            * @function setFlat
@@ -11498,7 +13261,8 @@
           setFlat(value, flatKey, depth) {
               const keys = this.scopeKey(flatKey, depth);
               if (keys?.length)
-                  this.set(value, ...keys);
+                  return this.set(value, ...keys);
+              return false;
           }
           /*
            *
@@ -11509,25 +13273,22 @@
            * @protected
            * @function internalAdd
            * @description Insert a value into a container via {@link addAction} and fire {@link keyChanged}.
-           * @param {TurboModel} model - The owning model for change notification, or `undefined` for non-root containers.
+           * @param {GradumModel} model - The owning model for change notification, or `undefined` for non-root containers.
            * @param {any} data - The container to insert into.
            * @param {any} value - The value to insert.
            * @param {KeyType} key - The target index or key.
            * @returns {KeyType} The index or key where the value was stored.
            */
           internalAdd(model, data, value, key) {
-              if (!data)
-                  return key;
-              key = this.addAction(model, data, value, key);
-              if (model)
-                  model.keyChanged([key], value);
-              return key;
+              if (!data || typeof data !== "object")
+                  return;
+              return this.addAction(model, data, value, key);
           }
           /**
            * @protected
            * @function addAction
            * @description Perform the raw insertion. Override this method to support other datatypes.
-           * @param {TurboModel} model - The owning model.
+           * @param {GradumModel} model - The owning model.
            * @param {any} data - The container to insert into.
            * @param {any} value - The value to insert.
            * @param {KeyType} key - The target index or key. Clamped to valid array bounds for array containers.
@@ -11543,11 +13304,25 @@
                   data.splice(index, 0, value);
                   return index;
               }
-              this.internalSet(model, data, value, key);
-              return key;
+              const bool = this.internalSet(model, data, value, key);
+              return bool ? key : undefined;
           }
           add(value, ...keys) {
-              return this.routeMutation(keys, (data, key) => this.internalAdd(data === this.data ? this : undefined, data, value, key), (nested, keys) => nested.add(value, ...keys));
+              let key;
+              if (keys.length < 2)
+                  key = this.internalAdd(this, this.data, value, keys[0]);
+              else {
+                  const nested = this.getNested(keys[0]);
+                  if (nested)
+                      key = nested.add(value, ...keys.slice(1));
+                  else
+                      key = this.internalAdd(undefined, this.get(keys[0], ...keys.slice(1, -1)), value, keys[keys.length - 1]);
+              }
+              const lastKeyWasUndefined = isUndefined(keys[keys.length - 1]);
+              const changePath = lastKeyWasUndefined ? [...keys.slice(0, -1), key] : keys;
+              if (!isUndefined(key))
+                  this.keyChanged(changePath);
+              return key;
           }
           /**
            * @function addFlat
@@ -11559,8 +13334,9 @@
            */
           addFlat(value, flatKey, depth) {
               const keys = this.scopeKey(flatKey, depth);
-              if (keys?.length)
-                  return this.add(value, ...keys);
+              if (!keys?.length)
+                  throw new Error(`GradumModel.addFlat: could not resolve flat key "${String(flatKey)}" to a key path.`);
+              return this.add(value, ...keys);
           }
           /*
            *
@@ -11592,7 +13368,7 @@
            * @description Check whether an entry exists at the given flat key.
            * @param {FlatKeyType} flatKey - A flat key produced by {@link flattenKey}.
            * @param {number} [depth] - Required when `flatKey` is a numeric index. The depth of the key path.
-           * @returns {boolean}
+           * @returns {boolean} `true` if an entry exists at that flat key.
            */
           hasFlat(flatKey, depth) {
               const keys = this.scopeKey(flatKey, depth);
@@ -11605,7 +13381,7 @@
            * DELETE
            *
            */
-          /**
+          /**å
            * @protected
            * @function deleteAction
            * @description Remove a single key from a container. Override this method to support other datatypes.
@@ -11625,7 +13401,7 @@
            * @function internalDelete
            * @description Remove a key from a container, clearing any associated nested model, and firing {@link keyChanged}.
            * No-op if the key does not exist.
-           * @param {TurboModel} model - The owning model for nested model cleanup and change notification,
+           * @param {GradumModel} model - The owning model for nested model cleanup and change notification,
            * or `undefined` for non-root containers.
            * @param {any} data - The container to remove from.
            * @param {KeyType} key - The key to remove.
@@ -11641,11 +13417,27 @@
                   }
               }
               this.deleteAction(data, key);
-              if (model)
-                  model.keyChanged([key], undefined, true);
           }
           delete(...keys) {
-              return this.routeMutation(keys, (data, key) => this.internalDelete(data === this.data ? this : undefined, data, key), (nested, keys) => nested.delete(...keys));
+              if (keys.length === 0)
+                  return;
+              // keyChanged must fire before internalDelete/deleteAction so that observer slots are
+              // vacated before shiftIndices (triggered synchronously by the Yjs transaction inside
+              // deleteAction) shifts neighbouring entries into the slot being deleted.
+              this.keyChanged(keys, undefined, true);
+              if (keys.length === 1)
+                  this.internalDelete(this, this.data, keys[0]);
+              else {
+                  const nested = this.getNested(keys[0]);
+                  if (nested)
+                      nested.delete(...keys.slice(1));
+                  else {
+                      const parentData = this.get(keys[0], ...keys.slice(1, -1));
+                      if (typeof parentData !== "object")
+                          return;
+                      this.internalDelete(undefined, parentData, keys[keys.length - 1]);
+                  }
+              }
           }
           /**
            * @function deleteFlat
@@ -11663,44 +13455,109 @@
            * KEYS
            *
            */
+          getKeysAction(data) {
+              if (!data || typeof data !== "object")
+                  return [];
+              if (Array.isArray(data))
+                  return Array.from({ length: data.length }, (_, i) => i);
+              if (data instanceof Map)
+                  return Array.from(data.keys());
+              return [...Object.keys(data), ...Object.getOwnPropertySymbols(data)];
+          }
           /**
-           * @property keys
+           * @readonly
            * @description All keys currently present in the model.
            */
           get keys() {
-              if (!this.data || typeof this.data !== "object")
-                  return [];
-              if (Array.isArray(this.data))
-                  return Array.from({ length: this.data.length }, (_, i) => i);
-              if (this.data instanceof Map)
-                  return Array.from(this.data.keys());
-              return [
-                  ...Object.keys(this.data),
-                  ...Object.getOwnPropertySymbols(this.data)
-              ];
+              return this.getKeysAction(this.data);
           }
           /**
-           * @property values
-           * @description All values in the model, in the order of {@link keys}.
+           * @readonly
+           * @description All values in the model, in the order of {@link GradumModel.keys}.
            */
           get values() {
               return this.keys.map(key => this.get(key));
           }
           /**
-           * @property size
+           * @readonly
            * @description Number of entries in the model.
            */
-          get size() {
+          get dataSize() {
               return this.keys.length;
           }
           /**
            * @function flatSize
            * @description Return the total number of entries reachable from this model at the given depth.
            * @param {number} depth - How many levels deep to count.
-           * @returns {number}
+           * @returns {number} The number of entries at that depth, counting every branch.
            */
           flatSize(depth) {
-              return TurboModel.flattenSize(this.data, depth);
+              return GradumModel.flattenSize(this.data, depth);
+          }
+          /*
+           *
+           * DIFFING
+           *
+           */
+          /**
+           * @protected
+           * @function diffCheck
+           * @description Whether two data containers are similar enough to be swapped in place by
+           * {@link GradumModel.diffAction} rather than triggering a full clear and re-initialize. True for two plain
+           * objects, two arrays, or two Maps.
+           * @param {DataType} oldData - The data being replaced.
+           * @param {DataType} newData - The data to adopt.
+           * @returns {boolean} `true` if the swap can be done in place.
+           */
+          diffCheck(oldData, newData) {
+              if (!oldData || !newData)
+                  return false;
+              if (Array.isArray(oldData) && Array.isArray(newData))
+                  return true;
+              if (oldData instanceof Map && newData instanceof Map)
+                  return true;
+              if (Array.isArray(oldData) || Array.isArray(newData) || oldData instanceof Map || newData instanceof Map
+                  || oldData instanceof Set || newData instanceof Set)
+                  return false;
+              if (typeof oldData !== "object" || typeof newData !== "object")
+                  return false;
+              return Object.getPrototypeOf(oldData) === Object.prototype && Object.getPrototypeOf(newData) === Object.prototype;
+          }
+          /**
+           * @protected
+           * @function diffAction
+           * @description Swap in new data while keeping existing nested models and signals alive, re-pointing each
+           * child at its counterpart in the new data instead of tearing the tree down. Only called when
+           * {@link GradumModel.diffCheck} accepts the pair.
+           * @param {DataType} oldData - The data being replaced.
+           * @param {DataType} newData - The data to adopt.
+           */
+          diffAction(oldData, newData) {
+              this._data = newData;
+              for (const [key, child] of this.nestedModels) {
+                  const newVal = this.getAction(newData, key);
+                  if (child.data !== newVal)
+                      child.data = newVal;
+              }
+              const oldKeys = new Set(this.getKeysAction(oldData));
+              const newKeys = new Set(this.getKeysAction(newData));
+              for (const key of oldKeys) {
+                  // Deletions pass undefined by convention (nested-child onKeyChanged listeners
+                  // rely on it to clear their data). GradumObserver recovers the old value for
+                  // onDeleted from its own prevData tracking.
+                  if (!newKeys.has(key))
+                      this.keyChanged([key], undefined, true);
+                  else {
+                      const oldVal = this.getAction(oldData, key);
+                      const newVal = this.getAction(newData, key);
+                      if (!areEqual(oldVal, newVal))
+                          this.keyChanged([key], newVal);
+                  }
+              }
+              for (const key of newKeys) {
+                  if (!oldKeys.has(key))
+                      this.keyChanged([key], this.getAction(newData, key));
+              }
           }
           /*
            *
@@ -11717,7 +13574,7 @@
           /**
            * @function entries
            * @description Return all `[key, value]` pairs in the model.
-           * @returns {[KeyType, any][]}
+           * @returns {[KeyType, any][]} The pairs, in the order of {@link GradumModel.keys}.
            */
           entries() {
               return this.keys.map(key => [key, this.get(key)]);
@@ -11746,8 +13603,17 @@
               if (!this.data || this.isInitialized)
                   return;
               this.isInitialized = true;
+              for (const [key, child] of this.nestedModels) {
+                  const newData = this.get(key);
+                  if (child.data !== newData)
+                      child.data = newData;
+                  else if (!child.isInitialized)
+                      child.initialize();
+              }
               for (const key of this.keys)
                   this.keyChanged([key]);
+              for (const observer of this.changeObservers)
+                  observer.observer.initialize();
           }
           /**
            * @function clear
@@ -11757,18 +13623,23 @@
           clear(clearData = true) {
               if (clearData)
                   this._data = undefined;
-              this.nestedModels.forEach(nested => nested.clear());
-              this.nestedModels.clear();
+              this.nestedModels.forEach(nested => nested.clear(clearData));
+              if (clearData)
+                  this.nestedModels.clear();
               this.signals.clear();
-              this.nestListeners.clear();
-              this.changeObservers?.toArray().forEach(observer => observer.clear());
+              if (clearData)
+                  this.nestedListeners.clear();
+              if (clearData)
+                  this.changeObservers.forEach(e => this.changeObservers.delete(e));
+              else
+                  this.changeObservers.forEach(e => e.observer.clear());
               this.isInitialized = false;
           }
           /**
            * @function toJSON
            * @description Convert the model's data into a JSON-serializable form.
            * Maps become plain objects. For non-object data types, the raw value is returned.
-           * @returns {object | DataType}
+           * @returns {object | DataType} A plain copy of the data, safe to pass to `JSON.stringify`.
            */
           toJSON() {
               if (typeof this.data !== "object")
@@ -11788,15 +13659,15 @@
           }
           /**
            * @function makeSignals
-           * @description Return reactive {@link SignalBox} instances for multiple keys at the given path.
-           * Pass {@link TurboModel.ALL} at any level of the path to expand all entries at that level.
            * @template Type - The type of the signals' values.
+           * @description Return reactive {@link SignalBox} instances for multiple keys at the given path.
+           * Pass {@link GradumModel.ALL} at any level of the path to expand all entries at that level.
            * @param {...KeyType[]} keys - Key path to the signal targets. Use `ALL` at any level to target all entries there.
-           * @returns {SignalBox<Type>[]}
+           * @returns {SignalBox<Type>[]} One signal per key at that path, in the order the keys appear.
            */
           makeSignals(...keys) {
               if (keys.length === 0)
-                  keys = [TurboModel.ALL];
+                  keys = [GradumModel.ALL];
               const maker = (key, model) => {
                   if (model.signals.has(key))
                       return model.signals.get(key);
@@ -11806,8 +13677,8 @@
               };
               const pathKeys = keys.slice(0, -1);
               const signalKey = keys[keys.length - 1];
-              const models = pathKeys.length === 0 ? [this] : this.nestAll(pathKeys[0], ...pathKeys.slice(1));
-              if (signalKey === TurboModel.ALL)
+              const models = this.nestAll(...pathKeys);
+              if (signalKey === GradumModel.ALL)
                   return models.flatMap(model => model.keys.map(k => maker(k, model)));
               return models.map(model => maker(signalKey, model));
           }
@@ -11819,40 +13690,22 @@
               const properties = lastEntry !== null && typeof lastEntry === "object" ? lastEntry : {};
               const keys = args.slice(0, lastEntry !== null && typeof lastEntry === "object" ? -1 : undefined);
               if (keys.length === 0)
-                  keys.push(TurboModel.ALL);
-              turbo(properties).applyDefaults({ bubbleChanges: this.bubbleChanges, enabledCallbacks: this.enabledCallbacks });
-              const createChild = (model, key) => {
-                  if (model.nestedModels.has(key))
-                      return model.nestedModels.get(key);
-                  const child = new this.modelConstructor({ ...properties, data: model.get(key), initialize: true });
-                  child.onKeyChanged.add((_value, ...keys) => {
-                      if (!model.enabledCallbacks || !model.bubbleChanges)
-                          return;
-                      model.keyChanged(keys, model.get(key));
+                  return [this];
+              gradum(properties).applyDefaults({ bubbleChanges: this.bubbleChanges, enabledCallbacks: this.enabledCallbacks });
+              return this.nestRecur(keys, properties);
+          }
+          nestRecur(keys, properties) {
+              if (keys.length === 0)
+                  return [this];
+              if (keys[0] === GradumModel.ALL) {
+                  this.nestedListeners.add({
+                      listener: (selfKeys) => this.createNestedChild(this, selfKeys[0], properties).nestRecur(keys.slice(1), properties),
+                      keys: keys.slice(1)
                   });
-                  model.nestedModels.set(key, child);
-                  return child;
-              };
-              let results = [this];
-              for (const entry of keys) {
-                  if (entry === TurboModel.ALL) {
-                      const parents = [...results];
-                      results = parents.flatMap(parent => parent.keys.map(k => createChild(parent, k)));
-                      for (const parent of parents) {
-                          parent.nestListeners.add(child => {
-                              const sibling = [...parent.nestedModels.values()].find((model) => model !== child);
-                              if (!sibling)
-                                  return;
-                              sibling.nestListeners.forEach(listener => child.nestListeners.add(listener));
-                              sibling.changeObservers?.toArray().forEach(obs => child.changeObservers?.add(obs));
-                          });
-                      }
-                  }
-                  else {
-                      results = results.map(parent => createChild(parent, entry));
-                  }
+                  return this.keys.flatMap(key => this.createNestedChild(this, key, properties).nestRecur(keys.slice(1), properties));
               }
-              return results;
+              else
+                  return this.createNestedChild(this, keys[0], properties).nestRecur(keys.slice(1), properties);
           }
           nest(...keysAndProperties) {
               return this.nestAll(...keysAndProperties)[0];
@@ -11861,7 +13714,7 @@
               if (keys.length === 0)
                   return this;
               const nested = this.nestedModels.get(keys[0]);
-              if (keys.length > 1 && nested instanceof TurboModel)
+              if (keys.length > 1 && nested instanceof GradumModel)
                   return nested.getNested(...keys.slice(1));
               return nested;
           }
@@ -11872,38 +13725,99 @@
            */
           /**
            * @function generateObserver
-           * @description Create and attach a {@link TurboObserver} to this model.
+           * @description Create and attach a {@link GradumObserver} to this model.
            * If a key path is provided, the observer is attached to the nested model(s) at that path instead.
-           * Pass {@link TurboModel.ALL} at any level of the path to process all entries at that level,
+           * Pass {@link GradumModel.ALL} at any level of the path to process all entries at that level,
            * allowing a single observer to track multiple subtrees simultaneously.
-           * @param {TurboObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
+           * @param {GradumObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
            * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe. Use `ALL` at
            * any level to process all entries there.
-           * @returns {TurboObserver<DataEntryType, ComponentType, KeyType>}
+           * @returns {GradumObserver} The attached observer. Keep the reference to read its instances or destroy it later.
            */
           generateObserver(properties = {}, ...keys) {
-              const models = keys.length === 0 ? [this] : this.nestAll(keys[0], ...keys.slice(1));
+              const initialize = (this.isInitialized && isUndefined(properties.initialize)) || properties.initialize === true;
               const observer = new (properties.customConstructor
                   ?? this.observerConstructor
-                  ?? (TurboObserver))({
-                  initialize: true,
+                  ?? (GradumObserver))({
                   ...properties,
+                  initialize: false,
                   onDestroy: (self) => {
-                      models.forEach(model => model.changeObservers?.delete(self));
+                      Array.from(this.changeObservers)
+                          .filter(e => e.observer === self)
+                          .forEach(e => this.changeObservers.delete(e));
                       properties.onDestroy?.(self);
                   },
                   onInitialize: (self) => {
-                      for (const model of models) {
-                          if (!model.isInitialized)
-                              continue;
-                          for (const key of model.keys)
-                              self.keyChanged([key], model.get(key));
-                      }
+                      this.initializeObserverOnPath(this.data, self, keys, []);
                       properties.onInitialize?.(self);
                   }
               });
-              models.forEach(model => model.changeObservers?.add(observer));
+              this.changeObservers.add({ keys, observer });
+              if (initialize)
+                  observer.initialize();
               return observer;
+          }
+          /**
+           * @function generateDeepObserver
+           * @description Like {@link generateObserver}, but fires for the registered depth **and all deeper levels**.
+           * Whereas `generateObserver(..., GradumModel.ALL)` only notifies at depth-2, `generateDeepObserver(..., GradumModel.ALL)`
+           * also notifies for depth-3, depth-4, etc. — passing the full key path to `onAdded`/`onUpdated`/`onDeleted`.
+           * Use when you need to react to any nested change regardless of depth.
+           * @param {GradumObserverProperties<DataEntryType, ComponentType, KeyType>} [properties={}] - Observer options and lifecycle callbacks.
+           * @param {...KeyType[]} keys - Optional key path to the nested model(s) to observe.
+           * @returns {GradumObserver} The attached observer. Keep the reference to read its instances or destroy it later.
+           */
+          generateDeepObserver(properties = {}, ...keys) {
+              const initialize = (this.isInitialized && isUndefined(properties.initialize)) || properties.initialize === true;
+              const observer = new (properties.customConstructor
+                  ?? this.observerConstructor
+                  ?? (GradumObserver))({
+                  ...properties,
+                  initialize: false,
+                  onDestroy: (self) => {
+                      Array.from(this.changeObservers)
+                          .filter(e => e.observer === self)
+                          .forEach(e => this.changeObservers.delete(e));
+                      properties.onDestroy?.(self);
+                  },
+                  onInitialize: (self) => {
+                      this.initializeObserverOnPath(this.data, self, keys, [], true);
+                      properties.onInitialize?.(self);
+                  }
+              });
+              this.changeObservers.add({ keys, observer, deep: true });
+              if (initialize)
+                  observer.initialize();
+              return observer;
+          }
+          /**
+           * @protected
+           * @function initializeObserverOnPath
+           * @description Walk the data along an observer's key path and report every existing entry to it, so an
+           * observer attached to already-populated data still sees what is there. Paths containing
+           * {@link GradumModel.ALL} fan out across every entry at that level.
+           * @param {any} data - The data to walk.
+           * @param {GradumObserver} observer - The observer to notify.
+           * @param {KeyType[]} keys - The remaining key path to walk.
+           * @param {KeyType[]} prefixKeys - The path already walked, passed back to the observer.
+           */
+          initializeObserverOnPath(data, observer, keys, prefixKeys, deep = false) {
+              if (keys.length === 0) {
+                  if (!this.isInitialized)
+                      return;
+                  for (const key of this.getKeysAction(data)) {
+                      const value = this.getAction(data, key);
+                      observer.keyChanged([...prefixKeys, key], value);
+                      if (deep && value !== null && typeof value === "object")
+                          this.initializeObserverOnPath(value, observer, [], [...prefixKeys, key], deep);
+                  }
+              }
+              else if (keys[0] === GradumModel.ALL)
+                  for (const key of this.getKeysAction(data)) {
+                      this.initializeObserverOnPath(this.getAction(data, key), observer, keys.slice(1), [...prefixKeys, key], deep);
+                  }
+              else
+                  this.initializeObserverOnPath(this.getAction(data, keys[0]), observer, keys.slice(1), [...prefixKeys, keys[0]], deep);
           }
           /*
            *
@@ -11919,30 +13833,71 @@
            * @param {unknown} [value] - The new value. Defaults to the current value at the key.
            * @param {boolean} [deleted=false] - Whether the entry was removed.
            */
-          keyChanged(keys, value = this.get(keys[0]), deleted = false) {
+          keyChanged(keys, value = this.get(...keys), deleted = false) {
               const key = keys[0];
               if (key === undefined)
                   return;
               this.signals.get(key)?.emit();
-              //TODO markDirty(this, ...keys);
+              markDirtyPath(this, keys);
               if (deleted)
                   this.signals.delete(key);
               if (!this.enabledCallbacks)
                   return;
-              if (!deleted && !this.nestedModels.has(key) && this.nestListeners.size > 0) {
-                  const model = this.nest(key);
-                  this.nestListeners.forEach(listener => listener(model, key));
-              }
+              if (!deleted && !this.nestedModels.has(key) && this.nestedListeners.size > 0)
+                  this.nestedListeners.forEach(({ listener }) => listener(keys, value));
               this.onKeyChanged.fire(value, ...keys);
-              this.changeObservers?.toArray().forEach(observer => observer.keyChanged(keys, value, deleted));
+              this.changeObservers.forEach(({ observer, keys: pattern, deep }) => this.matchObserverAndNotify(observer, keys, pattern, [], value, deleted, deep));
+          }
+          matchObserverAndNotify(observer, incomingKeys, pattern, prefixKeys, value, deleted, deep = false) {
+              if (!observer.isInitialized)
+                  return;
+              if (pattern.length === 0) {
+                  if (incomingKeys.length === 0) {
+                      if (!deleted && value !== null && typeof value === "object") {
+                          for (const key of this.getKeysAction(value)) {
+                              observer.keyChanged([...prefixKeys, key], this.getAction(value, key), deleted);
+                          }
+                      }
+                      else if (deleted) {
+                          for (const path of observer.getPathsAt(...prefixKeys)) {
+                              observer.keyChanged([...prefixKeys, ...path], undefined, true);
+                          }
+                      }
+                  }
+                  else if (deep)
+                      observer.keyChanged([...prefixKeys, ...incomingKeys], this.get(...prefixKeys, ...incomingKeys), deleted);
+                  else
+                      observer.keyChanged([...prefixKeys, incomingKeys[0]], this.get(...prefixKeys, incomingKeys[0]), deleted && incomingKeys.length === 1);
+                  return;
+              }
+              if (incomingKeys.length === 0) {
+                  if (!deleted && value !== null && typeof value === "object") {
+                      for (const key of this.getKeysAction(value))
+                          this.matchObserverAndNotify(observer, [key], pattern, prefixKeys, this.getAction(value, key), deleted, deep);
+                  }
+                  return;
+              }
+              const [head, ...tail] = incomingKeys;
+              const [patternHead, ...patternTail] = pattern;
+              if (patternHead === GradumModel.ALL || patternHead === head)
+                  this.matchObserverAndNotify(observer, tail, patternTail, [...prefixKeys, head], value, deleted, deep);
           }
           static flattenSize(data, depth) {
-              if (!data || depth <= 0 || !Array.isArray(data))
+              if (!data || depth <= 0)
                   return 1;
-              let total = 0;
-              for (const item of data)
-                  total += this.flattenSize(item, depth - 1);
-              return total;
+              if (Array.isArray(data)) {
+                  let total = 0;
+                  for (const item of data)
+                      total += this.flattenSize(item, depth - 1);
+                  return total;
+              }
+              if (typeof data === "object" && typeof data.length === "number" && typeof data.get === "function") {
+                  let total = 0;
+                  for (let i = 0; i < data.length; i++)
+                      total += this.flattenSize(data.get(i), depth - 1);
+                  return total;
+              }
+              return 1;
           }
           /**
            * @function flattenKey
@@ -11950,7 +13905,7 @@
            * - Fully numeric paths into array-backed data produce a numeric global leaf index.
            * - All other paths produce a `"k0|k1|k2|..."` string, with symbols encoded as `"@@description"`.
            * @param {...KeyType[]} keys - The key path to serialize.
-           * @returns {FlatKeyType}
+           * @returns {FlatKeyType} The flat key: a number for a fully numeric path, otherwise a `"k0|k1"` string.
            */
           flattenKey(...keys) {
               const stringFLatKey = () => keys.map(k => typeof k === "symbol" ? `@@${k.description ?? ""}` : String(k)).join("|");
@@ -11964,7 +13919,7 @@
                   const key = keys[i];
                   for (let sibling = 0; sibling < key; sibling++) {
                       const siblingData = current[sibling];
-                      index += TurboModel.flattenSize(siblingData, keys.length - i - 1);
+                      index += GradumModel.flattenSize(siblingData, keys.length - i - 1);
                   }
                   current = current[key];
               }
@@ -11979,18 +13934,24 @@
                       return isNaN(n) || k === "" ? k : n;
                   });
               }
+              if (depth == null)
+                  depth = 1;
               const keys = [];
               let remaining = flatKey;
               let current = this.data;
               for (let i = 0; i < depth; i++) {
-                  if (!Array.isArray(current))
+                  const isIndexable = Array.isArray(current)
+                      || (typeof current === "object" && current !== null
+                          && typeof current.length === "number" && typeof current.get === "function");
+                  if (!isIndexable)
                       break;
                   const remainingDepth = depth - i - 1;
+                  const getItem = Array.isArray(current) ? (j) => current[j] : (j) => current.get(j);
                   for (let j = 0; j < current.length; j++) {
-                      const size = TurboModel.flattenSize(current[j], remainingDepth);
+                      const size = GradumModel.flattenSize(getItem(j), remainingDepth);
                       if (remaining < size) {
                           keys.push(j);
-                          current = current[j];
+                          current = getItem(j);
                           break;
                       }
                       remaining -= size;
@@ -12009,54 +13970,77 @@
            * By default, unless manually defined in the handler, if the element's class name is MyElement
            * and the handler's class name is MyElementSomethingHandler, the key would be "something".
            * @param {string} key - The handler's key.
-           * @return {TurboHandler} - The handler.
+           * @returns {GradumHandler} The handler registered under that key, or `undefined` if there is none.
            */
           getHandler(key) {
               return this.handlers?.get(key);
           }
           /**
            * @function addHandler
-           * @description Registers a TurboHandler for the given key.
-           * @param {TurboHandler} handler - The handler instance to register.
+           * @description Registers a GradumHandler for the given key.
+           * @param {GradumHandler} handler - The handler instance to register.
            */
           addHandler(handler) {
               if (!handler.keyName)
                   return;
               this.handlers?.set(handler.keyName, handler);
           }
+          /**
+           * @function setDataWithoutInitializing
+           * @description Point the model at new data without running {@link GradumModel.initialize} on it, so
+           * observers and signals are not re-created. Use it when the caller will initialize at a moment of its
+           * own choosing; prefer assigning `data` otherwise.
+           * @param {DataType} data - The data to adopt.
+           */
           setDataWithoutInitializing(data) {
               this.clear(false);
               this._data = data;
           }
-          routeMutation(keys, rawCallback, nestedCallback) {
-              const firstKey = keys[0];
-              const childKeys = keys.slice(1);
-              const nested = this.getNested(firstKey);
-              if (childKeys.length === 0)
-                  return rawCallback(this.data, firstKey);
-              if (nested)
-                  return nestedCallback(nested, childKeys);
-              const parentData = this.get(firstKey, ...childKeys.slice(0, -1));
-              if (typeof parentData !== "object")
-                  return;
-              return rawCallback(parentData, childKeys[childKeys.length - 1]);
+          /**
+           * @function fireCallback
+           * @description Fire a named callback through {@link GradumModel.fireCallbackHook}. Does nothing if no
+           * hook has been assigned.
+           * @param {string} key - The name of the callback to fire.
+           * @param {...any[]} values - Arguments forwarded to the hook.
+           */
+          fireCallback(key, ...values) {
+              this.fireCallbackHook?.(key, ...values);
           }
+          createNestedChild(model, key, properties) {
+              if (model.nestedModels.has(key))
+                  return model.nestedModels.get(key);
+              const child = this.modelConstructor.create({ ...properties, data: model.get(key), initialize: this.isInitialized });
+              model.onKeyChanged.add((value, changedKey) => {
+                  if (changedKey !== key)
+                      return;
+                  if (child.data !== value)
+                      child.data = value;
+              });
+              child.onKeyChanged.add((_value, ...keys) => {
+                  if (!model.enabledCallbacks || !model.bubbleChanges)
+                      return;
+                  model.keyChanged(keys, model.get(key));
+              });
+              model.nestedModels.set(key, child);
+              return child;
+          }
+          ;
       };
   })();
-  addRegistryCategory(TurboModel);
-  define(TurboModel);
+  addRegistryCategory(GradumModel);
+  define(GradumModel);
 
   /**
-   * @class TurboEmitter
+   * @class GradumEmitter
    * @group MVC
    * @category Emitter
    *
-   * @template {TurboModel} ModelType - The element's MVC model type.
+   * @template {GradumModel} ModelType - The element's MVC model type.
    * @template {KeyType} DataKeyType - The key type of the MVC's model.
    * @description The base MVC emitter class. Its role is basically an event bus. It allows the different parts of the
    * MVC structure to fire events or listen to some, with various methods.
    */
-  class TurboEmitter {
+  class GradumEmitter {
       /**
        * @description Map containing all custom callbacks.
        * @protected
@@ -12071,6 +14055,11 @@
        * @description The attached MVC model.
        */
       model;
+      /**
+       * @constructor
+       * @description Create an emitter, optionally bound to a model so key-path events can be fired against it.
+       * @param {ModelType} [model] - The model whose key changes this emitter relays.
+       */
       constructor(model) {
           if (model)
               this.model = model;
@@ -12151,38 +14140,50 @@
        * @function resolveFlatKey
        * @description Convert a key path to a stable flat string key for internal storage lookup. Joins with `"|"`.
        * @param {DataKeyType[]} keys - The key path to flatten.
-       * @returns {FlatKeyType}
+       * @returns {FlatKeyType} The flat key, suitable for use as a map key.
        */
       resolveFlatKey(keys) {
           return keys.map(k => typeof k === "symbol" ? `@@${k.description ?? ""}` : String(k)).join("|");
       }
   }
-  addRegistryCategory(TurboEmitter);
-  define(TurboEmitter);
+  addRegistryCategory(GradumEmitter);
+  define(GradumEmitter);
 
+  /**
+   * @internal
+   * @description Key under which a raw DOM node stores the {@link GradumProxiedElement} wrapping it, so MVC
+   * pieces are constructed against the public wrapper rather than the underlying node.
+   */
+  const proxyWrapperSymbol = Symbol("__proxyWrapper__");
+  /**
+   * @internal
+   * @class MvcFunctionsUtils
+   * @description Shared helpers and per-element state behind the MVC functions on {@link GradumSelector}.
+   */
   class MvcFunctionsUtils {
       dataMap = new WeakMap;
       modelLookupMap = new WeakMap;
       peek(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
-          if (element instanceof TurboModel)
+          if (element instanceof GradumModel)
               element = this.modelLookupMap.get(element)?.values().next().value;
           return element ? this.dataMap.get(element) : undefined;
       }
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
-          if (element instanceof TurboModel)
+          if (element instanceof GradumModel)
               element = this.modelLookupMap.get(element)?.values().next().value;
           if (!element)
               return;
           let entry = this.dataMap.get(element);
           if (!entry) {
               entry = {
-                  emitter: new TurboEmitter(),
-                  controllers: new Map(), substrates: new Map(), interactors: new Map(), tools: new Map(),
-                  emitterFireCallback: (value, ...keys) => entry.emitter?.fireKey(value, ...keys)
+                  emitter: new GradumEmitter(),
+                  operators: new Map(), constrainers: new Map(), interactors: new Map(), tools: new Map(),
+                  emitterCallback: (key, ...values) => entry.emitter?.fire(key, ...values),
+                  emitterKeyCallback: (value, ...keys) => entry.emitter?.fireKey(value, ...keys)
               };
               this.dataMap.set(element, entry);
           }
@@ -12205,11 +14206,13 @@
           if (!mvc)
               return;
           if (attach) {
-              if (!model.onKeyChanged.has(mvc.emitterFireCallback))
-                  model.onKeyChanged.add(mvc.emitterFireCallback);
+              if (!model.onKeyChanged.has(mvc.emitterKeyCallback))
+                  model.onKeyChanged.add(mvc.emitterKeyCallback);
+              model.fireCallbackHook = mvc.emitterCallback;
           }
           else {
-              model.onKeyChanged.remove(mvc.emitterFireCallback);
+              model.onKeyChanged.remove(mvc.emitterKeyCallback);
+              model.fireCallbackHook = undefined;
           }
       }
       updateView(element, view, attach = true) {
@@ -12229,15 +14232,15 @@
               return;
           emitter.model = attach ? mvc.model : undefined;
       }
-      updateController(element, controller, attach = true) {
-          if (!controller || !element)
+      updateOperator(element, operator, attach = true) {
+          if (!operator || !element)
               return;
           const mvc = this.peek(element);
           if (!mvc)
               return;
-          controller.emitter = attach ? mvc.emitter : undefined;
-          controller.model = attach ? mvc.model : undefined;
-          controller.view = attach ? mvc.view : undefined;
+          operator.emitter = attach ? mvc.emitter : undefined;
+          operator.model = attach ? mvc.model : undefined;
+          operator.view = attach ? mvc.view : undefined;
       }
       updateHandler(element, handler, attach = true) {
           if (!element || !handler)
@@ -12267,15 +14270,15 @@
           tool.view = attach ? mvc.view : undefined;
           tool.emitter = attach ? mvc.emitter : undefined;
       }
-      updateSubstrate(element, substrate, attach = true) {
-          if (!element || !substrate)
+      updateConstrainer(element, constrainer, attach = true) {
+          if (!element || !constrainer)
               return;
           const mvc = this.peek(element);
           if (!mvc)
               return;
-          substrate.model = attach ? mvc.model : undefined;
-          substrate.view = attach ? mvc.view : undefined;
-          substrate.emitter = attach ? mvc.emitter : undefined;
+          constrainer.model = attach ? mvc.model : undefined;
+          constrainer.view = attach ? mvc.view : undefined;
+          constrainer.emitter = attach ? mvc.emitter : undefined;
       }
       linkPieces(element) {
           if (!element)
@@ -12286,11 +14289,11 @@
           this.updateModel(element, mvc.model);
           this.updateEmitter(element, mvc.emitter);
           this.updateView(element, mvc.view);
-          mvc.controllers.forEach(controller => this.updateController(element, controller));
+          mvc.operators.forEach(operator => this.updateOperator(element, operator));
           mvc.model?.handlers.forEach(handler => this.updateHandler(element, handler));
           mvc.interactors.forEach(interactor => this.updateInteractor(element, interactor));
           mvc.tools.forEach(tool => this.updateTool(element, tool));
-          mvc.substrates.forEach(substrate => this.updateSubstrate(element, substrate));
+          mvc.constrainers.forEach(constrainer => this.updateConstrainer(element, constrainer));
       }
       removeInstance(element, kind, keyOrInstance) {
           if (!element)
@@ -12309,8 +14312,12 @@
       generateInstance(data, element) {
           if (!data)
               return undefined;
+          // If element is a raw DOM node backing a GradumProxiedElement, pass the wrapper instead so
+          // that view/operator/etc. constructors receive the public class instance (e.g. FlowEntry)
+          // rather than the internal <g> element.
+          const effectiveElement = element?.[proxyWrapperSymbol] ?? element;
           if (typeof data === "function")
-              return new data(element ? { element } : undefined);
+              return new data(effectiveElement ? { element: effectiveElement } : undefined);
           return data;
       }
       generateInstances(data, element) {
@@ -12330,16 +14337,17 @@
        * @protected
        * @function extractClassEssenceName
        * @description Utility that derives a shorter "essence" key name for an MVC piece from its constructor name.
-       * It strips the element/class name prefix (if any) and the type suffix (e.g., "Controller", "Tool") to
-       * produce a key that reads well in camelCase (e.g., `MyElementSnapController` -> `snap`).
-       * @param element
+       * It strips the element/class name prefix (if any) and the type suffix (e.g., "Operator", "Tool") to
+       * produce a key that reads well in camelCase (e.g., `MyElementSnapOperator` -> `snap`).
+       * @param {object} element - The element the piece is attached to, whose name is stripped from the prefix.
        * @param {new (...args: any[]) => any} constructor - The constructor to derive the name from.
-       * @param {string} type - The type suffix to strip (e.g., "Controller", "Handler", "Tool", "Substrate").
-       * @returns {string} - A lower-cased, camel-style key name derived from the constructor.
+       * @param {string} type - The type suffix to strip (e.g., "Operator", "Handler", "Tool", "Constrainer").
+       * @returns {string} A lower-cased, camel-style key name derived from the constructor.
        */
       extractClassEssenceName(element, constructor, type) {
           let className = constructor.name;
-          let prototype = Object.getPrototypeOf(element);
+          const target = element[proxyWrapperSymbol] ?? element;
+          let prototype = Object.getPrototypeOf(target);
           while (prototype && prototype.constructor !== Object) {
               const name = prototype.constructor.name.replaceAll("_", "");
               if (className.startsWith(name)) {
@@ -12354,13 +14362,41 @@
       }
   }
 
-  const MvcFields = ["model", "view", "emitter", "controllers", "handlers", "interactors", "tools", "substrates"];
+  /**
+   * @internal
+   * @description The names of the MVC roles an element can hold, in the order they are attached. Used to
+   * split MVC entries out of a properties object and to drive the generic add/get/remove paths.
+   */
+  const MvcFields = ["model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
   const utils$8 = new MvcFunctionsUtils();
+  /**
+   * @internal
+   * @function setupMvcFunctions
+   * @description Install the MVC functions (`model`, `view`, `emitter`, and the add/get/remove methods for each
+   * role) onto the {@link GradumSelector} prototype. Called once by
+   * {@link gradumify}; the matching `exclude` option skips it.
+   */
   function setupMvcFunctions() {
+      Object.defineProperty(GradumSelector.prototype, "mvc", {
+          get() {
+              const data = utils$8.peek(this.element);
+              if (!data)
+                  return {};
+              return {
+                  model: data.model,
+                  view: data.view,
+                  operators: Array.from(data.operators?.values() ?? []),
+                  handlers: Array.from(data.model?.handlers?.values() ?? []),
+                  interactors: Array.from(data.interactors?.values() ?? []),
+                  tools: Array.from(data.tools?.values() ?? []),
+                  constrainers: Array.from(data.constrainers?.values() ?? []),
+              };
+          }, configurable: true, enumerable: true,
+      });
       // -------------------------------------------------------------------------
       // Singular pieces
       // -------------------------------------------------------------------------
-      Object.defineProperty(TurboSelector.prototype, "model", {
+      Object.defineProperty(GradumSelector.prototype, "model", {
           get() {
               return utils$8.peek(this.element)?.model;
           },
@@ -12370,13 +14406,15 @@
               const mvc = utils$8.data(this.element);
               utils$8.attachModel(this.element, this.model, false);
               utils$8.updateModel(this.element, mvc.model, false);
-              mvc.model = utils$8.generateInstance(value);
+              if (!value)
+                  return;
+              mvc.model = typeof value === "function" ? value.create() : value;
               utils$8.attachModel(this.element, mvc.model);
               utils$8.linkPieces(this.element);
           },
           configurable: true, enumerable: true,
       });
-      Object.defineProperty(TurboSelector.prototype, "view", {
+      Object.defineProperty(GradumSelector.prototype, "view", {
           get() {
               return utils$8.peek(this.element)?.view;
           },
@@ -12388,7 +14426,7 @@
           },
           configurable: true, enumerable: true,
       });
-      Object.defineProperty(TurboSelector.prototype, "emitter", {
+      Object.defineProperty(GradumSelector.prototype, "emitter", {
           get() {
               return utils$8.peek(this.element)?.emitter;
           },
@@ -12403,7 +14441,7 @@
       // -------------------------------------------------------------------------
       // Data
       // -------------------------------------------------------------------------
-      Object.defineProperty(TurboSelector.prototype, "data", {
+      Object.defineProperty(GradumSelector.prototype, "data", {
           get() {
               return utils$8.peek(this.element)?.model?.data;
           },
@@ -12417,7 +14455,13 @@
           },
           configurable: true, enumerable: true,
       });
-      Object.defineProperty(TurboSelector.prototype, "dataId", {
+      Object.defineProperty(GradumSelector.prototype, "metadata", {
+          get() {
+              return utils$8.peek(this.element)?.model?.meta;
+          },
+          configurable: true, enumerable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "dataId", {
           get() {
               return utils$8.peek(this.element)?.model?.id;
           },
@@ -12431,7 +14475,7 @@
           },
           configurable: true, enumerable: true,
       });
-      Object.defineProperty(TurboSelector.prototype, "dataIndex", {
+      Object.defineProperty(GradumSelector.prototype, "dataIndex", {
           get() {
               return Number.parseInt(this.dataId);
           },
@@ -12440,28 +14484,28 @@
           },
           configurable: true, enumerable: true,
       });
-      Object.defineProperty(TurboSelector.prototype, "dataSize", {
+      Object.defineProperty(GradumSelector.prototype, "dataSize", {
           get() {
-              return utils$8.peek(this.element)?.model?.size;
+              return utils$8.peek(this.element)?.model?.dataSize;
           },
           configurable: true, enumerable: true,
       });
       // -------------------------------------------------------------------------
       // Collections
       // -------------------------------------------------------------------------
-      Object.defineProperty(TurboSelector.prototype, "controllers", {
+      Object.defineProperty(GradumSelector.prototype, "operators", {
           get() {
-              return Array.from(utils$8.peek(this.element)?.controllers.values() ?? []);
+              return Array.from(utils$8.peek(this.element)?.operators.values() ?? []);
           },
           set(value) {
               if (!this.element)
                   return;
-              utils$8.generateInstances(value, this.element).forEach(instance => this.addController(instance));
+              utils$8.generateInstances(value, this.element).forEach(instance => this.addOperator(instance));
               utils$8.linkPieces(this.element);
           },
           configurable: true, enumerable: true,
       });
-      Object.defineProperty(TurboSelector.prototype, "handlers", {
+      Object.defineProperty(GradumSelector.prototype, "handlers", {
           get() {
               return Array.from(utils$8.peek(this.element)?.model?.handlers.values() ?? []);
           },
@@ -12472,7 +14516,7 @@
           },
           configurable: true, enumerable: true,
       });
-      Object.defineProperty(TurboSelector.prototype, "interactors", {
+      Object.defineProperty(GradumSelector.prototype, "interactors", {
           get() {
               return Array.from(utils$8.peek(this.element)?.interactors.values() ?? []);
           },
@@ -12484,7 +14528,7 @@
           },
           configurable: true, enumerable: true,
       });
-      Object.defineProperty(TurboSelector.prototype, "tools", {
+      Object.defineProperty(GradumSelector.prototype, "tools", {
           get() {
               return Array.from(utils$8.peek(this.element)?.tools.values() ?? []);
           },
@@ -12496,14 +14540,14 @@
           },
           configurable: true, enumerable: true,
       });
-      Object.defineProperty(TurboSelector.prototype, "substrates", {
+      Object.defineProperty(GradumSelector.prototype, "constrainers", {
           get() {
-              return Array.from(utils$8.peek(this.element)?.substrates.values() ?? []);
+              return Array.from(utils$8.peek(this.element)?.constrainers.values() ?? []);
           },
           set(value) {
               if (!this.element)
                   return;
-              utils$8.generateInstances(value, this.element).forEach(instance => this.addSubstrate(instance));
+              utils$8.generateInstances(value, this.element).forEach(instance => this.addConstrainer(instance));
               utils$8.linkPieces(this.element);
           },
           configurable: true, enumerable: true,
@@ -12511,37 +14555,37 @@
       // -------------------------------------------------------------------------
       // Main methods
       // -------------------------------------------------------------------------
-      TurboSelector.prototype.setMvc = function (properties) {
+      GradumSelector.prototype.setMvc = function (properties) {
           const mvc = utils$8.data(this.element);
-          for (const [key, value] of Object.entries(turbo(properties).extract(MvcFields))) {
+          for (const [key, value] of Object.entries(gradum(properties).extract(MvcFields))) {
               try {
                   this[key] = value;
               }
               catch { }
           }
           if (!mvc.emitter)
-              mvc.emitter = new TurboEmitter();
+              mvc.emitter = new GradumEmitter();
           if (properties.data && mvc.model)
               mvc.model.setDataWithoutInitializing(properties.data);
           if (properties.initialize === undefined || properties.initialize)
               this.initializeMvc();
           return this;
       };
-      TurboSelector.prototype.initializeMvc = function () {
+      GradumSelector.prototype.initializeMvc = function () {
           if (!this.element)
               return this;
           const mvc = utils$8.peek(this.element);
           if (!mvc)
               return this;
           mvc.view?.initialize();
-          mvc.controllers.forEach(controller => controller.initialize());
+          mvc.operators.forEach(operator => operator.initialize());
           mvc.interactors.forEach(interactor => interactor.initialize());
           mvc.tools.forEach(tool => tool.initialize());
-          mvc.substrates.forEach(substrate => substrate.initialize());
+          mvc.constrainers.forEach(constrainer => constrainer.initialize());
           mvc.model?.initialize();
           return this;
       };
-      TurboSelector.prototype.getMvcDifference = function (properties = {}) {
+      GradumSelector.prototype.getMvcDifference = function (properties = {}) {
           const difference = {};
           const toConstructor = (x) => {
               if (!x)
@@ -12581,1206 +14625,790 @@
           processField("view");
           processField("model");
           processField("emitter");
-          processArray("controllers");
+          processArray("operators");
           processArray("handlers");
           processArray("interactors");
           processArray("tools");
-          processArray("substrates");
+          processArray("constrainers");
           return difference;
       };
       // -------------------------------------------------------------------------
       // Manipulations
       // -------------------------------------------------------------------------
-      TurboSelector.prototype.getController = function (key) {
-          return utils$8.peek(this.element)?.controllers.get(key);
+      GradumSelector.prototype.getOperator = function (key) {
+          return utils$8.peek(this.element)?.operators.get(key);
       };
-      TurboSelector.prototype.addController = function (controller) {
+      GradumSelector.prototype.addOperator = function (operator) {
           if (!this.element)
               return this;
-          if (!controller.keyName)
-              controller.keyName =
-                  utils$8.extractClassEssenceName(this.element, controller.constructor, "Controller");
-          utils$8.data(this.element).controllers.set(controller.keyName, controller);
-          utils$8.updateController(this.element, controller);
+          if (!operator.keyName)
+              operator.keyName =
+                  utils$8.extractClassEssenceName(this.element, operator.constructor, "Operator");
+          const data = utils$8.data(this.element);
+          if (data.operators.has(operator.keyName))
+              return this;
+          data.operators.set(operator.keyName, operator);
+          utils$8.updateOperator(this.element, operator);
           return this;
       };
-      TurboSelector.prototype.removeController = function (keyOrInstance) {
+      GradumSelector.prototype.removeOperator = function (keyOrInstance) {
           if (!this.element)
               return this;
-          utils$8.removeInstance(this.element, "controller", keyOrInstance);
+          utils$8.removeInstance(this.element, "operator", keyOrInstance);
           return this;
       };
-      TurboSelector.prototype.getHandler = function (key) {
+      GradumSelector.prototype.getHandler = function (key) {
           return utils$8.peek(this.element)?.model?.handlers.get(key);
       };
-      TurboSelector.prototype.addHandler = function (handler) {
+      GradumSelector.prototype.addHandler = function (handler) {
           if (!this.element)
               return this;
           if (!handler.keyName)
               handler.keyName =
                   utils$8.extractClassEssenceName(this.element, handler.constructor, "Handler");
-          utils$8.data(this.element).model?.handlers.set(handler.keyName, handler);
+          const data = utils$8.data(this.element);
+          if (data.model?.handlers.has(handler.keyName))
+              return this;
+          data.model?.handlers.set(handler.keyName, handler);
           utils$8.updateHandler(this.element, handler);
           return this;
       };
-      TurboSelector.prototype.removeHandler = function (keyOrInstance) {
+      GradumSelector.prototype.removeHandler = function (keyOrInstance) {
           if (!this.element)
               return this;
           utils$8.removeInstance(this.element, "handler", keyOrInstance);
           return this;
       };
-      TurboSelector.prototype.getInteractor = function (key) {
+      GradumSelector.prototype.getInteractor = function (key) {
           return utils$8.peek(this.element)?.interactors.get(key);
       };
-      TurboSelector.prototype.addInteractor = function (interactor) {
+      GradumSelector.prototype.addInteractor = function (interactor) {
           if (!this.element)
               return this;
           if (!interactor.keyName)
               interactor.keyName =
                   utils$8.extractClassEssenceName(this.element, interactor.constructor, "Interactor");
-          utils$8.data(this.element).interactors.set(interactor.keyName, interactor);
+          const data = utils$8.data(this.element);
+          if (data.interactors.has(interactor.keyName))
+              return this;
+          data.interactors.set(interactor.keyName, interactor);
           utils$8.updateInteractor(this.element, interactor);
           return this;
       };
-      TurboSelector.prototype.removeInteractor = function (keyOrInstance) {
+      GradumSelector.prototype.removeInteractor = function (keyOrInstance) {
           if (!this.element)
               return this;
           utils$8.removeInstance(this.element, "interactor", keyOrInstance);
           return this;
       };
-      TurboSelector.prototype.getTool = function (key) {
+      GradumSelector.prototype.getTool = function (key) {
           return utils$8.peek(this.element)?.tools.get(key);
       };
-      TurboSelector.prototype.addTool = function (tool) {
+      GradumSelector.prototype.addTool = function (tool) {
           if (!this.element)
               return this;
           if (!tool.keyName)
               tool.keyName =
                   utils$8.extractClassEssenceName(this.element, tool.constructor, "Tool");
-          utils$8.data(this.element).tools.set(tool.keyName, tool);
+          const data = utils$8.data(this.element);
+          if (data.tools.has(tool.keyName))
+              return this;
+          data.tools.set(tool.keyName, tool);
           utils$8.updateTool(this.element, tool);
           return this;
       };
-      TurboSelector.prototype.removeTool = function (keyOrInstance) {
+      GradumSelector.prototype.removeTool = function (keyOrInstance) {
           if (!this.element)
               return this;
           utils$8.removeInstance(this.element, "tool", keyOrInstance);
           return this;
       };
-      TurboSelector.prototype.getSubstrate = function (key) {
-          return utils$8.peek(this.element)?.substrates.get(key);
+      GradumSelector.prototype.getConstrainer = function (key) {
+          return utils$8.peek(this.element)?.constrainers.get(key);
       };
-      TurboSelector.prototype.addSubstrate = function (substrate) {
+      GradumSelector.prototype.addConstrainer = function (constrainer) {
           if (!this.element)
               return this;
-          if (!substrate.keyName)
-              substrate.keyName =
-                  utils$8.extractClassEssenceName(this.element, substrate.constructor, "Substrate");
-          utils$8.data(this.element).substrates.set(substrate.keyName, substrate);
-          utils$8.updateSubstrate(this.element, substrate);
+          if (!constrainer.keyName)
+              constrainer.keyName =
+                  utils$8.extractClassEssenceName(this.element, constrainer.constructor, "Constrainer");
+          const data = utils$8.data(this.element);
+          if (data.constrainers.has(constrainer.keyName))
+              return this;
+          data.constrainers.set(constrainer.keyName, constrainer);
+          utils$8.updateConstrainer(this.element, constrainer);
           return this;
       };
-      TurboSelector.prototype.removeSubstrate = function (keyOrInstance) {
+      GradumSelector.prototype.removeConstrainer = function (keyOrInstance) {
           if (!this.element)
               return this;
-          utils$8.removeInstance(this.element, "substrate", keyOrInstance);
+          utils$8.removeInstance(this.element, "constrainer", keyOrInstance);
           return this;
       };
   }
 
-  const utils$7 = new ElementFunctionsUtils();
-  function setupElementFunctions() {
-      /**
-       * Sets the declared properties to the element.
-       * @param {TurboProperties<Tag>} [properties] - The properties object.
-       * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base turbo properties (classes,
-       * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in TurboProperties.
-       * @returns {this} Itself, allowing for method chaining.
-       * @template Tag
-       */
-      TurboSelector.prototype.setProperties = function _setProperties(properties = {}, setOnlyBaseProperties = false) {
-          if (!this.element)
-              return this;
-          const props = { ...properties };
-          const isElement = this.element instanceof Element;
-          turbo(properties).removeFields(["tag", "namespace"]);
-          const { out, shadowDOM, initialize, parent, model, data, dataId } = turbo(props).extract(["out", "shadowDOM", "initialize", "parent", "model", "data", "dataId"]);
-          let mvcUpdated = false;
-          if (out) {
-              if (typeof out == "string")
-                  this["__outName"] = out;
-              else
-                  Object.assign(out, this);
-          }
-          if (!!shadowDOM) {
-              if ("shadowDOM" in this.element)
-                  this["shadowDOM"] = shadowDOM;
-              else if (isElement)
-                  this.element.attachShadow({ mode: "open" });
-          }
-          if (!isElement || (isElement && !setOnlyBaseProperties)) {
-              if (model) {
-                  this.model = model;
-                  if (data && this.model) {
-                      this.model.setDataWithoutInitializing(data);
-                      this.model.id = dataId;
-                  }
-                  mvcUpdated = true;
-              }
-              const mvc = turbo(props).extract(MvcFields);
-              for (const [key, value] of Object.entries(mvc)) {
-                  try {
-                      this[key] = value;
-                      mvcUpdated = true;
-                  }
-                  catch { }
-              }
-          }
-          if (isElement)
-              for (const property of Object.keys(props)) {
-                  const value = props[property];
-                  if (value === undefined)
-                      continue;
-                  switch (property) {
-                      case "text":
-                          if (this.element instanceof HTMLElement)
-                              this.element.innerText = value;
-                          break;
-                      case "style":
-                          if (!(this.element instanceof HTMLElement || this.element instanceof SVGElement))
-                              break;
-                          this.setStyles(value, true);
-                          break;
-                      case "stylesheet":
-                          stylesheet(value, this.closestRoot);
-                          break;
-                      case "id":
-                          this.element.id = value;
-                          break;
-                      case "classes":
-                          this.addClass(value);
-                          break;
-                      case "listeners":
-                          Object.entries(value).forEach(([type, callback]) => this.on(type, callback));
-                          break;
-                      case "onClick":
-                          this.on(DefaultEventName.click, value);
-                          break;
-                      case "onDrag":
-                          this.on(DefaultEventName.drag, value);
-                          break;
-                      case "children":
-                          this.addChild(value);
-                          break;
-                      default:
-                          if (setOnlyBaseProperties)
-                              break;
-                          try {
-                              this.element[property] = value;
-                          }
-                          catch {
-                              try {
-                                  this.setAttribute(property, stringify(value));
-                              }
-                              catch (e) {
-                                  console.error(e);
-                              }
-                          }
-                          break;
-                  }
-              }
-          else
-              this.apply(props);
-          if (parent)
-              this.addToParent(parent);
-          if (initialize === undefined || initialize) {
-              if ("initialize" in this.element && typeof this.element.initialize === "function")
-                  this.element.initialize();
-              else if (mvcUpdated)
-                  this.initializeMvc();
-          }
-          return this;
-      };
-      //TODO maybe use .cloneNode() for vanilla nodes
-      TurboSelector.prototype.clone = function _clone(options = {}) {
-          const originElement = this.element instanceof Node ? this.element : undefined;
-          if (!originElement)
-              return;
-          const exclude = new Set(options.exclude ?? []);
-          const force = new Set(options.forceInclude ?? []);
-          const deepClone = new Set(options.deepClone ?? []);
-          const copyReference = new Set(options.copyReference ?? []);
-          const shouldCopy = (key, value, prototype) => {
-              if (force.has(key))
-                  return true;
-              if (exclude.has(key) || key === "mvc" || key === "__proto__" || key === "prototype")
-                  return false;
-              if (typeof value === "function")
-                  return false;
-              if (key === "model" || key === "view" || key === "emitter" || key === "controllers"
-                  || key === "handlers" || key === "interactors" || key === "tools" || key === "substrates")
-                  return false;
-              const desc = Object.getOwnPropertyDescriptor(prototype, key);
-              if (!desc)
-                  return false;
-              if (desc.get && !desc.set && !force.has(key))
-                  return false;
-              if ("writable" in desc && desc.writable === false && !force.has(key))
-                  return false;
-              return true;
-          };
-          const copyField = (key, value) => {
-              if (!value || typeof value !== "object")
-                  return value;
-              if (copyReference.has(key))
-                  return value;
-              try {
-                  if (value instanceof Node) {
-                      if (deepClone.has(key) || options.deepCloneNodes)
-                          return turbo(value).clone(options);
-                      if (options.copyNodes)
-                          return value;
-                  }
-                  else {
-                      if (options.deepCloneObjects || deepClone.has(key)) {
-                          if (typeof structuredClone === "function")
-                              return structuredClone(value);
-                      }
-                      return value;
-                  }
-              }
-              catch {
-              }
-          };
-          const constructor = originElement.constructor;
-          const prototypeChain = getPrototypeChain(originElement);
-          originElement["mvc"];
-          let properties = {};
-          //TODO FIX
-          // if (mvc && mvc instanceof Mvc) {
-          //     const defaultProperties: any = {};
-          //     for (let i = 0; i < prototypeChain.length; i++) {
-          //         turbo(defaultProperties).applyDefaults(prototypeChain[i]?.defaultProperties);
-          //     }
-          //     properties = mvc.getDifference(defaultProperties);
-          // }
-          //TODO maybe clone the data
-          if (originElement["model"] && originElement["data"])
-              properties["data"] = originElement["data"];
-          const clone = typeof constructor.create === "function" ? constructor.create(properties)
-              : turbo(document.createElement(originElement.tagName)).setProperties(properties).element;
-          for (const attr of Array.from(originElement.attributes)) {
-              if (!exclude.has(attr.name))
-                  clone.setAttribute(attr.name, attr.value);
-          }
-          const keys = new Map();
-          const addKeys = (prototype) => {
-              for (const property of Object.getOwnPropertyNames(prototype))
-                  if (!keys.has(property))
-                      keys.set(property, prototype);
-              for (const property of Object.getOwnPropertySymbols(prototype))
-                  if (!keys.has(property))
-                      keys.set(property, prototype);
-          };
-          addKeys(originElement);
-          for (const prototype of prototypeChain) {
-              if (equalToAny(prototype, Element.prototype, Node.prototype, HTMLElement.prototype, SVGElement.prototype, MathMLElement.prototype, EventTarget.prototype, Object.prototype))
-                  break;
-              addKeys(prototype);
-          }
-          for (const [key, prototype] of keys.entries()) {
-              const value = originElement[key];
-              if (!shouldCopy(key, value, prototype))
-                  continue;
-              let newValue = copyField(key, value);
-              if (newValue !== undefined)
-                  try {
-                      clone[key] = newValue;
-                  }
-                  catch {
-                  }
-          }
-          return clone;
-      };
-      /**
-       * @description Destroys the node by removing it from the document and removing all its bound listeners.
-       * @returns {this} Itself, allowing for method chaining.
-       */
-      TurboSelector.prototype.destroy = function _destroy() {
-          this.removeAllListeners();
-          this.remove();
-          if (this.element && "destroy" in this.element && typeof this.element.destroy === "function")
-              this.element.destroy();
-          return this;
-      };
-      /**
-       * @description Sets the value of an attribute on the underlying element.
-       * @param {string} name The name of the attribute.
-       * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent a
-       * true boolean.
-       * @returns {this} Itself, allowing for method chaining.
-       */
-      TurboSelector.prototype.setAttribute = function _setAttribute(name, value) {
-          if (this.element instanceof Element)
-              this.element.setAttribute(name, value?.toString() || "true");
-          return this;
-      };
-      /**
-       * @description Removes an attribute from the underlying element.
-       * @param {string} name The name of the attribute to remove.
-       * @returns {this} Itself, allowing for method chaining.
-       */
-      TurboSelector.prototype.removeAttribute = function _removeAttribute(name) {
-          if (this.element instanceof Element)
-              this.element.removeAttribute(name);
-          return this;
-      };
-      /**
-       * @description Causes the element to lose focus.
-       * @returns {this} Itself, allowing for method chaining.
-       */
-      TurboSelector.prototype.blur = function _blur() {
-          if (this.element instanceof HTMLElement)
-              this.element.blur();
-          return this;
-      };
-      /**
-       * @description Sets focus on the element.
-       * @returns {this} Itself, allowing for method chaining.
-       */
-      TurboSelector.prototype.focus = function _focus() {
-          if (this.element instanceof HTMLElement)
-              this.element.focus();
-          return this;
-      };
-      TurboSelector.prototype.feedforward = function _feedforward(properties = {}) {
-          if (properties.removeOnPointerRelease === undefined)
-              properties.removeOnPointerRelease = true;
-          if (!this.element)
-              return;
-          const type = properties?.type ?? "___DEFAULT___";
-          const feedforwardElements = utils$7.data(this.element).feedforwardElements;
-          if (!feedforwardElements)
-              return;
-          let saved = feedforwardElements.get(type);
-          if (!saved) {
-              if (typeof this.element["clone"] === "function")
-                  saved = this.element["clone"](properties?.cloneOptions);
-              else
-                  saved = this.clone(properties?.cloneOptions);
-          }
-          turbo(saved).setProperties(this.defaultFeedforwardProperties ?? {})
-              .setProperties({
-              ...properties,
-              cloneOptions: undefined,
-              type: undefined,
-              removeOnPointerRelease: undefined
-          });
-          feedforwardElements.set(type, saved);
-          if (properties.removeOnPointerRelease)
-              turbo(document.body).on(DefaultEventName.clickEnd, () => {
-                  if (typeof saved["remove"] === "function")
-                      saved["remove"]();
-                  feedforwardElements.delete(type);
-              }, { capture: true });
-          return saved;
-      };
-      Object.defineProperty(TurboSelector.prototype, "defaultFeedforwardProperties", {
+  /**
+   * @internal
+   * @function defineDefaultProperties
+   * @template {new (...args: any[]) => any} Type - The class being set up.
+   * @description Install the shared element behaviour on a class prototype — `destroy`, `initialize`,
+   * `initialized`, `feedforward`, `clone`, and `defaultFeedforwardProperties`. This is what gives every
+   * element class the same lifecycle without inheriting from a common base. Called once per element class
+   * at definition time.
+   * @param {Type} constructor - The class whose prototype receives the behaviour.
+   */
+  function defineDefaultProperties(constructor) {
+      const prototype = constructor.prototype;
+      const initializedKey = Symbol("__initialized__");
+      Object.defineProperty(prototype, "destroy", {
+          value: function () { },
+          configurable: true,
+          enumerable: false,
+      });
+      Object.defineProperty(prototype, "initialized", {
           get: function () {
-              if ("defaultFeedforwardProperties" in this.element)
-                  return this.element.defaultFeedforwardProperties;
-              return utils$7.data(this.element).defaultFeedforwardProperties;
+              return this[initializedKey] ?? false;
           },
-          set: function (value) {
-              if ("defaultFeedforwardProperties" in this.element)
-                  this.element.defaultFeedforwardProperties = value;
-              utils$7.data(this.element).defaultFeedforwardProperties = value;
+          configurable: true,
+          enumerable: false,
+      });
+      Object.defineProperty(prototype, "initialize", {
+          value: function () {
+              if (this[initializedKey])
+                  return;
+              this[initializedKey] = true;
+              this.setupUIElements?.();
+              this.setupUILayout?.();
+              this.setupUIListeners?.();
+              this.setupFields?.();
+              this.setupChangedCallbacks?.();
+              gradum(this).initializeMvc();
+              initializeEffects(this);
           },
+          configurable: true,
+          enumerable: false,
+      });
+      Object.defineProperty(prototype, "clone", {
+          value: function (properties) { return gradum(this).clone(properties); },
+          configurable: true,
+          enumerable: false,
+      });
+      const ffKey = Symbol("__defaultFeedforwardProperties__");
+      Object.defineProperty(prototype, "defaultFeedforwardProperties", {
+          get() {
+              if (!this[ffKey])
+                  this[ffKey] = {};
+              return this[ffKey];
+          },
+          set(value) { this[ffKey] = value; },
           configurable: true,
           enumerable: true
       });
+      Object.defineProperty(prototype, "feedforward", {
+          value: function (properties) { return gradum(this).feedforward(properties); },
+          configurable: true,
+          enumerable: false,
+      });
   }
 
   /**
-   * @enum {Propagation}
-   * @group Types
-   * @category Event
-   *
-   * @description Enum dictating the propagation of an event.
-   *
-   * @property {Propagation.propagate} propagate - Continue normal propagation.
-   * @property {Propagation.stopPropagation} stopPropagation - Stop propagation to parent targets.
-   * @property {Propagation.stopImmediatePropagation} stopImmediatePropagation - Stop propagation and prevent any
-   * additional listeners on the same target from executing.
-   */
-  var Propagation;
-  (function (Propagation) {
-      Propagation["propagate"] = "propagate";
-      Propagation["stopPropagation"] = "stopPropagation";
-      Propagation["stopImmediatePropagation"] = "stopImmediatePropagation";
-  })(Propagation || (Propagation = {}));
-  /**
-   * @group Types
-   * @category Event
-   * @description Default set of basic input event types typically handled by {@link TurboSelector.preventDefault}.
-   */
-  const BasicInputEvents = [
-      "mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu",
-      "dragstart", "selectstart",
-      "touchstart", "touchmove", "touchend", "touchcancel",
-      "pointerdown", "pointermove", "pointerup",
-      "wheel"
-  ];
-  /**
-   * @group Types
-   * @category Event
-   * @description Event types that should usually be registered as **non-passive** when you intend to call
-   *  * `preventDefault()` (e.g., scroll/touch/pointer interactions).
-   */
-  const NonPassiveEvents = [
-      "wheel", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "pointercancel"
-  ];
-
-  /**
-   * @group Event Handling
-   * @category Enums
-   */
-  var ActionMode;
-  (function (ActionMode) {
-      ActionMode[ActionMode["none"] = 0] = "none";
-      ActionMode[ActionMode["click"] = 1] = "click";
-      ActionMode[ActionMode["longPress"] = 2] = "longPress";
-      ActionMode[ActionMode["drag"] = 3] = "drag";
-  })(ActionMode || (ActionMode = {}));
-  /**
-   * @group Event Handling
-   * @category Enums
-   */
-  var ClickMode;
-  (function (ClickMode) {
-      ClickMode[ClickMode["none"] = 0] = "none";
-      ClickMode[ClickMode["left"] = 1] = "left";
-      ClickMode[ClickMode["right"] = 2] = "right";
-      ClickMode[ClickMode["middle"] = 3] = "middle";
-      ClickMode[ClickMode["other"] = 4] = "other";
-      ClickMode[ClickMode["key"] = 5] = "key";
-  })(ClickMode || (ClickMode = {}));
-  /**
-   * @group Event Handling
-   * @category Enums
-   */
-  var InputDevice;
-  (function (InputDevice) {
-      InputDevice[InputDevice["unknown"] = 0] = "unknown";
-      InputDevice[InputDevice["mouse"] = 1] = "mouse";
-      InputDevice[InputDevice["trackpad"] = 2] = "trackpad";
-      InputDevice[InputDevice["touch"] = 3] = "touch";
-  })(InputDevice || (InputDevice = {}));
-
-  /**
    * @internal
+   * @function defineMvcAccessors
+   * @template {new (...args: any[]) => any} Type - The class being set up.
+   * @description Install the MVC surface on a class prototype, so instances expose `view`, `model`,
+   * `emitter`, `operators`, `handlers`, `interactors`, `tools`, `constrainers`, `data`, `dataId`,
+   * `dataIndex`, `dataSize`, and the matching add/get/remove methods. Each one forwards to the element's
+   * selector, which is where the state actually lives. Called once per element class at definition time.
+   * @param {Type} constructor - The class whose prototype receives the accessors.
    */
-  function inferKey(name, type, context) {
-      return (String(context.name).endsWith(type)
-          ? String(context.name).slice(0, -type.length)
-          : String(context.name));
-  }
-  /**
-   * @internal
-   */
-  function generateField(context, type, name) {
-      const cacheKey = Symbol(`__${type.toLowerCase()}_${String(context.name)}`);
-      const keyName = inferKey(name, type, context);
-      context.addInitializer(function () {
-          Object.defineProperty(this, context.name, {
+  function defineMvcAccessors(constructor) {
+      const prototype = constructor.prototype;
+      // Fields — proxy through gradum(this)
+      [...MvcFields, "data", "dataId", "dataIndex"].forEach(fieldName => {
+          Object.defineProperty(prototype, fieldName, {
+              get() { return gradum(this)[fieldName]; },
+              set(value) { gradum(this)[fieldName] = value; },
               configurable: true,
-              enumerable: false,
-              get: function () {
-                  if (this[cacheKey])
-                      return this[cacheKey];
-                  let value;
-                  let functionName;
-                  switch (type) {
-                      case "Controller":
-                          functionName = "getController";
-                          break;
-                      case "Handler":
-                          functionName = "getHandler";
-                          break;
-                      case "Interactor":
-                          functionName = "getInteractor";
-                          break;
-                      case "Tool":
-                          functionName = "getTool";
-                          break;
-                      case "Substrate":
-                          functionName = "getSubstrate";
-                          break;
-                  }
-                  if (!functionName)
-                      return;
-                  value = turbo(this)[functionName]?.(keyName);
-                  if (!value)
-                      throw new Error(`${type} "${keyName}" not found on ${this?.constructor?.name}.`);
-                  this[cacheKey] = value;
-                  return value;
-              },
-              set: function (value) { this[cacheKey] = value; }
+              enumerable: true,
+          });
+      });
+      ["dataSize"].forEach(fieldName => {
+          Object.defineProperty(prototype, fieldName, {
+              get() { return gradum(this)[fieldName]; },
+              configurable: true,
+              enumerable: true,
           });
       });
   }
-  /**
-   * @decorator
-   * @function controller
-   * @group Decorators
-   * @category MVC
-   *
-   * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
-   * fetched controller.
-   * @param {string} [name] - The key name of the controller in the MVC instance (if any). By default, it is inferred
-   * from the name of the field. If the field is named `somethingController`, the key name will be `something`.
-   *
-   * @example
-   * ```ts
-   * @controller() protected textController: TurboController;
-   * ```
-   * Is equivalent to:
-   * ```ts
-   * protected get textController(): TurboController {
-   *    if (this.mvc instanceof Mvc) return this.mvc.getController("text");
-   *    if (typeof this.getController === "function") return this.getController("text");
-   * }
-   * ```
-   */
-  function controller(name) {
-      return function (_unused, context) {
-          generateField(context, "Controller", name);
-      };
-  }
-  /**
-   * @decorator
-   * @function handler
-   * @group Decorators
-   * @category MVC
-   *
-   * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
-   * fetched handler.
-   * @param {string} [name] - The key name of the handler in the MVC instance (if any). By default, it is inferred
-   * from the name of the field. If the field is named `somethingHandler`, the key name will be `something`.
-   *
-   * @example
-   * ```ts
-   * @handler() protected textHandler: TurboHandler;
-   * ```
-   * Is equivalent to:
-   * ```ts
-   * protected get textHandler(): TurboHandler {
-   *    if (this.mvc instanceof Mvc) return this.mvc.getHandler("text");
-   *    if (typeof this.getHandler === "function") return this.getHandler("text");
-   * }
-   * ```
-   */
-  function handler(name) {
-      return function (_unused, context) {
-          generateField(context, "Handler", name);
-      };
-  }
 
   /**
-   * @group Components
-   * @category TurboMap
+   * @internal
+   * @function defineUIPrototype
+   * @template {new (...args: any[]) => any} Type - The class being set up.
+   * @description Install the UI surface on a class prototype — `shadowDOM`, `defaultClasses`, and
+   * `unsetDefaultClasses` — backed by private symbols so the values do not collide with user fields.
+   * Called once per element class at definition time.
+   * @param {Type} constructor - The class whose prototype receives the accessors.
    */
-  class TurboMap extends Map {
-      enforceImmutability = true;
-      set(key, value) {
-          return super.set(key, this.enforceImmutability ? this.copy(value) : value);
-      }
-      get(key) {
-          const result = super.get(key);
-          return this.enforceImmutability ? this.copy(result) : result;
-      }
-      get first() {
-          if (this.size == 0)
-              return null;
-          const result = this.values().next().value;
-          return this.enforceImmutability ? this.copy(result) : result;
-      }
-      get last() {
-          if (this.size == 0)
-              return null;
-          const result = this.valuesArray()[this.size - 1];
-          return this.enforceImmutability ? this.copy(result) : result;
-      }
-      keysArray() {
-          return Array.from(this.keys());
-      }
-      valuesArray() {
-          return Array.from(this.values());
-      }
-      copy(value) {
-          if (value && typeof value == "object") {
-              if (value instanceof Array)
-                  return value.map(item => this.copy(item));
-              if (value.constructor && value.constructor != Object) {
-                  if (typeof value.clone == "function")
-                      return value.clone();
-                  if (typeof value.copy == "function")
-                      return value.copy();
-              }
-              return { ...value };
-          }
-          return value;
-      }
-      mapKeys(callback) {
-          const newMap = new TurboMap();
-          for (let [key, value] of this) {
-              newMap.set(callback(key, value), value);
-          }
-          return newMap;
-      }
-      mapValues(callback) {
-          const newMap = new TurboMap();
-          for (let [key, value] of this) {
-              newMap.set(key, callback(key, value));
-          }
-          return newMap;
-      }
-      filter(callback) {
-          const newMap = new TurboMap();
-          for (let [key, value] of this) {
-              if (callback(key, value))
-                  newMap.set(key, value);
-          }
-          return newMap;
-      }
-      merge(map) {
-          for (let [key, value] of map) {
-              this.set(key, value);
-          }
-          return this;
-      }
-  }
-
-  let TurboEventManagerModel = (() => {
-      let _classSuper = TurboModel;
-      let _instanceExtraInitializers = [];
-      let _utils_decorators;
-      let _utils_initializers = [];
-      let _utils_extraInitializers = [];
-      let _currentAction_decorators;
-      let _currentAction_initializers = [];
-      let _currentAction_extraInitializers = [];
-      let _currentClick_decorators;
-      let _currentClick_initializers = [];
-      let _currentClick_extraInitializers = [];
-      let _wasRecentlyTrackpad_decorators;
-      let _wasRecentlyTrackpad_initializers = [];
-      let _wasRecentlyTrackpad_extraInitializers = [];
-      let _moveThreshold_decorators;
-      let _moveThreshold_initializers = [];
-      let _moveThreshold_extraInitializers = [];
-      let _longPressDuration_decorators;
-      let _longPressDuration_initializers = [];
-      let _longPressDuration_extraInitializers = [];
-      let _authorizeEventScaling_decorators;
-      let _authorizeEventScaling_initializers = [];
-      let _authorizeEventScaling_extraInitializers = [];
-      let _scaleEventPosition_decorators;
-      let _scaleEventPosition_initializers = [];
-      let _scaleEventPosition_extraInitializers = [];
-      let _set_inputDevice_decorators;
-      return class TurboEventManagerModel extends _classSuper {
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _utils_decorators = [handler()];
-              _currentAction_decorators = [signal];
-              _currentClick_decorators = [signal];
-              _wasRecentlyTrackpad_decorators = [signal];
-              _moveThreshold_decorators = [signal];
-              _longPressDuration_decorators = [signal];
-              _authorizeEventScaling_decorators = [signal];
-              _scaleEventPosition_decorators = [signal];
-              _set_inputDevice_decorators = [auto({
-                      callBefore: function (value) {
-                          if (value == InputDevice.trackpad)
-                              this.wasRecentlyTrackpad = true;
-                      }
-                  })];
-              __esDecorate$1(this, null, _set_inputDevice_decorators, { kind: "setter", name: "inputDevice", static: false, private: false, access: { has: obj => "inputDevice" in obj, set: (obj, value) => { obj.inputDevice = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate$1(null, null, _utils_decorators, { kind: "field", name: "utils", static: false, private: false, access: { has: obj => "utils" in obj, get: obj => obj.utils, set: (obj, value) => { obj.utils = value; } }, metadata: _metadata }, _utils_initializers, _utils_extraInitializers);
-              __esDecorate$1(null, null, _currentAction_decorators, { kind: "field", name: "currentAction", static: false, private: false, access: { has: obj => "currentAction" in obj, get: obj => obj.currentAction, set: (obj, value) => { obj.currentAction = value; } }, metadata: _metadata }, _currentAction_initializers, _currentAction_extraInitializers);
-              __esDecorate$1(null, null, _currentClick_decorators, { kind: "field", name: "currentClick", static: false, private: false, access: { has: obj => "currentClick" in obj, get: obj => obj.currentClick, set: (obj, value) => { obj.currentClick = value; } }, metadata: _metadata }, _currentClick_initializers, _currentClick_extraInitializers);
-              __esDecorate$1(null, null, _wasRecentlyTrackpad_decorators, { kind: "field", name: "wasRecentlyTrackpad", static: false, private: false, access: { has: obj => "wasRecentlyTrackpad" in obj, get: obj => obj.wasRecentlyTrackpad, set: (obj, value) => { obj.wasRecentlyTrackpad = value; } }, metadata: _metadata }, _wasRecentlyTrackpad_initializers, _wasRecentlyTrackpad_extraInitializers);
-              __esDecorate$1(null, null, _moveThreshold_decorators, { kind: "field", name: "moveThreshold", static: false, private: false, access: { has: obj => "moveThreshold" in obj, get: obj => obj.moveThreshold, set: (obj, value) => { obj.moveThreshold = value; } }, metadata: _metadata }, _moveThreshold_initializers, _moveThreshold_extraInitializers);
-              __esDecorate$1(null, null, _longPressDuration_decorators, { kind: "field", name: "longPressDuration", static: false, private: false, access: { has: obj => "longPressDuration" in obj, get: obj => obj.longPressDuration, set: (obj, value) => { obj.longPressDuration = value; } }, metadata: _metadata }, _longPressDuration_initializers, _longPressDuration_extraInitializers);
-              __esDecorate$1(null, null, _authorizeEventScaling_decorators, { kind: "field", name: "authorizeEventScaling", static: false, private: false, access: { has: obj => "authorizeEventScaling" in obj, get: obj => obj.authorizeEventScaling, set: (obj, value) => { obj.authorizeEventScaling = value; } }, metadata: _metadata }, _authorizeEventScaling_initializers, _authorizeEventScaling_extraInitializers);
-              __esDecorate$1(null, null, _scaleEventPosition_decorators, { kind: "field", name: "scaleEventPosition", static: false, private: false, access: { has: obj => "scaleEventPosition" in obj, get: obj => obj.scaleEventPosition, set: (obj, value) => { obj.scaleEventPosition = value; } }, metadata: _metadata }, _scaleEventPosition_initializers, _scaleEventPosition_extraInitializers);
-              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-          }
-          utils = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _utils_initializers, void 0));
-          state = (__runInitializers$1(this, _utils_extraInitializers), TurboModel.from({
-              enabled: true,
-              preventDefaultMouse: false,
-              preventDefaultTouch: false,
-              preventDefaultWheel: false
-          }));
-          lockState = TurboModel.from();
-          //Delegate fired when the input device changes
-          onInputDeviceChange = new Delegate();
-          /**
-           * @description Delegate fired when a tool is changed on a certain click button/mode
-           */
-          onToolChange = new Delegate();
-          //Input events states
-          currentKeys = TurboModel.from([]);
-          currentAction = __runInitializers$1(this, _currentAction_initializers, ActionMode.none);
-          currentClick = (__runInitializers$1(this, _currentAction_extraInitializers), __runInitializers$1(this, _currentClick_initializers, ClickMode.none));
-          wasRecentlyTrackpad = (__runInitializers$1(this, _currentClick_extraInitializers), __runInitializers$1(this, _wasRecentlyTrackpad_initializers, false));
-          //Threshold differentiating a click from a drag
-          moveThreshold = (__runInitializers$1(this, _wasRecentlyTrackpad_extraInitializers), __runInitializers$1(this, _moveThreshold_initializers, 10));
-          //Duration to reach long press
-          longPressDuration = (__runInitializers$1(this, _moveThreshold_extraInitializers), __runInitializers$1(this, _longPressDuration_initializers, 500));
-          authorizeEventScaling = (__runInitializers$1(this, _longPressDuration_extraInitializers), __runInitializers$1(this, _authorizeEventScaling_initializers, void 0));
-          scaleEventPosition = (__runInitializers$1(this, _authorizeEventScaling_extraInitializers), __runInitializers$1(this, _scaleEventPosition_initializers, void 0));
-          activePointers = (__runInitializers$1(this, _scaleEventPosition_extraInitializers), new Set());
-          //Saved values (Maps to account for different touch points and their IDs)
-          origins = new TurboMap();
-          previousPositions = new TurboMap();
-          positions;
-          lastTargetOrigin;
-          //Single timer instance --> easily cancel it and set it again
-          timerMap = new TurboMap();
-          //All created tools
-          tools = new Map();
-          //Tools mapped to keys
-          mappedKeysToTool = new Map();
-          //Tools currently held by the user (one - or none - per each click button/mode)
-          currentTools = new Map();
-          set inputDevice(value) {
-              this.onInputDeviceChange.fire(value);
-          }
-      };
-  })();
-
-  /**
-   * @group Event Handling
-   * @category Enums
-   */
-  var ClosestOrigin;
-  (function (ClosestOrigin) {
-      ClosestOrigin["target"] = "target";
-      ClosestOrigin["position"] = "position";
-  })(ClosestOrigin || (ClosestOrigin = {}));
-
-  /**
-   * @class TurboEvent
-   * @group Event Handling
-   * @category TurboEvents
-   * @description Generic turbo event.
-   */
-  let TurboEvent = (() => {
-      let _classSuper = Event;
-      let _instanceExtraInitializers = [];
-      let _closest_decorators;
-      let _get_scaledPosition_decorators;
-      return class TurboEvent extends _classSuper {
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _closest_decorators = [cache()];
-              _get_scaledPosition_decorators = [cache()];
-              __esDecorate$1(this, null, _closest_decorators, { kind: "method", name: "closest", static: false, private: false, access: { has: obj => "closest" in obj, get: obj => obj.closest }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate$1(this, null, _get_scaledPosition_decorators, { kind: "getter", name: "scaledPosition", static: false, private: false, access: { has: obj => "scaledPosition" in obj, get: obj => obj.scaledPosition }, metadata: _metadata }, null, _instanceExtraInitializers);
-              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-          }
-          /**
-           * @description The event manager that fired this event.
-           */
-          eventManager = __runInitializers$1(this, _instanceExtraInitializers);
-          /**
-           * @description The name of the tool (if any) associated with this event.
-           */
-          toolName;
-          /**
-           * @description The name of the event.
-           */
-          eventName;
-          /**
-           * @description The click mode of the fired event
-           */
-          clickMode;
-          /**
-           * @description The input device that fired this event
-           */
-          inputDevice;
-          /**
-           * @description The keys pressed when the event was fired
-           */
-          keys;
-          /**
-           * @description The screen position from where the event was fired
-           */
-          position;
-          /**
-           * @description Callback function (or boolean) to be overridden to specify when to allow transformation
-           * and/or scaling.
-           */
-          authorizeScaling;
-          /**
-           * @description Callback function to be overridden to specify how to transform a position from screen to
-           * document space.
-           */
-          scalePosition;
-          constructor(properties) {
-              super(properties.eventName, { bubbles: true, cancelable: true, ...properties.eventInitDict });
-              this.eventManager = properties.eventManager ?? TurboEventManager.instance;
-              this.authorizeScaling = properties.authorizeScaling ?? true;
-              this.scalePosition = properties.scalePosition ?? ((position) => position);
-              this.clickMode = properties.clickMode ?? TurboEventManager.instance.currentClick;
-              this.inputDevice = properties.inputDevice ?? InputDevice.unknown;
-              this.keys = properties.keys ?? TurboEventManager.instance.currentKeys;
-              this.eventName = properties.eventName;
-              this.position = properties.position;
-              this.toolName = properties.toolName;
-          }
-          /**
-           * @description The tool (if any) associated with this event.
-           */
-          get tool() {
-              if (!this.toolName || !(this.eventManager instanceof TurboEventManager))
-                  return null;
-              return this.eventManager.getToolByName(this.toolName);
-          }
-          /**
-           * @description Returns the closest element of the provided type to the target (Searches through the element and
-           * all its parents to find one of matching type).
-           * @param type
-           * @param strict
-           * @param from
-           */
-          closest(type, strict = true, from = ClosestOrigin.target) {
-              const elements = from == ClosestOrigin.target ? [this.target]
-                  : document.elementsFromPoint(this.position.x, this.position.y);
-              const strictElement = strict instanceof Element ? strict : null;
-              const isStrict = strict === true || strictElement !== null;
-              for (let element of elements) {
-                  while (element && !((element instanceof type)
-                      && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? element))))
-                      element = element.parentElement;
-                  if (element)
-                      return element;
-              }
-              return null;
-          }
-          /**
-           * @description Checks if the position is inside the given element's bounding box.
-           * @param position
-           * @param element
-           */
-          isPositionInsideElement(position, element) {
-              const rect = element.getBoundingClientRect();
-              return position.x >= rect.left && position.x <= rect.right
-                  && position.y >= rect.top && position.y <= rect.bottom;
-          }
-          /**
-           * @description The target of the event (as an Element - or the document)
-           */
-          get target() {
-              return super.target || document;
-          }
-          /**
-           * @description The position of the fired event transformed and/or scaled using the class's scalePosition().
-           */
-          get scaledPosition() {
-              if (!this.scalingAuthorized)
-                  return this.position;
-              return this.scalePosition(this.position);
-          }
-          /**
-           * @description Specifies whether to allow transformation and/or scaling.
-           */
-          get scalingAuthorized() {
-              return typeof this.authorizeScaling == "function" ? this.authorizeScaling() : this.authorizeScaling;
-          }
-          /**
-           * @private
-           * @description Takes a map of points and returns a new map where each point is transformed accordingly.
-           * @param positions
-           */
-          scalePositionsMap(positions) {
-              return positions.mapValues((key, position) => this.scalePosition(position));
-          }
-      };
-  })();
-
-  /**
-   * @class TurboKeyEvent
-   * @group Event Handling
-   * @category TurboEvents
-   *
-   * @extends TurboEvent
-   * @description Custom key event
-   */
-  class TurboKeyEvent extends TurboEvent {
-      /**
-       * @description The key pressed (if any) when the event was fired
-       */
-      keyPressed;
-      /**
-       * @description The key released (if any) when the event was fired
-       */
-      keyReleased;
-      constructor(properties) {
-          super({ ...properties, position: null });
-          this.keyPressed = properties.keyPressed;
-          this.keyReleased = properties.keyReleased;
-      }
-  }
-
-  class ListenerUtils {
-      constructorMap = new WeakMap();
-      constructorData(prototype) {
-          let obj = this.constructorMap.get(prototype);
-          if (!obj) {
-              obj = { listeners: new Map() };
-              this.constructorMap.set(prototype, obj);
-          }
-          return obj;
-      }
-      addListener(prototype, listener) {
-          if (!listener.methodName)
-              return;
-          const data = this.constructorData(prototype)?.listeners;
-          if (!data || data.has(listener.methodName))
-              return;
-          data.set(listener.methodName, listener);
-      }
-      getAllListeners(instance) {
-          let prototype = Object.getPrototypeOf(instance);
-          const results = new Map();
-          while (prototype && prototype !== Object.prototype) {
-              const map = this.constructorData(prototype).listeners;
-              if (map?.size)
-                  for (const [key, value] of map.entries()) {
-                      if (!results.has(key))
-                          results.set(key, value);
+  function defineUIPrototype(constructor) {
+      const prototype = constructor.prototype;
+      const shadowDOMKey = Symbol("__shadow_dom__");
+      const unsetDefaultClassesKey = Symbol("__unset_default_classes__");
+      const defaultClassesKey = Symbol("__default_classes__");
+      Object.defineProperty(prototype, "shadowDOM", {
+          get: function () { return this[shadowDOMKey] ?? false; },
+          set: function (value) {
+              this[shadowDOMKey] = value;
+              const el = this.element;
+              if (value && !el.shadowRoot)
+                  try {
+                      el.attachShadow({ mode: "open" });
                   }
-              prototype = Object.getPrototypeOf(prototype);
-          }
-          return results;
-      }
+                  catch { }
+              if (el.shadowRoot) {
+                  const from = value ? el : el.shadowRoot;
+                  const to = value ? el.shadowRoot : el;
+                  while (from.childNodes.length > 0)
+                      to.appendChild(from.childNodes[0]);
+              }
+          },
+          enumerable: true,
+          configurable: true,
+      });
+      Object.defineProperty(prototype, "unsetDefaultClasses", {
+          get: function () { return this[unsetDefaultClassesKey] ?? false; },
+          set: function (value) {
+              this[unsetDefaultClassesKey] = value;
+              gradum(this).toggleClass(this.defaultClasses, !value);
+          },
+          enumerable: true,
+          configurable: true,
+      });
+      Object.defineProperty(prototype, "defaultClasses", {
+          get: function () { return this[defaultClassesKey] ?? ""; },
+          set: function (value) {
+              if (!this.unsetDefaultClasses)
+                  gradum(this).toggleClass(this[defaultClassesKey], false);
+              this[defaultClassesKey] = value;
+              if (!this.unsetDefaultClasses)
+                  gradum(this).toggleClass(value, true);
+          },
+          enumerable: true,
+          configurable: true,
+      });
   }
 
-  const utils$6 = new ListenerUtils();
-  /**
-   * @decorator
-   * @function behavior
-   * @group Decorators
-   * @category Listeners
-   *
-   * @description Method decorator that registers the decorated method as a tool behavior, to be attached later
-   * via {@link attachListenersAndBehaviors}.
-   * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
-   * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
-   * to derive the event name from {@link DefaultEventName}.
-   *
-   * @example ```ts
-   * class MyElement {
-   *   @behavior() click(e: Event) { ... }
-   *   //Equivalent to: turbo(this).addToolBehavior(DefaultEventName.click, (e: Event) => { ... });
-   * }
-   * ```
-   */
-  function behavior(properties = {}) {
-      return function (value, context) {
-          //TODO FIX
-          TurboEventManager.instance;
-          let type = properties.type;
-          if (!type) {
-              const kebab = camelToKebabCase(String(context.name));
-              type = Object.values(DefaultEventName).includes("turbo-" + kebab) ? "turbo-" + kebab : kebab;
-          }
-          context.addInitializer(function () {
-              utils$6.addListener(Object.getPrototypeOf(this), { ...properties, type, methodName: context.name, kind: "behavior" });
-          });
-          return value;
-      };
-  }
-  /**
-   * @decorator
-   * @function attachListenersAndBehaviors
-   * @group Decorators
-   * @category Listeners
-   *
-   * @description Attach all previously-decorated listeners and behaviors recorded on the given `context`. It attempts to
-   * resolve defaults from the latter, such as the `target`, `toolName`, `options`, and `manager`. This method is called
-   * automatically in the TurboElement lifecycle.
-   * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
-   */
-  function attachListenersAndBehaviors(context) {
-      if (!context || typeof context !== "object")
-          return;
-      const listeners = utils$6.getAllListeners(context);
-      if (!listeners || listeners.size === 0)
-          return;
-      const defaultTarget = context.target instanceof Node
-          ? context.target : context instanceof Node
-          ? context : context.element instanceof Node
-          ? context.element : undefined;
-      const defaultTool = typeof context.toolName === "string" ? context.toolName : undefined;
-      const defaultOptions = typeof context.options === "object" ? context.options : undefined;
-      const defaultManager = context.manager instanceof TurboEventManager ? context.manager : undefined;
-      for (const [, listener] of listeners) {
-          const method = context[listener.methodName];
-          if (typeof method !== "function")
-              continue;
-          const target = listener.target ?? defaultTarget;
-          const tool = listener.toolName ?? defaultTool;
-          const manager = listener.manager ?? defaultManager;
-          if (listener.kind === "behavior") {
-              if (!tool)
-                  continue;
-              turbo(context).addToolBehavior(listener.type, (e, el) => method.call(context, e, el), tool, manager);
-          }
-          else if (listener.kind === "listener") {
-              if (!(target instanceof Node))
-                  continue;
-              turbo(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el), listener.options ?? defaultOptions, manager);
-          }
+  const VOID       = -1;
+  const PRIMITIVE  = 0;
+  const ARRAY      = 1;
+  const OBJECT     = 2;
+  const DATE       = 3;
+  const REGEXP     = 4;
+  const MAP        = 5;
+  const SET        = 6;
+  const ERROR      = 7;
+  const BIGINT     = 8;
+  // export const SYMBOL = 9;
+
+  const env = typeof self === 'object' ? self : globalThis;
+
+  const guard = (name, init) => {
+    switch (name) {
+      case 'Function':
+      case 'SharedWorker':
+      case 'Worker':
+      case 'eval':
+      case 'setInterval':
+      case 'setTimeout':
+        throw new TypeError('unable to deserialize ' + name);
+    }
+    return new env[name](init);
+  };
+
+  const deserializer = ($, _) => {
+    const as = (out, index) => {
+      $.set(index, out);
+      return out;
+    };
+
+    const unpair = index => {
+      if ($.has(index))
+        return $.get(index);
+
+      const [type, value] = _[index];
+      switch (type) {
+        case PRIMITIVE:
+        case VOID:
+          return as(value, index);
+        case ARRAY: {
+          const arr = as([], index);
+          for (const index of value)
+            arr.push(unpair(index));
+          return arr;
+        }
+        case OBJECT: {
+          const object = as({}, index);
+          for (const [key, index] of value)
+            object[unpair(key)] = unpair(index);
+          return object;
+        }
+        case DATE:
+          return as(new Date(value), index);
+        case REGEXP: {
+          const {source, flags} = value;
+          return as(new RegExp(source, flags), index);
+        }
+        case MAP: {
+          const map = as(new Map, index);
+          for (const [key, index] of value)
+            map.set(unpair(key), unpair(index));
+          return map;
+        }
+        case SET: {
+          const set = as(new Set, index);
+          for (const index of value)
+            set.add(unpair(index));
+          return set;
+        }
+        case ERROR: {
+          const {name, message} = value;
+          return as(
+            typeof env[name] === 'function' ?
+              guard(name, message) :
+              new Error(message),
+            index
+          );
+        }
+        case BIGINT:
+          return as(BigInt(value), index);
+        case 'BigInt':
+          return as(Object(BigInt(value)), index);
+        case 'ArrayBuffer':
+          return as(new Uint8Array(value).buffer, value);
+        case 'DataView': {
+          const { buffer } = new Uint8Array(value);
+          return as(new DataView(buffer), value);
+        }
       }
-  }
+      return as(guard(type, value), index);
+    };
+
+    return unpair;
+  };
 
   /**
-   * @class TurboController
+   * @typedef {Array<string,any>} Record a type representation
+   */
+
+  /**
+   * Returns a deserialized value from a serialized array of Records.
+   * @param {Record[]} serialized a previously serialized value.
+   * @returns {any}
+   */
+  const deserialize = serialized => deserializer(new Map, serialized)(0);
+
+  /*! (c) Andrea Giammarchi - ISC */
+
+
+  const {parse: $parse} = JSON;
+
+  /**
+   * Revive a previously stringified structured clone.
+   * @param {string} str previously stringified data as string.
+   * @returns {any} whatever was previously stringified as clone.
+   */
+  const parse = str => deserialize($parse(str));
+
+  /**
+   * @class GradumElement
    * @group MVC
-   * @category Controller
+   * @category Element Classes
    *
-   * @description The MVC base controller class. Its main job is to handle some part of (or all of) the logic of the
-   * component. It has access to the element, the model to read and write data, the view to update the UI, and the
-   * emitter to listen for changes in the model or any other internal events. It can only communicate with other
-   * controllers via the emitter (by firing or listening for changes on a certain key).
-   * @template {object} ElementType - The type of the main component.
-   * @template {TurboView} ViewType - The element's MVC view type.
-   * @template {TurboModel} ModelType - The element's MVC model type.
-   * @template {TurboEmitter} EmitterType - The element's MVC emitter type.
-   */
-  class TurboController {
+   * @extends HTMLElement
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * @description Base GradumElement class, extending the base HTML element with a few useful tools and functions.
+   * */
+  class GradumElement extends HTMLElement {
       /**
-       * @description The key of the controller. Used to retrieve it in the main component. If not set, if the element's
-       * class name is MyElement and the controller's class name is MyElementSomethingController, the key would
-       * default to "something".
+       * @description Default properties assigned to a new instance.
        */
-      keyName;
+      static defaultProperties = {
+          defaultSelectedClasses: "selected"
+      };
+      // public static create<Type extends new (...args: any[]) => GradumElement>
+      // (this: Type, properties: InstanceType<Type>["properties"] = {}): InstanceType<Type> {
+      //     return (this as any).customCreate.call(this, properties);
+      // }
       /**
-       * @description The element it is bound to.
+       * @function create
+       * @static
+       * @description Instantiate this class with the given properties. Defaults declared by every class in the
+       * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
+       * its parent's. The return type follows the class it is called on, and the MVC type parameters are read
+       * back off the properties — passing `model: MyModel` types `.model` as `MyModel` without a cast.
+       *
+       * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`, because the
+       * latter instantiates a generic class' parameters with their constraints instead of their defaults,
+       * which is what forced casts at call sites.*
+       * @template {{prototype: GradumElement}} This - The class `create` was called on.
+       * @template {GradumView} ViewType - Inferred from `properties.view`.
+       * @template {object} DataType - Inferred from `properties.data`.
+       * @template {GradumModel} ModelType - Inferred from `properties.model`.
+       * @template {GradumEmitter} EmitterType - Inferred from `properties.emitter`.
+       * @param {GradumElementProperties} [properties] - Properties to set on the new instance.
+       * @returns {GradumElement} The created instance, typed as the class this was called on.
        */
-      element;
-      /**
-       * @description The MVC view.
-       */
-      view;
-      /**
-       * @description The MVC model.
-       */
-      model;
-      /**
-       * @description The MVC emitter.
-       */
-      emitter;
-      constructor(properties) {
-          this.element = properties.element;
-          if (properties.model)
-              this.model = properties.model;
-          if (properties.emitter)
-              this.emitter = properties.emitter;
-          if (properties.view)
-              this.view = properties.view;
-          this.setup();
+      static create(properties) {
+          return this.customCreate(properties ?? {});
       }
       /**
-       * @function setup
-       * @description Called in the constructor. Use for setup that should happen at instantiation,
-       * before `this.initialize()` is called.
        * @protected
+       * @static
+       * @function customCreate
+       * @description The construction step behind {@link create}. Override it to change how instances of a class
+       * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
+       * `create` performs.
+       * @param {object} properties - Properties to set on the new instance, defaults already merged in.
+       * @returns {object} The created instance.
        */
-      setup() { }
-      /**
-       * @function initialize
-       * @description Initializes the controller. Specifically, it will set up the change callbacks.
-       */
-      initialize() {
-          this.setupUIListeners();
-          this.setupChangedCallbacks();
+      static customCreate(properties) {
+          const prototypeChain = getPrototypeChain(this);
+          for (const prototype of prototypeChain)
+              gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+          return element({ ...properties });
       }
       /**
-       * @function setupUIListeners
-       * @description Setup method for defining DOM and input event listeners.
-       * @protected
+       * @description Delegate fired when the element is attached to DOM.
        */
-      setupUIListeners() {
-          attachListenersAndBehaviors(this);
-      }
+      onAttach = new Delegate();
+      /**
+       * @description Delegate fired when the element is detached from the DOM.
+       */
+      onDetach = new Delegate();
+      /**
+       * @description Delegate fired when the element is adopted by a new parent in the DOM.
+       */
+      onAdopt = new Delegate();
       /**
        * @function setupChangedCallbacks
-       * @description Setup method intended to initialize change listeners and callbacks.
+       * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
        * @protected
        */
       setupChangedCallbacks() {
-          initializeEffects(this);
       }
-  }
-  addRegistryCategory(TurboController);
-  define(TurboController);
-
-  class TurboEventManagerKeyController extends TurboController {
-      keyName = "key";
-      keyDown = (e) => this.keyDownFn(e);
-      keyDownFn(e) {
-          if (!this.element.enabled)
-              return;
-          //Return if key already pressed
-          if (this.model.currentKeys.includes(e.key))
-              return;
-          //Add key to currentKeys
-          this.model.currentKeys.push(e.key);
-          //Fire a keyPressed event (only once)
-          this.emitter.fire("dispatchEvent", document, TurboKeyEvent, { eventName: TurboKeyEventName.keyPressed, keyPressed: e.key });
-      }
-      keyUp = (e) => this.keyUpFn(e);
-      keyUpFn(e) {
-          if (!this.element.enabled)
-              return;
-          //Return if key not pressed
-          if (!this.model.currentKeys.includes(e.key))
-              return;
-          //Remove key from currentKeys
-          this.model.currentKeys.splice(this.model.currentKeys.indexOf(e.key), 1);
-          //Fire a keyReleased event
-          this.emitter.fire("dispatchEvent", document, TurboKeyEvent, { eventName: TurboKeyEventName.keyReleased, keyReleased: e.key });
-      }
-  }
-
-  /**
-   * @class TurboWheelEvent
-   * @group Event Handling
-   * @category TurboEvents
-   *
-   * @extends TurboEvent
-   * @description Custom wheel event
-   */
-  class TurboWheelEvent extends TurboEvent {
       /**
-       * @description The delta amount of scrolling
+       * @function setupUIElements
+       * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
+       * them in fields. Called on `initialize()`.
+       * @protected
        */
-      delta;
-      constructor(properties) {
-          super({ ...properties, position: null });
-          this.delta = properties.delta;
+      setupUIElements() {
+      }
+      /**
+       * @function setupUILayout
+       * @description Setup method to create the layout structure of the element by adding all created sub-elements to
+       * this element's child tree. Called on `initialize()`.
+       * @protected
+       */
+      setupUILayout() {
+      }
+      /**
+       * @function setupUIListeners
+       * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
+       * `initialize()`.
+       * @protected
+       */
+      setupUIListeners() {
+      }
+      /**
+       * @function connectedCallback
+       * @description function called when the element is attached to the DOM.
+       */
+      connectedCallback() {
+          if (!this.initialized) {
+              const prototypeChain = getPrototypeChain(this);
+              const defaults = {};
+              for (const proto of prototypeChain)
+                  gradum(defaults).applyDefaults(proto.constructor?.["defaultProperties"]);
+              const toApply = {};
+              for (const [key, value] of Object.entries(defaults))
+                  if (isUndefined(this[key]))
+                      toApply[key] = value;
+              gradum(this).setProperties(toApply);
+              for (const attribute of this.constructor["observedAttributes"] ?? []) {
+                  if (!this.hasAttribute(attribute))
+                      continue;
+                  const property = kebabToCamelCase(attribute);
+                  const current = this.getAttribute(attribute);
+                  this[property] = parse(current);
+              }
+          }
+          this.onAttach.fire();
+      }
+      /**
+       * @function disconnectedCallback
+       * @description function called when the element is detached from the DOM.
+       */
+      disconnectedCallback() {
+          this.onDetach.fire();
+      }
+      /**
+       * @function adoptedCallback
+       * @description function called when the element is adopted by a new parent in the DOM.
+       */
+      adoptedCallback() {
+          this.onAdopt.fire();
       }
   }
+  (() => {
+      defineDefaultProperties(GradumElement);
+      defineMvcAccessors(GradumElement);
+      defineUIPrototype(GradumElement);
+  })();
+  addRegistryCategory(GradumElement);
 
   /**
+   * @class GradumBaseElement
+   * @group MVC
+   * @category Element Classes
+   *
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * @description GradumHeadlessElement class, similar to GradumElement but without extending HTMLElement.
+   */
+  class GradumBaseElement {
+      /**
+       * @description Default properties assigned to a new instance.
+       */
+      static defaultProperties = {};
+      /**
+       * @function create
+       * @static
+       * @description Instantiate this class with the given properties. Defaults declared by every class in the
+       * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
+       * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
+       * @param {PropertiesType} [properties] - Properties to set on the new instance.
+       * @returns {InstanceType<Type>} The created instance.
+       */
+      static create(properties = {}) {
+          return this.customCreate.call(this, properties);
+      }
+      /**
+       * @protected
+       * @static
+       * @function customCreate
+       * @description The construction step behind {@link create}. Override it to change how instances of a class
+       * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
+       * `create` performs.
+       * @param {object} properties - Properties to set on the new instance, defaults already merged in.
+       * @returns {object} The created instance.
+       */
+      static customCreate(properties) {
+          const prototypeChain = getPrototypeChain(this);
+          for (const prototype of prototypeChain)
+              gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+          const obj = new this();
+          gradum(obj).setProperties(properties);
+          return obj;
+      }
+  }
+  (() => {
+      defineDefaultProperties(GradumBaseElement);
+  })();
+  addRegistryCategory(GradumBaseElement);
+
+  const elementSymbol = Symbol("___element___");
+  /**
+   * @class GradumProxiedElement
+   * @group MVC
+   * @category Element Classes
+   *
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * @description GradumProxiedElement class, similar to GradumElement but containing an HTML element instead of being one.
+   */
+  class GradumProxiedElement {
+      /**
+       * @description Default properties assigned to a new instance.
+       */
+      static defaultProperties = {
+          defaultSelectedClasses: "selected"
+      };
+      /**
+       * @function create
+       * @static
+       * @description Instantiate this class with the given properties. Defaults declared by every class in the
+       * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
+       * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
+       * @param {PropertiesType} [properties] - Properties to set on the new instance.
+       * @returns {InstanceType<Type>} The created instance.
+       */
+      static create(properties) {
+          const props = properties ?? {};
+          const prototypeChain = getPrototypeChain(this);
+          for (const prototype of prototypeChain)
+              gradum(props).applyDefaults(prototype["defaultProperties"] ?? {});
+          return this.customCreate.call(this, props);
+      }
+      /**
+       * @protected
+       * @static
+       * @function customCreate
+       * @description The construction step behind {@link create}. Override it to change how instances of a class
+       * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
+       * `create` performs.
+       * @param {object} properties - Properties to set on the new instance, defaults already merged in.
+       * @returns {object} The created instance.
+       */
+      static customCreate(properties) {
+          const obj = new this();
+          obj[elementSymbol] = blindElement({ tag: properties["tag"] });
+          // gradum(obj) without raw unwraps to obj.element, which is the same key the model getter
+          // resolves to later. Using raw=true here would key MVC data under obj instead, making
+          // gradum(obj).model return undefined during initialize().
+          // The back-reference lets extractClassEssenceName walk obj's prototype chain (FlowEntry,
+          // etc.) instead of the raw SVGGElement chain, so handler/operator key derivation works.
+          obj[elementSymbol][proxyWrapperSymbol] = obj;
+          const shouldInitialize = properties["initialize"] !== false;
+          gradum(obj).setProperties(Object.assign({}, properties, { initialize: false }));
+          // Dispatch custom wrapper setters that setProperties couldn't reach.
+          // gradum(obj) routes through obj.element (the raw DOM node), so properties that have no
+          // meaning on the raw element (e.g. FlowEntry.flow) are silently dropped. We replay them
+          // onto obj directly — but only when: (1) not an MVC field already handled by GradumSelector,
+          // (2) the raw element has no descriptor for the key (setProperties already handled it), and
+          // (3) obj's prototype chain has a real setter for the key.
+          const rawEl = obj[elementSymbol];
+          for (const [key, value] of Object.entries(properties)) {
+              if (MvcFields.includes(key))
+                  continue;
+              if (getFirstDescriptorInChain(rawEl, key))
+                  continue;
+              const desc = getFirstDescriptorInChain(obj, key);
+              if (desc?.set)
+                  obj[key] = value;
+          }
+          if (shouldInitialize && typeof obj["initialize"] === "function")
+              obj["initialize"]();
+          return obj;
+      }
+      /**
+       * @description The HTML (or other) element wrapped inside this instance.
+       */
+      get element() {
+          return this[elementSymbol];
+      }
+      /**
+       * @function setupChangedCallbacks
+       * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
+       * @protected
+       */
+      setupChangedCallbacks() {
+      }
+      /**
+       * @function setupUIElements
+       * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
+       * them in fields. Called on `initialize()`.
+       * @protected
+       */
+      setupUIElements() {
+      }
+      /**
+       * @function setupUILayout
+       * @description Setup method to create the layout structure of the element by adding all created sub-elements to
+       * this element's child tree. Called on `initialize()`.
+       * @protected
+       */
+      setupUILayout() {
+      }
+      /**
+       * @function setupUIListeners
+       * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
+       * `initialize()`.
+       * @protected
+       */
+      setupUIListeners() {
+      }
+  }
+  (() => {
+      defineDefaultProperties(GradumProxiedElement);
+      defineMvcAccessors(GradumProxiedElement);
+      defineUIPrototype(GradumProxiedElement);
+  })();
+  addRegistryCategory(GradumProxiedElement);
+
+  /**
+   * @class GradumHeadlessElement
+   * @group MVC
+   * @category Element Classes
+   *
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * @description GradumHeadlessElement class, similar to GradumElement but without extending HTMLElement.
+   */
+  class GradumHeadlessElement {
+      /**
+       * @description Default properties assigned to a new instance.
+       */
+      static defaultProperties = {};
+      /**
+       * @function create
+       * @static
+       * @description Instantiate this class with the given properties. Defaults declared by every class in the
+       * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
+       * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
+       * @param {PropertiesType} [properties] - Properties to set on the new instance.
+       * @returns {InstanceType<Type>} The created instance.
+       */
+      static create(properties = {}) {
+          return this.customCreate.call(this, properties);
+      }
+      /**
+       * @protected
+       * @static
+       * @function customCreate
+       * @description The construction step behind {@link create}. Override it to change how instances of a class
+       * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
+       * `create` performs.
+       * @param {object} properties - Properties to set on the new instance, defaults already merged in.
+       * @returns {object} The created instance.
+       */
+      static customCreate(properties) {
+          const prototypeChain = getPrototypeChain(this);
+          for (const prototype of prototypeChain)
+              gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+          const obj = new this();
+          gradum(obj).setProperties(properties);
+          return obj;
+      }
+  }
+  (() => {
+      defineDefaultProperties(GradumHeadlessElement);
+      defineMvcAccessors(GradumHeadlessElement);
+  })();
+  addRegistryCategory(GradumHeadlessElement);
+
+  /**
+   * @function trim
    * @group Utilities
    * @category Numbers
+   *
+   * @description Clamp a number into a range. Anything that is not a number comes back as the fallback rather
+   * than as `NaN`, so it is safe to pass unvalidated input straight in.
+   * *Note: the bounds are given max-first.*
+   * @param {number} value - The value to clamp.
+   * @param {number} max - Upper bound, inclusive.
+   * @param {number} [min=0] - Lower bound, inclusive.
+   * @param {number} [fallback=0] - Returned when `value` is not a number.
+   * @returns {number} The value clamped into `[min, max]`, or `fallback` if it was not a number.
    */
   function trim(value, max, min = 0, fallback = 0) {
       if (value === undefined || typeof value !== "number")
@@ -13792,23 +15420,39 @@
       return value;
   }
   /**
+   * @function mod
    * @group Utilities
    * @category Numbers
+   *
+   * @description Wrap a number into `[0, modValue)`, so negative inputs come back positive — unlike the `%`
+   * operator, which keeps the sign of its left operand. Use it to cycle an index around a list.
+   * @param {number} value - The value to wrap.
+   * @param {number} modValue - The modulus. Must be non-zero.
+   * @returns {number} The wrapped value, always in `[0, modValue)`.
+   * @throws {RangeError} If `modValue` is `0`, since no value can be wrapped into an empty range. Guard the
+   * call when the modulus comes from a length that may be zero.
    */
-  function mod(value, modValue = 0) {
-      while (value < 0)
-          value += modValue;
-      while (value >= modValue)
-          value -= modValue;
-      return value;
+  function mod(value, modValue) {
+      if (modValue === 0)
+          throw new RangeError("mod: modValue must be non-zero.");
+      return ((value % modValue) + modValue) % modValue;
   }
 
   /**
    * @group Components
-   * @category Point
+   * @category Data Structures
    */
   class Point {
+      /**
+       * @readonly
+       * @description The point's x coordinate. Points are immutable — the arithmetic methods return new
+       * points rather than changing this one.
+       */
       x;
+      /**
+       * @readonly
+       * @description The point's y coordinate.
+       */
       y;
       constructor(x = 0, y = typeof x == "number" ? x : 0) {
           if (typeof x == "number") {
@@ -13842,10 +15486,11 @@
        * @param {Point[]} arr - Undetermined number of point parameters
        */
       static midPoint(...arr) {
-          if (arr.length == 0)
+          const points = arr.filter(p => p != null);
+          if (points.length == 0)
               return null;
-          const x = arr.reduce((sum, p) => sum + p.x, 0) / arr.length;
-          const y = arr.reduce((sum, p) => sum + p.y, 0) / arr.length;
+          const x = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+          const y = points.reduce((sum, p) => sum + p.y, 0) / points.length;
           return new Point(x, y);
       }
       /**
@@ -13853,10 +15498,11 @@
        * @param {Point[]} arr - Undetermined number of point parameters
        */
       static max(...arr) {
-          if (arr.length == 0)
+          const points = arr.filter(p => p != null);
+          if (points.length == 0)
               return null;
-          const x = arr.reduce((max, p) => Math.max(max, p.x), -Infinity);
-          const y = arr.reduce((max, p) => Math.max(max, p.y), -Infinity);
+          const x = points.reduce((max, p) => Math.max(max, p.x), -Infinity);
+          const y = points.reduce((max, p) => Math.max(max, p.y), -Infinity);
           return new Point(x, y);
       }
       /**
@@ -13864,13 +15510,18 @@
        * @param {Point[]} arr - Undetermined number of point parameters
        */
       static min(...arr) {
-          if (arr.length == 0)
+          const points = arr.filter(p => p != null);
+          if (points.length == 0)
               return null;
-          const x = arr.reduce((min, p) => Math.min(min, p.x), Infinity);
-          const y = arr.reduce((min, p) => Math.min(min, p.y), Infinity);
+          const x = points.reduce((min, p) => Math.min(min, p.x), Infinity);
+          const y = points.reduce((min, p) => Math.min(min, p.y), Infinity);
           return new Point(x, y);
       }
       // Instance methods
+      /**
+       * @readonly
+       * @description This point as a plain `{x, y}` object, detached from this instance.
+       */
       get object() {
           return { x: this.x, y: this.y };
       }
@@ -13879,11 +15530,25 @@
               return this.x == x && this.y == y;
           return this.x == x.x && this.y == x.y;
       }
+      /**
+       * @function boundX
+       * @description Clamp this point's x coordinate to a range.
+       * @param {number} x1 - The lower bound.
+       * @param {number} x2 - The upper bound.
+       * @returns {number} The clamped x coordinate. This point is left unchanged.
+       */
       boundX(x1, x2) {
           return this.x < x1 ? x1
               : this.x > x2 ? x2
                   : this.x;
       }
+      /**
+       * @function boundY
+       * @description Clamp this point's y coordinate to a range.
+       * @param {number} y1 - The lower bound.
+       * @param {number} y2 - The upper bound.
+       * @returns {number} The clamped y coordinate. This point is left unchanged.
+       */
       boundY(y1, y2) {
           return this.y < y1 ? y1
               : this.y > y2 ? y2
@@ -13928,48 +15593,72 @@
       }
       /**
        * @description Calculate the absolute value of the coordinates
-       * @returns A new Point object with the absolute values
+       * @returns {Point} A new point with both coordinates made positive. This point is left unchanged.
        */
       get abs() {
           return new Point(Math.abs(this.x), Math.abs(this.y));
       }
       /**
        * @description Get the maximum value between x and y coordinates
-       * @returns The maximum value
+       * @returns {number} The larger of the two coordinates.
        */
       get max() {
           return Math.max(this.x, this.y);
       }
       /**
        * @description Get the minimum value between x and y coordinates
-       * @returns The minimum value
+       * @returns {number} The smaller of the two coordinates.
        */
       get min() {
           return Math.min(this.x, this.y);
       }
+      /**
+       * @readonly
+       * @description The squared distance from the origin to this point. Cheaper than {@link Point.length}
+       * since it skips the square root — use it when comparing magnitudes.
+       */
       get length2() {
           return this.x * this.x + this.y * this.y;
       }
+      /**
+       * @readonly
+       * @description The distance from the origin to this point.
+       */
       get length() {
           return Math.sqrt(this.length2);
       }
+      /**
+       * @function dot
+       * @description Compute the dot product of this point and another, treating both as vectors.
+       * @param {Point} p - The other vector.
+       * @returns {number} The dot product. Zero means the two are perpendicular.
+       */
       dot(p) {
           return this.x * p.x + this.y * p.y;
       }
       /**
        * @description Create a copy of the current point
-       * @returns A new Point object with the same coordinates
+       * @returns {Point} A new point with the same coordinates.
        */
       copy() {
           return new Point(this.x, this.y);
       }
       /**
        * @description Get the coordinates as an array
-       * @returns An array with x and y coordinates
+       * @returns {number[]} A two-element array, `[x, y]`.
        */
       arr() {
           return [this.x, this.y];
       }
+      /**
+       * @function positionOnSegment
+       * @description Find how far along a segment this point projects, as a fraction from its start to its
+       * end. Useful for snapping a position onto a line.
+       * @param {Point} start - The segment's start.
+       * @param {Point} end - The segment's end.
+       * @returns {number} A value from `0` (at the start) to `1` (at the end), clamped to that range.
+       * Returns `0` for a zero-length segment.
+       */
       positionOnSegment(start, end) {
           const shiftedEnd = end.sub(start);
           const shiftedLength2 = shiftedEnd.length2;
@@ -13977,12 +15666,1599 @@
               return 0;
           return trim((this.sub(start).dot(shiftedEnd)) / shiftedLength2, 1);
       }
+      /**
+       * @function linearInterpolation
+       * @static
+       * @description Interpolate between two points.
+       * @param {Point} start - The point at `t = 0`.
+       * @param {Point} end - The point at `t = 1`.
+       * @param {number} t - The interpolation fraction. Values outside `0`–`1` extrapolate past the ends.
+       * @returns {Point} The interpolated point.
+       */
       static linearInterpolation(start, end, t) {
           return start.add(end.sub(start).mul(t));
       }
+      /**
+       * @function toString
+       * @description Serialize this point to a JSON string, in the form {@link Point.fromString} reads.
+       * @returns {string} The serialized point, e.g. `'{"x":1,"y":2}'`.
+       */
+      toString() {
+          return JSON.stringify({ x: this.x, y: this.y });
+      }
+      /**
+       * @function from
+       * @static
+       * @description Parse a point from a JSON string produced by {@link Point.toString}.
+       * @param {string} value - The string to parse.
+       * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
+       * `x` and `y` fields.
+       */
+      static from(value) {
+          try {
+              const parsed = JSON.parse(value);
+              if (typeof parsed.x === "number" && typeof parsed.y === "number")
+                  return new Point(parsed.x, parsed.y);
+          }
+          catch { /* fall through to undefined */ }
+          return undefined;
+      }
+      /**
+       * @function fromString
+       * @description Parse a point from a JSON string produced by {@link Point.toString}. Delegates to
+       * {@link Point.from}; it exists as an instance method because {@link GradumInput} discovers a value's
+       * parser by looking for `fromString` on the value itself, which a static member would not satisfy.
+       * @param {string} value - The string to parse.
+       * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
+       * `x` and `y` fields.
+       */
+      fromString(value) {
+          return Point.from(value);
+      }
   }
 
-  class TurboEventManagerWheelController extends TurboController {
+  /**
+   * @class GradumMovable
+   * @group Components
+   * @category Wrappers
+   *
+   * @extends GradumElement
+   * @description Positioning wrapper that places arbitrary content via pure CSS transforms.
+   * Set {@link translation} (alias {@link position}) and {@link rotation} to move/rotate the
+   * wrapper without touching the content's own fields — useful for previews (feedforwards),
+   * ghosts, overlays, or any element that must be positioned independently of how its content
+   * renders itself.
+   *
+   * @example
+   * ```ts
+   * const movable = GradumMovable.create({content: myElement});
+   * movable.translation = new Point(120, 40);
+   * movable.rotation = Math.PI / 6;
+   * movable.translateBy(new Point(5, 0));
+   * ```
+   */
+  let GradumMovable = (() => {
+      let _classSuper = GradumElement;
+      let _instanceExtraInitializers = [];
+      let _translation_decorators;
+      let _translation_initializers = [];
+      let _translation_extraInitializers = [];
+      let _rotation_decorators;
+      let _rotation_initializers = [];
+      let _rotation_extraInitializers = [];
+      let _centerAnchor_decorators;
+      let _centerAnchor_initializers = [];
+      let _centerAnchor_extraInitializers = [];
+      let _set_content_decorators;
+      let _updateTransform_decorators;
+      return class GradumMovable extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _translation_decorators = [signal];
+              _rotation_decorators = [signal];
+              _centerAnchor_decorators = [signal];
+              _set_content_decorators = [auto()];
+              _updateTransform_decorators = [effect];
+              __esDecorate$1(this, null, _set_content_decorators, { kind: "setter", name: "content", static: false, private: false, access: { has: obj => "content" in obj, set: (obj, value) => { obj.content = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _updateTransform_decorators, { kind: "method", name: "updateTransform", static: false, private: false, access: { has: obj => "updateTransform" in obj, get: obj => obj.updateTransform }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(null, null, _translation_decorators, { kind: "field", name: "translation", static: false, private: false, access: { has: obj => "translation" in obj, get: obj => obj.translation, set: (obj, value) => { obj.translation = value; } }, metadata: _metadata }, _translation_initializers, _translation_extraInitializers);
+              __esDecorate$1(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
+              __esDecorate$1(null, null, _centerAnchor_decorators, { kind: "field", name: "centerAnchor", static: false, private: false, access: { has: obj => "centerAnchor" in obj, get: obj => obj.centerAnchor, set: (obj, value) => { obj.centerAnchor = value; } }, metadata: _metadata }, _centerAnchor_initializers, _centerAnchor_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          /** @description The translation applied to the wrapper, in pixels. */
+          translation = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _translation_initializers, new Point()));
+          /** @description The rotation applied to the wrapper, in radians. */
+          rotation = (__runInitializers$1(this, _translation_extraInitializers), __runInitializers$1(this, _rotation_initializers, 0));
+          /** @description When true, the wrapper is offset by -50% so translation refers to its center. */
+          centerAnchor = (__runInitializers$1(this, _rotation_extraInitializers), __runInitializers$1(this, _centerAnchor_initializers, false));
+          /** @description The content element wrapped by this movable. Assigning it appends it as a child. */
+          set content(value) {
+              if (value)
+                  gradum(this).addChild(value);
+          }
+          setupUILayout() {
+              super.setupUILayout();
+              gradum(this).setStyles({ display: "inline-block", position: "absolute", left: "0", top: "0" });
+          }
+          updateTransform() {
+              const offset = this.centerAnchor ? " - 50%" : "";
+              // Instant so per-pointer-event positioning isn't deferred a frame behind by the
+              // rAF-batched style queue.
+              gradum(this).setStyle("transform", `translate3d(
+            calc(${this.translation.x}px${offset}),
+            calc(${this.translation.y}px${offset}),
+            0) rotate(${this.rotation}rad)`, true);
+          }
+          /** @description Add the given delta to the current translation. */
+          translateBy(delta) {
+              this.translation = this.translation.add(delta);
+          }
+          /** @description Add the given angle (radians) to the current rotation. */
+          rotateBy(angle) {
+              this.rotation += angle;
+          }
+          /**
+           * @description Alias of {@link translation}, so code that positions elements through a
+           * `position` field (e.g. constrainer solvers) works on the wrapper as-is.
+           */
+          get position() {
+              return this.translation;
+          }
+          set position(value) {
+              if (!value)
+                  return;
+              this.translation = value instanceof Point ? value : new Point(value);
+          }
+          constructor() {
+              super(...arguments);
+              __runInitializers$1(this, _centerAnchor_extraInitializers);
+          }
+      };
+  })();
+  define(GradumMovable, "gradum-movable");
+
+  const utils$7 = new ElementFunctionsUtils();
+  /**
+   * @internal
+   * @function setupElementFunctions
+   * @description Install the element functions (`setProperties`, `clone`, `destroy`, `feedforward`, ...) onto the
+   * {@link GradumSelector} prototype. Called once by
+   * {@link gradumify}; the matching `exclude` option skips it.
+   */
+  function setupElementFunctions() {
+      /**
+       * @template Tag - The HTML tag of the element.
+       * @description Apply the given properties to the element.
+       * @param {GradumProperties<Tag>} [properties] - The properties object.
+       * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
+       * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.setProperties = function _setProperties(properties = {}, setOnlyBaseProperties = false) {
+          if (!this.element)
+              return this;
+          const props = { ...properties };
+          const element = this.element instanceof Element ? this.element :
+              this.element["element"] instanceof Element ? this.element["element"] : undefined;
+          gradum(props, true).removeFields(["tag", "namespace"]);
+          const { out, shadowDOM, initialize, parent, model, data, dataId } = gradum(props, true).extract(["out", "shadowDOM", "initialize", "parent", "model", "data", "dataId"]);
+          let mvcUpdated = false;
+          if (out) {
+              if (typeof out == "string")
+                  this["__outName"] = out;
+              else
+                  Object.assign(out, this);
+          }
+          if (!!shadowDOM) {
+              if ("shadowDOM" in this.element)
+                  this["shadowDOM"] = shadowDOM;
+              else if (element)
+                  element.attachShadow({ mode: "open" });
+          }
+          if (!element || (element && !setOnlyBaseProperties)) {
+              if (model) {
+                  this.model = model;
+                  if (data && this.model) {
+                      this.model.setDataWithoutInitializing(data);
+                      //Only assign when an id was actually supplied. Assigning unconditionally writes
+                      //`undefined` into the model's id, which on a model whose `id` is a @modelSignal lands
+                      //in the data itself and wipes the id that came in with `data`.
+                      if (!isUndefined(dataId))
+                          this.model.id = dataId;
+                  }
+                  mvcUpdated = true;
+              }
+              const mvc = gradum(props, true).extract(MvcFields);
+              for (const [key, value] of Object.entries(mvc)) {
+                  try {
+                      this[key] = value;
+                      mvcUpdated = true;
+                  }
+                  catch {
+                  }
+              }
+          }
+          if (element) {
+              const elementProps = gradum(props, true).extract(["text", "style",
+                  "stylesheet", "id", "classes", "listeners", "onClick", "onDrag", "children"]);
+              for (const [property, value] of Object.entries(elementProps)) {
+                  if (value === undefined)
+                      continue;
+                  switch (property) {
+                      case "text":
+                          if (element instanceof HTMLElement)
+                              element.innerText = value;
+                          break;
+                      case "style":
+                          if (!(element instanceof HTMLElement || element instanceof SVGElement))
+                              break;
+                          gradum(element).setStyles(value, true);
+                          break;
+                      case "stylesheet":
+                          stylesheet(value, gradum(element).closestRoot);
+                          break;
+                      case "id":
+                          element.id = value;
+                          break;
+                      case "classes":
+                          gradum(element).addClass(value);
+                          break;
+                      case "listeners":
+                          Object.entries(value).forEach(([type, callback]) => gradum(element).on(type, callback));
+                          break;
+                      case "onClick":
+                          gradum(element).on(DefaultEventName.click, value);
+                          break;
+                      case "onDrag":
+                          gradum(element).on(DefaultEventName.drag, value);
+                          break;
+                      case "children":
+                          gradum(element).addChild(value);
+                          break;
+                  }
+              }
+          }
+          if (!element || !setOnlyBaseProperties) {
+              for (const [property, value] of Object.entries(props)) {
+                  if (value === undefined)
+                      continue;
+                  try {
+                      this.element[property] = value;
+                  }
+                  catch {
+                      if (element)
+                          try {
+                              element.setAttribute(property, stringify(value));
+                          }
+                          catch (e) {
+                              console.error(e);
+                          }
+                  }
+              }
+          }
+          if (parent)
+              gradum(element).addToParent(parent);
+          if (initialize === undefined || initialize) {
+              if ("initialize" in this.element && typeof this.element.initialize === "function")
+                  this.element.initialize();
+              else if (mvcUpdated)
+                  this.initializeMvc();
+          }
+          return this;
+      };
+      GradumSelector.prototype.getFields = function _getFields() {
+          if (!this.element)
+              return {};
+          const chain = getPrototypeChain(this.element);
+          const seen = new Set();
+          const result = {};
+          const builtinPrototypes = new Set([
+              GradumElement.prototype, GradumBaseElement.prototype, GradumProxiedElement.prototype,
+              GradumHeadlessElement.prototype, Element.prototype, HTMLElement.prototype, Node.prototype,
+              SVGElement.prototype, MathMLElement.prototype, EventTarget.prototype, Object.prototype
+          ]);
+          for (const proto of [this.element, ...chain].reverse()) {
+              if (builtinPrototypes.has(proto)) {
+                  for (const key of Object.getOwnPropertyNames(proto))
+                      seen.add(key);
+                  continue;
+              }
+              for (const key of Object.getOwnPropertyNames(proto)) {
+                  if (seen.has(key) || key.startsWith("_"))
+                      continue;
+                  const desc = Object.getOwnPropertyDescriptor(proto, key);
+                  if (!desc || typeof desc.value === "function" || (desc.get && !desc.set))
+                      continue;
+                  seen.add(key);
+                  result[key] = this.element[key];
+              }
+          }
+          return result;
+      };
+      GradumSelector.prototype.clone = function _clone(options = {}) {
+          const originElement = this.element instanceof Node ? this.element : undefined;
+          if (!originElement)
+              return;
+          const exclude = new Set(options.exclude ?? []);
+          const force = new Set(options.forceInclude ?? []);
+          const deepClone = new Set(options.deepClone ?? []);
+          const copyReference = new Set(options.copyReference ?? []);
+          const shouldCopy = (key, value, prototype) => {
+              if (force.has(key))
+                  return true;
+              if (exclude.has(key) || key === "mvc" || key === "__proto__" || key === "prototype")
+                  return false;
+              if (typeof value === "function" || value instanceof Delegate)
+                  return false;
+              if (key === "model" || key === "view" || key === "emitter" || key === "operators"
+                  || key === "handlers" || key === "interactors" || key === "tools" || key === "constrainers")
+                  return false;
+              const desc = Object.getOwnPropertyDescriptor(prototype, key);
+              if (!desc)
+                  return false;
+              if (desc.get && !desc.set)
+                  return false;
+              if (desc.writable === false)
+                  return false;
+              return true;
+          };
+          const copyField = (key, value) => {
+              if (value === null || value === undefined || typeof value !== "object")
+                  return value;
+              if (copyReference.has(key))
+                  return value;
+              if (value instanceof Node) {
+                  if (deepClone.has(key) || options.deepCloneNodes) {
+                      try {
+                          return gradum(value).clone(options);
+                      }
+                      catch {
+                          return undefined;
+                      }
+                  }
+                  return options.copyNodes ? value : undefined;
+              }
+              if (options.deepCloneObjects || deepClone.has(key)) {
+                  try {
+                      return structuredClone(value);
+                  }
+                  catch { /* fall through to reference */ }
+              }
+              return value;
+          };
+          const constructor = originElement.constructor;
+          const prototypeChain = getPrototypeChain(originElement);
+          const properties = {};
+          if (originElement["model"] && originElement["data"] != null) {
+              const rawData = originElement["data"];
+              let clonedData = rawData;
+              if (options.snapshotData || options.deepCloneObjects) {
+                  // Y.js types: deep-copy into a fresh detached Y.Doc. The clone's model machinery
+                  // (observers, nested models, views) then works unchanged on real Y types, and
+                  // nothing syncs since the doc has no provider. A plain-object (toJSON) snapshot
+                  // renders degraded previews — observers never populate from plain data.
+                  if (options.snapshotData && rawData instanceof AbstractType
+                      && typeof rawData.clone === "function") {
+                      try {
+                          const yClone = rawData.clone();
+                          // Y types must be inside a document before they can be read.
+                          new Doc().getMap("__gradum_snapshot__").set("data", yClone);
+                          clonedData = yClone;
+                      }
+                      catch { }
+                  }
+                  // Fallbacks: toJSON (plain detached object), then structuredClone. Only under
+                  // snapshotData — deepCloneObjects keeps its documented fallback to reference
+                  // sharing for non-structured-cloneable data.
+                  if (clonedData === rawData && options.snapshotData && typeof rawData.toJSON === "function")
+                      try {
+                          clonedData = rawData.toJSON();
+                      }
+                      catch { }
+                  if (clonedData === rawData)
+                      try {
+                          clonedData = structuredClone(rawData);
+                      }
+                      catch { }
+              }
+              properties.data = clonedData;
+          }
+          try {
+              Object.assign(properties, gradum(originElement).getMvcDifference());
+          }
+          catch { }
+          let clone;
+          if (typeof constructor.create === "function") {
+              try {
+                  clone = constructor.create(properties);
+              }
+              catch { }
+          }
+          if (!clone) {
+              if (originElement instanceof Element) {
+                  clone = gradum(document.createElement(originElement.tagName)).setProperties(properties).element;
+              }
+              else {
+                  try {
+                      clone = originElement.cloneNode(false);
+                  }
+                  catch { }
+              }
+          }
+          if (!clone)
+              return;
+          if (originElement instanceof Element && clone instanceof Element) {
+              for (const attr of Array.from(originElement.attributes)) {
+                  if (exclude.has(attr.name))
+                      continue;
+                  try {
+                      clone.setAttribute(attr.name, attr.value);
+                  }
+                  catch { }
+              }
+          }
+          const keys = new Map();
+          const addKeys = (prototype) => {
+              for (const property of Object.getOwnPropertyNames(prototype))
+                  if (!keys.has(property))
+                      keys.set(property, prototype);
+              for (const property of Object.getOwnPropertySymbols(prototype))
+                  if (!keys.has(property))
+                      keys.set(property, prototype);
+          };
+          const mathMLProto = typeof MathMLElement !== "undefined" ? MathMLElement.prototype : null;
+          addKeys(originElement);
+          for (const prototype of prototypeChain) {
+              if (equalToAny(prototype, GradumElement.prototype, GradumBaseElement.prototype, GradumProxiedElement.prototype, GradumHeadlessElement.prototype, Element.prototype, Node.prototype, HTMLElement.prototype, SVGElement.prototype, mathMLProto, EventTarget.prototype, Object.prototype))
+                  break;
+              addKeys(prototype);
+          }
+          for (const [key, prototype] of keys.entries()) {
+              const value = originElement[key];
+              if (!shouldCopy(key, value, prototype))
+                  continue;
+              const newValue = copyField(key, value);
+              if (newValue !== undefined)
+                  try {
+                      clone[key] = newValue;
+                  }
+                  catch { }
+          }
+          return clone;
+      };
+      /**
+       * @description Destroys the node by removing it from the document and removing all its bound listeners.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.destroy = function _destroy() {
+          this.removeAllListeners();
+          this.remove();
+          if (this.element && "destroy" in this.element && typeof this.element.destroy === "function")
+              this.element.destroy();
+          return this;
+      };
+      /**
+       * @description Sets the value of an attribute on the underlying element.
+       * @param {string} name The name of the attribute.
+       * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent a
+       * true boolean.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.setAttribute = function _setAttribute(name, value) {
+          if (this.element instanceof Element)
+              this.element.setAttribute(name, value?.toString() || "true");
+          return this;
+      };
+      /**
+       * @description Removes an attribute from the underlying element.
+       * @param {string} name The name of the attribute to remove.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.removeAttribute = function _removeAttribute(name) {
+          if (this.element instanceof Element)
+              this.element.removeAttribute(name);
+          return this;
+      };
+      /**
+       * @description Causes the element to lose focus.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.blur = function _blur() {
+          if (this.element instanceof HTMLElement)
+              this.element.blur();
+          return this;
+      };
+      /**
+       * @description Sets focus on the element.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      GradumSelector.prototype.focus = function _focus() {
+          if (this.element instanceof HTMLElement)
+              this.element.focus();
+          return this;
+      };
+      const FEEDFORWARD_STYLE_ID = "gradum-feedforward-styles";
+      const wrapFeedforwardClone = (clone) => {
+          // Stylesheet !important beats the inline styles the clone's view keeps writing
+          // (its snapshot model still renders the original position). Injected once.
+          // position: static keeps absolutely-positioned clones (cards, nodes) in the wrapper's
+          // flow — otherwise they collapse the wrapper to 0x0 and break centerAnchor centering.
+          if (!document.getElementById(FEEDFORWARD_STYLE_ID)) {
+              const sheet = document.createElement("style");
+              sheet.id = FEEDFORWARD_STYLE_ID;
+              sheet.textContent = ".gradum-feedforward-wrapper > .gradum-feedforward-clone " +
+                  "{transform: none !important; position: static !important;}";
+              document.head.appendChild(sheet);
+          }
+          if (clone instanceof Element)
+              clone.classList.add("gradum-feedforward-clone");
+          const wrapper = GradumMovable.create({ content: clone instanceof Element ? clone : undefined });
+          wrapper.classList.add("gradum-feedforward-wrapper");
+          Object.defineProperty(wrapper, "feedforwardClone", { value: clone, configurable: true });
+          return wrapper;
+      };
+      GradumSelector.prototype.feedforward = function _feedforward(properties = {}) {
+          if (properties.removeOnPointerRelease === undefined)
+              properties.removeOnPointerRelease = true;
+          if (!this.element)
+              return;
+          const type = properties?.type ?? "___DEFAULT___";
+          const feedforwardElements = utils$7.data(this.element).feedforwardElements;
+          if (!feedforwardElements)
+              return;
+          let saved = feedforwardElements.get(type);
+          if (!saved) {
+              // Feedforwards are visual previews — snapshot the data so MVC/synced elements
+              // don't produce a live twin writing through the shared (e.g. Y.js) model.
+              const cloneOptions = { snapshotData: true, ...properties?.cloneOptions };
+              if (typeof this.element["clone"] === "function")
+                  saved = this.element["clone"](cloneOptions);
+              else
+                  saved = this.clone(cloneOptions);
+              // Positioning wrapper: callers move/rotate the preview through pure CSS
+              // transforms on the wrapper, never through the clone's semantic fields.
+              if (properties.wrap && saved)
+                  saved = wrapFeedforwardClone(saved);
+              // Register cleanup once per clone, not once per feedforward() call.
+              if (properties.removeOnPointerRelease && saved) {
+                  const savedClone = saved;
+                  gradum(document.body).on(DefaultEventName.clickEnd, () => {
+                      if (typeof savedClone["remove"] === "function")
+                          savedClone["remove"]();
+                      if (feedforwardElements.get(type) === savedClone)
+                          feedforwardElements.delete(type);
+                  }, { capture: true, once: true });
+              }
+          }
+          // feedforward() is called in hot paths (per pointer event). Re-applying an unchanged
+          // parent re-appends the whole subtree each call — custom-element disconnect/reconnect
+          // churn and forced reflows. Strip parent when the element is already inside it.
+          const stripUnchangedParent = (props) => {
+              if (!props?.parent || !(saved instanceof Node))
+                  return props;
+              const parentNode = props.parent instanceof GradumSelector ? props.parent.element : props.parent;
+              if (saved.parentNode === parentNode)
+                  return { ...props, parent: undefined };
+              return props;
+          };
+          gradum(saved).setProperties(stripUnchangedParent(this.defaultFeedforwardProperties ?? {}))
+              .setProperties(stripUnchangedParent({
+              ...properties,
+              cloneOptions: undefined,
+              type: undefined,
+              removeOnPointerRelease: undefined,
+              wrap: undefined
+          }));
+          feedforwardElements.set(type, saved);
+          return saved;
+      };
+      Object.defineProperty(GradumSelector.prototype, "defaultFeedforwardProperties", {
+          get: function () {
+              if ("defaultFeedforwardProperties" in this.element)
+                  return this.element.defaultFeedforwardProperties;
+              return utils$7.data(this.element).defaultFeedforwardProperties;
+          },
+          set: function (value) {
+              if ("defaultFeedforwardProperties" in this.element)
+                  this.element.defaultFeedforwardProperties = value;
+              utils$7.data(this.element).defaultFeedforwardProperties = value;
+          },
+          configurable: true,
+          enumerable: true
+      });
+  }
+
+  /**
+   * @enum {Propagation}
+   * @group GradumSelector
+   * @category Events
+   *
+   * @description Enum dictating the propagation of an event.
+   * @property {Propagation.propagate} propagate - Continue normal propagation.
+   * @property {Propagation.stopPropagation} stopPropagation - Stop propagation to parent targets.
+   * @property {Propagation.stopImmediatePropagation} stopImmediatePropagation - Stop propagation and prevent any
+   * additional listeners on the same target from executing.
+   */
+  var Propagation;
+  (function (Propagation) {
+      Propagation["propagate"] = "propagate";
+      Propagation["stopPropagation"] = "stopPropagation";
+      Propagation["stopImmediatePropagation"] = "stopImmediatePropagation";
+  })(Propagation || (Propagation = {}));
+  /**
+   * @group GradumSelector
+   * @category Events
+   * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
+   */
+  const BasicInputEvents = [
+      "mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu",
+      "dragstart", "selectstart",
+      "touchstart", "touchmove", "touchend", "touchcancel",
+      "pointerdown", "pointermove", "pointerup",
+      "wheel"
+  ];
+  /**
+   * @group GradumSelector
+   * @category Events
+   * @description Event types that should usually be registered as **non-passive** when you intend to call
+   *  * `preventDefault()` (e.g., scroll/touch/pointer interactions).
+   */
+  const NonPassiveEvents = [
+      "wheel", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "pointercancel"
+  ];
+
+  /**
+   * @enum {ActionMode}
+   * @group Event Handling
+   * @category Event Modes
+   *
+   * @description What the manager has decided the current interaction is. A press starts as `click` and
+   * becomes `longPress` or `drag` once it outlasts `longPressDuration` or travels past `moveThreshold`.
+   * @property {ActionMode.none} none - No interaction in progress.
+   * @property {ActionMode.click} click - A press that has neither moved far nor been held long.
+   * @property {ActionMode.longPress} longPress - A press held in place past the long-press duration.
+   * @property {ActionMode.drag} drag - A press that has moved past the move threshold.
+   */
+  var ActionMode;
+  (function (ActionMode) {
+      ActionMode[ActionMode["none"] = 0] = "none";
+      ActionMode[ActionMode["click"] = 1] = "click";
+      ActionMode[ActionMode["longPress"] = 2] = "longPress";
+      ActionMode[ActionMode["drag"] = 3] = "drag";
+  })(ActionMode || (ActionMode = {}));
+  /**
+   * @enum {ClickMode}
+   * @group Event Handling
+   * @category Event Modes
+   *
+   * @description Which pointer button or input mode an interaction belongs to. The manager holds one
+   * current tool per mode, so a different tool can be bound to each button.
+   * @property {ClickMode.none} none - No button held.
+   * @property {ClickMode.left} left - Primary button.
+   * @property {ClickMode.right} right - Secondary button.
+   * @property {ClickMode.middle} middle - Middle button.
+   * @property {ClickMode.other} other - Any further button.
+   * @property {ClickMode.key} key - Interaction driven by a mapped keyboard key rather than a button.
+   */
+  var ClickMode;
+  (function (ClickMode) {
+      ClickMode[ClickMode["none"] = 0] = "none";
+      ClickMode[ClickMode["left"] = 1] = "left";
+      ClickMode[ClickMode["right"] = 2] = "right";
+      ClickMode[ClickMode["middle"] = 3] = "middle";
+      ClickMode[ClickMode["other"] = 4] = "other";
+      ClickMode[ClickMode["key"] = 5] = "key";
+  })(ClickMode || (ClickMode = {}));
+  /**
+   * @enum {InputDevice}
+   * @group Event Handling
+   * @category Event Modes
+   *
+   * @description The device the manager believes is driving input. *Note: this is inferred from event
+   * shape and is not fully reliable, particularly between `mouse` and `trackpad`.*
+   * @property {InputDevice.unknown} unknown - Not yet identified.
+   * @property {InputDevice.mouse} mouse - A mouse.
+   * @property {InputDevice.trackpad} trackpad - A trackpad.
+   * @property {InputDevice.touch} touch - A touchscreen.
+   */
+  var InputDevice;
+  (function (InputDevice) {
+      InputDevice[InputDevice["unknown"] = 0] = "unknown";
+      InputDevice[InputDevice["mouse"] = 1] = "mouse";
+      InputDevice[InputDevice["trackpad"] = 2] = "trackpad";
+      InputDevice[InputDevice["touch"] = 3] = "touch";
+  })(InputDevice || (InputDevice = {}));
+
+  /**
+   * @internal
+   */
+  function inferKey(name, type, context) {
+      return (String(context.name).endsWith(type)
+          ? String(context.name).slice(0, -type.length)
+          : String(context.name));
+  }
+  /**
+   * @internal
+   */
+  function generateField(context, type, name) {
+      const cacheKey = Symbol(`__${type.toLowerCase()}_${String(context.name)}`);
+      const keyName = inferKey(name, type, context);
+      context.addInitializer(function () {
+          Object.defineProperty(this, context.name, {
+              configurable: true,
+              enumerable: false,
+              get: function () {
+                  if (this[cacheKey])
+                      return this[cacheKey];
+                  let value;
+                  let functionName;
+                  switch (type) {
+                      case "Operator":
+                          functionName = "getOperator";
+                          break;
+                      case "Handler":
+                          functionName = "getHandler";
+                          break;
+                      case "Interactor":
+                          functionName = "getInteractor";
+                          break;
+                      case "Tool":
+                          functionName = "getTool";
+                          break;
+                      case "Constrainer":
+                          functionName = "getConstrainer";
+                          break;
+                  }
+                  if (!functionName)
+                      return;
+                  value = gradum(this)[functionName]?.(keyName);
+                  if (!value)
+                      throw new Error(`${type} "${keyName}" not found on ${this?.constructor?.name}.`);
+                  this[cacheKey] = value;
+                  return value;
+              },
+              set: function (value) { this[cacheKey] = value; }
+          });
+      });
+  }
+  /**
+   * @decorator
+   * @function operator
+   * @group Decorators
+   * @category MVC
+   *
+   * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+   * fetched operator.
+   * @param {string} [name] - The key name of the operator in the MVC instance (if any). By default, it is inferred
+   * from the name of the field. If the field is named `somethingOperator`, the key name will be `something`.
+   *
+   * @example
+   * ```ts
+   * @operator() protected textOperator: GradumOperator;
+   * ```
+   * Is equivalent to:
+   * ```ts
+   * protected get textOperator(): GradumOperator {
+   *    if (this.mvc instanceof Mvc) return this.mvc.getOperator("text");
+   *    if (typeof this.getOperator === "function") return this.getOperator("text");
+   * }
+   * ```
+   */
+  function operator(name) {
+      return function (_unused, context) {
+          generateField(context, "Operator", name);
+      };
+  }
+  /**
+   * @decorator
+   * @function handler
+   * @group Decorators
+   * @category MVC
+   *
+   * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+   * fetched handler.
+   * @param {string} [name] - The key name of the handler in the MVC instance (if any). By default, it is inferred
+   * from the name of the field. If the field is named `somethingHandler`, the key name will be `something`.
+   *
+   * @example
+   * ```ts
+   * @handler() protected textHandler: GradumHandler;
+   * ```
+   * Is equivalent to:
+   * ```ts
+   * protected get textHandler(): GradumHandler {
+   *    if (this.mvc instanceof Mvc) return this.mvc.getHandler("text");
+   *    if (typeof this.getHandler === "function") return this.getHandler("text");
+   * }
+   * ```
+   */
+  function handler(name) {
+      return function (_unused, context) {
+          generateField(context, "Handler", name);
+      };
+  }
+
+  /**
+   * @class GradumMap
+   * @group Components
+   * @category Data Structures
+   *
+   * @extends Map
+   * @template KeyType - The type of the keys.
+   * @template ValueType - The type of the stored values.
+   * @description A [Map](https://developer.mozilla.org/en-US/docs/Web/API/Map) that hands out copies
+   * instead of references, so callers cannot mutate stored values by accident. It also adds array
+   * accessors and the usual `map`/`filter`/`merge` helpers, which return new maps rather than mutating
+   * this one. Set {@link enforceImmutability} to `false` to get plain reference semantics back.
+   */
+  class GradumMap extends Map {
+      /**
+       * @description Whether values are copied on the way in and out. While `true` (the default), stored
+       * objects are cloned, so mutating a value you read back does not affect the map. Set it to `false`
+       * to store and return the original references.
+       */
+      enforceImmutability = true;
+      /**
+       * @description Store a value at the given key. The value is copied first unless
+       * {@link enforceImmutability} is `false`.
+       * @param {KeyType} key - The key to store under.
+       * @param {ValueType} value - The value to store.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      set(key, value) {
+          return super.set(key, this.enforceImmutability ? this.copy(value) : value);
+      }
+      /**
+       * @description Read the value at the given key.
+       * @param {KeyType} key - The key to read.
+       * @returns {ValueType} A copy of the stored value, or the value itself when
+       * {@link enforceImmutability} is `false`. `undefined` if the key is not set.
+       */
+      get(key) {
+          const result = super.get(key);
+          return this.enforceImmutability ? this.copy(result) : result;
+      }
+      /**
+       * @description The first value in insertion order, or `null` when the map is empty. Copied unless
+       * {@link enforceImmutability} is `false`.
+       * @readonly
+       */
+      get first() {
+          if (this.size == 0)
+              return null;
+          const result = this.values().next().value;
+          return this.enforceImmutability ? this.copy(result) : result;
+      }
+      /**
+       * @description The last value in insertion order, or `null` when the map is empty. Copied unless
+       * {@link enforceImmutability} is `false`.
+       * @readonly
+       */
+      get last() {
+          if (this.size == 0)
+              return null;
+          const result = this.valuesArray()[this.size - 1];
+          return this.enforceImmutability ? this.copy(result) : result;
+      }
+      /**
+       * @description All keys as an array, in insertion order.
+       * @returns {KeyType[]} A new array of the map's keys.
+       */
+      keysArray() {
+          return Array.from(this.keys());
+      }
+      /**
+       * @description All values as an array, in insertion order.
+       * @returns {ValueType[]} A new array of the map's values. The values themselves are not copied.
+       */
+      valuesArray() {
+          return Array.from(this.values());
+      }
+      copy(value) {
+          if (value && typeof value == "object") {
+              if (value instanceof Array)
+                  return value.map(item => this.copy(item));
+              if (value.constructor && value.constructor != Object) {
+                  if (typeof value.clone == "function")
+                      return value.clone();
+                  if (typeof value.copy == "function")
+                      return value.copy();
+              }
+              return { ...value };
+          }
+          return value;
+      }
+      /**
+       * @template C - The type of the new keys.
+       * @description Derive a new map with the same values under recomputed keys.
+       * @param {(key: KeyType, value: ValueType) => C} callback - Returns the new key for each entry.
+       * @returns {GradumMap<C, ValueType>} A new map. This map is left unchanged. Entries whose callback
+       * returns the same key collapse into one.
+       */
+      mapKeys(callback) {
+          const newMap = new GradumMap();
+          for (let [key, value] of this) {
+              newMap.set(callback(key, value), value);
+          }
+          return newMap;
+      }
+      /**
+       * @template C - The type of the new values.
+       * @description Derive a new map with the same keys and recomputed values.
+       * @param {(key: KeyType, value: ValueType) => C} callback - Returns the new value for each entry.
+       * @returns {GradumMap<KeyType, C>} A new map. This map is left unchanged.
+       */
+      mapValues(callback) {
+          const newMap = new GradumMap();
+          for (let [key, value] of this) {
+              newMap.set(key, callback(key, value));
+          }
+          return newMap;
+      }
+      /**
+       * @description Select the entries matching a predicate.
+       * @param {(key: KeyType, value: ValueType) => boolean} callback - Returns `true` to keep an entry.
+       * @returns {GradumMap<KeyType, ValueType>} A new map holding the kept entries. This map is left unchanged.
+       */
+      filter(callback) {
+          const newMap = new GradumMap();
+          for (let [key, value] of this) {
+              if (callback(key, value))
+                  newMap.set(key, value);
+          }
+          return newMap;
+      }
+      /**
+       * @description Copy every entry of another map into this one, overwriting on key collisions.
+       * Unlike {@link mapKeys}, {@link mapValues}, and {@link filter}, this mutates the map it is called on.
+       * @param {Map<KeyType, ValueType>} map - The map to read entries from. It is left unchanged.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      merge(map) {
+          for (let [key, value] of map) {
+              this.set(key, value);
+          }
+          return this;
+      }
+  }
+
+  /**
+   * @internal
+   * @class GradumEventManagerModel
+   * @extends GradumModel
+   * @description Holds a {@link GradumEventManager}'s live input state: which pointers are down and where
+   * they started, the current click mode and action mode, the keys held, the registered tools and their
+   * key bindings, and the thresholds separating a click from a drag or a long press. The manager's
+   * operators read and update this as raw input arrives.
+   */
+  let GradumEventManagerModel = (() => {
+      let _classSuper = GradumModel;
+      let _instanceExtraInitializers = [];
+      let _utils_decorators;
+      let _utils_initializers = [];
+      let _utils_extraInitializers = [];
+      let _currentAction_decorators;
+      let _currentAction_initializers = [];
+      let _currentAction_extraInitializers = [];
+      let _currentClick_decorators;
+      let _currentClick_initializers = [];
+      let _currentClick_extraInitializers = [];
+      let _wasRecentlyTrackpad_decorators;
+      let _wasRecentlyTrackpad_initializers = [];
+      let _wasRecentlyTrackpad_extraInitializers = [];
+      let _moveThreshold_decorators;
+      let _moveThreshold_initializers = [];
+      let _moveThreshold_extraInitializers = [];
+      let _longPressDuration_decorators;
+      let _longPressDuration_initializers = [];
+      let _longPressDuration_extraInitializers = [];
+      let _authorizeEventScaling_decorators;
+      let _authorizeEventScaling_initializers = [];
+      let _authorizeEventScaling_extraInitializers = [];
+      let _scaleEventPosition_decorators;
+      let _scaleEventPosition_initializers = [];
+      let _scaleEventPosition_extraInitializers = [];
+      let _set_inputDevice_decorators;
+      return class GradumEventManagerModel extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _utils_decorators = [handler()];
+              _currentAction_decorators = [signal];
+              _currentClick_decorators = [signal];
+              _wasRecentlyTrackpad_decorators = [signal];
+              _moveThreshold_decorators = [signal];
+              _longPressDuration_decorators = [signal];
+              _authorizeEventScaling_decorators = [signal];
+              _scaleEventPosition_decorators = [signal];
+              _set_inputDevice_decorators = [auto({
+                      callBefore: function (value) {
+                          if (value == InputDevice.trackpad)
+                              this.wasRecentlyTrackpad = true;
+                      }
+                  })];
+              __esDecorate$1(this, null, _set_inputDevice_decorators, { kind: "setter", name: "inputDevice", static: false, private: false, access: { has: obj => "inputDevice" in obj, set: (obj, value) => { obj.inputDevice = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(null, null, _utils_decorators, { kind: "field", name: "utils", static: false, private: false, access: { has: obj => "utils" in obj, get: obj => obj.utils, set: (obj, value) => { obj.utils = value; } }, metadata: _metadata }, _utils_initializers, _utils_extraInitializers);
+              __esDecorate$1(null, null, _currentAction_decorators, { kind: "field", name: "currentAction", static: false, private: false, access: { has: obj => "currentAction" in obj, get: obj => obj.currentAction, set: (obj, value) => { obj.currentAction = value; } }, metadata: _metadata }, _currentAction_initializers, _currentAction_extraInitializers);
+              __esDecorate$1(null, null, _currentClick_decorators, { kind: "field", name: "currentClick", static: false, private: false, access: { has: obj => "currentClick" in obj, get: obj => obj.currentClick, set: (obj, value) => { obj.currentClick = value; } }, metadata: _metadata }, _currentClick_initializers, _currentClick_extraInitializers);
+              __esDecorate$1(null, null, _wasRecentlyTrackpad_decorators, { kind: "field", name: "wasRecentlyTrackpad", static: false, private: false, access: { has: obj => "wasRecentlyTrackpad" in obj, get: obj => obj.wasRecentlyTrackpad, set: (obj, value) => { obj.wasRecentlyTrackpad = value; } }, metadata: _metadata }, _wasRecentlyTrackpad_initializers, _wasRecentlyTrackpad_extraInitializers);
+              __esDecorate$1(null, null, _moveThreshold_decorators, { kind: "field", name: "moveThreshold", static: false, private: false, access: { has: obj => "moveThreshold" in obj, get: obj => obj.moveThreshold, set: (obj, value) => { obj.moveThreshold = value; } }, metadata: _metadata }, _moveThreshold_initializers, _moveThreshold_extraInitializers);
+              __esDecorate$1(null, null, _longPressDuration_decorators, { kind: "field", name: "longPressDuration", static: false, private: false, access: { has: obj => "longPressDuration" in obj, get: obj => obj.longPressDuration, set: (obj, value) => { obj.longPressDuration = value; } }, metadata: _metadata }, _longPressDuration_initializers, _longPressDuration_extraInitializers);
+              __esDecorate$1(null, null, _authorizeEventScaling_decorators, { kind: "field", name: "authorizeEventScaling", static: false, private: false, access: { has: obj => "authorizeEventScaling" in obj, get: obj => obj.authorizeEventScaling, set: (obj, value) => { obj.authorizeEventScaling = value; } }, metadata: _metadata }, _authorizeEventScaling_initializers, _authorizeEventScaling_extraInitializers);
+              __esDecorate$1(null, null, _scaleEventPosition_decorators, { kind: "field", name: "scaleEventPosition", static: false, private: false, access: { has: obj => "scaleEventPosition" in obj, get: obj => obj.scaleEventPosition, set: (obj, value) => { obj.scaleEventPosition = value; } }, metadata: _metadata }, _scaleEventPosition_initializers, _scaleEventPosition_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          utils = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _utils_initializers, void 0));
+          state = (__runInitializers$1(this, _utils_extraInitializers), GradumModel.from({
+              enabled: true,
+              preventDefaultMouse: false,
+              preventDefaultTouch: false,
+              preventDefaultWheel: false
+          }));
+          lockState = GradumModel.from();
+          //Delegate fired when the input device changes
+          onInputDeviceChange = new Delegate();
+          /**
+           * @description Delegate fired when the tool bound to a click mode changes, receiving the old tool, the
+           * new tool, and the mode it changed on.
+           */
+          onToolChange = new Delegate();
+          //Input events states
+          currentKeys = GradumModel.from([]);
+          currentAction = __runInitializers$1(this, _currentAction_initializers, ActionMode.none);
+          currentClick = (__runInitializers$1(this, _currentAction_extraInitializers), __runInitializers$1(this, _currentClick_initializers, ClickMode.none));
+          wasRecentlyTrackpad = (__runInitializers$1(this, _currentClick_extraInitializers), __runInitializers$1(this, _wasRecentlyTrackpad_initializers, false));
+          //Threshold differentiating a click from a drag
+          moveThreshold = (__runInitializers$1(this, _wasRecentlyTrackpad_extraInitializers), __runInitializers$1(this, _moveThreshold_initializers, 10));
+          //Duration to reach long press
+          longPressDuration = (__runInitializers$1(this, _moveThreshold_extraInitializers), __runInitializers$1(this, _longPressDuration_initializers, 500));
+          authorizeEventScaling = (__runInitializers$1(this, _longPressDuration_extraInitializers), __runInitializers$1(this, _authorizeEventScaling_initializers, void 0));
+          scaleEventPosition = (__runInitializers$1(this, _authorizeEventScaling_extraInitializers), __runInitializers$1(this, _scaleEventPosition_initializers, void 0));
+          activePointers = (__runInitializers$1(this, _scaleEventPosition_extraInitializers), new Set());
+          //Saved values (Maps to account for different touch points and their IDs)
+          origins = new GradumMap();
+          previousPositions = new GradumMap();
+          positions;
+          lastTargetOrigin;
+          //Single timer instance --> easily cancel it and set it again
+          timerMap = new GradumMap();
+          //All created tools
+          tools = new Map();
+          //Tools mapped to keys
+          mappedKeysToTool = new Map();
+          //Tools currently held by the user (one - or none - per each click button/mode)
+          currentTools = new Map();
+          set inputDevice(value) {
+              this.onInputDeviceChange.fire(value);
+          }
+      };
+  })();
+
+  /**
+   * @enum {ClosestOrigin}
+   * @group Event Handling
+   * @category Event Modes
+   *
+   * @description Where {@link GradumEvent.closest} starts searching from when looking for a matching
+   * ancestor.
+   * @property {ClosestOrigin.target} target - Start from the event's target and walk up its ancestors.
+   * @property {ClosestOrigin.position} position - Start from the elements under the event position, which
+   * also reaches elements the target overlaps but does not descend from.
+   */
+  var ClosestOrigin;
+  (function (ClosestOrigin) {
+      ClosestOrigin["target"] = "target";
+      ClosestOrigin["position"] = "position";
+  })(ClosestOrigin || (ClosestOrigin = {}));
+
+  /**
+   * @class GradumEvent
+   * @group Event Handling
+   * @category GradumEvents
+   *
+   * @extends Event
+   * @description The base class for every event the {@link GradumEventManager} fires. On top of a native
+   * [Event](https://developer.mozilla.org/en-US/docs/Web/API/Event) it carries the pointer position, the
+   * click mode, the input device, the keys held at the time, and the tool the event is attributed to. It
+   * also knows how to map screen coordinates into document space, so handlers running under a panned or
+   * zoomed canvas can read {@link GradumEvent.scaledPosition} instead of doing the maths themselves.
+   */
+  let GradumEvent = (() => {
+      let _classSuper = Event;
+      let _instanceExtraInitializers = [];
+      let _closest_decorators;
+      let _get_scaledPosition_decorators;
+      return class GradumEvent extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _closest_decorators = [cache()];
+              _get_scaledPosition_decorators = [cache()];
+              __esDecorate$1(this, null, _closest_decorators, { kind: "method", name: "closest", static: false, private: false, access: { has: obj => "closest" in obj, get: obj => obj.closest }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _get_scaledPosition_decorators, { kind: "getter", name: "scaledPosition", static: false, private: false, access: { has: obj => "scaledPosition" in obj, get: obj => obj.scaledPosition }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          /**
+           * @description The event manager that fired this event.
+           */
+          eventManager = __runInitializers$1(this, _instanceExtraInitializers);
+          /**
+           * @description The name of the tool this event is attributed to, or `undefined` when no tool was
+           * current. Resolve it to the tool itself with {@link GradumEvent.tool}.
+           */
+          toolName;
+          /**
+           * @description The name this event was dispatched under, such as `gradum-click`.
+           */
+          eventName;
+          /**
+           * @description The pointer button or input mode this event belongs to.
+           */
+          clickMode;
+          /**
+           * @description The device that produced this event.
+           */
+          inputDevice;
+          /**
+           * @description The keys held down when the event fired.
+           */
+          keys;
+          /**
+           * @description The screen position the event was fired from.
+           */
+          position;
+          /**
+           * @description Whether {@link GradumEvent.scaledPosition} and its per-pointer equivalents actually
+           * scale, or hand back the raw position. Assign a callback to decide per read — useful when a canvas
+           * is only sometimes transformed. Defaults to `true`.
+           */
+          authorizeScaling;
+          /**
+           * @description How a screen position is mapped into document space. Assign it to make events aware of
+           * a panned or zoomed canvas. Defaults to returning the position unchanged.
+           */
+          scalePosition;
+          /**
+           * @constructor
+           * @description Create a Gradum event. Anything left out of `properties` falls back to the current
+           * state of {@link GradumEventManager.instance}.
+           * @param {GradumEventProperties} properties - The event's name, position, and input context.
+           */
+          constructor(properties) {
+              super(properties.eventName, { bubbles: true, cancelable: true, ...properties.eventInitDict });
+              this.eventManager = properties.eventManager ?? GradumEventManager.instance;
+              this.authorizeScaling = properties.authorizeScaling ?? true;
+              this.scalePosition = properties.scalePosition ?? ((position) => position);
+              this.clickMode = properties.clickMode ?? GradumEventManager.instance.currentClick;
+              this.inputDevice = properties.inputDevice ?? InputDevice.unknown;
+              this.keys = properties.keys ?? GradumEventManager.instance.currentKeys;
+              this.eventName = properties.eventName;
+              this.position = properties.position;
+              this.toolName = properties.toolName;
+          }
+          /**
+           * @readonly
+           * @description The tool associated with this event, or `null` if the event carries no tool name.
+           */
+          get tool() {
+              if (!this.toolName || !(this.eventManager instanceof GradumEventManager))
+                  return null;
+              return this.eventManager.getToolByName(this.toolName);
+          }
+          closest(type, strict = true, from = ClosestOrigin.target) {
+              const elements = from === ClosestOrigin.target ? [this.target]
+                  : document.elementsFromPoint(this.position.x, this.position.y);
+              const strictElement = strict instanceof Element ? strict : null;
+              const isStrict = strict === true || strictElement !== null;
+              const ctor = typeof type === "string" ? customElements.get(type) : type;
+              for (let element of elements) {
+                  if (!ctor) {
+                      // No registered custom element for the string — CSS selector fallback.
+                      const match = element.closest(type);
+                      if (match && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? match)))
+                          return match;
+                      continue;
+                  }
+                  while (element && !((element instanceof ctor)
+                      && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? element))))
+                      element = element.parentElement;
+                  if (element)
+                      return element;
+              }
+              return null;
+          }
+          /**
+           * @private
+           * @function isPositionInsideElement
+           * @description Check whether a position falls within an element's bounding box.
+           * @param {Point} position - The position to test.
+           * @param {Element} element - The element whose bounds are tested against.
+           * @returns {boolean} Whether the position is inside the element.
+           */
+          isPositionInsideElement(position, element) {
+              const rect = element.getBoundingClientRect();
+              return position.x >= rect.left && position.x <= rect.right
+                  && position.y >= rect.top && position.y <= rect.bottom;
+          }
+          /**
+           * @readonly
+           * @description The element the event was fired on, or the document when there is no element target.
+           */
+          get target() {
+              return super.target || document;
+          }
+          /**
+           * @readonly
+           * @description The event position in document space, obtained by running {@link GradumEvent.position}
+           * through `scalePosition`. Falls back to the raw position when scaling is not authorized.
+           */
+          get scaledPosition() {
+              if (!this.scalingAuthorized)
+                  return this.position;
+              return this.scalePosition(this.position);
+          }
+          /**
+           * @readonly
+           * @description Whether scaled positions are computed for this event. Resolves `authorizeScaling`,
+           * calling it first if it is a callback.
+           */
+          get scalingAuthorized() {
+              return typeof this.authorizeScaling == "function" ? this.authorizeScaling() : this.authorizeScaling;
+          }
+          /**
+           * @protected
+           * @function scalePositionsMap
+           * @description Map every point in a per-pointer map into document space. Used by
+           * {@link GradumDragEvent} to expose scaled variants of its position maps.
+           * @param {GradumMap<number, Point>} [positions] - Positions keyed by pointer id.
+           * @returns {GradumMap<number, Point>} A new map with each position scaled. The input is unchanged.
+           */
+          scalePositionsMap(positions) {
+              return positions.mapValues((key, position) => this.scalePosition(position));
+          }
+      };
+  })();
+
+  /**
+   * @class GradumKeyEvent
+   * @group Event Handling
+   * @category GradumEvents
+   *
+   * @extends GradumEvent
+   * @description The event fired for `gradum-key-pressed` and `gradum-key-released`. Which of the two key
+   * fields is set tells you which happened. Key events carry no pointer position, so
+   * {@link GradumEvent.position} is `null`.
+   */
+  class GradumKeyEvent extends GradumEvent {
+      /**
+       * @description The key that was pressed, or `undefined` on a release event.
+       */
+      keyPressed;
+      /**
+       * @description The key that was released, or `undefined` on a press event.
+       */
+      keyReleased;
+      /**
+       * @constructor
+       * @description Create a key event. Its position is always `null`.
+       * @param {GradumKeyEventProperties} properties - The key involved and the input context.
+       */
+      constructor(properties) {
+          super({ ...properties, position: null });
+          this.keyPressed = properties.keyPressed;
+          this.keyReleased = properties.keyReleased;
+      }
+  }
+
+  /**
+   * @internal
+   * @class ListenerUtils
+   * @description Stores the listener and behavior declarations gathered from `@listener` and `@behavior`,
+   * keyed by prototype, so they can be attached once the instance exists.
+   */
+  class ListenerUtils {
+      constructorMap = new WeakMap();
+      constructorData(prototype) {
+          let obj = this.constructorMap.get(prototype);
+          if (!obj) {
+              obj = { listeners: new Map() };
+              this.constructorMap.set(prototype, obj);
+          }
+          return obj;
+      }
+      addListener(prototype, listener) {
+          if (!listener.methodName)
+              return;
+          const data = this.constructorData(prototype)?.listeners;
+          if (!data || data.has(listener.methodName))
+              return;
+          data.set(listener.methodName, listener);
+      }
+      getAllListeners(instance) {
+          let prototype = Object.getPrototypeOf(instance);
+          const results = new Map();
+          while (prototype && prototype !== Object.prototype) {
+              const map = this.constructorData(prototype).listeners;
+              if (map?.size)
+                  for (const [key, value] of map.entries()) {
+                      if (!results.has(key))
+                          results.set(key, value);
+                  }
+              prototype = Object.getPrototypeOf(prototype);
+          }
+          return results;
+      }
+  }
+
+  const utils$6 = new ListenerUtils();
+  /**
+   * @decorator
+   * @function listener
+   * @group Decorators
+   * @category Listeners
+   *
+   * @description Method decorator that registers the decorated method as an event listener, to be attached later
+   * via {@link attachListenersAndBehaviors}.
+   * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
+   * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
+   * to derive the event name from {@link DefaultEventName}.
+   *
+   * @example ```ts
+   * class MyElement {
+   *   @listener() click(e: Event) { ... }
+   *   //Equivalent to: gradum(this).on(DefaultEventName.click, (e: Event) => { ... });
+   * }
+   * ```
+   */
+  function listener(properties = {}) {
+      return function (value, context) {
+          //TODO FIX
+          GradumEventManager.instance;
+          let type = properties.type;
+          if (!type) {
+              const kebab = camelToKebabCase(String(context.name));
+              type = Object.values(DefaultEventName).includes("gradum-" + kebab) ? "gradum-" + kebab : kebab;
+          }
+          context.addInitializer(function () {
+              utils$6.addListener(Object.getPrototypeOf(this), { ...properties, type, methodName: context.name, kind: "listener" });
+          });
+          return value;
+      };
+  }
+  /**
+   * @decorator
+   * @function behavior
+   * @group Decorators
+   * @category Listeners
+   *
+   * @description Method decorator that registers the decorated method as a tool behavior, to be attached later
+   * via {@link attachListenersAndBehaviors}.
+   * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
+   * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
+   * to derive the event name from {@link DefaultEventName}.
+   *
+   * @example ```ts
+   * class MyElement {
+   *   @behavior() click(e: Event) { ... }
+   *   //Equivalent to: gradum(this).addToolBehavior(DefaultEventName.click, (e: Event) => { ... });
+   * }
+   * ```
+   */
+  function behavior(properties = {}) {
+      return function (value, context) {
+          //TODO FIX
+          GradumEventManager.instance;
+          let type = properties.type;
+          if (!type) {
+              const kebab = camelToKebabCase(String(context.name));
+              type = Object.values(DefaultEventName).includes("gradum-" + kebab) ? "gradum-" + kebab : kebab;
+          }
+          context.addInitializer(function () {
+              utils$6.addListener(Object.getPrototypeOf(this), { ...properties, type, methodName: context.name, kind: "behavior" });
+          });
+          return value;
+      };
+  }
+  /**
+   * @decorator
+   * @function attachListenersAndBehaviors
+   * @group Decorators
+   * @category Listeners
+   *
+   * @description Attach all previously-decorated listeners and behaviors recorded on the given `context`. It attempts to
+   * resolve defaults from the latter, such as the `target`, `toolName`, `options`, and `manager`. This method is called
+   * automatically in the GradumElement lifecycle.
+   * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
+   */
+  function attachListenersAndBehaviors(context) {
+      if (!context || typeof context !== "object")
+          return;
+      const listeners = utils$6.getAllListeners(context);
+      if (!listeners || listeners.size === 0)
+          return;
+      const defaultTarget = context.target instanceof Node
+          ? context.target : context instanceof Node
+          ? context : context.element instanceof Node
+          ? context.element : undefined;
+      const defaultTool = typeof context.toolName === "string" ? context.toolName : undefined;
+      const defaultOptions = typeof context.options === "object" ? context.options : undefined;
+      const defaultManager = context.manager instanceof GradumEventManager ? context.manager : undefined;
+      for (const [, listener] of listeners) {
+          const method = context[listener.methodName];
+          if (typeof method !== "function")
+              continue;
+          const target = listener.target ?? defaultTarget;
+          const tool = listener.toolName ?? defaultTool;
+          const manager = listener.manager ?? defaultManager;
+          if (listener.kind === "behavior") {
+              if (!tool)
+                  continue;
+              gradum(context).addToolBehavior(listener.type, (e, el) => method.call(context, e, el), tool, manager);
+          }
+          else if (listener.kind === "listener") {
+              if (!(target instanceof Node))
+                  continue;
+              gradum(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el), listener.options ?? defaultOptions, manager);
+          }
+      }
+  }
+
+  /**
+   * @class GradumOperator
+   * @group MVC
+   * @category Operator
+   *
+   * @template {object} ElementType - The type of the main component.
+   * @template {GradumView} ViewType - The element's MVC view type.
+   * @template {GradumModel} ModelType - The element's MVC model type.
+   * @template {GradumEmitter} EmitterType - The element's MVC emitter type.
+   * @description The MVC base operator class. Its main job is to handle some part of (or all of) the logic of the
+   * component. It has access to the element, the model to read and write data, the view to update the UI, and the
+   * emitter to listen for changes in the model or any other internal events. It can only communicate with other
+   * operators via the emitter (by firing or listening for changes on a certain key).
+   */
+  class GradumOperator {
+      /**
+       * @description The key of the operator. Used to retrieve it in the main component. If not set, if the element's
+       * class name is MyElement and the operator's class name is MyElementSomethingOperator, the key would
+       * default to "something".
+       */
+      keyName;
+      /**
+       * @description The element it is bound to.
+       */
+      element;
+      /**
+       * @description The MVC view.
+       */
+      view;
+      /**
+       * @description The MVC model.
+       */
+      model;
+      /**
+       * @description The MVC emitter.
+       */
+      emitter;
+      /**
+       * @constructor
+       * @description Create an operator bound to an element. The view, model, and emitter default to the
+       * element's own, so an operator shares them rather than owning any state itself.
+       * @param {GradumOperatorProperties} properties - The element to attach to, plus optional view, model, and
+       * emitter overrides.
+       */
+      constructor(properties) {
+          this.element = properties.element;
+          if (properties.model)
+              this.model = properties.model;
+          if (properties.emitter)
+              this.emitter = properties.emitter;
+          if (properties.view)
+              this.view = properties.view;
+          this.setup();
+      }
+      /**
+       * @function setup
+       * @description Called in the constructor. Use for setup that should happen at instantiation,
+       * before `this.initialize()` is called.
+       * @protected
+       */
+      setup() { }
+      /**
+       * @function initialize
+       * @description Initializes the operator. Specifically, it will set up the change callbacks.
+       */
+      initialize() {
+          this.setupUIListeners();
+          this.setupChangedCallbacks();
+      }
+      /**
+       * @function setupUIListeners
+       * @description Setup method for defining DOM and input event listeners.
+       * @protected
+       */
+      setupUIListeners() {
+          attachListenersAndBehaviors(this);
+      }
+      /**
+       * @function setupChangedCallbacks
+       * @description Setup method intended to initialize change listeners and callbacks.
+       * @protected
+       */
+      setupChangedCallbacks() {
+          initializeEffects(this);
+      }
+  }
+  addRegistryCategory(GradumOperator);
+  define(GradumOperator);
+
+  /**
+   * @internal
+   * @class GradumEventManagerKeyOperator
+   * @extends GradumOperator
+   * @description Translates native keyboard input into {@link GradumKeyEvent}s. It keeps the manager's
+   * list of currently-held keys up to date and activates any tool bound to the pressed key.
+   */
+  class GradumEventManagerKeyOperator extends GradumOperator {
+      keyName = "key";
+      keyDown = (e) => this.keyDownFn(e);
+      keyDownFn(e) {
+          if (!this.element.enabled)
+              return;
+          //Return if key already pressed
+          if (this.model.currentKeys.includes(e.key))
+              return;
+          //Add key to currentKeys
+          this.model.currentKeys.push(e.key);
+          //Fire a keyPressed event (only once)
+          this.emitter.fire("dispatchEvent", document, GradumKeyEvent, { eventName: GradumKeyEventName.keyPressed, keyPressed: e.key });
+      }
+      keyUp = (e) => this.keyUpFn(e);
+      keyUpFn(e) {
+          if (!this.element.enabled)
+              return;
+          //Return if key not pressed
+          if (!this.model.currentKeys.includes(e.key))
+              return;
+          //Remove key from currentKeys
+          this.model.currentKeys.splice(this.model.currentKeys.indexOf(e.key), 1);
+          //Fire a keyReleased event
+          this.emitter.fire("dispatchEvent", document, GradumKeyEvent, { eventName: GradumKeyEventName.keyReleased, keyReleased: e.key });
+      }
+  }
+
+  /**
+   * @class GradumWheelEvent
+   * @group Event Handling
+   * @category GradumEvents
+   *
+   * @extends GradumEvent
+   * @description The event fired for `gradum-scroll` and `gradum-pinch`. Wheel events carry no pointer
+   * position, so {@link GradumEvent.position} is `null` — read {@link GradumWheelEvent.delta} instead.
+   */
+  class GradumWheelEvent extends GradumEvent {
+      /**
+       * @description How far the wheel or trackpad moved on each axis since the last event.
+       */
+      delta;
+      /**
+       * @constructor
+       * @description Create a wheel event. Its position is always `null`.
+       * @param {GradumWheelEventProperties} properties - The scroll delta and the input context.
+       */
+      constructor(properties) {
+          super({ ...properties, position: null });
+          this.delta = properties.delta;
+      }
+  }
+
+  /**
+   * @internal
+   * @class GradumEventManagerWheelOperator
+   * @extends GradumOperator
+   * @description Translates native wheel input into {@link GradumWheelEvent}s, choosing between a scroll
+   * and a pinch and inferring whether the input came from a mouse or a trackpad.
+   */
+  class GradumEventManagerWheelOperator extends GradumOperator {
       keyName = "wheel";
       wheel = (e) => {
           if (!this.element.enabled)
@@ -14006,22 +17282,26 @@
           //Get name of event according to input type
           //Pinching (for trackpad, Ctrl key is marked as pressed in the WheelEvent)
           const eventName = (this.model.inputDevice == InputDevice.trackpad && e.ctrlKey)
-              ? TurboEventName.pinch
-              : TurboEventName.scroll;
-          this.emitter.fire("dispatchEvent", document, TurboWheelEvent, { delta: new Point(e.deltaX, e.deltaY), eventName: eventName });
+              ? GradumEventName.pinch
+              : GradumEventName.scroll;
+          const target = document.elementFromPoint?.(e.clientX, e.clientY) || document;
+          this.emitter.fire("dispatchEvent", target, GradumWheelEvent, { delta: new Point(e.deltaX, e.deltaY), eventName: eventName });
       };
   }
 
   /**
-   * @class TurboDragEvent
+   * @class GradumDragEvent
    * @group Event Handling
-   * @category TurboEvents
+   * @category GradumEvents
    *
-   * @extends TurboEvent
-   * @description Turbo drag event class, fired on turbo-drag, turbo-drag-start, turbo-drag-end, etc.
+   * @extends GradumEvent
+   * @description The event fired for `gradum-drag`, `gradum-drag-start`, and `gradum-drag-end`. It tracks
+   * every active pointer at once, so a multi-touch drag reports one entry per finger: each map below is
+   * keyed by pointer id. Every position is available raw and scaled into document space, along with the
+   * per-event deltas.
    */
-  let TurboDragEvent = (() => {
-      let _classSuper = TurboEvent;
+  let GradumDragEvent = (() => {
+      let _classSuper = GradumEvent;
       let _instanceExtraInitializers = [];
       let _get_scaledOrigins_decorators;
       let _get_scaledPreviousPositions_decorators;
@@ -14030,7 +17310,7 @@
       let _get_deltaPosition_decorators;
       let _get_scaledDeltaPositions_decorators;
       let _get_scaledDeltaPosition_decorators;
-      return class TurboDragEvent extends _classSuper {
+      return class GradumDragEvent extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _get_scaledOrigins_decorators = [cache()];
@@ -14050,17 +17330,23 @@
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           /**
-           * @description Map containing the origins of the dragging points
+           * @description Where each pointer started its drag, keyed by pointer id.
            */
           origins = __runInitializers$1(this, _instanceExtraInitializers);
           /**
-           * @description Map containing the previous positions of the dragging points
+           * @description Where each pointer was on the previous drag event, keyed by pointer id.
            */
           previousPositions;
           /**
-           * @description Map containing the positions of the dragging points
+           * @description Where each pointer is now, keyed by pointer id.
            */
           positions;
+          /**
+           * @constructor
+           * @description Create a drag event. The event's single `position` is taken from the first entry of
+           * `positions`.
+           * @param {GradumDragEventProperties} properties - The per-pointer position maps and input context.
+           */
           constructor(properties) {
               super({ ...properties, position: properties.positions.first });
               this.origins = properties.origins;
@@ -14068,7 +17354,9 @@
               this.positions = properties.positions; //TODO MOVE TO DEFAULT EVENT
           }
           /**
-           * @description Map of the origins mapped to the current canvas translation and scale
+           * @readonly
+           * @description {@link GradumDragEvent.origins} in document space. Falls back to the raw origins when
+           * scaling is not authorized.
            */
           get scaledOrigins() {
               if (!this.scalingAuthorized)
@@ -14076,7 +17364,9 @@
               return this.scalePositionsMap(this.origins);
           }
           /**
-           * @description Map of the previous positions mapped to the current canvas translation and scale
+           * @readonly
+           * @description {@link GradumDragEvent.previousPositions} in document space. Falls back to the raw
+           * positions when scaling is not authorized.
            */
           get scaledPreviousPositions() {
               if (!this.scalingAuthorized)
@@ -14084,37 +17374,68 @@
               return this.scalePositionsMap(this.previousPositions);
           }
           /**
-           * @description Map of the positions mapped to the current canvas translation and scale
+           * @readonly
+           * @description {@link GradumDragEvent.positions} in document space. Falls back to the raw positions
+           * when scaling is not authorized.
            */
           get scaledPositions() {
               if (!this.scalingAuthorized)
                   return this.positions;
               return this.scalePositionsMap(this.positions);
           }
+          /**
+           * @readonly
+           * @description How far each pointer moved since the previous event, keyed by pointer id. A pointer
+           * with no previous position — on drag start, or when a finger has just joined — reports a zero delta
+           * rather than being left out, so a delta is always defined for every active pointer.
+           */
           get deltaPositions() {
               return this.positions.mapValues((key, position) => {
                   const previousPosition = this.previousPositions.get(key);
-                  if (previousPosition)
-                      return position.sub(previousPosition);
+                  // No previous position (drag start, or a finger just joined) → zero delta,
+                  // so consumers reading deltas on the first event get a defined Point.
+                  return previousPosition ? position.sub(previousPosition) : new Point(0, 0);
               });
           }
+          /**
+           * @readonly
+           * @description The average movement across all pointers since the previous event. Use it to move
+           * something with the drag without caring how many fingers are down.
+           */
           get deltaPosition() {
               return Point.midPoint(...this.deltaPositions.valuesArray());
           }
+          /**
+           * @readonly
+           * @description {@link GradumDragEvent.deltaPositions} in document space, so the deltas match the
+           * coordinates of a panned or zoomed canvas.
+           */
           get scaledDeltaPositions() {
               return this.scaledPositions.mapValues((key, position) => {
                   const previousPosition = this.scaledPreviousPositions.get(key);
-                  if (previousPosition)
-                      return position.sub(previousPosition);
+                  return previousPosition ? position.sub(previousPosition) : new Point(0, 0);
               });
           }
+          /**
+           * @readonly
+           * @description The average movement across all pointers since the previous event, in document space.
+           */
           get scaledDeltaPosition() {
               return Point.midPoint(...this.scaledDeltaPositions.valuesArray());
           }
       };
   })();
 
-  class TurboEventManagerPointerController extends TurboController {
+  /**
+   * @internal
+   * @class GradumEventManagerPointerOperator
+   * @extends GradumOperator
+   * @description Turns raw pointer input into Gradum's click, long-press, move, and drag events. It tracks
+   * every active pointer so multi-touch gestures stay coherent, and decides what an interaction is by
+   * watching it: a press becomes a long press once it outlives `longPressDuration`, or a drag once it
+   * travels past `moveThreshold`.
+   */
+  class GradumEventManagerPointerOperator extends GradumOperator {
       keyName = "pointer";
       pointerDown = (e) => this.pointerDownFn(e);
       pointerMove = (e) => this.pointerMoveFn(e);
@@ -14156,14 +17477,14 @@
           if (!this.element.clickEventsEnabled)
               return;
           // Fire click start
-          this.fireClick(this.model.origins.first, TurboEventName.clickStart);
+          this.fireClick(this.model.origins.first, GradumEventName.clickStart);
           this.model.currentAction = ActionMode.click;
           // Long-press timer
-          this.model.utils.setTimer(TurboEventName.longPress, () => {
+          this.model.utils.setTimer(GradumEventName.longPress, () => {
               if (this.model.currentAction !== ActionMode.click)
                   return;
               this.model.currentAction = ActionMode.longPress;
-              this.fireClick(this.model.origins.first, TurboEventName.longPress);
+              this.fireClick(this.model.origins.first, GradumEventName.longPress);
           }, this.model.longPressDuration);
       }
       pointerMoveFn(e) {
@@ -14180,21 +17501,17 @@
           if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
               e.preventDefault();
           //New positions map
-          this.model.positions = new TurboMap();
-          // Only update the current pointer’s position (others remain tracked from prior moves)
+          this.model.positions = new GradumMap();
+          // Only update the current pointer's position (others remain tracked from prior moves)
           this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
           // Clear cached target origin if not dragging
           if (this.model.currentAction !== ActionMode.drag)
               this.model.lastTargetOrigin = null;
-          //Fire touch scroll/pinch events
+          //Fire touch scroll/pinch events (2-finger only)
           if (isTouch && this.element.wheelEventsEnabled) {
               const currentPos = new Point(e.clientX, e.clientY);
               const prevPos = this.model.previousPositions.get(e.pointerId);
-              if (this.model.activePointers.size === 1 && prevPos) {
-                  const delta = currentPos.sub(prevPos);
-                  this.emitter.fire("dispatchEvent", document, TurboWheelEvent, { delta, eventName: TurboEventName.scroll });
-              }
-              else if (this.model.activePointers.size === 2 && prevPos) {
+              if (this.model.activePointers.size === 2 && prevPos) {
                   const otherId = [...this.model.activePointers].find(id => id !== e.pointerId);
                   const otherPos = this.model.previousPositions.get(otherId);
                   if (otherPos) {
@@ -14202,16 +17519,17 @@
                       const currentCenter = Point.midPoint(currentPos, otherPos);
                       const scrollDelta = currentCenter.sub(prevCenter);
                       const pinchDelta = Point.dist(currentPos, otherPos) - Point.dist(prevPos, otherPos);
+                      const centerTarget = document.elementFromPoint(currentCenter.x, currentCenter.y) || document;
                       if (scrollDelta.x !== 0 || scrollDelta.y !== 0)
-                          this.emitter.fire("dispatchEvent", document, TurboWheelEvent, { delta: scrollDelta, eventName: TurboEventName.scroll });
+                          this.emitter.fire("dispatchEvent", centerTarget, GradumWheelEvent, { delta: scrollDelta, eventName: GradumEventName.scroll });
                       if (pinchDelta !== 0)
-                          this.emitter.fire("dispatchEvent", document, TurboWheelEvent, { delta: new Point(0, pinchDelta), eventName: TurboEventName.pinch });
+                          this.emitter.fire("dispatchEvent", centerTarget, GradumWheelEvent, { delta: new Point(0, pinchDelta), eventName: GradumEventName.pinch });
                   }
               }
           }
           //Fire move event if enabled
           if (this.element.moveEventsEnabled)
-              this.fireDrag(this.model.positions, TurboEventName.move);
+              this.fireDrag(this.model.positions, GradumEventName.move);
           //If drag events are enabled and user is interacting
           if (this.model.currentAction !== ActionMode.none && this.element.dragEventsEnabled) {
               //Initialize drag
@@ -14228,7 +17546,7 @@
                   }
                   //If didn't return --> fire drag start and set action to drag
                   clearCache(this);
-                  this.fireDrag(this.model.origins, TurboEventName.dragStart);
+                  this.fireDrag(this.model.origins, GradumEventName.dragStart);
                   this.model.currentAction = ActionMode.drag;
               }
               //Fire drag step
@@ -14248,22 +17566,22 @@
           if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
               e.preventDefault();
           //Clear any timer set
-          this.model.utils.clearTimer(TurboEventName.longPress);
+          this.model.utils.clearTimer(GradumEventName.longPress);
           //Initialize a new positions map
-          this.model.positions = new TurboMap();
+          this.model.positions = new GradumMap();
           this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
           //If action was drag --> fire drag end
           if (this.model.currentAction === ActionMode.drag && this.element.dragEventsEnabled) {
-              this.fireDrag(this.model.positions, TurboEventName.dragEnd);
+              this.fireDrag(this.model.positions, GradumEventName.dragEnd);
           }
           //If click events are enabled
           if (this.element.clickEventsEnabled) {
               //If action is click --> fire click
               if (this.model.currentAction === ActionMode.click) {
-                  this.fireClick(this.model.positions.first, TurboEventName.click);
+                  this.fireClick(this.model.positions.first, GradumEventName.click);
               }
               //Fire click end
-              this.fireClick(this.model.origins.first, TurboEventName.clickEnd);
+              this.fireClick(this.model.origins.first, GradumEventName.clickEnd);
           }
           //Cleanup for this pointerId only
           this.model.origins.delete(e.pointerId);
@@ -14276,8 +17594,15 @@
           }
       }
       pointerCancelFn(e) {
-          //Treat like an aborted drag/click
-          this.model.utils.clearTimer(TurboEventName.longPress);
+          if (!this.model.activePointers.has(e.pointerId))
+              return;
+          this.model.utils.clearTimer(GradumEventName.longPress);
+          this.model.positions = new GradumMap();
+          this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
+          if (this.model.currentAction === ActionMode.drag && this.element.dragEventsEnabled)
+              this.fireDrag(this.model.positions, GradumEventName.dragEnd);
+          if (this.element.clickEventsEnabled)
+              this.fireClick(this.model.origins.first, GradumEventName.clickEnd);
           this.model.origins.delete(e.pointerId);
           this.model.previousPositions.delete(e.pointerId);
           this.model.activePointers.delete(e.pointerId);
@@ -14286,31 +17611,39 @@
               this.model.currentClick = ClickMode.none;
           }
       }
-      lostPointerCaptureFn(_e) {
-          // Optional: cleanup or fallback if needed
+      lostPointerCaptureFn(e) {
+          // lostpointercapture fires after pointercancel too; guard avoids double-cleanup
+          if (this.model.activePointers.has(e.pointerId))
+              this.pointerCancelFn(e);
       }
       /**
-       * @description Fires a custom Turbo click event at the click target with the click position
-       * @param p
-       * @param eventName
        * @private
+       * @function fireClick
+       * @description Fire a click-family event at whichever element sits under the given position.
+       * @param {Point} p - The screen position the click happened at. Nothing fires when it is undefined.
+       * @param {GradumEventNameEntry} [eventName=GradumEventName.click] - The event name to fire, letting the
+       * same path emit click start, click end, and long press.
        */
-      fireClick(p, eventName = TurboEventName.click) {
+      fireClick(p, eventName = GradumEventName.click) {
           if (!p)
               return;
           const target = document.elementFromPoint(p.x, p.y) || document;
-          this.emitter.fire("dispatchEvent", target, TurboEvent, { position: p, eventName: eventName });
+          this.emitter.fire("dispatchEvent", target, GradumEvent, { position: p, eventName: eventName });
       }
       /**
-       * @description Fires a custom Turbo drag event at the target with the origin of the drag, the last drag position, and the current position
-       * @param positions
-       * @param eventName
        * @private
+       * @function fireDrag
+       * @description Fire a drag-family event at the drag's origin element, carrying the origin, the previous
+       * position, and the current position of every active pointer.
+       * @param {GradumMap<number, Point>} positions - Current position per pointer id. Nothing fires when it
+       * is undefined.
+       * @param {GradumEventNameEntry} [eventName=GradumEventName.drag] - The event name to fire, letting the
+       * same path emit drag start, drag, and drag end.
        */
-      fireDrag(positions, eventName = TurboEventName.drag) {
+      fireDrag(positions, eventName = GradumEventName.drag) {
           if (!positions)
               return;
-          this.emitter.fire("dispatchEvent", this.getFireOrigin(positions), TurboDragEvent, {
+          this.emitter.fire("dispatchEvent", this.getFireOrigin(positions), GradumDragEvent, {
               positions: positions,
               previousPositions: this.model.previousPositions,
               origins: this.model.origins,
@@ -14326,7 +17659,21 @@
       }
   }
 
-  class TurboEventManagerDispatchController extends TurboController {
+  /**
+   * @internal
+   * @class GradumEventManagerDispatchOperator
+   * @extends GradumOperator
+   * @description Dispatches Gradum events along the composed path. It runs two sequential passes: a
+   * capture pass from the document down to the target, which invokes tool `@behavior` methods, then a
+   * bubble pass back up, which invokes interactor `@listener` methods and `gradum(el).on()` listeners.
+   * Each pass stops early when a handler returns anything other than `Propagation.propagate`.
+   *
+   * *Note: move events are the exception. Their composed path is the drag origin's ancestor chain, which
+   * omits elements merely sitting under the cursor, so they are dispatched in a single pass over the
+   * z-stack at the pointer instead — topmost first, stopping at the first handler that does not
+   * propagate. A move handler therefore sees neither a capture pass nor a bubble pass.*
+   */
+  class GradumEventManagerDispatchOperator extends GradumOperator {
       keyName = "dispatch";
       boundHooks = new Map();
       setupChangedCallbacks() {
@@ -14344,19 +17691,35 @@
           properties.eventInitDict = { bubbles: true, cancelable: true, composed: true };
           properties.authorizeScaling = this.element.authorizeEventScaling;
           properties.scalePosition = this.element.scaleEventPosition;
-          if (properties.eventName === TurboKeyEventName.keyPressed)
+          if (properties.eventName === GradumKeyEventName.keyPressed)
               this.element.setToolByKey(properties["keyPressed"]);
-          else if (properties.eventName === TurboKeyEventName.keyReleased)
+          else if (properties.eventName === GradumKeyEventName.keyReleased)
               this.element.setTool(undefined, ClickMode.key, { select: false });
           target.dispatchEvent(new eventType(properties));
       };
       getToolHandlingCallback(type, e) {
           const toolName = this.element.getCurrentToolName(this.model.currentClick);
+          // For move events, composedPath() is the drag-origin's ancestor chain and never
+          // includes non-topmost components at the current cursor (e.g. Playback behind
+          // ClipRenderer). Use the full z-stack at the cursor instead, dispatching topmost-first
+          // and stopping at the first handler that returns non-propagate.
+          if (type === GradumMoveEventName.move && e instanceof GradumDragEvent && e.position) {
+              const { x, y } = e.position;
+              const stack = document.elementsFromPoint?.(x, y) ?? [];
+              for (const el of stack) {
+                  if (!(el instanceof Node))
+                      continue;
+                  const propagate = gradum(el).executeAction(type, toolName, e, undefined, this.element);
+                  if (propagate !== Propagation.propagate)
+                      break;
+              }
+              return;
+          }
           const path = e.composedPath?.() || [];
           for (let i = path.length - 1; i >= 0; i--) {
               if (!(path[i] instanceof Node))
                   continue;
-              const propagate = turbo(path[i]).executeAction(type, toolName, e, { capture: true }, this.element);
+              const propagate = gradum(path[i]).executeAction(type, toolName, e, { capture: true }, this.element);
               if (propagate !== Propagation.propagate) {
                   e.stopPropagation();
                   break;
@@ -14365,7 +17728,7 @@
           for (let i = 0; i < path.length; i++) {
               if (!(path[i] instanceof Node))
                   continue;
-              const propagate = turbo(path[i]).executeAction(type, toolName, e, undefined, this.element);
+              const propagate = gradum(path[i]).executeAction(type, toolName, e, undefined, this.element);
               if (propagate !== Propagation.propagate) {
                   e.stopPropagation();
                   break;
@@ -14389,15 +17752,16 @@
   }
 
   /**
-   * @class TurboHandler
+   * @class GradumHandler
    * @group MVC
    * @category Handler
    *
-   * @description The MVC base handler class. It's an extension of the model, and its main job is to provide some utility
-   * functions to manipulate some of (or all of) the model's data.
-   * @template {TurboModel} ModelType - The element's MVC model type.
+   * @template {GradumModel} ModelType - The element's MVC model type.
+   * @description Holds model-level logic that would otherwise crowd the model itself. A handler sees only
+   * `this.model` — no element and no view — so use it for computations and edits over the model's data, and
+   * reach for a {@link GradumOperator} when the DOM is involved. Register one with the `@handler` decorator.
    */
-  class TurboHandler {
+  class GradumHandler {
       /**
        * @description The key of the handler. Used to retrieve it in the main component. If not set, if the element's
        * class name is MyElement and the handler's class name is MyElementSomethingHandler, the key would
@@ -14405,12 +17769,18 @@
        */
       keyName;
       /**
-       * @description The MVC model.
-       * @protected
+       * @description The model this handler operates on. Assigned by the MVC wiring when the handler is
+       * registered, so it is set by the time `initialize` runs.
        */
       model;
+      /**
+       * @constructor
+       * @description Create a handler. Handlers are normally constructed without arguments — the MVC wiring
+       * binds {@link GradumHandler.model} when the handler is registered on its model.
+       * @param {ModelType} [model] - The model to bind. Omit it to let the MVC wiring bind one on registration.
+       */
       constructor(model) {
-          if (this.model)
+          if (model)
               this.model = model;
           this.setup();
       }
@@ -14424,10 +17794,18 @@
           initializeEffects(this);
       }
   }
-  addRegistryCategory(TurboHandler);
-  define(TurboHandler);
+  addRegistryCategory(GradumHandler);
+  define(GradumHandler);
 
-  class TurboEventManagerUtilsHandler extends TurboHandler {
+  /**
+   * @internal
+   * @class GradumEventManagerUtilsHandler
+   * @extends GradumHandler
+   * @description Shared helpers for the event manager's operators: mapping a native button number to a
+   * {@link ClickMode}, resolving which Gradum event names are enabled, running the named timers behind
+   * long-press detection, and activating a tool.
+   */
+  class GradumEventManagerUtilsHandler extends GradumHandler {
       keyName = "utils";
       setClickMode(button, isTouch = false) {
           if (isTouch)
@@ -14470,15 +17848,136 @@
           clearTimeout(timer);
           this.model.timerMap.delete(timerName);
       }
-      selectTool(element, value) {
-          if ("selected" in element && typeof element["selected"] === "boolean")
-              element["selected"] = value;
-      }
       activateTool(element, toolName, value) {
           if (value)
               $(element).onToolActivate(toolName).fire();
           else
               $(element).onToolDeactivate(toolName).fire();
+      }
+  }
+
+  /**
+   * @class GradumWeakSet
+   * @group Components
+   * @category Data Structures
+   *
+   * @template {object} Type - The type of the held objects.
+   * @description A set that holds its members weakly, so membership never keeps an object alive. Unlike
+   * a native [WeakSet](https://developer.mozilla.org/en-US/docs/Web/API/WeakSet), it is iterable and
+   * reports its size — collected objects simply disappear from both. Useful for tracking DOM nodes
+   * without leaking them once they are removed.
+   */
+  class GradumWeakSet {
+      _weakRefs;
+      /**
+       * @constructor
+       * @description Create an empty set.
+       */
+      constructor() {
+          this._weakRefs = new Set();
+      }
+      /**
+       * @description Add an object to the set, if not already present. The set does not keep it alive.
+       * @param {Type} obj - The object to add.
+       * @returns {this} Itself, allowing for method chaining.
+       */
+      add(obj) {
+          if (!this.has(obj))
+              this._weakRefs.add(new WeakRef(obj));
+          return this;
+      }
+      /**
+       * @description Check whether an object is in the set.
+       * @param {Type} obj - The object to look for, compared by identity.
+       * @returns {boolean} Whether the object is present and has not been garbage-collected.
+       */
+      has(obj) {
+          for (const weakRef of this._weakRefs) {
+              if (weakRef.deref() === obj)
+                  return true;
+          }
+          return false;
+      }
+      /**
+       * @description Remove an object from the set.
+       * @param {Type} obj - The object to remove, compared by identity.
+       * @returns {boolean} Whether a matching object was found and removed.
+       */
+      delete(obj) {
+          for (const weakRef of this._weakRefs) {
+              if (weakRef.deref() === obj) {
+                  this._weakRefs.delete(weakRef);
+                  return true;
+              }
+          }
+          return false;
+      }
+      /**
+       * @description Drop the bookkeeping left behind by objects that have been garbage-collected. Only
+       * frees the set's own references — collected objects are already absent from iteration and
+       * {@link size} without it.
+       */
+      cleanup() {
+          for (const weakRef of this._weakRefs) {
+              if (weakRef.deref() === undefined)
+                  this._weakRefs.delete(weakRef);
+          }
+      }
+      /**
+       * @description Snapshot the objects that are still alive.
+       * @returns {Type[]} A new array of the live objects, in insertion order.
+       */
+      toArray() {
+          const result = [];
+          for (const weakRef of this._weakRefs) {
+              const obj = weakRef.deref();
+              if (obj !== undefined)
+                  result.push(obj);
+              else
+                  this._weakRefs.delete(weakRef);
+          }
+          return result;
+      }
+      /**
+       * @description The number of objects still alive. Counted on each read rather than stored, so it
+       * costs a full pass over the set.
+       * @readonly
+       */
+      get size() {
+          return this.toArray().length;
+      }
+      /**
+       * @description Remove every object from the set.
+       */
+      clear() {
+          this._weakRefs.clear();
+      }
+      /**
+       * @description Run a callback for each live object, in insertion order. Objects collected since
+       * the last pass are skipped.
+       * @param {(value: Type, set: this) => void} callback - Called once per live object.
+       * @param {any} [thisArg] - Value to bind as `this` inside the callback.
+       */
+      forEach(callback, thisArg) {
+          for (const weakRef of this._weakRefs) {
+              const obj = weakRef.deref();
+              if (obj !== undefined)
+                  callback.call(thisArg, obj, obj, this);
+              else
+                  this._weakRefs.delete(weakRef);
+          }
+      }
+      /**
+       * @description Iterate the live objects in insertion order, skipping any that have been collected.
+       */
+      *[Symbol.iterator]() {
+          for (const weakRef of this._weakRefs) {
+              const obj = weakRef.deref();
+              if (obj !== undefined)
+                  yield obj;
+              else
+                  this._weakRefs.delete(weakRef);
+          }
       }
   }
 
@@ -14494,6 +17993,16 @@
           };
       }
   }
+  /**
+   * @internal
+   * @function applyExpose
+   * @description Install a single forwarding accessor on a host, reading and writing the same key on the
+   * instance found at `rootKey`. Backs both the `@expose` decorator and its imperative form.
+   * @param {any} host - The object to define the property on.
+   * @param {string} key - The property key to forward.
+   * @param {string} rootKey - Dot path to the inner instance to forward to, e.g. `"view.scrubber"`.
+   * @param {boolean} exposeSetter - Whether writes are forwarded. When `false` the property is read-only.
+   */
   function applyExpose(host, key, rootKey, exposeSetter) {
       const nestedRoots = rootKey.split(".").filter(Boolean);
       const getLowestRoot = (h) => nestedRoots.reduce((p, r) => p?.[r], h);
@@ -14509,6 +18018,18 @@
           } },
       });
   }
+  /**
+   * @internal
+   * @function exposeDecorator
+   * @template {object} Type - The class carrying the decorated member.
+   * @template Value - The type of the exposed value.
+   * @description The decorator half of {@link expose}, deferring the actual wiring to `applyExpose` until the
+   * instance exists.
+   * @param {string} rootKey - Dot path to the inner instance to forward to.
+   * @param {boolean} exposeSetter - Whether writes are forwarded.
+   * @param {any} value - The decorated member, as handed over by the decorator protocol.
+   * @param {ClassFieldDecoratorContext | ClassAccessorDecoratorContext} context - The decorator context.
+   */
   function exposeDecorator(rootKey, exposeSetter, value, context) {
       if (!rootKey)
           return value;
@@ -14529,139 +18050,38 @@
       });
   }
 
-  function defineDefaultProperties(constructor) {
-      const prototype = constructor.prototype;
-      const selectedKey = Symbol("__selected__");
-      const selectedClass = Symbol("__selectedClass__");
-      const initializedKey = Symbol("__initialized__");
-      Object.defineProperty(prototype, "selected", {
-          get() { return !!this[selectedKey]; },
-          set(value) {
-              const element = this instanceof Element ? this : this.element instanceof Element ? this.element : undefined;
-              if (!element) {
-                  this[selectedKey] = value;
-                  return;
-              }
-              const prevClass = this[selectedClass];
-              const nextClass = this["defaultSelectedClasses"] ?? "selected";
-              this[selectedKey] = value;
-              this[selectedClass] = nextClass;
-              if (prevClass && prevClass !== nextClass)
-                  turbo(element).toggleClass(prevClass, false);
-              turbo(element).toggleClass(nextClass, !!value);
-          },
-          enumerable: true,
-          configurable: true,
-      });
-      Object.defineProperty(prototype, "destroy", {
-          value: function () { },
-          configurable: true,
-          enumerable: false,
-      });
-      Object.defineProperty(prototype, "initialized", {
-          get: function () {
-              return this[initializedKey] ?? false;
-          },
-          configurable: true,
-          enumerable: false,
-      });
-      Object.defineProperty(prototype, "initialize", {
-          value: function () {
-              if (this[initializedKey])
-                  return;
-              this[initializedKey] = true;
-              this.setupUIElements?.();
-              this.setupUILayout?.();
-              this.setupUIListeners?.();
-              this.setupFields?.();
-              this.setupChangedCallbacks?.();
-              turbo(this).initializeMvc();
-              initializeEffects(this);
-          },
-          configurable: true,
-          enumerable: false,
-      });
-      Object.defineProperty(prototype, "clone", {
-          value: function (properties) { return turbo(this).clone(properties); },
-          configurable: true,
-          enumerable: false,
-      });
-      const ffKey = Symbol("__defaultFeedforwardProperties__");
-      Object.defineProperty(prototype, "defaultFeedforwardProperties", {
-          get() {
-              if (!this[ffKey])
-                  this[ffKey] = {};
-              return this[ffKey];
-          },
-          set(value) { this[ffKey] = value; },
-          configurable: true,
-          enumerable: true
-      });
-      Object.defineProperty(prototype, "feedforward", {
-          value: function (properties) { return turbo(this).feedforward(properties); },
-          configurable: true,
-          enumerable: false,
-      });
-  }
-
-  /**
-   * @class TurboBaseElement
-   * @group TurboElement
-   * @category TurboBaseElement
-   *
-   * @description TurboHeadlessElement class, similar to TurboElement but without extending HTMLElement.
-   * @template {TurboView} ViewType - The element's view type, if initializing MVC.
-   * @template {object} DataType - The element's data type, if initializing MVC.
-   * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
-   * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
-   */
-  class TurboBaseElement {
-      /**
-       * @description Default properties assigned to a new instance.
-       */
-      static defaultProperties = {};
-      static create(properties = {}) {
-          return this.customCreate.call(this, properties);
-      }
-      static customCreate(properties) {
-          const prototypeChain = getPrototypeChain(this);
-          for (const prototype of prototypeChain)
-              turbo(properties).applyDefaults(prototype["defaultProperties"] ?? {});
-          const obj = new this();
-          turbo(obj).setProperties(properties);
-          return obj;
-      }
-  }
-  (() => {
-      defineDefaultProperties(TurboBaseElement);
-  })();
-  addRegistryCategory(TurboBaseElement);
-
   //TODO Create merged events maybe --> fire event x when "mousedown" | "touchstart" | "mousemove" etc.
   //ToDO Create "interaction" event --> when element interacted with
   /**
-   * @class TurboEventManager
+   * @class GradumEventManager
    * @group Event Handling
-   * @category TurboEventManager
+   * @category GradumEventManager
    *
-   * @description Class that manages default mouse, trackpad, and touch events, and accordingly fires custom events for
-   * easier management of input.
+   * @extends GradumBaseElement
+   * @template {string} ToolType - The union of tool names this manager recognizes.
+   * @description Listens to native mouse, trackpad, touch, and keyboard input and turns it into Gradum's
+   * richer events — {@link GradumEvent}, {@link GradumDragEvent}, {@link GradumKeyEvent}, and
+   * {@link GradumWheelEvent} — so a click, a long press, and a drag arrive as distinct, named events
+   * rather than something each component has to derive itself. It also owns the current tool per
+   * {@link ClickMode}, and can map screen coordinates into document space for every event it fires.
+   *
+   * Most applications need only one, reached through {@link GradumEventManager.instance}.
    */
-  let TurboEventManager = (() => {
-      let _classSuper = TurboBaseElement;
+  let GradumEventManager = (() => {
+      let _classSuper = GradumBaseElement;
       let _instanceExtraInitializers = [];
-      let _keyController_decorators;
-      let _keyController_initializers = [];
-      let _keyController_extraInitializers = [];
-      let _wheelController_decorators;
-      let _wheelController_initializers = [];
-      let _wheelController_extraInitializers = [];
-      let _pointerController_decorators;
-      let _pointerController_initializers = [];
-      let _pointerController_extraInitializers = [];
-      let _dispatchController_decorators;
-      let _dispatchController_initializers = [];
-      let _dispatchController_extraInitializers = [];
+      let _keyOperator_decorators;
+      let _keyOperator_initializers = [];
+      let _keyOperator_extraInitializers = [];
+      let _wheelOperator_decorators;
+      let _wheelOperator_initializers = [];
+      let _wheelOperator_extraInitializers = [];
+      let _pointerOperator_decorators;
+      let _pointerOperator_initializers = [];
+      let _pointerOperator_extraInitializers = [];
+      let _dispatchOperator_decorators;
+      let _dispatchOperator_initializers = [];
+      let _dispatchOperator_extraInitializers = [];
       let _inputDevice_decorators;
       let _inputDevice_initializers = [];
       let _inputDevice_extraInitializers = [];
@@ -14696,13 +18116,13 @@
       let _set_touchEventsEnabled_decorators;
       let _set_clickEventsEnabled_decorators;
       let _set_dragEventsEnabled_decorators;
-      return class TurboEventManager extends _classSuper {
+      return class GradumEventManager extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _keyController_decorators = [controller()];
-              _wheelController_decorators = [controller()];
-              _pointerController_decorators = [controller()];
-              _dispatchController_decorators = [controller()];
+              _keyOperator_decorators = [operator()];
+              _wheelOperator_decorators = [operator()];
+              _pointerOperator_decorators = [operator()];
+              _dispatchOperator_decorators = [operator()];
               _inputDevice_decorators = [expose("model", false)];
               _onInputDeviceChange_decorators = [expose("model", false)];
               _currentClick_decorators = [expose("model", false)];
@@ -14726,10 +18146,10 @@
               __esDecorate$1(this, null, _set_touchEventsEnabled_decorators, { kind: "setter", name: "touchEventsEnabled", static: false, private: false, access: { has: obj => "touchEventsEnabled" in obj, set: (obj, value) => { obj.touchEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(this, null, _set_clickEventsEnabled_decorators, { kind: "setter", name: "clickEventsEnabled", static: false, private: false, access: { has: obj => "clickEventsEnabled" in obj, set: (obj, value) => { obj.clickEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(this, null, _set_dragEventsEnabled_decorators, { kind: "setter", name: "dragEventsEnabled", static: false, private: false, access: { has: obj => "dragEventsEnabled" in obj, set: (obj, value) => { obj.dragEventsEnabled = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate$1(null, null, _keyController_decorators, { kind: "field", name: "keyController", static: false, private: false, access: { has: obj => "keyController" in obj, get: obj => obj.keyController, set: (obj, value) => { obj.keyController = value; } }, metadata: _metadata }, _keyController_initializers, _keyController_extraInitializers);
-              __esDecorate$1(null, null, _wheelController_decorators, { kind: "field", name: "wheelController", static: false, private: false, access: { has: obj => "wheelController" in obj, get: obj => obj.wheelController, set: (obj, value) => { obj.wheelController = value; } }, metadata: _metadata }, _wheelController_initializers, _wheelController_extraInitializers);
-              __esDecorate$1(null, null, _pointerController_decorators, { kind: "field", name: "pointerController", static: false, private: false, access: { has: obj => "pointerController" in obj, get: obj => obj.pointerController, set: (obj, value) => { obj.pointerController = value; } }, metadata: _metadata }, _pointerController_initializers, _pointerController_extraInitializers);
-              __esDecorate$1(null, null, _dispatchController_decorators, { kind: "field", name: "dispatchController", static: false, private: false, access: { has: obj => "dispatchController" in obj, get: obj => obj.dispatchController, set: (obj, value) => { obj.dispatchController = value; } }, metadata: _metadata }, _dispatchController_initializers, _dispatchController_extraInitializers);
+              __esDecorate$1(null, null, _keyOperator_decorators, { kind: "field", name: "keyOperator", static: false, private: false, access: { has: obj => "keyOperator" in obj, get: obj => obj.keyOperator, set: (obj, value) => { obj.keyOperator = value; } }, metadata: _metadata }, _keyOperator_initializers, _keyOperator_extraInitializers);
+              __esDecorate$1(null, null, _wheelOperator_decorators, { kind: "field", name: "wheelOperator", static: false, private: false, access: { has: obj => "wheelOperator" in obj, get: obj => obj.wheelOperator, set: (obj, value) => { obj.wheelOperator = value; } }, metadata: _metadata }, _wheelOperator_initializers, _wheelOperator_extraInitializers);
+              __esDecorate$1(null, null, _pointerOperator_decorators, { kind: "field", name: "pointerOperator", static: false, private: false, access: { has: obj => "pointerOperator" in obj, get: obj => obj.pointerOperator, set: (obj, value) => { obj.pointerOperator = value; } }, metadata: _metadata }, _pointerOperator_initializers, _pointerOperator_extraInitializers);
+              __esDecorate$1(null, null, _dispatchOperator_decorators, { kind: "field", name: "dispatchOperator", static: false, private: false, access: { has: obj => "dispatchOperator" in obj, get: obj => obj.dispatchOperator, set: (obj, value) => { obj.dispatchOperator = value; } }, metadata: _metadata }, _dispatchOperator_initializers, _dispatchOperator_extraInitializers);
               __esDecorate$1(null, null, _inputDevice_decorators, { kind: "field", name: "inputDevice", static: false, private: false, access: { has: obj => "inputDevice" in obj, get: obj => obj.inputDevice, set: (obj, value) => { obj.inputDevice = value; } }, metadata: _metadata }, _inputDevice_initializers, _inputDevice_extraInitializers);
               __esDecorate$1(null, null, _onInputDeviceChange_decorators, { kind: "field", name: "onInputDeviceChange", static: false, private: false, access: { has: obj => "onInputDeviceChange" in obj, get: obj => obj.onInputDeviceChange, set: (obj, value) => { obj.onInputDeviceChange = value; } }, metadata: _metadata }, _onInputDeviceChange_initializers, _onInputDeviceChange_extraInitializers);
               __esDecorate$1(null, null, _currentClick_decorators, { kind: "field", name: "currentClick", static: false, private: false, access: { has: obj => "currentClick" in obj, get: obj => obj.currentClick, set: (obj, value) => { obj.currentClick = value; } }, metadata: _metadata }, _currentClick_initializers, _currentClick_extraInitializers);
@@ -14741,28 +18161,54 @@
               __esDecorate$1(null, null, _longPressDuration_decorators, { kind: "field", name: "longPressDuration", static: false, private: false, access: { has: obj => "longPressDuration" in obj, get: obj => obj.longPressDuration, set: (obj, value) => { obj.longPressDuration = value; } }, metadata: _metadata }, _longPressDuration_initializers, _longPressDuration_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @protected
+           * @static
+           * @description Every manager that has been created, in creation order.
+           */
           static managers = [];
+          /**
+           * @static
+           * @readonly
+           * @description The default manager. Creating one on first access, so reading this is always safe.
+           */
           static get instance() {
-              return TurboEventManager.managers.length > 0 ? TurboEventManager.managers[0] : TurboEventManager.create();
+              if (GradumEventManager.managers.length == 0)
+                  this.managers.push(GradumEventManager.create());
+              return GradumEventManager.managers[0];
           }
+          /**
+           * @static
+           * @description Every manager currently registered. Reading gives a copy, so mutating the result does
+           * not affect the registry; assign a new array to replace it.
+           */
           static get allManagers() {
               return [...this.managers];
           }
           static set allManagers(managers) {
               this.managers = managers;
           }
+          /**
+           * @readonly
+           * @description This manager's model, holding its live input state.
+           */
           get model() {
-              return turbo(this).model;
+              return gradum(this).model;
           }
+          /**
+           * @static
+           * @description The MVC pieces and event-type switches a new manager starts with. Every event family is
+           * enabled by default; pass the matching {@link EnabledGradumEventTypes} flag to `create` to turn one off.
+           */
           static defaultProperties = {
-              model: TurboEventManagerModel,
-              controllers: [
-                  TurboEventManagerKeyController,
-                  TurboEventManagerWheelController,
-                  TurboEventManagerPointerController,
-                  TurboEventManagerDispatchController
+              model: GradumEventManagerModel,
+              operators: [
+                  GradumEventManagerKeyOperator,
+                  GradumEventManagerWheelOperator,
+                  GradumEventManagerPointerOperator,
+                  GradumEventManagerDispatchOperator
               ],
-              handlers: TurboEventManagerUtilsHandler,
+              handlers: GradumEventManagerUtilsHandler,
               keyEventsEnabled: true,
               wheelEventsEnabled: true,
               mouseEventsEnabled: true,
@@ -14771,94 +18217,162 @@
               dragEventsEnabled: true,
               moveEventsEnabled: true,
           };
-          keyController = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _keyController_initializers, void 0));
-          wheelController = (__runInitializers$1(this, _keyController_extraInitializers), __runInitializers$1(this, _wheelController_initializers, void 0));
-          pointerController = (__runInitializers$1(this, _wheelController_extraInitializers), __runInitializers$1(this, _pointerController_initializers, void 0));
-          dispatchController = (__runInitializers$1(this, _pointerController_extraInitializers), __runInitializers$1(this, _dispatchController_initializers, void 0));
+          keyOperator = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _keyOperator_initializers, void 0));
+          wheelOperator = (__runInitializers$1(this, _keyOperator_extraInitializers), __runInitializers$1(this, _wheelOperator_initializers, void 0));
+          pointerOperator = (__runInitializers$1(this, _wheelOperator_extraInitializers), __runInitializers$1(this, _pointerOperator_initializers, void 0));
+          dispatchOperator = (__runInitializers$1(this, _pointerOperator_extraInitializers), __runInitializers$1(this, _dispatchOperator_initializers, void 0));
           /**
            * @description The currently identified input device. It is not 100% accurate, especially when differentiating
            * between mouse and trackpad.
            */
-          inputDevice = (__runInitializers$1(this, _dispatchController_extraInitializers), __runInitializers$1(this, _inputDevice_initializers, void 0));
+          inputDevice = (__runInitializers$1(this, _dispatchOperator_extraInitializers), __runInitializers$1(this, _inputDevice_initializers, void 0));
+          /**
+           * @readonly
+           * @description Fired whenever the identified input device changes.
+           */
           onInputDeviceChange = (__runInitializers$1(this, _inputDevice_extraInitializers), __runInitializers$1(this, _onInputDeviceChange_initializers, void 0));
+          /**
+           * @readonly
+           * @description The pointer button or input mode currently in use.
+           */
           currentClick = (__runInitializers$1(this, _onInputDeviceChange_extraInitializers), __runInitializers$1(this, _currentClick_initializers, void 0));
+          /**
+           * @readonly
+           * @description The keyboard keys currently held down.
+           */
           currentKeys = (__runInitializers$1(this, _currentClick_extraInitializers), __runInitializers$1(this, _currentKeys_initializers, void 0));
           /**
-           * @description Delegate fired when a tool is changed on a certain click button/mode
+           * @readonly
+           * @description Fired when the tool held by a click mode changes, with the previous tool, the new
+           * tool, and the mode.
            */
           onToolChange = (__runInitializers$1(this, _currentKeys_extraInitializers), __runInitializers$1(this, _onToolChange_initializers, void 0));
+          /**
+           * @description Whether events fired by this manager compute scaled positions. Assign a callback to
+           * decide per event.
+           */
           authorizeEventScaling = (__runInitializers$1(this, _onToolChange_extraInitializers), __runInitializers$1(this, _authorizeEventScaling_initializers, void 0));
+          /**
+           * @description Converts a screen position into document space for every event this manager fires.
+           * Set it so events stay correct under a panned or zoomed canvas.
+           */
           scaleEventPosition = (__runInitializers$1(this, _authorizeEventScaling_extraInitializers), __runInitializers$1(this, _scaleEventPosition_initializers, void 0));
+          /**
+           * @description How far, in pixels, a pointer must travel before the interaction counts as a drag
+           * rather than a click. Defaults to `10`.
+           */
           moveThreshold = (__runInitializers$1(this, _scaleEventPosition_extraInitializers), __runInitializers$1(this, _moveThreshold_initializers, void 0));
+          /**
+           * @description How long, in milliseconds, a pointer must be held still before a long press fires.
+           * Defaults to `500`.
+           */
           longPressDuration = (__runInitializers$1(this, _moveThreshold_extraInitializers), __runInitializers$1(this, _longPressDuration_initializers, void 0));
+          /**
+           * @constructor
+           * @description Create an event manager and register it in {@link GradumEventManager.allManagers}.
+           * The first one created becomes {@link GradumEventManager.instance}.
+           */
           constructor() {
               super();
               __runInitializers$1(this, _longPressDuration_extraInitializers);
-              TurboEventManager.managers.push(this);
+              GradumEventManager.managers.push(this);
           }
+          /**
+           * @function initialize
+           * @description Start listening to pointer input on the document and clear any lock. Called
+           * automatically by the element lifecycle.
+           */
           initialize() {
               super.initialize();
               this.unlock();
-              document.addEventListener("pointerdown", this.pointerController.pointerDown, { passive: false });
-              document.addEventListener("pointermove", this.pointerController.pointerMove, { passive: false });
-              document.addEventListener("pointerup", this.pointerController.pointerUp, { passive: false });
-              document.addEventListener("pointercancel", this.pointerController.pointerCancel, { passive: false });
+              document.addEventListener("pointerdown", this.pointerOperator.pointerDown, { passive: false });
+              document.addEventListener("pointermove", this.pointerOperator.pointerMove, { passive: false });
+              document.addEventListener("pointerup", this.pointerOperator.pointerUp, { passive: false });
+              document.addEventListener("pointercancel", this.pointerOperator.pointerCancel, { passive: false });
               //TODO
-              this.dispatchController.setupCustomDispatcher("pointerdown");
+              this.dispatchOperator.setupCustomDispatcher("pointerdown");
           }
+          /**
+           * @description Whether keyboard input is listened to and turned into {@link GradumKeyEvent}s. Setting it
+           * to `false` reverts key handling to the native event names.
+           */
           set keyEventsEnabled(value) {
               if (value) {
-                  document.addEventListener("keydown", this.keyController.keyDown);
-                  document.addEventListener("keyup", this.keyController.keyUp);
+                  document.addEventListener("keydown", this.keyOperator.keyDown);
+                  document.addEventListener("keyup", this.keyOperator.keyUp);
               }
               else {
-                  document.removeEventListener("keydown", this.keyController.keyDown);
-                  document.removeEventListener("keyup", this.keyController.keyUp);
+                  document.removeEventListener("keydown", this.keyOperator.keyDown);
+                  document.removeEventListener("keyup", this.keyOperator.keyUp);
               }
-              this.applyAndHookEvents(TurboKeyEventName, DefaultKeyEventName, value);
+              this.applyAndHookEvents(GradumKeyEventName, DefaultKeyEventName, value);
           }
+          /**
+           * @description Whether wheel input is listened to and turned into {@link GradumWheelEvent}s. Setting it to
+           * `false` reverts wheel handling to the native event names.
+           */
           set wheelEventsEnabled(value) {
               if (value)
-                  document.body.addEventListener("wheel", this.wheelController.wheel, { passive: false });
+                  document.body.addEventListener("wheel", this.wheelOperator.wheel, { passive: false });
               else
-                  document.body.removeEventListener("wheel", this.wheelController.wheel);
-              this.applyAndHookEvents(TurboWheelEventName, DefaultWheelEventName, value);
+                  document.body.removeEventListener("wheel", this.wheelOperator.wheel);
+              this.applyAndHookEvents(GradumWheelEventName, DefaultWheelEventName, value);
           }
+          /**
+           * @description Whether pointer movement produces Gradum move events. Setting it to `false` reverts move
+           * handling to the native event names.
+           */
           set moveEventsEnabled(value) {
-              this.applyAndHookEvents(TurboMoveEventName, DefaultMoveEventName, value);
+              this.applyAndHookEvents(GradumMoveEventName, DefaultMoveEventName, value);
           }
+          /**
+           * @description Whether mouse input is processed. Setting it to `false` reverts mouse handling to the native
+           * event names.
+           */
           set mouseEventsEnabled(value) {
               //TODO
               // if (value) {
-              //     doc.on("pointerdown", this.pointerController.pointerDown, {passive: false, propagate: true});
-              //     doc.on("pointermove", this.pointerController.pointerMove, {passive: false, propagate: true});
-              //     doc.on("pointerup", this.pointerController.pointerUp, {passive: false, propagate: true});
-              //     doc.on("pointercancel", this.pointerController.pointerCancel, {passive: false, propagate: true});
+              //     doc.on("pointerdown", this.pointerOperator.pointerDown, {passive: false, propagate: true});
+              //     doc.on("pointermove", this.pointerOperator.pointerMove, {passive: false, propagate: true});
+              //     doc.on("pointerup", this.pointerOperator.pointerUp, {passive: false, propagate: true});
+              //     doc.on("pointercancel", this.pointerOperator.pointerCancel, {passive: false, propagate: true});
               // } else {
-              //     doc.removeListener("mousedown", this.pointerController.pointerDown);
-              //     doc.removeListener("mousemove", this.pointerController.pointerMove);
-              //     doc.removeListener("mouseup", this.pointerController.pointerUp);
-              //     doc.removeListener("mouseleave", this.pointerController.pointerLeave);
+              //     doc.removeListener("mousedown", this.pointerOperator.pointerDown);
+              //     doc.removeListener("mousemove", this.pointerOperator.pointerMove);
+              //     doc.removeListener("mouseup", this.pointerOperator.pointerUp);
+              //     doc.removeListener("mouseleave", this.pointerOperator.pointerLeave);
               // }
           }
+          /**
+           * @description Whether touch input is processed. Setting it to `false` reverts touch handling to the native
+           * event names.
+           */
           set touchEventsEnabled(value) {
               // if (value) {
-              //     doc.on("touchstart", this.pointerController.pointerDown, {passive: false, propagate: true});
-              //     doc.on("touchmove", this.pointerController.pointerMove, {passive: false, propagate: true});
-              //     doc.on("touchend", this.pointerController.pointerUp, {passive: false, propagate: true});
-              //     doc.on("touchcancel", this.pointerController.pointerUp, {passive: false, propagate: true});
+              //     doc.on("touchstart", this.pointerOperator.pointerDown, {passive: false, propagate: true});
+              //     doc.on("touchmove", this.pointerOperator.pointerMove, {passive: false, propagate: true});
+              //     doc.on("touchend", this.pointerOperator.pointerUp, {passive: false, propagate: true});
+              //     doc.on("touchcancel", this.pointerOperator.pointerUp, {passive: false, propagate: true});
               // } else {
-              //     doc.removeListener("touchstart", this.pointerController.pointerDown);
-              //     doc.removeListener("touchmove", this.pointerController.pointerMove);
-              //     doc.removeListener("touchend", this.pointerController.pointerUp);
-              //     doc.removeListener("touchcancel", this.pointerController.pointerUp);
+              //     doc.removeListener("touchstart", this.pointerOperator.pointerDown);
+              //     doc.removeListener("touchmove", this.pointerOperator.pointerMove);
+              //     doc.removeListener("touchend", this.pointerOperator.pointerUp);
+              //     doc.removeListener("touchcancel", this.pointerOperator.pointerUp);
               // }
           }
+          /**
+           * @description Whether click, click start/end, and long-press events fire. Setting it to `false` reverts
+           * click handling to the native event names.
+           */
           set clickEventsEnabled(value) {
-              this.applyAndHookEvents(TurboClickEventName, DefaultClickEventName, value);
+              this.applyAndHookEvents(GradumClickEventName, DefaultClickEventName, value);
           }
+          /**
+           * @description Whether drag and drag start/end events fire. Setting it to `false` reverts drag handling to
+           * the native event names.
+           */
           set dragEventsEnabled(value) {
-              this.applyAndHookEvents(TurboDragEventName, DefaultDragEventName, value);
+              this.applyAndHookEvents(GradumDragEventName, DefaultDragEventName, value);
           }
           /*
            *
@@ -14869,9 +18383,13 @@
            *
            */
           /**
-           * @description Sets the lock state for the event manager.
-           * @param origin - The element that initiated the lock state.
-           * @param value - The state properties to set.
+           * @function lock
+           * @description Temporarily override the manager's state on behalf of one node, for the duration of
+           * an interaction. Use it to impose settings mid-gesture — suppressing native touch scrolling while a
+           * drag is in flight, say — then call {@link GradumEventManager.unlock} to hand them back. Any
+           * existing lock is released first, so locks do not nest.
+           * @param {Node} origin - The node establishing the lock.
+           * @param {GradumEventManagerStateProperties} value - The state to impose while the lock is held.
            */
           lock(origin, value) {
               this.unlock();
@@ -14880,33 +18398,65 @@
                   this.model.lockState[key] = value[key];
           }
           /**
-           * @description Resets the lock state to the default values.
+           * @function unlock
+           * @description Release the current lock, so the manager's own state applies again.
            */
           unlock() {
               this.model.lockState = { lockOrigin: document.body };
           }
+          /**
+           * @description Whether the manager is processing input. Reading combines the manager's own setting
+           * with any active lock, so a lock can disable it without overwriting the underlying value; assigning
+           * changes only the manager's own setting.
+           */
           get enabled() {
               return this.model.state.enabled && (this.model.lockState.enabled ?? true);
           }
           set enabled(value) {
               this.model.state.enabled = value;
           }
+          /**
+           * @description Whether wheel input has its native default suppressed, blocking browser page zoom and
+           * scroll. Combines the manager's setting with any active lock, as {@link GradumEventManager.enabled} does.
+           */
           get preventDefaultWheel() {
               return this.model.state.preventDefaultWheel && (this.model.lockState.preventDefaultWheel ?? true);
           }
           set preventDefaultWheel(value) {
               this.model.state.preventDefaultWheel = value;
           }
+          /**
+           * @description Whether mouse input has its native default suppressed. Combines the manager's setting
+           * with any active lock, as {@link GradumEventManager.enabled} does.
+           */
           get preventDefaultMouse() {
               return this.model.state.preventDefaultMouse && (this.model.lockState.preventDefaultMouse ?? true);
           }
           set preventDefaultMouse(value) {
               this.model.state.preventDefaultMouse = value;
           }
+          /**
+           * @description Whether touch input has its native default suppressed, blocking native scrolling and
+           * pinch-zoom. Combines the manager's setting with any active lock, as
+           * {@link GradumEventManager.enabled} does.
+           */
           get preventDefaultTouch() {
               return this.model.state.preventDefaultTouch && (this.model.lockState.preventDefaultTouch ?? true);
           }
           set preventDefaultTouch(value) {
+              this.model.state.preventDefaultTouch = value;
+          }
+          /**
+           * @description All three prevent-default settings at once. *Note: the getter and setter are not
+           * symmetric — reading gives `true` when **any** of wheel, mouse, or touch is suppressed, while
+           * assigning sets **all three** to the given value.*
+           */
+          get preventDefaults() {
+              return this.preventDefaultMouse || this.preventDefaultTouch || this.preventDefaultWheel;
+          }
+          set preventDefaults(value) {
+              this.model.state.preventDefaultWheel = value;
+              this.model.state.preventDefaultMouse = value;
               this.model.state.preventDefaultTouch = value;
           }
           /*
@@ -14918,7 +18468,8 @@
            *
            */
           /**
-           * @description All attached tools in an array
+           * @readonly
+           * @description Every registered tool instance, across all tool names, flattened into one array.
            */
           get toolsArray() {
               const array = [];
@@ -14926,29 +18477,56 @@
                   array.push(...tools.toArray());
               return array;
           }
+          /**
+           * @function getCurrentTool
+           * @description Get the tool instance currently held by a click mode.
+           * @param {ClickMode} [mode=this.model.currentClick] - The click mode to read. Defaults to the mode
+           * currently in use.
+           * @returns {Node} The tool held by that mode, or `undefined` if it holds none.
+           */
           getCurrentTool(mode = this.model.currentClick) {
               return this.model.currentTools.get(mode);
           }
           /**
-           * @description Returns the instances of the tool currently held by the provided click mode
-           * @param mode
+           * @function getCurrentTools
+           * @description Get every instance sharing the name of the tool currently held by a click mode. Use
+           * it when several elements — toolbar buttons in different places, say — represent the same tool.
+           * @param {ClickMode} [mode=this.model.currentClick] - The click mode to read. Defaults to the mode
+           * currently in use.
+           * @returns {Node[]} All instances of that tool, or an empty array if the mode holds none.
            */
           getCurrentTools(mode = this.model.currentClick) {
               return this.getToolsByName(this.getCurrentToolName(mode));
           }
           /**
-           * @description Returns the name of the tool currently held by the provided click mode
-           * @param mode
+           * @function getCurrentToolName
+           * @description Get the name of the tool currently held by a click mode.
+           * @param {ClickMode} [mode=this.model.currentClick] - The click mode to read. Defaults to the mode
+           * currently in use.
+           * @returns {ToolType} The tool's name, or `undefined` if the mode holds none.
            */
           getCurrentToolName(mode = this.model.currentClick) {
               return this.getToolName(this.getCurrentTool(mode));
           }
+          /**
+           * @function getToolName
+           * @description Get the name a tool instance is registered under.
+           * @param {Node} tool - The tool instance to look up.
+           * @returns {ToolType} The registered name, or `undefined` if the node is not a registered tool.
+           */
           getToolName(tool) {
               for (const [toolName, weakSet] of this.model.tools.entries()) {
                   if (weakSet.has(tool))
                       return toolName;
               }
           }
+          /**
+           * @function getSimilarTools
+           * @description Get every instance registered under the same name as the given tool, including the
+           * tool itself.
+           * @param {Node} tool - The tool instance to match against.
+           * @returns {Node[]} All instances sharing its name, or an empty array if it is not registered.
+           */
           getSimilarTools(tool) {
               for (const [toolName, weakSet] of this.model.tools.entries()) {
                   if (weakSet.has(tool))
@@ -14957,24 +18535,32 @@
               return [];
           }
           /**
-           * @description Returns the tool with the given name (or undefined)
-           * @param name
+           * @function getToolsByName
+           * @description Get every tool instance registered under a name.
+           * @param {ToolType} name - The tool name to look up.
+           * @returns {Node[]} All instances registered under that name, or an empty array if there are none.
            */
           getToolsByName(name) {
               return this.model.tools.get(name)?.toArray() || [];
           }
           /**
-           * @description Returns the first tool with the given name (or undefined)
-           * @param name
-           * @param predicate
+           * @function getToolByName
+           * @description Get a single tool instance registered under a name. Pass a predicate to choose among
+           * several instances.
+           * @param {ToolType} name - The tool name to look up.
+           * @param {(tool: Node) => boolean} [predicate] - Chooses which instance to return. Without it, the
+           * first registered instance is returned.
+           * @returns {Node} The matching instance, or `undefined` if there is none.
            */
           getToolByName(name, predicate) {
               const tools = this.getToolsByName(name);
               return predicate ? tools?.find(predicate) : tools?.[0];
           }
           /**
-           * @description Returns the tools associated with the given key
-           * @param key
+           * @function getToolsByKey
+           * @description Get every tool instance bound to a keyboard key.
+           * @param {string} key - The key the tool is mapped to.
+           * @returns {Node[]} All instances bound to that key, or an empty array if the key maps to nothing.
            */
           getToolsByKey(key) {
               const toolName = this.model.mappedKeysToTool.get(key);
@@ -14983,23 +18569,29 @@
               return this.getToolsByName(toolName);
           }
           /**
-           * @description Returns the first tool associated with the given key
-           * @param key
-           * @param predicate
+           * @function getToolByKey
+           * @description Get a single tool instance bound to a keyboard key. Pass a predicate to choose among
+           * several instances.
+           * @param {string} key - The key the tool is mapped to.
+           * @param {(tool: Element) => boolean} [predicate] - Chooses which instance to return. Without it, the
+           * first one is returned.
+           * @returns {Node} The matching instance, or `undefined` if there is none.
            */
           getToolByKey(key, predicate) {
               const tools = this.getToolsByKey(key);
               return predicate ? tools?.find(predicate) : tools?.[0];
           }
           /**
-           * @description Adds a tool to the tools map, identified by its name. Optionally, provide a key to bind the tool to.
-           * @param toolName
-           * @param tool
-           * @param key
+           * @function addTool
+           * @description Register a tool instance under a name, so the manager can make it current and find it
+           * again. Several instances may share one name.
+           * @param {ToolType} toolName - The name to register the instance under.
+           * @param {Node} tool - The tool instance.
+           * @param {string} [key] - A keyboard key that selects this tool when pressed.
            */
           addTool(toolName, tool, key) {
               if (!this.model.tools.has(toolName))
-                  this.model.tools.set(toolName, new TurboWeakSet());
+                  this.model.tools.set(toolName, new GradumWeakSet());
               const tools = this.model.tools.get(toolName);
               if (!tools.has(tool))
                   tools.add(tool);
@@ -15007,15 +18599,20 @@
                   this.model.mappedKeysToTool.set(key, toolName);
           }
           /**
-           * @description Sets the provided tool as a current tool associated with the provided type
-           * @param tool
-           * @param type
-           * @param options
+           * @function setTool
+           * @description Make a tool the current one for a click mode, so interactions in that mode are
+           * attributed to it. The previously held tool is deselected and deactivated first, and
+           * {@link GradumEventManager.onToolChange} fires once the swap is done. Passing a tool that is not
+           * registered with this manager does nothing.
+           * @param {Node} tool - The tool instance to make current. Pass `undefined` to clear the mode.
+           * @param {ClickMode} type - The click mode to bind the tool to.
+           * @param {SetToolOptions} [options={}] - Whether to select and activate the tool, and whether it also
+           * becomes the tool for `ClickMode.none`.
            */
           setTool(tool, type, options = {}) {
               if (!isUndefined(tool) && !$(tool).isTool(this))
                   return;
-              turbo(options).applyDefaults({ select: true, activate: true, setAsNoAction: type == ClickMode.left });
+              gradum(options).applyDefaults({ select: true, activate: true, setAsNoAction: type == ClickMode.left });
               //Get previous tool
               const previousTool = this.model.currentTools.get(type);
               if (previousTool) {
@@ -15025,7 +18622,7 @@
                   //Deselect and deactivate previous tool
                   this.getSimilarTools(previousTool).forEach(element => {
                       if (options.select)
-                          this.model.utils.selectTool(element, false);
+                          gradum(element).selected = false;
                       if (options.activate)
                           this.model.utils.activateTool(element, this.getToolName(previousTool), false);
                   });
@@ -15039,14 +18636,17 @@
                   if (options.activate)
                       this.model.utils.activateTool(element, this.getToolName(tool), true);
                   if (options.select)
-                      this.model.utils.selectTool(element, true);
+                      gradum(element).selected = true;
               });
               //Fire tool changed
               this.onToolChange.fire(previousTool, tool, type);
           }
           /**
-           * @description Sets tool associated with the provided key as the current tool for the key mode
-           * @param key
+           * @function setToolByKey
+           * @description Make the tool bound to a keyboard key current for `ClickMode.key`. The tool is
+           * activated but not visually selected.
+           * @param {string} key - The key whose tool should become current.
+           * @returns {boolean} Whether a tool was bound to that key and therefore set.
            */
           setToolByKey(key) {
               const toolName = this.model.mappedKeysToTool.get(key);
@@ -15062,18 +18662,41 @@
            *
            *
            */
+          /**
+           * @function setupCustomDispatcher
+           * @description Start dispatching an additional event type through the Gradum two-pass dispatch, so
+           * tool behaviors and interactor listeners receive it like any built-in Gradum event. Registering the
+           * same type twice is a no-op.
+           * @param {string} type - The event type to dispatch.
+           */
           setupCustomDispatcher(type) {
-              return this.dispatchController.setupCustomDispatcher(type);
+              return this.dispatchOperator.setupCustomDispatcher(type);
           }
-          applyAndHookEvents(turboEventNames, defaultEventNames, applyTurboEvents) {
-              this.model.utils.applyEventNames(applyTurboEvents ? turboEventNames : defaultEventNames);
-              for (const name of Object.values(applyTurboEvents ? turboEventNames : defaultEventNames)) {
-                  if (applyTurboEvents)
-                      this.dispatchController.setupCustomDispatcher(name);
+          /**
+           * @protected
+           * @function applyAndHookEvents
+           * @description Switch a family of events between its Gradum names and its native names, and hook or
+           * unhook the dispatcher for each. Backs the `*EventsEnabled` setters.
+           * @param {Record<string, string>} gradumEventNames - The Gradum names for this family.
+           * @param {Record<string, string>} defaultEventNames - The native names to fall back to.
+           * @param {boolean} applyGradumEvents - Whether to use the Gradum names and hook the dispatcher, or
+           * revert to the native names and unhook it.
+           */
+          applyAndHookEvents(gradumEventNames, defaultEventNames, applyGradumEvents) {
+              this.model.utils.applyEventNames(applyGradumEvents ? gradumEventNames : defaultEventNames);
+              for (const name of Object.values(applyGradumEvents ? gradumEventNames : defaultEventNames)) {
+                  if (applyGradumEvents)
+                      this.dispatchOperator.setupCustomDispatcher(name);
                   else
-                      this.dispatchController.removeCustomDispatcher(name);
+                      this.dispatchOperator.removeCustomDispatcher(name);
               }
           }
+          /**
+           * @function destroy
+           * @description Shut the manager down: disable every event family, unhook its dispatchers, and clear
+           * the tool-change subscribers. Registered tools are left in place.
+           * @returns {this} Itself, allowing for method chaining.
+           */
           destroy() {
               this.keyEventsEnabled = false;
               this.wheelEventsEnabled = false;
@@ -15086,12 +18709,12 @@
           }
       };
   })();
-  define(TurboEventManager);
+  define(GradumEventManager);
 
   /**
    * @class Listener
    * @group Components
-   * @category Listener
+   * @category Data Structures
    *
    * @template {Node} TargetType - The type of the event target.
    * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
@@ -15121,11 +18744,12 @@
       lastExecutionTime;
       /**
        * @constructor
+       * @description Create a listener from its configuration. A {@link GradumSelector} passed as `target`
+       * is unwrapped to the element it wraps.
        * @param {ListenerProperties<TargetType, CallbackType>} properties - Listener configuration.
-       * @description Creates a {@link Listener}.
        */
       constructor(properties) {
-          if (properties.target instanceof TurboSelector)
+          if (properties.target instanceof GradumSelector)
               properties.target = properties.target.element;
           this.type = properties.type;
           this.target = properties.target;
@@ -15133,7 +18757,7 @@
           this.callback = properties.callback;
           this.bundledListener = (e) => this.callback(e, this.target);
           this.options = properties.options ?? {};
-          this.manager = properties.manager ?? TurboEventManager.instance;
+          this.manager = properties.manager ?? GradumEventManager.instance;
       }
       /**
        * @function execute
@@ -15163,10 +18787,15 @@
        */
       match(properties = {}) {
           for (let [key, value] of Object.entries(properties)) {
-              if (key === "target" && value instanceof TurboSelector)
+              if (key === "target" && value instanceof GradumSelector)
                   value = value.element;
-              if (value === undefined || key === "optionsToSkip")
+              if (key === "optionsToSkip")
                   continue;
+              if (value === undefined) {
+                  if (key === "toolName" && this.toolName !== undefined)
+                      return false;
+                  continue;
+              }
               if (typeof value === "object") {
                   if (typeof this[key] !== "object")
                       return false;
@@ -15190,7 +18819,7 @@
   /**
    * @class ListenerSet
    * @group Components
-   * @category Listener
+   * @category Data Structures
    *
    * @template {Node} TargetType - The type of the event target.
    * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
@@ -15203,8 +18832,8 @@
        */
       listeners = new Map();
       /**
-       * @readonly
        * @description Flattened array of all listeners in the set.
+       * @readonly
        */
       get listenersArray() {
           const listeners = [];
@@ -15269,10 +18898,15 @@
       }
   }
 
+  /**
+   * @internal
+   * @class EventFunctionsUtils
+   * @description Shared helpers and per-element state behind the event functions on {@link GradumSelector}.
+   */
   class EventFunctionsUtils {
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element || !this.dataMap.has(element)) {
               const entry = {
@@ -15296,10 +18930,10 @@
           if (!properties.target)
               return [];
           if (!properties.manager)
-              properties.manager = TurboEventManager.instance;
+              properties.manager = GradumEventManager.instance;
           return this.getBoundListenersSet(properties.target).getListeners({
               ...properties,
-              optionsToSkip: ["checkSubstrates", "solveSubstrates"]
+              optionsToSkip: ["checkConstrainers", "solveConstrainers"]
           });
       }
       getPreventDefaultListeners(element) {
@@ -15311,7 +18945,7 @@
           return map;
       }
       bypassManager(element, eventManager, bypassResults) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return;
@@ -15345,12 +18979,19 @@
   }
 
   const utils$5 = new EventFunctionsUtils();
+  /**
+   * @internal
+   * @function setupEventFunctions
+   * @description Install the event functions (`on`, `onTool`, `executeAction`, `preventDefault`, ...) onto the
+   * {@link GradumSelector} prototype. Called once by
+   * {@link gradumify}; the matching `exclude` option skips it.
+   */
   function setupEventFunctions() {
       /**
        * @description Initializes a `boundListeners` set in the Node prototype, that will hold all the element's bound
        * listeners.
        */
-      Object.defineProperty(TurboSelector.prototype, "boundListeners", {
+      Object.defineProperty(GradumSelector.prototype, "boundListeners", {
           get: function () {
               return utils$5.getBoundListenersSet(this);
           },
@@ -15362,7 +19003,7 @@
        * you can set this field to a predicate that defines when to bypass the manager.
        * @param {Event} e The event.
        */
-      Object.defineProperty(TurboSelector.prototype, "bypassManagerOn", {
+      Object.defineProperty(GradumSelector.prototype, "bypassManagerOn", {
           get: function () {
               return utils$5.data(this)["bypassCallback"];
           },
@@ -15375,15 +19016,15 @@
       /**
        * @description Adds an event listener to the element.
        * @param {string} type - The type of the event.
-       * @param toolName - The name of the tool. Set to null or undefined to check for listeners not bound to a tool.
+       * @param {string} toolName - The name of the tool. Set to null or undefined to bind a listener not tied to a tool.
        * @param {ListenerCallback} listener - The function that receives a notification.
        * @param {ListenerOptions} [options] - An options object that specifies characteristics
        * about the event listener.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.onTool = function _onTool(type, toolName, listener, options, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.onTool = function _onTool(type, toolName, listener, options, manager = GradumEventManager.instance) {
           if (this.hasToolListener(type, toolName, listener, manager))
               return this;
           manager.setupCustomDispatcher?.(type);
@@ -15403,45 +19044,72 @@
        * @param {ListenerCallback} listener - The function that receives a notification.
        * @param {ListenerOptions} [options] - An options object that specifies characteristics
        * about the event listener.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.on = function _on(type, listener, options, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.on = function _on(type, listener, options, manager = GradumEventManager.instance) {
           return this.onTool(type, undefined, listener, options, manager);
       };
       /**
-       * @description
-       * @param type
-       * @param toolName
-       * @param event
-       * @param options
-       * @param manager
+       * @description Execute the listeners bound on this element for the given `type` and `toolName`. Simulates
+       * firing a `type` event on the element with `toolName` active.
+       * @param {string} type - The type of the event.
+       * @param {string} toolName - The name of the tool. Set to null or undefined to fire listeners not bound
+       * to a tool.
+       * @param {Event} event - The event to pass as parameter to the listeners.
+       * @param {ListenerOptions} [options] - Options object that specifies characteristics about the event
+       * listeners to fire.
+       * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created
+       * manager, or a new instantiated one if none already exist.
+       * @returns {Propagation} Whether the caller should keep walking the event path, stop the current loop,
+       * or stop both loops.
        */
-      TurboSelector.prototype.executeAction = function _executeAction(type, toolName, event, options, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.executeAction = function _executeAction(type, toolName, event, options, manager = GradumEventManager.instance) {
           if (!type)
               return Propagation.propagate;
           if (!options)
               options = {};
-          turbo(options).applyDefaults({ checkSubstrates: true, solveSubstrates: true });
+          gradum(options).applyDefaults({ checkConstrainers: true, solveConstrainers: true });
           const activeTool = toolName ?? manager.getCurrentToolName();
-          const checkedSubstratesFor = new Set();
+          const checkedConstrainersFor = new Set();
           const checkedObjectsToolMap = new Map();
           const firedListeners = new Set();
           let propagation = Propagation.propagate;
           if (this.bypassManagerOn)
               utils$5.bypassManager(this, manager, this.bypassManagerOn(event));
-          const checkSubstrates = (target, tool) => {
+          //Whether the event started inside a subtree that opted out of the given tool. Walks up from the
+          //event's target, crossing shadow boundaries, so ignoring a tool on a component also covers the inner
+          //nodes a click actually lands on. Memoized: executeAction is called once per element of the path.
+          const originIgnoresCache = new Map();
+          const originIgnoresTool = (tool) => {
+              if (!tool)
+                  return false;
+              if (originIgnoresCache.has(tool))
+                  return originIgnoresCache.get(tool);
+              let ignored = false;
+              let node = (event?.target ?? undefined);
+              while (node) {
+                  if (gradum(node).isToolIgnored(tool, type, manager)) {
+                      ignored = true;
+                      break;
+                  }
+                  node = node.parentNode ?? node.host;
+              }
+              originIgnoresCache.set(tool, ignored);
+              return ignored;
+          };
+          const checkConstrainers = (target, tool) => {
               if (!target)
                   return;
               if (propagation === Propagation.stopImmediatePropagation)
                   return;
-              if (!checkedSubstratesFor.has(target)) {
-                  checkedSubstratesFor.add(target);
+              if (!checkedConstrainersFor.has(target)) {
+                  checkedConstrainersFor.add(target);
                   if (tool)
                       checkedObjectsToolMap.set(target, tool);
-                  if (options.checkSubstrates) {
-                      const check = this.checkSubstratesForEvent({
+                  if (options.checkConstrainers) {
+                      const check = this.checkConstrainersForEvent({
                           event, manager,
                           toolName: tool,
                           eventType: type,
@@ -15452,13 +19120,15 @@
                           propagation = Propagation.stopImmediatePropagation;
                   }
               }
-              checkSubstrates(target.parentNode, tool);
+              checkConstrainers(target.parentNode, tool);
           };
           const runListeners = (target, tool) => {
-              const ts = target instanceof TurboSelector ? target : turbo(target);
+              if (tool && (gradum(target).isToolIgnored(tool, type, manager) || originIgnoresTool(tool)))
+                  return;
+              const ts = target instanceof GradumSelector ? target : gradum(target);
               const boundSet = utils$5.getBoundListenersSet(target);
               const entries = utils$5.getBoundListeners({ target, type, toolName: tool, options, manager });
-              checkSubstrates(target, tool);
+              checkConstrainers(target, tool);
               if (entries.length === 0)
                   return;
               if (propagation === Propagation.stopImmediatePropagation)
@@ -15481,14 +19151,14 @@
           const applyTool = (target, tool) => {
               if (options.capture || !tool)
                   return;
-              if (turbo(target).isToolIgnored(tool, type, manager))
+              if (gradum(target).isToolIgnored(tool, type, manager) || originIgnoresTool(tool))
                   return;
-              checkSubstrates(target, tool);
+              checkConstrainers(target, tool);
               if (!this.hasToolBehavior(type, tool, manager))
                   return;
               if (propagation === Propagation.stopImmediatePropagation)
                   return;
-              propagation = turbo(target).applyTool(tool, type, event, manager);
+              propagation = gradum(target).applyTool(tool, type, event, manager);
           };
           const main = () => {
               if (activeTool) {
@@ -15521,8 +19191,8 @@
               runListeners(this, undefined);
           };
           main();
-          if (options.solveSubstrates)
-              checkedSubstratesFor.forEach(entry => turbo(this).solveSubstratesForEvent({
+          if (options.solveConstrainers)
+              checkedConstrainersFor.forEach(entry => gradum(this).solveConstrainersForEvent({
                   event,
                   toolName: checkedObjectsToolMap.get(entry),
                   eventType: type,
@@ -15536,11 +19206,11 @@
        * @description Checks if the given event listener is bound to the element (in its boundListeners list).
        * @param {string} type - The type of the event. Set to null or undefined to get all event types.
        * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
-       * @returns {boolean} - Whether the element has the given listener.
+       * @returns {boolean} Whether the element has the given listener.
        */
-      TurboSelector.prototype.hasListener = function _hasListener(type, listener, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.hasListener = function _hasListener(type, listener, manager = GradumEventManager.instance) {
           return this.hasToolListener(type, undefined, listener, manager);
       };
       /**
@@ -15549,11 +19219,11 @@
        * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
        * to check for listeners not bound to a tool.
        * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
-       * @returns {boolean} - Whether the element has the given listener.
+       * @returns {boolean} Whether the element has the given listener.
        */
-      TurboSelector.prototype.hasToolListener = function _hasToolListener(type, toolName, listener, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.hasToolListener = function _hasToolListener(type, toolName, listener, manager = GradumEventManager.instance) {
           return utils$5.getBoundListeners({ target: this, callback: listener, type, toolName, manager }).length > 0;
       };
       /**
@@ -15561,22 +19231,22 @@
        * @param {string} type - The type of the event. Set to null or undefined to get all event types.
        * @param {string} toolName - The name of the tool to consider (if any). Set to null or undefined
        * to check for listeners not bound to a tool.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
-       * @returns {boolean} - Whether the element has the given listener.
+       * @returns {boolean} Whether the element has the given listener.
        */
-      TurboSelector.prototype.hasListenersByType = function _hasListenersByType(type, toolName, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.hasListenersByType = function _hasListenersByType(type, toolName, manager = GradumEventManager.instance) {
           return utils$5.getBoundListeners({ target: this, type, toolName, manager }).length > 0;
       };
       /**
        * @description Removes an event listener that is bound to the element (in its boundListeners list).
        * @param {string} type - The type of the event.
        * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeListener = function _removeListener(type, listener, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.removeListener = function _removeListener(type, listener, manager = GradumEventManager.instance) {
           return this.removeToolListener(type, undefined, listener, manager);
       };
       /**
@@ -15585,11 +19255,11 @@
        * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
        * to check for listeners not bound to a tool.
        * @param {(e: Event, el: this) => void} listener - The function that receives a notification.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeToolListener = function _removeToolListener(type, toolName, listener, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.removeToolListener = function _removeToolListener(type, toolName, listener, manager = GradumEventManager.instance) {
           utils$5.getBoundListenersSet(this).removeMatchingListeners({ target: this, type, toolName, callback: listener, manager });
           return this;
       };
@@ -15599,21 +19269,21 @@
        * @param {string} type - The type of the event. Set to null or undefined to consider all types.
        * @param {string} toolName - The name of the tool associated (if any). Set to null or undefined
        * to check for listeners not bound to a tool.
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeListenersByType = function _removeListenersByType(type, toolName, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.removeListenersByType = function _removeListenersByType(type, toolName, manager = GradumEventManager.instance) {
           utils$5.getBoundListenersSet(this).removeMatchingListeners({ target: this, type, toolName, manager });
           return this;
       };
       /**
        * @description Removes all event listeners bound to the element (in its boundListeners list).
-       * @param {TurboEventManager} manager - The associated event manager. Defaults to the first created manager,
+       * @param {GradumEventManager} manager - The associated event manager. Defaults to the first created manager,
        * or a new instantiated one if none already exist.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.removeAllListeners = function _removeListeners(manager = TurboEventManager.instance) {
+      GradumSelector.prototype.removeAllListeners = function _removeListeners(manager = GradumEventManager.instance) {
           utils$5.getBoundListenersSet(this).removeMatchingListeners({ manager });
           return this;
       };
@@ -15622,10 +19292,10 @@
        * will be processed.
        * @param {PreventDefaultOptions} options - An options object to customize the behavior of the function.
        */
-      TurboSelector.prototype.preventDefault = function _preventDefault(options) {
+      GradumSelector.prototype.preventDefault = function _preventDefault(options) {
           if (!options)
               options = {};
-          const manager = options.manager ?? TurboEventManager.instance;
+          const manager = options.manager ?? GradumEventManager.instance;
           const types = options.types ?? BasicInputEvents;
           const phase = options.phase ?? "capture";
           const stop = options.stop ?? false;
@@ -15661,10 +19331,15 @@
       };
   }
 
+  /**
+   * @internal
+   * @class StyleFunctionsUtils
+   * @description Shared helpers and per-element state behind the style functions on {@link GradumSelector}.
+   */
   class StyleFunctionsUtils {
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return {};
@@ -15707,11 +19382,21 @@
   }
 
   const utils$4 = new StyleFunctionsUtils();
+  const selectedKey = Symbol("__selected__");
+  const selectedClass = Symbol("__selectedClass__");
+  const defaultSelectedClassesKey = Symbol("__default_selected_classes__");
+  /**
+   * @internal
+   * @function setupStyleFunctions
+   * @description Install the style functions (`setStyle`, `setStyles`, `selected`, `closestRoot`, ...) onto the
+   * {@link GradumSelector} prototype. Called once by
+   * {@link gradumify}; the matching `exclude` option skips it.
+   */
   function setupStyleFunctions() {
       /**
        * @description The closest root to the element in the document (the closest ShadowRoot, or the document's head).
        */
-      Object.defineProperty(TurboSelector.prototype, "closestRoot", {
+      Object.defineProperty(GradumSelector.prototype, "closestRoot", {
           get: function () {
               let node = this.element;
               while (node) {
@@ -15724,6 +19409,52 @@
           configurable: false,
           enumerable: true
       });
+      Object.defineProperty(GradumSelector.prototype, "selected", {
+          get() {
+              return !!this[selectedKey];
+          },
+          set(value) {
+              const element = this.element;
+              if (!element)
+                  return;
+              if (element instanceof Element) {
+                  const prevClass = element[selectedClass];
+                  const nextClass = this["defaultSelectedClasses"] || "selected";
+                  element[selectedClass] = nextClass;
+                  if (prevClass && prevClass !== nextClass)
+                      gradum(element).toggleClass(prevClass, false);
+                  gradum(element).toggleClass(nextClass, !!value);
+              }
+              element[selectedKey] = value;
+              this.onSelected.fire(value);
+          },
+          enumerable: true,
+          configurable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "defaultSelectedClasses", {
+          get: function () {
+              return this[defaultSelectedClassesKey] ?? "";
+          },
+          set: function (value) {
+              if (this.selected)
+                  gradum(this).toggleClass(this[defaultSelectedClassesKey], false);
+              this[defaultSelectedClassesKey] = value;
+              if (this.selected)
+                  gradum(this).toggleClass(value, true);
+          },
+          enumerable: true,
+          configurable: true,
+      });
+      Object.defineProperty(GradumSelector.prototype, "onSelected", {
+          get: function () {
+              const data = utils$4.data(this);
+              if (!data["onSelected"])
+                  data["onSelected"] = new Delegate();
+              return data["onSelected"];
+          },
+          enumerable: true,
+          configurable: true,
+      });
       /**
        * @description Set a certain style attribute of the element to the provided value.
        * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to set.
@@ -15732,7 +19463,7 @@
        * animation frame.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.setStyle = function _setStyle(attribute, value, instant = false) {
+      GradumSelector.prototype.setStyle = function _setStyle(attribute, value, instant = false) {
           if (!attribute || value == undefined)
               return this;
           if (!(this.element instanceof HTMLElement) && !(this.element instanceof SVGElement))
@@ -15749,7 +19480,7 @@
        * animation frame.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.appendStyle = function _appendStyle(attribute, value, separator = ", ", instant = false) {
+      GradumSelector.prototype.appendStyle = function _appendStyle(attribute, value, separator = ", ", instant = false) {
           if (!attribute || value == undefined)
               return this;
           if (!(this.element instanceof HTMLElement) && !(this.element instanceof SVGElement))
@@ -15767,7 +19498,7 @@
        * animation frame.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.setStyles = function _setStyles(styles, instant = false) {
+      GradumSelector.prototype.setStyles = function _setStyles(styles, instant = false) {
           if (!styles || typeof styles == "number")
               return this;
           if (!(this.element instanceof HTMLElement) && !(this.element instanceof SVGElement))
@@ -15790,6 +19521,11 @@
       };
   }
 
+  /**
+   * @internal
+   * @class ToolFunctionsUtils
+   * @description Shared helpers and per-element state behind the tool functions on {@link GradumSelector}.
+   */
   class ToolFunctionsUtils {
       elements = new WeakMap();
       tools = new WeakMap();
@@ -15802,7 +19538,7 @@
           return value;
       }
       getElementData(element, manager) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           const es = this.getOrCreate(this.elements, element, () => new WeakMap());
           return this.getOrCreate(es, manager, () => ({
@@ -15832,32 +19568,32 @@
           return map.get(toolName);
       }
       saveTool(element, toolName, manager) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return;
           this.getElementData(element, manager).tools.add(toolName);
       }
       getToolNames(element, manager) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return [];
           return [...this.getElementData(element, manager).tools];
       }
       setEmbeddedToolTarget(element, target, manager) {
-          if (target instanceof TurboSelector)
+          if (target instanceof GradumSelector)
               target = target.element;
           if (!target)
               return;
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return;
           this.getElementData(element, manager).embeddedTarget = target;
       }
       getEmbeddedToolTarget(element, manager) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return;
@@ -15917,19 +19653,25 @@
   }
 
   const utils$3 = new ToolFunctionsUtils();
+  /**
+   * @internal
+   * @function setupToolFunctions
+   * @description Install the tool functions (`makeTool`, `applyTool`, `embedTool`, ...) onto the
+   * {@link GradumSelector} prototype. Called once by {@link gradumify}; the matching `exclude` option skips it.
+   */
   function setupToolFunctions() {
       /*
        *
        * Basic tool manipulation
        *
        */
-      TurboSelector.prototype.makeTool = function _makeTool(toolName, options) {
+      GradumSelector.prototype.makeTool = function _makeTool(toolName, options) {
           if (!toolName)
               return this;
           if (!options)
               options = {};
           if (!options.manager)
-              options.manager = TurboEventManager.instance;
+              options.manager = GradumEventManager.instance;
           options.manager.addTool(toolName, this.element, options.key);
           if (options.customActivation && typeof options.customActivation === "function") {
               options.customActivation(this, options.manager);
@@ -15949,13 +19691,13 @@
               utils$3.getDeactivationDelegate(this, toolName, options.manager).add(options.onDeactivate);
           return this;
       };
-      TurboSelector.prototype.isTool = function _isTool(manager = TurboEventManager.instance) {
+      GradumSelector.prototype.isTool = function _isTool(manager = GradumEventManager.instance) {
           return utils$3.getToolNames(this.element, manager).length > 0;
       };
-      TurboSelector.prototype.getToolNames = function _getToolName(manager = TurboEventManager.instance) {
+      GradumSelector.prototype.getToolNames = function _getToolName(manager = GradumEventManager.instance) {
           return utils$3.getToolNames(this.element, manager);
       };
-      TurboSelector.prototype.getToolName = function _getToolName(manager = TurboEventManager.instance) {
+      GradumSelector.prototype.getToolName = function _getToolName(manager = GradumEventManager.instance) {
           const toolNames = utils$3.getToolNames(this.element, manager);
           if (toolNames.length > 0)
               return toolNames[0];
@@ -15965,12 +19707,12 @@
        * Tool activation manipulation
        *
        */
-      TurboSelector.prototype.onToolActivate = function _onActivate(toolName, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.onToolActivate = function _onActivate(toolName, manager = GradumEventManager.instance) {
           if (!toolName)
               toolName = this.getToolName(manager);
           return utils$3.getActivationDelegate(this, toolName, manager);
       };
-      TurboSelector.prototype.onToolDeactivate = function _onDeactivate(toolName, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.onToolDeactivate = function _onDeactivate(toolName, manager = GradumEventManager.instance) {
           if (!toolName)
               toolName = this.getToolName(manager);
           return utils$3.getDeactivationDelegate(this, toolName, manager);
@@ -15980,24 +19722,24 @@
        * Tool behavior manipulation
        *
        */
-      TurboSelector.prototype.addToolBehavior = function _addToolBehavior(type, callback, toolName = this.getToolName(), manager = TurboEventManager.instance) {
+      GradumSelector.prototype.addToolBehavior = function _addToolBehavior(type, callback, toolName = this.getToolName(), manager = GradumEventManager.instance) {
           if (type && toolName) {
               manager.setupCustomDispatcher?.(type);
               utils$3.addToolBehavior(toolName, type, callback, manager);
           }
           return this;
       };
-      TurboSelector.prototype.hasToolBehavior = function _hasToolBehavior(type, toolName = this.getToolName(), manager = TurboEventManager.instance) {
+      GradumSelector.prototype.hasToolBehavior = function _hasToolBehavior(type, toolName = this.getToolName(), manager = GradumEventManager.instance) {
           if (!type || !toolName)
               return false;
           return utils$3.getToolBehaviors(toolName, type, manager).length > 0;
       };
-      TurboSelector.prototype.removeToolBehaviors = function _removeToolBehaviors(type, toolName = this.getToolName(), manager = TurboEventManager.instance) {
+      GradumSelector.prototype.removeToolBehaviors = function _removeToolBehaviors(type, toolName = this.getToolName(), manager = GradumEventManager.instance) {
           if (type && toolName)
               utils$3.removeToolBehaviors(toolName, type, manager);
           return this;
       };
-      TurboSelector.prototype.clearToolBehaviors = function _clearToolBehaviors(manager = TurboEventManager.instance) {
+      GradumSelector.prototype.clearToolBehaviors = function _clearToolBehaviors(manager = GradumEventManager.instance) {
           utils$3.clearToolBehaviors(manager);
           return this;
       };
@@ -16006,15 +19748,15 @@
        * Embedded tool manipulation
        *
        */
-      TurboSelector.prototype.embedTool = function _embedTool(target, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.embedTool = function _embedTool(target, manager = GradumEventManager.instance) {
           if (this.isTool(manager))
               utils$3.setEmbeddedToolTarget(this.element, target, manager);
           return this;
       };
-      TurboSelector.prototype.isEmbeddedTool = function _isEmbeddedTool(manager = TurboEventManager.instance) {
+      GradumSelector.prototype.isEmbeddedTool = function _isEmbeddedTool(manager = GradumEventManager.instance) {
           return !!utils$3.getEmbeddedToolTarget(this.element, manager);
       };
-      TurboSelector.prototype.getEmbeddedToolTarget = function _getEmbeddedToolTarget(manager = TurboEventManager.instance) {
+      GradumSelector.prototype.getEmbeddedToolTarget = function _getEmbeddedToolTarget(manager = GradumEventManager.instance) {
           return utils$3.getEmbeddedToolTarget(this.element, manager);
       };
       /*
@@ -16022,7 +19764,7 @@
        * Apply tool
        *
        */
-      TurboSelector.prototype.applyTool = function _applyTool(toolName, type, event, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.applyTool = function _applyTool(toolName, type, event, manager = GradumEventManager.instance) {
           let propagation = Propagation.propagate;
           const behaviors = utils$3.getToolBehaviors(toolName, type, manager);
           const options = {};
@@ -16035,15 +19777,15 @@
           }
           return propagation;
       };
-      TurboSelector.prototype.ignoreTool = function _ignoreTool(toolName, type, ignore = true, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.ignoreTool = function _ignoreTool(toolName, type, ignore = true, manager = GradumEventManager.instance) {
           utils$3.ignoreTool(this.element, toolName, type, ignore, manager);
           return this;
       };
-      TurboSelector.prototype.ignoreAllTools = function _ignoreAllTools(ignore = true, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.ignoreAllTools = function _ignoreAllTools(ignore = true, manager = GradumEventManager.instance) {
           utils$3.getElementData(this.element, manager).ignoreAllTools = ignore;
           return this;
       };
-      TurboSelector.prototype.isToolIgnored = function _isToolIgnored(toolName, type, manager = TurboEventManager.instance) {
+      GradumSelector.prototype.isToolIgnored = function _isToolIgnored(toolName, type, manager = GradumEventManager.instance) {
           if (utils$3.getElementData(this.element, manager).ignoreAllTools)
               return true;
           return utils$3.isToolIgnored(this.element, toolName, type, manager);
@@ -16051,21 +19793,41 @@
   }
 
   /**
-   * @class TurboQueue
+   * @class GradumQueue
    * @group Components
-   * @category TurboQueue
+   * @category Data Structures
+   *
+   * @template Type - The type of the queued values.
+   * @description A first-in, first-out queue. {@link push} adds to the back, {@link pop} takes from the
+   * front, and {@link addOnTop} jumps the line. Popping does not shift the backing array, so draining a
+   * long queue stays cheap.
    */
-  class TurboQueue {
+  class GradumQueue {
       items = [];
       head = 0;
+      /**
+       * @description Add one or more values to the back of the queue.
+       * @param {...Type[]} values - The values to enqueue, in order.
+       * @returns {this} Itself, allowing for method chaining.
+       */
       push(...values) {
           values.forEach(value => this.items.push(value));
           return this;
       }
+      /**
+       * @description Add one or more values to the front of the queue, so they are popped before
+       * everything already queued.
+       * @param {...Type[]} values - The values to enqueue, in order.
+       * @returns {this} Itself, allowing for method chaining.
+       */
       addOnTop(...values) {
           this.items = [...values, ...this.items];
           return this;
       }
+      /**
+       * @description Take the value at the front of the queue and remove it.
+       * @returns {Type | undefined} The removed value, or `undefined` if the queue is empty.
+       */
       pop() {
           if (this.head >= this.items.length)
               return undefined;
@@ -16078,18 +19840,42 @@
           }
           return value;
       }
+      /**
+       * @description Read the value at the front of the queue without removing it.
+       * @returns {Type} The next value to be popped, or `undefined` if the queue is empty.
+       */
       peek() {
           return this.head < this.items.length ? this.items[this.head] : undefined;
       }
+      /**
+       * @description Check whether a value is queued.
+       * @param {Type} value - The value to look for, compared by identity.
+       * @returns {boolean} Whether the value is present.
+       */
       has(value) {
           return this.items.includes(value);
       }
+      /**
+       * @description The number of values still waiting to be popped.
+       * @readonly
+       */
       get size() {
           return this.items.length - this.head;
       }
+      /**
+       * @description Whether the queue has nothing left to pop.
+       * @readonly
+       */
       get isEmpty() {
           return this.size === 0;
       }
+      /**
+       * @description Drop repeated values, keeping the earliest occurrence of each so queue order is
+       * preserved. Mutates the queue.
+       * @param {Type} [entry] - Restrict deduplication to this value, leaving every other duplicate in
+       * place. Omit it to deduplicate the whole queue.
+       * @returns {this} Itself, allowing for method chaining.
+       */
       removeDuplicates(entry) {
           const uniques = new Set();
           const toDelete = [];
@@ -16105,23 +19891,42 @@
               this.items.splice(i, 1);
           return this;
       }
+      /**
+       * @description Discard every queued value.
+       * @returns {this} Itself, allowing for method chaining.
+       */
       clear() {
           this.items = [];
           this.head = 0;
           return this;
       }
+      /**
+       * @description Snapshot the pending values.
+       * @returns {Type[]} A new array of the values still waiting to be popped, front first. Already
+       * popped values are excluded.
+       */
       toArray() {
           const arr = [];
           for (let i = this.head; i < this.items.length; i += 1)
               arr.push(this.items[i]);
           return arr;
       }
+      /**
+       * @description Copy the queue.
+       * @returns {GradumQueue<Type>} A new queue holding the same pending values in the same order. The
+       * values themselves are shared, not copied.
+       */
       clone() {
-          const queue = new TurboQueue();
+          const queue = new GradumQueue();
           for (let i = this.head; i < this.items.length; i += 1)
               queue.push(this.items[i]);
           return queue;
       }
+      /**
+       * @description Remove the first pending occurrence of a value, wherever it sits in the queue.
+       * @param {Type} value - The value to remove, compared by identity.
+       * @returns {boolean} Whether a matching value was found and removed.
+       */
       remove(value) {
           for (let i = this.head; i < this.items.length; i += 1) {
               if (this.items[i] !== value)
@@ -16134,20 +19939,22 @@
   }
 
   /**
-   * @class TurboNodeList
+   * @class GradumNodeList
    * @group Components
-   * @category TurboNodeList
-   *
-   * @description A composable, Set-like collection for managing nodes. Supports individual nodes, live DOM
-   * collections ({@link HTMLCollection} or {@link NodeListOf}), and nested {@link TurboNodeList} instances as
-   * sub-lists. Changes to sub-lists and live DOM collections propagate automatically on iteration.
+   * @category Data Structures
    *
    * @template {object} Type - The type of the nodes held in the list.
+   * @description A composable, Set-like collection of nodes. A single list can mix individual nodes, live
+   * DOM collections ([HTMLCollection](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection) or
+   * [NodeList](https://developer.mozilla.org/en-US/docs/Web/API/NodeList)), and nested
+   * {@link GradumNodeList}s. Iteration resolves all of them in order and de-duplicates, so entries added
+   * to a sub-list or to the DOM show up without re-registering anything. Entries are held weakly, so a
+   * node removed from the document drops out of the list on its own.
    */
-  let TurboNodeList = (() => {
+  let GradumNodeList = (() => {
       let _instanceExtraInitializers = [];
       let _set_observeDomLists_decorators;
-      return class TurboNodeList {
+      return class GradumNodeList {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
               __esDecorate$1(this, null, _set_observeDomLists_decorators, { kind: "setter", name: "observeDomLists", static: false, private: false, access: { has: obj => "observeDomLists" in obj, set: (obj, value) => { obj.observeDomLists = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
@@ -16159,7 +19966,7 @@
           subNodeListHandlers = new Map();
           /**
            * @description Delegate fired whenever an entry is added to or removed from the list, including entries
-           * from nested {@link TurboNodeList}s, {@link HTMLCollection}s, and {@link NodeListOf} instances.
+           * from nested {@link GradumNodeList}s, `HTMLCollection`s, and `NodeListOf` instances.
            */
           onChanged = new Delegate();
           /**
@@ -16170,7 +19977,7 @@
               this.add(...values);
           }
           /**
-           * @description Whether to observe added {@link HTMLCollection}s and {@link NodeListOf} instances for DOM
+           * @description Whether to observe added `HTMLCollection`s and `NodeListOf` instances for DOM
            * mutations, automatically firing {@link onChanged} when nodes are added or removed from the DOM.
            */
           set observeDomLists(value) {
@@ -16188,7 +19995,7 @@
               }
           }
           /**
-           * @description A {@link Set} snapshot of all entries in this list, without duplicates.
+           * @description A `Set` snapshot of all entries in this list, without duplicates.
            */
           get list() {
               return new Set(this);
@@ -16216,55 +20023,55 @@
               return count;
           }
           /**
-           * @description The number of slots in this list. Individual entries, {@link HTMLCollection}s,
-           * {@link NodeListOf} instances, and nested {@link TurboNodeList}s each count as one slot, regardless
+           * @description The number of slots in this list. Individual entries, `HTMLCollection`s,
+           * `NodeListOf` instances, and nested {@link GradumNodeList}s each count as one slot, regardless
            * of how many entries they contain. For the number of resolved entries, see {@link size}.
            */
           get slotCount() {
               return this.slots.length;
           }
           /**
-           * @function isTurboNodeList
-           * @protected
-           * @description Type guard — returns true if the given value is a {@link TurboNodeList}.
+           * @function isGradumNodeList
+           * @description Type guard — returns true if the given value is a {@link GradumNodeList}.
            * @param {any} entry - The value to check.
-           * @returns {boolean} Whether the value is a {@link TurboNodeList}.
+           * @returns {boolean} Whether the value is a {@link GradumNodeList}.
+           * @protected
            */
-          isTurboNodeList(entry) {
-              return entry instanceof TurboNodeList;
+          isGradumNodeList(entry) {
+              return entry instanceof GradumNodeList;
           }
           /**
            * @function isDomList
-           * @protected
-           * @description Type guard — returns true if the given value is an {@link HTMLCollection} or
-           * {@link NodeListOf}.
+           * @description Type guard — returns true if the given value is an `HTMLCollection` or
+           * `NodeListOf`.
            * @param {any} entry - The value to check.
            * @returns {boolean} Whether the value is a DOM list.
+           * @protected
            */
           isDomList(entry) {
               return entry instanceof NodeList || entry instanceof HTMLCollection;
           }
           /**
            * @function isSet
-           * @protected
-           * @description Type guard — returns true if the given value is a {@link Set} or an array.
+           * @description Type guard — returns true if the given value is a `Set` or an array.
            * @param {any} entry - The value to check.
            * @returns {boolean} Whether the value is a Set or array.
+           * @protected
            */
           isSet(entry) {
               return entry instanceof Set || Array.isArray(entry);
           }
           /**
            * @function isEntry
-           * @protected
            * @description Type guard — returns true if the given value is an individual node entry (i.e. not a
-           * {@link TurboNodeList}, DOM list, Set, array, or {@link WeakRef}).
+           * {@link GradumNodeList}, DOM list, Set, array, or `WeakRef`).
            * @param {any} entry - The value to check.
            * @returns {boolean} Whether the value is an individual entry.
+           * @protected
            */
           isEntry(entry) {
               return typeof entry === "object" && entry !== null
-                  && !this.isTurboNodeList(entry)
+                  && !this.isGradumNodeList(entry)
                   && !this.isDomList(entry)
                   && !this.isSet(entry)
                   && !(entry instanceof WeakRef);
@@ -16286,22 +20093,31 @@
           }
           /**
            * @function resolveSlot
-           * @description Resolves a slot {@link WeakRef} into its constituent entries. Yields all entries from
-           * sub-lists and DOM lists, or the single entry for individual node slots. Yields nothing if the
-           * referent has been garbage collected.
+           * @description Expand a single slot into the entries it currently stands for — every entry of a
+           * sub-list or DOM list, or the one node of an individual slot. Yields nothing once the slot's
+           * referent has been garbage-collected, which is how dead entries leave the list.
            * @param {WeakRef<NodeListSlot<Type>>} slot - The slot to resolve.
+           * @returns {IterableIterator<Type>} The entries this slot resolves to, in order.
+           * @protected
            */
           *resolveSlot(slot) {
               const obj = slot.deref();
               if (!obj)
                   return;
-              if (this.isTurboNodeList(obj))
+              if (this.isGradumNodeList(obj))
                   yield* obj;
               else if (this.isDomList(obj))
                   yield* Array.from(obj);
               else
                   yield obj;
           }
+          /**
+           * @description Run a callback for each resolved unique entry, in slot order. Ignored and duplicate
+           * entries are skipped.
+           * @param {(value: Type, set: this) => void} callback - Called once per entry.
+           * @param {any} [thisArg] - Value to bind as `this` inside the callback.
+           * @returns {this} Itself, allowing for method chaining.
+           */
           forEach(callback, thisArg) {
               for (const entry of this) {
                   callback.call(thisArg, entry, entry, this);
@@ -16311,8 +20127,8 @@
           /**
            * @function add
            * @description Adds one or more entries to the end of the list. Entries may be individual nodes,
-           * arrays, {@link Set}s, {@link HTMLCollection}s, {@link NodeListOf} instances, or nested
-           * {@link TurboNodeList}s.
+           * arrays, `Set`s, `HTMLCollection`s, `NodeListOf` instances, or nested
+           * {@link GradumNodeList}s.
            * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
            * @returns {this} Itself, allowing for method chaining.
            */
@@ -16323,7 +20139,7 @@
           /**
            * @function addAt
            * @description Adds one or more entries at the given resolved size index. The index refers to the position
-           * among resolved unique entries, not slots. Arrays and {@link Set}s are expanded inline.
+           * among resolved unique entries, not slots. Arrays and `Set`s are expanded inline.
            * @param {number} index - The resolved entry index to insert at.
            * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
            * @returns {this} Itself, allowing for method chaining.
@@ -16334,7 +20150,7 @@
           /**
            * @function addAtSlot
            * @description Adds one or more entries at the given slot index. Subsequent entries are inserted
-           * consecutively after the previous one. Arrays and {@link Set}s are expanded inline, each item
+           * consecutively after the previous one. Arrays and `Set`s are expanded inline, each item
            * occupying the next slot index.
            * @param {number} index - The slot index to insert at.
            * @param {...(NodeListType<Type> | Type)[]} entries - The entries to add.
@@ -16347,8 +20163,8 @@
           /**
            * @function remove
            * @description Removes one or more entries from the list. Entries may be individual nodes, arrays,
-           * {@link Set}s, {@link HTMLCollection}s, {@link NodeListOf} instances, or nested
-           * {@link TurboNodeList}s.
+           * `Set`s, `HTMLCollection`s, `NodeListOf` instances, or nested
+           * {@link GradumNodeList}s.
            * @param {...(NodeListType<Type> | Type)[]} entries - The entries to remove.
            * @returns {this} Itself, allowing for method chaining.
            */
@@ -16359,7 +20175,7 @@
           /**
            * @function removeAtSlot
            * @description Removes one or more slots starting at the given slot index. Each slot removed may
-           * correspond to an individual entry, a DOM list, or a nested {@link TurboNodeList}.
+           * correspond to an individual entry, a DOM list, or a nested {@link GradumNodeList}.
            * @param {number} index - The slot index to start removing from.
            * @param {number} [count=1] - The number of consecutive slots to remove.
            * @returns {this} Itself, allowing for method chaining.
@@ -16374,7 +20190,7 @@
           /**
            * @function move
            * @description Moves an existing entry to the given resolved size index. If the entry is a member of a
-           * nested {@link TurboNodeList}, it is moved within that sub-list. If it belongs to a DOM list, it is
+           * nested {@link GradumNodeList}, it is moved within that sub-list. If it belongs to a DOM list, it is
            * repositioned in the DOM accordingly.
            * @param {Type} entry - The entry to move.
            * @param {number} index - The resolved entry index to move the entry to.
@@ -16387,7 +20203,7 @@
               const container = this.findContainingSlot(entry);
               if (!container)
                   return this;
-              if (this.isTurboNodeList(container)) {
+              if (this.isGradumNodeList(container)) {
                   container.move(entry, index);
                   return this;
               }
@@ -16426,15 +20242,15 @@
           /**
            * @function has
            * @description Checks whether the given entry or entries are present in the list.
-           * - For {@link TurboNodeList}s and DOM lists, checks if they belong to this list.
-           * - For arrays and {@link Set}s, returns true only if every item is present.
+           * - For {@link GradumNodeList}s and DOM lists, checks if they belong to this list.
+           * - For arrays and `Set`s, returns true only if every item is present.
            * @param {Type | NodeListType<Type>} entry - The entry or entries to check.
            * @returns {boolean} Whether the entry or entries are present in the list.
            */
           has(entry) {
               if (!entry)
                   return false;
-              if (this.isTurboNodeList(entry) || this.isDomList(entry))
+              if (this.isGradumNodeList(entry) || this.isDomList(entry))
                   return this.slots.some(s => s.deref() === entry);
               if (this.isSet(entry)) {
                   const arr = Array.from(entry);
@@ -16467,12 +20283,13 @@
           }
           /**
            * @function addEntry
-           * @description Core insertion method. Inserts a single entry, DOM list, sub-list, or expands an
-           * array/Set inline. Skips already-present entries and duplicate slots. Registers sub-list handlers
-           * and DOM observers as needed.
+           * @description Add one value of any accepted shape. Arrays and sets are expanded so each item takes
+           * its own slot; everything else occupies a single slot. Values already present are ignored, and
+           * sub-lists and DOM lists start being watched from here.
            * @param {Type | NodeListType<Type>} entry - The entry to add.
            * @param {number} [index] - The slot index to insert at. Defaults to the end of the slot array.
            * @returns {number} The next available slot index after this insertion, for consecutive chaining.
+           * @protected
            */
           addEntry(entry, index) {
               if (index === undefined)
@@ -16491,7 +20308,7 @@
               if (this.slots.some(s => s.deref() === entry))
                   return index;
               index = this.insertOrRemoveSlot(entry, "added", index);
-              if (this.isTurboNodeList(entry)) {
+              if (this.isGradumNodeList(entry)) {
                   const handler = (subEntry, state) => {
                       if (state === "added" && this.ignoredMap.get(subEntry))
                           return;
@@ -16506,10 +20323,11 @@
           }
           /**
            * @function removeEntry
-           * @description Core removal method. Removes a single entry, DOM list, sub-list, or expands an
-           * array/Set inline. Marks removed individual entries in {@link ignoredMap}. Disconnects observers
-           * and unregisters sub-list handlers as needed.
+           * @description Remove one value of any accepted shape. Arrays and sets are expanded and removed
+           * item by item. An individual entry stays suppressed even if a sub-list or DOM list it belongs to
+           * still resolves to it, and sub-lists and DOM lists stop being watched from here.
            * @param {Type | NodeListType<Type>} entry - The entry to remove.
+           * @protected
            */
           removeEntry(entry) {
               if (!entry)
@@ -16526,7 +20344,7 @@
                   }
                   return;
               }
-              if (this.isTurboNodeList(entry)) {
+              if (this.isGradumNodeList(entry)) {
                   const handler = this.subNodeListHandlers.get(entry);
                   if (handler) {
                       entry.onChanged.remove(handler);
@@ -16544,13 +20362,13 @@
           }
           /**
            * @function insertOrRemoveSlot
-           * @description Low-level slot mutation. On `"added"`, clamps the index and splices a new
-           * {@link WeakRef} into {@link slots}. On `"removed"`, finds the slot by identity and splices it out.
-           * Fires {@link onChanged} for all resolved entries of the slot.
+           * @description Insert or drop a single slot and announce it, firing {@link onChanged} once per
+           * entry the slot resolves to. An out-of-range insertion index is clamped to the ends.
            * @param {NodeListSlot<Type>} slot - The slot value to insert or remove.
            * @param {"added" | "removed"} state - Whether to insert or remove the slot.
            * @param {number} [index] - Slot index for insertion. Ignored on removal.
            * @returns {number} The next available slot index after the operation, for consecutive chaining.
+           * @protected
            */
           insertOrRemoveSlot(slot, state, index) {
               if (state === "added") {
@@ -16573,7 +20391,7 @@
           }
           /**
            * @function attachObserver
-           * @description Attaches a {@link MutationObserver} to the parent of the first node in the given DOM
+           * @description Attaches a `MutationObserver` to the parent of the first node in the given DOM
            * list, firing {@link onChanged} when nodes matching the list are added to or removed from the DOM.
            * Does nothing if an observer is already attached for this list, or if no parent node is found.
            * @param {HTMLCollection | NodeListOf<Type & Node>} domList - The DOM list to observe.
@@ -16605,6 +20423,14 @@
               observer.observe(parent, { childList: true, subtree: true });
               this.domListObservers.set(domList, observer);
           }
+          /**
+           * @function sizeIndexToSlotIndex
+           * @description Translate a position among resolved entries into the slot index that holds it. The
+           * two differ whenever a slot resolves to more than one entry, as DOM lists and sub-lists do.
+           * @param {number} sizeIndex - The resolved entry index, clamped to the current size.
+           * @returns {number} The matching slot index.
+           * @protected
+           */
           sizeIndexToSlotIndex(sizeIndex) {
               const size = this.size;
               sizeIndex = trim(sizeIndex, size, 0, size);
@@ -16622,12 +20448,12 @@
           }
           /**
            * @function findContainingSlot
-           * @protected
            * @description Finds the slot that directly contains or resolves to the given entry.
-           * Returns the slot itself if the entry is a direct slot, the nested {@link TurboNodeList}
+           * Returns the slot itself if the entry is a direct slot, the nested {@link GradumNodeList}
            * that contains it, or the DOM list that contains it.
            * @param {Type} entry - The entry to locate.
            * @returns {NodeListSlot<Type> | undefined} The containing slot, or undefined if not found.
+           * @protected
            */
           findContainingSlot(entry) {
               for (const slot of this.slots) {
@@ -16636,7 +20462,7 @@
                       continue;
                   if (obj === entry)
                       return obj;
-                  if (this.isTurboNodeList(obj) && obj.has(entry))
+                  if (this.isGradumNodeList(obj) && obj.has(entry))
                       return obj;
                   else if (this.isDomList(obj) && Array.from(obj).includes(entry))
                       return obj;
@@ -16646,84 +20472,95 @@
   })();
 
   /**
-   * @class TurboSubstrate
+   * @class GradumConstrainer
    * @group MVC
-   * @category Substrate
+   * @category Constrainer
    *
-   * @extends TurboController
+   * @extends GradumOperator
    * @template {object} ElementType - The type of the element.
-   * @template {TurboView} ViewType - The element's view type, if any.
-   * @template {TurboModel} ModelType - The element's model type, if any.
-   * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
-   * @description Class representing a substrate in MVC, bound to the provided element.
+   * @template {GradumView} ViewType - The element's view type, if any.
+   * @template {GradumModel} ModelType - The element's model type, if any.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+   * @description Keeps a set of objects satisfying a constraint. Attach one to an element and it watches a
+   * list of objects, and whenever a trigger object is interacted with it runs the solvers declared with
+   * `@solver` until the constraint holds again — capped by `maxPasses` so propagation cannot cycle forever.
+   * Checkers (`@checker`) report whether the constraint already holds; mutators (`@mutator`) adjust values
+   * as part of resolving.
    */
-  class TurboSubstrate extends TurboController {
+  class GradumConstrainer extends GradumOperator {
       /**
-       * @description The name of the substrate.
+       * @description The name of the constrainer.
        */
-      substrateName;
+      constrainerName;
       /**
-       * @description The property keys of the substrate solvers defined in the instance.
+       * @description The property keys of the constrainer solvers defined in the instance.
        */
       solversMetadata = [];
       /**
-       * @description The property keys of the substrate checkers defined in the instance.
+       * @description The property keys of the constrainer checkers defined in the instance.
        */
       checkersMetadata = [];
       /**
-       * @description The property keys of the substrate mutators defined in the instance.
+       * @description The property keys of the constrainer mutators defined in the instance.
        */
       mutatorsMetadata = [];
       /**
-       * @description The priority of the substrate. Higher priority substrates (lower number) should
+       * @description The priority of the constrainer. Higher priority constrainers (lower number) should
        * be resolved first. Defaults to 10.
        */
       priority;
       /**
-       * @description The list of objects constrained by the substrate. To manipulate, check {@link TurboNodeList}.
-       * Defaults to the children of the element the substrate is attached to.
+       * @description The list of objects constrained by the constrainer. To manipulate, check {@link GradumNodeList}.
+       * Defaults to the children of the element the constrainer is attached to.
        */
       objectList;
       /**
-       * @description The list of objects that trigger the substrate to resolve.
-       * Interacting with any of these objects would typically lead to the solving of the given substrate.
-       * To manipulate, check {@link TurboNodeList}. Defaults to the objects in this.objectList.
+       * @description The list of objects that trigger the constrainer to resolve.
+       * Interacting with any of these objects would typically lead to the solving of the given constrainer.
+       * To manipulate, check {@link GradumNodeList}. Defaults to the objects in this.objectList.
        */
       triggerList;
       /**
-       * @description The default queue template for the substrate, used when starting a new resolving pass.
-       * It defaults to the substrate's object list.
+       * @description The default queue template for the constrainer, used when starting a new resolving pass.
+       * It defaults to the constrainer's object list.
        */
       defaultQueue;
       /**
-       * @description The maximum number of passes allowed per object for this substrate during resolving.
+       * @description The maximum number of passes allowed per object for this constrainer during resolving.
        * This helps prevent infinite cycles in constraint propagation. Defaults to 5.
        */
       maxPasses;
       /**
-       * @description Whether the substrate is active. Defaults to true.
+       * @description Whether the constrainer is active. Defaults to true.
        */
       get active() {
-          return turbo(this).activeSubstrates.includes(this.substrateName);
+          return gradum(this).activeConstrainers.includes(this.constrainerName);
       }
       set active(value) {
-          turbo(this).toggleSubstrate(this.substrateName, value);
+          gradum(this).toggleConstrainer(this.constrainerName, value);
       }
       /**
-       * @description Delegate fired whenever an object is added to or removed from the substrate's object list.
+       * @description Delegate fired whenever an object is added to or removed from the constrainer's object list.
        */
       get onObjectListChange() {
-          return turbo(this).onSubstrateObjectListChange(this.substrateName);
+          return gradum(this).onConstrainerObjectListChange(this.constrainerName);
       }
       /**
-       * @description The current queue to be processed by the substrate while resolving.
+       * @description The current queue to be processed by the constrainer while resolving.
        */
       get queue() {
-          return turbo(this).getSubstrateQueue(this.substrateName);
+          return gradum(this).getConstrainerQueue(this.constrainerName);
       }
+      /**
+       * @constructor
+       * @description Create a constrainer bound to an element. If no object list is supplied, it defaults to the
+       * element's children, and the trigger list defaults to that same object list.
+       * @param {GradumConstrainerProperties} properties - The element to attach to, plus the constrainer name,
+       * priority, active state, and activation callbacks.
+       */
       constructor(properties) {
           super(properties);
-          this.substrateName = properties.substrateName ?? this.substrateName ?? undefined;
+          this.constrainerName = properties.constrainerName ?? this.constrainerName ?? undefined;
           if (properties.onActivate)
               this.onActivate = properties.onActivate;
           if (properties.onDeactivate)
@@ -16733,24 +20570,24 @@
           if (typeof properties.priority === "number")
               this.priority = properties.priority;
           if (!this.objectList)
-              this.objectList = new TurboNodeList(this.element instanceof Element ? this.element.children
+              this.objectList = new GradumNodeList(this.element instanceof Element ? this.element.children
                   : this.element instanceof Node ? this.element.childNodes
                       : []);
           if (!this.triggerList)
-              this.triggerList = new TurboNodeList(this.objectList);
+              this.triggerList = new GradumNodeList(this.objectList);
           this.setup();
       }
       /**
        * @function initialize
        * @override
-       * @description Initialization function that calls {@link makeSubstrate} on `this.element`, sets it up, and attaches
-       * all the defined solvers.
+       * @description Initialization function that calls {@link GradumSelector.makeConstrainer} on `this.element`, sets
+       * it up, and attaches all the defined solvers.
        */
       initialize() {
           super.initialize();
-          if (!this.substrateName)
+          if (!this.constrainerName)
               return;
-          turbo(this).makeSubstrate(this.substrateName, {
+          gradum(this).makeConstrainer(this.constrainerName, {
               onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
               onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
               attachedInstance: this
@@ -16758,9 +20595,9 @@
           this.solversMetadata.forEach(metadata => {
               if (!metadata.name)
                   return;
-              turbo(this).addSolver({
+              gradum(this).addSolver({
                   name: metadata.name,
-                  substrate: this.substrateName,
+                  constrainer: this.constrainerName,
                   priority: metadata.priority,
                   callback: props => this[metadata.name]?.(props)
               });
@@ -16768,9 +20605,9 @@
           this.checkersMetadata.forEach(metadata => {
               if (!metadata.name)
                   return;
-              turbo(this).addChecker({
+              gradum(this).addChecker({
                   name: metadata.name,
-                  substrate: this.substrateName,
+                  constrainer: this.constrainerName,
                   priority: metadata.priority,
                   callback: props => this[metadata.name]?.(props)
               });
@@ -16778,9 +20615,9 @@
           this.mutatorsMetadata.forEach(metadata => {
               if (!metadata.name)
                   return;
-              turbo(this).addMutator({
+              gradum(this).addMutator({
                   name: metadata.name,
-                  substrate: this.substrateName,
+                  constrainer: this.constrainerName,
                   priority: metadata.priority,
                   callback: props => this[metadata.name]?.(props)
               });
@@ -16789,190 +20626,194 @@
       /**
        * @function getObjectPasses
        * @description Retrieve how many times the given object has been processed for the current resolving session
-       * of the substrate.
+       * of the constrainer.
        * @param {object} object - The object to query.
-       * @return {number} - Number of passes already performed on this object.
+       * @returns {number} Number of passes already performed on this object.
        */
       getObjectPasses(object) {
-          return turbo(this).getObjectPassesForSubstrate(object, this.substrateName);
+          return gradum(this).getObjectPassesForConstrainer(object, this.constrainerName);
       }
       /**
        * @function getObjectData
-       * @description Retrieve custom per-object data for this substrate. It is reset on every new
+       * @description Retrieve custom per-object data for this constrainer. It is reset on every new
        * resolving session.
        * @param {object} object - The object to query.
-       * @return {Record<string, any>} - The stored data object (or an empty object if none).
+       * @returns {Record<string, any>} The stored data object (or an empty object if none).
        */
       getObjectData(object) {
-          return turbo(this).getObjectDataForSubstrate(object, this.substrateName);
+          return gradum(this).getObjectDataForConstrainer(object, this.constrainerName);
       }
       /**
        * @function setObjectData
-       * @description Set custom per-object data for this substrate. It is reset on every new resolving session.
+       * @description Set custom per-object data for this constrainer. It is reset on every new resolving session.
        * @param {object} object - The object to update.
        * @param {Record<string, any>} [data] - The new data object to associate with this object.
-       * @return {this} - Itself for chaining.
+       * @returns {this} Itself, allowing for method chaining.
        */
       setObjectData(object, data) {
-          return turbo(this).setObjectDataForSubstrate(object, data, this.substrateName);
+          return gradum(this).setObjectDataForConstrainer(object, data, this.constrainerName);
       }
       /**
        * @function addChecker
-       * @description Register a checker in the substrate. Checkers dictate whether the event should continue
+       * @description Register a checker in the constrainer. Checkers dictate whether the event should continue
        * executing depending on the provided context (event, tool, target, etc.).
-       * @param {SubstrateAddCallbackProperties<SubstrateChecker>} properties - Configuration object, including the
+       * @param {ConstrainerAddCallbackProperties<ConstrainerChecker>} properties - Configuration object, including the
        * checker `callback` to be executed, the `name` of the checker to access it later, the name of the attached
-       * `substrate`, and the `priority` of the checker.
-       * @return {this} - Itself for chaining.
+       * `constrainer`, and the `priority` of the checker.
+       * @returns {this} Itself, allowing for method chaining.
        */
       addChecker(properties) {
-          turbo(this).addChecker({ ...properties, substrate: this.substrateName });
+          gradum(this).addChecker({ ...properties, constrainer: this.constrainerName });
           return this;
       }
       /**
        * @function removeChecker
-       * @description Remove a checker from this substrate by its name.
+       * @description Remove a checker from this constrainer by its name.
        * @param {string} name - The checker name.
-       * @return {this} - Itself for chaining.
+       * @returns {this} Itself, allowing for method chaining.
        */
       removeChecker(name) {
-          turbo(this).removeChecker(name, this.substrateName);
+          gradum(this).removeChecker(name, this.constrainerName);
           return this;
       }
       /**
        * @function clearCheckers
-       * @description Remove all checkers attached to this substrate.
-       * @return {this} - Itself for chaining.
+       * @description Remove all checkers attached to this constrainer.
+       * @returns {this} Itself, allowing for method chaining.
        */
       clearCheckers() {
-          turbo(this).clearCheckers(this.substrateName);
+          gradum(this).clearCheckers(this.constrainerName);
           return this;
       }
       /**
        * @function check
-       * @description Evaluate all checkers for this substrate and return whether the event should proceed or halt.
-       * @param {SubstrateCallbackProperties} [properties] - Context passed to each checker.
-       * @return {boolean} - Whether the substrate passes all checks.
+       * @description Evaluate all checkers for this constrainer and return whether the event should proceed or halt.
+       * @param {ConstrainerCallbackProperties} [properties] - Context passed to each checker.
+       * @returns {boolean} Whether the constrainer passes all checks.
        */
       check(properties) {
-          return turbo(this).checkSubstrate({ ...properties, substrate: this.substrateName });
+          return gradum(this).checkConstrainer({ ...properties, constrainer: this.constrainerName });
       }
-      //MUTATOR
       /**
        * @function addMutator
-       * @description Register a mutator in the substrate. Mutators compute or transform a value based on the context.
-       * @param {SubstrateAddCallbackProperties<SubstrateMutator>} properties - Configuration object, including the
+       * @description Register a mutator in the constrainer. Mutators compute or transform a value based on the context.
+       * @param {ConstrainerAddCallbackProperties<ConstrainerMutator>} properties - Configuration object, including the
        * mutator `callback` to be executed, the `name` of the mutator to access it later, and the `priority` of the mutator.
-       * @return {this} - Itself for chaining.
+       * @returns {this} Itself, allowing for method chaining.
        */
       addMutator(properties) {
-          turbo(this).addMutator({ ...properties, substrate: this.substrateName });
+          gradum(this).addMutator({ ...properties, constrainer: this.constrainerName });
           return this;
       }
       /**
        * @function removeMutator
-       * @description Remove a mutator from this substrate by its name.
+       * @description Remove a mutator from this constrainer by its name.
        * @param {string} name - The mutator name.
-       * @return {this} - Itself for chaining.
+       * @returns {this} Itself, allowing for method chaining.
        */
       removeMutator(name) {
-          turbo(this).removeMutator(name, this.substrateName);
+          gradum(this).removeMutator(name, this.constrainerName);
           return this;
       }
       /**
        * @function clearMutators
-       * @description Remove all mutators attached to this substrate.
-       * @return {this} - Itself for chaining.
+       * @description Remove all mutators attached to this constrainer.
+       * @returns {this} Itself, allowing for method chaining.
        */
       clearMutators() {
-          turbo(this).clearMutators(this.substrateName);
+          gradum(this).clearMutators(this.constrainerName);
           return this;
       }
       /**
        * @function mutate
        * @template Type - The type of the value to mutate
-       * @description Execute a mutator for this substrate and return the resulting value.
-       * @param {SubstrateMutatorProperties<Type>} [properties] - Context object, including the
+       * @description Execute a mutator for this constrainer and return the resulting value.
+       * @param {ConstrainerMutatorProperties<Type>} [properties] - Context object, including the
        * `mutation` to execute, and the input `value` to mutate.
-       * @return {Type} - The mutated result.
+       * @returns {Type} The mutated result.
        */
       mutate(properties) {
-          return turbo(this).mutate({ ...properties, substrate: this.substrateName });
+          return gradum(this).mutate({ ...properties, constrainer: this.constrainerName });
       }
       /**
        * @function addSolver
-       * @description Register a solver in the substrate. Solvers typically execute after an event is fired to
-       * ensure the substrate's constraints are maintained. They process all objects in the substrate's queue,
+       * @description Register a solver in the constrainer. Solvers typically execute after an event is fired to
+       * ensure the constrainer's constraints are maintained. They process all objects in the constrainer's queue,
        * one after the other.
-       * @param {SubstrateAddCallbackProperties<SubstrateSolver>} properties - Configuration object, including the
+       * @param {ConstrainerAddCallbackProperties<ConstrainerSolver>} properties - Configuration object, including the
        * solver `callback` to be executed, the `name` of the solver to access it later, and the `priority` of the solver.
-       * @return {this} - Itself for chaining.
+       * @returns {this} Itself, allowing for method chaining.
        */
       addSolver(properties) {
-          turbo(this).addSolver({ ...properties, substrate: this.substrateName });
+          gradum(this).addSolver({ ...properties, constrainer: this.constrainerName });
           return this;
       }
       /**
        * @function removeSolver
-       * @description Remove the given function from the substrate's list of solvers.
+       * @description Remove the given function from the constrainer's list of solvers.
        * @param {string} name - The solver's name.
-       * @return {this} - Itself for chaining.
+       * @returns {this} Itself, allowing for method chaining.
        */
       removeSolver(name) {
-          turbo(this).removeSolver(name, this.substrateName);
+          gradum(this).removeSolver(name, this.constrainerName);
           return this;
       }
       /**
        * @function clearSolvers
-       * @description Remove all solvers attached to the substrate.
-       * @return {this} - Itself for chaining.
+       * @description Remove all solvers attached to the constrainer.
+       * @returns {this} Itself, allowing for method chaining.
        */
       clearSolvers() {
-          turbo(this).clearSolvers(this.substrateName);
+          gradum(this).clearSolvers(this.constrainerName);
           return this;
       }
       /**
-       * @function solveSubstrate
-       * @description Solve the substrate by executing all of its attached solvers. Each solver will be executed
-       * on every object in the substrate's queue, incrementing its number of passes in the process.
-       * @param {SubstrateCallbackProperties} [properties] - Options object to configure the context.
-       * @return {this} - Itself for chaining.
+       * @function solve
+       * @description Solve the constrainer by executing all of its attached solvers. Each solver will be executed
+       * on every object in the constrainer's queue, incrementing its number of passes in the process.
+       * @param {ConstrainerCallbackProperties} [properties] - Options object to configure the context.
+       * @returns {this} Itself, allowing for method chaining.
        */
       solve(properties = {}) {
-          turbo(this).solveSubstrate({ ...properties, substrate: this.substrateName });
+          gradum(this).solveConstrainer({ ...properties, constrainer: this.constrainerName });
           return this;
       }
   }
-  addRegistryCategory(TurboSubstrate);
-  define(TurboSubstrate);
+  addRegistryCategory(GradumConstrainer);
+  define(GradumConstrainer);
 
-  class SubstrateFunctionsUtils {
-      objectsSet = new TurboWeakSet();
+  /**
+   * @internal
+   * @class ConstrainerFunctionsUtils
+   * @description Shared helpers and per-element state behind the constrainer functions on {@link GradumSelector}.
+   */
+  class ConstrainerFunctionsUtils {
+      objectsSet = new GradumWeakSet();
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (!element)
               return {};
           if (!this.dataMap.has(element))
-              this.dataMap.set(element, { substrates: new Map() });
+              this.dataMap.set(element, { constrainers: new Map() });
           return this.dataMap.get(element);
       }
-      createSubstrate(element, substrate) {
-          if (element instanceof TurboSelector)
+      createConstrainer(element, constrainer) {
+          if (element instanceof GradumSelector)
               element = element.element;
-          const objectList = new TurboNodeList(element instanceof Element ? element.children
+          const objectList = new GradumNodeList(element instanceof Element ? element.children
               : element instanceof Node ? element.childNodes
                   : []);
           const data = {
               active: false,
               objectList: objectList,
-              triggerList: new TurboNodeList(objectList),
+              triggerList: new GradumNodeList(objectList),
               customData: new WeakMap(),
               objectsChangedDelegate: new Delegate(),
               priority: 10,
               maxPasses: 5,
-              queue: new TurboQueue(),
+              queue: new GradumQueue(),
               passes: new WeakMap(),
               onActivate: new Delegate(),
               onDeactivate: new Delegate(),
@@ -16983,12 +20824,32 @@
           };
           if (element) {
               this.objectsSet.add(element);
-              this.data(element).substrates.set(substrate, data);
+              this.data(element).constrainers.set(constrainer, data);
+              this.ensureObjectListBridge(element, constrainer);
           }
           return data;
       }
-      activate(element, substrate, activate) {
-          const data = this.getSubstrateData(element, substrate);
+      /**
+       * @description Forward the effective object list's onChanged into objectsChangedDelegate, so the public
+       * onObjectListChange API actually fires. The effective list may be the data's own objectList
+       * or one shadowed by an attached GradumConstrainer instance, and either can be replaced later —
+       * call this again after any change to rewire (the previous bridge is removed).
+       */
+      ensureObjectListBridge(element, constrainer) {
+          const data = this.getConstrainerData(element, constrainer);
+          if (!data)
+              return;
+          const list = this.getField(element, constrainer, "objectList");
+          if (!(list instanceof GradumNodeList) || data.bridgedObjectList === list)
+              return;
+          if (data.bridgedObjectList && data.bridgeHandler)
+              data.bridgedObjectList.onChanged.remove(data.bridgeHandler);
+          data.bridgeHandler = (entry, state) => data.objectsChangedDelegate.fire(entry, state);
+          data.bridgedObjectList = list;
+          list.onChanged.add(data.bridgeHandler);
+      }
+      activate(element, constrainer, activate) {
+          const data = this.getConstrainerData(element, constrainer);
           if (!data)
               return;
           if (typeof activate === "boolean")
@@ -16996,14 +20857,14 @@
           else
               data.active = !data.active;
       }
-      getSubstrateData(element, substrate) {
-          return this.data(element)?.substrates?.get(substrate);
+      getConstrainerData(element, constrainer) {
+          return this.data(element)?.constrainers?.get(constrainer);
       }
-      getSubstrates(element) {
-          return [...this.data(element)?.substrates?.keys()];
+      getConstrainers(element) {
+          return [...this.data(element)?.constrainers?.keys()];
       }
-      getActiveSubstrates(element) {
-          const data = this.data(element)?.substrates;
+      getActiveConstrainers(element) {
+          const data = this.data(element)?.constrainers;
           if (!data)
               return [];
           const entries = [];
@@ -17013,8 +20874,8 @@
           }
           return entries;
       }
-      getDefaultSubstrate(element, allowInactive = true) {
-          const data = this.data(element).substrates;
+      getDefaultConstrainer(element, allowInactive = true) {
+          const data = this.data(element).constrainers;
           if (!data)
               return;
           for (const [key, value] of data.entries()) {
@@ -17024,109 +20885,118 @@
           if (allowInactive)
               return data.keys()[0];
       }
-      getCustomData(element, substrate, object) {
-          const substrateData = this.getSubstrateData(element, substrate);
-          if (!substrateData || !substrateData.customData)
+      getCustomData(element, constrainer, object) {
+          const constrainerData = this.getConstrainerData(element, constrainer);
+          if (!constrainerData || !constrainerData.customData)
               return {};
-          let customData = substrateData.customData.get(object);
+          let customData = constrainerData.customData.get(object);
           if (!customData) {
               customData = {};
-              substrateData.customData.set(object, customData);
+              constrainerData.customData.set(object, customData);
           }
           return customData;
       }
-      getSubstratesTriggeredByObjects(...elements) {
+      getConstrainersTriggeredByObjects(...elements) {
           if (!elements || elements.length === 0)
               return [];
           const nodeTargets = elements.filter(el => el instanceof Node);
           const data = [];
-          const checkTargets = (substrateName, object) => {
+          const checkTargets = (constrainerName, object) => {
               const hits = new Set();
-              const list = this.getField(object, substrateName, "triggerList") ?? new TurboNodeList();
+              const list = this.getField(object, constrainerName, "triggerList") ?? new GradumNodeList();
               for (const el of nodeTargets)
                   if (list.has(el))
                       hits.add(el);
               return Array.from(hits.values());
           };
-          this.objectsSet.toArray().forEach(object => this.data(object).substrates.forEach((substrateData, name) => {
-              if (!substrateData.active)
+          this.objectsSet.toArray().forEach(object => this.data(object).constrainers.forEach((constrainerData, name) => {
+              if (!constrainerData.active)
                   return;
               const hits = checkTargets(name, object);
               if (hits.length > 0)
-                  data.push({ name, data: substrateData, host: object, targets: hits });
+                  data.push({ name, data: constrainerData, host: object, targets: hits });
           }));
           data.sort((a, b) => this.getField(a.host, a.name, "priority") - this.getField(b.host, b.name, "priority"));
           return data;
       }
-      getField(element, substrate, field) {
-          const data = this.getSubstrateData(element, substrate);
+      getField(element, constrainer, field) {
+          const data = this.getConstrainerData(element, constrainer);
           if (!data)
               return;
-          if (data.attachedInstance && data.attachedInstance instanceof TurboSubstrate
+          if (data.attachedInstance && data.attachedInstance instanceof GradumConstrainer
               && data.attachedInstance[field] !== undefined)
               return data.attachedInstance[field];
           return data[field];
       }
-      setField(element, substrate, field, value) {
-          const data = this.getSubstrateData(element, substrate);
-          if (data.attachedInstance && data.attachedInstance instanceof TurboSubstrate)
+      setField(element, constrainer, field, value) {
+          const data = this.getConstrainerData(element, constrainer);
+          if (data.attachedInstance && data.attachedInstance instanceof GradumConstrainer)
               data.attachedInstance[field] = value;
           else
               data[field] = value;
+          if (field === "objectList")
+              this.ensureObjectListBridge(element, constrainer);
       }
-      setupSubstrateCallbackProperties(element, properties) {
-          if (element instanceof TurboSelector)
+      setupConstrainerCallbackProperties(element, properties) {
+          if (element instanceof GradumSelector)
               element = element.element;
-          turbo(properties).applyDefaults({
-              substrateHost: element,
-              substrate: element ? this.getDefaultSubstrate(element, false) : undefined,
-              manager: TurboEventManager.instance,
+          gradum(properties).applyDefaults({
+              constrainerHost: element,
+              constrainer: element ? this.getDefaultConstrainer(element, false) : undefined,
+              manager: GradumEventManager.instance,
               eventOptions: {},
               toolName: properties.event?.toolName,
               eventType: properties.event?.type,
               eventTarget: properties.event?.target
           });
       }
-      solveSubstrateInternal(data, properties) {
-          const substrateData = data.data;
-          substrateData.passes = new WeakMap();
-          substrateData.customData = new WeakMap();
-          substrateData.queue = turbo(data.host).getDefaultSubstrateQueue(data.name);
-          if (!substrateData.queue)
-              substrateData.queue = new TurboQueue();
-          if (!substrateData.solvers)
+      solveConstrainerInternal(data, properties) {
+          const constrainerData = data.data;
+          constrainerData.passes = new WeakMap();
+          constrainerData.customData = new WeakMap();
+          constrainerData.queue = gradum(data.host).getDefaultConstrainerQueue(data.name);
+          if (!constrainerData.queue)
+              constrainerData.queue = new GradumQueue();
+          if (!constrainerData.solvers)
               return;
           let object = properties.eventTarget;
           if (properties.eventTarget)
-              substrateData.queue.remove(properties.eventTarget);
+              constrainerData.queue.remove(properties.eventTarget);
           else
-              object = substrateData.queue.pop();
+              object = constrainerData.queue.pop();
           const onObjectAdded = (entry, state) => {
               if (state === "added")
-                  substrateData.queue.push(entry);
+                  constrainerData.queue.push(entry);
           };
-          substrateData.objectList.onChanged.add(onObjectAdded);
+          constrainerData.objectList.onChanged.add(onObjectAdded);
           while (object) {
-              const passes = substrateData.passes.get(object) ?? 0;
-              if (passes < substrateData.maxPasses) {
-                  substrateData.passes.set(object, passes + 1);
-                  for (const solverName of substrateData.sortedSolvers) {
-                      const propagation = substrateData.solvers.get(solverName)?.callback({ ...properties, target: object, substrate: data.name });
+              const passes = constrainerData.passes.get(object) ?? 0;
+              if (passes < constrainerData.maxPasses) {
+                  constrainerData.passes.set(object, passes + 1);
+                  for (const solverName of constrainerData.sortedSolvers) {
+                      const propagation = constrainerData.solvers.get(solverName)?.callback({ ...properties, target: object, constrainer: data.name });
                       if (propagation === Propagation.stopImmediatePropagation || propagation === Propagation.stopPropagation)
                           break;
                   }
               }
-              object = substrateData.queue.pop();
+              object = constrainerData.queue.pop();
           }
-          substrateData.objectList.onChanged.remove(onObjectAdded);
+          constrainerData.objectList.onChanged.remove(onObjectAdded);
       }
   }
 
   /**
-   * Inserts `item` into `array` using binary search.
-   * Keeps array sorted according to `compare`.
-   *
-   * @returns the index where the item was inserted
+   * @internal
+   * @function binaryInsert
+   * @template Type - The type of the array's entries.
+   * @description Insert an item into an already-sorted array, keeping it sorted. Locates the slot by binary
+   * search, so it stays cheap on large arrays. *Note: the array is mutated in place; nothing is returned as a
+   * copy. The array must already be sorted by the same comparator, or the insertion point is meaningless.*
+   * @param {Type[]} array - The sorted array to insert into. Mutated in place.
+   * @param {Type} item - The item to insert.
+   * @param {(a: Type, b: Type) => number} compare - Comparator returning a negative number, zero, or a positive
+   * number, matching `Array.prototype.sort`.
+   * @returns {number} The index the item was inserted at.
    */
   function binaryInsert(array, item, compare) {
       let low = 0;
@@ -17143,8 +21013,14 @@
   }
 
   /**
+   * @function randomId
    * @group Utilities
    * @category Random
+   *
+   * @description Generate a random identifier from the platform's cryptographic random source. Prefer it over
+   * {@link randomString} whenever the value has to be unpredictable, such as an element or record ID.
+   * @param {number} [length=8] - How many characters the ID should be.
+   * @returns {string} A random alphanumeric ID of the requested length.
    */
   function randomId(length = 8) {
       const array = new Uint8Array(length);
@@ -17155,8 +21031,15 @@
           .slice(0, length);
   }
   /**
+   * @function randomFromRange
    * @group Utilities
    * @category Random
+   *
+   * @description Pick a random number between two bounds. The bounds may be given in either order, and
+   * non-numeric input yields `0` rather than `NaN`.
+   * @param {number} n1 - One end of the range.
+   * @param {number} n2 - The other end of the range.
+   * @returns {number} A number in `[min, max)`, or `0` if either bound was not a number.
    */
   function randomFromRange(n1, n2) {
       if (typeof n1 != "number" || typeof n2 != "number")
@@ -17166,8 +21049,14 @@
       return (Math.random() * (max - min)) + min;
   }
   /**
+   * @function randomString
    * @group Utilities
    * @category Random
+   *
+   * @description Generate a random alphanumeric string from `Math.random`. Suitable for filler and test data;
+   * use {@link randomId} instead when the value must be unguessable.
+   * @param {number} [length=12] - How many characters the string should be.
+   * @returns {string} A random string of the requested length.
    */
   function randomString(length = 12) {
       const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -17177,239 +21066,251 @@
       return result;
   }
 
-  const utils$2 = new SubstrateFunctionsUtils();
-  function setupSubstrateFunctions() {
-      TurboSelector.prototype.makeSubstrate = function _makeSubstrate(substrate, options) {
-          if (!utils$2.getSubstrateData(this, substrate))
-              utils$2.createSubstrate(this, substrate);
+  const utils$2 = new ConstrainerFunctionsUtils();
+  /**
+   * @internal
+   * @function setupConstrainerFunctions
+   * @description Install the constrainer functions (`makeConstrainer`, `solveConstrainer`, `mutate`, ...) onto the
+   * {@link GradumSelector} prototype. Called once by
+   * {@link gradumify}; the matching `exclude` option skips it.
+   */
+  function setupConstrainerFunctions() {
+      GradumSelector.prototype.makeConstrainer = function _makeConstrainer(constrainer, options) {
+          if (!utils$2.getConstrainerData(this, constrainer))
+              utils$2.createConstrainer(this, constrainer);
           if (options?.onActivate)
-              this.onSubstrateActivate(substrate).add(options.onActivate);
+              this.onConstrainerActivate(constrainer).add(options.onActivate);
           if (options?.onDeactivate)
-              this.onSubstrateDeactivate(substrate).add(options.onDeactivate);
+              this.onConstrainerDeactivate(constrainer).add(options.onDeactivate);
           if (options?.priority)
-              utils$2.getSubstrateData(this, substrate).priority = options.priority;
-          if (options?.attachedInstance)
-              utils$2.getSubstrateData(this, substrate).attachedInstance = options.attachedInstance;
+              utils$2.getConstrainerData(this, constrainer).priority = options.priority;
+          if (options?.attachedInstance) {
+              utils$2.getConstrainerData(this, constrainer).attachedInstance = options.attachedInstance;
+              // The instance may shadow the data's objectList — rewire the onObjectListChange bridge.
+              utils$2.ensureObjectListBridge(this, constrainer);
+          }
           if (options?.active || options?.active === undefined)
-              utils$2.activate(this, substrate, true);
+              utils$2.activate(this, constrainer, true);
           return this;
       };
-      Object.defineProperty(TurboSelector.prototype, "substratesNames", {
+      Object.defineProperty(GradumSelector.prototype, "constrainersNames", {
           get: function () {
-              return utils$2.getSubstrates(this.element);
+              return utils$2.getConstrainers(this.element);
           },
           configurable: false,
           enumerable: true
       });
       //ACTIVATION
-      Object.defineProperty(TurboSelector.prototype, "activeSubstrates", {
+      Object.defineProperty(GradumSelector.prototype, "activeConstrainers", {
           get: function () {
-              return utils$2.getActiveSubstrates(this.element);
+              return utils$2.getActiveConstrainers(this.element);
           },
           configurable: false,
           enumerable: true
       });
-      TurboSelector.prototype.activateSubstrate = function _activateSubstrates(...substrates) {
-          const targets = substrates.length ? substrates : [utils$2.getDefaultSubstrate(this)];
-          targets.forEach(substrate => {
-              if (substrate)
-                  utils$2.activate(this, substrate, true);
+      GradumSelector.prototype.activateConstrainer = function _activateConstrainers(...constrainers) {
+          const targets = constrainers.length ? constrainers : [utils$2.getDefaultConstrainer(this)];
+          targets.forEach(constrainer => {
+              if (constrainer)
+                  utils$2.activate(this, constrainer, true);
           });
           return this;
       };
-      TurboSelector.prototype.deactivateSubstrate = function _deactivateSubstrates(...substrates) {
-          const targets = substrates.length ? substrates : [utils$2.getDefaultSubstrate(this)];
-          targets.forEach(substrate => {
-              if (substrate)
-                  utils$2.activate(this, substrate, false);
+      GradumSelector.prototype.deactivateConstrainer = function _deactivateConstrainers(...constrainers) {
+          const targets = constrainers.length ? constrainers : [utils$2.getDefaultConstrainer(this)];
+          targets.forEach(constrainer => {
+              if (constrainer)
+                  utils$2.activate(this, constrainer, false);
           });
           return this;
       };
-      TurboSelector.prototype.toggleSubstrate = function _toggleSubstrates(substrate = utils$2.getDefaultSubstrate(this), force) {
-          if (substrate)
-              utils$2.activate(this, substrate, force);
+      GradumSelector.prototype.toggleConstrainer = function _toggleConstrainers(constrainer = utils$2.getDefaultConstrainer(this), force) {
+          if (constrainer)
+              utils$2.activate(this, constrainer, force);
           return this;
       };
-      TurboSelector.prototype.activateOnlySubstrate = function _activateOnlySubstrates(substrate = utils$2.getDefaultSubstrate(this)) {
-          if (substrate)
-              utils$2.getSubstrates(this).forEach(subs => utils$2.activate(this, substrate, substrate === subs));
+      GradumSelector.prototype.activateOnlyConstrainer = function _activateOnlyConstrainers(constrainer = utils$2.getDefaultConstrainer(this)) {
+          if (constrainer)
+              utils$2.getConstrainers(this).forEach(enf => utils$2.activate(this, constrainer, constrainer === enf));
           return this;
       };
-      TurboSelector.prototype.activateAllSubstrates = function _activateAllSubstrates() {
-          utils$2.getSubstrates(this).forEach(substrate => utils$2.activate(this, substrate, true));
+      GradumSelector.prototype.activateAllConstrainers = function _activateAllConstrainers() {
+          utils$2.getConstrainers(this).forEach(constrainer => utils$2.activate(this, constrainer, true));
           return this;
       };
-      TurboSelector.prototype.deactivateAllSubstrates = function _deactivateAllSubstrates() {
-          utils$2.getSubstrates(this).forEach(substrate => utils$2.activate(this, substrate, false));
+      GradumSelector.prototype.deactivateAllConstrainers = function _deactivateAllConstrainers() {
+          utils$2.getConstrainers(this).forEach(constrainer => utils$2.activate(this, constrainer, false));
           return this;
       };
-      TurboSelector.prototype.onSubstrateActivate = function _onSubstrateActivate(substrate = utils$2.getDefaultSubstrate(this)) {
-          return utils$2.getSubstrateData(this, substrate)?.onActivate ?? new Delegate();
+      GradumSelector.prototype.onConstrainerActivate = function _onConstrainerActivate(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getConstrainerData(this, constrainer)?.onActivate ?? new Delegate();
       };
-      TurboSelector.prototype.onSubstrateDeactivate = function _onSubstrateDeactivate(substrate = utils$2.getDefaultSubstrate(this)) {
-          return utils$2.getSubstrateData(this, substrate)?.onDeactivate ?? new Delegate();
+      GradumSelector.prototype.onConstrainerDeactivate = function _onConstrainerDeactivate(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getConstrainerData(this, constrainer)?.onDeactivate ?? new Delegate();
       };
       //PRIORITY
-      TurboSelector.prototype.getSubstratePriority = function _getSubstratePriority(substrate = utils$2.getDefaultSubstrate(this)) {
-          return utils$2.getField(this, substrate, "priority") ?? 0;
+      GradumSelector.prototype.getConstrainerPriority = function _getConstrainerPriority(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getField(this, constrainer, "priority") ?? 0;
       };
-      TurboSelector.prototype.setSubstratePriority = function _setSubstratePriority(priority, substrate = utils$2.getDefaultSubstrate(this)) {
+      GradumSelector.prototype.setConstrainerPriority = function _setConstrainerPriority(priority, constrainer = utils$2.getDefaultConstrainer(this)) {
           if (typeof priority === "number")
-              utils$2.setField(this, substrate, "priority", priority);
+              utils$2.setField(this, constrainer, "priority", priority);
           return this;
       };
       //OBJECT LIST
-      TurboSelector.prototype.getSubstrateObjectList = function _getSubstrateObjectList(substrate = utils$2.getDefaultSubstrate(this)) {
-          return utils$2.getField(this, substrate, "objectList") ?? new TurboNodeList();
+      GradumSelector.prototype.getConstrainerObjectList = function _getConstrainerObjectList(constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.ensureObjectListBridge(this, constrainer);
+          return utils$2.getField(this, constrainer, "objectList") ?? new GradumNodeList();
       };
-      TurboSelector.prototype.onSubstrateObjectListChange = function _onSubstrateObjectListChange(substrate) {
-          return utils$2.getSubstrateData(this, substrate).objectsChangedDelegate;
+      GradumSelector.prototype.onConstrainerObjectListChange = function _onConstrainerObjectListChange(constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.ensureObjectListBridge(this, constrainer);
+          return utils$2.getConstrainerData(this, constrainer)?.objectsChangedDelegate ?? new Delegate();
       };
       //TRIGGER LIST
-      TurboSelector.prototype.getSubstrateTriggerList = function _getSubstrateTriggerList(substrate = utils$2.getDefaultSubstrate(this)) {
-          return utils$2.getField(this, substrate, "triggerList") ?? new TurboNodeList();
+      GradumSelector.prototype.getConstrainerTriggerList = function _getConstrainerTriggerList(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getField(this, constrainer, "triggerList") ?? new GradumNodeList();
       };
       //QUEUE
-      TurboSelector.prototype.getSubstrateQueue = function _getSubstrateQueue(substrate = utils$2.getDefaultSubstrate(this)) {
-          return utils$2.getSubstrateData(this, substrate).queue;
+      GradumSelector.prototype.getConstrainerQueue = function _getConstrainerQueue(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getConstrainerData(this, constrainer).queue;
       };
-      TurboSelector.prototype.getDefaultSubstrateQueue = function _getDefaultSubstrateQueue(substrate = utils$2.getDefaultSubstrate(this)) {
-          const queue = utils$2.getField(this, substrate, "defaultQueue");
-          if (queue instanceof TurboQueue)
+      GradumSelector.prototype.getDefaultConstrainerQueue = function _getDefaultConstrainerQueue(constrainer = utils$2.getDefaultConstrainer(this)) {
+          const queue = utils$2.getField(this, constrainer, "defaultQueue");
+          if (queue instanceof GradumQueue)
               return queue.clone();
           else if (queue instanceof Array || queue instanceof Set)
-              return new TurboQueue().push(...queue);
-          return new TurboQueue().push(...this.getSubstrateObjectList(substrate));
+              return new GradumQueue().push(...queue);
+          return new GradumQueue().push(...this.getConstrainerObjectList(constrainer));
       };
-      TurboSelector.prototype.setDefaultSubstrateQueue = function _setDefaultSubstrateQueue(queue, substrate = utils$2.getDefaultSubstrate(this)) {
+      GradumSelector.prototype.setDefaultConstrainerQueue = function _setDefaultConstrainerQueue(queue, constrainer = utils$2.getDefaultConstrainer(this)) {
           if (!queue || typeof queue !== "object")
               return this;
           if (Array.isArray(queue))
-              queue = new TurboQueue().push(...queue);
-          if (queue instanceof TurboQueue)
-              utils$2.setField(this, substrate, "defaultQueue", queue.clone());
+              queue = new GradumQueue().push(...queue);
+          if (queue instanceof GradumQueue)
+              utils$2.setField(this, constrainer, "defaultQueue", queue.clone());
           return this;
       };
       //PASSES
-      TurboSelector.prototype.getObjectPassesForSubstrate = function _getObjectPassesForSubstrate(object, substrate = utils$2.getDefaultSubstrate(this)) {
+      GradumSelector.prototype.getObjectPassesForConstrainer = function _getObjectPassesForConstrainer(object, constrainer = utils$2.getDefaultConstrainer(this)) {
           if (!object)
               return 0;
-          const map = utils$2.getSubstrateData(this, substrate).passes;
+          const map = utils$2.getConstrainerData(this, constrainer).passes;
           if (!map || !(map instanceof WeakMap))
               return 0;
           return map.get(object) ?? 0;
       };
-      TurboSelector.prototype.getMaxPassesForSubstrate = function _getMaxPassesForSubstrate(substrate = utils$2.getDefaultSubstrate(this)) {
-          return utils$2.getField(this, substrate, "maxPasses");
+      GradumSelector.prototype.getMaxPassesForConstrainer = function _getMaxPassesForConstrainer(constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getField(this, constrainer, "maxPasses");
       };
-      TurboSelector.prototype.setMaxPassesForSubstrate = function _setMaxPassesForSubstrate(passes, substrate = utils$2.getDefaultSubstrate(this)) {
-          utils$2.setField(this, substrate, "maxPasses", passes);
+      GradumSelector.prototype.setMaxPassesForConstrainer = function _setMaxPassesForConstrainer(passes, constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.setField(this, constrainer, "maxPasses", passes);
           return this;
       };
       //CUSTOM DATA
-      TurboSelector.prototype.getObjectDataForSubstrate = function _getObjectDataForSubstrate(object, substrate = utils$2.getDefaultSubstrate(this)) {
-          return utils$2.getCustomData(this.element, substrate, object);
+      GradumSelector.prototype.getObjectDataForConstrainer = function _getObjectDataForConstrainer(object, constrainer = utils$2.getDefaultConstrainer(this)) {
+          return utils$2.getCustomData(this.element, constrainer, object);
       };
-      TurboSelector.prototype.setObjectDataForSubstrate = function _setObjectDataForSubstrate(object, data, substrate = utils$2.getDefaultSubstrate(this)) {
+      GradumSelector.prototype.setObjectDataForConstrainer = function _setObjectDataForConstrainer(object, data, constrainer = utils$2.getDefaultConstrainer(this)) {
           if (!data || typeof data !== "object")
               data = {};
-          utils$2.getSubstrateData(this.element, substrate).customData.set(object, data);
+          utils$2.getConstrainerData(this.element, constrainer).customData.set(object, data);
           return this;
       };
       //CHECKER
-      TurboSelector.prototype.addChecker = function _addChecker(properties) {
+      GradumSelector.prototype.addChecker = function _addChecker(properties) {
           if (!properties || !properties.name || !properties.callback)
               return this;
-          const substrate = properties.substrate || utils$2.getDefaultSubstrate(this);
-          utils$2.getSubstrateData(this, substrate).checkers?.set(properties.name, properties.callback);
+          const constrainer = properties.constrainer || utils$2.getDefaultConstrainer(this);
+          utils$2.getConstrainerData(this, constrainer).checkers?.set(properties.name, properties.callback);
           return this;
       };
-      TurboSelector.prototype.removeChecker = function _removeChecker(name, substrate = utils$2.getDefaultSubstrate(this)) {
-          utils$2.getSubstrateData(this, substrate).checkers?.delete(name);
+      GradumSelector.prototype.removeChecker = function _removeChecker(name, constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.getConstrainerData(this, constrainer).checkers?.delete(name);
           return this;
       };
-      TurboSelector.prototype.clearCheckers = function _clearCheckers(substrate = utils$2.getDefaultSubstrate(this)) {
-          utils$2.getSubstrateData(this, substrate).checkers?.clear();
+      GradumSelector.prototype.clearCheckers = function _clearCheckers(constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.getConstrainerData(this, constrainer).checkers?.clear();
           return this;
       };
-      TurboSelector.prototype.checkSubstrate = function _checkSubstrate(properties) {
+      GradumSelector.prototype.checkConstrainer = function _checkConstrainer(properties) {
           if (!properties)
               properties = {};
-          utils$2.setupSubstrateCallbackProperties(this, properties);
-          if (!properties.substrate)
+          utils$2.setupConstrainerCallbackProperties(this, properties);
+          if (!properties.constrainer)
               return true;
-          const substrate = properties.substrate || utils$2.getDefaultSubstrate(this);
-          for (const checker of utils$2.getSubstrateData(this, substrate).checkers.values()) {
+          const constrainer = properties.constrainer || utils$2.getDefaultConstrainer(this);
+          for (const checker of utils$2.getConstrainerData(this, constrainer).checkers.values()) {
               if (!checker(properties))
                   return false;
           }
           return true;
       };
-      TurboSelector.prototype.checkSubstratesForEvent = function _checkSubstratesForEvent(properties) {
+      GradumSelector.prototype.checkConstrainersForEvent = function _checkConstrainersForEvent(properties) {
           if (!properties || !properties.event)
               return true;
-          utils$2.setupSubstrateCallbackProperties(null, properties);
+          utils$2.setupConstrainerCallbackProperties(null, properties);
           if (!properties.eventTarget || typeof properties.eventTarget !== "object") {
               properties.eventTarget = this.element;
               if (!properties.eventTarget || typeof properties.eventTarget !== "object")
                   return true;
           }
-          const substratesData = utils$2.getSubstratesTriggeredByObjects(properties.eventTarget);
-          for (const substrateData of substratesData) {
-              for (const checker of substrateData.data.checkers.values()) {
-                  if (!checker({ ...properties, substrate: substrateData.name }))
+          const constrainersData = utils$2.getConstrainersTriggeredByObjects(properties.eventTarget);
+          for (const constrainerData of constrainersData) {
+              for (const checker of constrainerData.data.checkers.values()) {
+                  if (!checker({ ...properties, constrainer: constrainerData.name }))
                       return false;
               }
           }
           return true;
       };
       //MUTATOR
-      TurboSelector.prototype.addMutator = function _addMutator(properties) {
+      GradumSelector.prototype.addMutator = function _addMutator(properties) {
           if (!properties || !properties.name || !properties.callback)
               return this;
-          const substrate = properties.substrate || utils$2.getDefaultSubstrate(this);
-          utils$2.getSubstrateData(this, substrate).mutators?.set(properties.name, properties.callback);
+          const constrainer = properties.constrainer || utils$2.getDefaultConstrainer(this);
+          utils$2.getConstrainerData(this, constrainer).mutators?.set(properties.name, properties.callback);
           return this;
       };
-      TurboSelector.prototype.removeMutator = function _removeMutator(name, substrate = utils$2.getDefaultSubstrate(this)) {
-          utils$2.getSubstrateData(this, substrate).mutators?.delete(name);
+      GradumSelector.prototype.removeMutator = function _removeMutator(name, constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.getConstrainerData(this, constrainer).mutators?.delete(name);
           return this;
       };
-      TurboSelector.prototype.clearMutators = function _clearMutators(substrate = utils$2.getDefaultSubstrate(this)) {
-          utils$2.getSubstrateData(this, substrate).mutators?.clear();
+      GradumSelector.prototype.clearMutators = function _clearMutators(constrainer = utils$2.getDefaultConstrainer(this)) {
+          utils$2.getConstrainerData(this, constrainer).mutators?.clear();
           return this;
       };
-      TurboSelector.prototype.mutate = function _mutate(properties) {
+      GradumSelector.prototype.mutate = function _mutate(properties) {
           if (!properties || !properties.mutation)
               return;
-          utils$2.setupSubstrateCallbackProperties(this, properties);
-          if (!properties.substrate)
+          utils$2.setupConstrainerCallbackProperties(this, properties);
+          if (!properties.constrainer)
               return this;
-          const mutation = utils$2.getSubstrateData(this, properties.substrate).mutators?.get(properties.mutation);
+          const mutation = utils$2.getConstrainerData(this, properties.constrainer).mutators?.get(properties.mutation);
           if (mutation)
               return mutation(properties);
       };
       //SOLVERS
-      TurboSelector.prototype.addSolver = function _addSolver(properties) {
+      GradumSelector.prototype.addSolver = function _addSolver(properties) {
           if (!properties || !properties.callback)
               return this;
           if (!properties.name)
               properties.name = randomString(8);
-          const substrate = properties.substrate ?? utils$2.getDefaultSubstrate(this);
-          const data = utils$2.getSubstrateData(this, substrate);
+          const constrainer = properties.constrainer ?? utils$2.getDefaultConstrainer(this);
+          const data = utils$2.getConstrainerData(this, constrainer);
           if (!data)
               return this;
           const name = properties.name;
           delete properties.name;
-          delete properties.substrate;
+          delete properties.constrainer;
           if (!properties.priority)
               properties.priority = 10;
           data.solvers?.set(name, properties);
           binaryInsert(data.sortedSolvers, name, (name1, name2) => data.solvers.get(name1).priority - data.solvers.get(name2).priority);
           return this;
       };
-      TurboSelector.prototype.removeSolver = function _removeSolver(name, substrate = utils$2.getDefaultSubstrate(this)) {
-          const data = utils$2.getSubstrateData(this, substrate);
+      GradumSelector.prototype.removeSolver = function _removeSolver(name, constrainer = utils$2.getDefaultConstrainer(this)) {
+          const data = utils$2.getConstrainerData(this, constrainer);
           if (!data)
               return this;
           data.solvers?.delete(name);
@@ -17418,38 +21319,38 @@
               data.sortedSolvers.splice(index, 1);
           return this;
       };
-      TurboSelector.prototype.clearSolvers = function _clearSolvers(substrate = utils$2.getDefaultSubstrate(this)) {
-          const data = utils$2.getSubstrateData(this, substrate);
+      GradumSelector.prototype.clearSolvers = function _clearSolvers(constrainer = utils$2.getDefaultConstrainer(this)) {
+          const data = utils$2.getConstrainerData(this, constrainer);
           if (!data)
               return this;
           data.solvers?.clear();
           data.sortedSolvers = [];
           return this;
       };
-      TurboSelector.prototype.solveSubstrate = function _solveSubstrate(properties = {}) {
+      GradumSelector.prototype.solveConstrainer = function _solveConstrainer(properties = {}) {
           if (!properties)
               properties = {};
-          utils$2.setupSubstrateCallbackProperties(this, properties);
-          if (!properties.substrate)
+          utils$2.setupConstrainerCallbackProperties(this, properties);
+          if (!properties.constrainer)
               return this;
-          const data = utils$2.getSubstrateData(this, properties.substrate);
+          const data = utils$2.getConstrainerData(this, properties.constrainer);
           if (!data)
               return this;
-          utils$2.solveSubstrateInternal({ data, host: this.element, name: properties.substrate }, properties);
+          utils$2.solveConstrainerInternal({ data, host: this.element, name: properties.constrainer }, properties);
           return this;
       };
-      TurboSelector.prototype.solveSubstratesForEvent = function _solveSubstratesForEvent(properties) {
+      GradumSelector.prototype.solveConstrainersForEvent = function _solveConstrainersForEvent(properties) {
           if (!properties || !properties.event)
               return this;
-          utils$2.setupSubstrateCallbackProperties(null, properties);
+          utils$2.setupConstrainerCallbackProperties(null, properties);
           if (!properties.eventTarget || typeof properties.eventTarget !== "object") {
               properties.eventTarget = this.element;
               if (!properties.eventTarget || typeof properties.eventTarget !== "object")
                   return this;
           }
-          const substratesData = utils$2.getSubstratesTriggeredByObjects(properties.eventTarget);
-          for (const substrateData of substratesData)
-              utils$2.solveSubstrateInternal(substrateData, properties);
+          const constrainersData = utils$2.getConstrainersTriggeredByObjects(properties.eventTarget);
+          for (const constrainerData of constrainersData)
+              utils$2.solveConstrainerInternal(constrainerData, properties);
           return this;
       };
   }
@@ -17460,10 +21361,11 @@
    * @group Decorators
    * @category Augmentation
    *
-   * @template {(...args: any[]) => any} Type
-   * @description Function wrapper that ensures the passed function is called only once.
-   * Subsequent calls will just return the cached computed result (if any) of the first call of that function.
-   * @param {Type} fn - The function to process.
+   * @template {(...args: any[]) => any} Type - The type of the wrapped function.
+   * @description Wrap a function so its body runs only on the first call. Later calls skip the body and
+   * return the first call's result.
+   * @param {Type} fn - The function to wrap.
+   * @returns {Type} A function with the same signature as `fn`, whose body runs at most once.
    *
    * @example
    * ```ts
@@ -17513,13 +21415,12 @@
   /**
    * @class StatefulReifect
    * @group Components
-   * @category StatefulReifect
-   *
-   * @description A class to manage and apply dynamic state-based properties, styles, classes, and transitions to a
-   * set of objects.
+   * @category Reifects
    *
    * @template {string | number | symbol} State - The type of the reifier's states.
    * @template {object} ClassType - The object type this reifier will be applied to.
+   * @description A class to manage and apply dynamic state-based properties, styles, classes, and transitions to a
+   * set of objects.
    */
   let StatefulReifect = (() => {
       let _instanceExtraInitializers = [];
@@ -17558,13 +21459,50 @@
               __esDecorate$1(this, null, _set_replaceWith_decorators, { kind: "setter", name: "replaceWith", static: false, private: false, access: { has: obj => "replaceWith" in obj, set: (obj, value) => { obj.replaceWith = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @static
+           * @readonly
+           * @protected
+           * @description The categories of value a reifect can apply to an object.
+           */
           static fields = ["properties", "classes", "styles", "replaceWith"];
+          /**
+           * @static
+           * @readonly
+           * @protected
+           * @description Property names the reifect handles itself. Anything else given in its configuration is
+           * treated as a property to set on the attached objects.
+           */
           static knownFields = new Set(["states", "attachedObjects", "initialState", ...this.fields]);
+          /**
+           * @static
+           * @readonly
+           * @protected
+           * @description Style properties that several reifects may contribute to at once, and so are recombined
+           * rather than overwritten when more than one reifect is attached to the same object.
+           */
           static chainableStyleFields = new Set(["transition", "transitionDelay",
               "transitionTimingFunction", "transitionDuration", "transform"]);
+          /**
+           * @protected
+           * @readonly
+           * @description Matches a CSS duration, capturing the number and its unit, so durations given as strings
+           * can be read back as seconds.
+           */
           timeRegex = (__runInitializers$1(this, _instanceExtraInitializers), /^(\d+(?:\.\d+)?)(ms|s)?$/i);
+          /**
+           * @protected
+           * @readonly
+           * @description Per-object state, keyed weakly so attaching a reifect does not keep an object alive.
+           */
           attachedObjectsData = new WeakMap();
-          attachedObjects = new TurboNodeList();
+          /**
+           * @protected
+           * @readonly
+           * @description Every object this reifect is attached to, in attachment order. Objects dropped elsewhere
+           * disappear from the list on their own.
+           */
+          attachedObjects = new GradumNodeList();
           /**
            * @description All possible states.
            */
@@ -17581,7 +21519,6 @@
            * - A record of `{state: {key: value} pairs or an interpolation function that would return a record of
            * {key: value} pairs}`.
            * - An interpolation function that would return a record of `{key: value}` pairs based on the state value.
-           *
            * The interpolation function would take as arguments:
            * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
            * defined for the whole field (and not for a specific state).
@@ -17597,7 +21534,6 @@
            * - A record of `{state: {CSS property: value} pairs or an interpolation function that would return a record of
            * {key: value} pairs}`.
            * - An interpolation function that would return a record of `{key: value}` pairs based on the state value.
-           *
            * The interpolation function would take as arguments:
            * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
            * defined for the whole field (and not for a specific state).
@@ -17615,7 +21551,6 @@
            * return any of the latter}`.
            * - An interpolation function that would return a string of space-separated classes or an array of classes based
            * on the state value.
-           *
            * The interpolation function would take as arguments:
            * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
            * defined for the whole field (and not for a specific state).
@@ -17631,7 +21566,6 @@
            * - A record of `{state: object to be replaced with, or an interpolation function that would return an object
            * to be replaced with}`.
            * - An interpolation function that would return the object to be replaced with based on the state value.
-           *
            * The interpolation function would take as arguments:
            * - `state: State`: the state being applied to the object(s). Only passed to the callback function if it is
            * defined for the whole field (and not for a specific state).
@@ -17684,7 +21618,6 @@
               return this;
           }
           /**
-           * @protected
            * @function attachObject
            * @description Function used to generate a data entry for the given object, and add it to the attached list at
            * the provided index (if any).
@@ -17698,6 +21631,7 @@
            * - `total: number`: the total number of objects in the applied list.
            * - `object: ClassType`: the object itself.
            * @returns {ReifectObjectData<State, ClassType>} - The created data entry.
+           * @protected
            */
           attachObject(object, onSwitch, index) {
               let data = this.getData(object);
@@ -17714,16 +21648,17 @@
               this.attachedObjects.addAt(index, object);
               data = this.generateNewData(object, onSwitch, index);
               this.attachedObjectsData.set(object, data);
-              turbo(object).attachReifect(this);
+              gradum(object).attachReifect(this);
               data.lastState = this.stateOf(object);
               this.applyAll(object);
               return data;
           }
           /**
-           * @protected
            * @function detachObject
-           * @description Function used to remove a data entry from the attached objects list.
-           * @param object
+           * @protected
+           * @description Stop tracking an object, so the reifect no longer applies to it. Does nothing if the
+           * object was never attached.
+           * @param {ClassType} object - The object to detach.
            */
           detachObject(object) {
               if (!object || !this.attachedObjects.has(object))
@@ -17734,7 +21669,7 @@
                   data.disposeEffect = undefined;
               }
               this.attachedObjectsData.delete(object);
-              turbo(object).detachReifect(this);
+              gradum(object).detachReifect(this);
           }
           /**
            * @function getData
@@ -17803,11 +21738,11 @@
               return this.states[0];
           }
           /**
-           * @protected
            * @function parseState
            * @description Parses a boolean into the corresponding state value.
            * @param {State | boolean} value - The value to parse.
            * @returns {State} The parsed value, or `null` if the boolean could not be parsed.
+           * @protected
            */
           parseState(value) {
               if (typeof value != "boolean")
@@ -17849,7 +21784,7 @@
            */
           initialize(state, objects, options) {
               if (!this.enabled)
-                  return;
+                  return this;
               state = this.parseState(state);
               options = this.initializeOptions(options, objects);
               this.getEnabledObjects(objects, options).forEach(object => {
@@ -17863,10 +21798,11 @@
                   if (data.onSwitch)
                       data.onSwitch(state, data.index, data.total, this.getObject(data));
               });
+              return this;
           }
           apply(state, objects, options) {
               if (!this.enabled)
-                  return;
+                  return this;
               state = this.parseState(state);
               options = this.initializeOptions(options, objects);
               this.getEnabledObjects(objects, options).forEach(object => {
@@ -17880,10 +21816,11 @@
                   if (data.onSwitch)
                       data.onSwitch(state, data.index, data.total, this.getObject(data));
               });
+              return this;
           }
           toggle(objects, options) {
               if (!this.enabled)
-                  return;
+                  return this;
               if (!objects)
                   objects = [];
               else if (objects instanceof HTMLCollection)
@@ -17893,7 +21830,28 @@
               const referenceObject = objects[0] ?? this.attachedObjects.array[0];
               const previousState = this.getData(referenceObject)?.lastState;
               const nextStateIndex = mod(!previousState ? 0 : this.states.indexOf(previousState) + 1, this.states.length);
-              this.apply(this.states[nextStateIndex], objects, options);
+              return this.apply(this.states[nextStateIndex], objects, options);
+          }
+          //TODO FIXXXX
+          /**
+           * @function unapply
+           * @description Remove everything this reifect applied, returning the objects to how they were before.
+           * @param {ClassType | ClassType[]} [objects] - The objects to clear. Defaults to every attached object.
+           * @param {ReifectAppliedOptions} [options] - Options controlling reach and recomputation.
+           * @returns {this} Itself, allowing for method chaining.
+           */
+          unapply(objects, options) {
+              if (!this.enabled)
+                  return this;
+              options = this.initializeOptions(options, objects);
+              this.getEnabledObjects(objects, options).forEach(object => {
+                  const data = this.getData(object);
+                  if (!data || !data.resolvedValues)
+                      return;
+                  this.unapplyAll(object, options?.applyStylesInstantly);
+                  // if (data.onSwitch) data.onSwitch(undefined, data.index, data.total, this.getObject(data));
+              });
+              return this;
           }
           /**
            * @function reloadFor
@@ -17959,6 +21917,12 @@
               this.applyProperties(object);
               this.applyClasses(object);
           }
+          unapplyAll(object, applyStylesInstantly = false) {
+              this.unapplyReplaceWith(object);
+              this.unapplyStyles(object, applyStylesInstantly);
+              this.unapplyProperties(object);
+              this.unapplyClasses(object);
+          }
           refreshAll() {
               this.refreshReplaceWith();
               this.refreshProperties();
@@ -17984,6 +21948,23 @@
                   }
               }, state);
           }
+          unapplyProperties(object) {
+              this.applyField(object, "properties", (object, data, state) => {
+                  const properties = data.resolvedValues?.properties?.[state];
+                  if (!properties)
+                      return;
+                  for (const field of Object.keys(properties)) {
+                      if (!field)
+                          continue;
+                      try {
+                          object[field] = undefined;
+                      }
+                      catch (e) {
+                          console.error(`Unable to unset property ${field}: ${e.message}`);
+                      }
+                  }
+              });
+          }
           refreshProperties() {
               if (!this.enabled || !this.propertiesEnabled)
                   return;
@@ -18004,6 +21985,9 @@
                   }
               }, state);
           }
+          unapplyReplaceWith(object) {
+              return;
+          }
           refreshReplaceWith() {
               if (!this.enabled || !this.replacedWithEnabled)
                   return;
@@ -18014,9 +21998,18 @@
                   if (!(object instanceof Element) || !data.resolvedValues?.classes)
                       return;
                   for (const [key, value] of Object.entries(data.resolvedValues.classes)) {
-                      turbo(object).toggleClass(value, state === key);
+                      gradum(object).toggleClass(value, state === key);
                   }
               }, state);
+          }
+          unapplyClasses(object) {
+              this.applyField(object, "classes", (object, data, state) => {
+                  if (!(object instanceof Element) || !data.resolvedValues?.classes)
+                      return;
+                  for (const value of Object.values(data.resolvedValues.classes)) {
+                      gradum(object).toggleClass(value, false);
+                  }
+              });
           }
           refreshClasses() {
               if (!this.enabled || !this.classesEnabled)
@@ -18039,10 +22032,31 @@
                           normal[key] = value;
                   }
                   if (Object.keys(normal).length > 0)
-                      turbo(object).setStyles(normal, applyStylesInstantly);
+                      gradum(object).setStyles(normal, applyStylesInstantly);
                   if (hasChainable)
-                      turbo(object).reloadReifectsChainableStyles();
+                      gradum(object).reloadReifectsChainableStyles();
               }, state);
+          }
+          unapplyStyles(object, applyStylesInstantly = false) {
+              this.applyField(object, "styles", (object, data, state) => {
+                  if (!(object instanceof Element) || !data.resolvedValues?.styles)
+                      return;
+                  let hasChainable = false;
+                  for (const state of this.states) {
+                      const styles = data.resolvedValues.styles?.[state];
+                      if (!styles)
+                          return;
+                      for (const key of Object.keys(styles)) {
+                          if (StatefulReifect.chainableStyleFields.has(key))
+                              hasChainable = true;
+                          else
+                              gradum(object).setStyle(key, "", applyStylesInstantly);
+                      }
+                  }
+                  data.resolvedValues.styles = {};
+                  if (hasChainable)
+                      gradum(object).reloadReifectsChainableStyles();
+              });
           }
           refreshStyles() {
               if (!this.enabled || !this.stylesEnabled)
@@ -18050,8 +22064,10 @@
               this.attachedObjects.forEach(object => this.applyStyles(object));
           }
           getChainableStyles(object) {
+              if (!this.enabled || !this.stylesEnabled)
+                  return {};
               const data = this.getData(object);
-              if (!data?.resolvedValues?.styles || !data.lastState)
+              if (!data?.resolvedValues?.styles || !data.lastState || !data.enabled.global || !data.enabled.styles)
                   return {};
               const styles = data.resolvedValues.styles[data.lastState];
               if (!styles)
@@ -18095,6 +22111,14 @@
               return result;
           }
           //General methods (to be overridden for custom functionalities)
+          /**
+           * @function filterEnabledObjects
+           * @protected
+           * @description Decide whether an object should be acted on, warning when one is skipped because the
+           * reifect was disabled for it. Override to change which objects a reifect reaches.
+           * @param {ReifectObjectData} data - The object's tracked state.
+           * @returns {boolean} Whether the reifect applies to this object.
+           */
           filterEnabledObjects(data) {
               if (!data.enabled || !data.enabled.global) {
                   console.warn("The reified properties instance you are trying to set on an object is " +
@@ -18104,6 +22128,15 @@
               return true;
           }
           //Utilities
+          /**
+           * @function processRawProperties
+           * @protected
+           * @description Resolve an object's per-state values from the reifect's configuration and cache them, so
+           * interpolated values are computed once instead of on every state switch. The resolution runs inside an
+           * effect, so the cache refreshes by itself when a value it read changes.
+           * @param {ClassType} object - The object to resolve values for.
+           * @param {StatefulReifectCoreProperties} [override] - Values to resolve instead of the reifect's own.
+           */
           processRawProperties(object, override) {
               if (!object)
                   return;
@@ -18178,7 +22211,7 @@
           }
           normalizePropertyConfig(currentConfig, newConfig) {
               const out = currentConfig ? { ...currentConfig } : {};
-              if (isUndefined(newConfig))
+              if (isUndefined(newConfig) || !this.states?.length)
                   return out;
               const isObject = typeof newConfig === "object" && newConfig !== null && !Array.isArray(newConfig);
               const keys = isObject ? Reflect.ownKeys(newConfig) : [];
@@ -18223,15 +22256,20 @@
       };
   })();
 
+  /**
+   * @internal
+   * @class ReifectFunctionsUtils
+   * @description Shared helpers and per-element state behind the reifect functions on {@link GradumSelector}.
+   */
   class ReifectFunctionsUtils {
       dataMap = new WeakMap;
       data(element) {
-          if (element instanceof TurboSelector)
+          if (element instanceof GradumSelector)
               element = element.element;
           if (this.dataMap.has(element))
               return this.dataMap.get(element);
           const newMap = {
-              reifects: new TurboWeakSet(),
+              reifects: new GradumWeakSet(),
               enabled: {},
               onTransitionStart: new Delegate(),
               onTransitionEnd: new Delegate(),
@@ -18256,12 +22294,11 @@
   /**
    * @class Reifect
    * @group Components
-   * @category Reifect
-   *
-   * @description A class to manage and apply dynamic properties, styles, classes, and transitions to a
-   * set of objects.
+   * @category Reifects
    *
    * @template {object} ClassType - The object type this reifier will be applied to.
+   * @description A class to manage and apply dynamic properties, styles, classes, and transitions to a
+   * set of objects.
    */
   class Reifect extends StatefulReifect {
       /**
@@ -18276,7 +22313,6 @@
        * @description The properties to be assigned to the objects. It could take:
        * - A record of `{key: value}` pairs.
        * - An interpolation function that would return a record of `{key: value}` pairs.
-       *
        * The interpolation function would take as arguments:
        * - `index: number`: the index of the object in the applied list.
        * - `total: number`: the total number of objects in the applied list.
@@ -18292,7 +22328,6 @@
        * @description The styles to be assigned to the objects (only if they are eligible elements). It could take:
        * - A record of `{CSS property: value}` pairs.
        * - An interpolation function that would return a record of `{key: value}` pairs.
-       *
        * The interpolation function would take as arguments:
        * - `index: number`: the index of the object in the applied list.
        * - `total: number`: the total number of objects in the applied list.
@@ -18309,7 +22344,6 @@
        * - A string of space-separated classes.
        * - An array of classes.
        * - An interpolation function that would return a string of space-separated classes or an array of classes.
-       *
        * The interpolation function would take as arguments:
        * - `index: number`: the index of the object in the applied list.
        * - `total: number`: the total number of objects in the applied list.
@@ -18325,7 +22359,6 @@
        * @description The object that should replace (in the DOM as well if eligible) the attached objects. It could take:
        * - The object to be replaced with.
        * - An interpolation function that would return the object to be replaced with.
-       *
        * The interpolation function would take as arguments:
        * - `index: number`: the index of the object in the applied list.
        * - `total: number`: the total number of objects in the applied list.
@@ -18343,11 +22376,23 @@
       apply(objects, options) {
           super.apply("default", objects, options);
       }
+      normalizePropertyConfig(currentConfig, newConfig) {
+          if (typeof newConfig === "function" && newConfig.length <= 3) {
+              const wrapped = (_state, index, total, object) => newConfig(index, total, object);
+              return super.normalizePropertyConfig(currentConfig, wrapped);
+          }
+          return super.normalizePropertyConfig(currentConfig, newConfig);
+      }
   }
 
   /**
-   * @group Types
+   * @enum {Direction}
+   * @group Core Types
    * @category Enums
+   *
+   * @description The axis a component lays out, scrolls, or moves along.
+   * @property {Direction.vertical} vertical - Along the y axis.
+   * @property {Direction.horizontal} horizontal - Along the x axis.
    */
   var Direction;
   (function (Direction) {
@@ -18355,8 +22400,13 @@
       Direction["horizontal"] = "horizontal";
   })(Direction || (Direction = {}));
   /**
-   * @group Types
+   * @enum {SideH}
+   * @group Core Types
    * @category Enums
+   *
+   * @description One of the two horizontal sides. Use {@link Side} when vertical sides are also valid.
+   * @property {SideH.left} left - The left side.
+   * @property {SideH.right} right - The right side.
    */
   var SideH;
   (function (SideH) {
@@ -18364,8 +22414,13 @@
       SideH["right"] = "right";
   })(SideH || (SideH = {}));
   /**
-   * @group Types
+   * @enum {SideV}
+   * @group Core Types
    * @category Enums
+   *
+   * @description One of the two vertical sides. Use {@link Side} when horizontal sides are also valid.
+   * @property {SideV.top} top - The top side.
+   * @property {SideV.bottom} bottom - The bottom side.
    */
   var SideV;
   (function (SideV) {
@@ -18373,8 +22428,16 @@
       SideV["bottom"] = "bottom";
   })(SideV || (SideV = {}));
   /**
-   * @group Types
+   * @enum {Side}
+   * @group Core Types
    * @category Enums
+   *
+   * @description Any one of the four sides of a rectangle or element — which edge a
+   * {@link GradumDrawer} slides from, for instance.
+   * @property {Side.top} top - The top side.
+   * @property {Side.bottom} bottom - The bottom side.
+   * @property {Side.left} left - The left side.
+   * @property {Side.right} right - The right side.
    */
   var Side;
   (function (Side) {
@@ -18384,8 +22447,14 @@
       Side["right"] = "right";
   })(Side || (Side = {}));
   /**
-   * @group Types
+   * @enum {InOut}
+   * @group Core Types
    * @category Enums
+   *
+   * @description Whether a motion travels toward a centre or away from it, such as the direction of a
+   * {@link GradumMarkingMenu} gesture.
+   * @property {InOut.in} in - Inward, toward the centre.
+   * @property {InOut.out} out - Outward, away from the centre.
    */
   var InOut;
   (function (InOut) {
@@ -18393,8 +22462,13 @@
       InOut["out"] = "out";
   })(InOut || (InOut = {}));
   /**
-   * @group Types
+   * @enum {OnOff}
+   * @group Core Types
    * @category Enums
+   *
+   * @description A two-state toggle, for states better named on/off than `true`/`false`.
+   * @property {OnOff.on} on - Enabled.
+   * @property {OnOff.off} off - Disabled.
    */
   var OnOff;
   (function (OnOff) {
@@ -18402,8 +22476,13 @@
       OnOff["off"] = "off";
   })(OnOff || (OnOff = {}));
   /**
-   * @group Types
+   * @enum {Open}
+   * @group Core Types
    * @category Enums
+   *
+   * @description Whether a container currently exposes its content.
+   * @property {Open.open} open - Content is exposed.
+   * @property {Open.closed} closed - Content is collapsed away.
    */
   var Open;
   (function (Open) {
@@ -18411,8 +22490,14 @@
       Open["closed"] = "closed";
   })(Open || (Open = {}));
   /**
-   * @group Types
+   * @enum {Shown}
+   * @group Core Types
    * @category Enums
+   *
+   * @description Whether an element is displayed. Used as the pair of states a reifect transitions
+   * between, and by {@link GradumContentSwitch} to pick the active child.
+   * @property {Shown.visible} visible - Displayed.
+   * @property {Shown.hidden} hidden - Not displayed.
    */
   var Shown;
   (function (Shown) {
@@ -18420,8 +22505,14 @@
       Shown["hidden"] = "hidden";
   })(Shown || (Shown = {}));
   /**
-   * @group Types
+   * @enum {AccessLevel}
+   * @group Core Types
    * @category Enums
+   *
+   * @description How widely a member is exposed, mirroring the TypeScript access modifiers.
+   * @property {AccessLevel.public} public - Reachable from anywhere.
+   * @property {AccessLevel.protected} protected - Reachable from the declaring class and its subclasses.
+   * @property {AccessLevel.private} private - Reachable only from the declaring class.
    */
   var AccessLevel;
   (function (AccessLevel) {
@@ -18430,8 +22521,13 @@
       AccessLevel["private"] = "private";
   })(AccessLevel || (AccessLevel = {}));
   /**
-   * @group Types
+   * @enum {Range}
+   * @group Core Types
    * @category Enums
+   *
+   * @description Which end of a bounded range a value refers to.
+   * @property {Range.min} min - The lower bound.
+   * @property {Range.max} max - The upper bound.
    */
   var Range;
   (function (Range) {
@@ -18439,8 +22535,21 @@
       Range["max"] = "max";
   })(Range || (Range = {}));
   /**
-   * @group Types
+   * @enum {Anchor}
+   * @group Core Types
    * @category Enums
+   *
+   * @description A reference point on a rectangle — the nine combinations of a vertical and a horizontal
+   * position. Used to anchor a {@link GradumRect} or an {@link AnchorPoint}.
+   * @property {Anchor.TopLeft} TopLeft - Top-left corner.
+   * @property {Anchor.TopMiddle} TopMiddle - Centre of the top edge.
+   * @property {Anchor.TopRight} TopRight - Top-right corner.
+   * @property {Anchor.CenterLeft} CenterLeft - Centre of the left edge.
+   * @property {Anchor.Center} Center - Centre of the rectangle.
+   * @property {Anchor.CenterRight} CenterRight - Centre of the right edge.
+   * @property {Anchor.BottomLeft} BottomLeft - Bottom-left corner.
+   * @property {Anchor.BottomMiddle} BottomMiddle - Centre of the bottom edge.
+   * @property {Anchor.BottomRight} BottomRight - Bottom-right corner.
    */
   var Anchor;
   (function (Anchor) {
@@ -18460,11 +22569,17 @@
       states: [Shown.visible, Shown.hidden],
       styles: (state) => `visibility: ${state}`
   });
+  /**
+   * @internal
+   * @function setupReifectFunctions
+   * @description Install the reifect functions (`show`, `applyReifect`, `attachReifect`, ...) onto the
+   * {@link GradumSelector} prototype. Called once by {@link gradumify}; the matching `exclude` option skips it.
+   */
   function setupReifectFunctions() {
       /**
        * @description Adds a readonly "reifects" property to Node prototype.
        */
-      Object.defineProperty(TurboSelector.prototype, "reifects", {
+      Object.defineProperty(GradumSelector.prototype, "reifects", {
           get: function () {
               if (!this.element)
                   return new Set();
@@ -18477,7 +22592,7 @@
        * @description Adds a configurable "showTransition" property to Node prototype. Defaults to a global
        * transition assigned to all nodes.
        */
-      Object.defineProperty(TurboSelector.prototype, "showTransition", {
+      Object.defineProperty(GradumSelector.prototype, "showTransition", {
           get: function () {
               if (!this.element)
                   return;
@@ -18497,7 +22612,7 @@
       /**
        * @description Boolean indicating whether the node is shown or not, based on its showTransition.
        */
-      Object.defineProperty(TurboSelector.prototype, "isShown", {
+      Object.defineProperty(GradumSelector.prototype, "isShown", {
           get: function () {
               if (!this.element)
                   return;
@@ -18520,7 +22635,7 @@
        * execution.
        * @returns {this} Itself, allowing for method chaining.
        */
-      TurboSelector.prototype.show = function _show(b, options = {}) {
+      GradumSelector.prototype.show = function _show(b, options = {}) {
           if (!this.element)
               return this;
           if (!options.executeForAll)
@@ -18528,7 +22643,7 @@
           this.showTransition.apply(b ? Shown.visible : Shown.hidden, this.element, options);
           return this;
       };
-      TurboSelector.prototype.attachReifect = function _attachReifect(...reifects) {
+      GradumSelector.prototype.attachReifect = function _attachReifect(...reifects) {
           if (!this.element || typeof this.element !== "object")
               return this;
           reifects.forEach(entry => {
@@ -18539,7 +22654,7 @@
           });
           return this;
       };
-      TurboSelector.prototype.detachReifect = function _detachReifect(...reifects) {
+      GradumSelector.prototype.detachReifect = function _detachReifect(...reifects) {
           if (!this.element || typeof this.element !== "object")
               return this;
           reifects.forEach(entry => {
@@ -18550,7 +22665,7 @@
           });
           return this;
       };
-      TurboSelector.prototype.initializeReifect = function _initializeReifect(reifect, state, options) {
+      GradumSelector.prototype.initializeReifect = function _initializeReifect(reifect, state, options) {
           if (!this.element)
               return this;
           if (reifect instanceof Reifect)
@@ -18559,7 +22674,7 @@
               reifect.initialize(this.element, state, options);
           return this;
       };
-      TurboSelector.prototype.applyReifect = function _applyReifect(reifect, state, options) {
+      GradumSelector.prototype.applyReifect = function _applyReifect(reifect, state, options) {
           if (!this.element)
               return this;
           if (reifect instanceof Reifect)
@@ -18568,7 +22683,7 @@
               reifect.apply(this.element, state, options);
           return this;
       };
-      TurboSelector.prototype.toggleReifect = function _toggleReifect(reifect, options) {
+      GradumSelector.prototype.toggleReifect = function _toggleReifect(reifect, options) {
           if (!this.element)
               return this;
           if (reifect instanceof Reifect)
@@ -18577,13 +22692,13 @@
               reifect.toggle(this.element, options);
           return this;
       };
-      TurboSelector.prototype.reloadReifects = function _reloadReifects() {
+      GradumSelector.prototype.reloadReifects = function _reloadReifects() {
           if (!this.element)
               return this;
           this.reifects.forEach(reifect => reifect.reloadFor(this.element));
           return this;
       };
-      TurboSelector.prototype.reloadReifectsChainableStyles = function _reloadChainableStyles(applyInstantly = true) {
+      GradumSelector.prototype.reloadReifectsChainableStyles = function _reloadChainableStyles(applyInstantly = true) {
           if (!this.element)
               return this;
           const contributions = {};
@@ -18599,18 +22714,18 @@
           });
           for (const [key, values] of Object.entries(contributions)) {
               const separator = key === "transform" ? " " : ", ";
-              turbo(this.element).setStyle(key, values.join(separator), applyInstantly);
+              gradum(this.element).setStyle(key, values.join(separator), applyInstantly);
           }
           return this;
       };
-      TurboSelector.prototype.reifectEnabledState = function _reifectEnabledState(reifect) {
+      GradumSelector.prototype.reifectEnabledState = function _reifectEnabledState(reifect) {
           if (!this.element)
               return {};
           if (reifect)
               return reifect.getObjectEnabledState(this.element);
           return utils$1.data(this.element).enabled;
       };
-      TurboSelector.prototype.enableReifect = function _enableReifect(value, reifect) {
+      GradumSelector.prototype.enableReifect = function _enableReifect(value, reifect) {
           if (!this.element)
               return this;
           const enabled = reifect ? reifect.getData(this.element)?.enabled
@@ -18627,17 +22742,17 @@
   }
 
   const cache$1 = new WeakMap();
-  function turbo(tagOrElement) {
-      turbofy();
+  function gradum(tagOrElement, raw = false) {
+      gradumify();
       let el;
       if (!tagOrElement)
           tagOrElement = "div";
       if (typeof tagOrElement === "string")
           el = element({ tag: tagOrElement });
       else if (typeof tagOrElement === "object") {
-          if (tagOrElement instanceof TurboSelector)
+          if (tagOrElement instanceof GradumSelector)
               return tagOrElement;
-          if (tagOrElement instanceof Node)
+          if (raw || tagOrElement instanceof Node)
               el = tagOrElement;
           else if (tagOrElement["element"] && typeof tagOrElement["element"] === "object") {
               el = tagOrElement["element"];
@@ -18648,18 +22763,31 @@
       const cached = cache$1.get(el);
       if (cached)
           return cached;
-      const turboSelector = new TurboSelector();
-      turboSelector.element = el;
-      cache$1.set(el, turboSelector);
-      return turboSelector;
+      const gradumSelector = new GradumSelector();
+      gradumSelector.element = el;
+      cache$1.set(el, gradumSelector);
+      return gradumSelector;
   }
-  function $(tagOrElement) {
-      return turbo(tagOrElement);
+  function $(tagOrElement, raw = false) {
+      return gradum(tagOrElement, raw);
   }
   /**
-   * @group TurboSelector
+   * @function gradumify
+   * @group GradumSelector
+   * @category Core
+   *
+   * @description Install every selector function onto the {@link GradumSelector} prototype. Runs once — later
+   * calls are no-ops — and is invoked automatically the first time {@link gradum} is called, so you rarely
+   * need it directly. Call it yourself only to opt a family of functions out before anything else runs.
+   * @param {GradumifyOptions} [options={}] - Which function families to skip.
+   *
+   * @example
+   * ```ts
+   * // Install everything except the tool and constrainer functions.
+   * gradumify({excludeToolFunctions: true, excludeConstrainerFunctions: true});
+   * ```
    */
-  const turbofy = callOnce(function (options = {}) {
+  const gradumify = callOnce(function (options = {}) {
       if (!options.excludeHierarchyFunctions)
           setupHierarchyFunctions();
       if (!options.excludeMvcFunctions)
@@ -18676,8 +22804,8 @@
           setupStyleFunctions();
       if (!options.excludeToolFunctions)
           setupToolFunctions();
-      if (!options.excludeSubstrateFunctions)
-          setupSubstrateFunctions();
+      if (!options.excludeConstrainerFunctions)
+          setupConstrainerFunctions();
       if (!options.excludeReifectFunctions)
           setupReifectFunctions();
   });
@@ -18805,7 +22933,6 @@
    * - **Method**: caches the return value **per unique arguments** (using a stable key from args).
    * - **Getter**: caches the value **once per instance** until invalidated.
    * - **Accessor**: wraps the `get` path like a cached getter; the `set` path invalidates cached value.
-   *
    * @param {CacheOptions} [options] - Optional caching configuration to define when to clear it (on event, after
    * timeout, on next frame, on callback, etc.).
    *
@@ -18958,122 +23085,20 @@
       }
   }
 
-  class ObserveUtils {
-      constructorMap = new WeakMap();
-      constructorData(target) {
-          let obj = this.constructorMap.get(target);
-          if (!obj) {
-              obj = { installed: new Map() };
-              this.constructorMap.set(target, obj);
-          }
-          return obj;
-      }
-  }
-
-  if (!("metadata" in Symbol)) {
-      Object.defineProperty(Symbol, "metadata", {
-          value: Symbol.for("Symbol.metadata"),
-          writable: false, enumerable: false, configurable: true,
-      });
-  }
-  const utils = new ObserveUtils();
-  function observe(...args) {
-      if (typeof args[0] === "object" && typeof args[1] === "string") {
-          const [host, key] = args;
-          const descriptor = getFirstDescriptorInChain(host, key) ?? {};
-          const { read, write } = makeReadWrite(Symbol(`__observed_${key}`), camelToKebabCase(key), descriptor.get, descriptor.set);
-          applyDescriptor(host, key, read, write, descriptor?.enumerable ?? true);
-          return;
-      }
-      const [value, context] = args;
-      const { kind, name, static: isStatic } = context;
-      const key = String(name);
-      const attribute = camelToKebabCase(key);
-      const backing = Symbol(`__observed_${key}`);
-      if (context.metadata) {
-          const observedAttributes = context.metadata.observedAttributes;
-          if (!Object.prototype.hasOwnProperty.call(context.metadata, "observedAttributes"))
-              context.metadata.observedAttributes = new Set(observedAttributes);
-          else if (!observedAttributes)
-              context.metadata.observedAttributes = new Set();
-          context.metadata.observedAttributes.add(attribute);
-      }
-      context.addInitializer(function () {
-          const prototype = isStatic ? this : getFirstPrototypeInChainWith(this, key);
-          let customGetter;
-          let customSetter;
-          if (kind === "field" || kind === "accessor") {
-              try {
-                  this[backing] = this[name];
-              }
-              catch { }
-              const accessor = value;
-              if (accessor?.get)
-                  customGetter = accessor.get;
-              if (accessor?.set)
-                  customSetter = accessor.set;
-              const descriptor = getFirstDescriptorInChain(this, key);
-              if (descriptor?.get)
-                  customGetter = descriptor.get;
-              if (descriptor?.set)
-                  customSetter = descriptor.set;
-              const { read, write } = makeReadWrite(backing, attribute, customGetter, customSetter);
-              applyDescriptor(this, key, read, write, descriptor?.enumerable ?? true);
-          }
-          else if (kind === "getter" || kind === "setter") {
-              const installed = utils.constructorData(prototype).installed;
-              if (installed.get(key))
-                  return;
-              installed.set(key, true);
-              const descriptor = getFirstDescriptorInChain(prototype, key) ?? {};
-              if (typeof descriptor.get === "function")
-                  customGetter = descriptor.get;
-              if (typeof descriptor.set === "function")
-                  customSetter = descriptor.set;
-              const { read, write } = makeReadWrite(backing, attribute, customGetter, customSetter);
-              applyDescriptor(prototype, key, read, write, !!descriptor?.enumerable, true);
-          }
-      });
-  }
-  function makeReadWrite(backing, attribute, customGetter, customSetter) {
-      const read = function () {
-          return customGetter ? customGetter.call(this) : this[backing];
-      };
-      const write = function (value) {
-          const previous = this[backing];
-          if (previous === value)
-              return;
-          if (customSetter)
-              customSetter.call(this, value);
-          else
-              this[backing] = value;
-          this.setAttribute?.(attribute, stringify(this[backing]));
-      };
-      return { read, write };
-  }
-  function applyDescriptor(target, key, read, write, enumerable, bindToThis = false) {
-      Object.defineProperty(target, key, {
-          configurable: true,
-          enumerable,
-          get: bindToThis ? function () { return read.call(this); } : () => read.call(target),
-          set: bindToThis ? function (v) { write.call(this, v); } : (v) => write.call(target, v),
-      });
-  }
-
   /**
    * @decorator
    * @function solver
    * @group Decorators
    * @category MVC
    *
-   * @description Stage-3 decorator that turns methods into substrate solvers.
+   * @description Stage-3 decorator that turns methods into constrainer solvers.
    * @example
    * ```ts
-   * @solver private constrainPosition(properties: SubstrateSolverProperties) {...}
+   * @solver private constrainPosition(properties: ConstrainerSolverProperties) {...}
    * ```
    * Is equivalent to:
    * ```ts
-   * private constrainPosition(properties: SubstrateSolverProperties) {...}
+   * private constrainPosition(properties: ConstrainerSolverProperties) {...}
    *
    * public initialize() {
    *   ...
@@ -19101,425 +23126,125 @@
   }
 
   /**
-   * @class TurboInteractor
-   * @group MVC
-   * @category Interactor
-   *
-   * @extends TurboController
-   * @template {object} ElementType - The type of the main component.
-   * @template {TurboView} ViewType - The element's MVC view type.
-   * @template {TurboModel} ModelType - The element's MVC model type.
-   * @template {TurboEmitter} EmitterType - The element's MVC emitter type.
-   * @description Class representing an MVC interactor. It holds event listeners to set up on the element itself, or
-   * the custom defined target.
+   * @internal
+   * @class ObserveUtils
+   * @description Tracks which properties the `@observe` decorator has already patched, keyed by prototype.
    */
-  class TurboInteractor extends TurboController {
-      #target_accessor_storage;
-      /**
-       * @description The target of the event listeners. Defaults to the element itself.
-       */
-      get target() { return this.#target_accessor_storage; }
-      set target(value) { this.#target_accessor_storage = value; }
-      /**
-       * @readonly
-       * @description The name of the tool (if any) to listen for.
-       */
-      toolName;
-      /**
-       * @readonly
-       * @description The associated event manager. Defaults to `TurboEventManager.instance`.
-       */
-      manager;
-      /**
-       *
-       * @readonly
-       * @description Optional custom options to define per event type.
-       */
-      options;
-      constructor(properties) {
-          super(properties);
-          this.manager = properties.manager ?? this.manager ?? TurboEventManager.instance;
-          this.toolName = properties.toolName ?? this.toolName ?? undefined;
-          this.options = properties.listenerOptions ?? {};
-          const host = this.element;
-          try {
-              this.target = properties.target ?? this.target ?? host instanceof Node ? host
-                  : host?.element instanceof Node ? host.element
-                      : undefined;
+  class ObserveUtils {
+      constructorMap = new WeakMap();
+      constructorData(target) {
+          let obj = this.constructorMap.get(target);
+          if (!obj) {
+              obj = { installed: new Map() };
+              this.constructorMap.set(target, obj);
           }
-          catch { }
-          this.setup();
+          return obj;
       }
   }
-  addRegistryCategory(TurboInteractor);
-  define(TurboInteractor);
 
+  if (!("metadata" in Symbol)) {
+      Object.defineProperty(Symbol, "metadata", {
+          value: Symbol.for("Symbol.metadata"),
+          writable: false, enumerable: false, configurable: true,
+      });
+  }
+  const utils = new ObserveUtils();
   /**
-   * @group MVC
-   * @category TurboModel
+   * @decorator
+   * @function observe
+   * @group Decorators
+   * @category Attributes
+   *
+   * @description Stage-3 decorator for fields, getters, setters, and accessors that reflects a property to an HTML
+   * attribute. So when the value of the property changes, it is reflected in the element's HTML attributes.
+   * It also records the attribute name into the class's `observedAttributed` to listen for changes on the HTML.
+   *
+   * @example
+   * ```ts
+   * @define()
+   * class MyClass extends HTMLElement {
+   *    @observe fieldName: string = "hello";
+   * }
+   * ```
+   *
+   * Leads to:
+   * ```html
+   * <my-class field-name="hello"></my-class>
+   * ```
+   *
    */
-  (() => {
-      let _classSuper = TurboModel;
-      let _instanceExtraInitializers = [];
-      let _set_enabledCallbacks_decorators;
-      return class TurboYModel extends _classSuper {
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _set_enabledCallbacks_decorators = [auto({ override: true })];
-              __esDecorate$1(this, null, _set_enabledCallbacks_decorators, { kind: "setter", name: "enabledCallbacks", static: false, private: false, access: { has: obj => "enabledCallbacks" in obj, set: (obj, value) => { obj.enabledCallbacks = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-          }
-          observer = (__runInitializers$1(this, _instanceExtraInitializers), (event, transaction) => this.observeChanges(event, transaction));
-          /**
-           * @inheritDoc
-           */
-          modelConstructor = TurboYModel;
-          /**
-           * @inheritDoc
-           */
-          set enabledCallbacks(value) {
-              if (!this.data || !(this.data instanceof AbstractType))
+  function observe(value, context) {
+      const { kind, name, static: isStatic } = context;
+      const key = String(name);
+      const attribute = camelToKebabCase(key);
+      const backing = Symbol(`__observed_${key}`);
+      if (context.metadata) {
+          const observedAttributes = context.metadata.observedAttributes;
+          if (!Object.prototype.hasOwnProperty.call(context.metadata, "observedAttributes"))
+              context.metadata.observedAttributes = new Set(observedAttributes);
+          else if (!observedAttributes)
+              context.metadata.observedAttributes = new Set();
+          context.metadata.observedAttributes.add(attribute);
+      }
+      context.addInitializer(function () {
+          const prototype = isStatic ? this : getFirstPrototypeInChainWith(this, key);
+          let customGetter;
+          let customSetter;
+          if (kind === "field" || kind === "accessor")
+              try {
+                  this[backing] = this[name];
+              }
+              catch { }
+          const read = function () {
+              return customGetter ? customGetter.call(this) : this[backing];
+          };
+          const write = function (value) {
+              const previous = this[key];
+              if (previous === value)
                   return;
-              if (value)
-                  this.data.observe(this.observer);
+              if (customSetter)
+                  customSetter.call(this, value);
               else
-                  this.data.unobserve(this.observer);
-          }
-          /*
-           *
-           * Basics
-           *
-           */
-          /**
-           * @inheritDoc
-           */
-          getAction(data, key) {
-              if (data instanceof YMap)
-                  return data.get(key.toString());
-              if (data instanceof YArray)
-                  return data.get(trim(Number(key), data.length));
-              return super.getAction(data, key);
-          }
-          /**
-           * @inheritDoc
-           */
-          setAction(data, value, key) {
-              if (data instanceof YMap)
-                  data.set(key.toString(), value);
-              else if (data instanceof YArray) {
-                  const index = trim(Number(key), data.length + 1);
-                  if (index < data.length)
-                      data.delete(index, 1);
-                  data.insert(index, [value]);
-              }
-              else
-                  super.setAction(data, value, key);
-          }
-          /**
-           * @inheritDoc
-           */
-          addAction(model, data, value, key) {
-              if (data instanceof YArray) {
-                  let index = key;
-                  if (isUndefined(index) || typeof index !== "number" || index > data.length) {
-                      index = data.length;
-                      data.push([value]);
-                  }
-                  else {
-                      if (index < 0)
-                          index = 0;
-                      data.insert(index, [value]);
-                  }
-                  return index;
-              }
-              return super.addAction(model, data, value, key);
-          }
-          /**
-           * @inheritDoc
-           */
-          hasAction(data, key) {
-              if (data instanceof YMap)
-                  return data.has(key.toString());
-              if (data instanceof YArray)
-                  return typeof key === "number" && key >= 0 && key < this.size;
-              return super.hasAction(data, key);
-          }
-          /**
-           * @inheritDoc
-           */
-          deleteAction(data, key) {
-              if (data instanceof YMap)
-                  data.delete(key.toString());
-              else if (data instanceof YArray && typeof key === "number" && key >= 0 && key < this.size)
-                  data.delete(key, 1);
-              else
-                  super.deleteAction(data, key);
-          }
-          /**
-           * @inheritDoc
-           */
-          get keys() {
-              if (this.data instanceof YMap)
-                  return Array.from(this.data.keys());
-              if (this.data instanceof YArray) {
-                  const output = [];
-                  for (let i = 0; i < this.data.length; i++)
-                      output.push(i);
-                  return output;
-              }
-              return super.keys;
-          }
-          /**
-           * @inheritDoc
-           */
-          initialize() {
-              super.initialize();
-              if (this.enabledCallbacks && this.data instanceof AbstractType)
-                  this.data?.observe(this.observer);
-          }
-          /**
-           * @inheritDoc
-           */
-          clear(clearData = true) {
-              if (clearData && this.data instanceof AbstractType)
-                  this.data?.unobserve(this.observer);
-              super.clear(clearData);
-          }
-          /*
-           *
-           * Utilities
-           *
-           */
-          observeChanges(event, transaction) {
-              //TODO
-              !!transaction?.local;
-              transaction?.origin;
-              if (event instanceof YMapEvent) {
-                  event.keysChanged.forEach(key => {
-                      const change = event.changes.keys.get(key);
-                      if (!change)
-                          return;
-                      if (change.action === "delete")
-                          this.keyChanged([key], undefined, true);
-                      else
-                          this.keyChanged([key]);
-                  });
-              }
-              else if (event instanceof YArrayEvent) {
-                  let currentIndex = 0;
-                  for (const delta of event.delta) {
-                      if (delta.retain !== undefined) {
-                          currentIndex += delta.retain;
-                      }
-                      else if (delta.insert) {
-                          const insertedItems = Array.isArray(delta.insert) ? delta.insert : [delta.insert];
-                          const count = insertedItems.length;
-                          this.shiftIndices(currentIndex, count);
-                          for (let i = 0; i < count; i++)
-                              this.keyChanged([currentIndex + i]);
-                          currentIndex += count;
-                      }
-                      else if (delta.delete) {
-                          const count = delta.delete;
-                          for (let i = 0; i < count; i++)
-                              this.keyChanged([currentIndex + i], undefined, true);
-                          this.shiftIndices(currentIndex + count, -count);
-                      }
-                  }
-              }
-          }
-          shiftIndices(fromIndex, offset) {
-              this.changeObservers?.toArray().forEach(observer => {
-                  const pathsToShift = observer.paths
-                      .filter(path => Number(path[0]) >= fromIndex);
-                  const itemsToShift = pathsToShift
-                      .map(path => [Number(path[0]), path, observer.get(...path)]);
-                  itemsToShift.sort((a, b) => a[0] - b[0]);
-                  pathsToShift.forEach(path => observer.detach(...path));
-                  for (const [oldIndex, path, instance] of itemsToShift) {
-                      const newIndex = oldIndex + offset;
-                      if (typeof instance === "object" && "dataId" in instance)
-                          instance.dataId = newIndex;
-                      observer.set(instance, newIndex, ...path.slice(1));
-                  }
+                  this[backing] = value;
+              this.setAttribute?.(attribute, stringify(this[key]));
+          };
+          if (kind === "field" || kind === "accessor") {
+              const accessor = value;
+              if (accessor?.get)
+                  customGetter = accessor.get;
+              if (accessor?.set)
+                  customSetter = accessor.set;
+              const descriptor = getFirstDescriptorInChain(this, key);
+              if (descriptor?.get)
+                  customGetter = descriptor.get;
+              if (descriptor?.set)
+                  customSetter = descriptor.set;
+              Object.defineProperty(this, key, {
+                  configurable: true,
+                  enumerable: descriptor?.enumerable ?? true,
+                  get: () => read.call(this),
+                  set: (value) => write.call(this, value),
               });
           }
-      };
-  })();
-
-  /**
-   * @class TurboTool
-   * @group MVC
-   * @category Tool
-   *
-   * @extends TurboController
-   * @template {object} ElementType - The type of the element.
-   * @template {TurboView} ViewType - The element's view type, if any.
-   * @template {TurboModel} ModelType - The element's model type, if any.
-   * @template {TurboEmitter} EmitterType - The element's emitter type, if any.
-   * @description Class representing a tool in MVC, bound to the provided element.
-   */
-  class TurboTool extends TurboController {
-      /**
-       * @description The name of the tool.
-       */
-      toolName;
-      /**
-       * @readonly
-       * @description The target of this tool. If defined, will embed the tool.
-       */
-      embeddedTarget;
-      /**
-       * @readonly
-       * @description The associated event manager. Defaults to `TurboEventManager.instance`.
-       */
-      manager;
-      /**
-       * @readonly
-       * @description Custom activation event to listen to. Defaults to the default click event name.
-       */
-      activationEvent = DefaultEventName.click;
-      /**
-       * @readonly
-       * @description Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
-       */
-      clickMode = ClickMode.left;
-      /**
-       * @readonly
-       * @description Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
-       */
-      key;
-      constructor(properties) {
-          super(properties);
-          this.toolName = properties.toolName ?? this.toolName ?? undefined;
-          if (properties.embeddedTarget)
-              this.embeddedTarget = properties.embeddedTarget;
-          if (properties.onActivate)
-              this.onActivate = properties.onActivate;
-          if (properties.onDeactivate)
-              this.onDeactivate = properties.onDeactivate;
-          if (properties.activationEvent)
-              this.activationEvent = properties.activationEvent;
-          if (properties.clickMode)
-              this.clickMode = properties.clickMode;
-          if (properties.customActivation)
-              this.customActivation = properties.customActivation;
-          if (properties.key)
-              this.key = properties.key;
-          this.manager = properties.manager ?? this.manager ?? TurboEventManager.instance;
-          this.setup();
-      }
-      /**
-       * @function initialize
-       * @override
-       * @description Initialization function that calls {@link makeTool} on `this.element`, sets it up, and attaches
-       * all the defined tool behaviors.
-       */
-      initialize() {
-          if (this.toolName)
-              turbo(this).makeTool(this.toolName, {
-                  onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
-                  onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
-                  activationEvent: this.activationEvent,
-                  clickMode: this.clickMode,
-                  customActivation: typeof this.customActivation === "function" ? this.customActivation.bind(this) : undefined,
-                  key: this.key,
-                  manager: this.manager,
+          else if (kind === "getter" || kind === "setter") {
+              const installed = utils.constructorData(prototype).installed;
+              if (installed.get(key))
+                  return;
+              installed.set(key, true);
+              const descriptor = getFirstDescriptorInChain(prototype, key) ?? {};
+              if (typeof descriptor.get === "function")
+                  customGetter = descriptor.get;
+              if (typeof descriptor.set === "function")
+                  customSetter = descriptor.set;
+              Object.defineProperty(prototype, key, {
+                  configurable: true,
+                  enumerable: !!descriptor?.enumerable,
+                  get: function () { return read.call(this); },
+                  set: function (value) { write.call(this, value); },
               });
-          if (this.embeddedTarget)
-              turbo(this).embedTool(this.embeddedTarget, this.manager);
-          super.initialize();
-      }
+          }
+      });
   }
-  addRegistryCategory(TurboTool);
-  define(TurboTool);
-
-  /**
-   * @class TurboView
-   * @group MVC
-   * @category View
-   *
-   * @template {object} ElementType - The type of the element attached to the view.
-   * @template {TurboModel} ModelType - The model type used in this view.
-   * @template {TurboEmitter} EmitterType - The emitter type used in this view.
-   * @description A base view class for MVC elements, providing structure for initializing and managing UI setup and
-   * event listeners. Designed to be devoid of logic and only handle direct UI changes.
-   */
-  class TurboView {
-      /**
-       * @description The main component this view is attached to.
-       */
-      element;
-      /**
-       * @description The model instance this view is bound to.
-       */
-      model;
-      /**
-       * @description The emitter instance used for event communication.
-       */
-      emitter;
-      /**
-       * @constructor
-       * @param {TurboViewProperties<ElementType, ModelType, EmitterType>} properties - Properties to initialize the view with.
-       */
-      constructor(properties) {
-          this.element = properties.element;
-          if (properties.model)
-              this.model = properties.model;
-          if (properties.emitter)
-              this.emitter = properties.emitter;
-          this.setup();
-      }
-      /**
-       * @function setup
-       * @description Called in the constructor. Use for setup that should happen at instantiation,
-       * before `this.initialize()` is called.
-       * @protected
-       */
-      setup() { }
-      /**
-       * @function initialize
-       * @description Initializes the view by setting up change callbacks, UI elements, layout, and event listeners.
-       */
-      initialize() {
-          this.setupUIElements();
-          this.setupUILayout();
-          this.setupUIListeners();
-          this.setupChangedCallbacks();
-      }
-      /**
-       * @function setupChangedCallbacks
-       * @description Setup method for initializing data/model change listeners and associated UI logic.
-       * @protected
-       */
-      setupChangedCallbacks() {
-          initializeEffects(this);
-      }
-      /**
-       * @function setupUIElements
-       * @description Setup method for initializing and storing sub-elements of the UI.
-       * @protected
-       */
-      setupUIElements() {
-      }
-      /**
-       * @function setupUILayout
-       * @description Setup method for creating the layout structure and injecting sub-elements into the DOM tree.
-       * @protected
-       */
-      setupUILayout() {
-      }
-      /**
-       * @function setupUIListeners
-       * @description Setup method for defining DOM and input event listeners.
-       * @protected
-       */
-      setupUIListeners() {
-          attachListenersAndBehaviors(this);
-      }
-  }
-  addRegistryCategory(TurboView);
-  define(TurboView);
 
   function styleInject$1(css, ref) {
     if ( ref === void 0 ) ref = {};
@@ -19548,321 +23273,36 @@
     }
   }
 
-  var css_248z$3 = "turbo-button{align-items:center;background-color:#dadada;border:1px solid #000;border-radius:.4em;color:#000;display:inline-flex;flex-direction:row;gap:.4em;padding:.5em .7em;text-decoration:none}turbo-button>h4{flex-grow:1}";
-  styleInject$1(css_248z$3);
+  var css_248z$4 = "gradum-button{align-items:center;background-color:#dadada;border:1px solid #000;border-radius:.4em;color:#000;display:inline-flex;flex-direction:row;gap:.4em;padding:.5em .7em;text-decoration:none}gradum-button>h4{flex-grow:1}";
+  styleInject$1(css_248z$4);
 
   /**
-   * Define MVC-style accessors on a class prototype via Object.defineProperty.
-   * Adds: view, model, emitter, controllers, handlers, interactors, tools, substrates,
-   * data, dataId, dataIndex, dataSize, and all add/get/remove methods.
-   */
-  function defineMvcAccessors(constructor) {
-      const prototype = constructor.prototype;
-      // Fields — proxy through turbo(this)
-      [...MvcFields, "data", "dataId", "dataIndex"].forEach(fieldName => {
-          Object.defineProperty(prototype, fieldName, {
-              get() { return turbo(this)[fieldName]; },
-              set(value) { turbo(this)[fieldName] = value; },
-              configurable: true,
-              enumerable: true,
-          });
-      });
-      Object.defineProperty(prototype, "dataSize", {
-          get() { return turbo(this).dataSize; },
-          configurable: true,
-          enumerable: true,
-      });
-  }
-
-  function defineUIPrototype(constructor) {
-      const prototype = constructor.prototype;
-      const shadowDOMKey = Symbol("__shadow_dom__");
-      const unsetDefaultClassesKey = Symbol("__unset_default_classes__");
-      const defaultClassesKey = Symbol("__default_classes__");
-      const defaultSelectedClassesKey = Symbol("__default_selected_classes__");
-      Object.defineProperty(prototype, "shadowDOM", {
-          get: function () { return this[shadowDOMKey] ?? false; },
-          set: function (value) {
-              this[shadowDOMKey] = value;
-              const el = this.element;
-              if (value && !el.shadowRoot)
-                  try {
-                      el.attachShadow({ mode: "open" });
-                  }
-                  catch { }
-              if (el.shadowRoot) {
-                  const from = value ? el : el.shadowRoot;
-                  const to = value ? el.shadowRoot : el;
-                  while (from.childNodes.length > 0)
-                      to.appendChild(from.childNodes[0]);
-              }
-          },
-          enumerable: true,
-          configurable: true,
-      });
-      Object.defineProperty(prototype, "unsetDefaultClasses", {
-          get: function () { return this[unsetDefaultClassesKey] ?? false; },
-          set: function (value) {
-              this[unsetDefaultClassesKey] = value;
-              turbo(this).toggleClass(this.defaultClasses, !value);
-          },
-          enumerable: true,
-          configurable: true,
-      });
-      Object.defineProperty(prototype, "defaultClasses", {
-          get: function () { return this[defaultClassesKey] ?? ""; },
-          set: function (value) {
-              if (!this.unsetDefaultClasses)
-                  turbo(this).toggleClass(this[defaultClassesKey], false);
-              this[defaultClassesKey] = value;
-              if (!this.unsetDefaultClasses)
-                  turbo(this).toggleClass(value, true);
-          },
-          enumerable: true,
-          configurable: true,
-      });
-      Object.defineProperty(prototype, "defaultSelectedClasses", {
-          get: function () { return this[defaultSelectedClassesKey] ?? ""; },
-          set: function (value) {
-              if (this.selected)
-                  turbo(this).toggleClass(this[defaultSelectedClassesKey], false);
-              this[defaultSelectedClassesKey] = value;
-              if (this.selected)
-                  turbo(this).toggleClass(value, true);
-          },
-          enumerable: true,
-          configurable: true,
-      });
-  }
-
-  const VOID       = -1;
-  const PRIMITIVE  = 0;
-  const ARRAY      = 1;
-  const OBJECT     = 2;
-  const DATE       = 3;
-  const REGEXP     = 4;
-  const MAP        = 5;
-  const SET        = 6;
-  const ERROR      = 7;
-  const BIGINT     = 8;
-  // export const SYMBOL = 9;
-
-  const env = typeof self === 'object' ? self : globalThis;
-
-  const deserializer = ($, _) => {
-    const as = (out, index) => {
-      $.set(index, out);
-      return out;
-    };
-
-    const unpair = index => {
-      if ($.has(index))
-        return $.get(index);
-
-      const [type, value] = _[index];
-      switch (type) {
-        case PRIMITIVE:
-        case VOID:
-          return as(value, index);
-        case ARRAY: {
-          const arr = as([], index);
-          for (const index of value)
-            arr.push(unpair(index));
-          return arr;
-        }
-        case OBJECT: {
-          const object = as({}, index);
-          for (const [key, index] of value)
-            object[unpair(key)] = unpair(index);
-          return object;
-        }
-        case DATE:
-          return as(new Date(value), index);
-        case REGEXP: {
-          const {source, flags} = value;
-          return as(new RegExp(source, flags), index);
-        }
-        case MAP: {
-          const map = as(new Map, index);
-          for (const [key, index] of value)
-            map.set(unpair(key), unpair(index));
-          return map;
-        }
-        case SET: {
-          const set = as(new Set, index);
-          for (const index of value)
-            set.add(unpair(index));
-          return set;
-        }
-        case ERROR: {
-          const {name, message} = value;
-          return as(new env[name](message), index);
-        }
-        case BIGINT:
-          return as(BigInt(value), index);
-        case 'BigInt':
-          return as(Object(BigInt(value)), index);
-        case 'ArrayBuffer':
-          return as(new Uint8Array(value).buffer, value);
-        case 'DataView': {
-          const { buffer } = new Uint8Array(value);
-          return as(new DataView(buffer), value);
-        }
-      }
-      return as(new env[type](value), index);
-    };
-
-    return unpair;
-  };
-
-  /**
-   * @typedef {Array<string,any>} Record a type representation
-   */
-
-  /**
-   * Returns a deserialized value from a serialized array of Records.
-   * @param {Record[]} serialized a previously serialized value.
-   * @returns {any}
-   */
-  const deserialize = serialized => deserializer(new Map, serialized)(0);
-
-  /*! (c) Andrea Giammarchi - ISC */
-
-
-  const {parse: $parse} = JSON;
-
-  /**
-   * Revive a previously stringified structured clone.
-   * @param {string} str previously stringified data as string.
-   * @returns {any} whatever was previously stringified as clone.
-   */
-  const parse = str => deserialize($parse(str));
-
-  /**
-   * @class TurboElement
-   * @group TurboElement
-   * @category TurboElement
-   *
-   * @extends HTMLElement
-   * @description Base TurboElement class, extending the base HTML element with a few useful tools and functions.
-   * @template {TurboView} ViewType - The element's view type, if initializing MVC.
-   * @template {object} DataType - The element's data type, if initializing MVC.
-   * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
-   * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
-   * */
-  class TurboElement extends HTMLElement {
-      /**
-       * @description Default properties assigned to a new instance.
-       */
-      static defaultProperties = {
-          defaultSelectedClasses: "selected"
-      };
-      static create(properties = {}) {
-          return this.customCreate.call(this, properties);
-      }
-      static customCreate(properties) {
-          const prototypeChain = getPrototypeChain(this);
-          for (const prototype of prototypeChain)
-              turbo(properties).applyDefaults(prototype["defaultProperties"] ?? {});
-          return element({ ...properties });
-      }
-      /**
-       * @description Delegate fired when the element is attached to DOM.
-       */
-      onAttach = new Delegate();
-      /**
-       * @description Delegate fired when the element is detached from the DOM.
-       */
-      onDetach = new Delegate();
-      /**
-       * @description Delegate fired when the element is adopted by a new parent in the DOM.
-       */
-      onAdopt = new Delegate();
-      /**
-       * @function setupChangedCallbacks
-       * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
-       * @protected
-       */
-      setupChangedCallbacks() {
-      }
-      /**
-       * @function setupUIElements
-       * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
-       * them in fields. Called on `initialize()`.
-       * @protected
-       */
-      setupUIElements() {
-      }
-      /**
-       * @function setupUILayout
-       * @description Setup method to create the layout structure of the element by adding all created sub-elements to
-       * this element's child tree. Called on `initialize()`.
-       * @protected
-       */
-      setupUILayout() {
-      }
-      /**
-       * @function setupUIListeners
-       * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
-       * `initialize()`.
-       * @protected
-       */
-      setupUIListeners() {
-      }
-      /**
-       * @function connectedCallback
-       * @description function called when the element is attached to the DOM.
-       */
-      connectedCallback() {
-          if (!this.initialized) {
-              const prototypeChain = getPrototypeChain(this);
-              const defaults = {};
-              for (const proto of prototypeChain)
-                  turbo(defaults).applyDefaults(proto.constructor?.["defaultProperties"]);
-              const toApply = {};
-              for (const [key, value] of Object.entries(defaults))
-                  if (isUndefined(this[key]))
-                      toApply[key] = value;
-              turbo(this).setProperties(toApply);
-              for (const attribute of this.constructor["observedAttributes"] ?? []) {
-                  if (!this.hasAttribute(attribute))
-                      continue;
-                  const property = kebabToCamelCase(attribute);
-                  const current = this.getAttribute(attribute);
-                  this[property] = parse(current);
-              }
-          }
-          this.onAttach.fire();
-      }
-      /**
-       * @function disconnectedCallback
-       * @description function called when the element is detached from the DOM.
-       */
-      disconnectedCallback() {
-          this.onDetach.fire();
-      }
-      /**
-       * @function adoptedCallback
-       * @description function called when the element is adopted by a new parent in the DOM.
-       */
-      adoptedCallback() {
-          this.onAdopt.fire();
-      }
-  }
-  (() => {
-      defineDefaultProperties(TurboElement);
-      defineMvcAccessors(TurboElement);
-      defineUIPrototype(TurboElement);
-  })();
-  addRegistryCategory(TurboElement);
-
-  /**
+   * @function getFileExtension
    * @group Utilities
-   * @category Element
+   * @category String
    *
-   * @description Converts a string of tags into an Element.
-   * @param {string} text - The string to convert
-   * @return The Element
+   * @description Read the extension off a filename or path, leading dot included. Also used to tell a file path
+   * from a directory path, since a directory yields an empty string.
+   * @param {string} [str] - The filename or path to read.
+   * @returns {string} The extension including its dot (`".png"`), or an empty string if there is none. Only
+   * extensions of one to four characters are recognized.
+   */
+  function getFileExtension(str) {
+      if (!str || str.length == 0)
+          return "";
+      const match = str.match(/\.\S{1,4}$/);
+      return match ? match[0] : "";
+  }
+
+  /**
+   * @function textToElement
+   * @group Utilities
+   * @category DOM
+   *
+   * @description Parse a string of HTML into a live element. Only the first top-level element of the string is
+   * returned, so wrap multiple siblings in a container if you need all of them.
+   * @param {string} text - The markup to parse.
+   * @returns {Element} The parsed element, or `undefined` if the string held no element.
    */
   function textToElement(text) {
       let wrapper = document.createElement("div");
@@ -19871,13 +23311,17 @@
   }
 
   /**
+   * @function fetchSvg
    * @group Utilities
    * @category SVG
    *
-   * @description Fetches an SVG from the given path
-   * @param {string} path - The path to the SVG
-   * @param logError
-   * @returns An SVGElement promise
+   * @description Fetch an SVG file and parse it into a live element, ready to be inserted into the document.
+   * Because the markup is parsed rather than placed in an `<img>`, the result can be styled and scripted.
+   * @param {string} path - The path or URL to fetch the SVG from.
+   * @param {boolean} [logError=true] - Whether to also log failures to the console. The promise rejects either
+   * way.
+   * @returns {Promise<SVGElement>} The parsed SVG element. Rejects on an empty path, a failed request, or
+   * markup that does not parse.
    */
   function fetchSvg(path, logError = true) {
       return new Promise((resolve, reject) => {
@@ -20020,6 +23464,9 @@
            */
           toString() {
               return this.a < 1 ? this.rgba : this.rgb;
+          }
+          fromString(value) {
+              return Color.from(value);
           }
           syncFromRgb() {
               if (this.syncing)
@@ -20273,8 +23720,15 @@
               return Color.from(base).bestOverlay(dark, light);
           }
           /**
-           * @group Utilities
-           * @category Random
+           * @function random
+           * @description Generate a random color with a random hue, constrained to the given saturation and
+           * lightness. The defaults produce muted pastel tones rather than fully saturated ones.
+           * @param {number | [number, number]} [saturation=[50, 70]] - Saturation percentage, or a `[min, max]`
+           * range to pick one from.
+           * @param {number | [number, number]} [lightness=[70, 85]] - Lightness percentage, or a `[min, max]`
+           * range to pick one from.
+           * @returns {Color} The generated color.
+           * @static
            */
           static random(saturation = [50, 70], lightness = [70, 85]) {
               if (typeof saturation != "number" && saturation.length >= 2)
@@ -20358,15 +23812,15 @@
   })();
 
   /**
-   * @class TurboIcon
+   * @class GradumIcon
    * @group Components
-   * @category TurboIcon
+   * @category Basics
    *
+   * @extends GradumElement
    * @description Icon class for creating icon elements.
-   * @extends TurboElement
    */
-  let TurboIcon = (() => {
-      let _classSuper = TurboElement;
+  let GradumIcon = (() => {
+      let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
       let _type_decorators;
       let _type_initializers = [];
@@ -20378,7 +23832,7 @@
       let _get_iconColor_decorators;
       let _set_iconColor_decorators;
       let _loadSvg_decorators;
-      return class TurboIcon extends _classSuper {
+      return class GradumIcon extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _type_decorators = [observe, auto({
@@ -20413,13 +23867,27 @@
               __esDecorate$1(null, null, _directory_decorators, { kind: "field", name: "directory", static: false, private: false, access: { has: obj => "directory" in obj, get: obj => obj.directory, set: (obj, value) => { obj.directory = value; } }, metadata: _metadata }, _directory_initializers, _directory_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @static
+           * @readonly
+           * @description Extra icon loaders, keyed by file extension. Register one to teach every icon how to
+           * load a format the built-in SVG and image loaders do not cover.
+           */
           static customLoaders = {};
+          /**
+           * @static
+           * @description Default properties assigned to a new icon. Icons are treated as SVG unless told otherwise.
+           */
           static defaultProperties = {
               type: "svg"
           };
           static imageTypes = ["png", "jpg", "jpeg", "gif", "webp", "PNG", "JPG", "JPEG", "GIF", "WEBP"];
           _element = __runInitializers$1(this, _instanceExtraInitializers);
           _loadToken = 0;
+          /**
+           * @description Called with the loaded element once the icon finishes loading. Loading is asynchronous
+           * for SVGs, so use this rather than reading the element straight after assigning an icon name.
+           */
           onLoaded;
           /**
            * @description The type of the icon.
@@ -20466,16 +23934,44 @@
               return this._element;
           }
           //Utilities
+          /**
+           * @function loadSvg
+           * @protected
+           * @description Fetch an SVG file and return its root element. Results are cached, so the same path is
+           * only fetched once.
+           * @param {string} path - The path to the SVG file.
+           * @returns {Promise<SVGElement>} The loaded SVG element.
+           */
           loadSvg(path) {
               return fetchSvg(path);
           }
+          /**
+           * @function loadImg
+           * @protected
+           * @description Build an `<img>` element for a raster icon, using the icon's name as its alt text.
+           * @param {string} path - The path to the image file.
+           * @returns {HTMLImageElement} The created image element.
+           */
           loadImg(path) {
               return img({ src: path, alt: this.icon });
           }
+          /**
+           * @function updateColor
+           * @protected
+           * @description Recolor the icon by setting its fill. Only applies to SVG icons; raster images are left
+           * as they are.
+           * @param {Color} [value=this.iconColor] - The color to apply. Defaults to the icon's own color.
+           */
           updateColor(value = this.iconColor) {
               if (value && this.element instanceof SVGElement)
                   this.element.style.fill = value.toString();
           }
+          /**
+           * @function generateIcon
+           * @protected
+           * @description Load the icon for the current name and type, and swap it in as this element's content.
+           * Reuses the existing element when only the source changed.
+           */
           generateIcon() {
               const path = this.path;
               const type = getFileExtension(path)?.substring(1);
@@ -20518,13 +24014,13 @@
                   return;
               if (element.parentElement)
                   element = element.cloneNode(true);
-              turbo(this).addChild(element);
+              gradum(this).addChild(element);
               this.updateColor();
               this.onLoaded?.(element);
               this.element = element;
           }
           clear() {
-              turbo(this.element).destroy();
+              gradum(this.element).destroy();
               this.element = null;
           }
           constructor() {
@@ -20533,20 +24029,20 @@
           }
       };
   })();
-  define(TurboIcon);
+  define(GradumIcon);
 
   /**
-   * @class TurboRichElement
+   * @class GradumRichElement
    * @group Components
-   * @category TurboRichElement
+   * @category Basics
    *
-   * @description Class for creating a rich turbo element (an element that is possibly accompanied by icons (or other elements) on
-   * its left and/or right).
-   * @extends TurboElement
+   * @extends GradumElement
    * @template {ValidTag} ElementTag - The tag of the main element to create the rich element from.
+   * @description Class for creating a rich gradum element (an element that is possibly accompanied by icons (or other elements) on
+   * its left and/or right).
    */
-  let TurboRichElement = (() => {
-      let _classSuper = TurboElement;
+  let GradumRichElement = (() => {
+      let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
       let _set_leftCustomElements_decorators;
       let _set_leftIcon_decorators;
@@ -20555,7 +24051,7 @@
       let _set_suffixEntry_decorators;
       let _set_rightIcon_decorators;
       let _set_rightCustomElements_decorators;
-      return class TurboRichElement extends _classSuper {
+      return class GradumRichElement extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _set_leftCustomElements_decorators = [auto({ executeSetterBeforeStoring: true })];
@@ -20566,9 +24062,9 @@
                                   this.leftIcon.icon = value;
                                   return this.leftIcon;
                               }
-                              value = TurboIcon.create({ icon: value });
+                              value = GradumIcon.create({ icon: value });
                           }
-                          turbo(this).remChild(this.leftIcon);
+                          gradum(this).remChild(this.leftIcon);
                           this.addAtPosition(value, "leftIcon");
                           return value;
                       }
@@ -20582,12 +24078,12 @@
                               }
                               value = element({ text: value });
                           }
-                          turbo(this).remChild(this.prefixEntry);
+                          gradum(this).remChild(this.prefixEntry);
                           this.addAtPosition(value, "prefixEntry");
                           return value;
                       }
                   })];
-              _set_element_decorators = [auto({
+              _set_element_decorators = [signal, auto({
                       preprocessValue: function (value) {
                           if (typeof value === "string") {
                               if (this.element && "textContent" in this.element) {
@@ -20601,7 +24097,7 @@
                                   value.tag = this.elementTag;
                               value = element(value);
                           }
-                          turbo(this).remChild(this.element);
+                          gradum(this).remChild(this.element);
                           this.addAtPosition(value, "element");
                           return value;
                       }
@@ -20615,7 +24111,7 @@
                               }
                               value = element({ text: value });
                           }
-                          turbo(this).remChild(this.suffixEntry);
+                          gradum(this).remChild(this.suffixEntry);
                           this.addAtPosition(value, "suffixEntry");
                           return value;
                       }
@@ -20627,9 +24123,9 @@
                                   this.rightIcon.icon = value;
                                   return this.rightIcon;
                               }
-                              value = TurboIcon.create({ icon: value });
+                              value = GradumIcon.create({ icon: value });
                           }
-                          turbo(this).remChild(this.rightIcon);
+                          gradum(this).remChild(this.rightIcon);
                           this.addAtPosition(value, "rightIcon");
                           return value;
                       }
@@ -20644,24 +24140,41 @@
               __esDecorate$1(this, null, _set_rightCustomElements_decorators, { kind: "setter", name: "rightCustomElements", static: false, private: false, access: { has: obj => "rightCustomElements" in obj, set: (obj, value) => { obj.rightCustomElements = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @static
+           * @description Default properties assigned to a new rich element.
+           */
           static defaultProperties = {
               elementTag: "h4"
           };
-          static create(properties = {}) {
-              const props = properties;
-              if (props.text && !props.element) {
-                  props.element = props.text;
-                  props.text = undefined;
+          /**
+           * @function customCreate
+           * @static
+           * @protected
+           * @description Build a rich element, resolving `text` and `elementTag` into the configuration of its inner
+           * element before construction.
+           * @param {GradumRichElementProperties} properties - The element's configuration.
+           * @returns {object} The created rich element.
+           */
+          static customCreate(properties) {
+              if (properties.text && !properties.element) {
+                  properties.element = properties.text;
+                  properties.text = undefined;
               }
-              if (props.elementTag && typeof props.element === "object" && !(props.element instanceof Element)) {
-                  props.element.tag = props.elementTag;
+              if (properties.elementTag && typeof properties.element === "object" && !(properties.element instanceof Element)) {
+                  properties.element.tag = properties.elementTag;
               }
-              return super.create.call(this, props);
+              return super.customCreate(properties);
           }
+          /**
+           * @readonly
+           * @description The order the rich element's parts are laid out in, from left to right. Assigning a part
+           * inserts it at its place in this order rather than at the end.
+           */
           childrenOrder = (__runInitializers$1(this, _instanceExtraInitializers), ["leftCustomElements", "leftIcon",
               "prefixEntry", "element", "suffixEntry", "rightIcon", "rightCustomElements"]);
           /**
-           * @description Adds a given element or elements to the button at a specified position.
+           * @description Add one or more elements to this rich element at the given position.
            * @param {Element | Element[] | null} element - The element(s) to add.
            * @param {this["childrenOrder"][number]} type - The type of child element being added.
            */
@@ -20679,28 +24192,28 @@
                   else if (el && Array.isArray(el))
                       nextSiblingIndex += el.length;
               }
-              turbo(this).addChild(element, nextSiblingIndex);
+              gradum(this).addChild(element, nextSiblingIndex);
           }
           /**
-           * @description The tag of the text element in the button
+           * @description The tag used for this rich element's text element
            */
           elementTag;
           /**
            * @description The custom element(s) on the left. Can be set to new element(s) by a simple assignment.
            */
           set leftCustomElements(value) {
-              turbo(this).remChild(this.leftCustomElements);
+              gradum(this).remChild(this.leftCustomElements);
               this.addAtPosition(value, "leftCustomElements");
           }
           /**
            * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-           * icon, or a Turbo/HTML element).
+           * icon, or a Gradum/HTML element).
            */
           set leftIcon(value) { }
           get leftIcon() { return; }
           /**
-           * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-           * icon, or a Turbo/HTML element).
+           * @description The element shown before the text. Assigning a string sets its text content; assigning
+           * an element replaces it outright.
            */
           set prefixEntry(value) { }
           get prefixEntry() { return; }
@@ -20726,14 +24239,14 @@
               this.element = value;
           }
           /**
-           * @description The left icon element. Can be set with a new icon by a simple assignment (the name/path of the
-           * icon, or a Turbo/HTML element).
+           * @description The element shown after the text. Assigning a string sets its text content; assigning
+           * an element replaces it outright.
            */
           set suffixEntry(value) { }
           get suffixEntry() { return; }
           /**
            * @description The right icon element. Can be set with a new icon by a simple assignment (the name/path of the
-           * icon, or a Turbo/HTML element).
+           * icon, or a Gradum/HTML element).
            */
           set rightIcon(value) { }
           get rightIcon() { return; }
@@ -20741,36 +24254,36 @@
            * @description The custom element(s) on the right. Can be set to new element(s) by a simple assignment.
            */
           set rightCustomElements(value) {
-              turbo(this).remChild(this.rightCustomElements);
+              gradum(this).remChild(this.rightCustomElements);
               this.addAtPosition(value, "rightCustomElements");
           }
       };
   })();
-  define(TurboRichElement);
+  define(GradumRichElement);
 
   /**
-   * @class TurboButton
+   * @class GradumButton
    * @group Components
-   * @category TurboButton
+   * @category Basics
    *
-   * @description Button class for creating Turbo button elements.
-   * @extends TurboElement
+   * @extends GradumElement
+   * @description Button class for creating Gradum button elements.
    */
-  class TurboButton extends TurboRichElement {
+  class GradumButton extends GradumRichElement {
   }
-  define(TurboButton);
+  define(GradumButton);
 
   /**
    * @group Components
-   * @category TurboIconSwitch
+   * @category Basics
    */
-  let TurboIconSwitch = (() => {
-      let _classSuper = TurboIcon;
+  let GradumIconSwitch = (() => {
+      let _classSuper = GradumIcon;
       let _instanceExtraInitializers = [];
       let _set_switchReifect_decorators;
       let _set_defaultState_decorators;
       let _set_appendStateToIconName_decorators;
-      return class TurboIconSwitch extends _classSuper {
+      return class GradumIconSwitch extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _set_switchReifect_decorators = [auto({
@@ -20788,6 +24301,9 @@
               __esDecorate$1(this, null, _set_appendStateToIconName_decorators, { kind: "setter", name: "appendStateToIconName", static: false, private: false, access: { has: obj => "appendStateToIconName" in obj, set: (obj, value) => { obj.appendStateToIconName = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @description The reifect that swaps the icon between its states. Assign reifect properties to build one.
+           */
           get switchReifect() { return; }
           set switchReifect(value) {
               this.switchReifect.attach(this);
@@ -20806,6 +24322,10 @@
                   this.switchReifect.properties = properties;
               }
           }
+          /**
+           * @function initialize
+           * @description Set the icon up and apply its default state.
+           */
           initialize() {
               super.initialize();
               if (this.defaultState)
@@ -20817,18 +24337,18 @@
           }
       };
   })();
-  define(TurboIconSwitch);
+  define(GradumIconSwitch);
 
   /**
    * @group Components
-   * @category TurboIconToggle
+   * @category Basics
    */
-  let TurboIconToggle = (() => {
-      let _classSuper = TurboIcon;
+  let GradumIconToggle = (() => {
+      let _classSuper = GradumIcon;
       let _instanceExtraInitializers = [];
       let _set_toggled_decorators;
       let _set_toggleOnClick_decorators;
-      return class TurboIconToggle extends _classSuper {
+      return class GradumIconToggle extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _set_toggled_decorators = [auto({ initialValue: false })];
@@ -20837,122 +24357,339 @@
               __esDecorate$1(this, null, _set_toggleOnClick_decorators, { kind: "setter", name: "toggleOnClick", static: false, private: false, access: { has: obj => "toggleOnClick" in obj, set: (obj, value) => { obj.toggleOnClick = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @description Whether a click that toggles this icon stops propagating, keeping ancestors from also
+           * reacting to it.
+           */
           stopPropagationOnClick = (__runInitializers$1(this, _instanceExtraInitializers), true);
+          /**
+           * @description Called with the new state whenever the icon is toggled.
+           */
           onToggle;
           clickListener = () => {
               this.toggle();
               return this.stopPropagationOnClick;
           };
+          /**
+           * @description Whether the icon is currently toggled on. Assigning fires
+           * {@link GradumIconToggle.onToggle}.
+           */
           set toggled(value) {
               if (this.onToggle)
                   this.onToggle(value, this);
           }
+          /**
+           * @description Whether clicking the icon toggles it. Assigning attaches or removes the click listener.
+           */
           set toggleOnClick(value) {
               if (value)
-                  turbo(this).on(DefaultEventName.click, this.clickListener);
+                  gradum(this).on(DefaultEventName.click, this.clickListener);
               else
-                  turbo(this).removeListener(DefaultEventName.click, this.clickListener);
+                  gradum(this).removeListener(DefaultEventName.click, this.clickListener);
           }
+          /**
+           * @function toggle
+           * @description Flip the icon's state, firing {@link GradumIconToggle.onToggle}.
+           */
           toggle() {
               this.toggled = !this.toggled;
           }
       };
   })();
-  define(TurboIconToggle);
+  define(GradumIconToggle);
 
-  //TODO
-  class TurboInputInputInteractor extends TurboInteractor {
-      keyName = "__input__interactor__";
-      _composing = false;
-      _resizeQueued = false;
-      // public options = {
-      //     compositionStart: {capture: true},
-      //     compositionEnd: {capture: true},
-      //     input: {capture: true},
-      // }
-      get inputElement() {
-          return this.element.element;
-      }
-      initialize() {
-          super.initialize();
-          $(this.target).bypassManagerOn = () => true;
-      }
-      setupChangedCallbacks() {
-          super.setupChangedCallbacks();
-          this.emitter.add("valueSet", () => this.handleInput());
-      }
-      click() {
-          if (!this.element.locked)
-              this.inputElement?.focus();
-          return false;
-      }
-      focusIn(e) {
-          if (e.target !== this.inputElement)
-              return;
-          if (this.element.locked) {
-              this.inputElement.blur();
-              return;
+  /**
+   * @class GradumInteractor
+   * @group MVC
+   * @category Interactor
+   *
+   * @extends GradumOperator
+   * @template {object} ElementType - The type of the main component.
+   * @template {GradumView} ViewType - The element's MVC view type.
+   * @template {GradumModel} ModelType - The element's MVC model type.
+   * @template {GradumEmitter} EmitterType - The element's MVC emitter type.
+   * @description Class representing an MVC interactor. It holds event listeners to set up on the element itself, or
+   * the custom defined target.
+   */
+  class GradumInteractor extends GradumOperator {
+      #target_accessor_storage;
+      /**
+       * @description The target of the event listeners. Defaults to the element itself.
+       */
+      get target() { return this.#target_accessor_storage; }
+      set target(value) { this.#target_accessor_storage = value; }
+      /**
+       * @readonly
+       * @description The name of the tool (if any) to listen for.
+       */
+      toolName;
+      /**
+       * @readonly
+       * @description The associated event manager. Defaults to `GradumEventManager.instance`.
+       */
+      manager;
+      /**
+       *
+       * @readonly
+       * @description Optional custom options to define per event type.
+       */
+      options;
+      /**
+       * @constructor
+       * @description Create an interactor bound to an element. Anything omitted from `properties` falls back to
+       * the value already declared on the instance, then to a default — the event manager to
+       * {@link GradumEventManager.instance}, and the listener options to an empty object.
+       * @param {GradumInteractorProperties} properties - The element to attach to, plus the tool name, target,
+       * event manager, and listener options.
+       */
+      constructor(properties) {
+          super(properties);
+          this.manager = properties.manager ?? this.manager ?? GradumEventManager.instance;
+          this.toolName = properties.toolName ?? this.toolName ?? undefined;
+          this.options = properties.listenerOptions ?? {};
+          const host = this.element;
+          try {
+              this.target = properties.target ?? this.target ?? (host instanceof Node ? host
+                  : host?.element instanceof Node ? host.element
+                      : undefined);
           }
-          if (this.element.selectTextOnFocus)
-              requestAnimationFrame(() => {
-                  try {
-                      this.inputElement.select?.();
-                  }
-                  catch { }
-              });
-          this.element.onFocus.fire();
-          return true;
-      }
-      focusOut(e) {
-          if (e.target !== this.inputElement)
-              return;
-          this.element.value = this.element.element?.value;
-          this.element.onBlur.fire();
-      }
-      compositionStart(e) {
-          if (e.target !== this.inputElement)
-              return;
-          this._composing = true;
-      }
-      compositionEnd(e) {
-          if (e.target !== this.inputElement)
-              return;
-          this._composing = false;
-          this.handleInput();
-          return true;
-      }
-      input(e) {
-          if (e.target !== this.inputElement)
-              return;
-          this.handleInput();
-          return true;
-      }
-      handleInput() {
-          if (this._composing)
-              return;
-          if (!this.inputElement)
-              return;
-          if (this.element.dynamicVerticalResize && this.inputElement instanceof HTMLTextAreaElement) {
-              if (!this._resizeQueued) {
-                  this._resizeQueued = true;
-                  queueMicrotask(() => {
-                      this._resizeQueued = false;
-                      $(this.inputElement)
-                          .setStyle("height", "auto", true)
-                          .setStyle("height", this.inputElement.scrollHeight + "px", true);
-                  });
-              }
-          }
-          this.emitter.fire("processValue");
+          catch { }
       }
   }
+  addRegistryCategory(GradumInteractor);
+  define(GradumInteractor);
+
+  /**
+   * @internal
+   * @class GradumInputInputInteractor
+   * @description The interactor {@link GradumInput} attaches to itself to keep its value and size in step
+   * with what the user types. It also holds back updates during IME composition, so mid-composition text
+   * is not read as a committed value.
+   */
+  let GradumInputInputInteractor = (() => {
+      let _classSuper = GradumInteractor;
+      let _instanceExtraInitializers = [];
+      let _focusIn_decorators;
+      let _focusOut_decorators;
+      let _compositionStart_decorators;
+      let _compositionEnd_decorators;
+      let _input_decorators;
+      return class GradumInputInputInteractor extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _focusIn_decorators = [listener()];
+              _focusOut_decorators = [listener()];
+              _compositionStart_decorators = [listener({ options: { capture: true } })];
+              _compositionEnd_decorators = [listener({ options: { capture: true } })];
+              _input_decorators = [listener({ options: { capture: true } })];
+              __esDecorate$1(this, null, _focusIn_decorators, { kind: "method", name: "focusIn", static: false, private: false, access: { has: obj => "focusIn" in obj, get: obj => obj.focusIn }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _focusOut_decorators, { kind: "method", name: "focusOut", static: false, private: false, access: { has: obj => "focusOut" in obj, get: obj => obj.focusOut }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _compositionStart_decorators, { kind: "method", name: "compositionStart", static: false, private: false, access: { has: obj => "compositionStart" in obj, get: obj => obj.compositionStart }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _compositionEnd_decorators, { kind: "method", name: "compositionEnd", static: false, private: false, access: { has: obj => "compositionEnd" in obj, get: obj => obj.compositionEnd }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _input_decorators, { kind: "method", name: "input", static: false, private: false, access: { has: obj => "input" in obj, get: obj => obj.input }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          /**
+           * @description The key this interactor is registered under on its input.
+           */
+          keyName = (__runInitializers$1(this, _instanceExtraInitializers), "__input__interactor__");
+          _composing = false;
+          _resizeQueued = false;
+          /**
+           * @readonly
+           * @description The element the listeners are bound to — the input's inner `<input>` or `<textarea>`
+           * rather than the component itself.
+           */
+          get target() {
+              return this.element.element;
+          }
+          /**
+           * @function initialize
+           * @description Bind the listeners that keep the input's value and size in step with what is typed.
+           */
+          initialize() {
+              super.initialize();
+              gradum(this.target).bypassManagerOn = () => true;
+          }
+          /**
+           * @inheritDoc
+           */
+          setupChangedCallbacks() {
+              super.setupChangedCallbacks();
+              this.emitter.add("valueSet", () => this.handleInput());
+          }
+          focusIn(e) {
+              if (this.element.locked) {
+                  this.target.blur();
+                  return Propagation.propagate;
+              }
+              if (this.element.selectTextOnFocus)
+                  requestAnimationFrame(() => {
+                      try {
+                          this.target.select?.();
+                      }
+                      catch { }
+                  });
+              this.element.onFocus.fire();
+          }
+          focusOut(e) {
+              this.element.rawValue = this.element.element?.value ?? "";
+              this.element.onBlur.fire();
+          }
+          compositionStart(e) {
+              this._composing = true;
+          }
+          compositionEnd(e) {
+              this._composing = false;
+              this.handleInput();
+              this.emitter.fire("processValue");
+          }
+          input(e) {
+              this.handleInput();
+              this.emitter.fire("processValue");
+          }
+          handleInput() {
+              if (this._composing)
+                  return;
+              if (this.element.dynamicVerticalResize && this.target instanceof HTMLTextAreaElement) {
+                  if (!this._resizeQueued) {
+                      this._resizeQueued = true;
+                      queueMicrotask(() => {
+                          this._resizeQueued = false;
+                          gradum(this.target)
+                              .setStyle("height", "auto", true)
+                              .setStyle("height", this.target.scrollHeight + "px", true);
+                      });
+                  }
+              }
+          }
+      };
+  })();
+
+  /**
+   * @class GradumLabelElement
+   * @group Components
+   * @category Basics
+   *
+   * @extends GradumRichElement
+   * @template {ValidTag} ElementTag - The tag of the main element in the rich element.
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * @description A rich element with an HTML `<label>` attached to it. Setting {@link GradumLabelElement.label}
+   * to a non-empty string creates the label and puts it before the content; setting it to an empty value
+   * removes it again.
+   */
+  let GradumLabelElement = (() => {
+      let _classSuper = GradumRichElement;
+      let _instanceExtraInitializers = [];
+      let _defaultId_decorators;
+      let _defaultId_initializers = [];
+      let _defaultId_extraInitializers = [];
+      let _labelElement_decorators;
+      let _labelElement_initializers = [];
+      let _labelElement_extraInitializers = [];
+      let _get_element_decorators;
+      let _updateId_decorators;
+      return class GradumLabelElement extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _defaultId_decorators = [signal];
+              _labelElement_decorators = [signal];
+              _get_element_decorators = [signal];
+              _updateId_decorators = [effect];
+              __esDecorate$1(this, null, _get_element_decorators, { kind: "getter", name: "element", static: false, private: false, access: { has: obj => "element" in obj, get: obj => obj.element }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _updateId_decorators, { kind: "method", name: "updateId", static: false, private: false, access: { has: obj => "updateId" in obj, get: obj => obj.updateId }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(null, null, _defaultId_decorators, { kind: "field", name: "defaultId", static: false, private: false, access: { has: obj => "defaultId" in obj, get: obj => obj.defaultId, set: (obj, value) => { obj.defaultId = value; } }, metadata: _metadata }, _defaultId_initializers, _defaultId_extraInitializers);
+              __esDecorate$1(null, null, _labelElement_decorators, { kind: "field", name: "labelElement", static: false, private: false, access: { has: obj => "labelElement" in obj, get: obj => obj.labelElement, set: (obj, value) => { obj.labelElement = value; } }, metadata: _metadata }, _labelElement_initializers, _labelElement_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          defaultId = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _defaultId_initializers, "gradum-id-" + randomId()));
+          labelElement = (__runInitializers$1(this, _defaultId_extraInitializers), __runInitializers$1(this, _labelElement_initializers, void 0));
+          /**
+           * @description The wrapper holding everything except the label. It becomes the element's child handler, so
+           * children added later land inside it rather than beside the label.
+           */
+          content = __runInitializers$1(this, _labelElement_extraInitializers);
+          /**
+           * @description The label's text. Assigning a non-empty string creates the `<label>` and places it before
+           * the content; assigning an empty value removes it. The label is linked to the inner element's `id`, so
+           * clicking it focuses that element.
+           */
+          set label(value) {
+              if (!value || value.length === 0) {
+                  if (this.labelElement)
+                      this.labelElement.remove();
+                  return;
+              }
+              if (!this.labelElement) {
+                  this.labelElement = element({ tag: "label" });
+                  gradum(this).childHandler = this;
+                  gradum(this).addChild(this.labelElement, 0);
+                  if (this.content)
+                      gradum(this).childHandler = this.content;
+              }
+              this.labelElement.textContent = value;
+          }
+          get label() {
+              return this.labelElement?.textContent;
+          }
+          get element() {
+              return super.element;
+          }
+          set element(value) {
+              super.element = value;
+              if (this.element) {
+                  if (!this.element.id)
+                      this.element.id = this.defaultId;
+                  else if (this.labelElement)
+                      this.labelElement.htmlFor = this.element.id;
+              }
+          }
+          /**
+           * @inheritDoc
+           */
+          setupUIElements() {
+              super.setupUIElements();
+              this.content = div();
+          }
+          /**
+           * @inheritDoc
+           */
+          setupUILayout() {
+              super.setupUILayout();
+              gradum(this.content).addChild(gradum(this).childrenArray);
+              gradum(this).addChild([this.labelElement, this.content]);
+              gradum(this).childHandler = this.content;
+          }
+          updateId() {
+              if (this.element && !this.element.id)
+                  this.element.id = this.defaultId;
+              if (this.labelElement)
+                  this.labelElement.htmlFor = this.element?.id ?? this.defaultId;
+          }
+      };
+  })();
+  define(GradumLabelElement);
 
   /**
    * @group Components
-   * @category TurboInput
+   * @category Basics
    */
-  let TurboInput = (() => {
-      let _classSuper = TurboRichElement;
+  let GradumInput = (() => {
+      let _classSuper = GradumLabelElement;
+      let _instanceExtraInitializers = [];
+      let _locked_decorators;
+      let _locked_initializers = [];
+      let _locked_extraInitializers = [];
+      let _selectTextOnFocus_decorators;
+      let _selectTextOnFocus_initializers = [];
+      let _selectTextOnFocus_extraInitializers = [];
+      let _dynamicVerticalResize_decorators;
+      let _dynamicVerticalResize_initializers = [];
+      let _dynamicVerticalResize_extraInitializers = [];
+      let _get_element_decorators;
       let _type_decorators;
       let _type_initializers = [];
       let _type_extraInitializers = [];
@@ -20965,68 +24702,129 @@
       let _size_decorators;
       let _size_initializers = [];
       let _size_extraInitializers = [];
-      return class TurboInput extends _classSuper {
+      let _get_value_decorators;
+      let _get_rawValue_decorators;
+      return class GradumInput extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _locked_decorators = [signal];
+              _selectTextOnFocus_decorators = [signal];
+              _dynamicVerticalResize_decorators = [signal];
+              _get_element_decorators = [signal];
               _type_decorators = [expose("element")];
               _placeholder_decorators = [expose("element")];
               _pattern_decorators = [expose("element")];
               _size_decorators = [expose("element")];
+              _get_value_decorators = [signal];
+              _get_rawValue_decorators = [signal];
+              __esDecorate$1(this, null, _get_element_decorators, { kind: "getter", name: "element", static: false, private: false, access: { has: obj => "element" in obj, get: obj => obj.element }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(this, null, _type_decorators, { kind: "accessor", name: "type", static: false, private: false, access: { has: obj => "type" in obj, get: obj => obj.type, set: (obj, value) => { obj.type = value; } }, metadata: _metadata }, _type_initializers, _type_extraInitializers);
               __esDecorate$1(this, null, _placeholder_decorators, { kind: "accessor", name: "placeholder", static: false, private: false, access: { has: obj => "placeholder" in obj, get: obj => obj.placeholder, set: (obj, value) => { obj.placeholder = value; } }, metadata: _metadata }, _placeholder_initializers, _placeholder_extraInitializers);
               __esDecorate$1(this, null, _pattern_decorators, { kind: "accessor", name: "pattern", static: false, private: false, access: { has: obj => "pattern" in obj, get: obj => obj.pattern, set: (obj, value) => { obj.pattern = value; } }, metadata: _metadata }, _pattern_initializers, _pattern_extraInitializers);
               __esDecorate$1(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
+              __esDecorate$1(this, null, _get_value_decorators, { kind: "getter", name: "value", static: false, private: false, access: { has: obj => "value" in obj, get: obj => obj.value }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _get_rawValue_decorators, { kind: "getter", name: "rawValue", static: false, private: false, access: { has: obj => "rawValue" in obj, get: obj => obj.rawValue }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(null, null, _locked_decorators, { kind: "field", name: "locked", static: false, private: false, access: { has: obj => "locked" in obj, get: obj => obj.locked, set: (obj, value) => { obj.locked = value; } }, metadata: _metadata }, _locked_initializers, _locked_extraInitializers);
+              __esDecorate$1(null, null, _selectTextOnFocus_decorators, { kind: "field", name: "selectTextOnFocus", static: false, private: false, access: { has: obj => "selectTextOnFocus" in obj, get: obj => obj.selectTextOnFocus, set: (obj, value) => { obj.selectTextOnFocus = value; } }, metadata: _metadata }, _selectTextOnFocus_initializers, _selectTextOnFocus_extraInitializers);
+              __esDecorate$1(null, null, _dynamicVerticalResize_decorators, { kind: "field", name: "dynamicVerticalResize", static: false, private: false, access: { has: obj => "dynamicVerticalResize" in obj, get: obj => obj.dynamicVerticalResize, set: (obj, value) => { obj.dynamicVerticalResize = value; } }, metadata: _metadata }, _dynamicVerticalResize_initializers, _dynamicVerticalResize_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          static defaultProperties = {
-              elementTag: "input",
-              interactors: TurboInputInputInteractor
-          };
-          static create(properties = {}) {
-              let el = properties.input;
-              let elementTag = properties.inputTag;
-              if (!elementTag)
-                  elementTag = "input";
-              if (!el)
-                  el = {};
-              return super.create.call(this, { elementTag: elementTag, element: el, ...properties, input: undefined, inputTag: undefined });
+          /**
+           * @function create
+           * @static
+           * @description Instantiate an input, reading `InputTag` and `ValueType` back off the properties — so
+           * `GradumInput.create({inputTag: "textarea"})` is typed as a textarea input without a cast. Narrows
+           * {@link GradumElement.create}, which cannot see generics declared on a subclass.
+           * @template {{prototype: GradumElement}} This - The class `create` was called on. The constraint
+           * matches the base signature; the return type still narrows to this class.
+           * @template {"input" | "textarea"} InputTag - Inferred from `properties.inputTag`.
+           * @template ValueType - Inferred from the properties' value type.
+           * @param {GradumInputProperties} [properties] - Properties to set on the new input.
+           * @returns {GradumInput} The created input, typed as the class this was called on.
+           */
+          static create(properties) {
+              return super.create.call(this, properties);
           }
-          labelElement;
-          content;
-          defaultId = "turbo-input-" + randomId();
-          locked = false;
-          selectTextOnFocus = false;
-          dynamicVerticalResize = false;
-          inputRegexCheck;
+          /**
+           * @static
+           * @description Default properties assigned to a new input: an `<input>` element, wired to the
+           * interactor that keeps its value and size in step with what the user types.
+           */
+          static defaultProperties = {
+              inputTag: "input",
+              interactors: GradumInputInputInteractor
+          };
+          /**
+           * @function customCreate
+           * @static
+           * @protected
+           * @description Build an input, deferring the initial `value` until the underlying element exists so it
+           * is not lost during construction.
+           * @param {GradumInputProperties} properties - The input's configuration.
+           * @returns {object} The created input.
+           */
+          static customCreate(properties) {
+              const element = properties.input ?? {};
+              const elementTag = properties.inputTag ?? "input";
+              const value = properties.value;
+              const input = super.customCreate({ ...properties, elementTag, element,
+                  value: undefined, input: undefined, inputTag: undefined });
+              if (value !== undefined && value !== null)
+                  input.value = value;
+              return input;
+          }
+          /**
+           * @description Whether the input rejects focus, so clicking it does nothing.
+           */
+          locked = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _locked_initializers, false));
+          /**
+           * @description Whether the input's whole text is selected when it gains focus.
+           */
+          selectTextOnFocus = (__runInitializers$1(this, _locked_extraInitializers), __runInitializers$1(this, _selectTextOnFocus_initializers, false));
+          /**
+           * @description Whether the input grows and shrinks vertically to fit its content, for `<textarea>`
+           * elements that should not scroll.
+           */
+          dynamicVerticalResize = (__runInitializers$1(this, _selectTextOnFocus_extraInitializers), __runInitializers$1(this, _dynamicVerticalResize_initializers, false));
+          /**
+           * @description A pattern the value must match while typing. Input that fails it is sanitized if
+           * possible, and otherwise reverted to the last value that passed.
+           */
+          inputRegexCheck = __runInitializers$1(this, _dynamicVerticalResize_extraInitializers);
+          /**
+           * @description A pattern the value must match once editing ends. Stricter than
+           * {@link GradumInput.inputRegexCheck}, so partial input is allowed mid-typing but not left behind.
+           */
           blurRegexCheck;
           lastValidForInput = "";
           lastValidForBlur = "";
+          /**
+           * @readonly
+           * @description Fired when the input gains focus.
+           */
           onFocus = new Delegate();
+          /**
+           * @readonly
+           * @description Fired when the input loses focus.
+           */
           onBlur = new Delegate();
+          /**
+           * @readonly
+           * @description Fired on every accepted change to the input's value.
+           */
           onInput = new Delegate();
-          set label(value) {
-              if (!value || value.length === 0) {
-                  if (this.labelElement)
-                      this.labelElement.remove();
-                  return;
-              }
-              if (!this.labelElement) {
-                  this.labelElement = element({ tag: "label", htmlFor: this.element?.id ?? this.defaultId });
-                  $(this).childHandler = this;
-                  $(this).addChild(this.labelElement, 0);
-                  if (this.content)
-                      $(this).childHandler = this.content;
-              }
-              this.labelElement.textContent = value;
-          }
-          get label() {
-              return this.labelElement?.textContent;
-          }
+          /**
+           * @description The underlying `<input>` or `<textarea>` element. An alias of `element`, kept for
+           * readability where the distinction matters.
+           */
           get input() {
               return this.element;
           }
           set input(value) {
               this.element = value;
+          }
+          get element() {
+              return super.element;
           }
           set element(value) {
               if (!(value instanceof Node) && typeof value === "object") {
@@ -21036,15 +24834,6 @@
                       value.type = "text";
               }
               super.element = value;
-              if (this.element) {
-                  if (!this.element.id)
-                      this.element.id = this.defaultId;
-                  else if (this.labelElement)
-                      this.labelElement.htmlFor = this.element.id;
-              }
-          }
-          get element() {
-              return super.element;
           }
           #type_accessor_storage = __runInitializers$1(this, _type_initializers, void 0);
           get type() { return this.#type_accessor_storage; }
@@ -21058,35 +24847,63 @@
           #size_accessor_storage = (__runInitializers$1(this, _pattern_extraInitializers), __runInitializers$1(this, _size_initializers, void 0));
           get size() { return this.#size_accessor_storage; }
           set size(value) { this.#size_accessor_storage = value; }
-          initialize() {
-              super.initialize();
-              turbo(this).getInteractor("__input__interactor__").target = this.content;
-          }
-          setupUIElements() {
-              super.setupUIElements();
-              this.content = div();
-          }
-          setupUILayout() {
-              super.setupUILayout();
-              $(this.content).addChild($(this).childrenArray);
-              $(this).addChild([this.labelElement, this.content]);
-              $(this).childHandler = this.content;
-          }
+          /**
+           * @inheritDoc
+           */
           setupChangedCallbacks() {
               super.setupChangedCallbacks();
-              this.emitter.add("processValue", () => this.processInputValue());
+              this.emitter?.add("processValue", () => this.processInputValue());
           }
+          /**
+           * @inheritDoc
+           */
+          setupUIListeners() {
+              super.setupUIListeners();
+              gradum(this).on(DefaultEventName.click, () => {
+                  if (!this.locked)
+                      this.element?.focus();
+                  return Propagation.propagate;
+              });
+          }
+          /**
+           * @description The input's value, parsed from its text. Numbers and JSON are converted automatically,
+           * and a current value exposing `fromString` is used to parse the text into its own type. Assigning
+           * writes the value's string form back to the element.
+           */
           get value() {
-              const value = this.element?.value;
+              const value = this.rawValue;
+              if (!value)
+                  return undefined;
               try {
                   const num = parseFloat(value);
                   if (!isNaN(num))
                       return num;
               }
               catch { }
+              try {
+                  const current = this.value;
+                  if (current && typeof current === "object" && "fromString" in current
+                      && typeof current.fromString === "function")
+                      return current.fromString(value);
+              }
+              catch { }
+              try {
+                  return JSON.parse(value);
+              }
+              catch { }
               return value;
           }
           set value(value) {
+              this.rawValue = value.toString();
+          }
+          /**
+           * @description The input's text exactly as it appears in the element, with no parsing. Assigning
+           * checks it against {@link GradumInput.blurRegexCheck} and reverts to the last valid text if it fails.
+           */
+          get rawValue() {
+              return this.element?.value ?? "";
+          }
+          set rawValue(value) {
               if (!(this.element instanceof HTMLInputElement) && !(this.element instanceof HTMLTextAreaElement))
                   return;
               let strValue = value.toString();
@@ -21098,6 +24915,24 @@
               this.element.value = strValue;
               this.emitter.fire("valueSet");
           }
+          /**
+           * @function setValueSilently
+           * @description Write a value into the element without running the regex checks or announcing the
+           * change. Use it to sync the input from an external source without echoing an update back out.
+           * @param {ValueType} value - The value to write.
+           */
+          setValueSilently(value) {
+              if (!(this.element instanceof HTMLInputElement) && !(this.element instanceof HTMLTextAreaElement))
+                  return;
+              this.element.value = typeof value?.toString === "function" ? value.toString() : String(value);
+          }
+          /**
+           * @function processInputValue
+           * @protected
+           * @description Validate the element's current text against the configured patterns, sanitizing or
+           * reverting it as needed, and record it as the last known-good value.
+           * @param {string} [value=this.element.value] - The text to validate. Defaults to the element's.
+           */
           processInputValue(value = this.element.value) {
               if (this.inputRegexCheck) {
                   const re = new RegExp(this.inputRegexCheck);
@@ -21118,7 +24953,9 @@
               else {
                   this.lastValidForBlur = value;
               }
-              this.element.value = value;
+              if (this.element instanceof HTMLInputElement || this.element instanceof HTMLTextAreaElement)
+                  this.element.value = value;
+              markDirty(this, "rawValue");
               this.onInput.fire();
           }
           sanitizeByRegex(value, rule) {
@@ -21140,44 +24977,45 @@
           }
       };
   })();
-  // /**
-  //  * @group Components
-  //  * @category TurboInput
-  //  */
-  // function turboInput<
-  //     InputTag extends "input" | "textarea" = "input",
-  //     ValueType extends string | number = string,
-  //     ViewType extends TurboView = TurboView<any, any>,
-  //     DataType extends object = object,
-  //     ModelType extends TurboModel<DataType> = TurboModel,
-  //     EmitterType extends TurboEmitter = TurboEmitter,
-  // >(
-  //     properties: TurboInputProperties<InputTag, ViewType, DataType, ModelType, EmitterType>
-  // ): TurboInput<InputTag, ValueType, ViewType, DataType, ModelType, EmitterType> {
-  //     let el: object = properties.input;
-  //     let elementTag: any = properties.inputTag;
-  //     if (!elementTag) elementTag = "input";
-  //     if (!el) el = {};
-  //     if (!properties.tag) properties.tag = "turbo-input";
-  //     return richElement({elementTag: elementTag, element: el, ...properties, input: undefined, inputTag: undefined}) as any;
-  // }
-  define(TurboInput);
+  define(GradumInput);
 
   /**
    * @group Components
-   * @category TurboNumericalInput
+   * @category Basics
    */
-  class TurboNumericalInput extends TurboInput {
+  class GradumNumericalInput extends GradumInput {
+      /**
+       * @static
+       * @description Default properties assigned to a new numerical input: patterns that allow a number to be
+       * typed one character at a time, but require a complete number once editing ends.
+       */
       static defaultProperties = {
           inputRegexCheck: /^(?!-0?(\.0+)?$)-?(0|[1-9]\d*)?(\.\d+)?\.?$|^-$|^$/,
           blurRegexCheck: /^(?!-0?(\.0+)?$)-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)$/,
       };
+      /**
+       * @description A factor between the displayed text and the value read back, for showing a value in one
+       * unit while storing it in another. The text is divided by it on read and multiplied on write.
+       */
       multiplier = 1;
+      /**
+       * @description How many decimal places values are rounded to. Leave unset to keep full precision.
+       */
       decimalPlaces;
+      /**
+       * @description The lowest accepted value. Anything lower is clamped up to it.
+       */
       min;
+      /**
+       * @description The highest accepted value. Anything higher is clamped down to it.
+       */
       max;
+      /**
+       * @description The input's numeric value. Assigning clamps it to the configured range, rounds it to the
+       * configured precision, and writes the scaled result back to the element.
+       */
       get value() {
-          return Number.parseFloat(this.element.value) / this.multiplier;
+          return this.element ? Number.parseFloat(this.element.value) / this.multiplier : undefined;
       }
       set value(value) {
           if (!value || value == "")
@@ -21195,15 +25033,29 @@
           super.value = value;
       }
   }
-  define(TurboNumericalInput);
+  define(GradumNumericalInput);
 
   /**
    * @group Event Handling
-   * @category TurboEvents
+   * @category GradumEvents
    */
-  class TurboSelectInputEvent extends TurboEvent {
+  class GradumSelectInputEvent extends GradumEvent {
+      /**
+       * @readonly
+       * @description The entry whose selection changed and caused this event.
+       */
       toggledEntry;
+      /**
+       * @readonly
+       * @description The values of every entry selected after the change.
+       */
       values;
+      /**
+       * @constructor
+       * @description Create a selection-input event.
+       * @param {GradumSelectInputEventProperties} properties - The event's configuration, including the
+       * toggled entry and the resulting values.
+       */
       constructor(properties) {
           super(properties);
           this.toggledEntry = properties.toggledEntry;
@@ -21212,16 +25064,16 @@
   }
 
   /**
-   * @class TurboSelect
+   * @class GradumSelect
    * @group Components
-   * @category TurboSelect
+   * @category Basics
    *
+   * @extends GradumElement
    * @description Base class for creating a selection menu
 
-   * @extends TurboElement
    */
-  let TurboSelect = (() => {
-      let _classSuper = TurboBaseElement;
+  let GradumSelect = (() => {
+      let _classSuper = GradumBaseElement;
       let _instanceExtraInitializers = [];
       let _set_parent_decorators;
       let _getValue_decorators;
@@ -21243,36 +25095,40 @@
       let _entriesClasses_decorators;
       let _entriesClasses_initializers = [];
       let _entriesClasses_extraInitializers = [];
-      return class TurboSelect extends _classSuper {
+      return class GradumSelect extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _set_parent_decorators = [auto()];
               _getValue_decorators = [auto({
-                      defaultValue: (entry) => entry instanceof TurboRichElement ? entry.text
+                      defaultValue: (entry) => entry instanceof GradumRichElement ? entry.text
                           : entry instanceof HTMLElement ? entry.textContent
                               : entry instanceof Element ? entry.innerHTML
                                   : undefined
                   })];
               _getSecondaryValue_decorators = [auto({ defaultValue: () => "" })];
               _createEntry_decorators = [auto({
-                      defaultValue: (value) => TurboRichElement.create({ text: stringify(value) })
+                      defaultValue: (value) => GradumRichElement.create({ text: stringify(value) })
                   })];
               _set_multiSelection_decorators = [auto({ defaultValue: false })];
-              _forceSelection_decorators = [auto({ defaultValueCallback: function () { return !this.multiSelection; } })];
+              _forceSelection_decorators = [auto({
+                      defaultValueCallback: function () {
+                          return !this.multiSelection;
+                      }
+                  })];
               _selectedEntriesClasses_decorators = [auto({
                       callBefore: function () {
-                          this.selectedEntries?.forEach(entry => turbo(entry).removeClass(this.selectedEntryClasses));
+                          this.selectedEntries?.forEach(entry => gradum(entry).removeClass(this.selectedEntryClasses));
                       },
                       callAfter: function () {
-                          this.selectedEntries?.forEach(entry => turbo(entry).addClass(this.selectedEntryClasses));
+                          this.selectedEntries?.forEach(entry => gradum(entry).addClass(this.selectedEntryClasses));
                       },
                   })];
               _entriesClasses_decorators = [auto({
                       callBefore: function (value) {
-                          this.entries.forEach(entry => turbo(entry).removeClass(value));
+                          this.entries.forEach(entry => gradum(entry).removeClass(value));
                       },
                       callAfter: function (value) {
-                          this.entries.forEach(entry => turbo(entry).addClass(value));
+                          this.entries.forEach(entry => gradum(entry).addClass(value));
                       }
                   })];
               __esDecorate$1(this, null, _set_parent_decorators, { kind: "setter", name: "parent", static: false, private: false, access: { has: obj => "parent" in obj, set: (obj, value) => { obj.parent = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
@@ -21285,12 +25141,34 @@
               __esDecorate$1(null, null, _entriesClasses_decorators, { kind: "field", name: "entriesClasses", static: false, private: false, access: { has: obj => "entriesClasses" in obj, get: obj => obj.entriesClasses, set: (obj, value) => { obj.entriesClasses = value; } }, metadata: _metadata }, _entriesClasses_initializers, _entriesClasses_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @function create
+           * @static
+           * @description Instantiate a selection, reading its value and entry types back off the properties — so
+           * the types come from `getValue`/`getSecondaryValue` rather than needing a cast. Narrows
+           * {@link GradumBaseElement.create}, which cannot see generics declared on a subclass.
+           * @template {{prototype: GradumBaseElement}} This - The class `create` was called on. The constraint
+           * matches the base signature; the return type still narrows to this class.
+           * @template ValueType - Inferred from `properties.getValue`.
+           * @template SecondaryValueType - Inferred from `properties.getSecondaryValue`.
+           * @template {object} EntryType - Inferred from the entries the accessors receive.
+           * @param {GradumSelectProperties} [properties] - Properties to set on the new selection.
+           * @returns {GradumSelect} The created selection, typed as the class this was called on.
+           */
+          static create(properties) {
+              return super.create.call(this, properties);
+          }
+          /**
+           * @static
+           * @description Default properties assigned to a new selection: selected entries get the `selected` class,
+           * and disabled entries are hidden.
+           */
           static defaultProperties = {
               selectedEntriesClasses: "selected",
               onEnabled: (b, entry) => {
                   if (!(entry instanceof HTMLElement))
                       return;
-                  turbo(entry).setStyle("visibility", b ? "" : "hidden");
+                  gradum(entry).setStyle("visibility", b ? "" : "hidden");
               }
           };
           _inputField = __runInitializers$1(this, _instanceExtraInitializers);
@@ -21298,6 +25176,10 @@
           _entriesData = new WeakMap();
           parentObserver;
           _onSelect = new Delegate();
+          /**
+           * @description Fired whenever an entry is selected or deselected, with the new state, the entry, and its
+           * index. Assigning a function subscribes it rather than replacing the existing subscribers.
+           */
           get onSelect() {
               return this._onSelect;
           }
@@ -21306,6 +25188,10 @@
                   this._onSelect.add(value);
           }
           _onEnabled = new Delegate();
+          /**
+           * @description Fired whenever an entry is enabled or disabled. Assigning a function subscribes it rather
+           * than replacing the existing subscribers.
+           */
           get onEnabled() {
               return this._onEnabled;
           }
@@ -21314,6 +25200,10 @@
                   this._onEnabled.add(value);
           }
           _onEntryAdded = new Delegate();
+          /**
+           * @description Fired whenever an entry is added. Assigning a function subscribes it rather than replacing
+           * the existing subscribers.
+           */
           get onEntryAdded() {
               return this._onEntryAdded;
           }
@@ -21322,6 +25212,10 @@
                   this.onEntryAdded.add(value);
           }
           _onEntryRemoved = new Delegate();
+          /**
+           * @description Fired whenever an entry is removed. Assigning a function subscribes it rather than
+           * replacing the existing subscribers.
+           */
           get onEntryRemoved() {
               return this._onEntryRemoved;
           }
@@ -21330,6 +25224,10 @@
                   this.onEntryRemoved.add(value);
           }
           _onEntryClicked = new Delegate();
+          /**
+           * @description Fired whenever an entry is clicked, whether or not the click changes the selection.
+           * Assigning a function subscribes it rather than replacing the existing subscribers.
+           */
           get onEntryClicked() {
               return this._onEntryClicked;
           }
@@ -21338,7 +25236,7 @@
                   this.onEntryClicked.add(value);
           }
           /**
-           * The dropdown's entries.
+           * @description This selection's entries, in order. Assigning a new list replaces them all.
            */
           get entries() {
               return this._entries;
@@ -21354,7 +25252,7 @@
               const array = this.entries;
               for (let i = 0; i < array.length; i++) {
                   this.onEntryAdded.fire(array[i], i);
-                  turbo(array[i]).addClass(this.entriesClasses);
+                  gradum(array[i]).addClass(this.entriesClasses);
               }
               this.deselectAll();
               for (let i = 0; i < array.length; i++) {
@@ -21367,7 +25265,7 @@
               this.enableObserver(true);
           }
           /**
-           * @description The dropdown's values. Setting it will update the dropdown accordingly.
+           * @description The values of this selection's entries. Assigning a new list rebuilds the entries to match.
            */
           get values() {
               return this.entries.map(entry => this.getValue(entry));
@@ -21377,7 +25275,7 @@
               values.forEach(value => {
                   const entry = this.createEntry(value);
                   if (entry instanceof Node && this.parent)
-                      turbo(this.parent).addChild(entry);
+                      gradum(this.parent).addChild(entry);
                   entries.push(entry);
               });
               this.entries = entries;
@@ -21394,7 +25292,7 @@
           set parent(value) {
               if (!(value instanceof Element))
                   return;
-              turbo(value).addChild(this.entries.filter(entry => entry instanceof Node));
+              gradum(value).addChild(this.entries.filter(entry => entry instanceof Node));
               if (this.inputField)
                   value.appendChild(this.inputField);
               this.setupParentObserver();
@@ -21427,16 +25325,24 @@
           //TODO FIX
           selectedEntriesClasses = (__runInitializers$1(this, _forceSelection_extraInitializers), __runInitializers$1(this, _selectedEntriesClasses_initializers, void 0));
           entriesClasses = (__runInitializers$1(this, _selectedEntriesClasses_extraInitializers), __runInitializers$1(this, _entriesClasses_initializers, void 0));
-          static create(properties = {}) {
-              const props = properties;
-              const selectedValues = props.selectedValues || [];
-              props.selectedValues = undefined;
-              const obj = super.create.call(this, props);
-              obj.selectedValues = selectedValues;
+          /**
+           * @function customCreate
+           * @static
+           * @protected
+           * @description Build a selection, deferring the initial entries and selected values until the element
+           * exists so they are not lost during construction.
+           * @param {GradumSelectProperties} properties - The selection's configuration.
+           * @returns {object} The created selection.
+           */
+          static customCreate(properties) {
+              const { selectedValues, parent } = properties;
+              const obj = super.customCreate({ ...properties, selectedValues: undefined, parent: undefined });
+              obj.parent = parent;
+              obj.selectedValues = selectedValues || [];
               return obj;
           }
           /**
-           * @description Dropdown constructor
+           * @description Create a selection.
            */
           constructor() {
               super();
@@ -21444,7 +25350,7 @@
               this.onEntryClicked.add((entry) => this.select(entry, !this.isSelected(entry)));
               this.onEntryAdded.add((entry) => {
                   this.initializeSelection();
-                  turbo(entry).on(DefaultEventName.click, (e) => {
+                  gradum(entry).on(DefaultEventName.click, (e) => {
                       this.onEntryClicked.fire(entry, e);
                       return Propagation.stopPropagation;
                   });
@@ -21473,13 +25379,31 @@
                   index = 0;
               this.enableObserver(false);
               this.onEntryAdded.fire(entry, index);
-              turbo(entry).addClass(this.entriesClasses);
+              gradum(entry).addClass(this.entriesClasses);
               if (Array.isArray(this.entries) && !this.entries.includes(entry))
                   this.entries.splice(index, 0, entry);
               if (entry instanceof Node && !entry.parentElement && this.parent)
-                  turbo(this.parent).addChild(entry, index);
+                  gradum(this.parent).addChild(entry, index);
               this.enableObserver(true);
               requestAnimationFrame(() => this.select(this.selectedEntry));
+          }
+          removeEntry(value) {
+              const entry = this.getEntry(value);
+              if (!entry)
+                  return this;
+              this.enableObserver(false);
+              if (this.getEntryData(entry).selected && this.forceSelection) {
+                  const fallback = this.enabledEntries.find(e => e !== entry);
+                  if (fallback)
+                      this.select(fallback);
+              }
+              this.onEntryRemoved.fire(entry);
+              if (entry instanceof Node && entry.parentElement)
+                  entry.parentElement.removeChild(entry);
+              this.clearEntryData(entry);
+              this.refreshInputField();
+              this.enableObserver(true);
+              return this;
           }
           getEntryFromSecondaryValue(value) {
               return this.entries.find((entry) => this.getSecondaryValue(entry) === value);
@@ -21504,10 +25428,12 @@
               return entry;
           }
           /**
-           * @description Select an entry.
-           * @param {string | EntryType} value - The DropdownEntry (or its string value) to select.
-           * @param selected
-           * @return {TurboSelect} - This Dropdown for chaining.
+           * @function select
+           * @description Select or deselect an entry. In single-selection mode selecting one entry deselects
+           * whichever was selected before.
+           * @param {ValueType | EntryType} value - The entry to select, or the value identifying it.
+           * @param {boolean} [selected=true] - Whether to select the entry, or deselect it.
+           * @returns {this} Itself, allowing for method chaining.
            */
           select(value, selected = true) {
               if (isNull(value) || isUndefined(value))
@@ -21536,22 +25462,23 @@
                   this.deselectAll();
               this.getEntryData(entry).selected = selected;
               if (entry instanceof HTMLElement)
-                  turbo(entry).toggleClass(this.selectedEntriesClasses, selected);
+                  gradum(entry).toggleClass(this.selectedEntriesClasses, selected);
               this.initializeSelection();
               this.refreshInputField();
               this.onSelect.fire(selected, entry, this.getIndex(entry));
-              (this.parent ?? document).dispatchEvent(new TurboSelectInputEvent({
+              (this.parent ?? document).dispatchEvent(new GradumSelectInputEvent({
                   toggledEntry: entry,
                   values: this.selectedValues
               }));
               return this;
           }
           /**
-           * @description Select an entry.
-           * @param {number} index - The index of the entry to select
-           * @param {(index: number, entriesCount: number, zero?: number) => number} [preprocess=trim] - Callback to execute
-           * on the index to preprocess it. Defaults to trim().
-           * @return {TurboSelect} - This Dropdown for chaining.
+           * @function selectByIndex
+           * @description Select the entry at the given index.
+           * @param {number} index - The index of the entry to select.
+           * @param {(index: number, entriesCount: number, zero?: number) => number} [preprocess=trim] - Applied to the
+           * index before use. Defaults to `trim`, which clamps it into range; pass `mod` to wrap around instead.
+           * @returns {this} Itself, allowing for method chaining.
            */
           selectByIndex(index, preprocess = trim) {
               index = preprocess(index, this.entries.length - 1, 0);
@@ -21563,7 +25490,7 @@
           deselectAll() {
               this.selectedEntries.forEach(entry => {
                   if (entry instanceof HTMLElement)
-                      turbo(entry).toggleClass(this.selectedEntriesClasses, false);
+                      gradum(entry).toggleClass(this.selectedEntriesClasses, false);
                   this.getEntryData(entry).selected = false;
               });
               this.refreshInputField();
@@ -21609,6 +25536,15 @@
            */
           get selectedEntry() {
               return this.selectedEntries[0];
+          }
+          get selectedIndex() {
+              return this.getIndex(this.selectedEntry);
+          }
+          set selectedIndex(value) {
+              this.selectByIndex(value);
+          }
+          get selectedIndices() {
+              return this.selectedEntries.map(entry => this.getIndex(entry));
           }
           set selectedValues(values) {
               if (!this.forceSelection)
@@ -21702,7 +25638,7 @@
                           }
                           this.getEntryData(entry);
                           this.onEntryAdded.fire(entry, this.getIndex(entry));
-                          turbo(entry).addClass(this.entriesClasses);
+                          gradum(entry).addClass(this.entriesClasses);
                       }
                       for (const node of record.removedNodes) {
                           if (!(node instanceof Element))
@@ -21729,18 +25665,19 @@
           }
       };
   })();
-  define(TurboSelect);
+  define(GradumSelect);
 
   /**
-   * @class TurboSelectElement
+   * @class GradumSelectElement
    * @group Components
-   * @category TurboSelectElement
+   * @category Basics
    *
-   * @description Select element class for creating Turbo button elements.
-   * @extends TurboElement
+   * @extends GradumElement
+   * @description Select element class for creating Gradum button elements.
    */
-  let TurboSelectElement = (() => {
-      let _classSuper = TurboElement;
+  let GradumSelectElement = (() => {
+      let _classSuper = GradumElement;
+      let _instanceExtraInitializers = [];
       let _values_decorators;
       let _values_initializers = [];
       let _values_extraInitializers = [];
@@ -21750,6 +25687,12 @@
       let _selectedEntry_decorators;
       let _selectedEntry_initializers = [];
       let _selectedEntry_extraInitializers = [];
+      let _selectedIndex_decorators;
+      let _selectedIndex_initializers = [];
+      let _selectedIndex_extraInitializers = [];
+      let _selectedIndices_decorators;
+      let _selectedIndices_initializers = [];
+      let _selectedIndices_extraInitializers = [];
       let _entriesClasses_decorators;
       let _entriesClasses_initializers = [];
       let _entriesClasses_extraInitializers = [];
@@ -21792,12 +25735,15 @@
       let _stringSelectedValue_decorators;
       let _stringSelectedValue_initializers = [];
       let _stringSelectedValue_extraInitializers = [];
-      return class TurboSelectElement extends _classSuper {
+      let _set_transitionReifect_decorators;
+      return class GradumSelectElement extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _values_decorators = [expose("select")];
               _selectedEntries_decorators = [expose("select")];
               _selectedEntry_decorators = [expose("select", false)];
+              _selectedIndex_decorators = [expose("select")];
+              _selectedIndices_decorators = [expose("select", false)];
               _entriesClasses_decorators = [expose("select")];
               _selectedEntriesClasses_decorators = [expose("select")];
               _inputName_decorators = [expose("select")];
@@ -21812,8 +25758,19 @@
               _selectedSecondaryValues_decorators = [expose("select", false)];
               _selectedSecondaryValue_decorators = [expose("select", false)];
               _stringSelectedValue_decorators = [expose("select", false)];
+              _set_transitionReifect_decorators = [auto({
+                      preprocessValue: function (value) {
+                          if (!value)
+                              return;
+                          if (value instanceof Reifect)
+                              return value;
+                          return new Reifect(value);
+                      }
+                  })];
               __esDecorate$1(this, null, _selectedEntries_decorators, { kind: "accessor", name: "selectedEntries", static: false, private: false, access: { has: obj => "selectedEntries" in obj, get: obj => obj.selectedEntries, set: (obj, value) => { obj.selectedEntries = value; } }, metadata: _metadata }, _selectedEntries_initializers, _selectedEntries_extraInitializers);
               __esDecorate$1(this, null, _selectedEntry_decorators, { kind: "accessor", name: "selectedEntry", static: false, private: false, access: { has: obj => "selectedEntry" in obj, get: obj => obj.selectedEntry, set: (obj, value) => { obj.selectedEntry = value; } }, metadata: _metadata }, _selectedEntry_initializers, _selectedEntry_extraInitializers);
+              __esDecorate$1(this, null, _selectedIndex_decorators, { kind: "accessor", name: "selectedIndex", static: false, private: false, access: { has: obj => "selectedIndex" in obj, get: obj => obj.selectedIndex, set: (obj, value) => { obj.selectedIndex = value; } }, metadata: _metadata }, _selectedIndex_initializers, _selectedIndex_extraInitializers);
+              __esDecorate$1(this, null, _selectedIndices_decorators, { kind: "accessor", name: "selectedIndices", static: false, private: false, access: { has: obj => "selectedIndices" in obj, get: obj => obj.selectedIndices, set: (obj, value) => { obj.selectedIndices = value; } }, metadata: _metadata }, _selectedIndices_initializers, _selectedIndices_extraInitializers);
               __esDecorate$1(this, null, _inputName_decorators, { kind: "accessor", name: "inputName", static: false, private: false, access: { has: obj => "inputName" in obj, get: obj => obj.inputName, set: (obj, value) => { obj.inputName = value; } }, metadata: _metadata }, _inputName_initializers, _inputName_extraInitializers);
               __esDecorate$1(this, null, _inputField_decorators, { kind: "accessor", name: "inputField", static: false, private: false, access: { has: obj => "inputField" in obj, get: obj => obj.inputField, set: (obj, value) => { obj.inputField = value; } }, metadata: _metadata }, _inputField_initializers, _inputField_extraInitializers);
               __esDecorate$1(this, null, _multiSelection_decorators, { kind: "accessor", name: "multiSelection", static: false, private: false, access: { has: obj => "multiSelection" in obj, get: obj => obj.multiSelection, set: (obj, value) => { obj.multiSelection = value; } }, metadata: _metadata }, _multiSelection_initializers, _multiSelection_extraInitializers);
@@ -21826,16 +25783,38 @@
               __esDecorate$1(this, null, _selectedSecondaryValues_decorators, { kind: "accessor", name: "selectedSecondaryValues", static: false, private: false, access: { has: obj => "selectedSecondaryValues" in obj, get: obj => obj.selectedSecondaryValues, set: (obj, value) => { obj.selectedSecondaryValues = value; } }, metadata: _metadata }, _selectedSecondaryValues_initializers, _selectedSecondaryValues_extraInitializers);
               __esDecorate$1(this, null, _selectedSecondaryValue_decorators, { kind: "accessor", name: "selectedSecondaryValue", static: false, private: false, access: { has: obj => "selectedSecondaryValue" in obj, get: obj => obj.selectedSecondaryValue, set: (obj, value) => { obj.selectedSecondaryValue = value; } }, metadata: _metadata }, _selectedSecondaryValue_initializers, _selectedSecondaryValue_extraInitializers);
               __esDecorate$1(this, null, _stringSelectedValue_decorators, { kind: "accessor", name: "stringSelectedValue", static: false, private: false, access: { has: obj => "stringSelectedValue" in obj, get: obj => obj.stringSelectedValue, set: (obj, value) => { obj.stringSelectedValue = value; } }, metadata: _metadata }, _stringSelectedValue_initializers, _stringSelectedValue_extraInitializers);
+              __esDecorate$1(this, null, _set_transitionReifect_decorators, { kind: "setter", name: "transitionReifect", static: false, private: false, access: { has: obj => "transitionReifect" in obj, set: (obj, value) => { obj.transitionReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(null, null, _values_decorators, { kind: "field", name: "values", static: false, private: false, access: { has: obj => "values" in obj, get: obj => obj.values, set: (obj, value) => { obj.values = value; } }, metadata: _metadata }, _values_initializers, _values_extraInitializers);
               __esDecorate$1(null, null, _entriesClasses_decorators, { kind: "field", name: "entriesClasses", static: false, private: false, access: { has: obj => "entriesClasses" in obj, get: obj => obj.entriesClasses, set: (obj, value) => { obj.entriesClasses = value; } }, metadata: _metadata }, _entriesClasses_initializers, _entriesClasses_extraInitializers);
               __esDecorate$1(null, null, _selectedEntriesClasses_decorators, { kind: "field", name: "selectedEntriesClasses", static: false, private: false, access: { has: obj => "selectedEntriesClasses" in obj, get: obj => obj.selectedEntriesClasses, set: (obj, value) => { obj.selectedEntriesClasses = value; } }, metadata: _metadata }, _selectedEntriesClasses_initializers, _selectedEntriesClasses_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @static
+           * @description Default properties assigned to a new select element. Entries are built as
+           * {@link GradumRichElement}s unless another tag is given.
+           */
           static defaultProperties = {
-              entriesTag: "turbo-rich-element"
+              entriesTag: "gradum-rich-element"
           };
-          select = TurboSelect.create();
+          /**
+           * @protected
+           * @description The pending timer that clears the container's fixed size once the resize animation ends.
+           */
+          _sizeTransitionTimeout = __runInitializers$1(this, _instanceExtraInitializers);
+          /**
+           * @readonly
+           * @description The selection logic backing this element. It owns the entries and their selected state;
+           * this element renders them.
+           */
+          select = GradumSelect.create();
+          /**
+           * @description The tag used to build entries from plain values.
+           */
           entriesTag;
+          /**
+           * @description The element's entries, in order. Assigning a new list replaces them all.
+           */
           get entries() {
               return this.select.entries;
           }
@@ -21849,7 +25828,13 @@
           #selectedEntry_accessor_storage = (__runInitializers$1(this, _selectedEntries_extraInitializers), __runInitializers$1(this, _selectedEntry_initializers, void 0));
           get selectedEntry() { return this.#selectedEntry_accessor_storage; }
           set selectedEntry(value) { this.#selectedEntry_accessor_storage = value; }
-          entriesClasses = (__runInitializers$1(this, _selectedEntry_extraInitializers), __runInitializers$1(this, _entriesClasses_initializers, void 0));
+          #selectedIndex_accessor_storage = (__runInitializers$1(this, _selectedEntry_extraInitializers), __runInitializers$1(this, _selectedIndex_initializers, void 0));
+          get selectedIndex() { return this.#selectedIndex_accessor_storage; }
+          set selectedIndex(value) { this.#selectedIndex_accessor_storage = value; }
+          #selectedIndices_accessor_storage = (__runInitializers$1(this, _selectedIndex_extraInitializers), __runInitializers$1(this, _selectedIndices_initializers, void 0));
+          get selectedIndices() { return this.#selectedIndices_accessor_storage; }
+          set selectedIndices(value) { this.#selectedIndices_accessor_storage = value; }
+          entriesClasses = (__runInitializers$1(this, _selectedIndices_extraInitializers), __runInitializers$1(this, _entriesClasses_initializers, void 0));
           selectedEntriesClasses = (__runInitializers$1(this, _entriesClasses_extraInitializers), __runInitializers$1(this, _selectedEntriesClasses_initializers, void 0));
           #inputName_accessor_storage = (__runInitializers$1(this, _selectedEntriesClasses_extraInitializers), __runInitializers$1(this, _inputName_initializers, void 0));
           get inputName() { return this.#inputName_accessor_storage; }
@@ -21887,29 +25872,263 @@
           #stringSelectedValue_accessor_storage = (__runInitializers$1(this, _selectedSecondaryValue_extraInitializers), __runInitializers$1(this, _stringSelectedValue_initializers, void 0));
           get stringSelectedValue() { return this.#stringSelectedValue_accessor_storage; }
           set stringSelectedValue(value) { this.#stringSelectedValue_accessor_storage = value; }
+          /**
+           * @function initialize
+           * @description Set the element up and select its initial entry.
+           */
           initialize() {
+              this.select.onSelect.add(() => this.applyTransition());
               super.initialize();
               if (!this.select.parent)
                   this.select.parent = this;
           }
+          _transitionDuration = (__runInitializers$1(this, _stringSelectedValue_extraInitializers), 0);
+          get transitionDuration() {
+              return this._transitionDuration;
+          }
+          /**
+           * @description Duration of the container size transition in seconds. Kept in sync with
+           * `switchTransitionReifect` — set this to change both at once.
+           */
+          set transitionDuration(value) {
+              this._transitionDuration = value;
+              if (value <= 0)
+                  return;
+              if (!this.transitionReifect)
+                  this.transitionReifect = new Reifect({});
+              this.transitionReifect.styles = `transition: width ${value}s ease-in-out, height ${value}s ease-in-out`;
+          }
+          set transitionReifect(value) {
+              if (!value)
+                  return;
+              value.attach(this);
+          }
+          get transitionReifect() { return; }
+          /**
+           * @description Animates the container from its current size to the selected entry's natural
+           * size. Subclasses should call `super.applyTransition()` then add their own entry-level logic.
+           * The sequence:
+           * 1. Freeze container at current px size (gives CSS transition a `from` value)
+           * 2. Call `beforeResize()` — subclass hook to prepare entries before the frame
+           * 3. Next frame: read selected entry's natural size, animate container to it
+           * 4. After `transitionDuration`ms: release explicit container size
+           */
+          applyTransition() {
+              if (this.transitionDuration <= 0 || !this.transitionReifect)
+                  return;
+              const selectedEntry = this.selectedEntry;
+              if (!selectedEntry)
+                  return;
+              this.transitionReifect.unapply(this);
+              gradum(this).setStyles({ width: `${this.offsetWidth}px`, height: `${this.offsetHeight}px` }, true);
+              this.transitionReifect.apply(this);
+              this.beforeResize(selectedEntry);
+              requestAnimationFrame(() => gradum(this).setStyles({
+                  width: `${selectedEntry.offsetWidth}px`,
+                  height: `${selectedEntry.offsetHeight}px`
+              }));
+              clearTimeout(this._sizeTransitionTimeout);
+              this._sizeTransitionTimeout = setTimeout(() => {
+                  gradum(this).setStyles({ width: "", height: "" });
+                  this.afterResize(selectedEntry);
+              }, this.transitionDuration * 1000);
+          }
+          /**
+           * @description Called synchronously inside `applyTransition`, before the rAF that reads the
+           * selected entry's new size. Use this to reposition/reflow entries so the size read is correct.
+           * @param {EntryType} selectedEntry - The newly selected entry.
+           */
+          beforeResize(selectedEntry) { }
+          /**
+           * @description Called after the container size transition completes.
+           * @param {EntryType} selectedEntry - The entry that is now selected.
+           */
+          afterResize(selectedEntry) { }
+      };
+  })();
+  define(GradumSelectElement);
+
+  var css_248z$3 = "gradum-content-switch{align-items:flex-start;display:flex;flex-direction:column;overflow:hidden;position:relative}gradum-content-switch>*{box-sizing:border-box;left:0;position:absolute;top:0}";
+  styleInject$1(css_248z$3);
+
+  /**
+   * @enum {ContentSwitchMode}
+   * @group Components
+   * @category Containers
+   *
+   * @description How a {@link GradumContentSwitch} animates from the outgoing entry to the incoming one.
+   * @property {ContentSwitchMode.fadeLeft} fadeLeft - The new entry fades in while sliding leftwards.
+   * @property {ContentSwitchMode.fadeRight} fadeRight - The new entry fades in while sliding rightwards.
+   * @property {ContentSwitchMode.carousel} carousel - Entries slide as one strip, in the direction of travel.
+   */
+  var ContentSwitchMode;
+  (function (ContentSwitchMode) {
+      ContentSwitchMode["fadeLeft"] = "fadeLeft";
+      ContentSwitchMode["fadeRight"] = "fadeRight";
+      ContentSwitchMode["carousel"] = "carousel";
+  })(ContentSwitchMode || (ContentSwitchMode = {}));
+
+  /**
+   * @class GradumContentSwitch
+   * @group Components
+   * @category Containers
+   *
+   * @extends GradumSelectElement
+   * @template ValueType - The type of the value held by each entry.
+   * @template SecondaryValueType - The type of each entry's secondary value.
+   * @template {HTMLElement} EntryType - The type of the entry elements.
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * @description Shows one entry at a time and animates the swap when the selection changes. Registered
+   * as `<gradum-content-switch>`. Selection works as on any {@link GradumSelectElement}; this adds the
+   * transition between the outgoing and incoming entry, configured through {@link GradumContentSwitch.mode}.
+   */
+  let GradumContentSwitch = (() => {
+      let _classSuper = GradumSelectElement;
+      let _instanceExtraInitializers = [];
+      let _set_mode_decorators;
+      let _set_entryTransitionReifect_decorators;
+      let _set_movementReifect_decorators;
+      let _set_transitionDuration_decorators;
+      return class GradumContentSwitch extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _set_mode_decorators = [auto({ defaultValue: ContentSwitchMode.fadeRight })];
+              _set_entryTransitionReifect_decorators = [auto({
+                      preprocessValue: function (value) {
+                          if (!value)
+                              return;
+                          if (value instanceof Reifect)
+                              return value;
+                          return new Reifect(value);
+                      }
+                  })];
+              _set_movementReifect_decorators = [auto({
+                      preprocessValue: function (value) {
+                          if (!value)
+                              return;
+                          if (value instanceof Reifect)
+                              return value;
+                          return new Reifect(value);
+                      }
+                  })];
+              _set_transitionDuration_decorators = [auto({ override: true })];
+              __esDecorate$1(this, null, _set_mode_decorators, { kind: "setter", name: "mode", static: false, private: false, access: { has: obj => "mode" in obj, set: (obj, value) => { obj.mode = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _set_entryTransitionReifect_decorators, { kind: "setter", name: "entryTransitionReifect", static: false, private: false, access: { has: obj => "entryTransitionReifect" in obj, set: (obj, value) => { obj.entryTransitionReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _set_movementReifect_decorators, { kind: "setter", name: "movementReifect", static: false, private: false, access: { has: obj => "movementReifect" in obj, set: (obj, value) => { obj.movementReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _set_transitionDuration_decorators, { kind: "setter", name: "transitionDuration", static: false, private: false, access: { has: obj => "transitionDuration" in obj, set: (obj, value) => { obj.transitionDuration = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          /**
+           * @static
+           * @description Default properties assigned to a new content switch. Entries cross over 0.3 seconds.
+           */
+          static defaultProperties = { transitionDuration: 0.3 };
+          /**
+           * @description The transition played when the selected entry changes. Assigning a new mode rebuilds
+           * the movement reifect, so the next switch uses it. Defaults to `ContentSwitchMode.fadeRight`.
+           */
+          set mode(value) {
+              this.reloadMovementReifect();
+          }
+          /**
+           * @description The reifect controlling how each entry itself fades. Assigning a properties object
+           * builds a {@link Reifect} from it, and the result is attached to every current entry.
+           */
+          set entryTransitionReifect(value) {
+              if (!value)
+                  return;
+              if (this.entries.length > 0)
+                  value.attach(...this.entries);
+          }
+          get entryTransitionReifect() { return; }
+          /**
+           * @description The reifect controlling how entries slide, which {@link GradumContentSwitch.mode}
+           * regenerates. Assigning a properties object builds a {@link Reifect} from it, and the result is
+           * attached to every current entry.
+           */
+          set movementReifect(value) {
+              if (value && this.entries.length > 0)
+                  value.attach(...this.entries);
+          }
+          get movementReifect() { return; }
+          /**
+           * @description How long the entry transition lasts, in seconds. Assigning a value rewrites the entry
+           * reifect's CSS transition, creating that reifect if it does not exist yet. Values of `0` or less are
+           * ignored. Defaults to `0.3`.
+           * @override
+           */
+          set transitionDuration(value) {
+              if (value <= 0)
+                  return;
+              if (!this.entryTransitionReifect)
+                  this.entryTransitionReifect = new Reifect({});
+              this.entryTransitionReifect.styles = `transition: transform ${value}s ease-in-out, opacity ${value}s ease-in-out`;
+          }
+          initialize() {
+              this.select.onEntryAdded.add(entry => this.setupEntry(entry));
+              this.select.onEntryRemoved.add(entry => {
+                  this.entryTransitionReifect?.detach(entry);
+                  this.movementReifect?.detach(entry);
+              });
+              super.initialize();
+              this.reloadMovementReifect();
+          }
+          setupEntry(entry) {
+              gradum(entry).setStyles({ position: "relative", width: "", height: "", top: "0", left: "0" }, true);
+              this.entryTransitionReifect?.attach(entry);
+              this.movementReifect?.attach(entry);
+              requestAnimationFrame(() => {
+                  if (entry !== this.selectedEntry)
+                      this.freezeAndHide(entry);
+              });
+          }
+          freezeAndHide(entry, isRelative = false) {
+              gradum(entry).setStyles({
+                  width: isRelative ? "" : `${entry.offsetWidth}px`,
+                  height: isRelative ? "" : `${entry.offsetHeight}px`,
+                  position: isRelative ? "relative" : "absolute",
+                  top: "0",
+                  left: "0",
+              }, true);
+          }
+          reloadMovementReifect() {
+              if (!this.movementReifect)
+                  this.movementReifect = new Reifect({});
+              this.movementReifect.styles = (index) => {
+                  const offset = index - this.selectedIndex;
+                  if (offset === 0)
+                      return "transform: translateX(0); opacity: 1; pointer-events: all;";
+                  if (this.mode === ContentSwitchMode.carousel)
+                      return `transform: translateX(${offset > 0 ? "100%" : "-100%"}); opacity: 0; pointer-events: none;`;
+                  const dx = this.mode === ContentSwitchMode.fadeLeft ? "-100%" : "100%";
+                  return `transform: translateX(${dx}); opacity: 0; pointer-events: none;`;
+              };
+          }
+          beforeResize(selectedEntry) {
+              this.select.entries.forEach(entry => this.freezeAndHide(entry, entry === selectedEntry));
+              this.movementReifect?.apply(this.select.entries, { recomputeProperties: true });
+          }
           constructor() {
               super(...arguments);
-              __runInitializers$1(this, _stringSelectedValue_extraInitializers);
+              __runInitializers$1(this, _instanceExtraInitializers);
           }
       };
   })();
-  define(TurboSelectElement);
+  define(GradumContentSwitch, "gradum-content-switch");
 
-  var css_248z$2$1 = ".turbo-drawer{align-items:center;direction:ltr;display:inline-flex}.turbo-drawer-panel-container{align-items:center;display:flex;overflow:hidden;position:relative}.turbo-drawer-thumb{display:inline-block;position:relative}.top-drawer .turbo-drawer-panel-container,.turbo-drawer.top-drawer{flex-direction:column}.bottom-drawer .turbo-drawer-panel-container,.turbo-drawer.bottom-drawer{flex-direction:column-reverse}.left-drawer .turbo-drawer-panel-container,.turbo-drawer.left-drawer{flex-direction:row}.right-drawer .turbo-drawer-panel-container,.turbo-drawer.right-drawer{flex-direction:row-reverse}";
+  var css_248z$2$1 = ".gradum-drawer{align-items:center;direction:ltr;display:inline-flex}.gradum-drawer-panel-container{align-items:center;display:flex;overflow:hidden;position:relative}.gradum-drawer-thumb{display:inline-block;position:relative}.gradum-drawer.top-drawer,.top-drawer .gradum-drawer-panel-container{flex-direction:column}.bottom-drawer .gradum-drawer-panel-container,.gradum-drawer.bottom-drawer{flex-direction:column-reverse}.gradum-drawer.left-drawer,.left-drawer .gradum-drawer-panel-container{flex-direction:row}.gradum-drawer.right-drawer,.right-drawer .gradum-drawer-panel-container{flex-direction:row-reverse}";
   styleInject$1(css_248z$2$1);
 
   //TODO TRY TO SEE IF HIDDEN OVERFLOW ELEMENT CAN CONTAIN ELEMENT THAT OVERFLOWS PAST PARENT
   /**
    * @group Components
-   * @category TurboDrawer
+   * @category Containers
    */
-  let TurboDrawer = (() => {
-      let _classSuper = TurboElement;
+  let GradumDrawer = (() => {
+      let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
       let _set_thumb_decorators;
       let _set_panel_decorators;
@@ -21924,19 +26143,19 @@
       let _transition_decorators;
       let _transition_initializers = [];
       let _transition_extraInitializers = [];
-      return class TurboDrawer extends _classSuper {
+      return class GradumDrawer extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _set_thumb_decorators = [auto({
                       setIfUndefined: true,
                       callBefore: function () { if (this.thumb)
-                          turbo(this).remChild(this.thumb); },
+                          gradum(this).remChild(this.thumb); },
                       preprocessValue: (value) => value instanceof HTMLElement ? value : div(value)
                   })];
               _set_panel_decorators = [auto({
                       setIfUndefined: true,
                       callBefore: function () { if (this.panel)
-                          turbo(this).remChild(this.panel); },
+                          gradum(this).remChild(this.panel); },
                       preprocessValue: (value) => value instanceof HTMLElement ? value : div(value)
                   })];
               _set_icon_decorators = [auto({
@@ -21947,7 +26166,7 @@
                               return value;
                           if (typeof value === "string" && !this.attachSideToIconName && !this.rotateIconBasedOnSide)
                               this.attachSideToIconName = true;
-                          return TurboIconSwitch.create(typeof value === "object" ? value : {
+                          return GradumIconSwitch.create(typeof value === "object" ? value : {
                               icon: value,
                               switchReifect: { states: Object.values(Side) },
                               defaultState: this.open ? this.getOppositeSide() : this.side,
@@ -21992,39 +26211,81 @@
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           _panelContainer = __runInitializers$1(this, _instanceExtraInitializers);
+          /**
+           * @private
+           * @description Guards {@link setupUILayout} against re-entering itself. Reading `thumb` or `panel`
+           * creates them on first access, and their setters call `setupUILayout` again — so the layout would
+           * otherwise run nested, and the inner run would leave `childHandler` pointing at the panel while the
+           * outer run is still going.
+           */
+          layingOutUI = false;
+          /**
+           * @readonly
+           * @description The element wrapping the panel. It is the one that resizes as the drawer opens and
+           * closes; the panel itself keeps its natural size.
+           */
           get panelContainer() { return this._panelContainer; }
           dragging = false;
+          /**
+           * @protected
+           * @description Watches the panel while the drawer is open, so the drawer follows its content when
+           * that content changes size.
+           */
           resizeObserver;
+          /**
+           * @description The handle used to open and close the drawer. Assign an element to use it directly, or
+           * properties to build one. Clicking it toggles the drawer; dragging it moves the drawer with the pointer.
+           */
           set thumb(value) {
-              turbo(value).addClass("turbo-drawer-thumb");
+              gradum(value).addClass("gradum-drawer-thumb");
               if (this.initialized)
                   this.setupUILayout();
           }
           get thumb() { return; }
+          /**
+           * @description The drawer's content panel. Assign an element to use it directly, or properties to build
+           * one. Any children already on the drawer are moved into it when the layout is set up.
+           */
           set panel(value) {
-              turbo(value).addClass("turbo-drawer-panel");
+              gradum(value).addClass("gradum-drawer-panel");
               if (this.initialized)
                   this.setupUILayout();
           }
           get panel() { return; }
+          /**
+           * @description The icon shown inside the thumb. Assign an icon name, an element, or icon-switch
+           * properties. Given a name, a {@link GradumIconSwitch} is built that tracks the drawer's side so the
+           * icon points the right way.
+           */
           set icon(_value) {
               if (this.initialized)
                   this.setupUILayout();
           }
           get icon() { return; }
+          /**
+           * @description Whether content overflowing the panel is clipped rather than spilling out of the drawer.
+           */
           set hideOverflow(value) {
-              turbo(this.panelContainer).setStyle("overflow", value ? "hidden" : "");
+              gradum(this.panelContainer).setStyle("overflow", value ? "hidden" : "");
           }
+          /**
+           * @description Whether the drawer's side is appended to the icon's name, so a different icon file is
+           * loaded per side. Turning this on turns {@link GradumDrawer.rotateIconBasedOnSide} off.
+           */
           set attachSideToIconName(value) {
-              if (this.icon instanceof TurboIconSwitch)
+              if (this.icon instanceof GradumIconSwitch)
                   this.icon.appendStateToIconName = value;
               if (value)
                   this.rotateIconBasedOnSide = false;
           }
+          /**
+           * @description Whether one icon is rotated to suit the drawer's side instead of swapping files.
+           * Turning this on turns {@link GradumDrawer.attachSideToIconName} off.
+           */
           set rotateIconBasedOnSide(value) {
               if (value)
                   this.attachSideToIconName = false;
-              if (this.icon instanceof TurboIconSwitch)
+              if (this.icon instanceof GradumIconSwitch)
                   this.icon.switchReifect.styles = {
                       top: "transform: rotate(180deg)",
                       bottom: "transform: rotate(0deg)",
@@ -22032,18 +26293,34 @@
                       right: "transform: rotate(270deg)",
                   };
           }
+          /**
+           * @description The edge the drawer is attached to. Assigning it swaps the matching CSS class and
+           * refreshes the drawer's position.
+           */
           set side(value) {
-              turbo(this).toggleClass("top-drawer", value == Side.top)
+              gradum(this).toggleClass("top-drawer", value == Side.top)
                   .toggleClass("bottom-drawer", value == Side.bottom)
                   .toggleClass("left-drawer", value == Side.left)
                   .toggleClass("right-drawer", value == Side.right);
               this.refresh();
           }
+          /**
+           * @description How far the drawer sits from its edge, in pixels, given separately for its open and
+           * closed states. Assign a single number to use it for both.
+           */
           set offset(value) { }
           get offset() { return; }
+          /**
+           * @readonly
+           * @description Whether the drawer opens along the vertical axis, i.e. it is attached to the top or
+           * bottom edge.
+           */
           get isVertical() {
               return this.side == Side.top || this.side == Side.bottom;
           }
+          /**
+           * @description Whether the drawer is open. Assigning it animates the drawer to its new position.
+           */
           set open(value) {
               if (value)
                   this.resizeObserver?.observe(this.panel, { box: "border-box" });
@@ -22055,71 +26332,100 @@
               switch (this.side) {
                   case Side.top:
                       if (this.hideOverflow)
-                          turbo(this.panelContainer).setStyle("height", value + "px");
+                          gradum(this.panelContainer).setStyle("height", value + "px");
                       else
-                          turbo(this).setStyle("transform", `translateY(${-value}px)`);
+                          gradum(this).setStyle("transform", `translateY(${-value}px)`);
                       break;
                   case Side.bottom:
                       if (this.hideOverflow)
-                          turbo(this.panelContainer).setStyle("height", value + "px");
+                          gradum(this.panelContainer).setStyle("height", value + "px");
                       else
-                          turbo(this).setStyle("transform", `translateY(${-value}px)`);
+                          gradum(this).setStyle("transform", `translateY(${-value}px)`);
                       break;
                   case Side.left:
                       if (this.hideOverflow)
-                          turbo(this.panelContainer).setStyle("width", value + "px");
+                          gradum(this.panelContainer).setStyle("width", value + "px");
                       else
-                          turbo(this).setStyle("transform", `translateX(${-value}px)`);
+                          gradum(this).setStyle("transform", `translateX(${-value}px)`);
                       break;
                   case Side.right:
                       if (this.hideOverflow)
-                          turbo(this.panelContainer).setStyle("width", value + "px");
+                          gradum(this.panelContainer).setStyle("width", value + "px");
                       else
-                          turbo(this).setStyle("transform", `translateX(${-value}px)`);
+                          gradum(this).setStyle("transform", `translateX(${-value}px)`);
                       break;
               }
           }
           transition = __runInitializers$1(this, _transition_initializers, void 0);
+          /**
+           * @description How far the drawer is currently displaced from its edge, in pixels. Set while dragging
+           * to follow the pointer; otherwise driven by {@link GradumDrawer.open}.
+           */
           get translation() { return; }
+          /**
+           * @function initialize
+           * @description Set the drawer up and settle it into its closed position without animating, then enable
+           * transitions on the next frame so later changes animate normally.
+           */
           initialize() {
               super.initialize();
-              turbo(this).show(false);
+              gradum(this).show(false);
               this.enableTransition(false);
               this.setupResizeObserver();
               this.open = false;
               requestAnimationFrame(() => {
-                  turbo(this).show(true);
+                  gradum(this).show(true);
                   this.enableTransition(true);
               });
           }
+          /**
+           * @inheritDoc
+           */
           setupUIElements() {
               super.setupUIElements();
-              this._panelContainer = div({ classes: "turbo-drawer-panel-container" });
+              this._panelContainer = div({ classes: "gradum-drawer-panel-container" });
           }
+          /**
+           * @inheritDoc
+           */
           setupUILayout() {
-              super.setupUILayout();
-              turbo(this).childHandler = this;
-              const panelChildren = turbo(this).childrenArray.filter(el => el !== this.panelContainer && el !== this.thumb);
-              turbo(this).addChild([this.thumb, this.panelContainer]);
-              turbo(this.panel).addChild(panelChildren);
-              turbo(this.panelContainer).addChild(this.panel);
-              turbo(this.thumb).addChild(this.icon);
-              turbo(this).childHandler = this.panel;
+              //Reading `thumb`/`panel` below creates them on first access, and their setters call back into this
+              //method. Let the outermost call do the work: it sees the finished elements either way.
+              if (this.layingOutUI)
+                  return;
+              this.layingOutUI = true;
+              try {
+                  super.setupUILayout();
+                  gradum(this).childHandler = this;
+                  const panelChildren = gradum(this).childrenArray
+                      .filter(el => el !== this.panelContainer && el !== this.thumb);
+                  gradum(this).addChild([this.thumb, this.panelContainer]);
+                  gradum(this.panel).addChild(panelChildren);
+                  gradum(this.panelContainer).addChild(this.panel);
+                  gradum(this.thumb).addChild(this.icon);
+                  gradum(this).childHandler = this.panel;
+              }
+              finally {
+                  this.layingOutUI = false;
+              }
           }
+          /**
+           * @inheritDoc
+           */
           setupUIListeners() {
-              turbo(this.thumb).on(DefaultEventName.click, (e) => {
+              gradum(this.thumb).on(DefaultEventName.click, (e) => {
                   this.open = !this.open;
                   return Propagation.stopPropagation;
-              }).on(TurboEventName.dragStart, (e) => {
+              }).on(GradumEventName.dragStart, (e) => {
                   this.dragging = true;
                   this.enableTransition(false);
                   return Propagation.stopPropagation;
-              }).on(TurboEventName.drag, (e) => {
+              }).on(GradumEventName.drag, (e) => {
                   if (!this.dragging)
                       return;
                   this.translation += this.isVertical ? e.scaledDeltaPosition.y : e.scaledDeltaPosition.x;
                   return Propagation.stopPropagation;
-              }).on(TurboEventName.dragEnd, (e) => {
+              }).on(GradumEventName.dragEnd, (e) => {
                   if (!this.dragging)
                       return;
                   this.dragging = false;
@@ -22155,6 +26461,12 @@
                   return true;
               });
           }
+          /**
+           * @function getOppositeSide
+           * @description Get the side facing the given one — top against bottom, left against right.
+           * @param {Side} [side=this.side] - The side to invert. Defaults to the drawer's own side.
+           * @returns {Side} The opposite side.
+           */
           getOppositeSide(side = this.side) {
               switch (side) {
                   case Side.top:
@@ -22167,6 +26479,12 @@
                       return Side.left;
               }
           }
+          /**
+           * @function getAdjacentSide
+           * @description Get the side a quarter-turn from the given one, used to rotate the thumb's icon.
+           * @param {Side} [side=this.side] - The side to rotate from. Defaults to the drawer's own side.
+           * @returns {Side} The adjacent side.
+           */
           getAdjacentSide(side = this.side) {
               switch (side) {
                   case Side.top:
@@ -22179,28 +26497,46 @@
                       return Side.bottom;
               }
           }
+          /**
+           * @function refresh
+           * @description Re-measure the panel and move the drawer to the position its current state calls for.
+           * Call it after changing the panel's contents outside the drawer's own observers.
+           */
           refresh() {
               if (this.hideOverflow)
-                  turbo(this.panel).setStyle("position", "absolute", true);
-              if (this.icon instanceof TurboIconSwitch)
+                  gradum(this.panel).setStyle("position", "absolute", true);
+              if (this.icon instanceof GradumIconSwitch)
                   this.icon.switchReifect.apply(this.open ? this.getOppositeSide() : this.side);
               requestAnimationFrame(() => {
                   this.translation = (this.open ? this.offset.open : this.offset.closed)
                       + (this.open ? (this.isVertical ? this.panel.offsetHeight : this.panel.offsetWidth) : 0);
                   if (this.hideOverflow)
-                      turbo(this.panel).setStyle("position", "relative", true);
+                      gradum(this.panel).setStyle("position", "relative", true);
               });
           }
+          /**
+           * @function enableTransition
+           * @protected
+           * @description Turn the drawer's open/close animation on or off, to move it instantly while dragging.
+           * @param {boolean} b - Whether the transition is enabled.
+           */
           enableTransition(b) {
               this.transition.enabled = b;
               this.transition.apply();
           }
+          /**
+           * @function setupResizeObserver
+           * @protected
+           * @description Start following the panel's size while the drawer is open, so the drawer grows and
+           * shrinks with its content. Resizes are ignored mid-transition and mid-drag, where the size is already
+           * being driven deliberately.
+           */
           setupResizeObserver() {
               let mutex = 0;
               let initializationLock = true;
-              turbo(this).on("transitionstart", () => mutex++)
+              gradum(this).on("transitionstart", () => mutex++)
                   .on("transitionend", () => { mutex--; initializationLock = false; });
-              turbo(this.panelContainer).on("transitionstart", () => mutex++)
+              gradum(this.panelContainer).on("transitionstart", () => mutex++)
                   .on("transitionend", () => mutex--);
               this.resizeObserver = new ResizeObserver(entries => {
                   if (!this.open || this.dragging || mutex > 0 || initializationLock)
@@ -22216,11 +26552,11 @@
           }
       };
   })();
-  define(TurboDrawer);
+  define(GradumDrawer);
 
   /**
    * @group Components
-   * @category TurboPopup
+   * @category Containers
    */
   var PopupFallbackMode;
   (function (PopupFallbackMode) {
@@ -22229,19 +26565,22 @@
       PopupFallbackMode["none"] = "none";
   })(PopupFallbackMode || (PopupFallbackMode = {}));
 
-  var css_248z$1$1 = "#turbo-popup-parent-element{display:block;left:0;position:fixed;top:0;z-index:1000}.turbo-popup{display:block;inset:auto;overflow:auto;position:fixed}";
+  var css_248z$1$1 = "#gradum-popup-parent-element{display:block;left:0;position:fixed;top:0;z-index:1000}.gradum-popup{display:block;inset:auto;overflow:auto;position:fixed}";
   styleInject$1(css_248z$1$1);
 
   /**
    * @group Components
-   * @category TurboPopup
+   * @category Containers
    */
-  let TurboPopup = (() => {
-      let _classSuper = TurboElement;
+  let GradumPopup = (() => {
+      let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
       let _static_parentElement_decorators;
       let _static_parentElement_initializers = [];
       let _static_parentElement_extraInitializers = [];
+      let _anchor_decorators;
+      let _anchor_initializers = [];
+      let _anchor_extraInitializers = [];
       let _set_popupPosition_decorators;
       let _set_anchorPosition_decorators;
       let _set_viewportMargin_decorators;
@@ -22252,10 +26591,12 @@
       let _get_computedStyle_decorators;
       let _get_anchorComputedStyle_decorators;
       let _get_computedMargins_decorators;
-      return class TurboPopup extends _classSuper {
+      let _recomputePosition_decorators;
+      return class GradumPopup extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _static_parentElement_decorators = [auto({ defaultValue: div({ parent: document.body, id: "turbo-popup-parent-element" }) })];
+              _static_parentElement_decorators = [auto({ defaultValue: div({ parent: document.body, id: "gradum-popup-parent-element" }) })];
+              _anchor_decorators = [signal];
               _set_popupPosition_decorators = [auto({ preprocessValue: (value) => new Point(value).bound(0, 100) })];
               _set_anchorPosition_decorators = [auto({ preprocessValue: (value) => new Point(value).bound(0, 100) })];
               _set_viewportMargin_decorators = [auto({ preprocessValue: (value) => new Point(value) })];
@@ -22266,6 +26607,7 @@
               _get_computedStyle_decorators = [cache({ clearOnNextFrame: true })];
               _get_anchorComputedStyle_decorators = [cache({ clearOnNextFrame: true })];
               _get_computedMargins_decorators = [cache({ clearOnNextFrame: true })];
+              _recomputePosition_decorators = [effect];
               __esDecorate$1(this, null, _set_popupPosition_decorators, { kind: "setter", name: "popupPosition", static: false, private: false, access: { has: obj => "popupPosition" in obj, set: (obj, value) => { obj.popupPosition = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(this, null, _set_anchorPosition_decorators, { kind: "setter", name: "anchorPosition", static: false, private: false, access: { has: obj => "anchorPosition" in obj, set: (obj, value) => { obj.anchorPosition = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(this, null, _set_viewportMargin_decorators, { kind: "setter", name: "viewportMargin", static: false, private: false, access: { has: obj => "viewportMargin" in obj, set: (obj, value) => { obj.viewportMargin = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
@@ -22276,9 +26618,17 @@
               __esDecorate$1(this, null, _get_computedStyle_decorators, { kind: "getter", name: "computedStyle", static: false, private: false, access: { has: obj => "computedStyle" in obj, get: obj => obj.computedStyle }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(this, null, _get_anchorComputedStyle_decorators, { kind: "getter", name: "anchorComputedStyle", static: false, private: false, access: { has: obj => "anchorComputedStyle" in obj, get: obj => obj.anchorComputedStyle }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(this, null, _get_computedMargins_decorators, { kind: "getter", name: "computedMargins", static: false, private: false, access: { has: obj => "computedMargins" in obj, get: obj => obj.computedMargins }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _recomputePosition_decorators, { kind: "method", name: "recomputePosition", static: false, private: false, access: { has: obj => "recomputePosition" in obj, get: obj => obj.recomputePosition }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(null, null, _static_parentElement_decorators, { kind: "field", name: "parentElement", static: true, private: false, access: { has: obj => "parentElement" in obj, get: obj => obj.parentElement, set: (obj, value) => { obj.parentElement = value; } }, metadata: _metadata }, _static_parentElement_initializers, _static_parentElement_extraInitializers);
+              __esDecorate$1(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @static
+           * @description Default properties assigned to a new popup: anchored below its target, kept 4px inside
+           * the viewport, and falling back by offsetting horizontally or flipping vertically when it would
+           * overflow.
+           */
           static defaultProperties = {
               popupPosition: { x: 0, y: -100 },
               anchorPosition: { x: 0, y: 100 },
@@ -22286,16 +26636,45 @@
               offsetFromAnchor: { x: 0, y: 4 },
               fallbackModes: { x: PopupFallbackMode.offset, y: PopupFallbackMode.invert }
           };
+          /**
+           * @static
+           * @protected
+           * @description The shared container every popup is moved into, appended to the document body on first
+           * use. Reparenting popups here keeps them clear of any ancestor that clips or transforms them.
+           */
           static parentElement = __runInitializers$1(this, _static_parentElement_initializers, void 0);
-          anchor = (__runInitializers$1(this, _instanceExtraInitializers), document.body);
+          /**
+           * @description The element this popup positions itself against. Defaults to the document body.
+           */
+          anchor = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _anchor_initializers, document.body));
+          /**
+           * @description Which point of the popup is pinned to the anchor, in percentages of its own size —
+           * `{x: 0, y: 0}` is its top-left, `{x: 100, y: 100}` its bottom-right. Values are clamped to `0`–`100`.
+           */
           set popupPosition(value) { }
           get popupPosition() { return; }
+          /**
+           * @description Which point of the anchor the popup is pinned to, in percentages of the anchor's size.
+           * Values are clamped to `0`–`100`.
+           */
           set anchorPosition(value) { }
           get anchorPosition() { return; }
+          /**
+           * @description The minimum gap in pixels kept between the popup and the viewport edges. Assign a
+           * single number to use it for both axes.
+           */
           set viewportMargin(value) { }
           get viewportMargin() { return; }
+          /**
+           * @description Extra pixel offset applied after the popup is aligned to its anchor. Assign a single
+           * number to use it for both axes.
+           */
           set offsetFromAnchor(value) { }
           get offsetFromAnchor() { return; }
+          /**
+           * @description What to do per axis when the popup would overflow the viewport — shift it back into
+           * view, or flip it to the anchor's other side. Assign a single mode to use it for both axes.
+           */
           set fallbackModes(value) { }
           get fallbackModes() { return; }
           get rect() {
@@ -22316,19 +26695,27 @@
                   y: parseFloat(this.computedStyle.marginTop) + parseFloat(this.computedStyle.marginBottom)
               };
           }
+          /**
+           * @function initialize
+           * @description Set the popup up hidden, and move it into the shared popup container so no ancestor can
+           * clip or transform it.
+           */
           initialize() {
               super.initialize();
               this.show(false);
               if (!this.parentElement)
-                  turbo(this).addToParent(TurboPopup.parentElement);
+                  gradum(this).addToParent(GradumPopup.parentElement);
           }
+          /**
+           * @inheritDoc
+           */
           setupUIListeners() {
               super.setupUIListeners();
               document.addEventListener(DefaultEventName.scroll, () => this.show(false), { capture: true, passive: true });
-              window.addEventListener(DefaultEventName.resize, () => { if (turbo(this).isShown)
+              window.addEventListener(DefaultEventName.resize, () => { if (gradum(this).isShown)
                   this.recomputePosition(); }, { passive: true });
-              turbo(document.body).on(DefaultEventName.click, e => {
-                  if (!turbo(this).isShown)
+              gradum(document.body).on(DefaultEventName.click, e => {
+                  if (!gradum(this).isShown)
                       return;
                   const t = e.target;
                   if (this.contains(t))
@@ -22341,14 +26728,14 @@
           recomputePosition() {
               if (!this.anchor)
                   return;
-              turbo(this).setStyles({ maxHeight: "", maxWidth: "" }, true);
+              gradum(this).setStyles({ maxHeight: "", maxWidth: "" }, true);
               const left = this.computeAxis(Direction.horizontal);
               const top = this.computeAxis(Direction.vertical);
-              turbo(this).setStyles({ left: `${left}px`, top: `${top}px` });
+              gradum(this).setStyles({ left: `${left}px`, top: `${top}px` });
               const maxWidth = Math.max(0, Math.min(window.innerWidth - 2 * this.viewportMargin.x, window.innerWidth - 2 * this.viewportMargin.x - this.computedMargins.x));
               const maxHeight = Math.max(0, Math.min(window.innerHeight - 2 * this.viewportMargin.y, window.innerHeight - 2 * this.viewportMargin.y - this.computedMargins.y));
-              turbo(this).setStyle("maxWidth", `${maxWidth}px`);
-              turbo(this).setStyle("maxHeight", `${maxHeight}px`);
+              gradum(this).setStyle("maxWidth", `${maxWidth}px`);
+              gradum(this).setStyle("maxHeight", `${maxHeight}px`);
           }
           computeAxis(direction) {
               const axis = direction === Direction.horizontal ? "x" : "y";
@@ -22379,30 +26766,45 @@
               }
               return finalOffset;
           }
+          /**
+           * @function show
+           * @description Show or hide the popup. Showing it repositions it against its anchor first, while it is
+           * still invisible, so it never appears at a stale position.
+           * @param {boolean} b - Whether to show the popup.
+           * @returns {this} Itself, allowing for method chaining.
+           */
           show(b) {
               if (b) {
                   this.style.visibility = "hidden";
                   this.style.display = "";
                   this.recomputePosition();
                   this.style.visibility = "";
-                  turbo(this).show(true);
+                  gradum(this).show(true);
               }
               else {
-                  turbo(this).setStyles({ maxHeight: "", maxWidth: "" }, true).show(false);
+                  gradum(this).setStyles({ maxHeight: "", maxWidth: "" }, true).show(false);
               }
               return this;
+          }
+          constructor() {
+              super(...arguments);
+              __runInitializers$1(this, _anchor_extraInitializers);
           }
           static {
               __runInitializers$1(this, _static_parentElement_extraInitializers);
           }
       };
   })();
-  define(TurboPopup);
+  define(GradumPopup);
 
   /**
    * @class AnchorPoint
    * @group Components
-   * @category AnchorPoint
+   * @category Data Structures
+   *
+   * @description A position within a box, expressed either as one of the nine named {@link Anchor} values
+   * or as a free {@link Point} in percentages from `-100` to `100`. The two forms are interchangeable —
+   * assign whichever is convenient and read back whichever you need.
    */
   (() => {
       let _instanceExtraInitializers = [];
@@ -22422,15 +26824,37 @@
               __esDecorate$1(this, null, _set_value_decorators, { kind: "setter", name: "value", static: false, private: false, access: { has: obj => "value" in obj, set: (obj, value) => { obj.value = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @constructor
+           * @description Create an anchor point.
+           * @param {Point | Anchor} [anchor] - The starting position, as a named anchor or a point.
+           */
           constructor(anchor) {
               __runInitializers$1(this, _instanceExtraInitializers);
               this.value = anchor;
           }
+          /**
+           * @description The anchor's position as a point. Assigning a named {@link Anchor} converts it; assigning
+           * anything unrecognized leaves the current value untouched.
+           */
           set value(value) { }
           get value() { return; }
+          /**
+           * @readonly
+           * @description The named {@link Anchor} nearest this position, snapping each axis to its closest edge
+           * or centre.
+           */
           get enum() {
               return AnchorPoint.pointToEnum(this.value);
           }
+          /**
+           * @function pointToEnum
+           * @static
+           * @description Snap a point to the nearest named anchor. Each axis rounds to the closest of its two
+           * edges or its centre.
+           * @param {Point} value - The point to convert.
+           * @returns {Anchor} The nearest named anchor. Defaults to `Anchor.Center` for a missing point.
+           */
           static pointToEnum(value) {
               if (!value)
                   return Anchor.Center;
@@ -22457,6 +26881,13 @@
                   return Anchor.BottomMiddle;
               return Anchor.BottomRight;
           }
+          /**
+           * @function enumToPoint
+           * @static
+           * @description Convert a named anchor to its point, in percentages from `-100` to `100`.
+           * @param {Anchor} value - The anchor to convert.
+           * @returns {Point} The corresponding point. Returns the origin for a missing anchor.
+           */
           static enumToPoint(value) {
               if (!value)
                   return new Point();
@@ -22484,19 +26915,19 @@
       };
   })();
 
-  var css_248z$4 = "turbo-dropdown{display:inline-block;position:relative}turbo-dropdown>.turbo-popup{background-color:#fff;border:.1em solid #5e5e5e;border-radius:.4em;display:flex;flex-direction:column;overflow:hidden}turbo-dropdown>.turbo-popup>turbo-select-entry{padding:.5em}turbo-dropdown>.turbo-popup>turbo-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}turbo-dropdown>turbo-select-entry{padding:.5em .7em;width:100%}turbo-dropdown>turbo-select-entry:hover{background-color:#d7d7d7}turbo-dropdown>turbo-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}";
-  styleInject$1(css_248z$4);
+  var css_248z$5 = "gradum-dropdown{display:inline-block;position:relative}gradum-dropdown>.gradum-popup{background-color:#fff;border:.1em solid #5e5e5e;border-radius:.4em;display:flex;flex-direction:column;overflow:hidden}gradum-dropdown>.gradum-popup>gradum-select-entry{padding:.5em}gradum-dropdown>.gradum-popup>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}gradum-dropdown>gradum-select-entry{padding:.5em .7em;width:100%}gradum-dropdown>gradum-select-entry:hover{background-color:#d7d7d7}gradum-dropdown>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}";
+  styleInject$1(css_248z$5);
 
   /**
-   * @class TurboDropdown
+   * @class GradumDropdown
    * @group Components
-   * @category TurboDropdown
+   * @category Menus
    *
-   * @description Dropdown class for creating Turbo button elements.
-   * @extends TurboElement
+   * @extends GradumElement
+   * @description Dropdown class for creating Gradum button elements.
    */
-  let TurboDropdown = (() => {
-      let _classSuper = TurboSelectElement;
+  let GradumDropdown = (() => {
+      let _classSuper = GradumSelectElement;
       let _instanceExtraInitializers = [];
       let _selectorClasses_decorators;
       let _selectorClasses_initializers = [];
@@ -22506,16 +26937,16 @@
       let _popupClasses_extraInitializers = [];
       let _set_selector_decorators;
       let _set_popup_decorators;
-      return class TurboDropdown extends _classSuper {
+      return class GradumDropdown extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _selectorClasses_decorators = [auto({
-                      callBefore: function () { turbo(this.selector).removeClass(this.selectorClasses); },
-                      callAfter: function () { turbo(this.selector).addClass(this.selectorClasses); }
+                      callBefore: function () { gradum(this.selector).removeClass(this.selectorClasses); },
+                      callAfter: function () { gradum(this.selector).addClass(this.selectorClasses); }
                   })];
               _popupClasses_decorators = [auto({
-                      callBefore: function () { turbo(this.popup).removeClass(this.popupClasses); },
-                      callAfter: function () { turbo(this.popup).addClass(this.popupClasses); }
+                      callBefore: function () { gradum(this.popup).removeClass(this.popupClasses); },
+                      callAfter: function () { gradum(this.popup).addClass(this.popupClasses); }
                   })];
               _set_selector_decorators = [auto({
                       setIfUndefined: true,
@@ -22523,26 +26954,37 @@
                           if (value instanceof HTMLElement)
                               return value;
                           const text = typeof value === "string" ? value : stringify(this.select.getValue(this.entries[0]));
-                          if (this.selector instanceof TurboButton)
+                          if (this.selector instanceof GradumButton)
                               this.selector.text = text;
                           else
-                              return TurboButton.create({ text, elementTag: this.selectorTag });
+                              return GradumButton.create({ text, elementTag: this.selectorTag });
                       }
                   })];
-              _set_popup_decorators = [auto({ defaultValueCallback: () => TurboPopup.create() })];
+              _set_popup_decorators = [auto({ defaultValueCallback: () => GradumPopup.create() })];
               __esDecorate$1(this, null, _set_selector_decorators, { kind: "setter", name: "selector", static: false, private: false, access: { has: obj => "selector" in obj, set: (obj, value) => { obj.selector = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(this, null, _set_popup_decorators, { kind: "setter", name: "popup", static: false, private: false, access: { has: obj => "popup" in obj, set: (obj, value) => { obj.popup = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(null, null, _selectorClasses_decorators, { kind: "field", name: "selectorClasses", static: false, private: false, access: { has: obj => "selectorClasses" in obj, get: obj => obj.selectorClasses, set: (obj, value) => { obj.selectorClasses = value; } }, metadata: _metadata }, _selectorClasses_initializers, _selectorClasses_extraInitializers);
               __esDecorate$1(null, null, _popupClasses_decorators, { kind: "field", name: "popupClasses", static: false, private: false, access: { has: obj => "popupClasses" in obj, get: obj => obj.popupClasses, set: (obj, value) => { obj.popupClasses = value; } }, metadata: _metadata }, _popupClasses_initializers, _popupClasses_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          /**
+           * @static
+           * @description Default properties assigned to a new dropdown. Its selector is rendered as an `<h4>`.
+           */
           static defaultProperties = {
               selectorTag: "h4",
           };
-          select = (__runInitializers$1(this, _instanceExtraInitializers), TurboSelect.create({
+          /**
+           * @readonly
+           * @description The selection logic backing this dropdown. Clicking an entry closes the popup.
+           */
+          select = (__runInitializers$1(this, _instanceExtraInitializers), GradumSelect.create({
               onEntryClicked: () => this.openPopup(false)
           }));
           popupOpen = false;
+          /**
+           * @description The tag used to build the selector element that shows the current selection.
+           */
           selectorTag;
           selectorClasses = __runInitializers$1(this, _selectorClasses_initializers, void 0);
           popupClasses = (__runInitializers$1(this, _selectorClasses_extraInitializers), __runInitializers$1(this, _popupClasses_initializers, void 0));
@@ -22552,16 +26994,16 @@
           set selector(value) {
               if (!(value instanceof HTMLElement))
                   return;
-              turbo(value)
+              gradum(value)
                   .addClass(this.selectorClasses)
                   .on(DefaultEventName.click, (e) => {
                   this.openPopup(!this.popupOpen);
                   return Propagation.stopPropagation;
               });
-              if (this.popup instanceof TurboPopup)
+              if (this.popup instanceof GradumPopup)
                   this.popup.anchor = value;
-              turbo(this).addChild(value);
-              if (value instanceof TurboButton)
+              gradum(this).addChild(value);
+              if (value instanceof GradumButton)
                   this.select.onSelect = () => value.text = this.stringSelectedValue;
           }
           get selector() { return; }
@@ -22569,15 +27011,15 @@
            * The dropdown's popup element.
            */
           set popup(value) {
-              if (value instanceof TurboPopup)
+              if (value instanceof GradumPopup)
                   value.anchor = this.selector;
-              turbo(value).addClass(this.popupClasses);
+              gradum(value).addClass(this.popupClasses);
               this.select.parent = value;
           }
           initialize() {
               super.initialize();
               this.selector;
-              turbo(document.body).on(DefaultEventName.click, () => e => {
+              gradum(document.body).on(DefaultEventName.click, () => e => {
                   if (this.popupOpen && !this.contains(e.target))
                       this.openPopup(false);
               }, { capture: true });
@@ -22589,7 +27031,7 @@
               if ("show" in this.popup && typeof this.popup.show === "function")
                   this.popup.show(b);
               else
-                  turbo(this.popup).show(b);
+                  gradum(this.popup).show(b);
           }
           constructor() {
               super(...arguments);
@@ -22597,21 +27039,21 @@
           }
       };
   })();
-  define(TurboDropdown);
+  define(GradumDropdown);
 
   /**
    * @group Components
-   * @category TurboMarkingMenu
+   * @category Menus
    */
-  let TurboMarkingMenu = (() => {
-      let _classSuper = TurboElement;
+  let GradumMarkingMenu = (() => {
+      let _classSuper = GradumElement;
       let _startAngle_decorators;
       let _startAngle_initializers = [];
       let _startAngle_extraInitializers = [];
       let _endAngle_decorators;
       let _endAngle_initializers = [];
       let _endAngle_extraInitializers = [];
-      return class TurboMarkingMenu extends _classSuper {
+      return class GradumMarkingMenu extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _startAngle_decorators = [auto({
@@ -22628,8 +27070,19 @@
           }
           transition;
           currentOrigin;
+          /**
+           * @description How far the pointer must travel, in pixels, before a drag counts as choosing an entry
+           * rather than a stray movement.
+           */
           minDragDistance = 20;
+          /**
+           * @description The radius of the ring the entries are arranged on, along its wider axis, in pixels.
+           */
           semiMajor = 50;
+          /**
+           * @description The radius of the ring the entries are arranged on, along its narrower axis, in pixels.
+           * Set it differently from the wider radius to lay the entries out on an ellipse.
+           */
           semiMinor = 45;
           startAngle = __runInitializers$1(this, _startAngle_initializers, void 0);
           endAngle = (__runInitializers$1(this, _startAngle_extraInitializers), __runInitializers$1(this, _endAngle_initializers, void 0));
@@ -22639,20 +27092,23 @@
           }
       };
   })();
-  define(TurboMarkingMenu);
+  define(GradumMarkingMenu);
 
   /**
+   * @function linearInterpolation
    * @group Utilities
    * @category Interpolation
    *
-   * @description Interpolates x linearly between (x1, y1) and (x2, y2). If strict is true, then x will not be allowed
-   * to go beyond [x1, x2].
-   * @param x
-   * @param x1
-   * @param x2
-   * @param y1
-   * @param y2
-   * @param strict
+   * @description Map a value from one range onto another, along the straight line through `(x1, y1)` and
+   * `(x2, y2)`. Useful for turning a position into a ratio, a ratio into a size, and so on.
+   * @param {number} x - The input value to map.
+   * @param {number} x1 - Start of the input range.
+   * @param {number} x2 - End of the input range.
+   * @param {number} y1 - Value returned when `x` equals `x1`.
+   * @param {number} y2 - Value returned when `x` equals `x2`.
+   * @param {boolean} [strict=true] - Whether to clamp `x` into `[x1, x2]` first. Set it to `false` to allow
+   * extrapolation beyond the given range.
+   * @returns {number} The interpolated value.
    */
   function linearInterpolation(x, x1, x2, y1, y2, strict = true) {
       if (strict) {
@@ -22667,315 +27123,468 @@
   }
 
   /**
-   * @class TurboSelectWheel
+   * @class GradumSelectWheel
    * @group Components
-   * @category TurboSelectWheel
+   * @category Menus
    *
-   * @extends TurboSelect
-   * @description Class to create a dynamic selection wheel.
-   * @template {string} ValueType
-   * @template {TurboSelectEntry<ValueType, any>} EntryType
+   * @extends GradumSelectElement
+   * @description A swipeable selection wheel. Entries are always position absolute, fanned out by a
+   * continuous pixel offset. Dragging moves all entries in real time; releasing snaps to the nearest.
+   * The container sizes to the selected entry. Visual state is driven by `entryTransitionReifect`
+   * (CSS transitions) and `computeAndApplyStyling` (per-entry opacity/scale/transform).
    */
-  let TurboSelectWheel = (() => {
-      let _classSuper = TurboElement;
+  let GradumSelectWheel = (() => {
+      let _classSuper = GradumSelectElement;
       let _instanceExtraInitializers = [];
-      let _entries_decorators;
-      let _entries_initializers = [];
-      let _entries_extraInitializers = [];
-      let _values_decorators;
-      let _values_initializers = [];
-      let _values_extraInitializers = [];
-      let _selectedEntry_decorators;
-      let _selectedEntry_initializers = [];
-      let _selectedEntry_extraInitializers = [];
-      let _selectedValue_decorators;
-      let _selectedValue_initializers = [];
-      let _selectedValue_extraInitializers = [];
       let _opacity_decorators;
       let _opacity_initializers = [];
       let _opacity_extraInitializers = [];
       let _set_size_decorators;
-      let _get_reifect_decorators;
+      let _set_entryTransitionReifect_decorators;
+      let _set_transitionDuration_decorators;
+      let _set_customReifect_decorators;
       let _set_alwaysOpen_decorators;
-      let _set_index_decorators;
       let _set_open_decorators;
-      return class TurboSelectWheel extends _classSuper {
+      return class GradumSelectWheel extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _entries_decorators = [expose("selector")];
-              _values_decorators = [expose("selector")];
-              _selectedEntry_decorators = [expose("selector", false)];
-              _selectedValue_decorators = [expose("selector", false)];
               _opacity_decorators = [auto({
                       defaultValue: { max: 1, min: 0 },
-                      preprocessValue: (value) => {
-                          return {
-                              max: trim(value?.max, 1),
-                              min: trim(value?.min, 1)
-                          };
-                      }
+                      preprocessValue: (value) => ({
+                          max: trim(value?.max ?? 1, 1),
+                          min: trim(value?.min ?? 0, 1),
+                      }),
                   })];
               _set_size_decorators = [auto({
-                      preprocessValue: (value) => typeof value == "object" ? value : { max: value ?? 100, min: -(value ?? 100) }
+                      defaultValue: { max: 100, min: -100 },
+                      preprocessValue: (value) => typeof value === "object" ? value : { max: value ?? 100, min: -(value ?? 100) },
                   })];
-              _get_reifect_decorators = [auto({
+              _set_entryTransitionReifect_decorators = [auto({
                       preprocessValue: function (value) {
+                          if (!value)
+                              return;
                           if (value instanceof Reifect)
                               return value;
-                          if (!value)
-                              value = {};
-                          if (!value.transitionProperties)
-                              value.transitionProperties = "opacity transform";
-                          if (value.transitionDuration == undefined)
-                              value.transitionDuration = 0.2;
-                          if (!value.transitionTimingFunction)
-                              value.transitionTimingFunction = "ease-in-out";
                           return new Reifect(value);
                       }
                   })];
+              _set_transitionDuration_decorators = [auto({ override: true })];
+              _set_customReifect_decorators = [auto({
+                      preprocessValue: function (value) {
+                          if (!value)
+                              return null;
+                          if (value instanceof Reifect)
+                              return value;
+                          return new Reifect(value);
+                      },
+                  })];
               _set_alwaysOpen_decorators = [auto({ defaultValue: false })];
-              _set_index_decorators = [auto({ cancelIfUnchanged: false })];
               _set_open_decorators = [auto()];
-              __esDecorate$1(this, null, _entries_decorators, { kind: "accessor", name: "entries", static: false, private: false, access: { has: obj => "entries" in obj, get: obj => obj.entries, set: (obj, value) => { obj.entries = value; } }, metadata: _metadata }, _entries_initializers, _entries_extraInitializers);
-              __esDecorate$1(this, null, _values_decorators, { kind: "accessor", name: "values", static: false, private: false, access: { has: obj => "values" in obj, get: obj => obj.values, set: (obj, value) => { obj.values = value; } }, metadata: _metadata }, _values_initializers, _values_extraInitializers);
-              __esDecorate$1(this, null, _selectedEntry_decorators, { kind: "accessor", name: "selectedEntry", static: false, private: false, access: { has: obj => "selectedEntry" in obj, get: obj => obj.selectedEntry, set: (obj, value) => { obj.selectedEntry = value; } }, metadata: _metadata }, _selectedEntry_initializers, _selectedEntry_extraInitializers);
-              __esDecorate$1(this, null, _selectedValue_decorators, { kind: "accessor", name: "selectedValue", static: false, private: false, access: { has: obj => "selectedValue" in obj, get: obj => obj.selectedValue, set: (obj, value) => { obj.selectedValue = value; } }, metadata: _metadata }, _selectedValue_initializers, _selectedValue_extraInitializers);
               __esDecorate$1(this, null, _set_size_decorators, { kind: "setter", name: "size", static: false, private: false, access: { has: obj => "size" in obj, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate$1(this, null, _get_reifect_decorators, { kind: "getter", name: "reifect", static: false, private: false, access: { has: obj => "reifect" in obj, get: obj => obj.reifect }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _set_entryTransitionReifect_decorators, { kind: "setter", name: "entryTransitionReifect", static: false, private: false, access: { has: obj => "entryTransitionReifect" in obj, set: (obj, value) => { obj.entryTransitionReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _set_transitionDuration_decorators, { kind: "setter", name: "transitionDuration", static: false, private: false, access: { has: obj => "transitionDuration" in obj, set: (obj, value) => { obj.transitionDuration = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate$1(this, null, _set_customReifect_decorators, { kind: "setter", name: "customReifect", static: false, private: false, access: { has: obj => "customReifect" in obj, set: (obj, value) => { obj.customReifect = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(this, null, _set_alwaysOpen_decorators, { kind: "setter", name: "alwaysOpen", static: false, private: false, access: { has: obj => "alwaysOpen" in obj, set: (obj, value) => { obj.alwaysOpen = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate$1(this, null, _set_index_decorators, { kind: "setter", name: "index", static: false, private: false, access: { has: obj => "index" in obj, set: (obj, value) => { obj.index = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(this, null, _set_open_decorators, { kind: "setter", name: "open", static: false, private: false, access: { has: obj => "open" in obj, set: (obj, value) => { obj.open = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(null, null, _opacity_decorators, { kind: "field", name: "opacity", static: false, private: false, access: { has: obj => "opacity" in obj, get: obj => obj.opacity, set: (obj, value) => { obj.opacity = value; } }, metadata: _metadata }, _opacity_initializers, _opacity_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          selector = __runInitializers$1(this, _instanceExtraInitializers);
-          #entries_accessor_storage = __runInitializers$1(this, _entries_initializers, void 0);
-          get entries() { return this.#entries_accessor_storage; }
-          set entries(value) { this.#entries_accessor_storage = value; }
-          #values_accessor_storage = (__runInitializers$1(this, _entries_extraInitializers), __runInitializers$1(this, _values_initializers, void 0));
-          get values() { return this.#values_accessor_storage; }
-          set values(value) { this.#values_accessor_storage = value; }
-          #selectedEntry_accessor_storage = (__runInitializers$1(this, _values_extraInitializers), __runInitializers$1(this, _selectedEntry_initializers, void 0));
-          get selectedEntry() { return this.#selectedEntry_accessor_storage; }
-          set selectedEntry(value) { this.#selectedEntry_accessor_storage = value; }
-          #selectedValue_accessor_storage = (__runInitializers$1(this, _selectedEntry_extraInitializers), __runInitializers$1(this, _selectedValue_initializers, void 0));
-          get selectedValue() { return this.#selectedValue_accessor_storage; }
-          set selectedValue(value) { this.#selectedValue_accessor_storage = value; }
-          _currentPosition = (__runInitializers$1(this, _selectedValue_extraInitializers), 0);
+          /**
+           * @static
+           * @description Default properties assigned to a new wheel. Entries animate over 0.3 seconds.
+           */
+          static defaultProperties = { transitionDuration: 0.3 };
+          _currentPosition = (__runInitializers$1(this, _instanceExtraInitializers), 0);
+          _index = 0;
+          /**
+           * @protected
+           * @readonly
+           * @description Each entry's measured size along the wheel's axis, indexed by entry position. Refreshed
+           * by {@link GradumSelectWheel.reloadEntrySizes}.
+           */
           sizePerEntry = [];
+          /**
+           * @protected
+           * @readonly
+           * @description Each entry's offset from the start of the wheel, indexed by entry position.
+           */
           positionPerEntry = [];
+          /**
+           * @protected
+           * @description The combined size of every entry along the wheel's axis.
+           */
           totalSize = 0;
+          /**
+           * @description How far past the first and last entries the wheel can be dragged, in pixels, before it
+           * springs back.
+           */
           dragLimitOffset = 30;
           /**
-           * @description Hides after the set time has passed. Set to a negative value to never hide the wheel. In ms.
+           * @description How long the wheel stays open after the last interaction, in milliseconds, unless
+           * {@link GradumSelectWheel.alwaysOpen} is set.
            */
           openTimeout = 3000;
+          /**
+           * @description The axis the wheel scrolls along.
+           */
           direction = Direction.horizontal;
+          /**
+           * @description The scale applied to entries at the centre of the wheel and at its edges. Entries in
+           * between are scaled proportionally, producing the wheel's depth effect.
+           */
           scale = { max: 1, min: 0.5 };
+          /**
+           * @description An optional hook replacing the wheel's built-in entry styling. It receives the computed
+           * translation, opacity, and scale alongside the default styles, and returns the styles to apply instead.
+           */
           generateCustomStyling;
-          dragging;
+          /**
+           * @protected
+           * @description Whether the wheel is currently being dragged.
+           */
+          dragging = false;
+          /**
+           * @protected
+           * @description The pending timer that will close the wheel once {@link GradumSelectWheel.openTimeout}
+           * elapses.
+           */
           openTimer;
+          /**
+           * @function initialize
+           * @description Set the wheel up and start tracking its entries, re-measuring them whenever an entry is
+           * added or removed.
+           */
           initialize() {
-              this.selector = TurboSelect.create();
-              this.selector.multiSelection = false;
-              this.selector.forceSelection = true;
-              this.selector.onSelect.add((b) => {
-                  if (!b)
-                      return;
-                  this.open = true;
-                  if (!this.alwaysOpen)
-                      this.setOpenTimer();
-              });
-              this.selector.onEntryRemoved.add((entry) => this.reifect?.detach(entry));
-              this.selector.onEntryAdded.add((entry) => {
-                  if (entry instanceof Element && entry.parentElement) {
-                      this.reifect?.attach(entry);
-                      this.reloadEntrySizes();
-                  }
-                  let showTimer;
-                  turbo(entry)
-                      .setStyles({ position: "absolute" })
-                      .on(DefaultEventName.dragStart, (e) => {
+              const initEntry = (entry) => {
+                  gradum(entry).setStyles({ position: "absolute", whiteSpace: "nowrap" }, true);
+                  this.entryTransitionReifect?.attach(entry);
+                  this.customReifect?.attach(entry);
+                  gradum(entry)
+                      .on(DefaultEventName.dragStart, () => {
                       this.clearOpenTimer();
                       this.open = true;
                       this.dragging = true;
-                      this.reifect.enabled.transition = false;
+                      // Remove transitions instantly so the first drag frame isn't animated.
+                      if (this.entryTransitionReifect)
+                          this.entryTransitionReifect.unapply(undefined, { applyStylesInstantly: true });
                       this.reloadEntrySizes();
                       return Propagation.stopImmediatePropagation;
                   })
-                      .on("pointerover", () => {
-                      clearTimeout(showTimer);
-                      showTimer = setTimeout(() => this.open = true, 1000);
+                      .on(DefaultEventName.drag, (e) => {
+                      if (!this.dragging)
+                          return;
+                      this.currentPosition += this.computeDragDelta(e.scaledDeltaPosition);
+                      return Propagation.stopImmediatePropagation;
                   })
-                      .on("pointerout", () => {
-                      if (showTimer)
-                          clearTimeout(showTimer);
-                      showTimer = null;
+                      .on(DefaultEventName.dragEnd, () => {
+                      if (!this.dragging)
+                          return;
+                      this.dragging = false;
+                      // recomputeProperties is required because unapplyStyles() clears resolvedValues.styles,
+                      // so apply() without it finds styles["default"] === undefined and returns early,
+                      // never calling reloadReifectsChainableStyles — leaving transition: "none" stuck.
+                      if (this.entryTransitionReifect)
+                          this.entryTransitionReifect.apply(undefined, { recomputeProperties: true });
+                      this.snapToNearest();
+                      if (!this.alwaysOpen)
+                          this.setOpenTimer();
+                      return Propagation.stopImmediatePropagation;
                   });
-                  this.refresh();
+                  requestAnimationFrame(() => this.reloadEntrySizes());
+              };
+              this.select.onEntryAdded.add(initEntry);
+              this.select.onEntryRemoved.add(entry => {
+                  this.entryTransitionReifect?.detach(entry);
+                  this.customReifect?.detach(entry);
+                  requestAnimationFrame(() => this.reloadEntrySizes());
               });
               super.initialize();
-              this.refresh();
-              turbo(this).setStyles({ display: "block", position: "relative" });
+              gradum(this).setStyles({ display: "inline-block", position: "relative", overflow: "hidden" });
+              // Entries set via create({values: [...]}) fire onEntryAdded before initialize() has a
+              // chance to add the callback above. Replay initEntry for any such pre-existing entries.
+              this.entries.forEach(initEntry);
           }
           opacity = __runInitializers$1(this, _opacity_initializers, void 0);
-          set size(value) { }
-          get size() { return; }
-          get reifect() { return; }
-          set reifect(value) {
-              this.reifect.attach(...this.entries);
+          /**
+           * @description The wheel's extent on either side of its centre, in pixels. Assign a single number to
+           * use it symmetrically.
+           */
+          set size(value) {
           }
-          closeOnClick = (__runInitializers$1(this, _opacity_extraInitializers), () => this.open = false);
+          get size() {
+              return;
+          }
+          /**
+           * @description The reifect animating entries as they move through the wheel. Assign reifect properties
+           * to build one. It is attached to every existing entry on assignment.
+           */
+          set entryTransitionReifect(value) {
+              if (!value)
+                  return;
+              if (this.entries.length > 0)
+                  value.attach(...this.entries);
+          }
+          get entryTransitionReifect() {
+              return;
+          }
+          set transitionDuration(value) {
+              if (value <= 0)
+                  return;
+              if (!this.entryTransitionReifect)
+                  this.entryTransitionReifect = new Reifect({});
+              this.entryTransitionReifect.styles = `transition: transform ${value}s ease-in-out, opacity ${value}s ease-in-out`;
+          }
+          /**
+           * @description An extra reifect applied to entries alongside the built-in transition, for styling beyond
+           * position and scale. Assign reifect properties to build one, or `null` to remove it.
+           */
+          set customReifect(value) {
+              if (this.customReifect && this.entries.length > 0)
+                  this.customReifect.attach(...this.entries);
+          }
+          get customReifect() {
+              return;
+          }
+          _closeOnClick = (__runInitializers$1(this, _opacity_extraInitializers), () => this.open = false);
           set alwaysOpen(value) {
               if (value)
-                  turbo(document.body).removeListener(DefaultEventName.click, this.closeOnClick);
+                  gradum(document.body).removeListener(DefaultEventName.click, this._closeOnClick);
               else
-                  turbo(document.body).on(DefaultEventName.click, this.closeOnClick);
+                  gradum(document.body).on(DefaultEventName.click, this._closeOnClick);
               this.open = value;
           }
+          set open(value) {
+              gradum(this).setStyle("overflow", value ? "visible" : "hidden");
+              // When opening, entries may have had zero layout size if the wheel was off-screen or
+              // hidden when first populated. Reload now that the wheel is visible.
+              if (value)
+                  requestAnimationFrame(() => this.reloadEntrySizes());
+          }
+          /**
+           * @readonly
+           * @description Whether the wheel scrolls vertically.
+           */
           get isVertical() {
-              return this.direction == Direction.vertical;
+              return this.direction === Direction.vertical;
+          }
+          /** Fractional index — integer when snapped, fractional mid-drag. */
+          get index() {
+              return this._index;
           }
           set index(value) {
-              this.selector.selectByIndex(this.trimmedIndex);
+              this._index = value;
+              this.select.selectByIndex(trim(Math.round(value), this.entries.length - 1));
           }
-          get trimmedIndex() {
-              return trim(Math.round(this.index), this.entries.length - 1);
-          }
-          get flooredTrimmedIndex() {
-              return trim(Math.floor(this.index), this.entries.length - 1);
-          }
-          set open(value) {
-              turbo(this).setStyle("overflow", value ? "visible" : "hidden");
-          }
+          // -------------------------------------------------------------------------
+          // Position
+          // -------------------------------------------------------------------------
+          /**
+           * @description How far the wheel is scrolled, in pixels from its start. Assigning clamps the value to
+           * the draggable range, updates the selected index, and restyles every entry.
+           */
           get currentPosition() {
               return this._currentPosition;
           }
           set currentPosition(value) {
+              if (!this.sizePerEntry.length)
+                  return;
               const min = -this.dragLimitOffset - this.sizePerEntry[0] / 2;
               const max = this.totalSize + this.dragLimitOffset - this.sizePerEntry[this.sizePerEntry.length - 1] / 2;
-              if (value < min)
-                  value = min;
-              if (value > max)
-                  value = max;
-              this._currentPosition = value;
-              const elements = this.reifect.getEnabledObjects();
-              if (elements.length === 0)
-                  return;
-              elements.forEach((el, index) => this.computeAndApplyStyling(el.object.deref(), this.positionPerEntry[index] - value));
-          }
-          setupUIListeners() {
-              super.setupUIListeners();
-              turbo(document.body)
-                  .on(DefaultEventName.drag, (e) => {
-                  if (!this.dragging)
-                      return;
-                  e.stopImmediatePropagation();
-                  this.currentPosition += this.computeDragValue(e.scaledDeltaPosition);
-              })
-                  .on(DefaultEventName.dragEnd, (e) => {
-                  if (!this.dragging)
-                      return;
-                  e.stopImmediatePropagation();
-                  this.dragging = false;
-                  this.recomputeIndex();
-                  // this.snapTo(this.trimmedIndex);
-                  if (!this.alwaysOpen)
-                      this.setOpenTimer();
-              });
-          }
-          computeDragValue(delta) {
-              return -delta[this.isVertical ? "y" : "x"];
+              this._currentPosition = Math.min(Math.max(value, min), max);
+              this._index = this.positionToIndex(this._currentPosition);
+              this.applyAllEntryStyles();
           }
           /**
-           * Recalculates the dimensions and positions of all entries
+           * @function computeDragDelta
+           * @protected
+           * @description Convert a drag delta into movement along the wheel's axis, inverted so dragging one way
+           * scrolls the entries the other.
+           * @param {Point} delta - The pointer's movement.
+           * @returns {number} The distance to scroll, in pixels.
+           */
+          computeDragDelta(delta) {
+              return -delta[this.isVertical ? "y" : "x"];
+          }
+          // -------------------------------------------------------------------------
+          // Layout
+          // -------------------------------------------------------------------------
+          /**
+           * @function reloadEntrySizes
+           * @protected
+           * @description Re-measure every entry and rebuild the wheel's size and position tables. Call it after the
+           * entries change, or after the wheel becomes visible — entries laid out while hidden measure as zero.
            */
           reloadEntrySizes() {
-              if (!this.reifect)
-                  return;
               this.sizePerEntry.length = 0;
               this.positionPerEntry.length = 0;
               this.totalSize = 0;
-              this.reifect.getEnabledObjects().forEach(entry => {
-                  const object = entry.object.deref();
-                  const size = object ? object[this.isVertical ? "offsetHeight" : "offsetWidth"] : 0;
+              this.entries.forEach(entry => {
+                  const size = entry[this.isVertical ? "offsetHeight" : "offsetWidth"];
                   this.sizePerEntry.push(size);
                   this.positionPerEntry.push(this.totalSize);
                   this.totalSize += size;
               });
-              const flooredIndex = Math.floor(this.index);
-              const indexOffset = this.index - Math.floor(this.index);
-              this.currentPosition = 0;
-              if (this.index < 0)
-                  this.currentPosition = -Math.abs(this.index) * this.sizePerEntry[0];
-              else if (this.index >= this.sizePerEntry.length)
-                  this.currentPosition =
-                      (this.index - this.sizePerEntry.length + 1) * this.sizePerEntry[this.sizePerEntry.length - 1];
-              else
-                  this.currentPosition = this.positionPerEntry[flooredIndex] + this.sizePerEntry[flooredIndex] * indexOffset;
+              if (!this.sizePerEntry.length) {
+                  this._currentPosition = 0;
+                  return;
+              }
+              // If the wheel or its ancestors weren't in layout yet (e.g. off-screen, hidden, or
+              // added to the DOM after entries were created), all sizes read as 0. Retry next frame
+              // so the browser has time to perform layout.
+              if (this.totalSize === 0) {
+                  requestAnimationFrame(() => this.reloadEntrySizes());
+                  return;
+              }
+              this._currentPosition = this.indexToPosition(this._index);
+              this.applyAllEntryStyles();
+              if (this.selectedIndex >= 0)
+                  this.applyTransition();
           }
-          recomputeIndex() {
-              let index = 0;
-              while (index < this.positionPerEntry.length - 1 && this.positionPerEntry[index + 1] < this.currentPosition)
-                  index++;
-              if (this.currentPosition - this.positionPerEntry[index] > this.sizePerEntry[index + 1] / 2)
-                  index++;
-              this.index = index;
+          /**
+           * @function indexToPosition
+           * @protected
+           * @description Get the scroll position at which the given entry sits at the centre of the wheel.
+           * @param {number} index - The entry's index.
+           * @returns {number} The corresponding scroll position, in pixels.
+           */
+          indexToPosition(index) {
+              if (!this.sizePerEntry.length)
+                  return 0;
+              if (index < 0)
+                  return -Math.abs(index) * this.sizePerEntry[0];
+              if (index >= this.sizePerEntry.length)
+                  return this.totalSize - this.sizePerEntry[this.sizePerEntry.length - 1] / 2;
+              const floor = trim(Math.floor(index), this.sizePerEntry.length - 1);
+              return this.positionPerEntry[floor] + this.sizePerEntry[floor] * (index - Math.floor(index));
           }
-          computeAndApplyStyling(element, translationValue, size = this.size) {
-              let opacityValue, scaleValue;
+          /**
+           * @function positionToIndex
+           * @protected
+           * @description Get the entry index a scroll position corresponds to. The result is fractional between
+           * entries, which is what drives the wheel's scaling mid-drag.
+           * @param {number} position - The scroll position, in pixels.
+           * @returns {number} The fractional entry index.
+           */
+          positionToIndex(position) {
+              if (!this.positionPerEntry.length)
+                  return 0;
+              let i = 0;
+              while (i < this.positionPerEntry.length - 1 && this.positionPerEntry[i + 1] <= position)
+                  i++;
+              if (i >= this.sizePerEntry.length - 1)
+                  return i;
+              return i + Math.min((position - this.positionPerEntry[i]) / (this.sizePerEntry[i] || 1), 1);
+          }
+          /**
+           * @function snapToNearest
+           * @protected
+           * @description Settle the wheel on the entry nearest its current position and select it. Called when a
+           * drag ends.
+           */
+          snapToNearest() {
+              const nearest = trim(Math.round(this.positionToIndex(this._currentPosition)), this.entries.length - 1);
+              this.index = nearest;
+              this._currentPosition = this.indexToPosition(nearest);
+              this.applyAllEntryStyles();
+          }
+          // -------------------------------------------------------------------------
+          // Transition (overrides GradumSelectElement — wheel sizes to selected entry directly)
+          // -------------------------------------------------------------------------
+          /**
+           * @function applyTransition
+           * @protected
+           * @description Scroll the wheel to the selected entry and size the wheel to match it. Overrides the base
+           * selection behaviour, which sizes to the entry element instead.
+           */
+          applyTransition() {
+              const i = this.selectedIndex;
+              if (i < 0)
+                  return;
+              this._index = i;
+              this._currentPosition = this.indexToPosition(i);
+              this.applyAllEntryStyles();
+              // Size container to selected entry
+              if (this.sizePerEntry.length) {
+                  const entry = this.entries[i];
+                  const w = this.isVertical ? entry.offsetWidth : this.sizePerEntry[i];
+                  const h = this.isVertical ? this.sizePerEntry[i] : entry.offsetHeight;
+                  $(this).setStyles({ width: `${w}px`, height: `${h}px` });
+              }
+          }
+          // -------------------------------------------------------------------------
+          // Styling
+          // -------------------------------------------------------------------------
+          /**
+           * @function applyAllEntryStyles
+           * @protected
+           * @description Restyle every entry for the current scroll position. Styles are applied instantly while
+           * dragging, so transforms are not queued behind a frame and left visibly lagging the pointer.
+           */
+          applyAllEntryStyles() {
+              // Apply instantly during drag so transforms aren't queued behind a rAF while a CSS
+              // transition is still active on the element, which would cause visual lag.
+              const instant = this.dragging;
+              this.entries.forEach((el, i) => {
+                  const translationValue = (this.positionPerEntry[i] ?? 0) - this._currentPosition;
+                  if (this.customReifect) {
+                      this.customReifect.apply(el, { recomputeProperties: true });
+                  }
+                  else {
+                      this.computeAndApplyStyling(el, translationValue, undefined, instant);
+                  }
+              });
+          }
+          /**
+           * @function computeAndApplyStyling
+           * @protected
+           * @description Compute an entry's opacity, scale, and transform from how far it sits from the wheel's
+           * centre, and apply them. Defers to {@link GradumSelectWheel.generateCustomStyling} when one is set.
+           * @param {HTMLElement} element - The entry to style.
+           * @param {number} translationValue - The entry's offset from the centre, in pixels.
+           * @param {Record<Range, number>} [size=this.size] - The wheel's extent, used to scale the falloff.
+           * @param {boolean} [instant=false] - Whether to set the styles directly, skipping the CSS transition.
+           */
+          computeAndApplyStyling(element, translationValue, size = this.size, instant = false) {
               const bound = translationValue > 0 ? size.max : size.min;
-              opacityValue = linearInterpolation(translationValue, 0, bound, this.opacity.max, this.opacity.min);
-              scaleValue = linearInterpolation(translationValue, 0, bound, this.scale.max, this.scale.min);
+              const opacityValue = linearInterpolation(translationValue, 0, bound, this.opacity.max, this.opacity.min);
+              const scaleValue = linearInterpolation(translationValue, 0, bound, this.scale.max, this.scale.min);
+              // `transition` is a "chainable style field" — Reifect.unapply() clears its own
+              // resolved state but reloadReifectsChainableStyles() only writes keys that still
+              // have an active contribution, so the old inline transition is never explicitly
+              // removed. Writing "none" here overrides it every drag frame.
               let styles = {
-                  left: "50%", top: "50%", opacity: opacityValue, transform: `translate3d(
-            calc(${!this.isVertical ? translationValue : 0}px - 50%),
-            calc(${this.isVertical ? translationValue : 0}px - 50%),
-            0) scale3d(${scaleValue}, ${scaleValue}, 1)`
+                  left: "50%",
+                  top: "50%",
+                  opacity: opacityValue,
+                  ...(instant && { transition: "none" }),
+                  transform: `translate3d(
+                calc(${!this.isVertical ? translationValue : 0}px - 50%),
+                calc(${this.isVertical ? translationValue : 0}px - 50%),
+                0) scale3d(${scaleValue}, ${scaleValue}, 1)`,
               };
               if (this.generateCustomStyling)
                   styles = this.generateCustomStyling({
-                      element: element,
-                      translationValue: translationValue,
-                      opacityValue: opacityValue,
-                      scaleValue: scaleValue,
-                      size: size,
-                      defaultComputedStyles: styles
+                      element, translationValue, opacityValue, scaleValue, size, defaultComputedStyles: styles,
                   });
-              $(element).setStyles(styles);
+              $(element).setStyles(styles, instant);
           }
-          select(entry, selected = true) {
-              // super.select(entry, selected);
-              if (entry === undefined || entry === null)
-                  return this;
-              const index = this.selector.getIndex(this.selectedEntry);
-              if (index != this.index)
-                  this.index = index;
-              if (this.reifect) {
-                  this.reifect.enabled.transition = true;
-                  this.reloadEntrySizes();
-              }
-              const computedStyle = getComputedStyle(this.selectedEntry);
-              $(this).setStyles({ minWidth: computedStyle.width, minHeight: computedStyle.height }, true);
-              return this;
-          }
-          clear() {
-              this.reifect.detach(...this.entries);
-              this.selector.clear();
-          }
-          refresh() {
-              if (this.selectedEntry)
-                  this.select(this.selectedEntry);
-              else
-                  this.reset();
-          }
-          reset() {
-              this.select(this.entries[0]);
-          }
+          // -------------------------------------------------------------------------
+          // Timer helpers
+          // -------------------------------------------------------------------------
+          /**
+           * @function clearOpenTimer
+           * @protected
+           * @description Cancel the pending timer that would close the wheel.
+           */
           clearOpenTimer() {
               if (this.openTimer)
                   clearTimeout(this.openTimer);
           }
+          /**
+           * @function setOpenTimer
+           * @protected
+           * @description Restart the timer that closes the wheel once {@link GradumSelectWheel.openTimeout} elapses.
+           */
           setOpenTimer() {
               this.clearOpenTimer();
               if (typeof this.openTimeout !== "number" || this.openTimeout < 0)
@@ -22984,31 +27593,37 @@
           }
       };
   })();
-  define(TurboSelectWheel);
+  define(GradumSelectWheel);
 
   /**
-   * @class TurboButtonPopup
+   * @class GradumButtonPopup
    * @group Components
-   * @category TurboButton
+   * @category Basics
    *
-   * @description Button class for creating Turbo button elements.
-   * @extends TurboElement
+   * @extends GradumButton
+   * @template {ValidTag} ElementTag - The tag of the button's main element.
+   * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+   * @template {object} DataType - The element's data type, if initializing MVC.
+   * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * @description A button that toggles a {@link GradumPopup} anchored to itself. A popup is created on
+   * first use if none is assigned, so the button works without any extra setup.
    */
-  let TurboButtonPopup = (() => {
-      let _classSuper = TurboButton;
+  let GradumButtonPopup = (() => {
+      let _classSuper = GradumButton;
       let _instanceExtraInitializers = [];
       let _popupClasses_decorators;
       let _popupClasses_initializers = [];
       let _popupClasses_extraInitializers = [];
       let _set_popup_decorators;
-      return class TurboButtonPopup extends _classSuper {
+      return class GradumButtonPopup extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _popupClasses_decorators = [auto({
-                      callBefore: function () { turbo(this.popup).removeClass(this.popupClasses); },
-                      callAfter: function () { turbo(this.popup).addClass(this.popupClasses); }
+                      callBefore: function () { gradum(this.popup).removeClass(this.popupClasses); },
+                      callAfter: function () { gradum(this.popup).addClass(this.popupClasses); }
                   })];
-              _set_popup_decorators = [auto({ defaultValueCallback: () => TurboPopup.create() })];
+              _set_popup_decorators = [auto({ defaultValueCallback: () => GradumPopup.create() })];
               __esDecorate$1(this, null, _set_popup_decorators, { kind: "setter", name: "popup", static: false, private: false, access: { has: obj => "popup" in obj, set: (obj, value) => { obj.popup = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
               __esDecorate$1(null, null, _popupClasses_decorators, { kind: "field", name: "popupClasses", static: false, private: false, access: { has: obj => "popupClasses" in obj, get: obj => obj.popupClasses, set: (obj, value) => { obj.popupClasses = value; } }, metadata: _metadata }, _popupClasses_initializers, _popupClasses_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
@@ -23019,17 +27634,17 @@
            * The dropdown's popup element.
            */
           set popup(value) {
-              if (value instanceof TurboPopup)
+              if (value instanceof GradumPopup)
                   value.anchor = this;
-              turbo(value).addClass(this.popupClasses);
+              gradum(value).addClass(this.popupClasses);
           }
           setupUIListeners() {
               super.setupUIListeners();
-              turbo(document.body).on(DefaultEventName.click, () => e => {
+              gradum(document.body).on(DefaultEventName.click, () => e => {
                   if (this.popupOpen && !this.contains(e.target))
                       this.openPopup(false);
               }, { capture: true });
-              turbo(this).on(DefaultEventName.click, (e) => {
+              gradum(this).on(DefaultEventName.click, (e) => {
                   this.openPopup(!this.popupOpen);
                   return Propagation.stopPropagation;
               });
@@ -23041,7 +27656,7 @@
               if ("show" in this.popup && typeof this.popup.show === "function")
                   this.popup.show(b);
               else
-                  turbo(this.popup).show(b);
+                  gradum(this.popup).show(b);
           }
           constructor() {
               super(...arguments);
@@ -23049,93 +27664,520 @@
           }
       };
   })();
-  define(TurboButtonPopup);
+  define(GradumButtonPopup);
 
   /**
-   * @class TurboHeadlessElement
-   * @group TurboElement
-   * @category TurboHeadlessElement
+   * @class GradumYModel
+   * @group MVC
+   * @category Model
    *
-   * @description TurboHeadlessElement class, similar to TurboElement but without extending HTMLElement.
-   * @template {TurboView} ViewType - The element's view type, if initializing MVC.
-   * @template {object} DataType - The element's data type, if initializing MVC.
-   * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
-   * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * @extends GradumModel
+   * @template DataType - The type of the data held in the model.
+   * @template {KeyType} DataKeyType - The type of the data's keys.
+   * @template {KeyType} IdType - The type of the data's ID.
+   * @template {object} ComponentType - The type of instances managed by attached observers.
+   * @template DataEntryType - The type of data associated with each observer instance.
+   * @description A {@link GradumModel} whose data lives in a Y.js structure, so edits propagate to every other
+   * client sharing the document. Reads and writes go through the same API as a plain model; changes arriving
+   * from Y.js — local or remote — are turned into the usual signal and observer notifications.
    */
-  class TurboHeadlessElement {
+  (() => {
+      let _classSuper = GradumModel;
+      let _instanceExtraInitializers = [];
+      let _set_enabledCallbacks_decorators;
+      return class GradumYModel extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _set_enabledCallbacks_decorators = [auto({ override: true })];
+              __esDecorate$1(this, null, _set_enabledCallbacks_decorators, { kind: "setter", name: "enabledCallbacks", static: false, private: false, access: { has: obj => "enabledCallbacks" in obj, set: (obj, value) => { obj.enabledCallbacks = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          observer = (__runInitializers$1(this, _instanceExtraInitializers), (event, transaction) => this.observeChanges(event, transaction));
+          observedYTypes = new WeakSet();
+          /**
+           * @inheritDoc
+           */
+          modelConstructor = GradumYModel;
+          /**
+           * @inheritDoc
+           */
+          set enabledCallbacks(value) {
+              if (!this.data)
+                  return;
+              if (this.data instanceof AbstractType) {
+                  if (value)
+                      this.attachNestedObservers(this.data);
+                  else
+                      this.detachNestedObservers(this.data);
+              }
+              else if (Array.isArray(this.data)) {
+                  for (const item of this.data) {
+                      if (value)
+                          this.attachNestedObservers(item);
+                      else
+                          this.detachNestedObservers(item);
+                  }
+              }
+          }
+          /*
+           *
+           * Basics
+           *
+           */
+          /**
+           * @inheritDoc
+           */
+          getAction(data, key) {
+              if (data instanceof YMap)
+                  return data.get(key.toString());
+              if (data instanceof YArray)
+                  return data.get(trim(Number(key), data.length));
+              return super.getAction(data, key);
+          }
+          /**
+           * @inheritDoc
+           */
+          setAction(data, value, key) {
+              if (data instanceof YMap)
+                  data.doc.transact(() => data.set(key.toString(), value), this);
+              else if (data instanceof YArray) {
+                  const index = trim(Number(key), data.length + 1);
+                  if (index < data.length)
+                      data.delete(index, 1);
+                  data.doc.transact(() => data.insert(index, [value]), this);
+              }
+              else {
+                  const oldValue = this.getAction(data, key);
+                  if (oldValue !== value && oldValue != null && typeof oldValue === "object")
+                      this.detachNestedObservers(oldValue);
+                  super.setAction(data, value, key);
+                  if (oldValue !== value && value != null && typeof value === "object")
+                      this.attachNestedObservers(value);
+              }
+          }
+          /**
+           * @inheritDoc
+           */
+          addAction(model, data, value, key) {
+              if (data instanceof YArray) {
+                  let index = key;
+                  if (isUndefined(index) || typeof index !== "number" || index > data.length) {
+                      index = data.length;
+                      data.doc.transact(() => data.push([value]), this);
+                  }
+                  else {
+                      if (index < 0)
+                          index = 0;
+                      data.doc.transact(() => data.insert(index, [value]), this);
+                  }
+                  return index;
+              }
+              if (Array.isArray(data)) {
+                  const index = super.addAction(model, data, value, key);
+                  if (index !== undefined && value != null && typeof value === "object")
+                      this.attachNestedObservers(value);
+                  return index;
+              }
+              return super.addAction(model, data, value, key);
+          }
+          /**
+           * @inheritDoc
+           */
+          hasAction(data, key) {
+              if (data instanceof YMap)
+                  return data.has(key.toString());
+              if (data instanceof YArray)
+                  return typeof key === "number" && key >= 0 && key < data.length;
+              return super.hasAction(data, key);
+          }
+          /**
+           * @inheritDoc
+           */
+          deleteAction(data, key) {
+              if (data instanceof YMap)
+                  data.doc.transact(() => data.delete(key.toString()), this);
+              else if (data instanceof YArray && typeof key === "number" && key >= 0 && key < data.length)
+                  data.doc.transact(() => data.delete(key, 1), this);
+              else
+                  super.deleteAction(data, key);
+          }
+          /**
+           * @inheritDoc
+           */
+          getKeysAction(data) {
+              if (data instanceof YMap)
+                  return Array.from(data.keys());
+              if (data instanceof YArray) {
+                  const output = [];
+                  for (let i = 0; i < data.length; i++)
+                      output.push(i);
+                  return output;
+              }
+              return super.getKeysAction(data);
+          }
+          /**
+           * @inheritDoc
+           */
+          initialize() {
+              super.initialize();
+              if (!this.enabledCallbacks)
+                  return;
+              if (this.data instanceof AbstractType)
+                  this.attachNestedObservers(this.data);
+              else if (Array.isArray(this.data)) {
+                  for (const item of this.data)
+                      this.attachNestedObservers(item);
+              }
+          }
+          /**
+           * @inheritDoc
+           */
+          clear(clearData = true) {
+              if (clearData) {
+                  if (this.data instanceof AbstractType)
+                      this.detachNestedObservers(this.data);
+                  else if (Array.isArray(this.data)) {
+                      for (const item of this.data)
+                          this.detachNestedObservers(item);
+                  }
+              }
+              super.clear(clearData);
+          }
+          /**
+           * @inheritDoc
+           */
+          diffCheck(oldData, newData) {
+              if (oldData instanceof AbstractType || newData instanceof AbstractType)
+                  return false;
+              return super.diffCheck(oldData, newData);
+          }
+          /*
+           *
+           * Utilities
+           *
+           */
+          observeChanges(event, transaction) {
+              const selfOriginated = transaction?.origin === this;
+              const basePath = this.getPathToTarget(event.target);
+              if (event instanceof YMapEvent) {
+                  if (selfOriginated)
+                      return;
+                  event.keysChanged.forEach(key => {
+                      const change = event.changes.keys.get(key);
+                      if (!change)
+                          return;
+                      if (change.action === "delete")
+                          this.keyChanged([...basePath, key], undefined, true);
+                      else {
+                          this.attachNestedObservers(this.getAction(event.target, key));
+                          this.keyChanged([...basePath, key]);
+                      }
+                  });
+              }
+              else if (event instanceof YArrayEvent) {
+                  let currentIndex = 0;
+                  for (const delta of event.delta) {
+                      if (delta.retain !== undefined) {
+                          currentIndex += delta.retain;
+                      }
+                      else if (delta.insert) {
+                          const insertedItems = Array.isArray(delta.insert) ? delta.insert : [delta.insert];
+                          const count = insertedItems.length;
+                          this.shiftIndices(basePath, currentIndex, count);
+                          if (!selfOriginated) {
+                              for (let i = 0; i < count; i++) {
+                                  this.attachNestedObservers(this.getAction(event.target, currentIndex + i));
+                                  this.keyChanged([...basePath, currentIndex + i]);
+                              }
+                          }
+                          currentIndex += count;
+                      }
+                      else if (delta.delete) {
+                          const count = delta.delete;
+                          if (!selfOriginated) {
+                              for (let i = 0; i < count; i++)
+                                  this.keyChanged([...basePath, currentIndex + i], undefined, true);
+                          }
+                          this.shiftIndices(basePath, currentIndex + count, -count);
+                      }
+                  }
+              }
+          }
+          /**
+           * @protected
+           * @function attachNestedObservers
+           * @description Start observing a Y.js type and everything nested inside it, so changes anywhere in the
+           * subtree reach this model. Types already being observed are skipped, so repeated calls are cheap.
+           * @param {any} value - The Y.js type to observe. Non-Y values are ignored.
+           */
+          attachNestedObservers(value) {
+              if (value instanceof AbstractType) {
+                  if (!this.observedYTypes.has(value)) {
+                      value.observe(this.observer);
+                      this.observedYTypes.add(value);
+                  }
+                  // Skip key iteration when the type has no document yet — Y.js throws
+                  // "Invalid access: Add Yjs type to a document before reading data."
+                  // when keys() / get() are called before the type is inserted into a doc.
+                  if (!value.doc)
+                      return;
+                  for (const key of this.getKeysAction(value)) {
+                      if (!this.nestedModels.has(key))
+                          this.attachNestedObservers(this.getAction(value, key));
+                  }
+              }
+              else if (Array.isArray(value)) {
+                  for (let i = 0; i < value.length; i++)
+                      this.attachNestedObservers(value[i]);
+              }
+          }
+          /**
+           * @protected
+           * @function detachNestedObservers
+           * @description Stop observing a Y.js type and everything nested inside it, releasing the observers
+           * attached by {@link GradumYModel.attachNestedObservers}.
+           * @param {any} value - The Y.js type to stop observing. Non-Y values are ignored.
+           */
+          detachNestedObservers(value) {
+              if (value instanceof AbstractType) {
+                  if (this.observedYTypes.has(value)) {
+                      // Guard: Y.js GC can clear event handlers on deleted types, leaving
+                      // observedYTypes stale. Check the internal handler array before calling
+                      // unobserve to avoid "[yjs] Tried to remove event handler that doesn't exist."
+                      if (value._eH?.l?.includes(this.observer))
+                          value.unobserve(this.observer);
+                      this.observedYTypes.delete(value);
+                  }
+                  for (const key of this.getKeysAction(value))
+                      this.detachNestedObservers(this.getAction(value, key));
+              }
+              else if (Array.isArray(value)) {
+                  for (let i = 0; i < value.length; i++)
+                      this.detachNestedObservers(value[i]);
+              }
+          }
+          shiftIndices(basePath, fromIndex, offset) {
+              const depth = basePath.length;
+              Array.from(this.changeObservers).forEach(entry => {
+                  const observer = entry.observer;
+                  const pathsToShift = observer.paths.filter(path => path.length > depth &&
+                      basePath.every((k, i) => path[i] == k) &&
+                      Number(path[depth]) >= fromIndex);
+                  const itemsToShift = pathsToShift
+                      .map(path => [Number(path[depth]), path, observer.get(...path)]);
+                  itemsToShift.sort((a, b) => offset < 0 ? a[0] - b[0] : b[0] - a[0]);
+                  pathsToShift.forEach(path => observer.detach(...path));
+                  for (const [oldIndex, path, instance] of itemsToShift) {
+                      const newIndex = oldIndex + offset;
+                      if (typeof instance === "object" && "dataId" in instance)
+                          instance.dataId = String(newIndex);
+                      const newPath = [...basePath, newIndex, ...path.slice(depth + 1)];
+                      observer.set(instance, ...newPath);
+                  }
+              });
+          }
+          getPathToTarget(target) {
+              const search = (current, path) => {
+                  if (current === target)
+                      return path;
+                  for (const key of this.getKeysAction(current)) {
+                      const child = this.getAction(current, key);
+                      const result = search(child, [...path, key]);
+                      if (result)
+                          return result;
+                  }
+                  return null;
+              };
+              return search(this.data, []) ?? [];
+          }
+      };
+  })();
+
+  /**
+   * @class GradumTool
+   * @group MVC
+   * @category Tool
+   *
+   * @extends GradumOperator
+   * @template {object} ElementType - The type of the element.
+   * @template {GradumView} ViewType - The element's view type, if any.
+   * @template {GradumModel} ModelType - The element's model type, if any.
+   * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+   * @description A named mode that changes what interacting with an element does. Its `@behavior` methods run
+   * during the capture phase of the event loop, before any interactor sees the event, so a tool can claim an
+   * interaction and stop it reaching the element underneath. Only the active tool for a given click mode
+   * receives events.
+   */
+  class GradumTool extends GradumOperator {
       /**
-       * @description Default properties assigned to a new instance.
+       * @description The name of the tool.
        */
-      static defaultProperties = {};
-      static create(properties = {}) {
-          return this.customCreate.call(this, properties);
+      toolName;
+      /**
+       * @readonly
+       * @description The target of this tool. If defined, will embed the tool.
+       */
+      embeddedTarget;
+      /**
+       * @readonly
+       * @description The associated event manager. Defaults to `GradumEventManager.instance`.
+       */
+      manager;
+      /**
+       * @readonly
+       * @description Custom activation event to listen to. Defaults to the default click event name.
+       */
+      activationEvent = DefaultEventName.click;
+      /**
+       * @readonly
+       * @description Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
+       */
+      clickMode = ClickMode.left;
+      /**
+       * @readonly
+       * @description Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
+       */
+      key;
+      /**
+       * @constructor
+       * @description Create a tool bound to an element. Anything omitted from `properties` falls back to the
+       * value already declared on the instance, then to a default — the event manager to
+       * {@link GradumEventManager.instance}, the activation event to the default click name, and the click mode
+       * to `ClickMode.left`.
+       * @param {GradumToolProperties} properties - The element to attach to, plus the tool name, embedded
+       * target, activation event, click mode, mapped key, and activation callbacks.
+       */
+      constructor(properties) {
+          super(properties);
+          this.toolName = properties.toolName ?? this.toolName ?? undefined;
+          if (properties.embeddedTarget)
+              this.embeddedTarget = properties.embeddedTarget;
+          if (properties.onActivate)
+              this.onActivate = properties.onActivate;
+          if (properties.onDeactivate)
+              this.onDeactivate = properties.onDeactivate;
+          if (properties.activationEvent)
+              this.activationEvent = properties.activationEvent;
+          if (properties.clickMode)
+              this.clickMode = properties.clickMode;
+          if (properties.customActivation)
+              this.customActivation = properties.customActivation;
+          if (properties.key)
+              this.key = properties.key;
+          this.manager = properties.manager ?? this.manager ?? GradumEventManager.instance;
+          this.setup();
       }
-      static customCreate(properties) {
-          const prototypeChain = getPrototypeChain(this);
-          for (const prototype of prototypeChain)
-              turbo(properties).applyDefaults(prototype["defaultProperties"] ?? {});
-          const obj = new this();
-          turbo(obj).setProperties(properties);
-          return obj;
+      /**
+       * @function initialize
+       * @override
+       * @description Initialization function that calls {@link GradumSelector.makeTool} on `this.element`, sets it up,
+       * and attaches all the defined tool behaviors.
+       */
+      initialize() {
+          if (this.toolName)
+              gradum(this).makeTool(this.toolName, {
+                  onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
+                  onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
+                  activationEvent: this.activationEvent,
+                  clickMode: this.clickMode,
+                  customActivation: typeof this.customActivation === "function" ? this.customActivation.bind(this) : undefined,
+                  key: this.key,
+                  manager: this.manager,
+              });
+          if (this.embeddedTarget)
+              gradum(this).embedTool(this.embeddedTarget, this.manager);
+          super.initialize();
       }
   }
-  (() => {
-      defineDefaultProperties(TurboHeadlessElement);
-      defineMvcAccessors(TurboHeadlessElement);
-  })();
-  addRegistryCategory(TurboHeadlessElement);
+  addRegistryCategory(GradumTool);
+  define(GradumTool);
 
-  const elementSymbol = Symbol("___element___");
   /**
-   * @class TurboProxiedElement
-   * @group TurboElement
-   * @category TurboProxiedElement
+   * @class GradumView
+   * @group MVC
+   * @category View
    *
-   * @description TurboProxiedElement class, similar to TurboElement but containing an HTML element instead of being one.
-   * @template {TurboView} ViewType - The element's view type, if initializing MVC.
-   * @template {object} DataType - The element's data type, if initializing MVC.
-   * @template {TurboModel<DataType>} ModelType - The element's model type, if initializing MVC.
-   * @template {TurboEmitter} EmitterType - The element's emitter type, if initializing MVC.
+   * @template {object} ElementType - The type of the element attached to the view.
+   * @template {GradumModel} ModelType - The model type used in this view.
+   * @template {GradumEmitter} EmitterType - The emitter type used in this view.
+   * @description A base view class for MVC elements, providing structure for initializing and managing UI setup and
+   * event listeners. Designed to be devoid of logic and only handle direct UI changes.
    */
-  class TurboProxiedElement {
+  class GradumView {
       /**
-       * @description Default properties assigned to a new instance.
+       * @description The main component this view is attached to.
        */
-      static defaultProperties = {
-          defaultSelectedClasses: "selected"
-      };
-      static create(properties = {}) {
-          return this.customCreate.call(this, properties);
-      }
-      static customCreate(properties) {
-          const prototypeChain = getPrototypeChain(this);
-          for (const prototype of prototypeChain)
-              turbo(properties).applyDefaults(prototype["defaultProperties"] ?? {});
-          const obj = new this();
-          obj[elementSymbol] = blindElement(properties);
-          return obj;
+      element;
+      /**
+       * @description The model instance this view is bound to.
+       */
+      model;
+      /**
+       * @description The emitter instance used for event communication.
+       */
+      emitter;
+      /**
+       * @constructor
+       * @param {GradumViewProperties<ElementType, ModelType, EmitterType>} properties - Properties to initialize the view with.
+       */
+      constructor(properties) {
+          this.element = properties.element;
+          if (properties.model)
+              this.model = properties.model;
+          if (properties.emitter)
+              this.emitter = properties.emitter;
+          this.setup();
       }
       /**
-       * @description The HTML (or other) element wrapped inside this instance.
+       * @function setup
+       * @description Called in the constructor. Use for setup that should happen at instantiation,
+       * before `this.initialize()` is called.
+       * @protected
        */
-      get element() {
-          return this[elementSymbol];
+      setup() { }
+      /**
+       * @function initialize
+       * @description Initializes the view by setting up change callbacks, UI elements, layout, and event listeners.
+       */
+      initialize() {
+          this.setupUIElements();
+          this.setupUILayout();
+          this.setupUIListeners();
+          this.setupChangedCallbacks();
       }
+      /**
+       * @function setupChangedCallbacks
+       * @description Setup method for initializing data/model change listeners and associated UI logic.
+       * @protected
+       */
       setupChangedCallbacks() {
+          initializeEffects(this);
       }
+      /**
+       * @function setupUIElements
+       * @description Setup method for initializing and storing sub-elements of the UI.
+       * @protected
+       */
       setupUIElements() {
       }
+      /**
+       * @function setupUILayout
+       * @description Setup method for creating the layout structure and injecting sub-elements into the DOM tree.
+       * @protected
+       */
       setupUILayout() {
       }
+      /**
+       * @function setupUIListeners
+       * @description Setup method for defining DOM and input event listeners.
+       * @protected
+       */
       setupUIListeners() {
+          attachListenersAndBehaviors(this);
       }
   }
-  (() => {
-      defineDefaultProperties(TurboProxiedElement);
-      defineMvcAccessors(TurboProxiedElement);
-      defineUIPrototype(TurboProxiedElement);
-  })();
-  addRegistryCategory(TurboProxiedElement);
+  addRegistryCategory(GradumView);
+  define(GradumView);
 
   /******************************************************************************
   Copyright (c) Microsoft Corporation.
@@ -23195,7 +28237,7 @@
 
   //Select tool
   let SelectTool = (() => {
-      let _classSuper = TurboTool;
+      let _classSuper = GradumTool;
       let _instanceExtraInitializers = [];
       let _drag_decorators;
       return class SelectTool extends _classSuper {
@@ -23208,12 +28250,12 @@
           toolName = (__runInitializers(this, _instanceExtraInitializers), "select"); //Define the tool name
           //On activation --> add class
           onActivation() {
-              turbo(this.element).toggleClass("active-tool", true);
+              gradum(this.element).toggleClass("active-tool", true);
           }
           onDeactivation() {
-              turbo(this.element).toggleClass("active-tool", false);
+              gradum(this.element).toggleClass("active-tool", false);
           }
-          //Equivalent to turbo(tool).addToolBehavior("turbo-drag", "select", (e, el) => {...});
+          //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "select", (e, el) => {...});
           drag(e, el) {
               try {
                   if ("move" in el && typeof el.move === "function")
@@ -23235,7 +28277,7 @@
 
   //Pusher substrate
   let CanvasSubstrate = (() => {
-      let _classSuper = TurboSubstrate;
+      let _classSuper = GradumConstrainer;
       let _instanceExtraInitializers = [];
       let _spacerSolver_decorators;
       let _pusherSolver_decorators;
@@ -23248,8 +28290,8 @@
               __esDecorate(this, null, _pusherSolver_decorators, { kind: "method", name: "pusherSolver", static: false, private: false, access: { has: obj => "pusherSolver" in obj, get: obj => obj.pusherSolver }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          //Define the substrate's name. Equivalent to turbo(canvas).makeSubstrate("main").
-          substrateName = (__runInitializers(this, _instanceExtraInitializers), "main");
+          //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("main").
+          constrainerName = (__runInitializers(this, _instanceExtraInitializers), "main");
           //On initialize --> set default queue to be an empty array instead of all objects in the list
           //The queue will be dynamically populated with objects the user collides with
           initialize() {
@@ -23274,7 +28316,7 @@
           }
           /**
            * @description Spacer solver (with higher priority - it executes on the target before the pusher solver).
-           * @param {SubstrateCallbackProperties} properties - The solving properties passed down by the toolkit.
+           * @param {ConstrainerCallbackProperties} properties - The solving properties passed down by the toolkit.
            * @protected
            */
           spacerSolver(properties) {
@@ -23296,7 +28338,7 @@
           }
           /**
            * @description Pusher solver (with lower priority - it executes on the target after the spacer solver).
-           * @param {SubstrateCallbackProperties} properties - The solving properties passed down by the toolkit.
+           * @param {ConstrainerCallbackProperties} properties - The solving properties passed down by the toolkit.
            * @protected
            */
           pusherSolver(properties) {
@@ -23320,7 +28362,7 @@
           /**
            * @description Boilerplate code that ensures the target is an element, computes the delta of the target
            * (by how much it was last moved), and executes the callback on each object overlapping with the target.
-           * @param {SubstrateCallbackProperties} properties - The solving properties passed down by the toolkit.
+           * @param {ConstrainerCallbackProperties} properties - The solving properties passed down by the toolkit.
            * @param {(target: Element, delta: Point, overlap: Element) => void} callback - The callback to execute for
            * each overlap.
            * @protected
@@ -23470,8 +28512,8 @@
               __esDecorate(this, null, _pusherSolver_decorators, { kind: "method", name: "pusherSolver", static: false, private: false, access: { has: obj => "pusherSolver" in obj, get: obj => obj.pusherSolver }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          //Define the substrate's name. Equivalent to turbo(canvas).makeSubstrate("pusher").
-          substrateName = (__runInitializers(this, _instanceExtraInitializers), "pusher");
+          //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("pusher").
+          constrainerName = (__runInitializers(this, _instanceExtraInitializers), "pusher");
           initialize() {
               super.initialize();
               //Remove the spacer solver because spacers are ignored in this substrate.
@@ -23535,8 +28577,8 @@
               __esDecorate(this, null, _spacerSolver_decorators, { kind: "method", name: "spacerSolver", static: false, private: false, access: { has: obj => "spacerSolver" in obj, get: obj => obj.spacerSolver }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          //Define the substrate's name. Equivalent to turbo(canvas).makeSubstrate("pusher").
-          substrateName = (__runInitializers(this, _instanceExtraInitializers), "spacer");
+          //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("pusher").
+          constrainerName = (__runInitializers(this, _instanceExtraInitializers), "spacer");
           initialize() {
               super.initialize();
               //Remove the spacer solver because spacers are ignored in this substrate.
@@ -23545,7 +28587,7 @@
           }
           /**
            * @description Spacer solver (with higher priority - it executes on the target before the pusher solver).
-           * @param {SubstrateCallbackProperties} properties - The solving properties passed down by the toolkit.
+           * @param {ConstrainerCallbackProperties} properties - The solving properties passed down by the toolkit.
            * @protected
            */
           spacerSolver(properties) {
@@ -23563,9 +28605,9 @@
       };
   })();
 
-  class Canvas extends TurboElement {
+  class Canvas extends GradumElement {
       static defaultProperties = {
-          substrates: [CanvasPusherSubstrate, CanvasSubstrate, CanvasSpacerSubstrate],
+          constrainers: [CanvasPusherSubstrate, CanvasSubstrate, CanvasSpacerSubstrate],
       };
   }
   define(Canvas, "my-canvas");
@@ -23578,19 +28620,19 @@
       }
       onActivate() {
           const canvas = this.canvas;
-          turbo(canvas).activateSubstrate("pusher");
-          turbo(canvas).deactivateSubstrate("spacer", "main");
+          gradum(canvas).activateConstrainer("pusher");
+          gradum(canvas).deactivateConstrainer("spacer", "main");
       }
       onDeactivate() {
           const canvas = this.canvas;
-          turbo(canvas).deactivateSubstrate("pusher", "pusher");
-          turbo(canvas).activateSubstrate("main");
+          gradum(canvas).deactivateConstrainer("pusher", "pusher");
+          gradum(canvas).activateConstrainer("main");
       }
   }
 
   //Model of the square element
   let SquareModel = (() => {
-      let _classSuper = TurboModel;
+      let _classSuper = GradumModel;
       let _color_decorators;
       let _color_initializers = [];
       let _color_extraInitializers = [];
@@ -23636,7 +28678,7 @@
 
   //View of the square element
   let SquareView = (() => {
-      let _classSuper = TurboView;
+      let _classSuper = GradumView;
       let _instanceExtraInitializers = [];
       let _updatePosition_decorators;
       let _updateColor_decorators;
@@ -23655,16 +28697,16 @@
           //@effect methods will be called when the values of the signals they use change
           updatePosition() {
               const offset = this.model.centerAnchor ? this.model.elementSize / 2 : 0;
-              turbo(this).setStyle("transform", `
+              gradum(this).setStyle("transform", `
         translate(${this.model.position.x - offset}px, ${this.model.position.y - offset}px)
         rotate(${this.model.rotation}rad)
         `);
           }
           updateColor() {
-              turbo(this).setStyle("backgroundColor", this.model.color.toString());
+              gradum(this).setStyle("backgroundColor", this.model.color.toString());
           }
           updateSize() {
-              turbo(this).setStyles({ width: this.model.elementSize + "px", height: this.model.elementSize + "px" });
+              gradum(this).setStyles({ width: this.model.elementSize + "px", height: this.model.elementSize + "px" });
           }
           constructor() {
               super(...arguments);
@@ -23678,7 +28720,7 @@
 
   //Custom square element, defined as a custom element
   let Square = (() => {
-      let _classSuper = TurboElement;
+      let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
       let _color_decorators;
       let _color_initializers = [];
@@ -23725,16 +28767,16 @@
           set isPusher(value) {
               if (value)
                   this.isSpacer = false;
-              turbo(this).removeAllChildren();
+              gradum(this).removeAllChildren();
               if (value)
-                  turbo(this).addChild(p({ text: "Pusher" }));
+                  gradum(this).addChild(p({ text: "Pusher" }));
           }
           set isSpacer(value) {
               if (value)
                   this.isPusher = false;
-              turbo(this).removeAllChildren();
+              gradum(this).removeAllChildren();
               if (value)
-                  turbo(this).addChild(p({ text: "Spacer" }));
+                  gradum(this).addChild(p({ text: "Spacer" }));
           }
           move(delta) {
               this.model.position = delta.add(this.model.position);
@@ -23755,7 +28797,7 @@
 
   //Add square tool
   let AddSquareTool = (() => {
-      let _classSuper = TurboTool;
+      let _classSuper = GradumTool;
       let _instanceExtraInitializers = [];
       let _click_decorators;
       return class AddSquareTool extends _classSuper {
@@ -23766,7 +28808,7 @@
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           toolName = (__runInitializers(this, _instanceExtraInitializers), "addSquare"); //Define the tool name
-          //Equivalent to turbo(tool).addToolBehavior("click", "addSquare", (e, target) => {...});
+          //Equivalent to gradum(tool).addToolBehavior("click", "addSquare", (e, target) => {...});
           click(e, target) {
               if (target instanceof Canvas)
                   Square.create({ parent: target, position: e.position });
@@ -23776,7 +28818,7 @@
 
   //Pusher tool
   let MakePusherTool = (() => {
-      let _classSuper = TurboTool;
+      let _classSuper = GradumTool;
       let _instanceExtraInitializers = [];
       let _click_decorators;
       return class MakePusherTool extends _classSuper {
@@ -23796,7 +28838,7 @@
 
   //Pusher tool
   let MakeSpacerTool = (() => {
-      let _classSuper = TurboTool;
+      let _classSuper = GradumTool;
       let _instanceExtraInitializers = [];
       let _click_decorators;
       return class MakeSpacerTool extends _classSuper {
@@ -23822,13 +28864,13 @@
       }
       onActivate() {
           const canvas = this.canvas;
-          turbo(canvas).activateSubstrate("spacer");
-          turbo(canvas).deactivateSubstrate("pusher", "main");
+          gradum(canvas).activateConstrainer("spacer");
+          gradum(canvas).deactivateConstrainer("pusher", "main");
       }
       onDeactivate() {
           const canvas = this.canvas;
-          turbo(canvas).deactivateSubstrate("spacer", "pusher");
-          turbo(canvas).activateSubstrate("main");
+          gradum(canvas).deactivateConstrainer("spacer", "pusher");
+          gradum(canvas).activateConstrainer("main");
       }
   }
 
@@ -23840,7 +28882,7 @@
       let _classDescriptor;
       let _classExtraInitializers = [];
       let _classThis;
-      let _classSuper = TurboElement;
+      let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
       let _color_decorators;
       let _color_initializers = [];
@@ -23867,10 +28909,10 @@
               value.forEach(entry => this.addTool(entry));
           }
           addTool(tool) {
-              turbo(this).addChild(tool);
+              gradum(this).addChild(tool);
           }
           updateBackground() {
-              turbo(this).setStyle("backgroundColor", this.color);
+              gradum(this).setStyle("backgroundColor", this.color);
           }
           constructor() {
               super(...arguments);
@@ -23882,7 +28924,7 @@
 
   //Bucket tool
   let BucketTool = (() => {
-      let _classSuper = TurboTool;
+      let _classSuper = GradumTool;
       let _instanceExtraInitializers = [];
       let _click_decorators;
       return class BucketTool extends _classSuper {
@@ -23893,7 +28935,7 @@
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           toolName = (__runInitializers(this, _instanceExtraInitializers), "bucket"); //Define the tool name
-          //Equivalent to turbo(tool).addToolBehavior("click", "bucket", (e, el) => {...});
+          //Equivalent to gradum(tool).addToolBehavior("click", "bucket", (e, el) => {...});
           click(e, el) {
               if ("color" in el && el.color instanceof Color && !(el instanceof Bucket)) {
                   el.color = this.element.color;
@@ -23906,7 +28948,7 @@
 
   //Custom element for the bucket tool
   let Bucket = (() => {
-      let _classSuper = TurboButton;
+      let _classSuper = GradumButton;
       let _instanceExtraInitializers = [];
       let __color_decorators;
       let __color_initializers = [];
@@ -23937,16 +28979,16 @@
           //Function that adds the sub-elements to the document. Called on creation.
           setupUILayout() {
               super.setupUILayout();
-              turbo(this).addChild(this.colorInput);
+              gradum(this).addChild(this.colorInput);
           }
           //Function that sets up event listeners. Called on creation.
           setupUIListeners() {
               super.setupUIListeners();
-              turbo(this).on(DefaultEventName.click, () => this.colorInput.click());
-              turbo(this.colorInput).on(DefaultEventName.input, () => { this._color = Color.from(this.colorInput.value); });
+              gradum(this).on(DefaultEventName.click, () => this.colorInput.click());
+              gradum(this.colorInput).on(DefaultEventName.input, () => { this._color = Color.from(this.colorInput.value); });
           }
           updateBorderColor() {
-              turbo(this).setStyle("borderColor", this._color.toString());
+              gradum(this).setStyle("borderColor", this._color.toString());
           }
       };
   })();
@@ -23956,13 +28998,13 @@
   Toolbar.create({
       parent: document.body,
       entries: [
-          TurboButton.create({ text: "Select", tools: SelectTool, classes: "demo-button" }),
-          TurboButton.create({ text: "Add Square", tools: AddSquareTool, classes: "demo-button" }),
+          GradumButton.create({ text: "Select", tools: SelectTool, classes: "demo-button" }),
+          GradumButton.create({ text: "Add Square", tools: AddSquareTool, classes: "demo-button" }),
           Bucket.create({ text: "Bucket", classes: "demo-button" }),
-          TurboButton.create({ text: "Pusher Substrate", tools: PusherSubstrateTool, classes: "demo-button" }),
-          TurboButton.create({ text: "Spacer Substrate", tools: SpacerSubstrateTool, classes: "demo-button" }),
-          TurboButton.create({ text: "Make Pusher", tools: MakePusherTool, classes: "demo-button" }),
-          TurboButton.create({ text: "Make Spacer", tools: MakeSpacerTool, classes: "demo-button" }),
+          GradumButton.create({ text: "Pusher Substrate", tools: PusherSubstrateTool, classes: "demo-button" }),
+          GradumButton.create({ text: "Spacer Substrate", tools: SpacerSubstrateTool, classes: "demo-button" }),
+          GradumButton.create({ text: "Make Pusher", tools: MakePusherTool, classes: "demo-button" }),
+          GradumButton.create({ text: "Make Spacer", tools: MakeSpacerTool, classes: "demo-button" }),
       ]
   });
 

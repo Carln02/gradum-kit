@@ -6,7 +6,7 @@ import {CanvasSpacerSubstrate} from "./canvas.spacerSubstrate";
 
 export class Canvas extends GradumElement {
     public static defaultProperties = {
-        substrates: [CanvasPusherSubstrate, CanvasSubstrate, CanvasSpacerSubstrate],
+        constrainers: [CanvasPusherSubstrate, CanvasSubstrate, CanvasSpacerSubstrate],
     }
 }
 define(Canvas, "my-canvas");

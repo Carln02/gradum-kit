@@ -9131,6 +9131,14 @@ declare class GradumDrawer<ViewType extends GradumView = GradumView<any, any>, D
     readonly properties: GradumDrawerProperties;
     private _panelContainer;
     /**
+     * @private
+     * @description Guards {@link setupUILayout} against re-entering itself. Reading `thumb` or `panel`
+     * creates them on first access, and their setters call `setupUILayout` again — so the layout would
+     * otherwise run nested, and the inner run would leave `childHandler` pointing at the panel while the
+     * outer run is still going.
+     */
+    private layingOutUI;
+    /**
      * @readonly
      * @description The element wrapping the panel. It is the one that resizes as the drawer opens and
      * closes; the panel itself keeps its natural size.

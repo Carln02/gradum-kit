@@ -12,13 +12,13 @@ export class PusherSubstrateTool extends SelectTool {
 
     public onActivate() {
         const canvas = this.canvas;
-        gradum(canvas).activateSubstrate("pusher");
-        gradum(canvas).deactivateSubstrate("spacer", "main");
+        gradum(canvas).activateConstrainer("pusher");
+        gradum(canvas).deactivateConstrainer("spacer", "main");
     }
 
     public onDeactivate() {
         const canvas = this.canvas;
-        gradum(canvas).deactivateSubstrate("pusher", "pusher");
-        gradum(canvas).activateSubstrate("main");
+        gradum(canvas).deactivateConstrainer("pusher", "pusher");
+        gradum(canvas).activateConstrainer("main");
     }
 }

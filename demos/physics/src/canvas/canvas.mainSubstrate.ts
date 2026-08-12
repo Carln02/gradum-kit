@@ -2,15 +2,15 @@ import {
     Coordinate,
     Point,
     solver,
-    SubstrateCallbackProperties,
+    ConstrainerCallbackProperties,
     GradumDragEvent,
-    GradumSubstrate
+    GradumConstrainer
 } from "../../../../build/gradum-kit.esm";
 
 //Pusher substrate
-export class CanvasSubstrate extends GradumSubstrate {
+export class CanvasSubstrate extends GradumConstrainer {
     //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("main").
-    public substrateName = "main";
+    public constrainerName = "main";
 
     //On initialize --> set default queue to be an empty array instead of all objects in the list
     //The queue will be dynamically populated with objects the user collides with
@@ -39,10 +39,10 @@ export class CanvasSubstrate extends GradumSubstrate {
 
     /**
      * @description Spacer solver (with higher priority - it executes on the target before the pusher solver).
-     * @param {SubstrateCallbackProperties} properties - The solving properties passed down by the toolkit.
+     * @param {ConstrainerCallbackProperties} properties - The solving properties passed down by the toolkit.
      * @protected
      */
-    @solver({priority: 5}) protected spacerSolver(properties: SubstrateCallbackProperties) {
+    @solver({priority: 5}) protected spacerSolver(properties: ConstrainerCallbackProperties) {
         //For each object overlapping with el, and given that el has been moved by delta
         this.processTargetWithContext(properties, (el, delta, overlap) => {
             //If neither el nor overlap are spacers, return.
@@ -60,10 +60,10 @@ export class CanvasSubstrate extends GradumSubstrate {
 
     /**
      * @description Pusher solver (with lower priority - it executes on the target after the spacer solver).
-     * @param {SubstrateCallbackProperties} properties - The solving properties passed down by the toolkit.
+     * @param {ConstrainerCallbackProperties} properties - The solving properties passed down by the toolkit.
      * @protected
      */
-    @solver({priority: 10}) protected pusherSolver(properties: SubstrateCallbackProperties) {
+    @solver({priority: 10}) protected pusherSolver(properties: ConstrainerCallbackProperties) {
         //If interaction target is not a pusher --> don't push and return.
         if (!this.isPusher(properties.eventTarget)) return;
         //For each object overlapping with el, and given that el has been moved by delta
@@ -82,13 +82,13 @@ export class CanvasSubstrate extends GradumSubstrate {
     /**
      * @description Boilerplate code that ensures the target is an element, computes the delta of the target
      * (by how much it was last moved), and executes the callback on each object overlapping with the target.
-     * @param {SubstrateCallbackProperties} properties - The solving properties passed down by the toolkit.
+     * @param {ConstrainerCallbackProperties} properties - The solving properties passed down by the toolkit.
      * @param {(target: Element, delta: Point, overlap: Element) => void} callback - The callback to execute for
      * each overlap.
      * @protected
      */
     protected processTargetWithContext(
-        properties: SubstrateCallbackProperties,
+        properties: ConstrainerCallbackProperties,
         callback: (target: Element, delta: Point, overlap: Element) => void
     ) {
         //If target is undefined or not an Element, return.

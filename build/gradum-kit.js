@@ -18689,6 +18689,14 @@ var Gradum = (function (exports, yjs) {
             }
             _panelContainer = __runInitializers(this, _instanceExtraInitializers);
             /**
+             * @private
+             * @description Guards {@link setupUILayout} against re-entering itself. Reading `thumb` or `panel`
+             * creates them on first access, and their setters call `setupUILayout` again — so the layout would
+             * otherwise run nested, and the inner run would leave `childHandler` pointing at the panel while the
+             * outer run is still going.
+             */
+            layingOutUI = false;
+            /**
              * @readonly
              * @description The element wrapping the panel. It is the one that resizes as the drawer opens and
              * closes; the panel itself keeps its natural size.
@@ -18858,14 +18866,25 @@ var Gradum = (function (exports, yjs) {
              * @inheritDoc
              */
             setupUILayout() {
-                super.setupUILayout();
-                gradum(this).childHandler = this;
-                const panelChildren = gradum(this).childrenArray.filter(el => el !== this.panelContainer && el !== this.thumb);
-                gradum(this).addChild([this.thumb, this.panelContainer]);
-                gradum(this.panel).addChild(panelChildren);
-                gradum(this.panelContainer).addChild(this.panel);
-                gradum(this.thumb).addChild(this.icon);
-                gradum(this).childHandler = this.panel;
+                //Reading `thumb`/`panel` below creates them on first access, and their setters call back into this
+                //method. Let the outermost call do the work: it sees the finished elements either way.
+                if (this.layingOutUI)
+                    return;
+                this.layingOutUI = true;
+                try {
+                    super.setupUILayout();
+                    gradum(this).childHandler = this;
+                    const panelChildren = gradum(this).childrenArray
+                        .filter(el => el !== this.panelContainer && el !== this.thumb);
+                    gradum(this).addChild([this.thumb, this.panelContainer]);
+                    gradum(this.panel).addChild(panelChildren);
+                    gradum(this.panelContainer).addChild(this.panel);
+                    gradum(this.thumb).addChild(this.icon);
+                    gradum(this).childHandler = this.panel;
+                }
+                finally {
+                    this.layingOutUI = false;
+                }
             }
             /**
              * @inheritDoc
