@@ -39,8 +39,17 @@ class GradumHeadlessElement<
      * @param {PropertiesType} [properties] - Properties to set on the new instance.
      * @returns {InstanceType<Type>} The created instance.
      */
-    public static create<Type extends new (...args: any[]) => GradumHeadlessElement>
-    (this: Type, properties: InstanceType<Type>["properties"] = {}): InstanceType<Type> {
+    public static create<
+        This extends {prototype: GradumHeadlessElement},
+        ViewType extends GradumView = GradumView<any, any>,
+        DataType extends object = object,
+        ModelType extends GradumModel = GradumModel,
+        EmitterType extends GradumEmitter = GradumEmitter<any>
+    >(
+        this: This,
+        properties: This["prototype"]["properties"]
+            & GradumHeadlessProperties<ViewType, DataType, ModelType, EmitterType> = {}
+    ): This["prototype"] & GradumHeadlessElement<ViewType, DataType, ModelType, EmitterType> {
         return (this as any).customCreate.call(this, properties);
     }
 

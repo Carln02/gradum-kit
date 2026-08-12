@@ -37,14 +37,14 @@ from Y.js — local or remote — are turned into the usual signal and observer 
 <li><span id="dataentrytype"><span class="tsd-kind-type-parameter">DataEntryType</span> = <span class="tsd-signature-type">any</span></span>
 <div class="tsd-comment tsd-typography"><p>The type of data associated with each observer instance.</p>
 </div></li></ul></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="7063">
+<section class="tsd-panel tsd-hierarchy" data-refl="7848">
 <h4>Hierarchy (<a href="../hierarchy.html#GradumYModel">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#datatype">DataType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#idtype">IdType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#componenttype">ComponentType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#dataentrytype">DataEntryType</a><span class="tsd-signature-symbol">&gt;</span>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">GradumYModel</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:24</li></ul></aside>
+<li>Defined in src/mvc/model/yModel.ts:23</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -82,6 +82,7 @@ from Y.js — local or remote — are turned into the usual signal and observer 
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-index-list"><a href="#from" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>from</span></a>
+<a href="#create" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create</span></a>
 <a href="#setup" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>setup</span></a>
 <a href="#get" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get</span></a>
 <a href="#getflat" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Flat</span></a>
@@ -122,7 +123,6 @@ from Y.js — local or remote — are turned into the usual signal and observer 
 <a href="#addhandler" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Handler</span></a>
 <a href="#setdatawithoutinitializing" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Data<wbr/>Without<wbr/>Initializing</span></a>
 <a href="#firecallback" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>fire<wbr/>Callback</span></a>
-<a href="#create" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create</span></a>
 <a href="#getaction" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Action</span></a>
 <a href="#setaction" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Action</span></a>
 <a href="#addaction" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Action</span></a>
@@ -334,7 +334,7 @@ the model out to whatever owns it.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#modelconstructor">modelConstructor</a></p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:55</li></ul></aside></section></section></details>
+<li>Defined in src/mvc/model/yModel.ts:36</li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -445,7 +445,7 @@ the model out to whatever owns it.</p>
 <h4 class="tsd-anchor-link" id="inherit-doc-1">Inherit Doc<a href="#inherit-doc-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div></div><aside class="tsd-sources">
 <p>Overrides GradumModel.enabledCallbacks</p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:60</li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in src/mvc/model/yModel.ts:41</li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -488,6 +488,43 @@ Assigning an unknown key creates a signal for it.</p>
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#from">from</a></p>
 <ul>
 <li>Defined in src/mvc/model/model.ts:86</li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="create"><code class="tsd-tag">Static</code><span>create</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-inherited">
+<li class="tsd-is-inherited">
+<div class="tsd-signature tsd-anchor-link" id="create-1"><span class="tsd-kind-call-signature">create</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createthis">This</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">prototype</span><span class="tsd-signature-symbol">:</span> <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">this</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumModel.html#createthis">This</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">properties</span><span class="tsd-signature-symbol">?:</span> <a href="../types/GradumModelProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumModelProperties</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumModel.html#createthis">This</a><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">&quot;prototype&quot;</span><span class="tsd-signature-symbol">]</span><a href="#create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description"><code class="tsd-tag">Function</code>
+<div class="tsd-comment tsd-typography"><p>create</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="createthis"><span class="tsd-kind-type-parameter">This</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">prototype</span><span class="tsd-signature-symbol">:</span> <a href="GradumModel.html" class="tsd-signature-type tsd-kind-class">GradumModel</a> <span class="tsd-signature-symbol">}</span></span>
+<div class="tsd-comment tsd-typography"><p>The class <code>create</code> was called on.</p>
+</div></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">this</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumModel.html#createthis">This</a></span></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumModelProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumModelProperties</a><span class="tsd-signature-symbol"> = {}</span></span>
+<div class="tsd-comment tsd-typography"><p>Optional initialization properties.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="GradumModel.html#createthis">This</a><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">&quot;prototype&quot;</span><span class="tsd-signature-symbol">]</span></h4><p>The created model, typed as the class this was called on.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-static">
+<h4 class="tsd-anchor-link" id="static-1">Static<a href="#static-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div>
+<div class="tsd-tag-description">
+<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Instantiate a model, then optionally initialize it and make its signals. The return type
+follows the class it is called on, so <code>GradumYModel.create(...)</code> yields a <a href="#" class="tsd-kind-class">GradumYModel</a> with its
+Y-specific members intact.</p>
+<p><em>Note: the callee is read through <code>this[&quot;prototype&quot;]</code> rather than <code>InstanceType&lt;this&gt;</code>. The latter
+instantiates this class' generics with their constraints (<code>object</code>, <code>KeyType</code>, <code>unknown</code>) instead of
+their <code>any</code> defaults, which breaks inference at every call site.</em></p>
+</div></div><aside class="tsd-sources">
+<p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#create">create</a></p>
+<ul>
+<li>Defined in src/mvc/model/model.ts:118</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="setup"><code class="tsd-tag">Protected</code><span>setup</span><a href="#setup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -499,7 +536,7 @@ Assigning an unknown key creates a signal for it.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-22">Description<a href="#description-22" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Called in the constructor. Use for setup that should happen at instantiation,
+<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Called in the constructor. Use for setup that should happen at instantiation,
 before <code>this.initialize()</code> is called.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#setup">setup</a></p>
@@ -523,7 +560,7 @@ before <code>this.initialize()</code> is called.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-23">Description<a href="#description-23" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given key.</p>
+<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#get">get</a></p>
 <ul>
@@ -543,7 +580,7 @@ before <code>this.initialize()</code> is called.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-24">Description<a href="#description-24" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given key path. Pass no keys to get the root data.</p>
+<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given key path. Pass no keys to get the root data.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#get">get</a></p>
 <ul>
@@ -569,7 +606,7 @@ before <code>this.initialize()</code> is called.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-25">Description<a href="#description-25" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve the value at the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getflat">getFlat</a></p>
 <ul>
@@ -592,7 +629,7 @@ before <code>this.initialize()</code> is called.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-26">Description<a href="#description-26" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key path of the first occurrence of the given value, searching depth-first.</p>
+<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key path of the first occurrence of the given value, searching depth-first.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getkey">getKey</a></p>
 <ul>
@@ -615,7 +652,7 @@ before <code>this.initialize()</code> is called.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-27">Description<a href="#description-27" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the flat key of the first occurrence of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-28">Description<a href="#description-28" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the flat key of the first occurrence of the given value.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getflatkey">getFlatKey</a></p>
 <ul>
@@ -638,7 +675,7 @@ before <code>this.initialize()</code> is called.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-28">Description<a href="#description-28" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key paths of all occurrences of the given value, searching depth-first.</p>
+<h4 class="tsd-anchor-link" id="description-29">Description<a href="#description-29" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Find the key paths of all occurrences of the given value, searching depth-first.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getkeys">getKeys</a></p>
 <ul>
@@ -661,7 +698,7 @@ before <code>this.initialize()</code> is called.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-29">Description<a href="#description-29" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the flat keys of all occurrences of the given value.</p>
+<h4 class="tsd-anchor-link" id="description-30">Description<a href="#description-30" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the flat keys of all occurrences of the given value.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getflatkeys">getFlatKeys</a></p>
 <ul>
@@ -693,7 +730,7 @@ or <code>undefined</code> if operating on a non-root container.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-30">Description<a href="#description-30" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Write a value at a key, propagating the change to a nested model if one exists,
+<h4 class="tsd-anchor-link" id="description-31">Description<a href="#description-31" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Write a value at a key, propagating the change to a nested model if one exists,
 and firing <a href="#keychanged" class="tsd-kind-method">keyChanged</a> if the value actually changed.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#internalset">internalSet</a></p>
@@ -719,7 +756,7 @@ and firing <a href="#keychanged" class="tsd-kind-method">keyChanged</a> if the v
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-31">Description<a href="#description-31" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Set a value at the given key and notify observers and signals if the value changed.</p>
+<h4 class="tsd-anchor-link" id="description-32">Description<a href="#description-32" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Set a value at the given key and notify observers and signals if the value changed.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#set">set</a></p>
 <ul>
@@ -741,7 +778,7 @@ and firing <a href="#keychanged" class="tsd-kind-method">keyChanged</a> if the v
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-32">Description<a href="#description-32" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Set a value at the given key path and notify observers and signals if the value changed.</p>
+<h4 class="tsd-anchor-link" id="description-33">Description<a href="#description-33" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Set a value at the given key path and notify observers and signals if the value changed.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#set">set</a></p>
 <ul>
@@ -769,7 +806,7 @@ and firing <a href="#keychanged" class="tsd-kind-method">keyChanged</a> if the v
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-33">Description<a href="#description-33" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Set a value at the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-34">Description<a href="#description-34" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Set a value at the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#setflat">setFlat</a></p>
 <ul>
@@ -801,7 +838,7 @@ and firing <a href="#keychanged" class="tsd-kind-method">keyChanged</a> if the v
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-34">Description<a href="#description-34" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Insert a value into a container via <a href="#addaction" class="tsd-kind-method">addAction</a> and fire <a href="#keychanged" class="tsd-kind-method">keyChanged</a>.</p>
+<h4 class="tsd-anchor-link" id="description-35">Description<a href="#description-35" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Insert a value into a container via <a href="#addaction" class="tsd-kind-method">addAction</a> and fire <a href="#keychanged" class="tsd-kind-method">keyChanged</a>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#internaladd">internalAdd</a></p>
 <ul>
@@ -824,7 +861,7 @@ and firing <a href="#keychanged" class="tsd-kind-method">keyChanged</a> if the v
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-35">Description<a href="#description-35" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Push a value to the end of an array-backed model. For non-array models, forwards to <a href="#set" class="tsd-kind-method">set</a>.</p>
+<h4 class="tsd-anchor-link" id="description-36">Description<a href="#description-36" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Push a value to the end of an array-backed model. For non-array models, forwards to <a href="#set" class="tsd-kind-method">set</a>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#add">add</a></p>
 <ul>
@@ -847,7 +884,7 @@ and firing <a href="#keychanged" class="tsd-kind-method">keyChanged</a> if the v
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-36">Description<a href="#description-36" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Insert a value into an array-backed model at the given index, or push it if no index is given.
+<h4 class="tsd-anchor-link" id="description-37">Description<a href="#description-37" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Insert a value into an array-backed model at the given index, or push it if no index is given.
 For non-array models, forwards to <a href="#set" class="tsd-kind-method">set</a>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#add">add</a></p>
@@ -871,7 +908,7 @@ For non-array models, forwards to <a href="#set" class="tsd-kind-method">set</a>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-37">Description<a href="#description-37" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Insert a value at the given key path. For array-backed nodes, the last key is the insertion index.
+<h4 class="tsd-anchor-link" id="description-38">Description<a href="#description-38" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Insert a value at the given key path. For array-backed nodes, the last key is the insertion index.
 For non-array models, forwards to <a href="#set" class="tsd-kind-method">set</a>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#add">add</a></p>
@@ -901,7 +938,7 @@ For non-array models, forwards to <a href="#set" class="tsd-kind-method">set</a>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-38">Description<a href="#description-38" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Insert a value at the position described by the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-39">Description<a href="#description-39" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Insert a value at the position described by the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#addflat">addFlat</a></p>
 <ul>
@@ -924,7 +961,7 @@ For non-array models, forwards to <a href="#set" class="tsd-kind-method">set</a>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-39">Description<a href="#description-39" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether the given key exists in the model.</p>
+<h4 class="tsd-anchor-link" id="description-40">Description<a href="#description-40" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether the given key exists in the model.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#has">has</a></p>
 <ul>
@@ -944,7 +981,7 @@ For non-array models, forwards to <a href="#set" class="tsd-kind-method">set</a>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-40">Description<a href="#description-40" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether the given key path exists in the model.</p>
+<h4 class="tsd-anchor-link" id="description-41">Description<a href="#description-41" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether the given key path exists in the model.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#has">has</a></p>
 <ul>
@@ -970,7 +1007,7 @@ For non-array models, forwards to <a href="#set" class="tsd-kind-method">set</a>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-41">Description<a href="#description-41" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an entry exists at the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-42">Description<a href="#description-42" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Check whether an entry exists at the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#hasflat">hasFlat</a></p>
 <ul>
@@ -999,7 +1036,7 @@ or <code>undefined</code> for non-root containers.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-42">Description<a href="#description-42" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove a key from a container, clearing any associated nested model, and firing <a href="#keychanged" class="tsd-kind-method">keyChanged</a>.
+<h4 class="tsd-anchor-link" id="description-43">Description<a href="#description-43" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove a key from a container, clearing any associated nested model, and firing <a href="#keychanged" class="tsd-kind-method">keyChanged</a>.
 No-op if the key does not exist.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#internaldelete">internalDelete</a></p>
@@ -1022,7 +1059,7 @@ No-op if the key does not exist.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-43">Description<a href="#description-43" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the entry at the given key and notify observers.</p>
+<h4 class="tsd-anchor-link" id="description-44">Description<a href="#description-44" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the entry at the given key and notify observers.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#delete">delete</a></p>
 <ul>
@@ -1041,7 +1078,7 @@ No-op if the key does not exist.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-44">Description<a href="#description-44" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the entry at the given key path and notify observers.</p>
+<h4 class="tsd-anchor-link" id="description-45">Description<a href="#description-45" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the entry at the given key path and notify observers.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#delete">delete</a></p>
 <ul>
@@ -1066,7 +1103,7 @@ No-op if the key does not exist.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-45">Description<a href="#description-45" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the entry at the given flat key.</p>
+<h4 class="tsd-anchor-link" id="description-46">Description<a href="#description-46" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Remove the entry at the given flat key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#deleteflat">deleteFlat</a></p>
 <ul>
@@ -1089,7 +1126,7 @@ No-op if the key does not exist.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-46">Description<a href="#description-46" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the total number of entries reachable from this model at the given depth.</p>
+<h4 class="tsd-anchor-link" id="description-47">Description<a href="#description-47" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return the total number of entries reachable from this model at the given depth.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#flatsize">flatSize</a></p>
 <ul>
@@ -1114,7 +1151,7 @@ No-op if the key does not exist.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-47">Description<a href="#description-47" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Swap in new data while keeping existing nested models and signals alive, re-pointing each
+<h4 class="tsd-anchor-link" id="description-48">Description<a href="#description-48" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Swap in new data while keeping existing nested models and signals alive, re-pointing each
 child at its counterpart in the new data instead of tearing the tree down. Only called when
 <a href="GradumModel.html#diffcheck" class="tsd-kind-method">GradumModel.diffCheck</a> accepts the pair.</p>
 </div></div><aside class="tsd-sources">
@@ -1130,7 +1167,7 @@ child at its counterpart in the new data instead of tearing the tree down. Only 
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">IterableIterator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#datakeytype">DataKeyType</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-48">Description<a href="#description-48" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Iterate over <code>[key, value]</code> pairs.</p>
+<h4 class="tsd-anchor-link" id="description-49">Description<a href="#description-49" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Iterate over <code>[key, value]</code> pairs.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#iterator">[iterator]</a></p>
 <ul>
@@ -1147,7 +1184,7 @@ child at its counterpart in the new data instead of tearing the tree down. Only 
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-49">Description<a href="#description-49" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all <code>[key, value]</code> pairs in the model.</p>
+<h4 class="tsd-anchor-link" id="description-50">Description<a href="#description-50" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return all <code>[key, value]</code> pairs in the model.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#entries">entries</a></p>
 <ul>
@@ -1172,7 +1209,7 @@ child at its counterpart in the new data instead of tearing the tree down. Only 
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-50">Description<a href="#description-50" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Execute a callback for each entry in the model.</p>
+<h4 class="tsd-anchor-link" id="description-51">Description<a href="#description-51" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Execute a callback for each entry in the model.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#foreach">forEach</a></p>
 <ul>
@@ -1189,7 +1226,7 @@ child at its counterpart in the new data instead of tearing the tree down. Only 
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-51">Description<a href="#description-51" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert the model's data into a JSON-serializable form.
+<h4 class="tsd-anchor-link" id="description-52">Description<a href="#description-52" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert the model's data into a JSON-serializable form.
 Maps become plain objects. For non-object data types, the raw value is returned.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#tojson">toJSON</a></p>
@@ -1219,7 +1256,7 @@ Maps become plain objects. For non-object data types, the raw value is returned.
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-52">Description<a href="#description-52" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return an existing reactive <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> for the given key, or create one if absent.
+<h4 class="tsd-anchor-link" id="description-53">Description<a href="#description-53" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return an existing reactive <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> for the given key, or create one if absent.
 The signal reads via <a href="#get" class="tsd-kind-method">get</a> and writes via <a href="#set" class="tsd-kind-method">set</a>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#makesignal">makeSignal</a></p>
@@ -1246,7 +1283,7 @@ The signal reads via <a href="#get" class="tsd-kind-method">get</a> and writes v
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-53">Description<a href="#description-53" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return an existing reactive <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> for the given key path, or create one if absent.
+<h4 class="tsd-anchor-link" id="description-54">Description<a href="#description-54" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return an existing reactive <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> for the given key path, or create one if absent.
 The last key in the path is the signal's target; preceding keys navigate to the parent nested model.
 The signal reads via <a href="#get" class="tsd-kind-method">get</a> and writes via <a href="#set" class="tsd-kind-method">set</a>.</p>
 </div></div><aside class="tsd-sources">
@@ -1277,7 +1314,7 @@ The signal reads via <a href="#get" class="tsd-kind-method">get</a> and writes v
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-54">Description<a href="#description-54" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return reactive <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> instances for multiple keys at the given path.
+<h4 class="tsd-anchor-link" id="description-55">Description<a href="#description-55" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return reactive <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> instances for multiple keys at the given path.
 Pass <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a> at any level of the path to expand all entries at that level.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#makesignals">makeSignals</a></p>
@@ -1301,7 +1338,7 @@ Pass <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-55">Description<a href="#description-55" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve an existing <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> for the given key, or <code>undefined</code> if none exists.</p>
+<h4 class="tsd-anchor-link" id="description-56">Description<a href="#description-56" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve an existing <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> for the given key, or <code>undefined</code> if none exists.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getsignal">getSignal</a></p>
 <ul>
@@ -1321,7 +1358,7 @@ Pass <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-56">Description<a href="#description-56" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve an existing <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> for the given key path, or <code>undefined</code> if none exists.
+<h4 class="tsd-anchor-link" id="description-57">Description<a href="#description-57" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve an existing <a href="../types/SignalBox.html" class="tsd-kind-type-alias">SignalBox</a> for the given key path, or <code>undefined</code> if none exists.
 The last key in the path is the signal's target; preceding keys navigate to the parent nested model.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getsignal">getSignal</a></p>
@@ -1339,7 +1376,7 @@ The last key in the path is the signal's target; preceding keys navigate to the 
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-57">Description<a href="#description-57" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return <code>[this]</code>.</p>
+<h4 class="tsd-anchor-link" id="description-58">Description<a href="#description-58" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return <code>[this]</code>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#nestall">nestAll</a></p>
 <ul>
@@ -1364,7 +1401,7 @@ The last key in the path is the signal's target; preceding keys navigate to the 
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-58">Description<a href="#description-58" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create or retrieve nested <a href="GradumModel.html" class="tsd-kind-class">GradumModel</a> instances at each entry under the given key path.
+<h4 class="tsd-anchor-link" id="description-59">Description<a href="#description-59" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create or retrieve nested <a href="GradumModel.html" class="tsd-kind-class">GradumModel</a> instances at each entry under the given key path.
 Use <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a> in the path to expand all entries at that level.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#nestall">nestAll</a></p>
@@ -1390,7 +1427,7 @@ Use <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-59">Description<a href="#description-59" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create or retrieve nested <a href="GradumModel.html" class="tsd-kind-class">GradumModel</a> instances at each entry under the given key path,
+<h4 class="tsd-anchor-link" id="description-60">Description<a href="#description-60" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create or retrieve nested <a href="GradumModel.html" class="tsd-kind-class">GradumModel</a> instances at each entry under the given key path,
 with custom initialization properties for the nested models.
 Use <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a> in the path to expand all entries at that level.</p>
 </div></div><aside class="tsd-sources">
@@ -1420,7 +1457,7 @@ Use <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-60">Description<a href="#description-60" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create or retrieve a single nested <a href="GradumModel.html" class="tsd-kind-class">GradumModel</a> at the given key.</p>
+<h4 class="tsd-anchor-link" id="description-61">Description<a href="#description-61" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create or retrieve a single nested <a href="GradumModel.html" class="tsd-kind-class">GradumModel</a> at the given key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#nest">nest</a></p>
 <ul>
@@ -1445,7 +1482,7 @@ Use <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-61">Description<a href="#description-61" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create or retrieve a single nested <a href="GradumModel.html" class="tsd-kind-class">GradumModel</a> at the given key path.</p>
+<h4 class="tsd-anchor-link" id="description-62">Description<a href="#description-62" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create or retrieve a single nested <a href="GradumModel.html" class="tsd-kind-class">GradumModel</a> at the given key path.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#nest">nest</a></p>
 <ul>
@@ -1470,7 +1507,7 @@ Use <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-62">Description<a href="#description-62" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create or retrieve a single nested <a href="GradumModel.html" class="tsd-kind-class">GradumModel</a> at the given key path,
+<h4 class="tsd-anchor-link" id="description-63">Description<a href="#description-63" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create or retrieve a single nested <a href="GradumModel.html" class="tsd-kind-class">GradumModel</a> at the given key path,
 with custom initialization properties.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#nest">nest</a></p>
@@ -1488,7 +1525,7 @@ with custom initialization properties.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-63">Description<a href="#description-63" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return <code>this</code>.</p>
+<h4 class="tsd-anchor-link" id="description-64">Description<a href="#description-64" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Return <code>this</code>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getnested">getNested</a></p>
 <ul>
@@ -1508,7 +1545,7 @@ with custom initialization properties.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-64">Description<a href="#description-64" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve an already-created nested model at the given key, or <code>undefined</code> if none exists.</p>
+<h4 class="tsd-anchor-link" id="description-65">Description<a href="#description-65" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve an already-created nested model at the given key, or <code>undefined</code> if none exists.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getnested">getNested</a></p>
 <ul>
@@ -1528,7 +1565,7 @@ with custom initialization properties.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-65">Description<a href="#description-65" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve an already-created nested model at the given key path, or <code>undefined</code> if none exists.</p>
+<h4 class="tsd-anchor-link" id="description-66">Description<a href="#description-66" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieve an already-created nested model at the given key path, or <code>undefined</code> if none exists.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getnested">getNested</a></p>
 <ul>
@@ -1555,7 +1592,7 @@ any level to process all entries there.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-66">Description<a href="#description-66" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create and attach a <a href="GradumObserver.html" class="tsd-kind-class">GradumObserver</a> to this model.
+<h4 class="tsd-anchor-link" id="description-67">Description<a href="#description-67" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Create and attach a <a href="GradumObserver.html" class="tsd-kind-class">GradumObserver</a> to this model.
 If a key path is provided, the observer is attached to the nested model(s) at that path instead.
 Pass <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a> at any level of the path to process all entries at that level,
 allowing a single observer to track multiple subtrees simultaneously.</p>
@@ -1584,7 +1621,7 @@ allowing a single observer to track multiple subtrees simultaneously.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-67">Description<a href="#description-67" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Like <a href="#generateobserver" class="tsd-kind-method">generateObserver</a>, but fires for the registered depth <strong>and all deeper levels</strong>.
+<h4 class="tsd-anchor-link" id="description-68">Description<a href="#description-68" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Like <a href="#generateobserver" class="tsd-kind-method">generateObserver</a>, but fires for the registered depth <strong>and all deeper levels</strong>.
 Whereas <code>generateObserver(..., GradumModel.ALL)</code> only notifies at depth-2, <code>generateDeepObserver(..., GradumModel.ALL)</code>
 also notifies for depth-3, depth-4, etc. — passing the full key path to <code>onAdded</code>/<code>onUpdated</code>/<code>onDeleted</code>.
 Use when you need to react to any nested change regardless of depth.</p>
@@ -1619,7 +1656,7 @@ Use when you need to react to any nested change regardless of depth.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-68">Description<a href="#description-68" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Walk the data along an observer's key path and report every existing entry to it, so an
+<h4 class="tsd-anchor-link" id="description-69">Description<a href="#description-69" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Walk the data along an observer's key path and report every existing entry to it, so an
 observer attached to already-populated data still sees what is there. Paths containing
 <a href="GradumModel.html#all" class="tsd-kind-property">GradumModel.ALL</a> fan out across every entry at that level.</p>
 </div></div><aside class="tsd-sources">
@@ -1649,7 +1686,7 @@ observer attached to already-populated data still sees what is there. Paths cont
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-69">Description<a href="#description-69" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Called internally whenever an entry is added, updated, or deleted.
+<h4 class="tsd-anchor-link" id="description-70">Description<a href="#description-70" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Called internally whenever an entry is added, updated, or deleted.
 Emits signals, fires <a href="#onkeychanged" class="tsd-kind-property">onKeyChanged</a>, and notifies attached observers.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#keychanged">keyChanged</a></p>
@@ -1673,7 +1710,7 @@ Emits signals, fires <a href="#onkeychanged" class="tsd-kind-property">onKeyChan
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-70">Description<a href="#description-70" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Serialize a key path into a single flat key.</p>
+<h4 class="tsd-anchor-link" id="description-71">Description<a href="#description-71" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Serialize a key path into a single flat key.</p>
 <ul>
 <li>Fully numeric paths into array-backed data produce a numeric global leaf index.</li>
 <li>All other paths produce a <code>&quot;k0|k1|k2|...&quot;</code> string, with symbols encoded as <code>&quot;@@description&quot;</code>.</li>
@@ -1700,7 +1737,7 @@ Emits signals, fires <a href="#onkeychanged" class="tsd-kind-property">onKeyChan
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-71">Description<a href="#description-71" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert a flat string key back into a key path. Reverses the string form of <a href="#flattenkey" class="tsd-kind-method">flattenKey</a>.
+<h4 class="tsd-anchor-link" id="description-72">Description<a href="#description-72" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert a flat string key back into a key path. Reverses the string form of <a href="#flattenkey" class="tsd-kind-method">flattenKey</a>.
 Segments starting with <code>&quot;@@&quot;</code> are decoded back to symbols.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#scopekey">scopeKey</a></p>
@@ -1724,7 +1761,7 @@ Segments starting with <code>&quot;@@&quot;</code> are decoded back to symbols.<
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-72">Description<a href="#description-72" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert a numeric global index back into a numeric key path.
+<h4 class="tsd-anchor-link" id="description-73">Description<a href="#description-73" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Convert a numeric global index back into a numeric key path.
 Reverses the numeric form of <a href="#flattenkey" class="tsd-kind-method">flattenKey</a>.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#scopekey">scopeKey</a></p>
@@ -1748,7 +1785,7 @@ Reverses the numeric form of <a href="#flattenkey" class="tsd-kind-method">flatt
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-73">Description<a href="#description-73" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieves the attached MVC handler with the given key.
+<h4 class="tsd-anchor-link" id="description-74">Description<a href="#description-74" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Retrieves the attached MVC handler with the given key.
 By default, unless manually defined in the handler, if the element's class name is MyElement
 and the handler's class name is MyElementSomethingHandler, the key would be &quot;something&quot;.</p>
 </div></div><aside class="tsd-sources">
@@ -1772,7 +1809,7 @@ and the handler's class name is MyElementSomethingHandler, the key would be &quo
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-74">Description<a href="#description-74" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Registers a GradumHandler for the given key.</p>
+<h4 class="tsd-anchor-link" id="description-75">Description<a href="#description-75" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Registers a GradumHandler for the given key.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#addhandler">addHandler</a></p>
 <ul>
@@ -1794,7 +1831,7 @@ and the handler's class name is MyElementSomethingHandler, the key would be &quo
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-75">Description<a href="#description-75" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Point the model at new data without running <a href="GradumModel.html#initialize" class="tsd-kind-method">GradumModel.initialize</a> on it, so
+<h4 class="tsd-anchor-link" id="description-76">Description<a href="#description-76" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Point the model at new data without running <a href="GradumModel.html#initialize" class="tsd-kind-method">GradumModel.initialize</a> on it, so
 observers and signals are not re-created. Use it when the caller will initialize at a moment of its
 own choosing; prefer assigning <code>data</code> otherwise.</p>
 </div></div><aside class="tsd-sources">
@@ -1821,45 +1858,12 @@ own choosing; prefer assigning <code>data</code> otherwise.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-76">Description<a href="#description-76" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Fire a named callback through <a href="GradumModel.html#firecallbackhook" class="tsd-kind-property">GradumModel.fireCallbackHook</a>. Does nothing if no
+<h4 class="tsd-anchor-link" id="description-77">Description<a href="#description-77" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Fire a named callback through <a href="GradumModel.html#firecallbackhook" class="tsd-kind-property">GradumModel.fireCallbackHook</a>. Does nothing if no
 hook has been assigned.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#firecallback">fireCallback</a></p>
 <ul>
 <li>Defined in src/mvc/model/model.ts:1435</li></ul></aside></div></li></ul></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="create"><code class="tsd-tag">Static</code><span>create</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
-<li class="">
-<div class="tsd-signature tsd-anchor-link" id="create-1"><span class="tsd-kind-call-signature">create</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#createdatatype">DataType</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#createdatakeytype">DataKeyType</a> <span class="tsd-signature-keyword">extends</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#createidtype">IdType</a> <span class="tsd-signature-keyword">extends</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#createcomponenttype">ComponentType</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#createdataentrytype">DataEntryType</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">properties</span><span class="tsd-signature-symbol">?:</span> <a href="../types/GradumModelProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumModelProperties</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">GradumYModel</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createdatatype">DataType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createdatakeytype">DataKeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createidtype">IdType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createcomponenttype">ComponentType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createdataentrytype">DataEntryType</a><span class="tsd-signature-symbol">&gt;</span><a href="#create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
-<div class="tsd-description"><code class="tsd-tag">Function</code>
-<div class="tsd-comment tsd-typography"><p>create</p>
-</div>
-<section class="tsd-panel">
-<h4>Type Parameters</h4>
-<ul class="tsd-type-parameter-list">
-<li><span id="createdatatype"><span class="tsd-kind-type-parameter">DataType</span> = <span class="tsd-signature-type">any</span></span></li>
-<li><span id="createdatakeytype"><span class="tsd-kind-type-parameter">DataKeyType</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> = <span class="tsd-signature-type">any</span></span></li>
-<li><span id="createidtype"><span class="tsd-kind-type-parameter">IdType</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/KeyType.html" class="tsd-signature-type tsd-kind-type-alias">KeyType</a> = <span class="tsd-signature-type">any</span></span></li>
-<li><span id="createcomponenttype"><span class="tsd-kind-type-parameter">ComponentType</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">object</span> = <span class="tsd-signature-type">any</span></span></li>
-<li><span id="createdataentrytype"><span class="tsd-kind-type-parameter">DataEntryType</span> = <span class="tsd-signature-type">any</span></span></li></ul></section>
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">properties</span>: <a href="../types/GradumModelProperties.html" class="tsd-signature-type tsd-kind-type-alias">GradumModelProperties</a><span class="tsd-signature-symbol"> = {}</span></span>
-<div class="tsd-comment tsd-typography"><p>Optional initialization properties.</p>
-</div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">GradumYModel</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createdatatype">DataType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createdatakeytype">DataKeyType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createidtype">IdType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createcomponenttype">ComponentType</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#createdataentrytype">DataEntryType</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The created model.</p>
-
-<div class="tsd-comment tsd-typography">
-<div class="tsd-tag-description">
-<h4 class="tsd-anchor-link" id="description-77">Description<a href="#description-77" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Instantiate a GradumYModel, then optionally initialize it and make its signals.
-Overrides <a href="GradumModel.html#create" class="tsd-kind-method">GradumModel.create</a> solely to narrow the return type, so that Y-specific members
-(<code>observeChanges</code>, <code>attachNestedObservers</code>, ...) remain visible on the result.</p>
-</div></div><aside class="tsd-sources">
-<p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#create">create</a></p>
-<ul>
-<li>Defined in src/mvc/model/yModel.ts:42</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="getaction"><code class="tsd-tag">Protected</code><span>get<wbr/>Action</span><a href="#getaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -1885,7 +1889,7 @@ Overrides <a href="GradumModel.html#create" class="tsd-kind-method">GradumModel.
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getaction">getAction</a></p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:82</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:63</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="setaction"><code class="tsd-tag">Protected</code><span>set<wbr/>Action</span><a href="#setaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -1913,7 +1917,7 @@ Overrides <a href="GradumModel.html#create" class="tsd-kind-method">GradumModel.
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#setaction">setAction</a></p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:91</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:72</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="addaction"><code class="tsd-tag">Protected</code><span>add<wbr/>Action</span><a href="#addaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -1945,7 +1949,7 @@ Overrides <a href="GradumModel.html#create" class="tsd-kind-method">GradumModel.
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#addaction">addAction</a></p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:110</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:91</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="hasaction"><code class="tsd-tag">Protected</code><span>has<wbr/>Action</span><a href="#hasaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -1971,7 +1975,7 @@ Overrides <a href="GradumModel.html#create" class="tsd-kind-method">GradumModel.
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#hasaction">hasAction</a></p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:134</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:115</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="deleteaction"><code class="tsd-tag">Protected</code><span>delete<wbr/>Action</span><a href="#deleteaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -1997,7 +2001,7 @@ Overrides <a href="GradumModel.html#create" class="tsd-kind-method">GradumModel.
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#deleteaction">deleteAction</a></p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:143</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:124</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="getkeysaction"><code class="tsd-tag">Protected</code><span>get<wbr/>Keys<wbr/>Action</span><a href="#getkeysaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -2014,7 +2018,7 @@ Overrides <a href="GradumModel.html#create" class="tsd-kind-method">GradumModel.
 <h4 class="tsd-anchor-link" id="inherit-doc-2">Inherit Doc<a href="#inherit-doc-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4></div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#getkeysaction">getKeysAction</a></p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:153</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:134</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="initialize"><span>initialize</span><a href="#initialize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -2031,7 +2035,7 @@ No-op if already initialized or if data is empty.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#initialize">initialize</a></p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:166</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:147</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clear"><span>clear</span><a href="#clear" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -2053,7 +2057,7 @@ No-op if already initialized or if data is empty.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#clear">clear</a></p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:178</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:159</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="diffcheck"><code class="tsd-tag">Protected</code><span>diff<wbr/>Check</span><a href="#diffcheck" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -2081,7 +2085,7 @@ objects, two arrays, or two Maps.</p>
 </div></div><aside class="tsd-sources">
 <p>Overrides <a href="GradumModel.html">GradumModel</a>.<a href="GradumModel.html#diffcheck">diffCheck</a></p>
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:191</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:172</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="observechanges"><code class="tsd-tag">Protected</code><span>observe<wbr/>Changes</span><a href="#observechanges" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -2095,7 +2099,7 @@ objects, two arrays, or two Maps.</p>
 <li><span><span class="tsd-kind-parameter">transaction</span>: <span class="tsd-signature-type">any</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:202</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:183</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="attachnestedobservers"><code class="tsd-tag">Protected</code><span>attach<wbr/>Nested<wbr/>Observers</span><a href="#attachnestedobservers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -2117,7 +2121,7 @@ objects, two arrays, or two Maps.</p>
 subtree reach this model. Types already being observed are skipped, so repeated calls are cheap.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:252</li></ul></aside></div></li></ul></section>
+<li>Defined in src/mvc/model/yModel.ts:233</li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="detachnestedobservers"><code class="tsd-tag">Protected</code><span>detach<wbr/>Nested<wbr/>Observers</span><a href="#detachnestedobservers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -2139,7 +2143,7 @@ subtree reach this model. Types already being observed are skipped, so repeated 
 attached by <a href="#attachnestedobservers" class="tsd-kind-method">GradumYModel.attachNestedObservers</a>.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/mvc/model/yModel.ts:277</li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in src/mvc/model/yModel.ts:258</li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -2161,7 +2165,7 @@ attached by <a href="#attachnestedobservers" class="tsd-kind-method">GradumYMode
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Accessors</summary>
 <div><a href="#bubblechanges" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>bubble<wbr/>Changes</span></a><a href="#data" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>data</span></a><a href="#meta" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>meta</span></a><a href="#keys" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>keys</span></a><a href="#values" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>values</span></a><a href="#datasize" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>data<wbr/>Size</span></a><a href="#enabledcallbacks"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>enabled<wbr/>Callbacks</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#from" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>from</span></a><a href="#setup" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>setup</span></a><a href="#get" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get</span></a><a href="#getflat" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Flat</span></a><a href="#getkey" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Key</span></a><a href="#getflatkey" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Flat<wbr/>Key</span></a><a href="#getkeys" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Keys</span></a><a href="#getflatkeys" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Flat<wbr/>Keys</span></a><a href="#internalset" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>internal<wbr/>Set</span></a><a href="#set" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set</span></a><a href="#setflat" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Flat</span></a><a href="#internaladd" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>internal<wbr/>Add</span></a><a href="#add" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add</span></a><a href="#addflat" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Flat</span></a><a href="#has" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has</span></a><a href="#hasflat" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has<wbr/>Flat</span></a><a href="#internaldelete" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>internal<wbr/>Delete</span></a><a href="#delete" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete</span></a><a href="#deleteflat" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete<wbr/>Flat</span></a><a href="#flatsize" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>flat<wbr/>Size</span></a><a href="#diffaction" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>diff<wbr/>Action</span></a><a href="#iterator" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>[iterator]</span></a><a href="#entries" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>entries</span></a><a href="#foreach" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a><a href="#tojson" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>to<wbr/>JSON</span></a><a href="#makesignal" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>make<wbr/>Signal</span></a><a href="#makesignals" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>make<wbr/>Signals</span></a><a href="#getsignal" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Signal</span></a><a href="#nestall" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>nest<wbr/>All</span></a><a href="#nest" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>nest</span></a><a href="#getnested" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Nested</span></a><a href="#generateobserver" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>generate<wbr/>Observer</span></a><a href="#generatedeepobserver" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>generate<wbr/>Deep<wbr/>Observer</span></a><a href="#initializeobserveronpath" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>initialize<wbr/>Observer<wbr/>On<wbr/>Path</span></a><a href="#keychanged" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>key<wbr/>Changed</span></a><a href="#flattenkey" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>flatten<wbr/>Key</span></a><a href="#scopekey" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>scope<wbr/>Key</span></a><a href="#gethandler" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Handler</span></a><a href="#addhandler" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Handler</span></a><a href="#setdatawithoutinitializing" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Data<wbr/>Without<wbr/>Initializing</span></a><a href="#firecallback" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>fire<wbr/>Callback</span></a><a href="#create"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create</span></a><a href="#getaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Action</span></a><a href="#setaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Action</span></a><a href="#addaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Action</span></a><a href="#hasaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has<wbr/>Action</span></a><a href="#deleteaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete<wbr/>Action</span></a><a href="#getkeysaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Keys<wbr/>Action</span></a><a href="#initialize"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>initialize</span></a><a href="#clear"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear</span></a><a href="#diffcheck" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>diff<wbr/>Check</span></a><a href="#observechanges" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>observe<wbr/>Changes</span></a><a href="#attachnestedobservers" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>attach<wbr/>Nested<wbr/>Observers</span></a><a href="#detachnestedobservers" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>detach<wbr/>Nested<wbr/>Observers</span></a></div></details></div></details></div>
+<div><a href="#from" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>from</span></a><a href="#create" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create</span></a><a href="#setup" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>setup</span></a><a href="#get" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get</span></a><a href="#getflat" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Flat</span></a><a href="#getkey" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Key</span></a><a href="#getflatkey" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Flat<wbr/>Key</span></a><a href="#getkeys" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Keys</span></a><a href="#getflatkeys" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Flat<wbr/>Keys</span></a><a href="#internalset" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>internal<wbr/>Set</span></a><a href="#set" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set</span></a><a href="#setflat" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Flat</span></a><a href="#internaladd" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>internal<wbr/>Add</span></a><a href="#add" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add</span></a><a href="#addflat" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Flat</span></a><a href="#has" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has</span></a><a href="#hasflat" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has<wbr/>Flat</span></a><a href="#internaldelete" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>internal<wbr/>Delete</span></a><a href="#delete" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete</span></a><a href="#deleteflat" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete<wbr/>Flat</span></a><a href="#flatsize" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>flat<wbr/>Size</span></a><a href="#diffaction" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>diff<wbr/>Action</span></a><a href="#iterator" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>[iterator]</span></a><a href="#entries" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>entries</span></a><a href="#foreach" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a><a href="#tojson" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>to<wbr/>JSON</span></a><a href="#makesignal" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>make<wbr/>Signal</span></a><a href="#makesignals" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>make<wbr/>Signals</span></a><a href="#getsignal" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Signal</span></a><a href="#nestall" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>nest<wbr/>All</span></a><a href="#nest" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>nest</span></a><a href="#getnested" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Nested</span></a><a href="#generateobserver" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>generate<wbr/>Observer</span></a><a href="#generatedeepobserver" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>generate<wbr/>Deep<wbr/>Observer</span></a><a href="#initializeobserveronpath" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>initialize<wbr/>Observer<wbr/>On<wbr/>Path</span></a><a href="#keychanged" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>key<wbr/>Changed</span></a><a href="#flattenkey" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>flatten<wbr/>Key</span></a><a href="#scopekey" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>scope<wbr/>Key</span></a><a href="#gethandler" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Handler</span></a><a href="#addhandler" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Handler</span></a><a href="#setdatawithoutinitializing" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Data<wbr/>Without<wbr/>Initializing</span></a><a href="#firecallback" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>fire<wbr/>Callback</span></a><a href="#getaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Action</span></a><a href="#setaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Action</span></a><a href="#addaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Action</span></a><a href="#hasaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has<wbr/>Action</span></a><a href="#deleteaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete<wbr/>Action</span></a><a href="#getkeysaction" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Keys<wbr/>Action</span></a><a href="#initialize"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>initialize</span></a><a href="#clear"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear</span></a><a href="#diffcheck" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>diff<wbr/>Check</span></a><a href="#observechanges" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>observe<wbr/>Changes</span></a><a href="#attachnestedobservers" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>attach<wbr/>Nested<wbr/>Observers</span></a><a href="#detachnestedobservers" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>detach<wbr/>Nested<wbr/>Observers</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">gradum-kit - v0.1.0</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

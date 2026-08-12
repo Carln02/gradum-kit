@@ -1,4 +1,5 @@
 import {define} from "../../../decorators/define/define";
+import {GradumElement} from "../../../gradumElement/gradumElement";
 import {GradumView} from "../../../mvc/view/view";
 import {GradumModel} from "../../../mvc/model/model";
 import {gradum} from "../../../gradumFunctions/gradumFunctions";
@@ -28,6 +29,36 @@ class GradumInput<
     EmitterType extends GradumEmitter = GradumEmitter,
 > extends GradumLabelElement<InputTag, ViewType, DataType, ModelType, EmitterType> {
     public declare readonly properties: GradumInputProperties<InputTag, ValueType, ViewType, DataType, ModelType, EmitterType>;
+
+    /**
+     * @function create
+     * @static
+     * @description Instantiate an input, reading `InputTag` and `ValueType` back off the properties — so
+     * `GradumInput.create({inputTag: "textarea"})` is typed as a textarea input without a cast. Narrows
+     * {@link GradumElement.create}, which cannot see generics declared on a subclass.
+     * @template {{prototype: GradumElement}} This - The class `create` was called on. The constraint
+     * matches the base signature; the return type still narrows to this class.
+     * @template {"input" | "textarea"} InputTag - Inferred from `properties.inputTag`.
+     * @template ValueType - Inferred from the properties' value type.
+     * @param {GradumInputProperties} [properties] - Properties to set on the new input.
+     * @returns {GradumInput} The created input, typed as the class this was called on.
+     */
+    public static create<
+        This extends {prototype: GradumElement},
+        InputTag extends "input" | "textarea" = "input",
+        ValueType = string,
+        ViewType extends GradumView = GradumView<any, any>,
+        DataType extends object = object,
+        ModelType extends GradumModel = GradumModel,
+        EmitterType extends GradumEmitter = GradumEmitter<any>
+    >(
+        this: This,
+        properties?: This["prototype"]["properties"]
+            & GradumInputProperties<InputTag, ValueType, ViewType, DataType, ModelType, EmitterType>
+    ): This["prototype"]
+        & GradumInput<InputTag, ValueType, ViewType, DataType, ModelType, EmitterType> {
+        return (super.create as any).call(this, properties);
+    }
 
     /**
      * @static

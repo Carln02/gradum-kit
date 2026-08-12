@@ -3,7 +3,6 @@ import {trim} from "../../utils/computations/misc";
 import {YAbstractType, YArray, YMap, YArrayEvent, YEvent, YMapEvent} from "../../types/yjs.types";
 import {isUndefined} from "../../utils/dataManipulation/misc";
 import {GradumModel} from "./model";
-import {GradumModelProperties} from "./model.types";
 import {KeyType} from "../../types/basic.types";
 
 /**
@@ -30,24 +29,6 @@ class GradumYModel<
 > extends GradumModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
     private readonly observer = (event: any, transaction: any) => this.observeChanges(event, transaction);
     private readonly observedYTypes = new WeakSet<object>();
-
-    /**
-     * @function create
-     * @description Instantiate a GradumYModel, then optionally initialize it and make its signals.
-     * Overrides {@link GradumModel.create} solely to narrow the return type, so that Y-specific members
-     * (`observeChanges`, `attachNestedObservers`, ...) remain visible on the result.
-     * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
-     * @returns {GradumYModel} The created model.
-     */
-    public static create<
-        DataType = any,
-        DataKeyType extends KeyType = any,
-        IdType extends KeyType = any,
-        ComponentType extends object = any,
-        DataEntryType = any
-    >(properties: GradumModelProperties = {}): GradumYModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
-        return super.create(properties) as GradumYModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType>;
-    }
 
     /**
      * @inheritDoc

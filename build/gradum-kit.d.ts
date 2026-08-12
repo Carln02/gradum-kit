@@ -1239,15 +1239,21 @@ declare class GradumModel<DataType = any, DataKeyType extends KeyType = any, IdT
     static from<DataType extends object = any, IdType extends KeyType = any>(data?: DataType, id?: IdType): GradumModelProxy<DataType, IdType>;
     /**
      * @function create
-     * @description Instantiate a model, then optionally initialize it and make its signals.
-     * Subclasses that need `create` to report their own type should override it and narrow the return type
-     * (see {@link GradumYModel.create}). The type parameters cannot be derived from the callee here, because
-     * `InstanceType`/`infer` resolve this class' generics to their constraints (`object`, `KeyType`, `unknown`)
-     * rather than their `any` defaults, which would break inference at every call site.
+     * @static
+     * @description Instantiate a model, then optionally initialize it and make its signals. The return type
+     * follows the class it is called on, so `GradumYModel.create(...)` yields a {@link GradumYModel} with its
+     * Y-specific members intact.
+     *
+     * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`. The latter
+     * instantiates this class' generics with their constraints (`object`, `KeyType`, `unknown`) instead of
+     * their `any` defaults, which breaks inference at every call site.*
+     * @template {{prototype: GradumModel}} This - The class `create` was called on.
      * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
-     * @returns {GradumModel} The created model.
+     * @returns {GradumModel} The created model, typed as the class this was called on.
      */
-    static create<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any>(properties?: GradumModelProperties): GradumModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType>;
+    static create<This extends {
+        prototype: GradumModel;
+    }>(this: This, properties?: GradumModelProperties): This["prototype"];
     /**
      * @description The default constructor used to create nested {@link GradumModel} instances.
      */
@@ -5068,7 +5074,9 @@ declare class GradumBaseElement {
      * @param {PropertiesType} [properties] - Properties to set on the new instance.
      * @returns {InstanceType<Type>} The created instance.
      */
-    static create<Type extends new (...args: any[]) => GradumBaseElement>(this: Type, properties?: InstanceType<Type>["properties"]): InstanceType<Type>;
+    static create<This extends {
+        prototype: GradumBaseElement;
+    }>(this: This, properties?: This["prototype"]["properties"]): This["prototype"];
     /**
      * @protected
      * @static
@@ -6929,11 +6937,23 @@ declare class GradumElement<ViewType extends GradumView = GradumView<any, any>, 
      * @static
      * @description Instantiate this class with the given properties. Defaults declared by every class in the
      * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
-     * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
-     * @param {PropertiesType} [properties] - Properties to set on the new instance.
-     * @returns {InstanceType<Type>} The created instance.
+     * its parent's. The return type follows the class it is called on, and the MVC type parameters are read
+     * back off the properties — passing `model: MyModel` types `.model` as `MyModel` without a cast.
+     *
+     * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`, because the
+     * latter instantiates a generic class' parameters with their constraints instead of their defaults,
+     * which is what forced casts at call sites.*
+     * @template {{prototype: GradumElement}} This - The class `create` was called on.
+     * @template {GradumView} ViewType - Inferred from `properties.view`.
+     * @template {object} DataType - Inferred from `properties.data`.
+     * @template {GradumModel} ModelType - Inferred from `properties.model`.
+     * @template {GradumEmitter} EmitterType - Inferred from `properties.emitter`.
+     * @param {GradumElementProperties} [properties] - Properties to set on the new instance.
+     * @returns {GradumElement} The created instance, typed as the class this was called on.
      */
-    static create<Type extends new (...args: any[]) => GradumElement, PropertiesType extends InstanceType<Type>["properties"]>(this: Type, properties?: PropertiesType): InstanceType<Type>;
+    static create<This extends {
+        prototype: GradumElement;
+    }, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>>(this: This, properties?: This["prototype"]["properties"] & GradumElementProperties<ViewType, DataType, ModelType, EmitterType>): This["prototype"] & GradumElement<ViewType, DataType, ModelType, EmitterType>;
     /**
      * @protected
      * @static
@@ -10035,7 +10055,9 @@ declare class GradumHeadlessElement<ViewType extends GradumView = GradumView<any
      * @param {PropertiesType} [properties] - Properties to set on the new instance.
      * @returns {InstanceType<Type>} The created instance.
      */
-    static create<Type extends new (...args: any[]) => GradumHeadlessElement>(this: Type, properties?: InstanceType<Type>["properties"]): InstanceType<Type>;
+    static create<This extends {
+        prototype: GradumHeadlessElement;
+    }, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>>(this: This, properties?: This["prototype"]["properties"] & GradumHeadlessProperties<ViewType, DataType, ModelType, EmitterType>): This["prototype"] & GradumHeadlessElement<ViewType, DataType, ModelType, EmitterType>;
     /**
      * @protected
      * @static
@@ -10075,7 +10097,9 @@ declare class GradumProxiedElement<ElementTag extends ValidTag = ValidTag, ViewT
      * @param {PropertiesType} [properties] - Properties to set on the new instance.
      * @returns {InstanceType<Type>} The created instance.
      */
-    static create<Type extends new (...args: any[]) => GradumProxiedElement>(this: Type, properties?: InstanceType<Type>["properties"]): InstanceType<Type>;
+    static create<This extends {
+        prototype: GradumProxiedElement;
+    }, ElementTag extends ValidTag = ValidTag, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>>(this: This, properties?: This["prototype"]["properties"] & GradumProxiedProperties<ElementTag, ViewType, DataType, ModelType, EmitterType>): This["prototype"] & GradumProxiedElement<ElementTag, ViewType, DataType, ModelType, EmitterType>;
     /**
      * @protected
      * @static
@@ -10457,15 +10481,6 @@ type YDocumentProperties<ViewType extends GradumView = GradumView<any, any>, Dat
 declare class GradumYModel<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any> extends GradumModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
     private readonly observer;
     private readonly observedYTypes;
-    /**
-     * @function create
-     * @description Instantiate a GradumYModel, then optionally initialize it and make its signals.
-     * Overrides {@link GradumModel.create} solely to narrow the return type, so that Y-specific members
-     * (`observeChanges`, `attachNestedObservers`, ...) remain visible on the result.
-     * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
-     * @returns {GradumYModel} The created model.
-     */
-    static create<DataType = any, DataKeyType extends KeyType = any, IdType extends KeyType = any, ComponentType extends object = any, DataEntryType = any>(properties?: GradumModelProperties): GradumYModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType>;
     /**
      * @inheritDoc
      */

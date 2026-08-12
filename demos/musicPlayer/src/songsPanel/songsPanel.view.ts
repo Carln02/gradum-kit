@@ -17,7 +17,7 @@ export class SongsPanelView extends GradumView<SongsPanel> {
             getValue: (entry: Song) => entry.title,
             getSecondaryValue: (entry: Song) => entry.artist,
             onEnabled: (b, entry) => gradum(entry).setStyle("display", b ? "" : "none"),
-        }) as GradumSelect<string, string, Song>;
+        });
 
         this.model.data
             .sort((a, b) => a.title.localeCompare(b.title))

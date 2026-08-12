@@ -12922,13 +12922,17 @@
           }
           /**
            * @function create
-           * @description Instantiate a model, then optionally initialize it and make its signals.
-           * Subclasses that need `create` to report their own type should override it and narrow the return type
-           * (see {@link GradumYModel.create}). The type parameters cannot be derived from the callee here, because
-           * `InstanceType`/`infer` resolve this class' generics to their constraints (`object`, `KeyType`, `unknown`)
-           * rather than their `any` defaults, which would break inference at every call site.
+           * @static
+           * @description Instantiate a model, then optionally initialize it and make its signals. The return type
+           * follows the class it is called on, so `GradumYModel.create(...)` yields a {@link GradumYModel} with its
+           * Y-specific members intact.
+           *
+           * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`. The latter
+           * instantiates this class' generics with their constraints (`object`, `KeyType`, `unknown`) instead of
+           * their `any` defaults, which breaks inference at every call site.*
+           * @template {{prototype: GradumModel}} This - The class `create` was called on.
            * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
-           * @returns {GradumModel} The created model.
+           * @returns {GradumModel} The created model, typed as the class this was called on.
            */
           static create(properties = {}) {
               const model = new this(properties);
@@ -15031,9 +15035,19 @@
        * @static
        * @description Instantiate this class with the given properties. Defaults declared by every class in the
        * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
-       * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
-       * @param {PropertiesType} [properties] - Properties to set on the new instance.
-       * @returns {InstanceType<Type>} The created instance.
+       * its parent's. The return type follows the class it is called on, and the MVC type parameters are read
+       * back off the properties — passing `model: MyModel` types `.model` as `MyModel` without a cast.
+       *
+       * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`, because the
+       * latter instantiates a generic class' parameters with their constraints instead of their defaults,
+       * which is what forced casts at call sites.*
+       * @template {{prototype: GradumElement}} This - The class `create` was called on.
+       * @template {GradumView} ViewType - Inferred from `properties.view`.
+       * @template {object} DataType - Inferred from `properties.data`.
+       * @template {GradumModel} ModelType - Inferred from `properties.model`.
+       * @template {GradumEmitter} EmitterType - Inferred from `properties.emitter`.
+       * @param {GradumElementProperties} [properties] - Properties to set on the new instance.
+       * @returns {GradumElement} The created instance, typed as the class this was called on.
        */
       static create(properties) {
           return this.customCreate(properties ?? {});
@@ -15224,11 +15238,12 @@
        * @param {PropertiesType} [properties] - Properties to set on the new instance.
        * @returns {InstanceType<Type>} The created instance.
        */
-      static create(properties = {}) {
+      static create(properties) {
+          const props = properties ?? {};
           const prototypeChain = getPrototypeChain(this);
           for (const prototype of prototypeChain)
-              gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
-          return this.customCreate.call(this, properties);
+              gradum(props).applyDefaults(prototype["defaultProperties"] ?? {});
+          return this.customCreate.call(this, props);
       }
       /**
        * @protected
@@ -19013,6 +19028,27 @@
           let propagation = Propagation.propagate;
           if (this.bypassManagerOn)
               utils$5.bypassManager(this, manager, this.bypassManagerOn(event));
+          //Whether the event started inside a subtree that opted out of the given tool. Walks up from the
+          //event's target, crossing shadow boundaries, so ignoring a tool on a component also covers the inner
+          //nodes a click actually lands on. Memoized: executeAction is called once per element of the path.
+          const originIgnoresCache = new Map();
+          const originIgnoresTool = (tool) => {
+              if (!tool)
+                  return false;
+              if (originIgnoresCache.has(tool))
+                  return originIgnoresCache.get(tool);
+              let ignored = false;
+              let node = (event?.target ?? undefined);
+              while (node) {
+                  if (gradum(node).isToolIgnored(tool, type, manager)) {
+                      ignored = true;
+                      break;
+                  }
+                  node = node.parentNode ?? node.host;
+              }
+              originIgnoresCache.set(tool, ignored);
+              return ignored;
+          };
           const checkConstrainers = (target, tool) => {
               if (!target)
                   return;
@@ -19037,6 +19073,8 @@
               checkConstrainers(target.parentNode, tool);
           };
           const runListeners = (target, tool) => {
+              if (tool && (gradum(target).isToolIgnored(tool, type, manager) || originIgnoresTool(tool)))
+                  return;
               const ts = target instanceof GradumSelector ? target : gradum(target);
               const boundSet = utils$5.getBoundListenersSet(target);
               const entries = utils$5.getBoundListeners({ target, type, toolName: tool, options, manager });
@@ -19063,7 +19101,7 @@
           const applyTool = (target, tool) => {
               if (options.capture || !tool)
                   return;
-              if (gradum(target).isToolIgnored(tool, type, manager))
+              if (gradum(target).isToolIgnored(tool, type, manager) || originIgnoresTool(tool))
                   return;
               checkConstrainers(target, tool);
               if (!this.hasToolBehavior(type, tool, manager))
@@ -24602,6 +24640,22 @@
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           /**
+           * @function create
+           * @static
+           * @description Instantiate an input, reading `InputTag` and `ValueType` back off the properties — so
+           * `GradumInput.create({inputTag: "textarea"})` is typed as a textarea input without a cast. Narrows
+           * {@link GradumElement.create}, which cannot see generics declared on a subclass.
+           * @template {{prototype: GradumElement}} This - The class `create` was called on. The constraint
+           * matches the base signature; the return type still narrows to this class.
+           * @template {"input" | "textarea"} InputTag - Inferred from `properties.inputTag`.
+           * @template ValueType - Inferred from the properties' value type.
+           * @param {GradumInputProperties} [properties] - Properties to set on the new input.
+           * @returns {GradumInput} The created input, typed as the class this was called on.
+           */
+          static create(properties) {
+              return super.create.call(this, properties);
+          }
+          /**
            * @static
            * @description Default properties assigned to a new input: an `<input>` element, wired to the
            * interactor that keeps its value and size in step with what the user types.
@@ -24996,6 +25050,23 @@
               __esDecorate(null, null, _selectedEntriesClasses_decorators, { kind: "field", name: "selectedEntriesClasses", static: false, private: false, access: { has: obj => "selectedEntriesClasses" in obj, get: obj => obj.selectedEntriesClasses, set: (obj, value) => { obj.selectedEntriesClasses = value; } }, metadata: _metadata }, _selectedEntriesClasses_initializers, _selectedEntriesClasses_extraInitializers);
               __esDecorate(null, null, _entriesClasses_decorators, { kind: "field", name: "entriesClasses", static: false, private: false, access: { has: obj => "entriesClasses" in obj, get: obj => obj.entriesClasses, set: (obj, value) => { obj.entriesClasses = value; } }, metadata: _metadata }, _entriesClasses_initializers, _entriesClasses_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          /**
+           * @function create
+           * @static
+           * @description Instantiate a selection, reading its value and entry types back off the properties — so
+           * the types come from `getValue`/`getSecondaryValue` rather than needing a cast. Narrows
+           * {@link GradumBaseElement.create}, which cannot see generics declared on a subclass.
+           * @template {{prototype: GradumBaseElement}} This - The class `create` was called on. The constraint
+           * matches the base signature; the return type still narrows to this class.
+           * @template ValueType - Inferred from `properties.getValue`.
+           * @template SecondaryValueType - Inferred from `properties.getSecondaryValue`.
+           * @template {object} EntryType - Inferred from the entries the accessors receive.
+           * @param {GradumSelectProperties} [properties] - Properties to set on the new selection.
+           * @returns {GradumSelect} The created selection, typed as the class this was called on.
+           */
+          static create(properties) {
+              return super.create.call(this, properties);
           }
           /**
            * @static
@@ -27514,17 +27585,6 @@
           }
           observer = (__runInitializers(this, _instanceExtraInitializers), (event, transaction) => this.observeChanges(event, transaction));
           observedYTypes = new WeakSet();
-          /**
-           * @function create
-           * @description Instantiate a GradumYModel, then optionally initialize it and make its signals.
-           * Overrides {@link GradumModel.create} solely to narrow the return type, so that Y-specific members
-           * (`observeChanges`, `attachNestedObservers`, ...) remain visible on the result.
-           * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
-           * @returns {GradumYModel} The created model.
-           */
-          static create(properties = {}) {
-              return super.create(properties);
-          }
           /**
            * @inheritDoc
            */

@@ -30,6 +30,33 @@ class GradumSelect<
     public declare readonly properties: GradumSelectProperties<ValueType, SecondaryValueType, EntryType>;
 
     /**
+     * @function create
+     * @static
+     * @description Instantiate a selection, reading its value and entry types back off the properties — so
+     * the types come from `getValue`/`getSecondaryValue` rather than needing a cast. Narrows
+     * {@link GradumBaseElement.create}, which cannot see generics declared on a subclass.
+     * @template {{prototype: GradumBaseElement}} This - The class `create` was called on. The constraint
+     * matches the base signature; the return type still narrows to this class.
+     * @template ValueType - Inferred from `properties.getValue`.
+     * @template SecondaryValueType - Inferred from `properties.getSecondaryValue`.
+     * @template {object} EntryType - Inferred from the entries the accessors receive.
+     * @param {GradumSelectProperties} [properties] - Properties to set on the new selection.
+     * @returns {GradumSelect} The created selection, typed as the class this was called on.
+     */
+    public static create<
+        This extends {prototype: GradumBaseElement},
+        ValueType = string,
+        SecondaryValueType = string,
+        EntryType extends object = HTMLElement
+    >(
+        this: This,
+        properties?: This["prototype"]["properties"]
+            & GradumSelectProperties<ValueType, SecondaryValueType, EntryType>
+    ): This["prototype"] & GradumSelect<ValueType, SecondaryValueType, EntryType> {
+        return (super.create as any).call(this, properties);
+    }
+
+    /**
      * @static
      * @description Default properties assigned to a new selection: selected entries get the `selected` class,
      * and disabled entries are hidden.

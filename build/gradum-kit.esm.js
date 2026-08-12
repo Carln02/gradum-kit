@@ -5080,13 +5080,17 @@ let GradumModel = (() => {
         }
         /**
          * @function create
-         * @description Instantiate a model, then optionally initialize it and make its signals.
-         * Subclasses that need `create` to report their own type should override it and narrow the return type
-         * (see {@link GradumYModel.create}). The type parameters cannot be derived from the callee here, because
-         * `InstanceType`/`infer` resolve this class' generics to their constraints (`object`, `KeyType`, `unknown`)
-         * rather than their `any` defaults, which would break inference at every call site.
+         * @static
+         * @description Instantiate a model, then optionally initialize it and make its signals. The return type
+         * follows the class it is called on, so `GradumYModel.create(...)` yields a {@link GradumYModel} with its
+         * Y-specific members intact.
+         *
+         * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`. The latter
+         * instantiates this class' generics with their constraints (`object`, `KeyType`, `unknown`) instead of
+         * their `any` defaults, which breaks inference at every call site.*
+         * @template {{prototype: GradumModel}} This - The class `create` was called on.
          * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
-         * @returns {GradumModel} The created model.
+         * @returns {GradumModel} The created model, typed as the class this was called on.
          */
         static create(properties = {}) {
             const model = new this(properties);
@@ -7189,9 +7193,19 @@ class GradumElement extends HTMLElement {
      * @static
      * @description Instantiate this class with the given properties. Defaults declared by every class in the
      * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
-     * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
-     * @param {PropertiesType} [properties] - Properties to set on the new instance.
-     * @returns {InstanceType<Type>} The created instance.
+     * its parent's. The return type follows the class it is called on, and the MVC type parameters are read
+     * back off the properties — passing `model: MyModel` types `.model` as `MyModel` without a cast.
+     *
+     * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`, because the
+     * latter instantiates a generic class' parameters with their constraints instead of their defaults,
+     * which is what forced casts at call sites.*
+     * @template {{prototype: GradumElement}} This - The class `create` was called on.
+     * @template {GradumView} ViewType - Inferred from `properties.view`.
+     * @template {object} DataType - Inferred from `properties.data`.
+     * @template {GradumModel} ModelType - Inferred from `properties.model`.
+     * @template {GradumEmitter} EmitterType - Inferred from `properties.emitter`.
+     * @param {GradumElementProperties} [properties] - Properties to set on the new instance.
+     * @returns {GradumElement} The created instance, typed as the class this was called on.
      */
     static create(properties) {
         return this.customCreate(properties ?? {});
@@ -7382,11 +7396,12 @@ class GradumProxiedElement {
      * @param {PropertiesType} [properties] - Properties to set on the new instance.
      * @returns {InstanceType<Type>} The created instance.
      */
-    static create(properties = {}) {
+    static create(properties) {
+        const props = properties ?? {};
         const prototypeChain = getPrototypeChain(this);
         for (const prototype of prototypeChain)
-            gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
-        return this.customCreate.call(this, properties);
+            gradum(props).applyDefaults(prototype["defaultProperties"] ?? {});
+        return this.customCreate.call(this, props);
     }
     /**
      * @protected
@@ -20631,17 +20646,6 @@ let GradumYModel = (() => {
         }
         observer = (__runInitializers(this, _instanceExtraInitializers), (event, transaction) => this.observeChanges(event, transaction));
         observedYTypes = new WeakSet();
-        /**
-         * @function create
-         * @description Instantiate a GradumYModel, then optionally initialize it and make its signals.
-         * Overrides {@link GradumModel.create} solely to narrow the return type, so that Y-specific members
-         * (`observeChanges`, `attachNestedObservers`, ...) remain visible on the result.
-         * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
-         * @returns {GradumYModel} The created model.
-         */
-        static create(properties = {}) {
-            return super.create(properties);
-        }
         /**
          * @inheritDoc
          */

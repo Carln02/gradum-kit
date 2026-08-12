@@ -50,11 +50,22 @@ class GradumProxiedElement<
      * @param {PropertiesType} [properties] - Properties to set on the new instance.
      * @returns {InstanceType<Type>} The created instance.
      */
-    public static create<Type extends new (...args: any[]) => GradumProxiedElement>
-    (this: Type, properties: InstanceType<Type>["properties"] = {}): InstanceType<Type> {
+    public static create<
+        This extends {prototype: GradumProxiedElement},
+        ElementTag extends ValidTag = ValidTag,
+        ViewType extends GradumView = GradumView<any, any>,
+        DataType extends object = object,
+        ModelType extends GradumModel = GradumModel,
+        EmitterType extends GradumEmitter = GradumEmitter<any>
+    >(
+        this: This,
+        properties?: This["prototype"]["properties"]
+            & GradumProxiedProperties<ElementTag, ViewType, DataType, ModelType, EmitterType>
+    ): This["prototype"] & GradumProxiedElement<ElementTag, ViewType, DataType, ModelType, EmitterType> {
+        const props = properties ?? {};
         const prototypeChain = getPrototypeChain(this);
-        for (const prototype of prototypeChain) gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
-        return (this as any).customCreate.call(this, properties);
+        for (const prototype of prototypeChain) gradum(props).applyDefaults(prototype["defaultProperties"] ?? {});
+        return (this as any).customCreate.call(this, props);
     }
 
     /**

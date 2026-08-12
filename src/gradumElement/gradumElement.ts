@@ -49,14 +49,31 @@ class GradumElement<
      * @static
      * @description Instantiate this class with the given properties. Defaults declared by every class in the
      * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
-     * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
-     * @param {PropertiesType} [properties] - Properties to set on the new instance.
-     * @returns {InstanceType<Type>} The created instance.
+     * its parent's. The return type follows the class it is called on, and the MVC type parameters are read
+     * back off the properties — passing `model: MyModel` types `.model` as `MyModel` without a cast.
+     *
+     * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`, because the
+     * latter instantiates a generic class' parameters with their constraints instead of their defaults,
+     * which is what forced casts at call sites.*
+     * @template {{prototype: GradumElement}} This - The class `create` was called on.
+     * @template {GradumView} ViewType - Inferred from `properties.view`.
+     * @template {object} DataType - Inferred from `properties.data`.
+     * @template {GradumModel} ModelType - Inferred from `properties.model`.
+     * @template {GradumEmitter} EmitterType - Inferred from `properties.emitter`.
+     * @param {GradumElementProperties} [properties] - Properties to set on the new instance.
+     * @returns {GradumElement} The created instance, typed as the class this was called on.
      */
     public static create<
-        Type extends new (...args: any[]) => GradumElement,
-        PropertiesType extends InstanceType<Type>["properties"]
-    >(this: Type, properties?: PropertiesType): InstanceType<Type> {
+        This extends {prototype: GradumElement},
+        ViewType extends GradumView = GradumView<any, any>,
+        DataType extends object = object,
+        ModelType extends GradumModel = GradumModel,
+        EmitterType extends GradumEmitter = GradumEmitter<any>
+    >(
+        this: This,
+        properties?: This["prototype"]["properties"]
+            & GradumElementProperties<ViewType, DataType, ModelType, EmitterType>
+    ): This["prototype"] & GradumElement<ViewType, DataType, ModelType, EmitterType> {
         return (this as any).customCreate(properties ?? {});
     }
 

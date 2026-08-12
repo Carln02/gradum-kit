@@ -29,8 +29,9 @@ class GradumBaseElement {
      * @param {PropertiesType} [properties] - Properties to set on the new instance.
      * @returns {InstanceType<Type>} The created instance.
      */
-    public static create<Type extends new (...args: any[]) => GradumBaseElement>
-    (this: Type, properties: InstanceType<Type>["properties"] = {}): InstanceType<Type> {
+    public static create<This extends {prototype: GradumBaseElement}>(
+        this: This, properties: This["prototype"]["properties"] = {}
+    ): This["prototype"] {
         return (this as any).customCreate.call(this, properties);
     }
 

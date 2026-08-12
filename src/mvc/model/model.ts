@@ -103,22 +103,22 @@ class GradumModel<
 
     /**
      * @function create
-     * @description Instantiate a model, then optionally initialize it and make its signals.
-     * Subclasses that need `create` to report their own type should override it and narrow the return type
-     * (see {@link GradumYModel.create}). The type parameters cannot be derived from the callee here, because
-     * `InstanceType`/`infer` resolve this class' generics to their constraints (`object`, `KeyType`, `unknown`)
-     * rather than their `any` defaults, which would break inference at every call site.
+     * @static
+     * @description Instantiate a model, then optionally initialize it and make its signals. The return type
+     * follows the class it is called on, so `GradumYModel.create(...)` yields a {@link GradumYModel} with its
+     * Y-specific members intact.
+     *
+     * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`. The latter
+     * instantiates this class' generics with their constraints (`object`, `KeyType`, `unknown`) instead of
+     * their `any` defaults, which breaks inference at every call site.*
+     * @template {{prototype: GradumModel}} This - The class `create` was called on.
      * @param {GradumModelProperties} [properties={}] - Optional initialization properties.
-     * @returns {GradumModel} The created model.
+     * @returns {GradumModel} The created model, typed as the class this was called on.
      */
-    public static create<
-        DataType = any,
-        DataKeyType extends KeyType = any,
-        IdType extends KeyType = any,
-        ComponentType extends object = any,
-        DataEntryType = any
-    >(properties: GradumModelProperties = {}): GradumModel<DataType, DataKeyType, IdType, ComponentType, DataEntryType> {
-        const model = new this(properties);
+    public static create<This extends {prototype: GradumModel}>(
+        this: This, properties: GradumModelProperties = {}
+    ): This["prototype"] {
+        const model = new (this as any)(properties);
         if (properties.initialize) model.initialize();
         if (properties.makeSignals) model.makeSignals(GradumModel.ALL);
         return model;
