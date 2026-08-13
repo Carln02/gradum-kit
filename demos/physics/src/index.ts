@@ -1,5 +1,5 @@
 import {GradumButton} from "../../../build/gradum-kit.esm";
-import {SelectTool} from "./tools/select.tool";
+import {SelectTool} from "./tools/select/select.tool";
 import {PusherSubstrateTool} from "./tools/pusherSubstrate.tool";
 import {AddSquareTool} from "./tools/addSquare.tool";
 import {Canvas} from "./canvas/canvas";

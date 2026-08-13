@@ -9784,39 +9784,6 @@
   glo[importIdentifier] = true;
 
   /**
-   * @typedef {Object} AutoOptions
-   * @group Decorators
-   * @category Augmentation
-   *
-   * @template Type - The type of the decorated property.
-   * @description Options for configuring the `@auto` decorator.
-   * @property {boolean} [override] - If true, will try to override the defined property in `super`.
-   * @property {boolean} [cancelIfUnchanged=true] - If true, cancels the setter if the new value is the same as the
-   * current value. Defaults to `true`.
-   * @property {(value: Type) => Type} [preprocessValue] - Optional callback to execute on the value and preprocess it
-   * just before it is set. The returned value will be stored.
-   * @property {(value: Type) => void} [callBefore] - Optional function to call before preprocessing and setting the value.
-   * @property {(value: Type) => void} [callAfter] - Optional function to call after setting the value.
-   * @property {boolean} [setIfUndefined] - If true, will fire the setter when the underlying value is `undefined` and
-   * the program is trying to access it (maybe through its getter).
-   * @property {boolean} [returnDefinedGetterValue] - If true and a custom getter is defined, the return value of this
-   * getter will be returned when accessing the property. Otherwise, the underlying saved value will always be returned.
-   * Defaults to `false`.
-   * @property {boolean} [executeSetterBeforeStoring] - If true, when setting the value, the setter will execute first,
-   * and then the value will be stored. In this case, accessing the value in the setter will return the previous value.
-   * Defaults to `false`.
-   * @property {Type} [defaultValue] - If defined, whenever the underlying value is `undefined` and trying to be
-   * accessed, it will be set to `defaultValue` through the setter before getting accessed.
-   * @property {() => Type} [defaultValueCallback] - If defined, whenever the underlying value is `undefined` and
-   * trying to be accessed, it will be set to the return value of `defaultValueCallback` through the setter before
-   * getting accessed.
-   * @property {Type} [initialValue] - If defined, on initialization, the property will be set to `initialValue`.
-   * @property {() => Type} [initialValueCallback] - If defined, on initialization, the property will be set to the
-   * return value of `initialValueCallback`.
-   */
-
-
-  /**
    * @internal
    */
   class AutoUtils {
@@ -16534,6 +16501,34 @@
   function handler(name) {
       return function (_unused, context) {
           generateField(context, "Handler", name);
+      };
+  }
+  /**
+   * @decorator
+   * @function tool
+   * @group Decorators
+   * @category MVC
+   *
+   * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+   * fetched tool.
+   * @param {string} [name] - The key name of the tool in the MVC instance (if any). By default, it is inferred
+   * from the name of the field. If the field is named `somethingTool`, the key name will be `something`.
+   *
+   * @example
+   * ```ts
+   * @tool() protected textTool: GradumTool;
+   * ```
+   * Is equivalent to:
+   * ```ts
+   * protected get textTool(): GradumTool {
+   *    if (this.mvc instanceof Mvc) return this.mvc.getTool("text");
+   *    if (typeof this.getTool === "function") return this.getTool("text");
+   * }
+   * ```
+   */
+  function tool(name) {
+      return function (_unused, context) {
+          generateField(context, "Tool", name);
       };
   }
 
@@ -26006,8 +26001,8 @@
   })();
   define(GradumSelectElement);
 
-  var css_248z$3 = "gradum-content-switch{align-items:flex-start;display:flex;flex-direction:column;overflow:hidden;position:relative}gradum-content-switch>*{box-sizing:border-box;left:0;position:absolute;top:0}";
-  styleInject$1(css_248z$3);
+  var css_248z$3$1 = "gradum-content-switch{align-items:flex-start;display:flex;flex-direction:column;overflow:hidden;position:relative}gradum-content-switch>*{box-sizing:border-box;left:0;position:absolute;top:0}";
+  styleInject$1(css_248z$3$1);
 
   /**
    * @enum {ContentSwitchMode}
@@ -28293,28 +28288,35 @@
       return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
   };
 
-  //Select tool
-  let SelectTool = (() => {
+  //Resize tool
+  let ResizeTool = (() => {
       let _classSuper = GradumTool;
       let _instanceExtraInitializers = [];
       let _drag_decorators;
-      return class SelectTool extends _classSuper {
+      return class ResizeTool extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
               _drag_decorators = [behavior()];
               __esDecorate(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
-          toolName = (__runInitializers(this, _instanceExtraInitializers), "select"); //Define the tool name
-          //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "select", (e, el) => {...});
+          toolName = (__runInitializers(this, _instanceExtraInitializers), "resize"); //Define the tool name
+          anchor = Anchor.Center;
+          //How pointer movement maps onto size. Resizing around the center moves both edges at once, so the box has
+          //to grow by twice the pointer delta for the dragged edge to keep up. A grip pinned to a corner grows 1:1
+          //instead, and inverts the axes it sits on the near side of — see ResizeHandle.
+          sign = new Point(2, 2);
+          //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "resize", (e, el) => {...});
           drag(e, el) {
               try {
-                  if ("move" in el && typeof el.move === "function")
-                      el.move(e.deltaPosition);
-                  else if ("translate" in el && typeof el.translate === "function")
-                      el.translate(e.deltaPosition);
-                  else if ("position" in el && typeof el.position === "object")
-                      el.position = e.deltaPosition.add(el.position);
+                  let delta = e.deltaPosition.mul(this.sign);
+                  //Holding Shift maintains the ratio
+                  if (e.keys.includes("Shift"))
+                      delta = new Point(delta.min, delta.min);
+                  if ("resize" in el && typeof el.resize === "function")
+                      el.resize(delta, this.anchor);
+                  else if ("size" in el && typeof el.size === "object")
+                      el.size = delta.add(el.size);
                   else
                       return Propagation.propagate;
                   return Propagation.stopPropagation;
@@ -28325,6 +28327,48 @@
           }
       };
   })();
+
+  //A corner grip of the selection box. The handle itself is a tool, embedded into the selected element: the
+  //resize behaviour runs with that element as its target, so dragging the grip resizes the square underneath
+  //without the square ever receiving the drag.
+  let ResizeHandle = (() => {
+      let _classSuper = GradumElement;
+      let _resizeTool_decorators;
+      let _resizeTool_initializers = [];
+      let _resizeTool_extraInitializers = [];
+      return class ResizeHandle extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _resizeTool_decorators = [tool()];
+              __esDecorate(null, null, _resizeTool_decorators, { kind: "field", name: "resizeTool", static: false, private: false, access: { has: obj => "resizeTool" in obj, get: obj => obj.resizeTool, set: (obj, value) => { obj.resizeTool = value; } }, metadata: _metadata }, _resizeTool_initializers, _resizeTool_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          static defaultProperties = { tools: ResizeTool };
+          anchor;
+          resizeTool = __runInitializers(this, _resizeTool_initializers, void 0);
+          initialize() {
+              this.updateAnchor();
+              super.initialize();
+          }
+          updateAnchor() {
+              this.resizeTool.toolName = `resize-${this.anchor}`;
+              this.resizeTool.customActivation = () => { };
+              const corner = AnchorPoint.enumToPoint(this.anchor);
+              this.resizeTool.anchor = AnchorPoint.pointToEnum(corner.mul(-1));
+              this.resizeTool.sign = corner.div(100);
+              gradum(this).setStyles({ left: `${(corner.x + 100) / 2}%`, top: `${(corner.y + 100) / 2}%` });
+          }
+          //Point the handle at a new element. Embedding is what routes the drag to the target.
+          retarget(target) {
+              gradum(this).embedTool(target);
+          }
+          constructor() {
+              super(...arguments);
+              __runInitializers(this, _resizeTool_extraInitializers);
+          }
+      };
+  })();
+  define(ResizeHandle, "demo-resize-handle");
 
   function styleInject(css, ref) {
     if ( ref === void 0 ) ref = {};
@@ -28352,6 +28396,131 @@
       style.appendChild(document.createTextNode(css));
     }
   }
+
+  var css_248z$3 = "demo-selection-box{border:1px dashed #3b82f6;box-sizing:border-box;display:none;left:0;pointer-events:none;position:absolute;top:0;z-index:10}demo-selection-box.selecting{display:block}demo-resize-handle{background-color:#fff;border:1px solid #3b82f6;border-radius:2px;box-sizing:border-box;cursor:pointer;height:10px;margin:-5px;pointer-events:auto;position:absolute;width:10px}";
+  styleInject(css_248z$3);
+
+  let SelectionBox = (() => {
+      let _classSuper = GradumElement;
+      let _instanceExtraInitializers = [];
+      let _target_decorators;
+      let _target_initializers = [];
+      let _target_extraInitializers = [];
+      let _updateTarget_decorators;
+      return class SelectionBox extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _target_decorators = [signal];
+              _updateTarget_decorators = [effect];
+              __esDecorate(this, null, _updateTarget_decorators, { kind: "method", name: "updateTarget", static: false, private: false, access: { has: obj => "updateTarget" in obj, get: obj => obj.updateTarget }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(null, null, _target_decorators, { kind: "field", name: "target", static: false, private: false, access: { has: obj => "target" in obj, get: obj => obj.target, set: (obj, value) => { obj.target = value; } }, metadata: _metadata }, _target_initializers, _target_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          target = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _target_initializers, void 0));
+          handles = (__runInitializers(this, _target_extraInitializers), []);
+          stopTracking;
+          initialize() {
+              gradum(this).showTransition = new StatefulReifect({
+                  states: Shown,
+                  styles: state => "display: " + (state === Shown.visible ? "block" : "none")
+              });
+              super.initialize();
+          }
+          clear() {
+              this.target = undefined;
+          }
+          setupUIElements() {
+              super.setupUIElements();
+              this.handles = [Anchor.TopLeft, Anchor.TopRight, Anchor.BottomLeft, Anchor.BottomRight].map(anchor => ResizeHandle.create({ anchor }));
+          }
+          setupUILayout() {
+              super.setupUILayout();
+              gradum(this).addChild(this.handles);
+          }
+          updateTarget() {
+              this.stopTracking?.();
+              this.stopTracking = undefined;
+              gradum(this).show(!!this.target);
+              if (!this.target)
+                  return;
+              this.handles.forEach(handle => handle.retarget(this.target));
+              this.track();
+          }
+          track() {
+              //Follow the target. Position and size are signals, so this re-runs on a drag, on a resize, and on
+              //the position shift a corner resize applies to keep its opposite corner pinned.
+              this.stopTracking = effect(() => {
+                  const position = this.target["position"];
+                  const size = this.target["size"];
+                  const centerAnchor = this.target["centerAnchor"] ?? false;
+                  if (!position || !size)
+                      return;
+                  const offsetX = centerAnchor ? size.x / 2 : 0;
+                  const offsetY = centerAnchor ? size.y / 2 : 0;
+                  gradum(this).setStyles({
+                      transform: `translate(${position.x - offsetX}px, ${position.y - offsetY}px)`,
+                      width: `${size.x}px`,
+                      height: `${size.y}px`,
+                  });
+              });
+          }
+      };
+  })();
+  define(SelectionBox, "demo-selection-box");
+
+  //Select tool
+  let SelectTool = (() => {
+      let _classSuper = GradumTool;
+      let _instanceExtraInitializers = [];
+      let _click_decorators;
+      let _drag_decorators;
+      return class SelectTool extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _click_decorators = [behavior()];
+              _drag_decorators = [behavior()];
+              __esDecorate(this, null, _click_decorators, { kind: "method", name: "click", static: false, private: false, access: { has: obj => "click" in obj, get: obj => obj.click }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          toolName = (__runInitializers(this, _instanceExtraInitializers), "select"); //Define the tool name
+          selectionBox;
+          onDeactivate() {
+              this.selectionBox.clear();
+          }
+          //Clicking a modifiable element selects it, which puts a border and four resize grips over it. Clicking
+          //anything else clears the selection.
+          click(e, el) {
+              if (gradum(el).metadata?.get("modifiable")) {
+                  if (!this.selectionBox)
+                      this.selectionBox = SelectionBox.create({ parent: document.body });
+                  this.selectionBox.target = el;
+                  return Propagation.stopPropagation;
+              }
+              if (el === document.body)
+                  this.selectionBox.clear();
+          }
+          //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "select", (e, el) => {...});
+          drag(e, el) {
+              try {
+                  if (!gradum(el).metadata?.get("modifiable"))
+                      return Propagation.propagate;
+                  if ("move" in el && typeof el.move === "function")
+                      el.move(e.deltaPosition);
+                  else if ("translate" in el && typeof el.translate === "function")
+                      el.translate(e.deltaPosition);
+                  else if ("position" in el && typeof el.position === "object")
+                      el.position = e.deltaPosition.add(el.position);
+                  else
+                      return Propagation.propagate;
+                  return Propagation.stopPropagation;
+              }
+              catch (e) {
+                  return Propagation.stopPropagation;
+              }
+          }
+      };
+  })();
 
   var css_248z$2 = "my-canvas{display:block;height:100vh;width:100vw}";
   styleInject(css_248z$2);
@@ -28753,12 +28922,7 @@
               _position_decorators = [signal];
               _rotation_decorators = [signal];
               _centerAnchor_decorators = [signal];
-              _size_decorators = [signal, auto({
-                      preprocessValue: (value) => {
-                          return value.bound(5, Infinity, 5, Infinity);
-                          // Math.max(value.x, 25), Math.max(value.y, 25))
-                      }
-                  })];
+              _size_decorators = [signal, auto({ preprocessValue: (value) => value.bound(5, Infinity, 5, Infinity) })];
               __esDecorate(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
               __esDecorate(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
               __esDecorate(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
@@ -28849,6 +29013,9 @@
       let _rotation_decorators;
       let _rotation_initializers = [];
       let _rotation_extraInitializers = [];
+      let _centerAnchor_decorators;
+      let _centerAnchor_initializers = [];
+      let _centerAnchor_extraInitializers = [];
       return class Square extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
@@ -28856,10 +29023,12 @@
               _size_decorators = [expose("model")];
               _position_decorators = [expose("model")];
               _rotation_decorators = [expose("model")];
+              _centerAnchor_decorators = [expose("model")];
               __esDecorate(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
               __esDecorate(null, null, _size_decorators, { kind: "field", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
               __esDecorate(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
               __esDecorate(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
+              __esDecorate(null, null, _centerAnchor_decorators, { kind: "field", name: "centerAnchor", static: false, private: false, access: { has: obj => "centerAnchor" in obj, get: obj => obj.centerAnchor, set: (obj, value) => { obj.centerAnchor = value; } }, metadata: _metadata }, _centerAnchor_initializers, _centerAnchor_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           //Expose fields from the model
@@ -28867,6 +29036,8 @@
           size = (__runInitializers(this, _color_extraInitializers), __runInitializers(this, _size_initializers, void 0));
           position = (__runInitializers(this, _size_extraInitializers), __runInitializers(this, _position_initializers, void 0));
           rotation = (__runInitializers(this, _position_extraInitializers), __runInitializers(this, _rotation_initializers, void 0));
+          //Exposed so overlays can read where `position` actually sits — the centre, or the top-left corner.
+          centerAnchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _centerAnchor_initializers, void 0));
           static defaultProperties = {
               view: SquareView,
               model: SquareModel,
@@ -28899,7 +29070,7 @@
           }
           constructor() {
               super(...arguments);
-              __runInitializers(this, _rotation_extraInitializers);
+              __runInitializers(this, _centerAnchor_extraInitializers);
           }
       };
   })();
@@ -29107,42 +29278,6 @@
       };
   })();
   define(Bucket, "demo-bucket");
-
-  //Resize tool
-  let ResizeTool = (() => {
-      let _classSuper = GradumTool;
-      let _instanceExtraInitializers = [];
-      let _drag_decorators;
-      return class ResizeTool extends _classSuper {
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _drag_decorators = [behavior()];
-              __esDecorate(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
-              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-          }
-          toolName = (__runInitializers(this, _instanceExtraInitializers), "resize"); //Define the tool name
-          anchor = Anchor.Center;
-          //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "resize", (e, el) => {...});
-          drag(e, el) {
-              try {
-                  let delta = e.deltaPosition.mul(2);
-                  //Holding Shift maintains the ratio
-                  if (e.keys.includes("Shift"))
-                      delta = new Point(delta.min, delta.min);
-                  if ("resize" in el && typeof el.resize === "function")
-                      el.resize(delta, this.anchor);
-                  else if ("size" in el && typeof el.size === "object")
-                      el.size = delta.add(el.size);
-                  else
-                      return Propagation.propagate;
-                  return Propagation.stopPropagation;
-              }
-              catch (e) {
-                  return Propagation.stopPropagation;
-              }
-          }
-      };
-  })();
 
   Canvas.create({ parent: document.body });
   Toolbar.create({

@@ -13,6 +13,8 @@ export class Square extends GradumElement<SquareView, any, SquareModel> {
     @expose("model") size: Point;
     @expose("model") position: Point;
     @expose("model") rotation: number;
+    //Exposed so overlays can read where `position` actually sits — the centre, or the top-left corner.
+    @expose("model") centerAnchor: boolean;
 
     public static defaultProperties = {
         view: SquareView,

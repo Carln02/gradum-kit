@@ -1,5 +1,5 @@
 import {gradum} from "../../../../build/gradum-kit.esm";
-import {SelectTool} from "./select.tool";
+import {SelectTool} from "./select/select.tool";
 import {Canvas} from "../canvas/canvas";
 
 //Pusher tool
