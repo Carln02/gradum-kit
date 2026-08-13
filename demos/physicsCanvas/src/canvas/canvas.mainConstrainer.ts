@@ -8,6 +8,7 @@ import {
     gradum
 } from "../../../../build/gradum-kit.esm";
 import {getRect} from "../utils/getRect";
+import {Substrate} from "../interfaces";
 
 //An element's collision box in its own frame: where it sits, how far it reaches, and which way it faces.
 //Keeping the axes explicit is what lets the same code handle rotated and upright boxes alike.
@@ -18,7 +19,7 @@ type OrientedBox = {
 };
 
 //Pusher constrainer
-export class CanvasConstrainer extends GradumConstrainer {
+export class CanvasConstrainer extends GradumConstrainer<Substrate> {
     //Define the constrainer's name. Equivalent to gradum(canvas).makeConstrainer("main").
     public constrainerName = "main";
 
@@ -27,6 +28,9 @@ export class CanvasConstrainer extends GradumConstrainer {
     public initialize() {
         super.initialize();
         this.defaultQueue = [];
+
+        this.objectList = this.element["objectsList"];
+        this.triggerList = this.objectList;
     }
 
     /**

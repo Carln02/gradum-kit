@@ -13393,12 +13393,12 @@ class ConstrainerFunctionsUtils {
     getConstrainersTriggeredByObjects(...elements) {
         if (!elements || elements.length === 0)
             return [];
-        const nodeTargets = elements.filter(el => el instanceof Node);
+        const targets = elements.filter(el => el && typeof el === "object");
         const data = [];
         const checkTargets = (constrainerName, object) => {
             const hits = new Set();
             const list = this.getField(object, constrainerName, "triggerList") ?? new GradumNodeList();
-            for (const el of nodeTargets)
+            for (const el of targets)
                 if (list.has(el))
                     hits.add(el);
             return Array.from(hits.values());

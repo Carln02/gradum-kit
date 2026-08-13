@@ -207,13 +207,13 @@ export class ConstrainerFunctionsUtils {
     public getConstrainersTriggeredByObjects(...elements: object[]): ConstrainerDataWithId[] {
         if (!elements || elements.length === 0) return [];
 
-        const nodeTargets: Node[] = elements.filter(el => el instanceof Node);
+        const targets: object[] = elements.filter(el => el && typeof el === "object");
         const data: ConstrainerDataWithId[] = [];
 
         const checkTargets = (constrainerName: string, object: object): object[] => {
             const hits: Set<object> = new Set();
             const list = this.getField(object, constrainerName, "triggerList") ?? new GradumNodeList()
-            for (const el of nodeTargets) if (list.has(el)) hits.add(el);
+            for (const el of targets) if (list.has(el)) hits.add(el);
             return Array.from(hits.values());
         };
 

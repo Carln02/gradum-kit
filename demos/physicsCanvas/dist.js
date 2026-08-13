@@ -10947,6 +10947,18 @@
       return MathMLTags.has(tag) || tag?.startsWith("math");
   }
   /**
+   * @function canvas
+   * @group Element Creation
+   * @category Base Elements
+   *
+   * @description Creates a `<canvas>` element with the specified properties.
+   * @param {GradumProperties<"canvas">} [properties] - Object containing properties of the element.
+   * @returns {ValidElement<"canvas">} The created element, with the given properties already applied.
+   */
+  function canvas(properties = {}) {
+      return element({ ...properties, tag: "canvas" });
+  }
+  /**
    * @function div
    * @group Element Creation
    * @category Base Elements
@@ -10981,18 +10993,6 @@
    */
   function input(properties = {}) {
       return element({ ...properties, tag: "input" });
-  }
-  /**
-   * @function p
-   * @group Element Creation
-   * @category Base Elements
-   *
-   * @description Creates a `<p>` element with the specified properties.
-   * @param {GradumProperties<"p">} [properties] - Object containing properties of the element.
-   * @returns {ValidElement<"p">} The created element, with the given properties already applied.
-   */
-  function p(properties = {}) {
-      return element({ ...properties, tag: "p" });
   }
   /**
    * @function style
@@ -26240,8 +26240,8 @@
   })();
   define(GradumSelectElement);
 
-  var css_248z$3$1 = "gradum-content-switch{align-items:flex-start;display:flex;flex-direction:column;overflow:hidden;position:relative}gradum-content-switch>*{box-sizing:border-box;left:0;position:absolute;top:0}";
-  styleInject$1(css_248z$3$1);
+  var css_248z$3 = "gradum-content-switch{align-items:flex-start;display:flex;flex-direction:column;overflow:hidden;position:relative}gradum-content-switch>*{box-sizing:border-box;left:0;position:absolute;top:0}";
+  styleInject$1(css_248z$3);
 
   /**
    * @enum {ContentSwitchMode}
@@ -29266,8 +29266,8 @@
     }
   }
 
-  var css_248z$3 = "demo-selection-box{border:1px dashed #3b82f6;box-sizing:border-box;display:none;left:0;pointer-events:none;position:absolute;top:0;z-index:10}demo-selection-box.selecting{display:block}demo-rotate-handle{box-sizing:border-box;cursor:grab;height:24px;pointer-events:auto;position:absolute;width:24px}demo-rotate-handle:active{cursor:grabbing}demo-resize-handle{background-color:#fff;border:1px solid #3b82f6;border-radius:2px;box-sizing:border-box;cursor:pointer;height:10px;margin:-5px;pointer-events:auto;position:absolute;width:10px}";
-  styleInject(css_248z$3);
+  var css_248z$2 = "demo-selection-box{border:1px dashed #3b82f6;box-sizing:border-box;display:none;left:0;pointer-events:none;position:absolute;top:0;z-index:10}demo-selection-box.selecting{display:block}demo-rotate-handle{box-sizing:border-box;cursor:grab;height:24px;pointer-events:auto;position:absolute;width:24px}demo-rotate-handle:active{cursor:grabbing}demo-resize-handle{background-color:#fff;border:1px solid #3b82f6;border-radius:2px;box-sizing:border-box;cursor:pointer;height:10px;margin:-5px;pointer-events:auto;position:absolute;width:10px}";
+  styleInject(css_248z$2);
 
   //Module-level rather than a static: a private static makes TypeScript reduce `Gradum<this>` to `never`.
   const corners = [Anchor.TopLeft, Anchor.TopRight, Anchor.BottomLeft, Anchor.BottomRight];
@@ -29292,10 +29292,15 @@
           rotateHandles = [];
           stopTracking;
           initialize() {
-              gradum(this).showTransition = new StatefulReifect({
+              const transition = new StatefulReifect({
                   states: Shown,
                   styles: state => "display: " + (state === Shown.visible ? "block" : "none")
               });
+              gradum(this).showTransition = transition;
+              //A reifect only acts on objects attached to it: apply() looks the element up in its own table and
+              //returns quietly when it is not there. Without this, show() does nothing at all and the box never
+              //leaves the display: none it starts at, however correctly the target is set.
+              gradum(this).attachReifect(transition);
               super.initialize();
           }
           clear() {
@@ -29359,11 +29364,7 @@
           //Clicking a modifiable element selects it, which puts a border and four resize grips over it. Clicking
           //anything else clears the selection.
           clickStart(e, el) {
-              //A press on the selection chrome belongs to the grip being grabbed. This matters now that selecting
-              //happens on click-start rather than click: a press travels up handle → box → body every time, where
-              //a click never fired at all once the press turned into a drag. Without this, grabbing a grip clears
-              //the selection out from under itself before the resize can begin.
-              if (this.selectionBox?.contains(el))
+              if (this.selectionBox?.contains(e.target))
                   return Propagation.propagate;
               if (gradum(el).metadata?.get("modifiable")) {
                   if (!this.selectionBox)
@@ -29396,8 +29397,8 @@
       };
   })();
 
-  var css_248z$2 = "my-canvas{display:block;height:100vh;width:100vw}";
-  styleInject(css_248z$2);
+  var css_248z$1 = "my-canvas{display:block;height:100vh;width:100vw}my-canvas>canvas{display:block;height:100%;pointer-events:none;width:100%}";
+  styleInject(css_248z$1);
 
   //Pusher constrainer
   let CanvasConstrainer = (() => {
@@ -29421,6 +29422,8 @@
           initialize() {
               super.initialize();
               this.defaultQueue = [];
+              this.objectList = this.element["objectsList"];
+              this.triggerList = this.objectList;
           }
           /**
            * @description Check if an element is a spacer.
@@ -29755,9 +29758,83 @@
       static defaultProperties = {
           constrainers: [CanvasPusherConstrainer, CanvasConstrainer, CanvasSpacerConstrainer],
       };
+      canvas;
+      context;
+      objectsList = new Set();
+      stopRendering;
       initialize() {
           super.initialize();
           gradum(this).metadata.set(true, "substrate");
+          gradum(this).hitResolver = (position) => this.objectsAt(position);
+          // this.objectsList.onChanged.add(() => this.startRendering());
+          window.addEventListener("resize", () => this.resize());
+          this.resize();
+      }
+      setupUIElements() {
+          super.setupUIElements();
+          this.canvas = canvas({ parent: this });
+          this.context = this.canvas.getContext("2d");
+      }
+      /**
+       * @description Every object currently on the canvas, in paint order.
+       */
+      get objects() {
+          return Array.from(this.objectsList);
+      }
+      addObject(obj) {
+          this.objectsList.add(obj);
+          this.startRendering();
+      }
+      removeObject(obj) {
+          this.objectsList.delete(obj);
+          this.startRendering();
+      }
+      /**
+       * @description The objects under a point, topmost first — the order a hit resolver has to report.
+       * @param {Point} position - The screen position to test.
+       */
+      objectsAt(position) {
+          //Reversed because later children are painted last, so they sit on top.
+          return this.objects.reverse().filter(obj => this.containsPoint(obj, position));
+      }
+      /**
+       * @description Whether a point falls inside an object, its own rotation taken into account.
+       */
+      containsPoint(obj, position) {
+          const rect = getRect(obj);
+          if (!rect)
+              return false;
+          const toCenter = new Point(position.x - (rect.x + rect.width / 2), position.y - (rect.y + rect.height / 2));
+          const angle = -(rect.angleRad ?? 0);
+          const cos = Math.cos(angle), sin = Math.sin(angle);
+          const local = new Point(toCenter.x * cos - toCenter.y * sin, toCenter.x * sin + toCenter.y * cos);
+          return Math.abs(local.x) <= rect.width / 2 && Math.abs(local.y) <= rect.height / 2;
+      }
+      /**
+       * @description Match the backing store to the element's size and the display's pixel density, then redraw.
+       */
+      resize() {
+          const ratio = window.devicePixelRatio || 1;
+          const rect = this.getBoundingClientRect();
+          this.canvas.width = Math.round(rect.width * ratio);
+          this.canvas.height = Math.round(rect.height * ratio);
+          this.startRendering();
+      }
+      startRendering() {
+          this.stopRendering?.();
+          this.stopRendering = effect(() => this.render());
+      }
+      render() {
+          if (!this.context)
+              return;
+          this.context.setTransform(1, 0, 0, 1, 0, 0);
+          this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          const ratio = window.devicePixelRatio || 1;
+          const origin = this.canvas.getBoundingClientRect();
+          this.context.setTransform(ratio, 0, 0, ratio, 0, 0);
+          this.context.translate(-origin.x, -origin.y);
+          for (const obj of this.objects)
+              obj.render(this.context);
       }
   }
   define(Canvas, "my-canvas");
@@ -29828,62 +29905,35 @@
       };
   })();
 
-  //View of the square element
-  let SquareView = (() => {
-      let _classSuper = GradumView;
-      let _instanceExtraInitializers = [];
-      let _updatePosition_decorators;
-      let _updateColor_decorators;
-      let _updateSize_decorators;
-      let _updateText_decorators;
-      return class SquareView extends _classSuper {
-          static {
-              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-              _updatePosition_decorators = [effect];
-              _updateColor_decorators = [effect];
-              _updateSize_decorators = [effect];
-              _updateText_decorators = [effect];
-              __esDecorate(this, null, _updatePosition_decorators, { kind: "method", name: "updatePosition", static: false, private: false, access: { has: obj => "updatePosition" in obj, get: obj => obj.updatePosition }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _updateColor_decorators, { kind: "method", name: "updateColor", static: false, private: false, access: { has: obj => "updateColor" in obj, get: obj => obj.updateColor }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _updateSize_decorators, { kind: "method", name: "updateSize", static: false, private: false, access: { has: obj => "updateSize" in obj, get: obj => obj.updateSize }, metadata: _metadata }, null, _instanceExtraInitializers);
-              __esDecorate(this, null, _updateText_decorators, { kind: "method", name: "updateText", static: false, private: false, access: { has: obj => "updateText" in obj, get: obj => obj.updateText }, metadata: _metadata }, null, _instanceExtraInitializers);
-              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+  class SquareView extends GradumView {
+      draw(context) {
+          context.save();
+          const rect = this.element.getBoundingClientRect();
+          context.translate(rect.x + rect.width / 2, rect.y + rect.height / 2);
+          context.rotate(this.model.rotation ?? 0);
+          context.fillStyle = this.model.color.toString();
+          context.fillRect(-rect.width / 2, -rect.height / 2, rect.width, rect.height);
+          this.drawLabel(context);
+          context.restore();
+      }
+      drawLabel(context) {
+          const label = gradum(this).metadata.get("isPusher") ? "Pusher"
+              : gradum(this).metadata.get("isSpacer") ? "Spacer" : undefined;
+          if (label) {
+              context.fillStyle = "#020222";
+              context.font = "13px system-ui, -apple-system, sans-serif";
+              context.textAlign = "center";
+              context.textBaseline = "middle";
+              context.fillText(label, 0, 0);
           }
-          //@effect methods will be called when the values of the signals they use change
-          updatePosition() {
-              const compute = (axis) => this.model.position[axis] -
-                  (this.model.centerAnchor ? this.model.size[axis] / 2 : 0);
-              gradum(this).setStyle("transform", `
-            translate(${compute("x")}px, ${compute("y")}px) 
-            rotate(${this.model.rotation}rad)
-        `);
-          }
-          updateColor() {
-              gradum(this).setStyle("backgroundColor", this.model.color.toString());
-          }
-          updateSize() {
-              gradum(this).setStyles({ width: this.model.size.x + "px", height: this.model.size.y + "px" });
-          }
-          updateText() {
-              const text = gradum(this).metadata.get("isPusher") ? "Pusher" :
-                  gradum(this).metadata.get("isSpacer") ? "Spacer" : undefined;
-              gradum(this).removeAllChildren();
-              if (text)
-                  gradum(this).addChild(p({ text }));
-          }
-          constructor() {
-              super(...arguments);
-              __runInitializers(this, _instanceExtraInitializers);
-          }
-      };
-  })();
+      }
+  }
 
-  var css_248z$1 = ".demo-square{align-items:center;display:flex;height:100px;justify-content:center;position:absolute;width:100px}";
-  styleInject(css_248z$1);
-
-  //Custom square element, defined as a custom element
+  //A square on the canvas. Still a real element and a real child of the canvas — that is what keeps the
+  //constrainers, the tools and the metadata working — but it has no view: a canvas never renders its children,
+  //so its appearance is painted by Canvas rather than laid out by the browser.
   let Square = (() => {
-      let _classSuper = GradumElement;
+      let _classSuper = GradumHeadlessElement;
       let _color_decorators;
       let _color_initializers = [];
       let _color_extraInitializers = [];
@@ -29921,14 +29971,17 @@
           rotation = (__runInitializers(this, _position_extraInitializers), __runInitializers(this, _rotation_initializers, void 0));
           centerAnchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _centerAnchor_initializers, void 0));
           static defaultProperties = {
-              view: SquareView,
               model: SquareModel,
+              view: SquareView,
           };
           initialize() {
               gradum(this).metadata.set(true, "modifiable");
               gradum(this).metadata.makeSignal("isPusher");
               gradum(this).metadata.makeSignal("isSpacer");
               super.initialize();
+          }
+          render(context) {
+              this.view.draw(context);
           }
           move(delta) {
               this.model.position = delta.add(this.model.position);
@@ -29959,7 +30012,16 @@
           }
       };
   })();
-  define(Square, "demo-square");
+
+  /**
+   * @description Whether something can hold canvas objects. Narrows, so a tool handed a plain `Node` can call
+   * `addObject` on it without a cast — and unlike a cast, this actually checks.
+   */
+  function isSubstrate(value) {
+      if (typeof value !== "object")
+          return false;
+      return gradum(value).metadata?.get("substrate") && typeof value?.addObject === "function";
+  }
 
   //Add square tool
   let AddSquareTool = (() => {
@@ -29976,10 +30038,10 @@
           toolName = (__runInitializers(this, _instanceExtraInitializers), "addSquare"); //Define the tool name
           //Equivalent to gradum(tool).addToolBehavior("click", "addSquare", (e, target) => {...});
           click(e, target) {
-              if (gradum(target).metadata.get("substrate")) {
-                  Square.create({ parent: target, position: e.position });
-                  return Propagation.stopPropagation;
-              }
+              if (!isSubstrate(target))
+                  return Propagation.propagate;
+              target.addObject(Square.create({ position: e.position }));
+              return Propagation.stopPropagation;
           }
       };
   })();
