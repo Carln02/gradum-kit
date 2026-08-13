@@ -117,7 +117,13 @@ export class ToolFunctionsUtils {
     }
 
     public addToolBehavior(toolName: string, type: string, callback: ToolBehaviorCallback, manager: GradumEventManager): void {
-        this.getToolsData(manager, toolName).behaviors?.addListener({callback, type, toolName, manager});
+        const behaviors = this.getToolsData(manager, toolName).behaviors;
+        if (!behaviors) return;
+        const identity = (callback as any)?.sourceFunction ?? callback;
+        for (const existing of behaviors.getListeners({toolName, manager, type})) {
+            if (((existing.callback as any)?.sourceFunction ?? existing.callback) === identity) return;
+        }
+        behaviors.addListener({callback, type, toolName, manager});
     }
 
     public getToolBehaviors(toolName: string, type: string, manager: GradumEventManager): Listener<Node, ToolBehaviorCallback>[] {

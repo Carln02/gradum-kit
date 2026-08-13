@@ -6017,7 +6017,7 @@ declare function listener(properties?: Partial<Omit<ListenerProperties, "callbac
  * }
  * ```
  */
-declare function behavior(properties?: Partial<Omit<ListenerProperties, "callback" | "options">>): <T extends object>(value: (this: T, e?: Event, target?: Node) => any, context: ClassMethodDecoratorContext<T>) => (this: T, e?: Event, target?: Node) => any;
+declare function behavior(properties?: Partial<Omit<ListenerProperties, "callback" | "options">>): <T extends object>(value: (this: T, e?: Event, target?: Node, options?: ToolBehaviorOptions) => any, context: ClassMethodDecoratorContext<T>) => (this: T, e?: Event, target?: Node, options?: ToolBehaviorOptions) => any;
 /**
  * @decorator
  * @function attachListenersAndBehaviors

@@ -1,6 +1,5 @@
-
 import {
-    define, GradumElement, Point, expose, auto, gradum, p, Color, GradumModel, Anchor, AnchorPoint
+    define, GradumElement, Point, expose, auto, gradum, p, Color, GradumModel, Anchor, AnchorPoint, GradumRect
 } from "../../../../build/gradum-kit.esm";
 import {SquareModel} from "./square.model";
 import {SquareView} from "./square.view";
@@ -13,7 +12,6 @@ export class Square extends GradumElement<SquareView, any, SquareModel> {
     @expose("model") size: Point;
     @expose("model") position: Point;
     @expose("model") rotation: number;
-    //Exposed so overlays can read where `position` actually sits — the centre, or the top-left corner.
     @expose("model") centerAnchor: boolean;
 
     public static defaultProperties = {
@@ -37,18 +35,24 @@ export class Square extends GradumElement<SquareView, any, SquareModel> {
     }
 
     public resize(delta: Point, anchor: Anchor | Point = Anchor.Center) {
-        //Increment size
-        const before = this.model.size;
-        this.model.size = before.add(delta);
-        //The model clamps size to a floor, so the growth that actually landed can be smaller than what was
-        //asked for. Shift by that instead of by delta, or the square keeps sliding once it has bottomed out.
-        const applied = this.model.size.sub(before);
-        //Bound the anchor between -0.5 and 0.5
+        const oldSize = this.model.size;
+        this.model.size = oldSize.add(delta);
+        const appliedDelta = this.model.size.sub(oldSize);
+
         anchor = new AnchorPoint(anchor).value.div(200);
-        //Shift the center of the element according to the anchor
-        const center = this.model.position.sub(applied.mul(anchor));
-        //Move the element to make it seem like its growing from the proper side
-        this.model.position = this.model.centerAnchor ? center : center.sub(applied.div(2));
+        const center = this.model.position.sub(appliedDelta.mul(anchor));
+        this.model.position = this.model.centerAnchor ? center : center.sub(appliedDelta.div(2));
+    }
+
+    public getBoundingClientRect(): DOMRect {
+        return new GradumRect({
+            x: this.model.position.x - (this.model.centerAnchor ? this.model.size.x / 2 : 0),
+            y: this.model.position.y - (this.model.centerAnchor ? this.model.size.y / 2 : 0),
+            width: this.model.size.x,
+            height: this.model.size.y,
+            angleRad: this.model.rotation
+        });
     }
 }
+
 define(Square, "demo-square");

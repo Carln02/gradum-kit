@@ -17217,7 +17217,9 @@
           if (listener.kind === "behavior") {
               if (!tool)
                   continue;
-              gradum(context).addToolBehavior(listener.type, (e, el) => method.call(context, e, el), tool, manager);
+              const callback = (e, el, options) => method.call(context, e, el, options);
+              callback.sourceFunction = method;
+              gradum(context).addToolBehavior(listener.type, callback, tool, manager);
           }
           else if (listener.kind === "listener") {
               if (!(target instanceof Node))
@@ -19882,7 +19884,15 @@
           return this.getElementData(element, manager).embeddedTarget;
       }
       addToolBehavior(toolName, type, callback, manager) {
-          this.getToolsData(manager, toolName).behaviors?.addListener({ callback, type, toolName, manager });
+          const behaviors = this.getToolsData(manager, toolName).behaviors;
+          if (!behaviors)
+              return;
+          const identity = callback?.sourceFunction ?? callback;
+          for (const existing of behaviors.getListeners({ toolName, manager, type })) {
+              if ((existing.callback?.sourceFunction ?? existing.callback) === identity)
+                  return;
+          }
+          behaviors.addListener({ callback, type, toolName, manager });
       }
       getToolBehaviors(toolName, type, manager) {
           return this.getToolsData(manager, toolName).behaviors?.getListeners({ toolName, manager, type });
@@ -27197,6 +27207,502 @@
       };
   })();
 
+  /**
+   * @function closestPointOnSegment
+   * @group Utilities
+   * @category Geometry
+   *
+   * @description Find the point of a line segment nearest to a given point. The result is clamped to the
+   * segment, so it never lands on the infinite line beyond the endpoints.
+   * @param {Point} p - The point to measure from.
+   * @param {Point} a - Start of the segment.
+   * @param {Point} b - End of the segment.
+   * @returns {Point} A new point on the segment; the arguments are left unchanged. A zero-length segment
+   * returns `a` itself.
+   */
+  function closestPointOnSegment(p, a, b) {
+      const ab = b.sub(a);
+      const ap = p.sub(a);
+      const abLen2 = ab.x * ab.x + ab.y * ab.y;
+      if (abLen2 <= 1e-12)
+          return a;
+      let t = (ap.x * ab.x + ap.y * ab.y) / abLen2;
+      t = Math.max(0, Math.min(1, t));
+      return new Point(a.x + ab.x * t, a.y + ab.y * t);
+  }
+  /**
+   * @function intersectSegments
+   * @group Utilities
+   * @category Geometry
+   *
+   * @description Find where two line segments cross, if they do. Only a crossing within both segments counts;
+   * an intersection that would fall beyond either one is not reported.
+   * @param {Point} a - Start of the first segment.
+   * @param {Point} b - End of the first segment.
+   * @param {Point} c - Start of the second segment.
+   * @param {Point} d - End of the second segment.
+   * @returns {Point} A new point at the crossing, or `null` if the segments do not cross. Parallel segments
+   * always return `null`, including collinear ones that overlap.
+   */
+  function intersectSegments(a, b, c, d) {
+      const r = b.sub(a);
+      const s = d.sub(c);
+      const rxs = r.x * s.y - r.y * s.x;
+      if (Math.abs(rxs) < 1e-12)
+          return null; // parallel (ignore collinear)
+      const q_p = c.sub(a);
+      const t = (q_p.x * s.y - q_p.y * s.x) / rxs;
+      const u = (q_p.x * r.y - q_p.y * r.x) / rxs;
+      if (t >= 0 && t <= 1 && u >= 0 && u <= 1)
+          return new Point(a.x + t * r.x, a.y + t * r.y);
+      return null;
+  }
+
+  /**
+   * @function isPointInConvexPolygon
+   * @group Utilities
+   * @category Geometry
+   *
+   * @description Check whether a point lies inside a convex polygon, borders included.
+   * *Note: the polygon must be convex; a concave one gives wrong answers.*
+   * @param {Point} p - The point to test.
+   * @param {Point[]} poly - The polygon's vertices, in order around its outline.
+   * @returns {boolean} `true` if the point is inside or on the border.
+   */
+  function isPointInConvexPolygon(p, poly) {
+      let sign = 0;
+      for (let i = 0; i < poly.length; i++) {
+          const a = poly[i];
+          const b = poly[(i + 1) % poly.length];
+          const ab = b.sub(a);
+          const ap = p.sub(a);
+          const z = ab.x * ap.y - ab.y * ap.x;
+          if (Math.abs(z) < 1e-12)
+              continue;
+          const s = z > 0 ? 1 : -1;
+          if (sign === 0)
+              sign = s;
+          else if (sign !== s)
+              return false;
+      }
+      return true;
+  }
+  /**
+   * @function segmentIntersectsPolygon
+   * @group Utilities
+   * @category Geometry
+   *
+   * @description Find where a line segment first meets a polygon. A segment lying wholly inside the polygon
+   * crosses no edge, so one of its endpoints is returned instead — meaning a non-null result means "touches",
+   * not strictly "crosses an edge".
+   * @param {Point} a - Start of the segment.
+   * @param {Point} b - End of the segment.
+   * @param {Point[]} poly - The polygon's vertices, in order around its outline.
+   * @returns {Point | null} The meeting point, or `null` if the segment misses the polygon entirely.
+   */
+  function segmentIntersectsPolygon(a, b, poly) {
+      for (let i = 0; i < poly.length; i++) {
+          const c = poly[i];
+          const d = poly[(i + 1) % poly.length];
+          const hit = intersectSegments(a, b, c, d);
+          if (hit)
+              return hit;
+      }
+      if (isPointInConvexPolygon(a, poly))
+          return a;
+      if (isPointInConvexPolygon(b, poly))
+          return b;
+      return null;
+  }
+  /**
+   * @function projectPolygonOntoAxis
+   * @group Utilities
+   * @category Geometry
+   *
+   * @description Flatten a polygon onto an axis and return the span it covers there. This is the building block
+   * of the separating-axis test in {@link hasSeparatingAxisForPolygons}.
+   * @param {Point[]} points - The polygon's vertices.
+   * @param {Point} axis - The axis to project onto. Need not be normalized.
+   * @returns {[number, number]} The minimum and maximum positions along the axis.
+   */
+  function projectPolygonOntoAxis(points, axis) {
+      const len = Math.hypot(axis.x, axis.y) || 1;
+      const ux = axis.x / len, uy = axis.y / len;
+      let min = Infinity, max = -Infinity;
+      for (const p of points) {
+          const v = p.x * ux + p.y * uy;
+          if (v < min)
+              min = v;
+          if (v > max)
+              max = v;
+      }
+      return [min, max];
+  }
+  /**
+   * @function hasSeparatingAxisForPolygons
+   * @group Utilities
+   * @category Geometry
+   *
+   * @description Check whether any edge of the first polygon yields an axis that separates the two, proving
+   * they cannot overlap. This is one half of the test — it must be run both ways round, which is what
+   * {@link polygonsIntersect} does.
+   * @param {Point[]} polyA - The polygon whose edges supply the candidate axes.
+   * @param {Point[]} polyB - The polygon to test against.
+   * @returns {boolean} `true` if a separating axis exists, meaning the polygons are apart.
+   */
+  function hasSeparatingAxisForPolygons(polyA, polyB) {
+      for (let i = 0; i < polyA.length; i++) {
+          const p1 = polyA[i];
+          const p2 = polyA[(i + 1) % polyA.length];
+          const edge = p2.sub(p1);
+          const axis = new Point(-edge.y, edge.x);
+          const [aMin, aMax] = projectPolygonOntoAxis(polyA, axis);
+          const [bMin, bMax] = projectPolygonOntoAxis(polyB, axis);
+          if (aMax < bMin || bMax < aMin)
+              return true;
+      }
+      return false;
+  }
+  /**
+   * @function polygonsIntersect
+   * @group Utilities
+   * @category Geometry
+   *
+   * @description Check whether two convex polygons overlap, using the separating-axis test in both directions.
+   * *Note: both polygons must be convex.*
+   * @param {Point[]} a - The first polygon's vertices.
+   * @param {Point[]} b - The second polygon's vertices.
+   * @returns {boolean} `true` if the polygons overlap.
+   */
+  function polygonsIntersect(a, b) {
+      return !hasSeparatingAxisForPolygons(a, b) && !hasSeparatingAxisForPolygons(b, a);
+  }
+
+  /**
+   * @function aabbCorners
+   * @group Utilities
+   * @category Geometry
+   *
+   * @description List the four corners of an axis-aligned rectangle, in clockwise order starting top-left.
+   * Use it to feed a `DOMRect` into the polygon helpers, which expect point lists.
+   * @param {DOMRect} r - The rectangle to read.
+   * @returns {[Point, Point, Point, Point]} The corners: top-left, top-right, bottom-right, bottom-left.
+   */
+  function aabbCorners(r) {
+      const x0 = r.x, y0 = r.y;
+      const x1 = r.x + r.width, y1 = r.y + r.height;
+      return [new Point(x0, y0), new Point(x1, y0), new Point(x1, y1), new Point(x0, y1)];
+  }
+  /**
+   * @function closestPointOnAabb
+   * @group Utilities
+   * @category Geometry
+   *
+   * @description Find the point of an axis-aligned rectangle nearest to a given point. A point already inside
+   * the rectangle is returned unchanged, so the result is the point itself rather than a point on the border —
+   * use {@link closestPointOnEdge} when you always want a point on the outline.
+   * @param {Point} p - The point to measure from.
+   * @param {DOMRect} r - The rectangle to measure against.
+   * @returns {Point} A new point; neither argument is modified.
+   */
+  function closestPointOnAabb(p, r) {
+      const x0 = r.x, y0 = r.y;
+      const x1 = r.x + r.width, y1 = r.y + r.height;
+      const x = Math.max(x0, Math.min(x1, p.x));
+      const y = Math.max(y0, Math.min(y1, p.y));
+      return new Point(x, y);
+  }
+
+  /**
+   * @function css
+   * @group Utilities
+   * @category CSS
+   *
+   * @description Tagged template that joins a CSS template literal into one string. It exists mainly so editors
+   * syntax-highlight and format the rules inside the literal; the interpolated values are inserted as-is.
+   * @param {TemplateStringsArray} strings - The literal's static parts, supplied by the tagged template.
+   * @param {...any[]} values - The interpolated values, supplied by the tagged template.
+   * @returns {string} The assembled CSS.
+   *
+   * @example
+   * ```ts
+   * const styles = css`
+   *    .my-class { color: ${color}; }
+   * `;
+   * ```
+   */
+  function css(strings, ...values) {
+      let str = "";
+      strings.forEach((string, i) => {
+          str += string + (values[i] || '');
+      });
+      return str;
+  }
+
+  /**
+   * @class GradumRect
+   * @group Components
+   * @category Data Structures
+   *
+   * @extends DOMRect
+   * @description A rectangle that can be rotated, unlike the axis-aligned
+   * [DOMRect](https://developer.mozilla.org/en-US/docs/Web/API/DOMRect) it extends. Its geometry helpers
+   * ({@link GradumRect.closestPoint}, {@link GradumRect.distanceTo}, {@link GradumRect.overlaps}) all
+   * account for the rotation, and accept a point, a segment, or another rect.
+   */
+  class GradumRect extends DOMRect {
+      /**
+       * @description The rectangle's rotation in radians, about its centre.
+       */
+      angleRad = 0;
+      /**
+       * @description The anchor the rectangle is positioned from.
+       */
+      anchor;
+      /**
+       * @constructor
+       * @description Create a rectangle. Give either `angleRad` or `angleDeg` to rotate it; omitting both
+       * leaves it axis-aligned.
+       * @param {GradumRectProperties} [properties={}] - The rectangle's position, size, rotation, and anchor.
+       */
+      constructor(properties = {}) {
+          super(properties.x ?? 0, properties.y ?? 0, properties.width ?? 0, properties.height ?? 0);
+          if (properties.angleRad !== undefined)
+              this.angleRad = properties.angleRad;
+          else if (properties.angleDeg !== undefined)
+              this.angleDeg = properties.angleDeg;
+          this.anchor = properties.anchor instanceof AnchorPoint ? properties.anchor : new AnchorPoint(properties.anchor);
+      }
+      /**
+       * @function fromSegment
+       * @static
+       * @description Build a rectangle covering the segment between two points: centred on the segment,
+       * as long as it, and rotated to match its direction.
+       * @param {Point} a - The segment's start.
+       * @param {Point} b - The segment's end.
+       * @param {number} [thickness=1] - The rectangle's height, across the segment.
+       * @param {GradumRectProperties} [properties={}] - Extra properties. The computed rotation wins over
+       * any angle given here.
+       * @returns {GradumRect} The rectangle covering the segment.
+       */
+      static fromSegment(a, b, thickness = 1, properties = {}) {
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const length = Math.hypot(dx, dy);
+          const angleRad = Math.atan2(dy, dx);
+          const mid = new Point((a.x + b.x) / 2, (a.y + b.y) / 2);
+          const x = mid.x - length / 2;
+          const y = mid.y - thickness / 2;
+          return new GradumRect({ x, y, width: length, height: thickness, ...properties, angleRad });
+      }
+      /**
+       * @function fromDOMRect
+       * @static
+       * @description Build a rectangle from a plain `DOMRect`, such as one returned by
+       * `getBoundingClientRect()`.
+       * @param {DOMRect} rect - The rect to copy position and size from.
+       * @param {GradumRectProperties} [properties={}] - Extra properties, such as a rotation to apply.
+       * @returns {GradumRect} The converted rectangle.
+       */
+      static fromDOMRect(rect, properties = {}) {
+          return new GradumRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height, ...properties });
+      }
+      /**
+       * @function render
+       * @description Create a translucent red `div` matching this rectangle's position, size, and rotation.
+       * Meant for debugging geometry — append the result to the document to see where the rect actually is.
+       * @returns {HTMLElement} The generated element. It is not attached to the document.
+       */
+      render() {
+          return element({ tag: "div", style: css `position: absolute; 
+                width: ${this.width}px; height: ${this.height}px; 
+                top: ${this.y}px; left: ${this.x}px; background-color: red; pointer-events: none; opacity: 0.4;
+                transform: rotate(${this.angleRad}rad)` });
+      }
+      /**
+       * @description The rectangle's rotation in degrees. Reads and writes the same rotation as
+       * {@link GradumRect.angleRad}, converted.
+       */
+      get angleDeg() {
+          return (this.angleRad * 180) / Math.PI;
+      }
+      set angleDeg(value) {
+          this.angleRad = (value * Math.PI) / 180;
+      }
+      /**
+       * @readonly
+       * @description The rectangle's centre point.
+       */
+      get center() {
+          return new Point(this.x + this.width / 2, this.y + this.height / 2);
+      }
+      /**
+       * @readonly
+       * @description The unit vector along the rectangle's own x axis, pointing along its width once rotated.
+       */
+      get xAxis() {
+          return new Point(Math.cos(this.angleRad), Math.sin(this.angleRad));
+      }
+      /**
+       * @readonly
+       * @description The unit vector along the rectangle's own y axis, pointing along its height once rotated.
+       */
+      get yAxis() {
+          return new Point(-Math.sin(this.angleRad), Math.cos(this.angleRad));
+      }
+      /**
+       * @readonly
+       * @description Half the rectangle's width and height, as a point.
+       */
+      get half() {
+          return new Point(this.width / 2, this.height / 2);
+      }
+      /**
+       * @readonly
+       * @description The rectangle's four corners in screen coordinates, clockwise from the top-left,
+       * with the rotation applied.
+       */
+      get points() {
+          const c = this.center;
+          const ux = this.xAxis;
+          const uy = this.yAxis;
+          const half = this.half;
+          const ex = new Point(ux.x * half.x, ux.y * half.x);
+          const ey = new Point(uy.x * half.y, uy.y * half.y);
+          return [c.sub(ex).sub(ey), c.add(ex).sub(ey), c.add(ex).add(ey), c.sub(ex).add(ey)];
+      }
+      closestPoint(...args) {
+          // (1) Point -> Closest point ON THIS rect to that point
+          if (args.length === 1 && args[0] instanceof Point) {
+              const point = args[0];
+              const c = this.center;
+              const ux = this.xAxis;
+              const uy = this.yAxis;
+              const d = point.sub(c);
+              const lx = d.x * ux.x + d.y * ux.y;
+              const ly = d.x * uy.x + d.y * uy.y;
+              const cx = trim(lx, this.width / 2, -this.width / 2);
+              const cy = trim(ly, this.height / 2, -this.height / 2);
+              return c.add(new Point(ux.x * cx, ux.y * cx)).add(new Point(uy.x * cy, uy.y * cy));
+          }
+          // (2) Segment AB -> Closest point ON THIS rect to segment AB
+          if (args.length === 2 && args[0] instanceof Point && args[1] instanceof Point) {
+              const a = args[0];
+              const b = args[1];
+              const thisPoly = this.points;
+              // If segment intersects this rect, distance is 0.
+              const hit = segmentIntersectsPolygon(a, b, thisPoly);
+              if (hit)
+                  return hit;
+              // Candidates on THIS rect:
+              // - closest points to endpoints
+              // - corners of this rect
+              let best = this.closestPoint(a);
+              let bestDist = Point.dist(best, a);
+              const pb = this.closestPoint(b);
+              const db = Point.dist(pb, b);
+              if (db < bestDist) {
+                  bestDist = db;
+                  best = pb;
+              }
+              for (const corner of thisPoly) {
+                  const q = closestPointOnSegment(corner, a, b);
+                  const d = Point.dist(corner, q);
+                  if (d < bestDist) {
+                      bestDist = d;
+                      best = corner;
+                  }
+              }
+              return best;
+          }
+          // (3) Rect (AABB DOMRect or GradumRect)
+          if (args.length === 1 && (args[0] instanceof DOMRect || args[0] instanceof GradumRect)) {
+              const other = args[0];
+              const thisPoly = this.points;
+              const otherPoly = other instanceof GradumRect ? other.points : aabbCorners(other);
+              // If intersects, any point with distance 0 is fine
+              if (polygonsIntersect(thisPoly, otherPoly)) {
+                  const oc = other instanceof GradumRect ? other.center
+                      : new Point(other.x + other.width / 2, other.y + other.height / 2);
+                  return this.closestPoint(oc);
+              }
+              // Otherwise pick the point ON THIS rect that minimizes distance to the other shape
+              let best = thisPoly[0];
+              let bestDist = Infinity;
+              // distance from a point p to the other rect
+              const distToOther = (p) => {
+                  const q = other instanceof GradumRect ? other.closestPoint(p) : closestPointOnAabb(p, other);
+                  return Point.dist(p, q);
+              };
+              // 1) corners of THIS rect
+              for (const p of thisPoly) {
+                  const d = distToOther(p);
+                  if (d < bestDist) {
+                      bestDist = d;
+                      best = p;
+                  }
+              }
+              // 2) closest points on THIS rect to corners of OTHER rect
+              for (const p of otherPoly) {
+                  const q = this.closestPoint(p); // ON THIS rect
+                  const d = distToOther(q);
+                  if (d < bestDist) {
+                      bestDist = d;
+                      best = q;
+                  }
+              }
+              return best;
+          }
+          return;
+      }
+      distanceTo(...args) {
+          // Point
+          if (args.length === 1 && args[0] instanceof Point) {
+              const p = args[0];
+              const q = this.closestPoint(p);
+              return Point.dist(p, q);
+          }
+          // Segment AB
+          if (args.length === 2 && args[0] instanceof Point && args[1] instanceof Point) {
+              const a = args[0];
+              const b = args[1];
+              const pr = this.closestPoint(a, b);
+              const ps = closestPointOnSegment(pr, a, b);
+              return Point.dist(pr, ps);
+          }
+          // Rect
+          if (args.length === 1 && (args[0] instanceof DOMRect || args[0] instanceof GradumRect)) {
+              const other = args[0];
+              const pr = this.closestPoint(other);
+              const po = other instanceof GradumRect ? other.closestPoint(pr) : closestPointOnAabb(pr, other);
+              return Point.dist(pr, po);
+          }
+          return NaN;
+      }
+      overlaps(...args) {
+          // (1) Point
+          if (args.length === 1 && args[0] instanceof Point) {
+              const p = args[0];
+              const q = this.closestPoint(p);
+              return Point.dist(p, q) <= 1e-6;
+          }
+          // (2) Segment AB
+          if (args.length === 2 && args[0] instanceof Point && args[1] instanceof Point) {
+              const a = args[0];
+              const b = args[1];
+              return segmentIntersectsPolygon(a, b, this.points) !== null;
+          }
+          // (3) Rect (DOMRect or GradumRect)
+          if (args.length === 1 && (args[0] instanceof GradumRect || args[0] instanceof DOMRect)) {
+              const other = args[0];
+              const polyA = this.points;
+              const polyB = other instanceof GradumRect ? other.points : aabbCorners(other);
+              return polygonsIntersect(polyA, polyB);
+          }
+          return false;
+      }
+  }
+
   var css_248z$5 = "gradum-dropdown{display:inline-block;position:relative}gradum-dropdown>.gradum-popup{background-color:#fff;border:.1em solid #5e5e5e;border-radius:.4em;display:flex;flex-direction:column;overflow:hidden}gradum-dropdown>.gradum-popup>gradum-select-entry{padding:.5em}gradum-dropdown>.gradum-popup>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}gradum-dropdown>gradum-select-entry{padding:.5em .7em;width:100%}gradum-dropdown>gradum-select-entry:hover{background-color:#d7d7d7}gradum-dropdown>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}";
   styleInject$1(css_248z$5);
 
@@ -28531,15 +29037,13 @@
           }
           toolName = (__runInitializers(this, _instanceExtraInitializers), "resize"); //Define the tool name
           anchor = Anchor.Center;
-          //How pointer movement maps onto size. Resizing around the center moves both edges at once, so the box has
-          //to grow by twice the pointer delta for the dragged edge to keep up. A grip pinned to a corner grows 1:1
-          //instead, and inverts the axes it sits on the near side of — see ResizeHandle.
           sign = new Point(2, 2);
           //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "resize", (e, el) => {...});
           drag(e, el) {
               try {
+                  if (!gradum(el).metadata?.get("modifiable"))
+                      return Propagation.propagate;
                   let delta = e.deltaPosition.mul(this.sign);
-                  //Holding Shift maintains the ratio
                   if (e.keys.includes("Shift"))
                       delta = new Point(delta.min, delta.min);
                   if ("resize" in el && typeof el.resize === "function")
@@ -28558,7 +29062,7 @@
   })();
 
   //A corner grip of the selection box. The handle itself is a tool, embedded into the selected element: the
-  //resize behaviour runs with that element as its target, so dragging the grip resizes the square underneath
+  //resize behavior runs with that element as its target, so dragging the grip resizes the square underneath
   //without the square ever receiving the drag.
   let ResizeHandle = (() => {
       let _classSuper = GradumElement;
@@ -28587,7 +29091,6 @@
               this.resizeTool.sign = corner.div(100);
               gradum(this).setStyles({ left: `${(corner.x + 100) / 2}%`, top: `${(corner.y + 100) / 2}%` });
           }
-          //Point the handle at a new element. Embedding is what routes the drag to the target.
           retarget(target) {
               gradum(this).embedTool(target);
           }
@@ -28598,6 +29101,143 @@
       };
   })();
   define(ResizeHandle, "demo-resize-handle");
+
+  /**
+   * @description Read a coordinate-ish value as a Point. Accepts a Point, anything with numeric `x` and `y`, or
+   * a single number standing for both axes.
+   */
+  function toPoint(value) {
+      if (value instanceof Point)
+          return value;
+      if (typeof value === "number")
+          return new Point(value, value);
+      if (value && typeof value.x === "number" && typeof value.y === "number")
+          return new Point(value);
+      return undefined;
+  }
+  /**
+   * @description Where an object is and which way it faces, as an oriented rect.
+   *
+   * Asks the object for its own bounding box first, and takes it as-is when it hands back a {@link GradumRect},
+   * since that already carries an angle. Otherwise it builds one from `position`, `size`, `rotation` and
+   * `centerAnchor` — which is also what keeps this reactive: those are signals, so reading them inside an
+   * `@effect` subscribes it, where a bare `getBoundingClientRect()` on a plain element would not. Anything with
+   * neither gets its painted box back, treated as unrotated.
+   *
+   * @param {object} el - The element or object to measure.
+   * @returns {GradumRect} The rect, or `undefined` for something with no position or no area.
+   */
+  function getRect(el) {
+      if (!el || typeof el !== "object")
+          return undefined;
+      const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : undefined;
+      if (rect instanceof GradumRect)
+          return rect;
+      const size = toPoint(el.size) ?? toPoint({ x: el.width, y: el.height });
+      const position = toPoint(el.position);
+      if (size?.x && size.y && position)
+          return new GradumRect({
+              x: position.x - (el.centerAnchor ? size.x / 2 : 0),
+              y: position.y - (el.centerAnchor ? size.y / 2 : 0),
+              width: size.x,
+              height: size.y,
+              angleRad: typeof el.rotation === "number" ? el.rotation : 0
+          });
+      if (!rect?.width || !rect.height)
+          return undefined;
+      return new GradumRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+  }
+
+  //Rotate tool
+  let RotateTool = (() => {
+      let _classSuper = GradumTool;
+      let _instanceExtraInitializers = [];
+      let _drag_decorators;
+      return class RotateTool extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _drag_decorators = [behavior()];
+              __esDecorate(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          toolName = (__runInitializers(this, _instanceExtraInitializers), "rotate"); //Define the tool name
+          //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "rotate", (e, el) => {...});
+          drag(e, el) {
+              try {
+                  if (!gradum(el).metadata?.get("modifiable"))
+                      return Propagation.propagate;
+                  const rect = getRect(el);
+                  if (!rect)
+                      return Propagation.propagate;
+                  const center = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+                  const from = e.position.sub(e.deltaPosition);
+                  const swept = Math.atan2(e.position.y - center.y, e.position.x - center.x)
+                      - Math.atan2(from.y - center.y, from.x - center.x);
+                  const angle = Math.atan2(Math.sin(swept), Math.cos(swept));
+                  if (!angle)
+                      return Propagation.stopPropagation;
+                  if ("rotate" in el && typeof el.rotate === "function")
+                      el.rotate(angle);
+                  else if ("rotation" in el && typeof el.rotation === "number")
+                      el.rotation += angle;
+                  else
+                      return Propagation.propagate;
+                  return Propagation.stopPropagation;
+              }
+              catch (e) {
+                  return Propagation.stopPropagation;
+              }
+          }
+      };
+  })();
+
+  //The rotation zone just beyond a corner grip, the way drawing tools do it: grab the corner itself to resize,
+  //grab the empty space diagonally outside it to spin the shape instead. It sits under the grip in the DOM so
+  //the grip keeps the few pixels the two share, and it only ever extends outwards — reaching inwards would
+  //steal drags from the shape underneath.
+  let RotateHandle = (() => {
+      let _classSuper = GradumElement;
+      let _instanceExtraInitializers = [];
+      let _anchor_decorators;
+      let _anchor_initializers = [];
+      let _anchor_extraInitializers = [];
+      let _rotateTool_decorators;
+      let _rotateTool_initializers = [];
+      let _rotateTool_extraInitializers = [];
+      let _updateAnchor_decorators;
+      return class RotateHandle extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _anchor_decorators = [signal];
+              _rotateTool_decorators = [tool()];
+              _updateAnchor_decorators = [effect];
+              __esDecorate(this, null, _updateAnchor_decorators, { kind: "method", name: "updateAnchor", static: false, private: false, access: { has: obj => "updateAnchor" in obj, get: obj => obj.updateAnchor }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
+              __esDecorate(null, null, _rotateTool_decorators, { kind: "field", name: "rotateTool", static: false, private: false, access: { has: obj => "rotateTool" in obj, get: obj => obj.rotateTool, set: (obj, value) => { obj.rotateTool = value; } }, metadata: _metadata }, _rotateTool_initializers, _rotateTool_extraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          static defaultProperties = { tools: RotateTool };
+          anchor = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _anchor_initializers, void 0));
+          rotateTool = (__runInitializers(this, _anchor_extraInitializers), __runInitializers(this, _rotateTool_initializers, void 0));
+          updateAnchor() {
+              const corner = AnchorPoint.enumToPoint(this.anchor);
+              gradum(this).setStyles({
+                  left: `${(corner.x + 100) / 2}%`,
+                  top: `${(corner.y + 100) / 2}%`,
+                  marginLeft: corner.x < 0 ? "calc(-1 * var(--rotate-zone))" : "0",
+                  marginTop: corner.y < 0 ? "calc(-1 * var(--rotate-zone))" : "0"
+              });
+          }
+          retarget(target) {
+              gradum(this).embedTool(target);
+          }
+          constructor() {
+              super(...arguments);
+              __runInitializers(this, _rotateTool_extraInitializers);
+          }
+      };
+  })();
+  define(RotateHandle, "demo-rotate-handle");
 
   function styleInject(css, ref) {
     if ( ref === void 0 ) ref = {};
@@ -28626,9 +29266,11 @@
     }
   }
 
-  var css_248z$3 = "demo-selection-box{border:1px dashed #3b82f6;box-sizing:border-box;display:none;left:0;pointer-events:none;position:absolute;top:0;z-index:10}demo-selection-box.selecting{display:block}demo-resize-handle{background-color:#fff;border:1px solid #3b82f6;border-radius:2px;box-sizing:border-box;cursor:pointer;height:10px;margin:-5px;pointer-events:auto;position:absolute;width:10px}";
+  var css_248z$3 = "demo-selection-box{border:1px dashed #3b82f6;box-sizing:border-box;display:none;left:0;pointer-events:none;position:absolute;top:0;z-index:10}demo-selection-box.selecting{display:block}demo-rotate-handle{box-sizing:border-box;cursor:grab;height:24px;pointer-events:auto;position:absolute;width:24px}demo-rotate-handle:active{cursor:grabbing}demo-resize-handle{background-color:#fff;border:1px solid #3b82f6;border-radius:2px;box-sizing:border-box;cursor:pointer;height:10px;margin:-5px;pointer-events:auto;position:absolute;width:10px}";
   styleInject(css_248z$3);
 
+  //Module-level rather than a static: a private static makes TypeScript reduce `Gradum<this>` to `never`.
+  const corners = [Anchor.TopLeft, Anchor.TopRight, Anchor.BottomLeft, Anchor.BottomRight];
   let SelectionBox = (() => {
       let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
@@ -28646,7 +29288,8 @@
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           target = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _target_initializers, void 0));
-          handles = (__runInitializers(this, _target_extraInitializers), []);
+          resizeHandles = (__runInitializers(this, _target_extraInitializers), []);
+          rotateHandles = [];
           stopTracking;
           initialize() {
               gradum(this).showTransition = new StatefulReifect({
@@ -28660,11 +29303,12 @@
           }
           setupUIElements() {
               super.setupUIElements();
-              this.handles = [Anchor.TopLeft, Anchor.TopRight, Anchor.BottomLeft, Anchor.BottomRight].map(anchor => ResizeHandle.create({ anchor }));
+              this.rotateHandles = corners.map(anchor => RotateHandle.create({ anchor }));
+              this.resizeHandles = corners.map(anchor => ResizeHandle.create({ anchor }));
           }
           setupUILayout() {
               super.setupUILayout();
-              gradum(this).addChild(this.handles);
+              gradum(this).addChild([...this.rotateHandles, ...this.resizeHandles]);
           }
           updateTarget() {
               this.stopTracking?.();
@@ -28672,24 +29316,19 @@
               gradum(this).show(!!this.target);
               if (!this.target)
                   return;
-              this.handles.forEach(handle => handle.retarget(this.target));
+              this.resizeHandles.forEach(handle => handle.retarget(this.target));
+              this.rotateHandles.forEach(handle => handle.retarget(this.target));
               this.track();
           }
           track() {
-              //Follow the target. Position and size are signals, so this re-runs on a drag, on a resize, and on
-              //the position shift a corner resize applies to keep its opposite corner pinned.
               this.stopTracking = effect(() => {
-                  const position = this.target["position"];
-                  const size = this.target["size"];
-                  const centerAnchor = this.target["centerAnchor"] ?? false;
-                  if (!position || !size)
+                  const rect = getRect(this.target);
+                  if (!rect)
                       return;
-                  const offsetX = centerAnchor ? size.x / 2 : 0;
-                  const offsetY = centerAnchor ? size.y / 2 : 0;
                   gradum(this).setStyles({
-                      transform: `translate(${position.x - offsetX}px, ${position.y - offsetY}px)`,
-                      width: `${size.x}px`,
-                      height: `${size.y}px`,
+                      transform: `translate(${rect.x}px, ${rect.y}px) rotate(${rect.angleRad ?? 0}rad)`,
+                      width: `${rect.width}px`,
+                      height: `${rect.height}px`,
                   });
               });
           }
@@ -28855,14 +29494,6 @@
               const el = properties.target;
               if (!el || !(el instanceof Element))
                   return;
-              //The drag tool already moved the event target before this solve ran, but that move is a model write
-              //and only reaches the DOM on the next animation frame. Seed its pending shift so the geometry below
-              //sees where the target actually is, not where it was painted. Object data is per-pass, so the flag
-              //keeps the seed from being applied twice when both solvers process the same target.
-              if (el === properties.eventTarget && !this.getObjectData(el).seededEventShift) {
-                  this.getObjectData(el).seededEventShift = true;
-                  this.addPendingShift(el, properties.event?.deltaPosition);
-              }
               //Compute delta. If the target has a stored movement, use it.
               const delta = this.getObjectData(el).movedDelta ??
                   //Otherwise, if the target is also the event target
@@ -28896,15 +29527,17 @@
               if (!mtv)
                   return;
               //Get the normal between pushed and pusher.
-              let normal = mtv.normal;
+              const normal = mtv.normal;
               //Dot product between delta and normal
               const alongN = deltaPosition.dot(normal);
               //If pushed will be moved and the vectors are not in the same direction --> return.
               if (!pushBack && alongN <= 0)
                   return;
-              //If pusher will be moved and the vectors are in the same direction --> flip the normal.
-              if (pushBack && alongN > 0)
-                  normal = normal.mul(-1);
+              //A bounce-back always follows the normal. It is the separating direction by construction, so the
+              //element's own delta has no say in it — flipping when the two happened to agree drove the element
+              //deeper in instead of out, and far enough in, it came out the other side. Rare with axis-aligned
+              //pushes, where the delta nearly always opposed the normal; routine once a rotated pusher makes the
+              //delta diagonal and the sign along the separating axis more or less arbitrary.
               //Compute the vector along which to move the element. Both directions move by the penetration depth:
               //that is the amount that actually separates the two boxes. Using the delta projection instead would
               //under-correct whenever the overlap is deeper than this frame's movement — a fast drag, or a push
@@ -28934,39 +29567,7 @@
               //Otherwise --> treat it as a coordinate, turn it into a point, and add to it delta.
               else
                   element.position = new Point(position).add(delta);
-              //Record the move so the rest of this pass measures the element where it now is.
-              this.addPendingShift(element, delta);
               return true;
-          }
-          /**
-           * @description Accumulate a move that has been written to the element's model but has not been painted yet.
-           * Positions are applied through a signal, so the transform only lands on the next animation frame — while a
-           * solve pass runs entirely within the current one. Every move made during the pass is recorded here and
-           * added back in {@link rectOf}, so each hop of the propagation measures against the corrected layout instead
-           * of the stale one. The store lives in the per-pass object data, so it resets on its own for the next pass.
-           * @param {Element} element - The element that moved.
-           * @param {Point} delta - The amount it moved by.
-           * @protected
-           */
-          addPendingShift(element, delta) {
-              if (!element || !delta)
-                  return;
-              const data = this.getObjectData(element);
-              data.pendingShift = data.pendingShift ? data.pendingShift.add(delta) : delta;
-          }
-          /**
-           * @description The element's box as it stands right now: its painted bounding rect, offset by everything
-           * this pass has moved it by but the browser has not drawn yet.
-           * @param {Element} element - The element to measure.
-           * @return {DOMRect} The corrected box.
-           * @protected
-           */
-          rectOf(element) {
-              const rect = element.getBoundingClientRect();
-              const shift = this.getObjectData(element).pendingShift;
-              if (!shift)
-                  return rect;
-              return new DOMRect(rect.x + shift.x, rect.y + shift.y, rect.width, rect.height);
           }
           /**
            * @description Retrieve all elements from the object list that overlap on the screen with the given element.
@@ -28996,32 +29597,74 @@
            */
           //Finds if element a overlaps with b
           overlaps(el1, el2) {
-              //If any of them is not an element --> return.
-              if (!(el1 instanceof Element) || !(el2 instanceof Element))
-                  return false;
-              //Get bounding rects for each element, corrected for moves this pass has not painted yet.
-              const r1 = this.rectOf(el1);
-              const r2 = this.rectOf(el2);
-              //If any dimension is 0 or undefined --> return.
-              if (!r1.width || !r1.height || !r2.width || !r2.height)
-                  return false;
-              //Return true if any overlap is computed.
-              return !(r1.right <= r2.left || r1.left >= r2.right || r1.bottom <= r2.top || r1.top >= r2.bottom);
+              return !!this.mtvAxis(el1, el2);
           }
-          //Physics computation stuff
+          /**
+           * @description The element as an oriented box: where its center is, how far it reaches along each of its
+           * own two axes, and which way those axes point. Rotation is read off {@link GradumRect.angleRad} when the
+           * element reports one — a plain `DOMRect` has no angle, so it comes back axis-aligned.
+           * @param {Element} element - The element to measure.
+           * @return {OrientedBox} The box, or `undefined` for anything with no area to collide with.
+           * @protected
+           */
+          boxOf(element) {
+              const rect = getRect(element);
+              if (!rect)
+                  return undefined;
+              const angle = rect.angleRad ?? 0;
+              const cos = Math.cos(angle), sin = Math.sin(angle);
+              return {
+                  center: new Point(rect.x + rect.width / 2, rect.y + rect.height / 2),
+                  half: new Point(rect.width / 2, rect.height / 2),
+                  //Unit vectors along the box's own width and height, so a rotated box is described in its own
+                  //frame rather than by the axis-aligned rect that would contain it.
+                  axes: [new Point(cos, sin), new Point(-sin, cos)]
+              };
+          }
+          /**
+           * @description How far a box reaches from its center along an arbitrary direction. Each of the box's own
+           * axes contributes its half-extent scaled by how much of it lies along that direction, which is what makes
+           * this work for a rotated box.
+           * @param {OrientedBox} box - The box to measure.
+           * @param {Point} axis - Unit vector to project onto.
+           * @return {number} The reach, in pixels.
+           * @protected
+           */
+          projectedRadius(box, axis) {
+              return box.half.x * Math.abs(box.axes[0].dot(axis))
+                  + box.half.y * Math.abs(box.axes[1].dot(axis));
+          }
+          /**
+           * @description The shortest push that would separate two elements, by the separating axis theorem: two
+           * convex boxes miss each other exactly when some axis exists on which their projections don't overlap, and
+           * for rectangles only their four edge normals need testing. Finding no such axis means they intersect, and
+           * the axis with the least overlap is the cheapest way out.
+           *
+           * *Note: replaces the axis-aligned test this used to do, which treated a rotated square as the upright box
+           * containing it — so squares collided across a gap at 45°.*
+           * @param {Element} aEl - The element that would be moved.
+           * @param {Element} bEl - The element it is being separated from.
+           * @return The direction to move `aEl` in and how far, or `null` when the two do not overlap.
+           * @protected
+           */
           mtvAxis(aEl, bEl) {
-              if (!this.overlaps(aEl, bEl))
+              const a = this.boxOf(aEl), b = this.boxOf(bEl);
+              if (!a || !b)
                   return null;
-              const a = this.rectOf(aEl);
-              const b = this.rectOf(bEl);
-              const ax = a.x + a.width / 2, ay = a.y + a.height / 2;
-              const bx = b.x + b.width / 2, by = b.y + b.height / 2;
-              const dx = bx - ax, dy = by - ay;
-              const px = (a.width + b.width) / 2 - Math.abs(dx);
-              const py = (a.height + b.height) / 2 - Math.abs(dy);
-              if (px < py)
-                  return { normal: new Point(dx < 0 ? 1 : -1, 0), depth: px };
-              return { normal: new Point(0, dy < 0 ? 1 : -1), depth: py };
+              const between = b.center.sub(a.center);
+              let best = null;
+              for (const axis of [...a.axes, ...b.axes]) {
+                  const gap = this.projectedRadius(a, axis) + this.projectedRadius(b, axis)
+                      - Math.abs(between.dot(axis));
+                  //A single axis with no overlap is proof they are apart — nothing more to test.
+                  if (gap <= 0)
+                      return null;
+                  if (best && gap >= best.depth)
+                      continue;
+                  //Pointed from b towards a, so it always reads as "the way a moves to get clear".
+                  best = { normal: between.dot(axis) > 0 ? axis.mul(-1) : axis, depth: gap };
+              }
+              return best;
           }
       };
   })();
@@ -29105,6 +29748,10 @@
       static defaultProperties = {
           constrainers: [CanvasPusherConstrainer, CanvasConstrainer, CanvasSpacerConstrainer],
       };
+      initialize() {
+          super.initialize();
+          gradum(this).metadata.set(true, "substrate");
+      }
   }
   define(Canvas, "my-canvas");
 
@@ -29265,7 +29912,6 @@
           size = (__runInitializers(this, _color_extraInitializers), __runInitializers(this, _size_initializers, void 0));
           position = (__runInitializers(this, _size_extraInitializers), __runInitializers(this, _position_initializers, void 0));
           rotation = (__runInitializers(this, _position_extraInitializers), __runInitializers(this, _rotation_initializers, void 0));
-          //Exposed so overlays can read where `position` actually sits — the centre, or the top-left corner.
           centerAnchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _centerAnchor_initializers, void 0));
           static defaultProperties = {
               view: SquareView,
@@ -29284,18 +29930,21 @@
               this.model.rotation += angle;
           }
           resize(delta, anchor = Anchor.Center) {
-              //Increment size
-              const before = this.model.size;
-              this.model.size = before.add(delta);
-              //The model clamps size to a floor, so the growth that actually landed can be smaller than what was
-              //asked for. Shift by that instead of by delta, or the square keeps sliding once it has bottomed out.
-              const applied = this.model.size.sub(before);
-              //Bound the anchor between -0.5 and 0.5
+              const oldSize = this.model.size;
+              this.model.size = oldSize.add(delta);
+              const appliedDelta = this.model.size.sub(oldSize);
               anchor = new AnchorPoint(anchor).value.div(200);
-              //Shift the center of the element according to the anchor
-              const center = this.model.position.sub(applied.mul(anchor));
-              //Move the element to make it seem like its growing from the proper side
-              this.model.position = this.model.centerAnchor ? center : center.sub(applied.div(2));
+              const center = this.model.position.sub(appliedDelta.mul(anchor));
+              this.model.position = this.model.centerAnchor ? center : center.sub(appliedDelta.div(2));
+          }
+          getBoundingClientRect() {
+              return new GradumRect({
+                  x: this.model.position.x - (this.model.centerAnchor ? this.model.size.x / 2 : 0),
+                  y: this.model.position.y - (this.model.centerAnchor ? this.model.size.y / 2 : 0),
+                  width: this.model.size.x,
+                  height: this.model.size.y,
+                  angleRad: this.model.rotation
+              });
           }
           constructor() {
               super(...arguments);
@@ -29320,8 +29969,10 @@
           toolName = (__runInitializers(this, _instanceExtraInitializers), "addSquare"); //Define the tool name
           //Equivalent to gradum(tool).addToolBehavior("click", "addSquare", (e, target) => {...});
           click(e, target) {
-              if (target instanceof Canvas)
+              if (gradum(target).metadata.get("substrate")) {
                   Square.create({ parent: target, position: e.position });
+                  return Propagation.stopPropagation;
+              }
           }
       };
   })();
@@ -29388,7 +30039,7 @@
       }
   }
 
-  var css_248z = "demo-toolbar{border:1px solid #838383;border-radius:12px;bottom:16px;display:flex;flex-direction:row;gap:16px;left:50%;min-width:400px;padding:8px;position:absolute;transform:translateX(-50%);z-index:2}demo-toolbar>*{border:1px solid #838383;border-radius:8px;padding:6px 10px}demo-toolbar>*>*{margin:0;padding:0}demo-toolbar>.selected{background-color:#25e463}";
+  var css_248z = "demo-toolbar{background-color:var(--surface);border:1px solid var(--line);border-radius:var(--radius);bottom:20px;box-shadow:0 8px 24px rgb(0 0 0/8%),0 1px 2px rgb(0 0 0/5%);display:flex;flex-direction:row;gap:6px;left:50%;padding:8px;position:absolute;transform:translateX(-50%);z-index:2}demo-toolbar>*{background-color:transparent;border:1px solid transparent;border-radius:calc(var(--radius) - 4px);color:var(--muted);cursor:pointer;font-size:13px;line-height:1;padding:7px 12px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;-moz-user-select:none;user-select:none;white-space:nowrap}demo-toolbar>:hover{background-color:var(--hover);color:var(--text)}demo-toolbar>.selected{background-color:var(--active);color:var(--text)}demo-toolbar>*>*{margin:0;padding:0}";
   styleInject(css_248z);
 
   let Toolbar = (() => {
@@ -29514,6 +30165,7 @@
       entries: [
           GradumButton.create({ text: "Select", tools: SelectTool, classes: "demo-button" }),
           GradumButton.create({ text: "Resize", tools: ResizeTool, classes: "demo-button" }),
+          GradumButton.create({ text: "Rotate", tools: RotateTool, classes: "demo-button" }),
           GradumButton.create({ text: "Add Square", tools: AddSquareTool, classes: "demo-button" }),
           Bucket.create({ text: "Bucket", classes: "demo-button" }),
           GradumButton.create({ text: "Pusher Substrate", tools: PusherSubstrateTool, classes: "demo-button" }),

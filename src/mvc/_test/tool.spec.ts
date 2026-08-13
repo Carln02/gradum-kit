@@ -1,4 +1,4 @@
-import {describe, it, expect} from "vitest";
+import {describe, it, expect, beforeEach} from "vitest";
 import {GradumTool} from "../tool/tool";
 import {GradumOperator} from "../operator/operator";
 import {GradumView} from "../view/view";
@@ -17,6 +17,10 @@ class DemoTool extends GradumTool {
 class MinimalTool extends GradumTool {}
 
 describe("GradumTool", () => {
+    //Behaviors live on the manager against a tool name, and the same function is only ever registered once
+    //under it — so a tool an earlier test built would otherwise keep answering for "brush" here.
+    beforeEach(() => gradum().clearToolBehaviors());
+
     it("is a subclass of GradumOperator", () => {
         const element = div({parent: document.body});
         const tool = new MinimalTool({element});

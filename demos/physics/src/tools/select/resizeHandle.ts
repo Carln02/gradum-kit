@@ -4,7 +4,7 @@ import {
 import {ResizeTool} from "../resize.tool";
 
 //A corner grip of the selection box. The handle itself is a tool, embedded into the selected element: the
-//resize behaviour runs with that element as its target, so dragging the grip resizes the square underneath
+//resize behavior runs with that element as its target, so dragging the grip resizes the square underneath
 //without the square ever receiving the drag.
 export class ResizeHandle extends GradumElement {
     public static defaultProperties = {tools: ResizeTool};
@@ -28,7 +28,6 @@ export class ResizeHandle extends GradumElement {
         gradum(this).setStyles({left: `${(corner.x + 100) / 2}%`, top: `${(corner.y + 100) / 2}%`});
     }
 
-    //Point the handle at a new element. Embedding is what routes the drag to the target.
     public retarget(target: Node) {
         gradum(this).embedTool(target);
     }

@@ -1,11 +1,19 @@
-import {define, GradumElement, Anchor, gradum, signal, effect, StatefulReifect, Shown} from "../../../../../build/gradum-kit.esm";
+import {
+    define, GradumElement, Anchor, gradum, signal, effect, StatefulReifect, Shown, GradumRect
+} from "../../../../../build/gradum-kit.esm";
 import {ResizeHandle} from "./resizeHandle";
+import {RotateHandle} from "./rotateHandle";
+import {getRect} from "../../utils/getRect";
 import "./selectionBox.css";
+
+//Module-level rather than a static: a private static makes TypeScript reduce `Gradum<this>` to `never`.
+const corners = [Anchor.TopLeft, Anchor.TopRight, Anchor.BottomLeft, Anchor.BottomRight];
 
 export class SelectionBox extends GradumElement {
     @signal public target: Node;
 
-    public handles: ResizeHandle[] = [];
+    public resizeHandles: ResizeHandle[] = [];
+    public rotateHandles: RotateHandle[] = [];
     public stopTracking: () => void;
 
     public initialize() {
@@ -22,12 +30,13 @@ export class SelectionBox extends GradumElement {
 
     protected setupUIElements() {
         super.setupUIElements();
-        this.handles = [Anchor.TopLeft, Anchor.TopRight, Anchor.BottomLeft, Anchor.BottomRight].map(anchor => ResizeHandle.create({anchor}));
+        this.rotateHandles = corners.map(anchor => RotateHandle.create({anchor}));
+        this.resizeHandles = corners.map(anchor => ResizeHandle.create({anchor}));
     }
 
     protected setupUILayout() {
         super.setupUILayout();
-        gradum(this).addChild(this.handles);
+        gradum(this).addChild([...this.rotateHandles, ...this.resizeHandles]);
     }
 
     @effect private updateTarget() {
@@ -36,25 +45,19 @@ export class SelectionBox extends GradumElement {
         gradum(this).show(!!this.target);
         if (!this.target) return;
 
-        this.handles.forEach(handle => handle.retarget(this.target));
+        this.resizeHandles.forEach(handle => handle.retarget(this.target));
+        this.rotateHandles.forEach(handle => handle.retarget(this.target));
         this.track();
     }
 
     public track() {
-        //Follow the target. Position and size are signals, so this re-runs on a drag, on a resize, and on
-        //the position shift a corner resize applies to keep its opposite corner pinned.
         this.stopTracking = effect(() => {
-            const position = this.target["position"];
-            const size = this.target["size"];
-            const centerAnchor = this.target["centerAnchor"] ?? false;
-            if (!position || !size) return;
-
-            const offsetX = centerAnchor ? size.x / 2 : 0;
-            const offsetY = centerAnchor ? size.y / 2 : 0;
+            const rect = getRect(this.target);
+            if (!rect) return;
             gradum(this).setStyles({
-                transform: `translate(${position.x - offsetX}px, ${position.y - offsetY}px)`,
-                width: `${size.x}px`,
-                height: `${size.y}px`,
+                transform: `translate(${rect.x}px, ${rect.y}px) rotate(${rect.angleRad ?? 0}rad)`,
+                width: `${rect.width}px`,
+                height: `${rect.height}px`,
             });
         });
     }

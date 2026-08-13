@@ -9,6 +9,7 @@ import {SpacerSubstrateTool} from "./tools/spacerSubstrate.tool";
 import {Toolbar} from "./toolbar/toolbar";
 import {Bucket} from "./tools/bucket/bucket";
 import {ResizeTool} from "./tools/resize.tool";
+import {RotateTool} from "./tools/rotate.tool";
 
 Canvas.create({parent: document.body});
 Toolbar.create({
@@ -16,6 +17,7 @@ Toolbar.create({
     entries: [
         GradumButton.create({text: "Select", tools: SelectTool, classes: "demo-button"}),
         GradumButton.create({text: "Resize", tools: ResizeTool, classes: "demo-button"}),
+        GradumButton.create({text: "Rotate", tools: RotateTool, classes: "demo-button"}),
         GradumButton.create({text: "Add Square", tools: AddSquareTool, classes: "demo-button"}),
         Bucket.create({text: "Bucket", classes: "demo-button"}),
         GradumButton.create({text: "Pusher Substrate", tools: PusherSubstrateTool, classes: "demo-button"}),

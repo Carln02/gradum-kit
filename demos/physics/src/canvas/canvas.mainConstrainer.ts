@@ -7,6 +7,15 @@ import {
     GradumConstrainer,
     gradum
 } from "../../../../build/gradum-kit.esm";
+import {getRect} from "../utils/getRect";
+
+//An element's collision box in its own frame: where it sits, how far it reaches, and which way it faces.
+//Keeping the axes explicit is what lets the same code handle rotated and upright boxes alike.
+type OrientedBox = {
+    center: Point,
+    half: Point,
+    axes: [Point, Point]
+};
 
 //Pusher constrainer
 export class CanvasConstrainer extends GradumConstrainer {
@@ -99,15 +108,6 @@ export class CanvasConstrainer extends GradumConstrainer {
         const el = properties.target as Element;
         if (!el || !(el instanceof Element)) return;
 
-        //The drag tool already moved the event target before this solve ran, but that move is a model write
-        //and only reaches the DOM on the next animation frame. Seed its pending shift so the geometry below
-        //sees where the target actually is, not where it was painted. Object data is per-pass, so the flag
-        //keeps the seed from being applied twice when both solvers process the same target.
-        if (el === properties.eventTarget && !this.getObjectData(el).seededEventShift) {
-            this.getObjectData(el).seededEventShift = true;
-            this.addPendingShift(el, (properties.event as GradumDragEvent)?.deltaPosition);
-        }
-
         //Compute delta. If the target has a stored movement, use it.
         const delta: Point = this.getObjectData(el).movedDelta ??
             //Otherwise, if the target is also the event target
@@ -139,13 +139,16 @@ export class CanvasConstrainer extends GradumConstrainer {
         const mtv = pushBack ? this.mtvAxis(pusher, pushed) : this.mtvAxis(pushed, pusher);
         if (!mtv) return;
         //Get the normal between pushed and pusher.
-        let normal = mtv.normal;
+        const normal = mtv.normal;
         //Dot product between delta and normal
         const alongN = deltaPosition.dot(normal);
         //If pushed will be moved and the vectors are not in the same direction --> return.
         if (!pushBack && alongN <= 0) return;
-        //If pusher will be moved and the vectors are in the same direction --> flip the normal.
-        if (pushBack && alongN > 0) normal = normal.mul(-1);
+        //A bounce-back always follows the normal. It is the separating direction by construction, so the
+        //element's own delta has no say in it — flipping when the two happened to agree drove the element
+        //deeper in instead of out, and far enough in, it came out the other side. Rare with axis-aligned
+        //pushes, where the delta nearly always opposed the normal; routine once a rotated pusher makes the
+        //delta diagonal and the sign along the separating axis more or less arbitrary.
         //Compute the vector along which to move the element. Both directions move by the penetration depth:
         //that is the amount that actually separates the two boxes. Using the delta projection instead would
         //under-correct whenever the overlap is deeper than this frame's movement — a fast drag, or a push
@@ -172,39 +175,7 @@ export class CanvasConstrainer extends GradumConstrainer {
         if (position instanceof Point) element.position = position.add(delta);
         //Otherwise --> treat it as a coordinate, turn it into a point, and add to it delta.
         else element.position = new Point(position as Coordinate).add(delta);
-        //Record the move so the rest of this pass measures the element where it now is.
-        this.addPendingShift(element, delta);
         return true;
-    }
-
-    /**
-     * @description Accumulate a move that has been written to the element's model but has not been painted yet.
-     * Positions are applied through a signal, so the transform only lands on the next animation frame — while a
-     * solve pass runs entirely within the current one. Every move made during the pass is recorded here and
-     * added back in {@link rectOf}, so each hop of the propagation measures against the corrected layout instead
-     * of the stale one. The store lives in the per-pass object data, so it resets on its own for the next pass.
-     * @param {Element} element - The element that moved.
-     * @param {Point} delta - The amount it moved by.
-     * @protected
-     */
-    protected addPendingShift(element: Element, delta: Point) {
-        if (!element || !delta) return;
-        const data = this.getObjectData(element);
-        data.pendingShift = data.pendingShift ? (data.pendingShift as Point).add(delta) : delta;
-    }
-
-    /**
-     * @description The element's box as it stands right now: its painted bounding rect, offset by everything
-     * this pass has moved it by but the browser has not drawn yet.
-     * @param {Element} element - The element to measure.
-     * @return {DOMRect} The corrected box.
-     * @protected
-     */
-    protected rectOf(element: Element): DOMRect {
-        const rect = element.getBoundingClientRect();
-        const shift = this.getObjectData(element).pendingShift as Point;
-        if (!shift) return rect;
-        return new DOMRect(rect.x + shift.x, rect.y + shift.y, rect.width, rect.height);
     }
 
     /**
@@ -234,31 +205,76 @@ export class CanvasConstrainer extends GradumConstrainer {
      */
     //Finds if element a overlaps with b
     protected overlaps(el1: Element, el2: Element): boolean {
-        //If any of them is not an element --> return.
-        if (!(el1 instanceof Element) || !(el2 instanceof Element)) return false;
-        //Get bounding rects for each element, corrected for moves this pass has not painted yet.
-        const r1 = this.rectOf(el1);
-        const r2 = this.rectOf(el2);
-        //If any dimension is 0 or undefined --> return.
-        if (!r1.width || !r1.height || !r2.width || !r2.height) return false;
-        //Return true if any overlap is computed.
-        return !(r1.right <= r2.left || r1.left >= r2.right || r1.bottom <= r2.top || r1.top >= r2.bottom);
+        return !!this.mtvAxis(el1, el2);
     }
 
-    //Physics computation stuff
+    /**
+     * @description The element as an oriented box: where its center is, how far it reaches along each of its
+     * own two axes, and which way those axes point. Rotation is read off {@link GradumRect.angleRad} when the
+     * element reports one — a plain `DOMRect` has no angle, so it comes back axis-aligned.
+     * @param {Element} element - The element to measure.
+     * @return {OrientedBox} The box, or `undefined` for anything with no area to collide with.
+     * @protected
+     */
+    protected boxOf(element: Element): OrientedBox {
+        const rect = getRect(element);
+        if (!rect) return undefined;
+
+        const angle = rect.angleRad ?? 0;
+        const cos = Math.cos(angle), sin = Math.sin(angle);
+        return {
+            center: new Point(rect.x + rect.width / 2, rect.y + rect.height / 2),
+            half: new Point(rect.width / 2, rect.height / 2),
+            //Unit vectors along the box's own width and height, so a rotated box is described in its own
+            //frame rather than by the axis-aligned rect that would contain it.
+            axes: [new Point(cos, sin), new Point(-sin, cos)]
+        };
+    }
+
+    /**
+     * @description How far a box reaches from its center along an arbitrary direction. Each of the box's own
+     * axes contributes its half-extent scaled by how much of it lies along that direction, which is what makes
+     * this work for a rotated box.
+     * @param {OrientedBox} box - The box to measure.
+     * @param {Point} axis - Unit vector to project onto.
+     * @return {number} The reach, in pixels.
+     * @protected
+     */
+    protected projectedRadius(box: OrientedBox, axis: Point): number {
+        return box.half.x * Math.abs(box.axes[0].dot(axis))
+            + box.half.y * Math.abs(box.axes[1].dot(axis));
+    }
+
+    /**
+     * @description The shortest push that would separate two elements, by the separating axis theorem: two
+     * convex boxes miss each other exactly when some axis exists on which their projections don't overlap, and
+     * for rectangles only their four edge normals need testing. Finding no such axis means they intersect, and
+     * the axis with the least overlap is the cheapest way out.
+     *
+     * *Note: replaces the axis-aligned test this used to do, which treated a rotated square as the upright box
+     * containing it — so squares collided across a gap at 45°.*
+     * @param {Element} aEl - The element that would be moved.
+     * @param {Element} bEl - The element it is being separated from.
+     * @return The direction to move `aEl` in and how far, or `null` when the two do not overlap.
+     * @protected
+     */
     protected mtvAxis(aEl: Element, bEl: Element): { normal: Point; depth: number } | null {
-        if (!this.overlaps(aEl, bEl)) return null;
-        const a = this.rectOf(aEl);
-        const b = this.rectOf(bEl);
+        const a = this.boxOf(aEl), b = this.boxOf(bEl);
+        if (!a || !b) return null;
 
-        const ax = a.x + a.width / 2, ay = a.y + a.height / 2;
-        const bx = b.x + b.width / 2, by = b.y + b.height / 2;
-        const dx = bx - ax, dy = by - ay;
+        const between = b.center.sub(a.center);
+        let best: { normal: Point; depth: number } | null = null;
 
-        const px = (a.width + b.width) / 2 - Math.abs(dx);
-        const py = (a.height + b.height) / 2 - Math.abs(dy);
+        for (const axis of [...a.axes, ...b.axes]) {
+            const gap = this.projectedRadius(a, axis) + this.projectedRadius(b, axis)
+                - Math.abs(between.dot(axis));
+            //A single axis with no overlap is proof they are apart — nothing more to test.
+            if (gap <= 0) return null;
+            if (best && gap >= best.depth) continue;
+            //Pointed from b towards a, so it always reads as "the way a moves to get clear".
+            best = {normal: between.dot(axis) > 0 ? axis.mul(-1) : axis, depth: gap};
+        }
 
-        if (px < py) return {normal: new Point(dx < 0 ? 1 : -1, 0), depth: px};
-        return {normal: new Point(0, dy < 0 ? 1 : -1), depth: py};
+        return best;
     }
 }

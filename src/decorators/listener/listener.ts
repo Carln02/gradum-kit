@@ -4,6 +4,7 @@ import {DefaultEventName} from "../../types/eventNaming.types";
 import {GradumEventManager} from "../../eventHandling/gradumEventManager/gradumEventManager";
 import {gradum} from "../../gradumFunctions/gradumFunctions";
 import {ListenerUtils} from "./listener.utils";
+import {ToolBehaviorOptions} from "../../gradumFunctions/tool/tool.types";
 
 const utils = new ListenerUtils();
 
@@ -68,7 +69,7 @@ function listener(properties: Partial<Omit<ListenerProperties, "callback">> = {}
  */
 function behavior(properties: Partial<Omit<ListenerProperties, "callback" | "options">> = {}) {
     return function <T extends object>(
-        value: (this: T, e?: Event, target?: Node) => any,
+        value: (this: T, e?: Event, target?: Node, options?: ToolBehaviorOptions) => any,
         context: ClassMethodDecoratorContext<T>
     ) {
         //TODO FIX
@@ -122,8 +123,10 @@ function attachListenersAndBehaviors(context: any) {
 
         if (listener.kind === "behavior") {
             if (!tool) continue;
-            gradum(context).addToolBehavior(listener.type, (e, el) => method.call(context, e, el),
-                tool, manager);
+            const callback = (e: Event, el: Node, options?: ToolBehaviorOptions) =>
+                method.call(context, e, el, options);
+            (callback as any).sourceFunction = method;
+            gradum(context).addToolBehavior(listener.type, callback, tool, manager);
         } else if (listener.kind === "listener") {
             if (!(target instanceof Node)) continue;
             gradum(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el),

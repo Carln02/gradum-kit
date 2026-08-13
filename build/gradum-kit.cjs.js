@@ -9420,7 +9420,9 @@ function attachListenersAndBehaviors(context) {
         if (listener.kind === "behavior") {
             if (!tool)
                 continue;
-            gradum(context).addToolBehavior(listener.type, (e, el) => method.call(context, e, el), tool, manager);
+            const callback = (e, el, options) => method.call(context, e, el, options);
+            callback.sourceFunction = method;
+            gradum(context).addToolBehavior(listener.type, callback, tool, manager);
         }
         else if (listener.kind === "listener") {
             if (!(target instanceof Node))
@@ -12085,7 +12087,15 @@ class ToolFunctionsUtils {
         return this.getElementData(element, manager).embeddedTarget;
     }
     addToolBehavior(toolName, type, callback, manager) {
-        this.getToolsData(manager, toolName).behaviors?.addListener({ callback, type, toolName, manager });
+        const behaviors = this.getToolsData(manager, toolName).behaviors;
+        if (!behaviors)
+            return;
+        const identity = callback?.sourceFunction ?? callback;
+        for (const existing of behaviors.getListeners({ toolName, manager, type })) {
+            if ((existing.callback?.sourceFunction ?? existing.callback) === identity)
+                return;
+        }
+        behaviors.addListener({ callback, type, toolName, manager });
     }
     getToolBehaviors(toolName, type, manager) {
         return this.getToolsData(manager, toolName).behaviors?.getListeners({ toolName, manager, type });
