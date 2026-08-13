@@ -1,12 +1,18 @@
 import {
-    define, GradumElement, Anchor, gradum, signal, effect, StatefulReifect, Shown, GradumRect
+    Anchor,
+    define,
+    effect,
+    gradum,
+    GradumElement,
+    Shown,
+    signal,
+    StatefulReifect
 } from "../../../../../build/gradum-kit.esm";
 import {ResizeHandle} from "./resizeHandle";
 import {RotateHandle} from "./rotateHandle";
 import {getRect} from "../../utils/getRect";
 import "./selectionBox.css";
 
-//Module-level rather than a static: a private static makes TypeScript reduce `Gradum<this>` to `never`.
 const corners = [Anchor.TopLeft, Anchor.TopRight, Anchor.BottomLeft, Anchor.BottomRight];
 
 export class SelectionBox extends GradumElement {
@@ -17,15 +23,10 @@ export class SelectionBox extends GradumElement {
     public stopTracking: () => void;
 
     public initialize() {
-        const transition = new StatefulReifect({
+        gradum(this).showTransition = new StatefulReifect({
             states: Shown,
             styles: state => "display: " + (state === Shown.visible ? "block" : "none")
         });
-        gradum(this).showTransition = transition;
-        //A reifect only acts on objects attached to it: apply() looks the element up in its own table and
-        //returns quietly when it is not there. Without this, show() does nothing at all and the box never
-        //leaves the display: none it starts at, however correctly the target is set.
-        gradum(this).attachReifect(transition);
         super.initialize();
     }
 
@@ -49,7 +50,6 @@ export class SelectionBox extends GradumElement {
         this.stopTracking = undefined;
         gradum(this).show(!!this.target);
         if (!this.target) return;
-
         this.resizeHandles.forEach(handle => handle.retarget(this.target));
         this.rotateHandles.forEach(handle => handle.retarget(this.target));
         this.track();
@@ -59,8 +59,9 @@ export class SelectionBox extends GradumElement {
         this.stopTracking = effect(() => {
             const rect = getRect(this.target);
             if (!rect) return;
+            const corner = rect.topLeft;
             gradum(this).setStyles({
-                transform: `translate(${rect.x}px, ${rect.y}px) rotate(${rect.angleRad ?? 0}rad)`,
+                transform: `translate(${corner.x}px, ${corner.y}px) rotate(${rect.angleRad ?? 0}rad)`,
                 width: `${rect.width}px`,
                 height: `${rect.height}px`,
             });

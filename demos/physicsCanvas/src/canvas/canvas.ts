@@ -68,7 +68,7 @@ export class Canvas extends GradumElement implements Substrate {
         const rect = getRect(obj);
         if (!rect) return false;
 
-        const toCenter = new Point(position.x - (rect.x + rect.width / 2), position.y - (rect.y + rect.height / 2));
+        const toCenter = position.sub(rect.center);
         const angle = -(rect.angleRad ?? 0);
         const cos = Math.cos(angle), sin = Math.sin(angle);
         const local = new Point(

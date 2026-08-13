@@ -1,5 +1,5 @@
 import {describe, it, expect} from "vitest";
-import {GradumRect, Point} from "../../../../../build/gradum-kit.esm";
+import {Anchor, GradumRect, Point} from "../../../../../build/gradum-kit.esm";
 import {CanvasConstrainer} from "../canvas.mainConstrainer";
 
 type Physics = {
@@ -13,8 +13,10 @@ const physics = Object.create(CanvasConstrainer.prototype) as Physics;
 //box derived from it. Between them that is everything the constrainer needs of the things it moves.
 function movable(x: number, y: number, size = 100, angleDeg = 0) {
     const obj: any = {position: new Point(x, y)};
-    obj.getBoundingClientRect = () => new GradumRect(
-        {x: obj.position.x, y: obj.position.y, width: size, height: size, angleDeg});
+    obj.getBoundingClientRect = () => new GradumRect({
+        x: obj.position.x + size / 2, y: obj.position.y + size / 2,
+        width: size, height: size, angleDeg, anchor: Anchor.Center
+    });
     return obj;
 }
 

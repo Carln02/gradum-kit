@@ -15671,6 +15671,51 @@
           return Math.min(this.x, this.y);
       }
       /**
+       * @description Turn this point by an angle, about the origin or about another point.
+       * @param {number} angle - The angle to turn by, in radians. Positive turns from the x axis towards the y.
+       * @param {Coordinate} [around] - The point to turn around. Defaults to the origin, which turns this point
+       * as a vector rather than as a position.
+       * @returns {Point} A new point holding the result. This point is left unchanged.
+       *
+       * @example
+       * ```ts
+       * //A vector expressed in a box's own frame, brought back into screen space.
+       * const screen = local.rotate(box.angleRad);
+       * //A corner swung around the point it is pinned to.
+       * const moved = corner.rotate(swept, pivot);
+       * ```
+       */
+      rotate(angle, around) {
+          if (!angle)
+              return new Point(this.x, this.y);
+          const cos = Math.cos(angle), sin = Math.sin(angle);
+          const x = this.x - (around?.x ?? 0), y = this.y - (around?.y ?? 0);
+          return new Point(x * cos - y * sin + (around?.x ?? 0), x * sin + y * cos + (around?.y ?? 0));
+      }
+      /**
+       * @description The angle from this point to another, measured from the x axis.
+       * @param {Coordinate} to - The point to measure towards.
+       * @returns {number} The angle in radians, in (-π, π].
+       */
+      angleTo(to) {
+          return Math.atan2(to.y - this.y, to.x - this.x);
+      }
+      /**
+       * @description The angle swept around this point in going from one place to another — how far something
+       * turned, treating this point as the pivot.
+       *
+       * The result is folded back into (-π, π]. Subtracting two raw angles instead would jump by a full turn
+       * whenever the sweep crosses the seam directly behind the pivot, reporting a near-complete spin in the
+       * opposite direction for what was a small movement.
+       * @param {Coordinate} from - Where the sweep started.
+       * @param {Coordinate} to - Where it ended.
+       * @returns {number} The angle swept, in radians, in (-π, π].
+       */
+      angleBetween(from, to) {
+          const swept = this.angleTo(to) - this.angleTo(from);
+          return Math.atan2(Math.sin(swept), Math.cos(swept));
+      }
+      /**
        * @readonly
        * @description The squared distance from the origin to this point. Cheaper than {@link Point.length}
        * since it skips the square root — use it when comparing magnitudes.
@@ -15744,21 +15789,29 @@
       toString() {
           return JSON.stringify({ x: this.x, y: this.y });
       }
-      /**
-       * @function from
-       * @static
-       * @description Parse a point from a JSON string produced by {@link Point.toString}.
-       * @param {string} value - The string to parse.
-       * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
-       * `x` and `y` fields.
-       */
       static from(value) {
-          try {
-              const parsed = JSON.parse(value);
-              if (typeof parsed.x === "number" && typeof parsed.y === "number")
-                  return new Point(parsed.x, parsed.y);
+          if (value instanceof Point)
+              return value;
+          if (typeof value === "number")
+              return new Point(value);
+          if (typeof value === "string") {
+              try {
+                  const parsed = JSON.parse(value);
+                  if (typeof parsed?.x === "number" && typeof parsed?.y === "number")
+                      return new Point(parsed.x, parsed.y);
+              }
+              catch { /* fall through to undefined */ }
+              return undefined;
           }
-          catch { /* fall through to undefined */ }
+          if (Array.isArray(value))
+              return typeof value[0] === "number" && typeof value[1] === "number"
+                  ? new Point(value[0], value[1]) : undefined;
+          if (value && typeof value === "object") {
+              if (typeof value.x === "number" && typeof value.y === "number")
+                  return new Point(value.x, value.y);
+              if (typeof value.clientX === "number" && typeof value.clientY === "number")
+                  return new Point(value.clientX, value.clientY);
+          }
           return undefined;
       }
       /**
@@ -27133,6 +27186,39 @@
           get value() { return; }
           /**
            * @readonly
+           * @description This position as a fraction of the box, from `-0.5` at the left or top edge through `0`
+           * at the centre to `+0.5` at the right or bottom. The same value as {@link AnchorPoint.value}, which is
+           * a percentage, scaled into the form that multiplies a size directly.
+           *
+           * @example
+           * ```ts
+           * //Where a box's anchor sits, measured from its middle.
+           * const offset = new AnchorPoint(Anchor.TopLeft).fraction.mul(size); //(-w/2, -h/2)
+           * ```
+           */
+          get fraction() {
+              return this.value.div(200);
+          }
+          /**
+           * @function offsetIn
+           * @description The vector from the middle of a box out to this anchor. Turned by `rotation`, so it
+           * points where the anchor actually is on a box that has been rotated about its middle, rather than
+           * where it would sit on an upright one.
+           * @param {Coordinate} size - The box's width and height.
+           * @param {number} [rotation=0] - The box's rotation in radians.
+           * @returns {Point} The offset from the middle of the box.
+           *
+           * @example
+           * ```ts
+           * //The screen position of a rotated box's top-left corner.
+           * const corner = middle.add(new AnchorPoint(Anchor.TopLeft).offsetIn(size, angleRad));
+           * ```
+           */
+          offsetIn(size, rotation = 0) {
+              return this.fraction.mul(size).rotate(rotation);
+          }
+          /**
+           * @readonly
            * @description The named {@link Anchor} nearest this position, snapping each axis to its closest edge
            * or centre.
            */
@@ -27452,11 +27538,17 @@
    */
   class GradumRect extends DOMRect {
       /**
-       * @description The rectangle's rotation in radians, about its centre.
+       * @description The rectangle's rotation in radians, about its {@link GradumRect.anchor}.
        */
       angleRad = 0;
       /**
-       * @description The anchor the rectangle is positioned from.
+       * @description The point of the rectangle that `x` and `y` give the position of, and that it turns
+       * about. Defaults to `Anchor.TopLeft`, which is what makes an unrotated rectangle read exactly like the
+       * `DOMRect` it extends.
+       *
+       * *Note: the `left`, `top`, `right` and `bottom` inherited from `DOMRect` are derived from `x`, `y`,
+       * `width` and `height` alone, so they describe the box only while it is unrotated and anchored to its
+       * top-left. Use {@link GradumRect.points} or {@link GradumRect.center} otherwise.*
        */
       anchor;
       /**
@@ -27471,7 +27563,8 @@
               this.angleRad = properties.angleRad;
           else if (properties.angleDeg !== undefined)
               this.angleDeg = properties.angleDeg;
-          this.anchor = properties.anchor instanceof AnchorPoint ? properties.anchor : new AnchorPoint(properties.anchor);
+          this.anchor = properties.anchor instanceof AnchorPoint
+              ? properties.anchor : new AnchorPoint(properties.anchor ?? Anchor.TopLeft);
       }
       /**
        * @function fromSegment
@@ -27491,9 +27584,11 @@
           const length = Math.hypot(dx, dy);
           const angleRad = Math.atan2(dy, dx);
           const mid = new Point((a.x + b.x) / 2, (a.y + b.y) / 2);
-          const x = mid.x - length / 2;
-          const y = mid.y - thickness / 2;
-          return new GradumRect({ x, y, width: length, height: thickness, ...properties, angleRad });
+          //Anchored and turned about the segment's midpoint, which is what keeps it lying along the segment.
+          return new GradumRect({
+              x: mid.x, y: mid.y, width: length, height: thickness,
+              anchor: Anchor.Center, ...properties, angleRad
+          });
       }
       /**
        * @function fromDOMRect
@@ -27514,9 +27609,12 @@
        * @returns {HTMLElement} The generated element. It is not attached to the document.
        */
       render() {
+          //Positioned by the untilted box around the centre and turned about that centre, which reproduces the
+          //same quadrilateral whatever the anchor is — the anchor has already been accounted for in `center`.
+          const corner = this.topLeft;
           return element({ tag: "div", style: css `position: absolute; 
                 width: ${this.width}px; height: ${this.height}px; 
-                top: ${this.y}px; left: ${this.x}px; background-color: red; pointer-events: none; opacity: 0.4;
+                top: ${corner.y}px; left: ${corner.x}px; background-color: red; pointer-events: none; opacity: 0.4;
                 transform: rotate(${this.angleRad}rad)` });
       }
       /**
@@ -27531,10 +27629,46 @@
       }
       /**
        * @readonly
-       * @description The rectangle's centre point.
+       * @description The rectangle's centre point, wherever its anchor has put it. `x` and `y` give the
+       * anchor's position and the rectangle turns about that anchor, so the centre swings around it as the
+       * rotation changes — for the default top-left anchor and no rotation this is the familiar
+       * `x + width / 2, y + height / 2`.
        */
       get center() {
-          return new Point(this.x + this.width / 2, this.y + this.height / 2);
+          return this.origin.sub(this.anchor.offsetIn(this.size, this.angleRad));
+      }
+      /**
+       * @readonly
+       * @description Where the rectangle's anchor sits: its `x` and `y`, as a point.
+       */
+      get origin() {
+          return new Point(this.x, this.y);
+      }
+      /**
+       * @readonly
+       * @description The rectangle's width and height, as a point.
+       */
+      get size() {
+          return new Point(this.width, this.height);
+      }
+      /**
+       * @function pointAt
+       * @description Where one of the rectangle's anchors sits, in the same coordinates as `x` and `y`. Follows
+       * the rotation, so it reports where that part of the rectangle actually is rather than where it would sit
+       * unrotated.
+       * @param {Anchor | Point | AnchorPoint} anchor - The anchor to locate.
+       * @returns {Point} Its position.
+       *
+       * @example
+       * ```ts
+       * //A rect anchored at its centre still knows where its corner is.
+       * const rect = new GradumRect({x: 400, y: 300, width: 100, height: 80, anchor: Anchor.Center});
+       * rect.pointAt(Anchor.TopLeft); //(350, 260)
+       * ```
+       */
+      pointAt(anchor) {
+          const point = anchor instanceof AnchorPoint ? anchor : new AnchorPoint(anchor);
+          return this.center.add(point.offsetIn(this.size, this.angleRad));
       }
       /**
        * @readonly
@@ -27556,6 +27690,25 @@
        */
       get half() {
           return new Point(this.width / 2, this.height / 2);
+      }
+      /**
+       * @readonly
+       * @description The corner to lay the rectangle out from: the top-left of the untilted box sitting at
+       * {@link GradumRect.center}. Rotating that box about its own middle reproduces this rectangle, whatever
+       * it is anchored to — which is what makes it the value a `translate(...) rotate(...)` transform, or a
+       * canvas `drawImage`, wants.
+       *
+       * *Note: not the same as the rectangle's actual top-left corner once it is rotated. For that, ask for
+       * {@link GradumRect.points}`[0]` or {@link GradumRect.pointAt}`(Anchor.TopLeft)`.*
+       *
+       * @example
+       * ```ts
+       * gradum(el).setStyle("transform", `translate(${rect.topLeft.x}px, ${rect.topLeft.y}px)
+       *     rotate(${rect.angleRad}rad)`);
+       * ```
+       */
+      get topLeft() {
+          return this.center.sub(this.half);
       }
       /**
        * @readonly
@@ -29037,19 +29190,15 @@
           }
           toolName = (__runInitializers(this, _instanceExtraInitializers), "resize"); //Define the tool name
           anchor = Anchor.Center;
-          sign = new Point(2, 2);
           //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "resize", (e, el) => {...});
           drag(e, el) {
               try {
                   if (!gradum(el).metadata?.get("modifiable"))
                       return Propagation.propagate;
-                  let delta = e.deltaPosition.mul(this.sign);
-                  if (e.keys.includes("Shift"))
-                      delta = new Point(delta.min, delta.min);
                   if ("resize" in el && typeof el.resize === "function")
-                      el.resize(delta, this.anchor);
+                      el.resize(e.deltaPosition, this.anchor, e.keys.includes("Shift"));
                   else if ("size" in el && typeof el.size === "object")
-                      el.size = delta.add(el.size);
+                      el.size = e.deltaPosition.add(el.size);
                   else
                       return Propagation.propagate;
                   return Propagation.stopPropagation;
@@ -29085,10 +29234,8 @@
           }
           updateAnchor() {
               this.resizeTool.toolName = `resize-${this.anchor}`;
-              this.resizeTool.customActivation = () => { };
               const corner = AnchorPoint.enumToPoint(this.anchor);
               this.resizeTool.anchor = AnchorPoint.pointToEnum(corner.mul(-1));
-              this.resizeTool.sign = corner.div(100);
               gradum(this).setStyles({ left: `${(corner.x + 100) / 2}%`, top: `${(corner.y + 100) / 2}%` });
           }
           retarget(target) {
@@ -29101,52 +29248,6 @@
       };
   })();
   define(ResizeHandle, "demo-resize-handle");
-
-  /**
-   * @description Read a coordinate-ish value as a Point. Accepts a Point, anything with numeric `x` and `y`, or
-   * a single number standing for both axes.
-   */
-  function toPoint(value) {
-      if (value instanceof Point)
-          return value;
-      if (typeof value === "number")
-          return new Point(value, value);
-      if (value && typeof value.x === "number" && typeof value.y === "number")
-          return new Point(value);
-      return undefined;
-  }
-  /**
-   * @description Where an object is and which way it faces, as an oriented rect.
-   *
-   * Asks the object for its own bounding box first, and takes it as-is when it hands back a {@link GradumRect},
-   * since that already carries an angle. Otherwise it builds one from `position`, `size`, `rotation` and
-   * `centerAnchor` — which is also what keeps this reactive: those are signals, so reading them inside an
-   * `@effect` subscribes it, where a bare `getBoundingClientRect()` on a plain element would not. Anything with
-   * neither gets its painted box back, treated as unrotated.
-   *
-   * @param {object} el - The element or object to measure.
-   * @returns {GradumRect} The rect, or `undefined` for something with no position or no area.
-   */
-  function getRect(el) {
-      if (!el || typeof el !== "object")
-          return undefined;
-      const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : undefined;
-      if (rect instanceof GradumRect)
-          return rect;
-      const size = toPoint(el.size) ?? toPoint({ x: el.width, y: el.height });
-      const position = toPoint(el.position);
-      if (size?.x && size.y && position)
-          return new GradumRect({
-              x: position.x - (el.centerAnchor ? size.x / 2 : 0),
-              y: position.y - (el.centerAnchor ? size.y / 2 : 0),
-              width: size.x,
-              height: size.y,
-              angleRad: typeof el.rotation === "number" ? el.rotation : 0
-          });
-      if (!rect?.width || !rect.height)
-          return undefined;
-      return new GradumRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
-  }
 
   //Rotate tool
   let RotateTool = (() => {
@@ -29161,27 +29262,18 @@
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           toolName = (__runInitializers(this, _instanceExtraInitializers), "rotate"); //Define the tool name
+          //The point turned about. Center spins the target in place; a corner swings it around that corner.
+          anchor = Anchor.Center;
           //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "rotate", (e, el) => {...});
           drag(e, el) {
               try {
                   if (!gradum(el).metadata?.get("modifiable"))
                       return Propagation.propagate;
-                  const rect = getRect(el);
-                  if (!rect)
+                  if (!("rotate" in el) || typeof el.rotate !== "function")
                       return Propagation.propagate;
-                  const center = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
-                  const from = e.position.sub(e.deltaPosition);
-                  const swept = Math.atan2(e.position.y - center.y, e.position.x - center.x)
-                      - Math.atan2(from.y - center.y, from.x - center.x);
-                  const angle = Math.atan2(Math.sin(swept), Math.cos(swept));
-                  if (!angle)
-                      return Propagation.stopPropagation;
-                  if ("rotate" in el && typeof el.rotate === "function")
-                      el.rotate(angle);
-                  else if ("rotation" in el && typeof el.rotation === "number")
-                      el.rotation += angle;
-                  else
-                      return Propagation.propagate;
+                  //Handed the two pointer positions rather than an angle: where the pivot actually sits depends on
+                  //the target's own size and rotation, which is the target's business to know.
+                  el.rotate(e.position.sub(e.deltaPosition), e.position, this.anchor);
                   return Propagation.stopPropagation;
               }
               catch (e) {
@@ -29239,6 +29331,41 @@
   })();
   define(RotateHandle, "demo-rotate-handle");
 
+  /**
+   * @description Where an object is and which way it faces, as an oriented rect.
+   *
+   * Asks the object for its own bounding box first, and takes it as-is when it hands back a {@link GradumRect},
+   * since that already carries an angle. Otherwise it builds one from `position`, `size`, `rotation` and
+   * `anchor` — which is also what keeps this reactive: those are signals, so reading them inside an
+   * `@effect` subscribes it, where a bare `getBoundingClientRect()` on a plain element would not. Anything with
+   * neither gets its painted box back, treated as unrotated.
+   *
+   * @param {object} el - The element or object to measure.
+   * @returns {GradumRect} The rect, or `undefined` for something with no position or no area.
+   */
+  function getRect(el) {
+      if (!el || typeof el !== "object")
+          return undefined;
+      const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : undefined;
+      if (rect instanceof GradumRect)
+          return rect;
+      const size = Point.from(el.size) ?? Point.from({ x: el.width, y: el.height });
+      const position = Point.from(el.position);
+      if (size?.x && size.y && position)
+          return new GradumRect({
+              //The rect understands anchors, so `position` goes in as the origin and it works the rest out.
+              x: position.x,
+              y: position.y,
+              anchor: el.anchor ?? Anchor.TopLeft,
+              width: size.x,
+              height: size.y,
+              angleRad: typeof el.rotation === "number" ? el.rotation : 0
+          });
+      if (!rect?.width || !rect.height)
+          return undefined;
+      return new GradumRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+  }
+
   function styleInject(css, ref) {
     if ( ref === void 0 ) ref = {};
     var insertAt = ref.insertAt;
@@ -29292,10 +29419,15 @@
           rotateHandles = [];
           stopTracking;
           initialize() {
-              gradum(this).showTransition = new StatefulReifect({
+              const transition = new StatefulReifect({
                   states: Shown,
                   styles: state => "display: " + (state === Shown.visible ? "block" : "none")
               });
+              gradum(this).showTransition = transition;
+              //A reifect only acts on objects attached to it: apply() looks the element up in its own table and
+              //returns quietly when it is not there. Without this, show() does nothing at all and the box never
+              //leaves the display: none it starts at, however correctly the target is set.
+              gradum(this).attachReifect(transition);
               super.initialize();
           }
           clear() {
@@ -29325,8 +29457,11 @@
                   const rect = getRect(this.target);
                   if (!rect)
                       return;
+                  //The outline is laid out untilted and then turned about its middle, so it starts from there
+                  //rather than from the rect's origin, which is wherever the target happens to be anchored.
+                  const corner = rect.topLeft;
                   gradum(this).setStyles({
-                      transform: `translate(${rect.x}px, ${rect.y}px) rotate(${rect.angleRad ?? 0}rad)`,
+                      transform: `translate(${corner.x}px, ${corner.y}px) rotate(${rect.angleRad ?? 0}rad)`,
                       width: `${rect.width}px`,
                       height: `${rect.height}px`,
                   });
@@ -29359,11 +29494,7 @@
           //Clicking a modifiable element selects it, which puts a border and four resize grips over it. Clicking
           //anything else clears the selection.
           clickStart(e, el) {
-              //A press on the selection chrome belongs to the grip being grabbed. This matters now that selecting
-              //happens on click-start rather than click: a press travels up handle → box → body every time, where
-              //a click never fired at all once the press turned into a drag. Without this, grabbing a grip clears
-              //the selection out from under itself before the resize can begin.
-              if (this.selectionBox?.contains(el))
+              if (this.selectionBox?.contains(e.target))
                   return Propagation.propagate;
               if (gradum(el).metadata?.get("modifiable")) {
                   if (!this.selectionBox)
@@ -29618,15 +29749,9 @@
               const rect = getRect(obj);
               if (!rect)
                   return undefined;
-              const angle = rect.angleRad ?? 0;
-              const cos = Math.cos(angle), sin = Math.sin(angle);
-              return {
-                  center: new Point(rect.x + rect.width / 2, rect.y + rect.height / 2),
-                  half: new Point(rect.width / 2, rect.height / 2),
-                  //Unit vectors along the box's own width and height, so a rotated box is described in its own
-                  //frame rather than by the axis-aligned rect that would contain it.
-                  axes: [new Point(cos, sin), new Point(-sin, cos)]
-              };
+              //Straight off the rect: it already knows where its centre is for its own anchor, how far it
+              //reaches, and which way its axes point once rotated.
+              return { center: rect.center, half: rect.half, axes: [rect.xAxis, rect.yAxis] };
           }
           /**
            * @description How far a box reaches from its center along an arbitrary direction. Each of the box's own
@@ -29792,9 +29917,9 @@
       let _rotation_decorators;
       let _rotation_initializers = [];
       let _rotation_extraInitializers = [];
-      let _centerAnchor_decorators;
-      let _centerAnchor_initializers = [];
-      let _centerAnchor_extraInitializers = [];
+      let _anchor_decorators;
+      let _anchor_initializers = [];
+      let _anchor_extraInitializers = [];
       let _size_decorators;
       let _size_initializers = [];
       let _size_extraInitializers = [];
@@ -29804,21 +29929,21 @@
               _color_decorators = [signal];
               _position_decorators = [signal];
               _rotation_decorators = [signal];
-              _centerAnchor_decorators = [signal];
+              _anchor_decorators = [signal];
               _size_decorators = [signal, auto({ preprocessValue: (value) => value.bound(5, Infinity, 5, Infinity) })];
               __esDecorate(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
               __esDecorate(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
               __esDecorate(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
               __esDecorate(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
-              __esDecorate(null, null, _centerAnchor_decorators, { kind: "field", name: "centerAnchor", static: false, private: false, access: { has: obj => "centerAnchor" in obj, get: obj => obj.centerAnchor, set: (obj, value) => { obj.centerAnchor = value; } }, metadata: _metadata }, _centerAnchor_initializers, _centerAnchor_extraInitializers);
+              __esDecorate(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           //Turned simple fields into signals (so changing their values will trigger @effect callbacks)
           color = __runInitializers(this, _color_initializers, Color.random([60, 90], [40, 70]));
           position = (__runInitializers(this, _color_extraInitializers), __runInitializers(this, _position_initializers, new Point()));
           rotation = (__runInitializers(this, _position_extraInitializers), __runInitializers(this, _rotation_initializers, 0));
-          centerAnchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _centerAnchor_initializers, true));
-          #size_accessor_storage = (__runInitializers(this, _centerAnchor_extraInitializers), __runInitializers(this, _size_initializers, new Point(100, 100)));
+          anchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _anchor_initializers, Anchor.Center));
+          #size_accessor_storage = (__runInitializers(this, _anchor_extraInitializers), __runInitializers(this, _size_initializers, new Point(100, 100)));
           get size() { return this.#size_accessor_storage; }
           set size(value) { this.#size_accessor_storage = value; }
           constructor() {
@@ -29851,10 +29976,12 @@
           }
           //@effect methods will be called when the values of the signals they use change
           updatePosition() {
-              const compute = (axis) => this.model.position[axis] -
-                  (this.model.centerAnchor ? this.model.size[axis] / 2 : 0);
+              //Laid out as the untilted box and then turned about its own centre, which is exactly what the rect
+              //reports — so the corner comes from there rather than being re-derived from the anchor here.
+              const rect = this.element.getBoundingClientRect();
+              const corner = rect.topLeft;
               gradum(this).setStyle("transform", `
-            translate(${compute("x")}px, ${compute("y")}px) 
+            translate(${corner.x}px, ${corner.y}px)
             rotate(${this.model.rotation}rad)
         `);
           }
@@ -29896,9 +30023,9 @@
       let _rotation_decorators;
       let _rotation_initializers = [];
       let _rotation_extraInitializers = [];
-      let _centerAnchor_decorators;
-      let _centerAnchor_initializers = [];
-      let _centerAnchor_extraInitializers = [];
+      let _anchor_decorators;
+      let _anchor_initializers = [];
+      let _anchor_extraInitializers = [];
       return class Square extends _classSuper {
           static {
               const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
@@ -29906,12 +30033,12 @@
               _size_decorators = [expose("model")];
               _position_decorators = [expose("model")];
               _rotation_decorators = [expose("model")];
-              _centerAnchor_decorators = [expose("model")];
+              _anchor_decorators = [expose("model")];
               __esDecorate(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
               __esDecorate(null, null, _size_decorators, { kind: "field", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
               __esDecorate(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
               __esDecorate(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
-              __esDecorate(null, null, _centerAnchor_decorators, { kind: "field", name: "centerAnchor", static: false, private: false, access: { has: obj => "centerAnchor" in obj, get: obj => obj.centerAnchor, set: (obj, value) => { obj.centerAnchor = value; } }, metadata: _metadata }, _centerAnchor_initializers, _centerAnchor_extraInitializers);
+              __esDecorate(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
           //Expose fields from the model
@@ -29919,7 +30046,7 @@
           size = (__runInitializers(this, _color_extraInitializers), __runInitializers(this, _size_initializers, void 0));
           position = (__runInitializers(this, _size_extraInitializers), __runInitializers(this, _position_initializers, void 0));
           rotation = (__runInitializers(this, _position_extraInitializers), __runInitializers(this, _rotation_initializers, void 0));
-          centerAnchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _centerAnchor_initializers, void 0));
+          anchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _anchor_initializers, void 0));
           static defaultProperties = {
               view: SquareView,
               model: SquareModel,
@@ -29933,29 +30060,60 @@
           move(delta) {
               this.model.position = delta.add(this.model.position);
           }
-          rotate(angle) {
-              this.model.rotation += angle;
+          rotate(from, to, anchor = this.anchor) {
+              const pivot = this.anchorPoint(anchor);
+              const swept = pivot.angleBetween(from, to);
+              if (!swept)
+                  return;
+              //`position` names the square's own anchor, so turning about that anchor leaves it exactly where it
+              //is and only the angle changes. Turning about any other point swings the square round on that arc,
+              //and the offset below is zero in the common case, so the two need no separate handling.
+              const offset = this.model.position.sub(pivot);
+              this.model.rotation += swept;
+              this.model.position = pivot.add(offset.rotate(swept));
           }
-          resize(delta, anchor = Anchor.Center) {
-              const oldSize = this.model.size;
-              this.model.size = oldSize.add(delta);
-              const appliedDelta = this.model.size.sub(oldSize);
-              anchor = new AnchorPoint(anchor).value.div(200);
-              const center = this.model.position.sub(appliedDelta.mul(anchor));
-              this.model.position = this.model.centerAnchor ? center : center.sub(appliedDelta.div(2));
+          resize(delta, anchor = this.anchor, uniform = false) {
+              const fraction = new AnchorPoint(anchor).fraction;
+              //The grip travels along the square's own axes, so the movement is rotated into its frame before the
+              //scaling below, which flips per axis and does not commute with a rotation.
+              const local = delta.rotate(-(this.model.rotation ?? 0));
+              //Pinning an edge means the box grows by exactly what the opposite side travelled, inverted when the
+              //grip is on the near side; pinning nothing on an axis means both sides move, so it has to grow by
+              //twice the delta for the dragged side to keep up.
+              let sizeDelta = local.mul(new Point(fraction.x === 0 ? 2 : -2 * fraction.x, fraction.y === 0 ? 2 : -2 * fraction.y));
+              if (uniform)
+                  sizeDelta = new Point(sizeDelta.min, sizeDelta.min);
+              //Note where the pinned anchor is, resize, then put it back. The model clamps size to a floor, so
+              //measuring the drift afterwards costs nothing and copes with growth that did not fully land. When
+              //the anchor is the square's own the drift is zero, which is why it stays put by itself.
+              const pinned = this.anchorPoint(anchor);
+              this.model.size = this.model.size.add(sizeDelta);
+              this.model.position = this.model.position.add(pinned.sub(this.anchorPoint(anchor)));
+          }
+          /**
+           * @description The screen position of one of the square's anchors. `position` already names the square's
+           * own anchor, so any other one is that, less its offset, plus the offset of the one asked for.
+           * @param {Anchor | Point} [anchor] - The anchor to locate. Defaults to the square's own.
+           * @returns {Point} Its screen position.
+           */
+          anchorPoint(anchor = this.model.anchor) {
+              return this.getBoundingClientRect().pointAt(anchor);
           }
           getBoundingClientRect() {
+              //The rect carries the anchor now, so `position` goes straight in as the origin and the rect works
+              //out its own centre and corners — no offsets to keep in step here.
               return new GradumRect({
-                  x: this.model.position.x - (this.model.centerAnchor ? this.model.size.x / 2 : 0),
-                  y: this.model.position.y - (this.model.centerAnchor ? this.model.size.y / 2 : 0),
+                  x: this.model.position.x,
+                  y: this.model.position.y,
                   width: this.model.size.x,
                   height: this.model.size.y,
+                  anchor: this.model.anchor,
                   angleRad: this.model.rotation
               });
           }
           constructor() {
               super(...arguments);
-              __runInitializers(this, _centerAnchor_extraInitializers);
+              __runInitializers(this, _anchor_extraInitializers);
           }
       };
   })();

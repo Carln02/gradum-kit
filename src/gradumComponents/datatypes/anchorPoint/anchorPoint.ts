@@ -1,4 +1,5 @@
 import {Point} from "../point/point";
+import {Coordinate} from "../../../types/basic.types";
 import {Anchor} from "../../../types/enums.types";
 import {auto} from "../../../decorators/auto/auto";
 
@@ -33,6 +34,41 @@ class AnchorPoint {
         }
     }) public set value(value: Point | Anchor) {}
     public get value(): Point {return;}
+
+    /**
+     * @readonly
+     * @description This position as a fraction of the box, from `-0.5` at the left or top edge through `0`
+     * at the centre to `+0.5` at the right or bottom. The same value as {@link AnchorPoint.value}, which is
+     * a percentage, scaled into the form that multiplies a size directly.
+     *
+     * @example
+     * ```ts
+     * //Where a box's anchor sits, measured from its middle.
+     * const offset = new AnchorPoint(Anchor.TopLeft).fraction.mul(size); //(-w/2, -h/2)
+     * ```
+     */
+    public get fraction(): Point {
+        return this.value.div(200);
+    }
+
+    /**
+     * @function offsetIn
+     * @description The vector from the middle of a box out to this anchor. Turned by `rotation`, so it
+     * points where the anchor actually is on a box that has been rotated about its middle, rather than
+     * where it would sit on an upright one.
+     * @param {Coordinate} size - The box's width and height.
+     * @param {number} [rotation=0] - The box's rotation in radians.
+     * @returns {Point} The offset from the middle of the box.
+     *
+     * @example
+     * ```ts
+     * //The screen position of a rotated box's top-left corner.
+     * const corner = middle.add(new AnchorPoint(Anchor.TopLeft).offsetIn(size, angleRad));
+     * ```
+     */
+    public offsetIn(size: Coordinate, rotation: number = 0): Point {
+        return this.fraction.mul(size).rotate(rotation);
+    }
 
     /**
      * @readonly

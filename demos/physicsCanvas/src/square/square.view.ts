@@ -7,7 +7,7 @@ export class SquareView extends GradumView<Square, SquareModel> {
         context.save();
 
         const rect = this.element.getBoundingClientRect();
-        context.translate(rect.x + rect.width / 2, rect.y + rect.height / 2);
+        context.translate(rect.center.x, rect.center.y);
         context.rotate(this.model.rotation ?? 0);
 
         context.fillStyle = this.model.color.toString();

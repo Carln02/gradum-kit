@@ -45,3 +45,36 @@ describe("Point.from / Point.fromString", () => {
         expect(parsed.y).toBe(2);
     });
 });
+
+describe("Point.from reads any coordinate-ish value", () => {
+    it("takes a number for both axes", () => {
+        expect(Point.from(50)).toEqual(new Point(50, 50));
+        expect(Point.from(0)).toEqual(new Point(0, 0));
+    });
+
+    it("takes an x/y pair, an array, and an event", () => {
+        expect(Point.from({x: 1, y: 2})).toEqual(new Point(1, 2));
+        expect(Point.from([3, 4])).toEqual(new Point(3, 4));
+        expect(Point.from({clientX: 5, clientY: 6})).toEqual(new Point(5, 6));
+    });
+
+    it("hands a point straight back, rather than copying it", () => {
+        const point = new Point(7, 8);
+        expect(Point.from(point)).toBe(point);
+    });
+
+    it("gives nothing back where the constructor would build NaNs", () => {
+        //These are the cases worth checking: `new Point` accepts them and produces unusable coordinates.
+        expect(Point.from({width: 10, height: 20} as any)).toBeUndefined();
+        expect(Point.from({x: 1} as any)).toBeUndefined();
+        expect(Point.from({x: "1", y: "2"} as any)).toBeUndefined();
+        expect(Point.from([1] as any)).toBeUndefined();
+        expect(Point.from(undefined)).toBeUndefined();
+        expect(Point.from(null as any)).toBeUndefined();
+    });
+
+    it("still parses the strings it always did", () => {
+        expect(Point.from(new Point(9, 10).toString())).toEqual(new Point(9, 10));
+        expect(Point.from("not json")).toBeUndefined();
+    });
+});

@@ -1,5 +1,6 @@
 import {Point} from "../point/point";
 import {AnchorPoint} from "../anchorPoint/anchorPoint";
+import {Anchor} from "../../../types/enums.types";
 import {GradumRectProperties} from "./rect.types";
 import {trim} from "../../../utils/computations/misc";
 import {polygonsIntersect, segmentIntersectsPolygon} from "../../../utils/geometry/polygon";
@@ -21,12 +22,18 @@ import {css} from "../../../utils/styling/css";
  */
 class GradumRect extends DOMRect {
     /**
-     * @description The rectangle's rotation in radians, about its centre.
+     * @description The rectangle's rotation in radians, about its {@link GradumRect.anchor}.
      */
     public angleRad: number = 0;
 
     /**
-     * @description The anchor the rectangle is positioned from.
+     * @description The point of the rectangle that `x` and `y` give the position of, and that it turns
+     * about. Defaults to `Anchor.TopLeft`, which is what makes an unrotated rectangle read exactly like the
+     * `DOMRect` it extends.
+     *
+     * *Note: the `left`, `top`, `right` and `bottom` inherited from `DOMRect` are derived from `x`, `y`,
+     * `width` and `height` alone, so they describe the box only while it is unrotated and anchored to its
+     * top-left. Use {@link GradumRect.points} or {@link GradumRect.center} otherwise.*
      */
     public anchor: AnchorPoint;
 
@@ -40,7 +47,8 @@ class GradumRect extends DOMRect {
         super(properties.x ?? 0, properties.y ?? 0, properties.width ?? 0, properties.height ?? 0);
         if (properties.angleRad !== undefined) this.angleRad = properties.angleRad;
         else if (properties.angleDeg !== undefined) this.angleDeg = properties.angleDeg;
-        this.anchor = properties.anchor instanceof AnchorPoint ? properties.anchor : new AnchorPoint(properties.anchor);
+        this.anchor = properties.anchor instanceof AnchorPoint
+            ? properties.anchor : new AnchorPoint(properties.anchor ?? Anchor.TopLeft);
     }
 
     /**
@@ -63,9 +71,11 @@ class GradumRect extends DOMRect {
         const angleRad = Math.atan2(dy, dx);
         const mid = new Point((a.x + b.x) / 2, (a.y + b.y) / 2);
 
-        const x = mid.x - length / 2;
-        const y = mid.y - thickness / 2;
-        return new GradumRect({x, y, width: length, height: thickness, ...properties, angleRad});
+        //Anchored and turned about the segment's midpoint, which is what keeps it lying along the segment.
+        return new GradumRect({
+            x: mid.x, y: mid.y, width: length, height: thickness,
+            anchor: Anchor.Center, ...properties, angleRad
+        });
     }
 
     /**
@@ -88,9 +98,12 @@ class GradumRect extends DOMRect {
      * @returns {HTMLElement} The generated element. It is not attached to the document.
      */
     public render() {
+        //Positioned by the untilted box around the centre and turned about that centre, which reproduces the
+        //same quadrilateral whatever the anchor is — the anchor has already been accounted for in `center`.
+        const corner = this.topLeft;
         return element({tag: "div", style: css`position: absolute; 
                 width: ${this.width}px; height: ${this.height}px; 
-                top: ${this.y}px; left: ${this.x}px; background-color: red; pointer-events: none; opacity: 0.4;
+                top: ${corner.y}px; left: ${corner.x}px; background-color: red; pointer-events: none; opacity: 0.4;
                 transform: rotate(${this.angleRad}rad)`}) as HTMLElement;
     }
 
@@ -108,10 +121,49 @@ class GradumRect extends DOMRect {
 
     /**
      * @readonly
-     * @description The rectangle's centre point.
+     * @description The rectangle's centre point, wherever its anchor has put it. `x` and `y` give the
+     * anchor's position and the rectangle turns about that anchor, so the centre swings around it as the
+     * rotation changes — for the default top-left anchor and no rotation this is the familiar
+     * `x + width / 2, y + height / 2`.
      */
     public get center(): Point {
-        return new Point(this.x + this.width / 2, this.y + this.height / 2);
+        return this.origin.sub(this.anchor.offsetIn(this.size, this.angleRad));
+    }
+
+    /**
+     * @readonly
+     * @description Where the rectangle's anchor sits: its `x` and `y`, as a point.
+     */
+    public get origin(): Point {
+        return new Point(this.x, this.y);
+    }
+
+    /**
+     * @readonly
+     * @description The rectangle's width and height, as a point.
+     */
+    public get size(): Point {
+        return new Point(this.width, this.height);
+    }
+
+    /**
+     * @function pointAt
+     * @description Where one of the rectangle's anchors sits, in the same coordinates as `x` and `y`. Follows
+     * the rotation, so it reports where that part of the rectangle actually is rather than where it would sit
+     * unrotated.
+     * @param {Anchor | Point | AnchorPoint} anchor - The anchor to locate.
+     * @returns {Point} Its position.
+     *
+     * @example
+     * ```ts
+     * //A rect anchored at its centre still knows where its corner is.
+     * const rect = new GradumRect({x: 400, y: 300, width: 100, height: 80, anchor: Anchor.Center});
+     * rect.pointAt(Anchor.TopLeft); //(350, 260)
+     * ```
+     */
+    public pointAt(anchor: Anchor | Point | AnchorPoint): Point {
+        const point = anchor instanceof AnchorPoint ? anchor : new AnchorPoint(anchor);
+        return this.center.add(point.offsetIn(this.size, this.angleRad));
     }
 
     /**
@@ -136,6 +188,26 @@ class GradumRect extends DOMRect {
      */
     public get half(): Point {
         return new Point(this.width / 2, this.height / 2);
+    }
+
+    /**
+     * @readonly
+     * @description The corner to lay the rectangle out from: the top-left of the untilted box sitting at
+     * {@link GradumRect.center}. Rotating that box about its own middle reproduces this rectangle, whatever
+     * it is anchored to — which is what makes it the value a `translate(...) rotate(...)` transform, or a
+     * canvas `drawImage`, wants.
+     *
+     * *Note: not the same as the rectangle's actual top-left corner once it is rotated. For that, ask for
+     * {@link GradumRect.points}`[0]` or {@link GradumRect.pointAt}`(Anchor.TopLeft)`.*
+     *
+     * @example
+     * ```ts
+     * gradum(el).setStyle("transform", `translate(${rect.topLeft.x}px, ${rect.topLeft.y}px)
+     *     rotate(${rect.angleRad}rad)`);
+     * ```
+     */
+    public get topLeft(): Point {
+        return this.center.sub(this.half);
     }
 
     /**

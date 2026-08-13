@@ -1,5 +1,5 @@
 import {describe, it, expect} from "vitest";
-import {effect, GradumRect, Point, signal} from "../../../../../build/gradum-kit.esm";
+import {Anchor, effect, GradumRect, Point, signal} from "../../../../../build/gradum-kit.esm";
 import {getRect} from "../getRect";
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -18,16 +18,26 @@ describe("getRect falls back to the object's own fields", () => {
             position: new Point(400, 300),
             size: new Point(100, 80),
             rotation: Math.PI / 4,
-            centerAnchor: true
+            anchor: Anchor.Center
         });
-        expect(rect.x).toBe(350);
-        expect(rect.y).toBe(260);
+        //`x`/`y` are the anchor's position now; the centre is what the anchor resolves to.
+        expect(rect.x).toBe(400);
+        expect(rect.y).toBe(300);
+        expect(rect.center.x).toBeCloseTo(400);
+        expect(rect.center.y).toBeCloseTo(300);
         expect(rect.width).toBe(100);
         expect(rect.height).toBe(80);
         expect(rect.angleRad).toBeCloseTo(Math.PI / 4);
     });
 
-    it("treats position as the top-left when centerAnchor is off", () => {
+    it("reads position as a corner when the object names its anchor", () => {
+        const rect = getRect({position: new Point(400, 300), size: new Point(100, 80), anchor: Anchor.BottomRight});
+        //The bottom-right sits at 400,300, so the centre is half a box back from it.
+        expect(rect.center.x).toBeCloseTo(350);
+        expect(rect.center.y).toBeCloseTo(260);
+    });
+
+    it("treats position as the top-left when no anchor is named", () => {
         const rect = getRect({position: new Point(400, 300), size: new Point(100, 80)});
         expect(rect.x).toBe(400);
         expect(rect.y).toBe(300);

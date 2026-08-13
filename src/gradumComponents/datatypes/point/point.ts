@@ -344,6 +344,56 @@ class Point {
     }
 
     /**
+     * @description Turn this point by an angle, about the origin or about another point.
+     * @param {number} angle - The angle to turn by, in radians. Positive turns from the x axis towards the y.
+     * @param {Coordinate} [around] - The point to turn around. Defaults to the origin, which turns this point
+     * as a vector rather than as a position.
+     * @returns {Point} A new point holding the result. This point is left unchanged.
+     *
+     * @example
+     * ```ts
+     * //A vector expressed in a box's own frame, brought back into screen space.
+     * const screen = local.rotate(box.angleRad);
+     * //A corner swung around the point it is pinned to.
+     * const moved = corner.rotate(swept, pivot);
+     * ```
+     */
+    public rotate(angle: number, around?: Coordinate): Point {
+        if (!angle) return new Point(this.x, this.y);
+        const cos = Math.cos(angle), sin = Math.sin(angle);
+        const x = this.x - (around?.x ?? 0), y = this.y - (around?.y ?? 0);
+        return new Point(
+            x * cos - y * sin + (around?.x ?? 0),
+            x * sin + y * cos + (around?.y ?? 0)
+        );
+    }
+
+    /**
+     * @description The angle from this point to another, measured from the x axis.
+     * @param {Coordinate} to - The point to measure towards.
+     * @returns {number} The angle in radians, in (-π, π].
+     */
+    public angleTo(to: Coordinate): number {
+        return Math.atan2(to.y - this.y, to.x - this.x);
+    }
+
+    /**
+     * @description The angle swept around this point in going from one place to another — how far something
+     * turned, treating this point as the pivot.
+     *
+     * The result is folded back into (-π, π]. Subtracting two raw angles instead would jump by a full turn
+     * whenever the sweep crosses the seam directly behind the pivot, reporting a near-complete spin in the
+     * opposite direction for what was a small movement.
+     * @param {Coordinate} from - Where the sweep started.
+     * @param {Coordinate} to - Where it ended.
+     * @returns {number} The angle swept, in radians, in (-π, π].
+     */
+    public angleBetween(from: Coordinate, to: Coordinate): number {
+        const swept = this.angleTo(to) - this.angleTo(from);
+        return Math.atan2(Math.sin(swept), Math.cos(swept));
+    }
+
+    /**
      * @readonly
      * @description The squared distance from the origin to this point. Cheaper than {@link Point.length}
      * since it skips the square root — use it when comparing magnitudes.
@@ -425,19 +475,65 @@ class Point {
     }
 
     /**
+     * @overload
      * @function from
      * @static
+     * @group Components
+     * @category Data Structures
+     *
      * @description Parse a point from a JSON string produced by {@link Point.toString}.
      * @param {string} value - The string to parse.
      * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
      * `x` and `y` fields.
      */
-    public static from(value: string): Point {
-        try {
-            const parsed = JSON.parse(value);
-            if (typeof parsed.x === "number" && typeof parsed.y === "number")
-                return new Point(parsed.x, parsed.y);
-        } catch { /* fall through to undefined */ }
+    public static from(value: string): Point;
+
+    /**
+     * @overload
+     * @function from
+     * @static
+     * @group Components
+     * @category Data Structures
+     *
+     * @description Read a value as a point, checking it first. Accepts everything the constructor does — a
+     * number standing for both axes, an `x`/`y` pair, a two-number array, an event's `clientX`/`clientY` —
+     * and hands back `undefined` for anything that is not one of those, where the constructor would build a
+     * point out of `NaN`s. A value that is already a point is returned as-is, points being immutable.
+     * @param {number | Coordinate | [number, number] | {clientX: number, clientY: number}} value - The value
+     * to read.
+     * @returns {Point} The point, or `undefined` when the value holds no usable coordinates.
+     *
+     * @example
+     * ```ts
+     * Point.from(50);                //(50, 50)
+     * Point.from({x: 1, y: 2});      //(1, 2)
+     * Point.from({width: 10});       //undefined, where new Point({width: 10}) gives (NaN, NaN)
+     * ```
+     */
+    public static from(value: number | Coordinate | [number, number] | {clientX: number, clientY: number}): Point;
+
+    public static from(value: any): Point {
+        if (value instanceof Point) return value;
+        if (typeof value === "number") return new Point(value);
+
+        if (typeof value === "string") {
+            try {
+                const parsed = JSON.parse(value);
+                if (typeof parsed?.x === "number" && typeof parsed?.y === "number")
+                    return new Point(parsed.x, parsed.y);
+            } catch { /* fall through to undefined */ }
+            return undefined;
+        }
+
+        if (Array.isArray(value))
+            return typeof value[0] === "number" && typeof value[1] === "number"
+                ? new Point(value[0], value[1]) : undefined;
+
+        if (value && typeof value === "object") {
+            if (typeof value.x === "number" && typeof value.y === "number") return new Point(value.x, value.y);
+            if (typeof value.clientX === "number" && typeof value.clientY === "number")
+                return new Point(value.clientX, value.clientY);
+        }
         return undefined;
     }
 

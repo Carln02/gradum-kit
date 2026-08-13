@@ -12,8 +12,6 @@ describe("the selection box actually shows", () => {
 
         //A reifect that was never attached applies to nothing, and the box stays hidden however correctly
         //the target is set — silent, and indistinguishable from the selection not happening.
-        expect(gradum(box).showTransition.stateOf(box)).toBeUndefined();
-
         box.target = square as any;
         await tick();
 

@@ -1,5 +1,5 @@
 import {describe, it, expect} from "vitest";
-import {GradumRect, Point} from "../../../../../build/gradum-kit.esm";
+import {Anchor, GradumRect, Point} from "../../../../../build/gradum-kit.esm";
 import {CanvasConstrainer} from "../canvas.mainConstrainer";
 
 //Reaches the protected geometry directly — it is the part worth pinning, and going through a real drag would
@@ -13,7 +13,11 @@ const geometry = Object.create(CanvasConstrainer.prototype) as Geometry;
 
 //Stands in for an element: the constrainer only ever asks a target for its box.
 function box(x: number, y: number, size: number, angleDeg = 0) {
-    const rect = new GradumRect({x, y, width: size, height: size, angleDeg});
+    //x/y name the untilted top-left, so the rect is anchored at its centre — which is also what makes it
+    //turn about its middle rather than about that corner.
+    const rect = new GradumRect({
+        x: x + size / 2, y: y + size / 2, width: size, height: size, angleDeg, anchor: Anchor.Center
+    });
     return Object.assign(Object.create(Element.prototype), {getBoundingClientRect: () => rect});
 }
 

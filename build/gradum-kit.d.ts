@@ -531,6 +531,40 @@ declare class Point {
      */
     get min(): number;
     /**
+     * @description Turn this point by an angle, about the origin or about another point.
+     * @param {number} angle - The angle to turn by, in radians. Positive turns from the x axis towards the y.
+     * @param {Coordinate} [around] - The point to turn around. Defaults to the origin, which turns this point
+     * as a vector rather than as a position.
+     * @returns {Point} A new point holding the result. This point is left unchanged.
+     *
+     * @example
+     * ```ts
+     * //A vector expressed in a box's own frame, brought back into screen space.
+     * const screen = local.rotate(box.angleRad);
+     * //A corner swung around the point it is pinned to.
+     * const moved = corner.rotate(swept, pivot);
+     * ```
+     */
+    rotate(angle: number, around?: Coordinate): Point;
+    /**
+     * @description The angle from this point to another, measured from the x axis.
+     * @param {Coordinate} to - The point to measure towards.
+     * @returns {number} The angle in radians, in (-π, π].
+     */
+    angleTo(to: Coordinate): number;
+    /**
+     * @description The angle swept around this point in going from one place to another — how far something
+     * turned, treating this point as the pivot.
+     *
+     * The result is folded back into (-π, π]. Subtracting two raw angles instead would jump by a full turn
+     * whenever the sweep crosses the seam directly behind the pivot, reporting a near-complete spin in the
+     * opposite direction for what was a small movement.
+     * @param {Coordinate} from - Where the sweep started.
+     * @param {Coordinate} to - Where it ended.
+     * @returns {number} The angle swept, in radians, in (-π, π].
+     */
+    angleBetween(from: Coordinate, to: Coordinate): number;
+    /**
      * @readonly
      * @description The squared distance from the origin to this point. Cheaper than {@link Point.length}
      * since it skips the square root — use it when comparing magnitudes.
@@ -585,14 +619,44 @@ declare class Point {
      */
     toString(): string;
     /**
+     * @overload
      * @function from
      * @static
+     * @group Components
+     * @category Data Structures
+     *
      * @description Parse a point from a JSON string produced by {@link Point.toString}.
      * @param {string} value - The string to parse.
      * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
      * `x` and `y` fields.
      */
     static from(value: string): Point;
+    /**
+     * @overload
+     * @function from
+     * @static
+     * @group Components
+     * @category Data Structures
+     *
+     * @description Read a value as a point, checking it first. Accepts everything the constructor does — a
+     * number standing for both axes, an `x`/`y` pair, a two-number array, an event's `clientX`/`clientY` —
+     * and hands back `undefined` for anything that is not one of those, where the constructor would build a
+     * point out of `NaN`s. A value that is already a point is returned as-is, points being immutable.
+     * @param {number | Coordinate | [number, number] | {clientX: number, clientY: number}} value - The value
+     * to read.
+     * @returns {Point} The point, or `undefined` when the value holds no usable coordinates.
+     *
+     * @example
+     * ```ts
+     * Point.from(50);                //(50, 50)
+     * Point.from({x: 1, y: 2});      //(1, 2)
+     * Point.from({width: 10});       //undefined, where new Point({width: 10}) gives (NaN, NaN)
+     * ```
+     */
+    static from(value: number | Coordinate | [number, number] | {
+        clientX: number;
+        clientY: number;
+    }): Point;
     /**
      * @function fromString
      * @description Parse a point from a JSON string produced by {@link Point.toString}. Delegates to
@@ -9485,6 +9549,35 @@ declare class AnchorPoint {
     get value(): Point;
     /**
      * @readonly
+     * @description This position as a fraction of the box, from `-0.5` at the left or top edge through `0`
+     * at the centre to `+0.5` at the right or bottom. The same value as {@link AnchorPoint.value}, which is
+     * a percentage, scaled into the form that multiplies a size directly.
+     *
+     * @example
+     * ```ts
+     * //Where a box's anchor sits, measured from its middle.
+     * const offset = new AnchorPoint(Anchor.TopLeft).fraction.mul(size); //(-w/2, -h/2)
+     * ```
+     */
+    get fraction(): Point;
+    /**
+     * @function offsetIn
+     * @description The vector from the middle of a box out to this anchor. Turned by `rotation`, so it
+     * points where the anchor actually is on a box that has been rotated about its middle, rather than
+     * where it would sit on an upright one.
+     * @param {Coordinate} size - The box's width and height.
+     * @param {number} [rotation=0] - The box's rotation in radians.
+     * @returns {Point} The offset from the middle of the box.
+     *
+     * @example
+     * ```ts
+     * //The screen position of a rotated box's top-left corner.
+     * const corner = middle.add(new AnchorPoint(Anchor.TopLeft).offsetIn(size, angleRad));
+     * ```
+     */
+    offsetIn(size: Coordinate, rotation?: number): Point;
+    /**
+     * @readonly
      * @description The named {@link Anchor} nearest this position, snapping each axis to its closest edge
      * or centre.
      */
@@ -9564,11 +9657,17 @@ type GradumRectProperties = {
  */
 declare class GradumRect extends DOMRect {
     /**
-     * @description The rectangle's rotation in radians, about its centre.
+     * @description The rectangle's rotation in radians, about its {@link GradumRect.anchor}.
      */
     angleRad: number;
     /**
-     * @description The anchor the rectangle is positioned from.
+     * @description The point of the rectangle that `x` and `y` give the position of, and that it turns
+     * about. Defaults to `Anchor.TopLeft`, which is what makes an unrotated rectangle read exactly like the
+     * `DOMRect` it extends.
+     *
+     * *Note: the `left`, `top`, `right` and `bottom` inherited from `DOMRect` are derived from `x`, `y`,
+     * `width` and `height` alone, so they describe the box only while it is unrotated and anchored to its
+     * top-left. Use {@link GradumRect.points} or {@link GradumRect.center} otherwise.*
      */
     anchor: AnchorPoint;
     /**
@@ -9616,9 +9715,38 @@ declare class GradumRect extends DOMRect {
     set angleDeg(value: number);
     /**
      * @readonly
-     * @description The rectangle's centre point.
+     * @description The rectangle's centre point, wherever its anchor has put it. `x` and `y` give the
+     * anchor's position and the rectangle turns about that anchor, so the centre swings around it as the
+     * rotation changes — for the default top-left anchor and no rotation this is the familiar
+     * `x + width / 2, y + height / 2`.
      */
     get center(): Point;
+    /**
+     * @readonly
+     * @description Where the rectangle's anchor sits: its `x` and `y`, as a point.
+     */
+    get origin(): Point;
+    /**
+     * @readonly
+     * @description The rectangle's width and height, as a point.
+     */
+    get size(): Point;
+    /**
+     * @function pointAt
+     * @description Where one of the rectangle's anchors sits, in the same coordinates as `x` and `y`. Follows
+     * the rotation, so it reports where that part of the rectangle actually is rather than where it would sit
+     * unrotated.
+     * @param {Anchor | Point | AnchorPoint} anchor - The anchor to locate.
+     * @returns {Point} Its position.
+     *
+     * @example
+     * ```ts
+     * //A rect anchored at its centre still knows where its corner is.
+     * const rect = new GradumRect({x: 400, y: 300, width: 100, height: 80, anchor: Anchor.Center});
+     * rect.pointAt(Anchor.TopLeft); //(350, 260)
+     * ```
+     */
+    pointAt(anchor: Anchor | Point | AnchorPoint): Point;
     /**
      * @readonly
      * @description The unit vector along the rectangle's own x axis, pointing along its width once rotated.
@@ -9634,6 +9762,23 @@ declare class GradumRect extends DOMRect {
      * @description Half the rectangle's width and height, as a point.
      */
     get half(): Point;
+    /**
+     * @readonly
+     * @description The corner to lay the rectangle out from: the top-left of the untilted box sitting at
+     * {@link GradumRect.center}. Rotating that box about its own middle reproduces this rectangle, whatever
+     * it is anchored to — which is what makes it the value a `translate(...) rotate(...)` transform, or a
+     * canvas `drawImage`, wants.
+     *
+     * *Note: not the same as the rectangle's actual top-left corner once it is rotated. For that, ask for
+     * {@link GradumRect.points}`[0]` or {@link GradumRect.pointAt}`(Anchor.TopLeft)`.*
+     *
+     * @example
+     * ```ts
+     * gradum(el).setStyle("transform", `translate(${rect.topLeft.x}px, ${rect.topLeft.y}px)
+     *     rotate(${rect.angleRad}rad)`);
+     * ```
+     */
+    get topLeft(): Point;
     /**
      * @readonly
      * @description The rectangle's four corners in screen coordinates, clockwise from the top-left,

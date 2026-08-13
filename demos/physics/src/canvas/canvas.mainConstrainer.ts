@@ -221,15 +221,9 @@ export class CanvasConstrainer extends GradumConstrainer {
         const rect = getRect(obj);
         if (!rect) return undefined;
 
-        const angle = rect.angleRad ?? 0;
-        const cos = Math.cos(angle), sin = Math.sin(angle);
-        return {
-            center: new Point(rect.x + rect.width / 2, rect.y + rect.height / 2),
-            half: new Point(rect.width / 2, rect.height / 2),
-            //Unit vectors along the box's own width and height, so a rotated box is described in its own
-            //frame rather than by the axis-aligned rect that would contain it.
-            axes: [new Point(cos, sin), new Point(-sin, cos)]
-        };
+        //Straight off the rect: it already knows where its centre is for its own anchor, how far it
+        //reaches, and which way its axes point once rotated.
+        return {center: rect.center, half: rect.half, axes: [rect.xAxis, rect.yAxis]};
     }
 
     /**

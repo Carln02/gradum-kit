@@ -7817,6 +7817,51 @@ var Gradum = (function (exports, yjs) {
             return Math.min(this.x, this.y);
         }
         /**
+         * @description Turn this point by an angle, about the origin or about another point.
+         * @param {number} angle - The angle to turn by, in radians. Positive turns from the x axis towards the y.
+         * @param {Coordinate} [around] - The point to turn around. Defaults to the origin, which turns this point
+         * as a vector rather than as a position.
+         * @returns {Point} A new point holding the result. This point is left unchanged.
+         *
+         * @example
+         * ```ts
+         * //A vector expressed in a box's own frame, brought back into screen space.
+         * const screen = local.rotate(box.angleRad);
+         * //A corner swung around the point it is pinned to.
+         * const moved = corner.rotate(swept, pivot);
+         * ```
+         */
+        rotate(angle, around) {
+            if (!angle)
+                return new Point(this.x, this.y);
+            const cos = Math.cos(angle), sin = Math.sin(angle);
+            const x = this.x - (around?.x ?? 0), y = this.y - (around?.y ?? 0);
+            return new Point(x * cos - y * sin + (around?.x ?? 0), x * sin + y * cos + (around?.y ?? 0));
+        }
+        /**
+         * @description The angle from this point to another, measured from the x axis.
+         * @param {Coordinate} to - The point to measure towards.
+         * @returns {number} The angle in radians, in (-π, π].
+         */
+        angleTo(to) {
+            return Math.atan2(to.y - this.y, to.x - this.x);
+        }
+        /**
+         * @description The angle swept around this point in going from one place to another — how far something
+         * turned, treating this point as the pivot.
+         *
+         * The result is folded back into (-π, π]. Subtracting two raw angles instead would jump by a full turn
+         * whenever the sweep crosses the seam directly behind the pivot, reporting a near-complete spin in the
+         * opposite direction for what was a small movement.
+         * @param {Coordinate} from - Where the sweep started.
+         * @param {Coordinate} to - Where it ended.
+         * @returns {number} The angle swept, in radians, in (-π, π].
+         */
+        angleBetween(from, to) {
+            const swept = this.angleTo(to) - this.angleTo(from);
+            return Math.atan2(Math.sin(swept), Math.cos(swept));
+        }
+        /**
          * @readonly
          * @description The squared distance from the origin to this point. Cheaper than {@link Point.length}
          * since it skips the square root — use it when comparing magnitudes.
@@ -7890,21 +7935,29 @@ var Gradum = (function (exports, yjs) {
         toString() {
             return JSON.stringify({ x: this.x, y: this.y });
         }
-        /**
-         * @function from
-         * @static
-         * @description Parse a point from a JSON string produced by {@link Point.toString}.
-         * @param {string} value - The string to parse.
-         * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
-         * `x` and `y` fields.
-         */
         static from(value) {
-            try {
-                const parsed = JSON.parse(value);
-                if (typeof parsed.x === "number" && typeof parsed.y === "number")
-                    return new Point(parsed.x, parsed.y);
+            if (value instanceof Point)
+                return value;
+            if (typeof value === "number")
+                return new Point(value);
+            if (typeof value === "string") {
+                try {
+                    const parsed = JSON.parse(value);
+                    if (typeof parsed?.x === "number" && typeof parsed?.y === "number")
+                        return new Point(parsed.x, parsed.y);
+                }
+                catch { /* fall through to undefined */ }
+                return undefined;
             }
-            catch { /* fall through to undefined */ }
+            if (Array.isArray(value))
+                return typeof value[0] === "number" && typeof value[1] === "number"
+                    ? new Point(value[0], value[1]) : undefined;
+            if (value && typeof value === "object") {
+                if (typeof value.x === "number" && typeof value.y === "number")
+                    return new Point(value.x, value.y);
+                if (typeof value.clientX === "number" && typeof value.clientY === "number")
+                    return new Point(value.clientX, value.clientY);
+            }
             return undefined;
         }
         /**
@@ -19599,6 +19652,39 @@ var Gradum = (function (exports, yjs) {
             get value() { return; }
             /**
              * @readonly
+             * @description This position as a fraction of the box, from `-0.5` at the left or top edge through `0`
+             * at the centre to `+0.5` at the right or bottom. The same value as {@link AnchorPoint.value}, which is
+             * a percentage, scaled into the form that multiplies a size directly.
+             *
+             * @example
+             * ```ts
+             * //Where a box's anchor sits, measured from its middle.
+             * const offset = new AnchorPoint(Anchor.TopLeft).fraction.mul(size); //(-w/2, -h/2)
+             * ```
+             */
+            get fraction() {
+                return this.value.div(200);
+            }
+            /**
+             * @function offsetIn
+             * @description The vector from the middle of a box out to this anchor. Turned by `rotation`, so it
+             * points where the anchor actually is on a box that has been rotated about its middle, rather than
+             * where it would sit on an upright one.
+             * @param {Coordinate} size - The box's width and height.
+             * @param {number} [rotation=0] - The box's rotation in radians.
+             * @returns {Point} The offset from the middle of the box.
+             *
+             * @example
+             * ```ts
+             * //The screen position of a rotated box's top-left corner.
+             * const corner = middle.add(new AnchorPoint(Anchor.TopLeft).offsetIn(size, angleRad));
+             * ```
+             */
+            offsetIn(size, rotation = 0) {
+                return this.fraction.mul(size).rotate(rotation);
+            }
+            /**
+             * @readonly
              * @description The named {@link Anchor} nearest this position, snapping each axis to its closest edge
              * or centre.
              */
@@ -19918,11 +20004,17 @@ var Gradum = (function (exports, yjs) {
      */
     class GradumRect extends DOMRect {
         /**
-         * @description The rectangle's rotation in radians, about its centre.
+         * @description The rectangle's rotation in radians, about its {@link GradumRect.anchor}.
          */
         angleRad = 0;
         /**
-         * @description The anchor the rectangle is positioned from.
+         * @description The point of the rectangle that `x` and `y` give the position of, and that it turns
+         * about. Defaults to `Anchor.TopLeft`, which is what makes an unrotated rectangle read exactly like the
+         * `DOMRect` it extends.
+         *
+         * *Note: the `left`, `top`, `right` and `bottom` inherited from `DOMRect` are derived from `x`, `y`,
+         * `width` and `height` alone, so they describe the box only while it is unrotated and anchored to its
+         * top-left. Use {@link GradumRect.points} or {@link GradumRect.center} otherwise.*
          */
         anchor;
         /**
@@ -19937,7 +20029,8 @@ var Gradum = (function (exports, yjs) {
                 this.angleRad = properties.angleRad;
             else if (properties.angleDeg !== undefined)
                 this.angleDeg = properties.angleDeg;
-            this.anchor = properties.anchor instanceof AnchorPoint ? properties.anchor : new AnchorPoint(properties.anchor);
+            this.anchor = properties.anchor instanceof AnchorPoint
+                ? properties.anchor : new AnchorPoint(properties.anchor ?? exports.Anchor.TopLeft);
         }
         /**
          * @function fromSegment
@@ -19957,9 +20050,11 @@ var Gradum = (function (exports, yjs) {
             const length = Math.hypot(dx, dy);
             const angleRad = Math.atan2(dy, dx);
             const mid = new Point((a.x + b.x) / 2, (a.y + b.y) / 2);
-            const x = mid.x - length / 2;
-            const y = mid.y - thickness / 2;
-            return new GradumRect({ x, y, width: length, height: thickness, ...properties, angleRad });
+            //Anchored and turned about the segment's midpoint, which is what keeps it lying along the segment.
+            return new GradumRect({
+                x: mid.x, y: mid.y, width: length, height: thickness,
+                anchor: exports.Anchor.Center, ...properties, angleRad
+            });
         }
         /**
          * @function fromDOMRect
@@ -19980,9 +20075,12 @@ var Gradum = (function (exports, yjs) {
          * @returns {HTMLElement} The generated element. It is not attached to the document.
          */
         render() {
+            //Positioned by the untilted box around the centre and turned about that centre, which reproduces the
+            //same quadrilateral whatever the anchor is — the anchor has already been accounted for in `center`.
+            const corner = this.topLeft;
             return element({ tag: "div", style: css `position: absolute; 
                 width: ${this.width}px; height: ${this.height}px; 
-                top: ${this.y}px; left: ${this.x}px; background-color: red; pointer-events: none; opacity: 0.4;
+                top: ${corner.y}px; left: ${corner.x}px; background-color: red; pointer-events: none; opacity: 0.4;
                 transform: rotate(${this.angleRad}rad)` });
         }
         /**
@@ -19997,10 +20095,46 @@ var Gradum = (function (exports, yjs) {
         }
         /**
          * @readonly
-         * @description The rectangle's centre point.
+         * @description The rectangle's centre point, wherever its anchor has put it. `x` and `y` give the
+         * anchor's position and the rectangle turns about that anchor, so the centre swings around it as the
+         * rotation changes — for the default top-left anchor and no rotation this is the familiar
+         * `x + width / 2, y + height / 2`.
          */
         get center() {
-            return new Point(this.x + this.width / 2, this.y + this.height / 2);
+            return this.origin.sub(this.anchor.offsetIn(this.size, this.angleRad));
+        }
+        /**
+         * @readonly
+         * @description Where the rectangle's anchor sits: its `x` and `y`, as a point.
+         */
+        get origin() {
+            return new Point(this.x, this.y);
+        }
+        /**
+         * @readonly
+         * @description The rectangle's width and height, as a point.
+         */
+        get size() {
+            return new Point(this.width, this.height);
+        }
+        /**
+         * @function pointAt
+         * @description Where one of the rectangle's anchors sits, in the same coordinates as `x` and `y`. Follows
+         * the rotation, so it reports where that part of the rectangle actually is rather than where it would sit
+         * unrotated.
+         * @param {Anchor | Point | AnchorPoint} anchor - The anchor to locate.
+         * @returns {Point} Its position.
+         *
+         * @example
+         * ```ts
+         * //A rect anchored at its centre still knows where its corner is.
+         * const rect = new GradumRect({x: 400, y: 300, width: 100, height: 80, anchor: Anchor.Center});
+         * rect.pointAt(Anchor.TopLeft); //(350, 260)
+         * ```
+         */
+        pointAt(anchor) {
+            const point = anchor instanceof AnchorPoint ? anchor : new AnchorPoint(anchor);
+            return this.center.add(point.offsetIn(this.size, this.angleRad));
         }
         /**
          * @readonly
@@ -20022,6 +20156,25 @@ var Gradum = (function (exports, yjs) {
          */
         get half() {
             return new Point(this.width / 2, this.height / 2);
+        }
+        /**
+         * @readonly
+         * @description The corner to lay the rectangle out from: the top-left of the untilted box sitting at
+         * {@link GradumRect.center}. Rotating that box about its own middle reproduces this rectangle, whatever
+         * it is anchored to — which is what makes it the value a `translate(...) rotate(...)` transform, or a
+         * canvas `drawImage`, wants.
+         *
+         * *Note: not the same as the rectangle's actual top-left corner once it is rotated. For that, ask for
+         * {@link GradumRect.points}`[0]` or {@link GradumRect.pointAt}`(Anchor.TopLeft)`.*
+         *
+         * @example
+         * ```ts
+         * gradum(el).setStyle("transform", `translate(${rect.topLeft.x}px, ${rect.topLeft.y}px)
+         *     rotate(${rect.angleRad}rad)`);
+         * ```
+         */
+        get topLeft() {
+            return this.center.sub(this.half);
         }
         /**
          * @readonly

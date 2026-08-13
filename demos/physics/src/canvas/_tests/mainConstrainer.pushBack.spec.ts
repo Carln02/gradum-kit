@@ -1,5 +1,5 @@
 import {describe, it, expect} from "vitest";
-import {GradumRect, Point} from "../../../../../build/gradum-kit.esm";
+import {Anchor, GradumRect, Point} from "../../../../../build/gradum-kit.esm";
 import {CanvasConstrainer} from "../canvas.mainConstrainer";
 
 type Physics = {
