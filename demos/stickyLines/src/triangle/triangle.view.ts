@@ -8,11 +8,12 @@ export class TriangleView extends SquareView {
     }
 
     @effect protected updateSize() {
-        const half = this.model.elementSize / 2;
+        //Drawn as CSS borders rather than a box, so the size goes into the border widths: half the width to
+        //each side, the full height below.
         gradum(this).setStyles({
-            borderLeftWidth: half + "px",
-            borderRightWidth: half + "px",
-            borderBottomWidth: this.model.elementSize + "px",
+            borderLeftWidth: this.model.size.x / 2 + "px",
+            borderRightWidth: this.model.size.x / 2 + "px",
+            borderBottomWidth: this.model.size.y + "px",
         });
     }
 }

@@ -1,4 +1,4 @@
-import {define, GradumElement, expose, Point, GradumRect} from "../../../../build/gradum-kit.esm";
+import {define, GradumElement, expose, gradum, Point, GradumRect} from "../../../../build/gradum-kit.esm";
 import {StickyLineView} from "./stickyLine.view";
 import {StickyLineModel} from "./stickyLine.model";
 import "./stickyLine.css";
@@ -23,6 +23,12 @@ export class StickyLine extends GradumElement<StickyLineView, any, StickyLineMod
         constrainers: StickyLineConstrainer,
         origin: new Point(500, 300),
     };
+
+    public initialize() {
+        super.initialize();
+        //Not a Square, so it marks itself: the select tool only moves and selects what says it is modifiable.
+        gradum(this).metadata.set(true, "modifiable");
+    }
 
     public move(delta: Point) {
         this.view.startHandle?.move(delta);

@@ -8,6 +8,7 @@ import {
     closestPointOnSegment
 } from "../../../../build/gradum-kit.esm";
 import {StickyLine} from "./stickyLine";
+import {getRect} from "../utils/getRect";
 import {StickyLineView} from "./stickyLine.view";
 import {StickyLineModel} from "./stickyLine.model";
 
@@ -38,9 +39,10 @@ export class StickyLineConstrainer extends GradumConstrainer<StickyLine, StickyL
         const end = this.view.endHandle?.position;
         if (!start || !end) return;
 
-        const rect = target.getBoundingClientRect?.();
-        if (!rect || !(rect instanceof DOMRect)) return;
-        const center = new Point(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        //Asked for the centre rather than derived from left/top: `x`/`y` name the rect's anchor now, so a
+        //centre-anchored shape would come out half a box off.
+        const center = getRect(target)?.center;
+        if (!center) return;
 
         const isFeedforward = properties.eventType !== DefaultEventName.dragEnd
             && !manipulatingStickyLine && !(target instanceof StickyLine);

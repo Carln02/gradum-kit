@@ -1,4 +1,4 @@
-import {Point, signal, GradumModel, Color} from "../../../../build/gradum-kit.esm";
+import {Point, signal, GradumModel, Color, auto, Anchor, AnchorPoint} from "../../../../build/gradum-kit.esm";
 
 //Model of the square element
 export class SquareModel extends GradumModel {
@@ -6,6 +6,10 @@ export class SquareModel extends GradumModel {
     @signal color: Color = Color.random([60, 90], [40, 70]);
     @signal position: Point = new Point();
     @signal rotation: number = 0;
-    @signal elementSize: number = 100;
-    @signal centerAnchor: boolean = true;
+    @signal anchor: Anchor | Point = Anchor.Center;
+
+    @signal @auto({
+       preprocessValue: (value: any) =>
+           (Point.from(value) ?? new Point(100, 100)).bound(5, Infinity, 5, Infinity)
+    }) accessor size: Point = new Point(100, 100);
 }

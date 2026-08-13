@@ -1,5 +1,4 @@
-import {GradumTool, GradumEvent, Propagation, behavior} from "../../../../build/gradum-kit.esm";
-import {Canvas} from "../canvas/canvas";
+import {GradumTool, GradumEvent, Propagation, behavior, gradum} from "../../../../build/gradum-kit.esm";
 import {Triangle} from "../triangle/triangle";
 
 //Add circle tool
@@ -8,9 +7,8 @@ export class AddTriangleTool extends GradumTool {
 
     //Equivalent to gradum(tool).addToolBehavior("click", "addTriangle", (e, target) => {...});
     @behavior() public click(e: GradumEvent, target: Node) {
-        if (target instanceof Canvas) {
-            const triangle = Triangle.create({parent: target, elementSize: 60});
-            triangle.position = e.scaledPosition;
+        if (gradum(target).metadata.get("substrate")) {
+            Triangle.create({parent: target as Element, position: e.position, size: 60});
             return Propagation.stopPropagation;
         }
     }

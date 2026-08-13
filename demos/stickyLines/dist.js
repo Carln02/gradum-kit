@@ -10148,6 +10148,12 @@
                     options.callAfter?.call(this, next);
                     writeFlag = false;
                 };
+                //The member's own accessor pair, for `accessor` and field members. Captured before the initial
+                //value is resolved, but not installed as the custom getter/setter until further below, so
+                //`baseRead` keeps behaving as it did while the initial value is being worked out.
+                const declared = (kind === "field" || kind === "accessor")
+                    ? value
+                    : undefined;
                 if (isUndefined(baseRead.call(this))) {
                     let initialValue = kind === "field" ? value : undefined;
                     if (isUndefined(initialValue)) {
@@ -10156,16 +10162,25 @@
                         else if (options.initialValueCallback)
                             initialValue = options.initialValueCallback.call(this);
                     }
+                    //Falling back to the value the member was declared with. Both an `accessor`'s slot and a
+                    //plain field are already populated by the time this initializer runs, and redefining the
+                    //property below would otherwise throw that value away, leaving the property `undefined`
+                    //until something writes to it. `initialValue` still wins, being the more explicit of the two.
+                    if (isUndefined(initialValue)) {
+                        if (kind === "accessor" && declared?.get)
+                            initialValue = declared.get.call(this);
+                        else if (kind === "field")
+                            initialValue = this[key];
+                    }
                     if (!isUndefined(initialValue) && options.preprocessValue)
                         initialValue = options.preprocessValue.call(this, initialValue);
                     this[backing] = initialValue;
                 }
                 if (kind === "field" || kind === "accessor") {
-                    const accessor = value;
-                    if (accessor?.get)
-                        customGetter = accessor.get;
-                    if (accessor?.set)
-                        customSetter = accessor.set;
+                    if (declared?.get)
+                        customGetter = declared.get;
+                    if (declared?.set)
+                        customSetter = declared.set;
                     const descriptor = getFirstDescriptorInChain(this, key) ?? { enumerable: true };
                     Object.defineProperty(this, key, {
                         configurable: true,
@@ -11024,6 +11039,18 @@
         return element({ ...properties, tag: "input" });
     }
     /**
+     * @function p
+     * @group Element Creation
+     * @category Base Elements
+     *
+     * @description Creates a `<p>` element with the specified properties.
+     * @param {GradumProperties<"p">} [properties] - Object containing properties of the element.
+     * @returns {ValidElement<"p">} The created element, with the given properties already applied.
+     */
+    function p(properties = {}) {
+        return element({ ...properties, tag: "p" });
+    }
+    /**
      * @function style
      * @group Element Creation
      * @category Base Elements
@@ -11712,13 +11739,24 @@
                     return entry;
                 };
                 if (kind === "field" || kind === "accessor") {
-                    const acc = value;
-                    if (acc?.get)
-                        customGetter = acc.get;
-                    if (acc?.set)
-                        customSetter = acc.set;
-                    const entry = ensureEntry(this, !customGetter && !baseGetter);
                     const descriptor = getFirstDescriptorInChain(this, key);
+                    const acc = value;
+                    //Read and write through whatever is already installed at this key, falling back to the
+                    //member's own accessor pair when nothing is. A decorator applied closer to the declaration
+                    //— `@signal @auto(...) accessor x` — has already redefined the property, and it is its
+                    //getter and setter that carry the default value and the preprocessing. Going straight to
+                    //the raw pair would step over them and strand the value in a slot nothing else reads.
+                    if (descriptor?.get || descriptor?.set) {
+                        customGetter = descriptor.get;
+                        customSetter = descriptor.set;
+                    }
+                    else {
+                        if (acc?.get)
+                            customGetter = acc.get;
+                        if (acc?.set)
+                            customSetter = acc.set;
+                    }
+                    const entry = ensureEntry(this, !customGetter && !baseGetter);
                     Object.defineProperty(this, key, {
                         configurable: descriptor?.configurable ?? true,
                         enumerable: descriptor?.enumerable ?? true,
@@ -11852,6 +11890,21 @@
             eff.run();
             return () => eff.dispose();
         }
+    }
+    /**
+     * @function trackSignal
+     * @group Decorators
+     * @category Signal
+     *
+     * @description Register a signal as a dependency of the effect currently running, without reading through
+     * it. Use it when a value is fetched by some other route — a lookup, a data walk — but should still make the
+     * surrounding `@effect` re-run when that signal changes. Outside an effect it does nothing.
+     * @param {SignalEntry} entry - The signal to depend on.
+     */
+    function trackSignal(entry) {
+        if (!entry)
+            return;
+        utils$a.track(entry);
     }
     function markDirty(target, ...keys) {
         const computedKey = keys.length > 1
@@ -12914,7 +12967,6 @@
         utils$9.setCategory(type, type.name);
     }
 
-    const META = Symbol("__meta__");
     /**
      * @class GradumModel
      * @group MVC
@@ -13087,12 +13139,6 @@
                 this.onDataChanged.fire(oldData, data);
             }
             /**
-             * @description The metadata held by this model. Separate from this model's data.
-             */
-            get meta() {
-                return this.nest(META);
-            }
-            /**
              * @constructor
              * @description Create a new GradumModel.
              * @param {GradumModelProperties} [properties] - Optional initialization properties.
@@ -13138,9 +13184,15 @@
                 if (keys.length === 0)
                     return this.data;
                 let current = this.data;
-                for (const key of keys) {
+                let nested = this;
+                for (let i = 0; i < keys.length; i++) {
                     if (!current || typeof current !== "object")
                         return undefined;
+                    const key = keys[i];
+                    if (nested && i === keys.length - 1)
+                        trackSignal(nested?.signals.get(key));
+                    else
+                        nested = nested?.nestedModels.get(key);
                     current = this.getAction(current, key);
                 }
                 return current;
@@ -14411,7 +14463,7 @@
      * @description The names of the MVC roles an element can hold, in the order they are attached. Used to
      * split MVC entries out of a properties object and to drive the generic add/get/remove paths.
      */
-    const MvcFields = ["model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
+    const MvcFields = ["metadata", "model", "view", "emitter", "operators", "handlers", "interactors", "tools", "constrainers"];
     const utils$8 = new MvcFunctionsUtils();
     /**
      * @internal
@@ -14501,7 +14553,25 @@
         });
         Object.defineProperty(GradumSelector.prototype, "metadata", {
             get() {
-                return utils$8.peek(this.element)?.model?.meta;
+                if (!this.element)
+                    return undefined;
+                const mvc = utils$8.data(this.element);
+                if (!mvc)
+                    return undefined;
+                //Created on first read, so metadata is usable on any element — with or without a model.
+                mvc.metadata ??= GradumModel.create({ initialize: true });
+                return mvc.metadata;
+            },
+            set(value) {
+                if (!this.element)
+                    return;
+                const mvc = utils$8.data(this.element);
+                if (!mvc)
+                    return;
+                if (value instanceof GradumModel)
+                    mvc.metadata = value;
+                else
+                    mvc.metadata = GradumModel.create({ data: value ?? {}, initialize: true });
             },
             configurable: true, enumerable: true,
         });
@@ -15657,6 +15727,51 @@
             return Math.min(this.x, this.y);
         }
         /**
+         * @description Turn this point by an angle, about the origin or about another point.
+         * @param {number} angle - The angle to turn by, in radians. Positive turns from the x axis towards the y.
+         * @param {Coordinate} [around] - The point to turn around. Defaults to the origin, which turns this point
+         * as a vector rather than as a position.
+         * @returns {Point} A new point holding the result. This point is left unchanged.
+         *
+         * @example
+         * ```ts
+         * //A vector expressed in a box's own frame, brought back into screen space.
+         * const screen = local.rotate(box.angleRad);
+         * //A corner swung around the point it is pinned to.
+         * const moved = corner.rotate(swept, pivot);
+         * ```
+         */
+        rotate(angle, around) {
+            if (!angle)
+                return new Point(this.x, this.y);
+            const cos = Math.cos(angle), sin = Math.sin(angle);
+            const x = this.x - (around?.x ?? 0), y = this.y - (around?.y ?? 0);
+            return new Point(x * cos - y * sin + (around?.x ?? 0), x * sin + y * cos + (around?.y ?? 0));
+        }
+        /**
+         * @description The angle from this point to another, measured from the x axis.
+         * @param {Coordinate} to - The point to measure towards.
+         * @returns {number} The angle in radians, in (-π, π].
+         */
+        angleTo(to) {
+            return Math.atan2(to.y - this.y, to.x - this.x);
+        }
+        /**
+         * @description The angle swept around this point in going from one place to another — how far something
+         * turned, treating this point as the pivot.
+         *
+         * The result is folded back into (-π, π]. Subtracting two raw angles instead would jump by a full turn
+         * whenever the sweep crosses the seam directly behind the pivot, reporting a near-complete spin in the
+         * opposite direction for what was a small movement.
+         * @param {Coordinate} from - Where the sweep started.
+         * @param {Coordinate} to - Where it ended.
+         * @returns {number} The angle swept, in radians, in (-π, π].
+         */
+        angleBetween(from, to) {
+            const swept = this.angleTo(to) - this.angleTo(from);
+            return Math.atan2(Math.sin(swept), Math.cos(swept));
+        }
+        /**
          * @readonly
          * @description The squared distance from the origin to this point. Cheaper than {@link Point.length}
          * since it skips the square root — use it when comparing magnitudes.
@@ -15730,21 +15845,29 @@
         toString() {
             return JSON.stringify({ x: this.x, y: this.y });
         }
-        /**
-         * @function from
-         * @static
-         * @description Parse a point from a JSON string produced by {@link Point.toString}.
-         * @param {string} value - The string to parse.
-         * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
-         * `x` and `y` fields.
-         */
         static from(value) {
-            try {
-                const parsed = JSON.parse(value);
-                if (typeof parsed.x === "number" && typeof parsed.y === "number")
-                    return new Point(parsed.x, parsed.y);
+            if (value instanceof Point)
+                return value;
+            if (typeof value === "number")
+                return new Point(value);
+            if (typeof value === "string") {
+                try {
+                    const parsed = JSON.parse(value);
+                    if (typeof parsed?.x === "number" && typeof parsed?.y === "number")
+                        return new Point(parsed.x, parsed.y);
+                }
+                catch { /* fall through to undefined */ }
+                return undefined;
             }
-            catch { /* fall through to undefined */ }
+            if (Array.isArray(value))
+                return typeof value[0] === "number" && typeof value[1] === "number"
+                    ? new Point(value[0], value[1]) : undefined;
+            if (value && typeof value === "object") {
+                if (typeof value.x === "number" && typeof value.y === "number")
+                    return new Point(value.x, value.y);
+                if (typeof value.clientX === "number" && typeof value.clientY === "number")
+                    return new Point(value.clientX, value.clientY);
+            }
             return undefined;
         }
         /**
@@ -15905,7 +16028,11 @@
                     this.model = model;
                     if (data && this.model) {
                         this.model.setDataWithoutInitializing(data);
-                        this.model.id = dataId;
+                        //Only assign when an id was actually supplied. Assigning unconditionally writes
+                        //`undefined` into the model's id, which on a model whose `id` is a @modelSignal lands
+                        //in the data itself and wipes the id that came in with `data`.
+                        if (!isUndefined(dataId))
+                            this.model.id = dataId;
                     }
                     mvcUpdated = true;
                 }
@@ -16518,6 +16645,34 @@
             generateField(context, "Handler", name);
         };
     }
+    /**
+     * @decorator
+     * @function tool
+     * @group Decorators
+     * @category MVC
+     *
+     * @description Stage-3 field decorator for MVC structure. It reduces code by turning the decorated field into a
+     * fetched tool.
+     * @param {string} [name] - The key name of the tool in the MVC instance (if any). By default, it is inferred
+     * from the name of the field. If the field is named `somethingTool`, the key name will be `something`.
+     *
+     * @example
+     * ```ts
+     * @tool() protected textTool: GradumTool;
+     * ```
+     * Is equivalent to:
+     * ```ts
+     * protected get textTool(): GradumTool {
+     *    if (this.mvc instanceof Mvc) return this.mvc.getTool("text");
+     *    if (typeof this.getTool === "function") return this.getTool("text");
+     * }
+     * ```
+     */
+    function tool(name) {
+        return function (_unused, context) {
+            generateField(context, "Tool", name);
+        };
+    }
 
     /**
      * @class GradumMap
@@ -16760,6 +16915,13 @@
             previousPositions = new GradumMap();
             positions;
             lastTargetOrigin;
+            /**
+             * @description The objects a {@link GradumSelector.hitResolver} reported where the drag began. Resolved
+             * alongside {@link lastTargetOrigin} and reused for the rest of the drag, so grabbing a shape on a canvas
+             * keeps sending it the drag even once the pointer has moved off it — the same way pointer capture keeps a
+             * drag with the element it started on.
+             */
+            lastOriginHits;
             //Single timer instance --> easily cancel it and set it again
             timerMap = new GradumMap();
             //All created tools
@@ -16847,6 +17009,28 @@
              */
             position;
             /**
+             * @description Everything this event was dispatched over, innermost first: the composed path with any
+             * objects reported by a {@link GradumSelector.hitResolver} spliced in ahead of the element that reported
+             * them. Equal to `composedPath()` when nothing resolved. Move events carry the z-stack under the pointer
+             * instead, which is what they are dispatched over.
+             */
+            dispatchPath = [];
+            /**
+             * @description The objects a {@link GradumSelector.hitResolver} reported at this event's position,
+             * topmost first, or empty when the pointer only touched real elements.
+             */
+            hits = [];
+            /**
+             * @readonly
+             * @description The most specific thing the event actually hit: the topmost object reported by a
+             * {@link GradumSelector.hitResolver}, or {@link GradumEvent.target} when no resolver contributed. Use it
+             * over `target` when the thing interacted with might have been painted inside an element rather than
+             * being one — reading it costs nothing when nothing is.
+             */
+            get hitTarget() {
+                return this.hits[0] ?? this.target;
+            }
+            /**
              * @description Whether {@link GradumEvent.scaledPosition} and its per-pointer equivalents actually
              * scale, or hand back the raw position. Assign a callback to decide per read — useful when a canvas
              * is only sometimes transformed. Defaults to `true`.
@@ -16885,22 +17069,28 @@
                 return this.eventManager.getToolByName(this.toolName);
             }
             closest(type, strict = true, from = ClosestOrigin.target) {
-                const elements = from === ClosestOrigin.target ? [this.target]
-                    : document.elementsFromPoint(this.position.x, this.position.y);
+                //Starts from hitTarget rather than target, so a match painted inside an element is found before the
+                //element itself. Falls back to target when nothing was hit, which is the common case.
+                const elements = from === ClosestOrigin.target ? [this.hitTarget]
+                    : [...this.hits, ...document.elementsFromPoint(this.position.x, this.position.y)];
                 const strictElement = strict instanceof Element ? strict : null;
                 const isStrict = strict === true || strictElement !== null;
                 const ctor = typeof type === "string" ? customElements.get(type) : type;
                 for (let element of elements) {
                     if (!ctor) {
-                        // No registered custom element for the string — CSS selector fallback.
+                        // No registered custom element for the string — CSS selector fallback. Selectors cannot match
+                        // an object that was never in the DOM, so hits are skipped and the element behind them wins.
+                        if (!(element instanceof Element))
+                            continue;
                         const match = element.closest(type);
                         if (match && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? match)))
                             return match;
                         continue;
                     }
+                    // Climbs with getParent, so a hit target reaches the element that drew it and carries on up.
                     while (element && !((element instanceof ctor)
                         && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? element))))
-                        element = element.parentElement;
+                        element = gradum(element, true).getParent();
                     if (element)
                         return element;
                 }
@@ -16915,6 +17105,10 @@
              * @returns {boolean} Whether the position is inside the element.
              */
             isPositionInsideElement(position, element) {
+                //A hit target has no rect to test unless it chooses to expose one — and it does not need to: it only
+                //exists here because a resolver reported it at this very position, so containment is already settled.
+                if (typeof element?.getBoundingClientRect !== "function")
+                    return true;
                 const rect = element.getBoundingClientRect();
                 return position.x >= rect.left && position.x <= rect.right
                     && position.y >= rect.top && position.y <= rect.bottom;
@@ -17132,7 +17326,9 @@
             if (listener.kind === "behavior") {
                 if (!tool)
                     continue;
-                gradum(context).addToolBehavior(listener.type, (e, el) => method.call(context, e, el), tool, manager);
+                const callback = (e, el, options) => method.call(context, e, el, options);
+                callback.sourceFunction = method;
+                gradum(context).addToolBehavior(listener.type, callback, tool, manager);
             }
             else if (listener.kind === "listener") {
                 if (!(target instanceof Node))
@@ -17544,9 +17740,11 @@
             this.model.positions = new GradumMap();
             // Only update the current pointer's position (others remain tracked from prior moves)
             this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
-            // Clear cached target origin if not dragging
-            if (this.model.currentAction !== ActionMode.drag)
+            // Clear cached target origin, and the hit targets grabbed with it, if not dragging
+            if (this.model.currentAction !== ActionMode.drag) {
                 this.model.lastTargetOrigin = null;
+                this.model.lastOriginHits = null;
+            }
             //Fire touch scroll/pinch events (2-finger only)
             if (isTouch && this.element.wheelEventsEnabled) {
                 const currentPos = new Point(e.clientX, e.clientY);
@@ -17694,6 +17892,12 @@
             if (!this.model.lastTargetOrigin || reload) {
                 const origin = this.model.origins.first ? this.model.origins.first : positions.first;
                 this.model.lastTargetOrigin = document.elementFromPoint(origin.x, origin.y);
+                //Resolved here, with the origin, rather than per event: a drag has to keep reaching the object it
+                //grabbed, not whatever the pointer has since moved over. Stays a Node itself, because the
+                //dispatch operator calls the native dispatchEvent on it.
+                this.model.lastOriginHits = this.model.lastTargetOrigin
+                    ? gradum(this.model.lastTargetOrigin).hitResolver?.(origin, undefined) ?? null
+                    : null;
             }
             return this.model.lastTargetOrigin;
         }
@@ -17703,10 +17907,12 @@
      * @internal
      * @class GradumEventManagerDispatchOperator
      * @extends GradumOperator
-     * @description Dispatches Gradum events along the composed path. It runs two sequential passes: a
-     * capture pass from the document down to the target, which invokes tool `@behavior` methods, then a
-     * bubble pass back up, which invokes interactor `@listener` methods and `gradum(el).on()` listeners.
-     * Each pass stops early when a handler returns anything other than `Propagation.propagate`.
+     * @description Dispatches Gradum events along the composed path. It runs two sequential passes over that
+     * same path: a capture pass from the outermost entry down to the event target, then a bubble pass back up.
+     * The capture pass reaches only listeners bound with `capture: true`. The bubble pass reaches every other
+     * listener — `@listener` methods and those bound with `gradum(el).on()` — and is the only pass that runs
+     * tool `@behavior` methods. Each pass stops early when a handler returns anything other than
+     * `Propagation.propagate`.
      *
      * *Note: move events are the exception. Their composed path is the drag origin's ancestor chain, which
      * omits elements merely sitting under the cursor, so they are dispatched in a single pass over the
@@ -17737,6 +17943,60 @@
                 this.element.setTool(undefined, ClickMode.key, { select: false });
             target.dispatchEvent(new eventType(properties));
         };
+        /**
+         * @private
+         * @function expandPath
+         * @description Splice the objects reported by any {@link GradumSelector.hitResolver} in the path into the
+         * path itself, so things an element merely paints — shapes on a canvas — are dispatched to like children
+         * of it. Hits land at lower indices than the element that reported them, which is what gives them the
+         * right position in both passes: capture descends into them last, bubble reaches them first.
+         *
+         * Each hit is given the reporting element as its {@link GradumSelector.hitParent} unless it already names
+         * one, so climbing back out works without the scene having to track parentage.
+         * @param {EventTarget[]} path - The path to expand, from {@link Event.composedPath} or a z-stack.
+         * @param {Event} event - The event being dispatched, passed on to the resolvers.
+         * @returns {object} The expanded path, and the set of entries that were contributed. Returns `path`
+         * itself when no resolver contributed anything, so dispatch is untouched for everyone not using this.
+         */
+        expandPath(path, event) {
+            const position = event instanceof GradumEvent ? event.position : undefined;
+            if (!position)
+                return { path, hits: [] };
+            let expanded;
+            const hits = [];
+            //A drag stays with what it grabbed. The hits were resolved once at the drag origin, so re-running the
+            //resolver at the current pointer would hand the drag to whatever is underneath now. Move events are
+            //deliberately excluded: hovering wants what is under the cursor, not what was grabbed.
+            const sticky = event instanceof GradumDragEvent
+                && event.eventName !== GradumMoveEventName.move
+                && this.model.lastOriginHits;
+            for (let i = 0; i < path.length; i++) {
+                const entry = path[i];
+                const resolver = entry instanceof Node ? gradum(entry).hitResolver : undefined;
+                const resolved = !resolver ? []
+                    : sticky && entry === this.model.lastTargetOrigin ? this.model.lastOriginHits
+                        : resolver(position, event) ?? [];
+                if (resolved.length === 0) {
+                    expanded?.push(entry);
+                    continue;
+                }
+                //First contribution: catch the output up to everything skipped so far.
+                expanded ??= path.slice(0, i);
+                for (const hit of resolved) {
+                    if (!hit || typeof hit !== "object")
+                        continue;
+                    //Wrapped raw: gradum() otherwise unwraps any object carrying an `element` field, which is
+                    //right for an MVC piece but would silently bind a scene object's parentage to whatever it
+                    //happens to keep under that name.
+                    if (!gradum(hit, true).hitParent)
+                        gradum(hit, true).hitParent = entry;
+                    hits.push(hit);
+                    expanded.push(hit);
+                }
+                expanded.push(entry);
+            }
+            return { path: expanded ?? path, hits };
+        }
         getToolHandlingCallback(type, e) {
             const toolName = this.element.getCurrentToolName(this.model.currentClick);
             // For move events, composedPath() is the drag-origin's ancestor chain and never
@@ -17745,9 +18005,10 @@
             // and stopping at the first handler that returns non-propagate.
             if (type === GradumMoveEventName.move && e instanceof GradumDragEvent && e.position) {
                 const { x, y } = e.position;
-                const stack = document.elementsFromPoint?.(x, y) ?? [];
-                for (const el of stack) {
-                    if (!(el instanceof Node))
+                const stack = this.expandPath(document.elementsFromPoint?.(x, y) ?? [], e);
+                this.recordHits(e, stack);
+                for (const el of stack.path) {
+                    if (!this.isDispatchable(el, stack))
                         continue;
                     const propagate = gradum(el).executeAction(type, toolName, e, undefined, this.element);
                     if (propagate !== Propagation.propagate)
@@ -17755,9 +18016,11 @@
                 }
                 return;
             }
-            const path = e.composedPath?.() || [];
+            const expanded = this.expandPath(e.composedPath?.() || [], e);
+            this.recordHits(e, expanded);
+            const path = expanded.path;
             for (let i = path.length - 1; i >= 0; i--) {
-                if (!(path[i] instanceof Node))
+                if (!this.isDispatchable(path[i], expanded))
                     continue;
                 const propagate = gradum(path[i]).executeAction(type, toolName, e, { capture: true }, this.element);
                 if (propagate !== Propagation.propagate) {
@@ -17766,7 +18029,7 @@
                 }
             }
             for (let i = 0; i < path.length; i++) {
-                if (!(path[i] instanceof Node))
+                if (!this.isDispatchable(path[i], expanded))
                     continue;
                 const propagate = gradum(path[i]).executeAction(type, toolName, e, undefined, this.element);
                 if (propagate !== Propagation.propagate) {
@@ -17774,6 +18037,25 @@
                     break;
                 }
             }
+        }
+        /**
+         * @private
+         * @description Whether a path entry should be dispatched to. Nodes always are; anything else only when a
+         * hit resolver contributed it, which keeps `Window` — in every composed path, and not a Node — out.
+         */
+        isDispatchable(entry, expanded) {
+            return entry instanceof Node || expanded.hits.includes(entry);
+        }
+        /**
+         * @private
+         * @description Hand the expansion to the event, so handlers and {@link GradumEvent.closest} can read what
+         * was hit without resolving anything again.
+         */
+        recordHits(e, expanded) {
+            if (!(e instanceof GradumEvent))
+                return;
+            e.dispatchPath = expanded.path;
+            e.hits = expanded.hits;
         }
         setupCustomDispatcher(type) {
             if (this.boundHooks.has(type))
@@ -18944,6 +19226,8 @@
      * @description Shared helpers and per-element state behind the event functions on {@link GradumSelector}.
      */
     class EventFunctionsUtils {
+        //Keyed by object rather than by Node: a hit resolver can contribute targets that were never in the DOM,
+        //and those take part in dispatch exactly like elements do.
         dataMap = new WeakMap;
         data(element) {
             if (element instanceof GradumSelector)
@@ -18957,6 +19241,37 @@
                     this.dataMap.set(element, entry);
             }
             return this.dataMap.get(element);
+        }
+        /**
+         * @function peek
+         * @description The listener state already held against an object, without creating it. Use it for reads
+         * that must not allocate — walking a parent chain touches every ancestor.
+         * @param {object} element - The object to look up.
+         * @returns {ObjectListeners} The entry, or `undefined` when the object has none.
+         */
+        peek(element) {
+            if (element instanceof GradumSelector)
+                element = element.element;
+            return element ? this.dataMap.get(element) : undefined;
+        }
+        /**
+         * @function parentOf
+         * @description One step up the tree, for a DOM node or a virtual hit target alike. Tries the DOM
+         * relationships first and falls back to an explicitly assigned {@link GradumSelector.hitParent}, which is
+         * how an object painted inside a canvas reaches the element that drew it.
+         * @param {object} node - The node or object to climb from.
+         * @returns {object} The parent, or `undefined` at the top of the chain.
+         */
+        parentOf(node) {
+            if (!node || typeof node !== "object")
+                return undefined;
+            //Window is not a Node, and its `parent` is the parent *window* — itself, at top level. Following that
+            //would never terminate, and nothing sits above it in a dispatch anyway.
+            if (typeof Window !== "undefined" && node instanceof Window)
+                return undefined;
+            if (node instanceof Node)
+                return node.parentElement ?? node.parentNode ?? this.peek(node)?.hitParent?.deref();
+            return node.parent ?? this.peek(node)?.hitParent?.deref();
         }
         getBoundListenersSet(element) {
             let set = this.data(element).boundListeners;
@@ -19053,6 +19368,42 @@
             configurable: true,
             enumerable: true
         });
+        /**
+         * @description Lets an element contribute dispatch targets the DOM cannot see, by reporting the objects
+         * it is displaying at a given position. See {@link HitResolver}.
+         */
+        Object.defineProperty(GradumSelector.prototype, "hitResolver", {
+            get: function () {
+                return utils$5.data(this)?.hitResolver;
+            },
+            set: function (value) {
+                utils$5.data(this).hitResolver = value;
+            },
+            configurable: true,
+            enumerable: true
+        });
+        /**
+         * @description The object standing in as this one's parent when it has no DOM parent, so a virtual hit
+         * target can still be climbed out of. Held weakly: naming a parent never keeps it alive.
+         */
+        Object.defineProperty(GradumSelector.prototype, "hitParent", {
+            get: function () {
+                return utils$5.peek(this)?.hitParent?.deref();
+            },
+            set: function (value) {
+                utils$5.data(this).hitParent = value ? new WeakRef(value) : undefined;
+            },
+            configurable: true,
+            enumerable: true
+        });
+        /**
+         * @description One step up the tree, whether this is a DOM node or an object contributed by a hit
+         * resolver. Falls back to {@link GradumSelector.hitParent} when there is no DOM parent.
+         * @returns {object} The parent, or `undefined` at the top of the chain.
+         */
+        GradumSelector.prototype.getParent = function _getParent() {
+            return utils$5.parentOf(this.element);
+        };
         /**
          * @description Adds an event listener to the element.
          * @param {string} type - The type of the event.
@@ -19160,7 +19511,9 @@
                             propagation = Propagation.stopImmediatePropagation;
                     }
                 }
-                checkConstrainers(target.parentNode, tool);
+                //Climbs with parentOf rather than parentNode, so a target contributed by a hit resolver still
+                //reaches the constrainers of the element that drew it.
+                checkConstrainers(utils$5.parentOf(target), tool);
             };
             const runListeners = (target, tool) => {
                 if (tool && (gradum(target).isToolIgnored(tool, type, manager) || originIgnoresTool(tool)))
@@ -19640,7 +19993,15 @@
             return this.getElementData(element, manager).embeddedTarget;
         }
         addToolBehavior(toolName, type, callback, manager) {
-            this.getToolsData(manager, toolName).behaviors?.addListener({ callback, type, toolName, manager });
+            const behaviors = this.getToolsData(manager, toolName).behaviors;
+            if (!behaviors)
+                return;
+            const identity = callback?.sourceFunction ?? callback;
+            for (const existing of behaviors.getListeners({ toolName, manager, type })) {
+                if ((existing.callback?.sourceFunction ?? existing.callback) === identity)
+                    return;
+            }
+            behaviors.addListener({ callback, type, toolName, manager });
         }
         getToolBehaviors(toolName, type, manager) {
             return this.getToolsData(manager, toolName).behaviors?.getListeners({ toolName, manager, type });
@@ -20939,12 +21300,12 @@
         getConstrainersTriggeredByObjects(...elements) {
             if (!elements || elements.length === 0)
                 return [];
-            const nodeTargets = elements.filter(el => el instanceof Node);
+            const targets = elements.filter(el => el && typeof el === "object");
             const data = [];
             const checkTargets = (constrainerName, object) => {
                 const hits = new Set();
                 const list = this.getField(object, constrainerName, "triggerList") ?? new GradumNodeList();
-                for (const el of nodeTargets)
+                for (const el of targets)
                     if (list.has(el))
                         hits.add(el);
                 return Array.from(hits.values());
@@ -26252,6 +26613,14 @@
             }
             _panelContainer = __runInitializers(this, _instanceExtraInitializers);
             /**
+             * @private
+             * @description Guards {@link setupUILayout} against re-entering itself. Reading `thumb` or `panel`
+             * creates them on first access, and their setters call `setupUILayout` again — so the layout would
+             * otherwise run nested, and the inner run would leave `childHandler` pointing at the panel while the
+             * outer run is still going.
+             */
+            layingOutUI = false;
+            /**
              * @readonly
              * @description The element wrapping the panel. It is the one that resizes as the drawer opens and
              * closes; the panel itself keeps its natural size.
@@ -26421,14 +26790,25 @@
              * @inheritDoc
              */
             setupUILayout() {
-                super.setupUILayout();
-                gradum(this).childHandler = this;
-                const panelChildren = gradum(this).childrenArray.filter(el => el !== this.panelContainer && el !== this.thumb);
-                gradum(this).addChild([this.thumb, this.panelContainer]);
-                gradum(this.panel).addChild(panelChildren);
-                gradum(this.panelContainer).addChild(this.panel);
-                gradum(this.thumb).addChild(this.icon);
-                gradum(this).childHandler = this.panel;
+                //Reading `thumb`/`panel` below creates them on first access, and their setters call back into this
+                //method. Let the outermost call do the work: it sees the finished elements either way.
+                if (this.layingOutUI)
+                    return;
+                this.layingOutUI = true;
+                try {
+                    super.setupUILayout();
+                    gradum(this).childHandler = this;
+                    const panelChildren = gradum(this).childrenArray
+                        .filter(el => el !== this.panelContainer && el !== this.thumb);
+                    gradum(this).addChild([this.thumb, this.panelContainer]);
+                    gradum(this.panel).addChild(panelChildren);
+                    gradum(this.panelContainer).addChild(this.panel);
+                    gradum(this.thumb).addChild(this.icon);
+                    gradum(this).childHandler = this.panel;
+                }
+                finally {
+                    this.layingOutUI = false;
+                }
             }
             /**
              * @inheritDoc
@@ -26862,6 +27242,39 @@
             get value() { return; }
             /**
              * @readonly
+             * @description This position as a fraction of the box, from `-0.5` at the left or top edge through `0`
+             * at the centre to `+0.5` at the right or bottom. The same value as {@link AnchorPoint.value}, which is
+             * a percentage, scaled into the form that multiplies a size directly.
+             *
+             * @example
+             * ```ts
+             * //Where a box's anchor sits, measured from its middle.
+             * const offset = new AnchorPoint(Anchor.TopLeft).fraction.mul(size); //(-w/2, -h/2)
+             * ```
+             */
+            get fraction() {
+                return this.value.div(200);
+            }
+            /**
+             * @function offsetIn
+             * @description The vector from the middle of a box out to this anchor. Turned by `rotation`, so it
+             * points where the anchor actually is on a box that has been rotated about its middle, rather than
+             * where it would sit on an upright one.
+             * @param {Coordinate} size - The box's width and height.
+             * @param {number} [rotation=0] - The box's rotation in radians.
+             * @returns {Point} The offset from the middle of the box.
+             *
+             * @example
+             * ```ts
+             * //The screen position of a rotated box's top-left corner.
+             * const corner = middle.add(new AnchorPoint(Anchor.TopLeft).offsetIn(size, angleRad));
+             * ```
+             */
+            offsetIn(size, rotation = 0) {
+                return this.fraction.mul(size).rotate(rotation);
+            }
+            /**
+             * @readonly
              * @description The named {@link Anchor} nearest this position, snapping each axis to its closest edge
              * or centre.
              */
@@ -27181,11 +27594,17 @@
      */
     class GradumRect extends DOMRect {
         /**
-         * @description The rectangle's rotation in radians, about its centre.
+         * @description The rectangle's rotation in radians, about its {@link GradumRect.anchor}.
          */
         angleRad = 0;
         /**
-         * @description The anchor the rectangle is positioned from.
+         * @description The point of the rectangle that `x` and `y` give the position of, and that it turns
+         * about. Defaults to `Anchor.TopLeft`, which is what makes an unrotated rectangle read exactly like the
+         * `DOMRect` it extends.
+         *
+         * *Note: the `left`, `top`, `right` and `bottom` inherited from `DOMRect` are derived from `x`, `y`,
+         * `width` and `height` alone, so they describe the box only while it is unrotated and anchored to its
+         * top-left. Use {@link GradumRect.points} or {@link GradumRect.center} otherwise.*
          */
         anchor;
         /**
@@ -27200,7 +27619,8 @@
                 this.angleRad = properties.angleRad;
             else if (properties.angleDeg !== undefined)
                 this.angleDeg = properties.angleDeg;
-            this.anchor = properties.anchor instanceof AnchorPoint ? properties.anchor : new AnchorPoint(properties.anchor);
+            this.anchor = properties.anchor instanceof AnchorPoint
+                ? properties.anchor : new AnchorPoint(properties.anchor ?? Anchor.TopLeft);
         }
         /**
          * @function fromSegment
@@ -27220,9 +27640,11 @@
             const length = Math.hypot(dx, dy);
             const angleRad = Math.atan2(dy, dx);
             const mid = new Point((a.x + b.x) / 2, (a.y + b.y) / 2);
-            const x = mid.x - length / 2;
-            const y = mid.y - thickness / 2;
-            return new GradumRect({ x, y, width: length, height: thickness, ...properties, angleRad });
+            //Anchored and turned about the segment's midpoint, which is what keeps it lying along the segment.
+            return new GradumRect({
+                x: mid.x, y: mid.y, width: length, height: thickness,
+                anchor: Anchor.Center, ...properties, angleRad
+            });
         }
         /**
          * @function fromDOMRect
@@ -27243,9 +27665,12 @@
          * @returns {HTMLElement} The generated element. It is not attached to the document.
          */
         render() {
+            //Positioned by the untilted box around the centre and turned about that centre, which reproduces the
+            //same quadrilateral whatever the anchor is — the anchor has already been accounted for in `center`.
+            const corner = this.topLeft;
             return element({ tag: "div", style: css `position: absolute; 
                 width: ${this.width}px; height: ${this.height}px; 
-                top: ${this.y}px; left: ${this.x}px; background-color: red; pointer-events: none; opacity: 0.4;
+                top: ${corner.y}px; left: ${corner.x}px; background-color: red; pointer-events: none; opacity: 0.4;
                 transform: rotate(${this.angleRad}rad)` });
         }
         /**
@@ -27260,10 +27685,46 @@
         }
         /**
          * @readonly
-         * @description The rectangle's centre point.
+         * @description The rectangle's centre point, wherever its anchor has put it. `x` and `y` give the
+         * anchor's position and the rectangle turns about that anchor, so the centre swings around it as the
+         * rotation changes — for the default top-left anchor and no rotation this is the familiar
+         * `x + width / 2, y + height / 2`.
          */
         get center() {
-            return new Point(this.x + this.width / 2, this.y + this.height / 2);
+            return this.origin.sub(this.anchor.offsetIn(this.size, this.angleRad));
+        }
+        /**
+         * @readonly
+         * @description Where the rectangle's anchor sits: its `x` and `y`, as a point.
+         */
+        get origin() {
+            return new Point(this.x, this.y);
+        }
+        /**
+         * @readonly
+         * @description The rectangle's width and height, as a point.
+         */
+        get size() {
+            return new Point(this.width, this.height);
+        }
+        /**
+         * @function pointAt
+         * @description Where one of the rectangle's anchors sits, in the same coordinates as `x` and `y`. Follows
+         * the rotation, so it reports where that part of the rectangle actually is rather than where it would sit
+         * unrotated.
+         * @param {Anchor | Point | AnchorPoint} anchor - The anchor to locate.
+         * @returns {Point} Its position.
+         *
+         * @example
+         * ```ts
+         * //A rect anchored at its centre still knows where its corner is.
+         * const rect = new GradumRect({x: 400, y: 300, width: 100, height: 80, anchor: Anchor.Center});
+         * rect.pointAt(Anchor.TopLeft); //(350, 260)
+         * ```
+         */
+        pointAt(anchor) {
+            const point = anchor instanceof AnchorPoint ? anchor : new AnchorPoint(anchor);
+            return this.center.add(point.offsetIn(this.size, this.angleRad));
         }
         /**
          * @readonly
@@ -27285,6 +27746,25 @@
          */
         get half() {
             return new Point(this.width / 2, this.height / 2);
+        }
+        /**
+         * @readonly
+         * @description The corner to lay the rectangle out from: the top-left of the untilted box sitting at
+         * {@link GradumRect.center}. Rotating that box about its own middle reproduces this rectangle, whatever
+         * it is anchored to — which is what makes it the value a `translate(...) rotate(...)` transform, or a
+         * canvas `drawImage`, wants.
+         *
+         * *Note: not the same as the rectangle's actual top-left corner once it is rotated. For that, ask for
+         * {@link GradumRect.points}`[0]` or {@link GradumRect.pointAt}`(Anchor.TopLeft)`.*
+         *
+         * @example
+         * ```ts
+         * gradum(el).setStyle("transform", `translate(${rect.topLeft.x}px, ${rect.topLeft.y}px)
+         *     rotate(${rect.angleRad}rad)`);
+         * ```
+         */
+        get topLeft() {
+            return this.center.sub(this.half);
         }
         /**
          * @readonly
@@ -27432,8 +27912,8 @@
         }
     }
 
-    var css_248z$6 = "gradum-dropdown{display:inline-block;position:relative}gradum-dropdown>.gradum-popup{background-color:#fff;border:.1em solid #5e5e5e;border-radius:.4em;display:flex;flex-direction:column;overflow:hidden}gradum-dropdown>.gradum-popup>gradum-select-entry{padding:.5em}gradum-dropdown>.gradum-popup>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}gradum-dropdown>gradum-select-entry{padding:.5em .7em;width:100%}gradum-dropdown>gradum-select-entry:hover{background-color:#d7d7d7}gradum-dropdown>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}";
-    styleInject$1(css_248z$6);
+    var css_248z$7 = "gradum-dropdown{display:inline-block;position:relative}gradum-dropdown>.gradum-popup{background-color:#fff;border:.1em solid #5e5e5e;border-radius:.4em;display:flex;flex-direction:column;overflow:hidden}gradum-dropdown>.gradum-popup>gradum-select-entry{padding:.5em}gradum-dropdown>.gradum-popup>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}gradum-dropdown>gradum-select-entry{padding:.5em .7em;width:100%}gradum-dropdown>gradum-select-entry:hover{background-color:#d7d7d7}gradum-dropdown>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}";
+    styleInject$1(css_248z$7);
 
     /**
      * @class GradumDropdown
@@ -28723,8 +29203,8 @@
       }
     }
 
-    var css_248z$5 = "demo-toolbar{border:1px solid #838383;border-radius:12px;bottom:16px;display:flex;flex-direction:row;gap:16px;left:50%;min-width:400px;padding:8px;position:absolute;transform:translateX(-50%);z-index:2}demo-toolbar>*{border:1px solid #838383;border-radius:8px;padding:6px 10px}demo-toolbar>*>*{margin:0;padding:0}demo-toolbar>.selected{background-color:#25e463}";
-    styleInject(css_248z$5);
+    var css_248z$6 = "demo-toolbar{background-color:var(--surface);border:1px solid var(--line);border-radius:var(--radius);bottom:20px;box-shadow:0 8px 24px rgb(0 0 0/8%),0 1px 2px rgb(0 0 0/5%);display:flex;flex-direction:row;gap:6px;left:50%;padding:8px;position:absolute;transform:translateX(-50%);z-index:2}demo-toolbar>*{background-color:transparent;border:1px solid transparent;border-radius:calc(var(--radius) - 4px);color:var(--muted);cursor:pointer;font-size:13px;line-height:1;padding:7px 12px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;-moz-user-select:none;user-select:none;white-space:nowrap}demo-toolbar>:hover{background-color:var(--hover);color:var(--text)}demo-toolbar>.selected{background-color:var(--active);color:var(--text)}demo-toolbar>*>*{margin:0;padding:0}";
+    styleInject(css_248z$6);
 
     let Toolbar = (() => {
         let _classSuper = GradumElement;
@@ -28761,22 +29241,325 @@
     })();
     define(Toolbar, "demo-toolbar");
 
-    //Move tool
-    let MoveTool = (() => {
+    //Resize tool
+    let ResizeTool = (() => {
         let _classSuper = GradumTool;
         let _instanceExtraInitializers = [];
         let _drag_decorators;
-        return class MoveTool extends _classSuper {
+        return class ResizeTool extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
                 _drag_decorators = [behavior()];
                 __esDecorate$1(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
-            toolName = (__runInitializers$1(this, _instanceExtraInitializers), "move"); //Define the tool name
-            //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "move", (e, el) => {...});
+            toolName = (__runInitializers$1(this, _instanceExtraInitializers), "resize"); //Define the tool name
+            anchor = Anchor.Center;
+            //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "resize", (e, el) => {...});
             drag(e, el) {
                 try {
+                    if (!gradum(el).metadata?.get("modifiable"))
+                        return Propagation.propagate;
+                    if ("resize" in el && typeof el.resize === "function")
+                        el.resize(e.deltaPosition, this.anchor, e.keys.includes("Shift"));
+                    else if ("size" in el && typeof el.size === "object")
+                        el.size = e.deltaPosition.add(el.size);
+                    else
+                        return Propagation.propagate;
+                    return Propagation.stopPropagation;
+                }
+                catch (e) {
+                    return Propagation.stopPropagation;
+                }
+            }
+        };
+    })();
+
+    let ResizeHandle = (() => {
+        let _classSuper = GradumElement;
+        let _resizeTool_decorators;
+        let _resizeTool_initializers = [];
+        let _resizeTool_extraInitializers = [];
+        return class ResizeHandle extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _resizeTool_decorators = [tool()];
+                __esDecorate$1(null, null, _resizeTool_decorators, { kind: "field", name: "resizeTool", static: false, private: false, access: { has: obj => "resizeTool" in obj, get: obj => obj.resizeTool, set: (obj, value) => { obj.resizeTool = value; } }, metadata: _metadata }, _resizeTool_initializers, _resizeTool_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = { tools: ResizeTool };
+            anchor;
+            resizeTool = __runInitializers$1(this, _resizeTool_initializers, void 0);
+            initialize() {
+                this.updateAnchor();
+                super.initialize();
+            }
+            updateAnchor() {
+                this.resizeTool.toolName = `resize-${this.anchor}`;
+                const corner = AnchorPoint.enumToPoint(this.anchor);
+                this.resizeTool.anchor = AnchorPoint.pointToEnum(corner.mul(-1));
+                gradum(this).setStyles({ left: `${(corner.x + 100) / 2}%`, top: `${(corner.y + 100) / 2}%` });
+            }
+            retarget(target) {
+                gradum(this).embedTool(target);
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _resizeTool_extraInitializers);
+            }
+        };
+    })();
+    define(ResizeHandle, "demo-resize-handle");
+
+    /**
+     * @description Where an object is and which way it faces, as an oriented rect.
+     *
+     * Asks the object for its own bounding box first, and takes it as-is when it hands back a {@link GradumRect},
+     * since that already carries an angle. Otherwise it builds one from `position`, `size`, `rotation` and
+     * `anchor` — which is also what keeps this reactive: those are signals, so reading them inside an
+     * `@effect` subscribes it, where a bare `getBoundingClientRect()` on a plain element would not. Anything with
+     * neither gets its painted box back, treated as unrotated.
+     *
+     * @param {object} el - The element or object to measure.
+     * @returns {GradumRect} The rect, or `undefined` for something with no position or no area.
+     */
+    function getRect(el) {
+        if (!el || typeof el !== "object")
+            return undefined;
+        const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : undefined;
+        if (rect instanceof GradumRect)
+            return rect;
+        const size = Point.from(el.size) ?? Point.from({ x: el.width, y: el.height });
+        const position = Point.from(el.position);
+        if (size?.x && size.y && position)
+            return new GradumRect({
+                //The rect understands anchors, so `position` goes in as the origin and it works the rest out.
+                x: position.x,
+                y: position.y,
+                anchor: el.anchor ?? Anchor.TopLeft,
+                width: size.x,
+                height: size.y,
+                angleRad: typeof el.rotation === "number" ? el.rotation : 0
+            });
+        if (!rect?.width || !rect.height)
+            return undefined;
+        return new GradumRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+    }
+
+    //Rotate tool
+    let RotateTool = (() => {
+        let _classSuper = GradumTool;
+        let _instanceExtraInitializers = [];
+        let _drag_decorators;
+        return class RotateTool extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _drag_decorators = [behavior()];
+                __esDecorate$1(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            toolName = (__runInitializers$1(this, _instanceExtraInitializers), "rotate"); //Define the tool name
+            anchor = Anchor.Center;
+            //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "rotate", (e, el) => {...});
+            drag(e, el) {
+                try {
+                    if (!gradum(el).metadata?.get("modifiable"))
+                        return Propagation.propagate;
+                    const from = e.position.sub(e.deltaPosition);
+                    if ("rotate" in el && typeof el.rotate === "function")
+                        el.rotate(from, e.position, this.anchor);
+                    else if ("rotation" in el && typeof el.rotation === "number")
+                        this.turn(el, from, e.position);
+                    else
+                        return Propagation.propagate;
+                    return Propagation.stopPropagation;
+                }
+                catch (e) {
+                    return Propagation.stopPropagation;
+                }
+            }
+            /**
+             * @description Turn a target that only exposes a `rotation`, working the pivot out from its box. Doing
+             * here what a target with its own `rotate` does for itself: turn about the anchor, and carry the target
+             * round that point when it is not the one the target is positioned from.
+             * @param {object} el - The target to turn.
+             * @param {Point} from - Where the sweep started.
+             * @param {Point} to - Where it ended.
+             * @protected
+             */
+            turn(el, from, to) {
+                const rect = getRect(el);
+                if (!rect)
+                    return;
+                const pivot = rect.pointAt(this.anchor);
+                const swept = pivot.angleBetween(from, to);
+                if (!swept)
+                    return;
+                el.rotation += swept;
+                const position = Point.from(el.position);
+                if (position)
+                    el.position = pivot.add(position.sub(pivot).rotate(swept));
+            }
+        };
+    })();
+
+    //The rotation zone just beyond a corner grip, the way drawing tools do it: grab the corner itself to resize,
+    //grab the empty space diagonally outside it to spin the shape instead. It sits under the grip in the DOM so
+    //the grip keeps the few pixels the two share, and it only ever extends outwards — reaching inwards would
+    //steal drags from the shape underneath.
+    let RotateHandle = (() => {
+        let _classSuper = GradumElement;
+        let _instanceExtraInitializers = [];
+        let _anchor_decorators;
+        let _anchor_initializers = [];
+        let _anchor_extraInitializers = [];
+        let _rotateTool_decorators;
+        let _rotateTool_initializers = [];
+        let _rotateTool_extraInitializers = [];
+        let _updateAnchor_decorators;
+        return class RotateHandle extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _anchor_decorators = [signal];
+                _rotateTool_decorators = [tool()];
+                _updateAnchor_decorators = [effect];
+                __esDecorate$1(this, null, _updateAnchor_decorators, { kind: "method", name: "updateAnchor", static: false, private: false, access: { has: obj => "updateAnchor" in obj, get: obj => obj.updateAnchor }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
+                __esDecorate$1(null, null, _rotateTool_decorators, { kind: "field", name: "rotateTool", static: false, private: false, access: { has: obj => "rotateTool" in obj, get: obj => obj.rotateTool, set: (obj, value) => { obj.rotateTool = value; } }, metadata: _metadata }, _rotateTool_initializers, _rotateTool_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = { tools: RotateTool };
+            anchor = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _anchor_initializers, void 0));
+            rotateTool = (__runInitializers$1(this, _anchor_extraInitializers), __runInitializers$1(this, _rotateTool_initializers, void 0));
+            updateAnchor() {
+                const corner = AnchorPoint.enumToPoint(this.anchor);
+                gradum(this).setStyles({
+                    left: `${(corner.x + 100) / 2}%`,
+                    top: `${(corner.y + 100) / 2}%`,
+                    marginLeft: corner.x < 0 ? "calc(-1 * var(--rotate-zone))" : "0",
+                    marginTop: corner.y < 0 ? "calc(-1 * var(--rotate-zone))" : "0"
+                });
+            }
+            retarget(target) {
+                gradum(this).embedTool(target);
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _rotateTool_extraInitializers);
+            }
+        };
+    })();
+    define(RotateHandle, "demo-rotate-handle");
+
+    var css_248z$5 = "demo-selection-box{border:1px dashed #3b82f6;box-sizing:border-box;display:none;left:0;pointer-events:none;position:absolute;top:0;z-index:10}demo-selection-box.selecting{display:block}demo-rotate-handle{box-sizing:border-box;cursor:grab;height:24px;pointer-events:auto;position:absolute;width:24px}demo-rotate-handle:active{cursor:grabbing}demo-resize-handle{background-color:#fff;border:1px solid #3b82f6;border-radius:2px;box-sizing:border-box;cursor:pointer;height:10px;margin:-5px;pointer-events:auto;position:absolute;width:10px}";
+    styleInject(css_248z$5);
+
+    //Module-level rather than a static: a private static makes TypeScript reduce `Gradum<this>` to `never`.
+    const corners = [Anchor.TopLeft, Anchor.TopRight, Anchor.BottomLeft, Anchor.BottomRight];
+    let SelectionBox = (() => {
+        let _classSuper = GradumElement;
+        let _instanceExtraInitializers = [];
+        let _target_decorators;
+        let _target_initializers = [];
+        let _target_extraInitializers = [];
+        let _updateTarget_decorators;
+        return class SelectionBox extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _target_decorators = [signal];
+                _updateTarget_decorators = [effect];
+                __esDecorate$1(this, null, _updateTarget_decorators, { kind: "method", name: "updateTarget", static: false, private: false, access: { has: obj => "updateTarget" in obj, get: obj => obj.updateTarget }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(null, null, _target_decorators, { kind: "field", name: "target", static: false, private: false, access: { has: obj => "target" in obj, get: obj => obj.target, set: (obj, value) => { obj.target = value; } }, metadata: _metadata }, _target_initializers, _target_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            target = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _target_initializers, void 0));
+            resizeHandles = (__runInitializers$1(this, _target_extraInitializers), []);
+            rotateHandles = [];
+            stopTracking;
+            initialize() {
+                gradum(this).showTransition = new StatefulReifect({
+                    states: Shown,
+                    styles: state => "display: " + (state === Shown.visible ? "block" : "none")
+                });
+                super.initialize();
+            }
+            clear() {
+                this.target = undefined;
+            }
+            setupUIElements() {
+                super.setupUIElements();
+                this.rotateHandles = corners.map(anchor => RotateHandle.create({ anchor }));
+                this.resizeHandles = corners.map(anchor => ResizeHandle.create({ anchor }));
+            }
+            setupUILayout() {
+                super.setupUILayout();
+                gradum(this).addChild([...this.rotateHandles, ...this.resizeHandles]);
+            }
+            updateTarget() {
+                this.stopTracking?.();
+                this.stopTracking = undefined;
+                gradum(this).show(!!this.target);
+                if (!this.target)
+                    return;
+                this.resizeHandles.forEach(handle => handle.retarget(this.target));
+                this.rotateHandles.forEach(handle => handle.retarget(this.target));
+                this.track();
+            }
+            track() {
+                this.stopTracking = effect(() => {
+                    const rect = getRect(this.target);
+                    if (!rect)
+                        return;
+                    gradum(this).setStyles({
+                        transform: `translate(${rect.topLeft.x}px, ${rect.topLeft.y}px) rotate(${rect.angleRad ?? 0}rad)`,
+                        width: `${rect.width}px`,
+                        height: `${rect.height}px`,
+                    });
+                });
+            }
+        };
+    })();
+    define(SelectionBox, "demo-selection-box");
+
+    //Select tool
+    let SelectTool = (() => {
+        let _classSuper = GradumTool;
+        let _instanceExtraInitializers = [];
+        let _clickStart_decorators;
+        let _drag_decorators;
+        return class SelectTool extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _clickStart_decorators = [behavior()];
+                _drag_decorators = [behavior()];
+                __esDecorate$1(this, null, _clickStart_decorators, { kind: "method", name: "clickStart", static: false, private: false, access: { has: obj => "clickStart" in obj, get: obj => obj.clickStart }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            toolName = (__runInitializers$1(this, _instanceExtraInitializers), "select"); //Define the tool name
+            selectionBox;
+            onDeactivate() {
+                this.selectionBox?.clear();
+            }
+            //Clicking a modifiable element selects it, which puts a border and four resize grips over it. Clicking
+            //anything else clears the selection.
+            clickStart(e, el) {
+                if (this.selectionBox?.contains(e.target))
+                    return Propagation.propagate;
+                if (gradum(el).metadata?.get("modifiable")) {
+                    if (!this.selectionBox)
+                        this.selectionBox = SelectionBox.create({ parent: document.body });
+                    this.selectionBox.target = el;
+                    return Propagation.stopPropagation;
+                }
+                if (el === document.body)
+                    this.selectionBox?.clear();
+            }
+            //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "select", (e, el) => {...});
+            drag(e, el) {
+                try {
+                    if (!gradum(el).metadata?.get("modifiable"))
+                        return Propagation.propagate;
                     if ("move" in el && typeof el.move === "function")
                         el.move(e.deltaPosition);
                     else if ("translate" in el && typeof el.translate === "function")
@@ -28877,36 +29660,40 @@
         let _rotation_decorators;
         let _rotation_initializers = [];
         let _rotation_extraInitializers = [];
-        let _elementSize_decorators;
-        let _elementSize_initializers = [];
-        let _elementSize_extraInitializers = [];
-        let _centerAnchor_decorators;
-        let _centerAnchor_initializers = [];
-        let _centerAnchor_extraInitializers = [];
+        let _anchor_decorators;
+        let _anchor_initializers = [];
+        let _anchor_extraInitializers = [];
+        let _size_decorators;
+        let _size_initializers = [];
+        let _size_extraInitializers = [];
         return class SquareModel extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
                 _color_decorators = [signal];
                 _position_decorators = [signal];
                 _rotation_decorators = [signal];
-                _elementSize_decorators = [signal];
-                _centerAnchor_decorators = [signal];
+                _anchor_decorators = [signal];
+                _size_decorators = [signal, auto({
+                        preprocessValue: (value) => (Point.from(value) ?? new Point(100, 100)).bound(5, Infinity, 5, Infinity)
+                    })];
+                __esDecorate$1(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
                 __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
                 __esDecorate$1(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
                 __esDecorate$1(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
-                __esDecorate$1(null, null, _elementSize_decorators, { kind: "field", name: "elementSize", static: false, private: false, access: { has: obj => "elementSize" in obj, get: obj => obj.elementSize, set: (obj, value) => { obj.elementSize = value; } }, metadata: _metadata }, _elementSize_initializers, _elementSize_extraInitializers);
-                __esDecorate$1(null, null, _centerAnchor_decorators, { kind: "field", name: "centerAnchor", static: false, private: false, access: { has: obj => "centerAnchor" in obj, get: obj => obj.centerAnchor, set: (obj, value) => { obj.centerAnchor = value; } }, metadata: _metadata }, _centerAnchor_initializers, _centerAnchor_extraInitializers);
+                __esDecorate$1(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
             //Turned simple fields into signals (so changing their values will trigger @effect callbacks)
             color = __runInitializers$1(this, _color_initializers, Color.random([60, 90], [40, 70]));
             position = (__runInitializers$1(this, _color_extraInitializers), __runInitializers$1(this, _position_initializers, new Point()));
             rotation = (__runInitializers$1(this, _position_extraInitializers), __runInitializers$1(this, _rotation_initializers, 0));
-            elementSize = (__runInitializers$1(this, _rotation_extraInitializers), __runInitializers$1(this, _elementSize_initializers, 100));
-            centerAnchor = (__runInitializers$1(this, _elementSize_extraInitializers), __runInitializers$1(this, _centerAnchor_initializers, true));
+            anchor = (__runInitializers$1(this, _rotation_extraInitializers), __runInitializers$1(this, _anchor_initializers, Anchor.Center));
+            #size_accessor_storage = (__runInitializers$1(this, _anchor_extraInitializers), __runInitializers$1(this, _size_initializers, new Point(100, 100)));
+            get size() { return this.#size_accessor_storage; }
+            set size(value) { this.#size_accessor_storage = value; }
             constructor() {
                 super(...arguments);
-                __runInitializers$1(this, _centerAnchor_extraInitializers);
+                __runInitializers$1(this, _size_extraInitializers);
             }
         };
     })();
@@ -28918,30 +29705,40 @@
         let _updatePosition_decorators;
         let _updateColor_decorators;
         let _updateSize_decorators;
+        let _updateText_decorators;
         return class SquareView extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
                 _updatePosition_decorators = [effect];
                 _updateColor_decorators = [effect];
                 _updateSize_decorators = [effect];
+                _updateText_decorators = [effect];
                 __esDecorate$1(this, null, _updatePosition_decorators, { kind: "method", name: "updatePosition", static: false, private: false, access: { has: obj => "updatePosition" in obj, get: obj => obj.updatePosition }, metadata: _metadata }, null, _instanceExtraInitializers);
                 __esDecorate$1(this, null, _updateColor_decorators, { kind: "method", name: "updateColor", static: false, private: false, access: { has: obj => "updateColor" in obj, get: obj => obj.updateColor }, metadata: _metadata }, null, _instanceExtraInitializers);
                 __esDecorate$1(this, null, _updateSize_decorators, { kind: "method", name: "updateSize", static: false, private: false, access: { has: obj => "updateSize" in obj, get: obj => obj.updateSize }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateText_decorators, { kind: "method", name: "updateText", static: false, private: false, access: { has: obj => "updateText" in obj, get: obj => obj.updateText }, metadata: _metadata }, null, _instanceExtraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
             //@effect methods will be called when the values of the signals they use change
             updatePosition() {
-                const offset = this.model.centerAnchor ? this.model.elementSize / 2 : 0;
+                const rect = this.element.getBoundingClientRect();
                 gradum(this).setStyle("transform", `
-        translate(${this.model.position.x - offset}px, ${this.model.position.y - offset}px)
-        rotate(${this.model.rotation}rad)
+            translate(${rect.topLeft.x}px, ${rect.topLeft.y}px)
+            rotate(${this.model.rotation}rad)
         `);
             }
             updateColor() {
                 gradum(this).setStyle("backgroundColor", this.model.color.toString());
             }
             updateSize() {
-                gradum(this).setStyles({ width: this.model.elementSize + "px", height: this.model.elementSize + "px" });
+                gradum(this).setStyles({ width: this.model.size.x + "px", height: this.model.size.y + "px" });
+            }
+            updateText() {
+                const text = gradum(this).metadata.get("isPusher") ? "Pusher" :
+                    gradum(this).metadata.get("isSpacer") ? "Spacer" : undefined;
+                gradum(this).removeAllChildren();
+                if (text)
+                    gradum(this).addChild(p({ text }));
             }
             constructor() {
                 super(...arguments);
@@ -28953,66 +29750,119 @@
     var css_248z$4 = ".demo-square{align-items:center;display:flex;height:100px;justify-content:center;position:absolute;width:100px}";
     styleInject(css_248z$4);
 
+    //Custom square element, defined as a custom element
     let Square = (() => {
         let _classSuper = GradumElement;
         let _color_decorators;
         let _color_initializers = [];
         let _color_extraInitializers = [];
-        let _elementSize_decorators;
-        let _elementSize_initializers = [];
-        let _elementSize_extraInitializers = [];
+        let _size_decorators;
+        let _size_initializers = [];
+        let _size_extraInitializers = [];
         let _position_decorators;
         let _position_initializers = [];
         let _position_extraInitializers = [];
         let _rotation_decorators;
         let _rotation_initializers = [];
         let _rotation_extraInitializers = [];
+        let _anchor_decorators;
+        let _anchor_initializers = [];
+        let _anchor_extraInitializers = [];
         return class Square extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
                 _color_decorators = [expose("model")];
-                _elementSize_decorators = [expose("model")];
+                _size_decorators = [expose("model")];
                 _position_decorators = [expose("model")];
                 _rotation_decorators = [expose("model")];
+                _anchor_decorators = [expose("model")];
                 __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
-                __esDecorate$1(null, null, _elementSize_decorators, { kind: "field", name: "elementSize", static: false, private: false, access: { has: obj => "elementSize" in obj, get: obj => obj.elementSize, set: (obj, value) => { obj.elementSize = value; } }, metadata: _metadata }, _elementSize_initializers, _elementSize_extraInitializers);
+                __esDecorate$1(null, null, _size_decorators, { kind: "field", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
                 __esDecorate$1(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
                 __esDecorate$1(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
+                __esDecorate$1(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
-            //Expose fields from the model
-            color = __runInitializers$1(this, _color_initializers, void 0);
-            elementSize = (__runInitializers$1(this, _color_extraInitializers), __runInitializers$1(this, _elementSize_initializers, void 0));
-            position = (__runInitializers$1(this, _elementSize_extraInitializers), __runInitializers$1(this, _position_initializers, void 0));
-            rotation = (__runInitializers$1(this, _position_extraInitializers), __runInitializers$1(this, _rotation_initializers, void 0));
+            //Ghost styling for the preview a feedforward drag shows. Specific to this demo.
+            defaultFeedforwardProperties = { style: "opacity: 0.4" };
             static defaultProperties = {
                 view: SquareView,
                 model: SquareModel,
             };
-            defaultFeedforwardProperties = (__runInitializers$1(this, _rotation_extraInitializers), { style: "opacity: 0.4" });
+            //Expose fields from the model
+            color = __runInitializers$1(this, _color_initializers, void 0);
+            size = (__runInitializers$1(this, _color_extraInitializers), __runInitializers$1(this, _size_initializers, void 0));
+            position = (__runInitializers$1(this, _size_extraInitializers), __runInitializers$1(this, _position_initializers, void 0));
+            rotation = (__runInitializers$1(this, _position_extraInitializers), __runInitializers$1(this, _rotation_initializers, void 0));
+            anchor = (__runInitializers$1(this, _rotation_extraInitializers), __runInitializers$1(this, _anchor_initializers, void 0));
+            initialize() {
+                gradum(this).metadata.set(true, "modifiable");
+                gradum(this).metadata.makeSignal("isPusher");
+                gradum(this).metadata.makeSignal("isSpacer");
+                super.initialize();
+            }
             move(delta) {
                 this.model.position = delta.add(this.model.position);
             }
-            rotate(angle) {
-                this.model.rotation += angle;
+            rotate(from, to, anchor = this.anchor) {
+                const pivot = this.getBoundingClientRect().pointAt(anchor);
+                const swept = pivot.angleBetween(from, to);
+                if (!swept)
+                    return;
+                const offset = this.model.position.sub(pivot);
+                this.model.rotation += swept;
+                this.model.position = pivot.add(offset.rotate(swept));
             }
-            resize(delta) {
-                this.model.elementSize = delta.min;
+            resize(delta, anchor = this.anchor, uniform = false) {
+                const fraction = new AnchorPoint(anchor).fraction;
+                const local = delta.rotate(-(this.model.rotation ?? 0));
+                let sizeDelta = local.mul(new Point(fraction.x === 0 ? 2 : -2 * fraction.x, fraction.y === 0 ? 2 : -2 * fraction.y));
+                if (uniform)
+                    sizeDelta = new Point(sizeDelta.min, sizeDelta.min);
+                const pinned = this.getBoundingClientRect().pointAt(anchor);
+                this.model.size = this.model.size.add(sizeDelta);
+                this.model.position = this.model.position.add(pinned.sub(this.getBoundingClientRect().pointAt(anchor)));
             }
             getBoundingClientRect() {
-                const offset = this.model.centerAnchor ? this.model.elementSize / 2 : 0;
                 return new GradumRect({
-                    x: this.model.position.x - offset,
-                    y: this.model.position.y - offset,
-                    width: this.elementSize,
-                    height: this.elementSize,
-                    angleDeg: this.rotation
+                    x: this.model.position.x,
+                    y: this.model.position.y,
+                    width: this.model.size.x,
+                    height: this.model.size.y,
+                    anchor: this.model.anchor,
+                    angleRad: this.model.rotation
                 });
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _anchor_extraInitializers);
             }
         };
     })();
-    //Custom square element, defined as a custom element
     define(Square, "demo-square");
+
+    //Add square tool
+    let AddSquareTool = (() => {
+        let _classSuper = GradumTool;
+        let _instanceExtraInitializers = [];
+        let _click_decorators;
+        return class AddSquareTool extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _click_decorators = [behavior()];
+                __esDecorate$1(this, null, _click_decorators, { kind: "method", name: "click", static: false, private: false, access: { has: obj => "click" in obj, get: obj => obj.click }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            toolName = (__runInitializers$1(this, _instanceExtraInitializers), "addSquare"); //Define the tool name
+            //Equivalent to gradum(tool).addToolBehavior("click", "addSquare", (e, target) => {...});
+            click(e, target) {
+                if (gradum(target).metadata.get("substrate")) {
+                    Square.create({ parent: target, position: e.position });
+                    return Propagation.stopPropagation;
+                }
+            }
+        };
+    })();
 
     var css_248z$3 = "my-canvas{display:block;height:100vh;width:100vw}";
     styleInject(css_248z$3);
@@ -29052,8 +29902,8 @@
                 this.line = element({ tag: "line", namespace: SvgNamespace });
                 this.hitLine = element({ tag: "line", namespace: SvgNamespace });
                 gradum(this.hitLine).setAttribute("stroke", "transparent").setAttribute("pointer-events", "stroke");
-                this.startHandle = Square.create({ elementSize: 20, color: "white", classes: "handle" });
-                this.endHandle = Square.create({ elementSize: 20, color: "white", classes: "handle" });
+                this.startHandle = Square.create({ size: 20, color: "white", classes: "handle" });
+                this.endHandle = Square.create({ size: 20, color: "white", classes: "handle" });
             }
             setupUILayout() {
                 super.setupUILayout();
@@ -29156,10 +30006,11 @@
                 const end = this.view.endHandle?.position;
                 if (!start || !end)
                     return;
-                const rect = target.getBoundingClientRect?.();
-                if (!rect || !(rect instanceof DOMRect))
+                //Asked for the centre rather than derived from left/top: `x`/`y` name the rect's anchor now, so a
+                //centre-anchored shape would come out half a box off.
+                const center = getRect(target)?.center;
+                if (!center)
                     return;
-                const center = new Point(rect.left + rect.width / 2, rect.top + rect.height / 2);
                 const isFeedforward = properties.eventType !== DefaultEventName.dragEnd
                     && !manipulatingStickyLine && !(target instanceof StickyLine);
                 if (!manipulatingStickyLine || !this.objectData.has(target))
@@ -29233,6 +30084,11 @@
                 constrainers: StickyLineConstrainer,
                 origin: new Point(500, 300),
             };
+            initialize() {
+                super.initialize();
+                //Not a Square, so it marks itself: the select tool only moves and selects what says it is modifiable.
+                gradum(this).metadata.set(true, "modifiable");
+            }
             move(delta) {
                 this.view.startHandle?.move(delta);
                 this.view.endHandle?.move(delta);
@@ -29329,32 +30185,12 @@
         static defaultProperties = {
             constrainers: [CanvasConstrainer]
         };
+        initialize() {
+            super.initialize();
+            gradum(this).metadata.set(true, "substrate");
+        }
     }
     define(Canvas, "my-canvas");
-
-    //Add square tool
-    let AddSquareTool = (() => {
-        let _classSuper = GradumTool;
-        let _instanceExtraInitializers = [];
-        let _click_decorators;
-        return class AddSquareTool extends _classSuper {
-            static {
-                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _click_decorators = [behavior()];
-                __esDecorate$1(this, null, _click_decorators, { kind: "method", name: "click", static: false, private: false, access: { has: obj => "click" in obj, get: obj => obj.click }, metadata: _metadata }, null, _instanceExtraInitializers);
-                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-            }
-            toolName = (__runInitializers$1(this, _instanceExtraInitializers), "addSquare"); //Define the tool name
-            //Equivalent to gradum(tool).addToolBehavior("click", "addSquare", (e, target) => {...});
-            click(e, target) {
-                if (target instanceof Canvas) {
-                    const square = Square.create({ parent: target });
-                    square.position = e.scaledPosition;
-                    return Propagation.stopPropagation;
-                }
-            }
-        };
-    })();
 
     //Add square tool
     let AddStickyLineTool = (() => {
@@ -29422,9 +30258,8 @@
             toolName = (__runInitializers$1(this, _instanceExtraInitializers), "addCircle"); //Define the tool name
             //Equivalent to gradum(tool).addToolBehavior("click", "addCircle", (e, target) => {...});
             click(e, target) {
-                if (target instanceof Canvas) {
-                    const circle = Circle.create({ parent: target, elementSize: 80 });
-                    circle.position = e.scaledPosition;
+                if (gradum(target).metadata.get("substrate")) {
+                    Circle.create({ parent: target, position: e.position, size: 80 });
                     return Propagation.stopPropagation;
                 }
             }
@@ -29453,11 +30288,12 @@
                 gradum(this).setStyle("borderBottomColor", this.model.color.toString());
             }
             updateSize() {
-                const half = this.model.elementSize / 2;
+                //Drawn as CSS borders rather than a box, so the size goes into the border widths: half the width to
+                //each side, the full height below.
                 gradum(this).setStyles({
-                    borderLeftWidth: half + "px",
-                    borderRightWidth: half + "px",
-                    borderBottomWidth: this.model.elementSize + "px",
+                    borderLeftWidth: this.model.size.x / 2 + "px",
+                    borderRightWidth: this.model.size.x / 2 + "px",
+                    borderBottomWidth: this.model.size.y + "px",
                 });
             }
             constructor() {
@@ -29494,9 +30330,8 @@
             toolName = (__runInitializers$1(this, _instanceExtraInitializers), "addTriangle"); //Define the tool name
             //Equivalent to gradum(tool).addToolBehavior("click", "addTriangle", (e, target) => {...});
             click(e, target) {
-                if (target instanceof Canvas) {
-                    const triangle = Triangle.create({ parent: target, elementSize: 60 });
-                    triangle.position = e.scaledPosition;
+                if (gradum(target).metadata.get("substrate")) {
+                    Triangle.create({ parent: target, position: e.position, size: 60 });
                     return Propagation.stopPropagation;
                 }
             }
@@ -29507,7 +30342,9 @@
     Toolbar.create({
         parent: document.body,
         entries: [
-            GradumButton.create({ text: "Move", tools: MoveTool, classes: "demo-button" }),
+            GradumButton.create({ text: "Select", tools: SelectTool, classes: "demo-button" }),
+            GradumButton.create({ text: "Resize", tools: ResizeTool, classes: "demo-button" }),
+            GradumButton.create({ text: "Rotate", tools: RotateTool, classes: "demo-button" }),
             GradumButton.create({ text: "Add Square", tools: AddSquareTool, classes: "demo-button" }),
             GradumButton.create({ text: "Add Circle", tools: AddCircleTool, classes: "demo-button" }),
             GradumButton.create({ text: "Add Triangle", tools: AddTriangleTool, classes: "demo-button" }),

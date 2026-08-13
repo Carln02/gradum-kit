@@ -1,6 +1,5 @@
-import {GradumTool, GradumEvent, Propagation, behavior, DefaultEventName} from "../../../../build/gradum-kit.esm";
+import {GradumTool, GradumEvent, Propagation, behavior, gradum} from "../../../../build/gradum-kit.esm";
 import {Square} from "../square/square";
-import {Canvas} from "../canvas/canvas";
 
 //Add square tool
 export class AddSquareTool extends GradumTool {
@@ -8,9 +7,8 @@ export class AddSquareTool extends GradumTool {
 
     //Equivalent to gradum(tool).addToolBehavior("click", "addSquare", (e, target) => {...});
     @behavior() public click(e: GradumEvent, target: Node) {
-        if (target instanceof Canvas) {
-            const square = Square.create({parent: target});
-            square.position = e.scaledPosition;
+        if (gradum(target).metadata.get("substrate")) {
+            Square.create({parent: target as Element, position: e.position});
             return Propagation.stopPropagation;
         }
     }

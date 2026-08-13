@@ -1,5 +1,4 @@
-import {GradumTool, GradumEvent, Propagation, behavior} from "../../../../build/gradum-kit.esm";
-import {Canvas} from "../canvas/canvas";
+import {GradumTool, GradumEvent, Propagation, behavior, gradum} from "../../../../build/gradum-kit.esm";
 import {Circle} from "../circle/circle";
 
 //Add circle tool
@@ -8,9 +7,8 @@ export class AddCircleTool extends GradumTool {
 
     //Equivalent to gradum(tool).addToolBehavior("click", "addCircle", (e, target) => {...});
     @behavior() public click(e: GradumEvent, target: Node) {
-        if (target instanceof Canvas) {
-            const circle = Circle.create({parent: target, elementSize: 80});
-            circle.position = e.scaledPosition;
+        if (gradum(target).metadata.get("substrate")) {
+            Circle.create({parent: target as Element, position: e.position, size: 80});
             return Propagation.stopPropagation;
         }
     }

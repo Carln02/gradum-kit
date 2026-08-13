@@ -29652,7 +29652,11 @@
                 _position_decorators = [signal];
                 _rotation_decorators = [signal];
                 _anchor_decorators = [signal];
-                _size_decorators = [signal, auto({ preprocessValue: (value) => value.bound(5, Infinity, 5, Infinity) })];
+                _size_decorators = [signal, auto({
+                        //Read through Point.from so `size: 20` and `size: {x, y}` work as well as a Point, and never let a
+                        //shape collapse to nothing.
+                        preprocessValue: (value) => (Point.from(value) ?? new Point(100, 100)).bound(5, Infinity, 5, Infinity)
+                    })];
                 __esDecorate$1(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
                 __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
                 __esDecorate$1(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);

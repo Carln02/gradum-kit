@@ -8,6 +8,8 @@ export class SquareModel extends GradumModel {
     @signal rotation: number = 0;
     @signal anchor: Anchor | Point = Anchor.Center;
 
-    @signal @auto({preprocessValue: (value: Point) => value.bound(5, Infinity, 5, Infinity)})
-    accessor size: Point = new Point(100, 100);
+    @signal @auto({
+        preprocessValue: (value: any) =>
+            (Point.from(value) ?? new Point(100, 100)).bound(5, Infinity, 5, Infinity)
+    }) accessor size: Point = new Point(100, 100);
 }

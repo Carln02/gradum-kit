@@ -16,14 +16,21 @@ demo-toolbar {
     box-shadow: 0 8px 24px rgb(0 0 0 / 8%), 0 1px 2px rgb(0 0 0 / 5%);
 }
 
+demo-toolbar .gradum-icon {
+    display: block;
+    width: 1.4em;
+    height: 1.4em;
+}
+
 demo-toolbar > * {
-    padding: 7px 12px;
+    padding: 7px;
     border-radius: calc(var(--radius) - 4px);
 
     border: 1px solid transparent;
     background-color: transparent;
 
     color: var(--muted);
+    fill: var(--muted);
     font-size: 13px;
     line-height: 1;
     white-space: nowrap;
@@ -31,6 +38,10 @@ demo-toolbar > * {
     cursor: pointer;
 
     transition: background-color 120ms ease, color 120ms ease;
+}
+
+demo-toolbar svg {
+    fill: var(--muted);
 }
 
 demo-toolbar > *:hover {
@@ -42,6 +53,10 @@ demo-toolbar > *:hover {
 demo-toolbar > *.selected {
     background-color: var(--active);
     color: var(--text);
+}
+
+demo-toolbar > *:hover svg, demo-toolbar > *.selected svg {
+    fill: var(--text);
 }
 
 demo-toolbar > * > * {
