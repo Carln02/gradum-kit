@@ -9,8 +9,7 @@ export class AddSquareTool extends GradumTool {
     //Equivalent to gradum(tool).addToolBehavior("click", "addSquare", (e, target) => {...});
     @behavior() public click(e: GradumEvent, target: Node) {
         if (target instanceof Canvas) {
-            const square = Square.create({parent: target});
-            square.position = e.scaledPosition;
+            Square.create({parent: target, position: e.scaledPosition});
             return Propagation.stopPropagation;
         }
     }

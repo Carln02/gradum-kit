@@ -1,0 +1,51 @@
+demo-selection-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+    border: 1px dashed #3b82f6;
+
+    /* Hidden until something is selected. */
+    display: none;
+    z-index: 10;
+
+    /* The border is decoration — only the grips should intercept the pointer. */
+    pointer-events: none;
+}
+
+demo-selection-box.selecting {
+    display: block;
+}
+
+/* The quadrant just outside a corner. Invisible, and earlier in the DOM than the grips, so wherever the two
+   overlap the grip takes the pointer and resizing stays the default at the corner itself. */
+demo-rotate-handle {
+    position: absolute;
+    box-sizing: border-box;
+    width: 24px;
+    height: 24px;
+
+    pointer-events: auto;
+    cursor: grab;
+}
+
+demo-rotate-handle:active {
+    cursor: grabbing;
+}
+
+demo-resize-handle {
+    position: absolute;
+    box-sizing: border-box;
+    width: 10px;
+    height: 10px;
+
+    /* left/top place the grip on the corner; the negative margin centres it there. */
+    margin: -5px;
+
+    background-color: white;
+    border: 1px solid #3b82f6;
+    border-radius: 2px;
+
+    pointer-events: auto;
+    cursor: pointer;
+}

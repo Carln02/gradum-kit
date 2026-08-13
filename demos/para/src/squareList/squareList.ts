@@ -5,7 +5,9 @@ import {
     Point,
     GradumBaseElement,
     Color,
-    define
+    define,
+    gradum,
+    linearInterpolation
 } from "../../../../build/gradum-kit.esm";
 import {Square} from "../square/square";
 
@@ -18,7 +20,11 @@ export class SquareList extends GradumBaseElement {
         position: (id, total) =>
             Point.linearInterpolation(this.startSquare.position, this.endSquare.position, (id + 1) / (total + 1)),
         color: (id, total) =>
-            Color.interpolate(this.startSquare.color, this.endSquare.color, (id + 1) / (total + 1))
+            Color.interpolate(this.startSquare.color, this.endSquare.color, (id + 1) / (total + 1)),
+        size: (id, total) =>
+            Point.linearInterpolation(this.startSquare.size, this.endSquare.size, (id + 1) / (total + 1)),
+        rotation: (id, total) =>
+            linearInterpolation(id, 1, total, this.startSquare.rotation, this.endSquare.rotation)
     });
 
     public get startSquare(): Square {
@@ -43,10 +49,12 @@ export class SquareList extends GradumBaseElement {
                 Square.create({parent: this.canvas});
         }
 
-        this.startSquare.modifiable = true;
-        this.endSquare.modifiable = true;
+        //Only the two ends are yours to move: the middles are placed by the reifect, so they are marked
+        //unmodifiable and the select tool leaves them alone.
+        gradum(this.startSquare).metadata.set(true, "modifiable");
+        gradum(this.endSquare).metadata.set(true, "modifiable");
         const middleSquares = this.squares.slice(1, -1);
-        for (const square of middleSquares) square.modifiable = false;
+        for (const square of middleSquares) gradum(square).metadata.set(false, "modifiable");
         this.reifect.attach(...middleSquares);
         this.reifect.apply();
     }
