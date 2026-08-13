@@ -29246,6 +29246,41 @@
   })();
   define(ResizeHandle, "demo-resize-handle");
 
+  /**
+   * @description Where an object is and which way it faces, as an oriented rect.
+   *
+   * Asks the object for its own bounding box first, and takes it as-is when it hands back a {@link GradumRect},
+   * since that already carries an angle. Otherwise it builds one from `position`, `size`, `rotation` and
+   * `anchor` — which is also what keeps this reactive: those are signals, so reading them inside an
+   * `@effect` subscribes it, where a bare `getBoundingClientRect()` on a plain element would not. Anything with
+   * neither gets its painted box back, treated as unrotated.
+   *
+   * @param {object} el - The element or object to measure.
+   * @returns {GradumRect} The rect, or `undefined` for something with no position or no area.
+   */
+  function getRect(el) {
+      if (!el || typeof el !== "object")
+          return undefined;
+      const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : undefined;
+      if (rect instanceof GradumRect)
+          return rect;
+      const size = Point.from(el.size) ?? Point.from({ x: el.width, y: el.height });
+      const position = Point.from(el.position);
+      if (size?.x && size.y && position)
+          return new GradumRect({
+              //The rect understands anchors, so `position` goes in as the origin and it works the rest out.
+              x: position.x,
+              y: position.y,
+              anchor: el.anchor ?? Anchor.TopLeft,
+              width: size.x,
+              height: size.y,
+              angleRad: typeof el.rotation === "number" ? el.rotation : 0
+          });
+      if (!rect?.width || !rect.height)
+          return undefined;
+      return new GradumRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+  }
+
   //Rotate tool
   let RotateTool = (() => {
       let _classSuper = GradumTool;
@@ -29265,8 +29300,13 @@
               try {
                   if (!gradum(el).metadata?.get("modifiable"))
                       return Propagation.propagate;
+                  const from = e.position.sub(e.deltaPosition);
+                  //Handed the two pointer positions rather than an angle: where the pivot sits depends on the
+                  //target's own size and rotation, which is the target's business to know.
                   if ("rotate" in el && typeof el.rotate === "function")
-                      el.rotate(e.position.sub(e.deltaPosition), e.position, this.anchor);
+                      el.rotate(from, e.position, this.anchor);
+                  else if ("rotation" in el && typeof el.rotation === "number")
+                      this.turn(el, from, e.position);
                   else
                       return Propagation.propagate;
                   return Propagation.stopPropagation;
@@ -29274,6 +29314,30 @@
               catch (e) {
                   return Propagation.stopPropagation;
               }
+          }
+          /**
+           * @description Turn a target that only exposes a `rotation`, working the pivot out from its box. Doing
+           * here what a target with its own `rotate` does for itself: turn about the anchor, and carry the target
+           * round that point when it is not the one the target is positioned from.
+           * @param {object} el - The target to turn.
+           * @param {Point} from - Where the sweep started.
+           * @param {Point} to - Where it ended.
+           * @protected
+           */
+          turn(el, from, to) {
+              const rect = getRect(el);
+              if (!rect)
+                  return;
+              const pivot = rect.pointAt(this.anchor);
+              const swept = pivot.angleBetween(from, to);
+              if (!swept)
+                  return;
+              el.rotation += swept;
+              //Turning about anything other than the point the target is positioned from carries it around that
+              //pivot as well as spinning it. `rect.origin` is that point, so the offset is zero when they agree.
+              const position = Point.from(el.position);
+              if (position)
+                  el.position = pivot.add(position.sub(pivot).rotate(swept));
           }
       };
   })();
@@ -29325,41 +29389,6 @@
       };
   })();
   define(RotateHandle, "demo-rotate-handle");
-
-  /**
-   * @description Where an object is and which way it faces, as an oriented rect.
-   *
-   * Asks the object for its own bounding box first, and takes it as-is when it hands back a {@link GradumRect},
-   * since that already carries an angle. Otherwise it builds one from `position`, `size`, `rotation` and
-   * `anchor` — which is also what keeps this reactive: those are signals, so reading them inside an
-   * `@effect` subscribes it, where a bare `getBoundingClientRect()` on a plain element would not. Anything with
-   * neither gets its painted box back, treated as unrotated.
-   *
-   * @param {object} el - The element or object to measure.
-   * @returns {GradumRect} The rect, or `undefined` for something with no position or no area.
-   */
-  function getRect(el) {
-      if (!el || typeof el !== "object")
-          return undefined;
-      const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : undefined;
-      if (rect instanceof GradumRect)
-          return rect;
-      const size = Point.from(el.size) ?? Point.from({ x: el.width, y: el.height });
-      const position = Point.from(el.position);
-      if (size?.x && size.y && position)
-          return new GradumRect({
-              //The rect understands anchors, so `position` goes in as the origin and it works the rest out.
-              x: position.x,
-              y: position.y,
-              anchor: el.anchor ?? Anchor.TopLeft,
-              width: size.x,
-              height: size.y,
-              angleRad: typeof el.rotation === "number" ? el.rotation : 0
-          });
-      if (!rect?.width || !rect.height)
-          return undefined;
-      return new GradumRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
-  }
 
   function styleInject(css, ref) {
     if ( ref === void 0 ) ref = {};
@@ -30040,9 +30069,6 @@
       }
   }
 
-  //A square on the canvas. Still a real element and a real child of the canvas — that is what keeps the
-  //constrainers, the tools and the metadata working — but it has no view: a canvas never renders its children,
-  //so its appearance is painted by Canvas rather than laid out by the browser.
   let Square = (() => {
       let _classSuper = GradumHeadlessElement;
       let _color_decorators;
@@ -30075,16 +30101,16 @@
               __esDecorate(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
               if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
           }
+          static defaultProperties = {
+              model: SquareModel,
+              view: SquareView,
+          };
           //Expose fields from the model
           color = __runInitializers(this, _color_initializers, void 0);
           size = (__runInitializers(this, _color_extraInitializers), __runInitializers(this, _size_initializers, void 0));
           position = (__runInitializers(this, _size_extraInitializers), __runInitializers(this, _position_initializers, void 0));
           rotation = (__runInitializers(this, _position_extraInitializers), __runInitializers(this, _rotation_initializers, void 0));
           anchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _anchor_initializers, void 0));
-          static defaultProperties = {
-              model: SquareModel,
-              view: SquareView,
-          };
           initialize() {
               gradum(this).metadata.set(true, "modifiable");
               gradum(this).metadata.makeSignal("isPusher");
@@ -30098,47 +30124,25 @@
               this.model.position = delta.add(this.model.position);
           }
           rotate(from, to, anchor = this.anchor) {
-              const pivot = this.anchorPoint(anchor);
+              const pivot = this.getBoundingClientRect().pointAt(anchor);
               const swept = pivot.angleBetween(from, to);
               if (!swept)
                   return;
-              //`position` names the square's own anchor, so turning about that anchor leaves it exactly where it
-              //is and only the angle changes. Turning about any other point swings the square round on that arc,
-              //and the offset below is zero in the common case, so the two need no separate handling.
               const offset = this.model.position.sub(pivot);
               this.model.rotation += swept;
               this.model.position = pivot.add(offset.rotate(swept));
           }
           resize(delta, anchor = this.anchor, uniform = false) {
               const fraction = new AnchorPoint(anchor).fraction;
-              //The grip travels along the square's own axes, so the movement is rotated into its frame before the
-              //scaling below, which flips per axis and does not commute with a rotation.
               const local = delta.rotate(-(this.model.rotation ?? 0));
-              //Pinning an edge means the box grows by exactly what the opposite side travelled, inverted when the
-              //grip is on the near side; pinning nothing on an axis means both sides move, so it has to grow by
-              //twice the delta for the dragged side to keep up.
               let sizeDelta = local.mul(new Point(fraction.x === 0 ? 2 : -2 * fraction.x, fraction.y === 0 ? 2 : -2 * fraction.y));
               if (uniform)
                   sizeDelta = new Point(sizeDelta.min, sizeDelta.min);
-              //Note where the pinned anchor is, resize, then put it back. The model clamps size to a floor, so
-              //measuring the drift afterwards costs nothing and copes with growth that did not fully land. When
-              //the anchor is the square's own the drift is zero, which is why it stays put by itself.
-              const pinned = this.anchorPoint(anchor);
+              const pinned = this.getBoundingClientRect().pointAt(anchor);
               this.model.size = this.model.size.add(sizeDelta);
-              this.model.position = this.model.position.add(pinned.sub(this.anchorPoint(anchor)));
-          }
-          /**
-           * @description The screen position of one of the square's anchors. `position` already names the square's
-           * own anchor, so any other one is that, less its offset, plus the offset of the one asked for.
-           * @param {Anchor | Point} [anchor] - The anchor to locate. Defaults to the square's own.
-           * @returns {Point} Its screen position.
-           */
-          anchorPoint(anchor = this.model.anchor) {
-              return this.getBoundingClientRect().pointAt(anchor);
+              this.model.position = this.model.position.add(pinned.sub(this.getBoundingClientRect().pointAt(anchor)));
           }
           getBoundingClientRect() {
-              //The rect carries the anchor now, so `position` goes straight in as the origin and the rect works
-              //out its own centre and corners — no offsets to keep in step here.
               return new GradumRect({
                   x: this.model.position.x,
                   y: this.model.position.y,

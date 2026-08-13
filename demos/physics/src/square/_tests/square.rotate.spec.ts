@@ -96,11 +96,11 @@ describe("the square's own anchor is what it pivots on", () => {
     it("still pivots elsewhere when told to, moving position onto that arc", () => {
         const square = makeSquare();
         square.anchor = Anchor.Center;
-        const corner = square.anchorPoint(Anchor.TopLeft);
+        const corner = square.getBoundingClientRect().pointAt(Anchor.TopLeft);
 
         square.rotate(new Point(600, 300), new Point(400, 500), Anchor.TopLeft);
 
-        expect(close(square.anchorPoint(Anchor.TopLeft), corner)).toBe(true);
+        expect(close(square.getBoundingClientRect().pointAt(Anchor.TopLeft), corner)).toBe(true);
         expect(close(square.position, new Point(400, 300))).toBe(false);
     });
 });
