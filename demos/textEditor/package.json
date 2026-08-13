@@ -1,0 +1,16 @@
+{
+  "name": "gradum-demo-text-editor",
+  "private": true,
+  "version": "1.0.0",
+  "description": "TipTap editor demo. Kept out of the toolkit's own dependencies — TipTap lives here only.",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w",
+    "serve": "python3 -m http.server 8080"
+  },
+  "dependencies": {
+    "@tiptap/core": "^2.11.5",
+    "@tiptap/pm": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5"
+  }
+}

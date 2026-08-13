@@ -1,0 +1,25 @@
+demo-text-editor {
+    display: block;
+    width: min(720px, 100%);
+    min-height: 320px;
+
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 6%), 0 1px 2px rgb(0 0 0 / 4%);
+}
+
+/* TipTap's own editable region, which it creates inside the host. */
+demo-text-editor .tiptap {
+    outline: none;
+    padding: 20px 24px;
+    line-height: 1.6;
+}
+
+demo-text-editor .tiptap > *:first-child {
+    margin-top: 0;
+}
+
+demo-text-editor .tiptap > *:last-child {
+    margin-bottom: 0;
+}

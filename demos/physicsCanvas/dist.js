@@ -29301,8 +29301,6 @@
                   if (!gradum(el).metadata?.get("modifiable"))
                       return Propagation.propagate;
                   const from = e.position.sub(e.deltaPosition);
-                  //Handed the two pointer positions rather than an angle: where the pivot sits depends on the
-                  //target's own size and rotation, which is the target's business to know.
                   if ("rotate" in el && typeof el.rotate === "function")
                       el.rotate(from, e.position, this.anchor);
                   else if ("rotation" in el && typeof el.rotation === "number")
@@ -29333,8 +29331,6 @@
               if (!swept)
                   return;
               el.rotation += swept;
-              //Turning about anything other than the point the target is positioned from carries it around that
-              //pivot as well as spinning it. `rect.origin` is that point, so the offset is zero when they agree.
               const position = Point.from(el.position);
               if (position)
                   el.position = pivot.add(position.sub(pivot).rotate(swept));
