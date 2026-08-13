@@ -5,6 +5,7 @@ import {GradumEventManager} from "../gradumEventManager/gradumEventManager";
 import {Point} from "../../gradumComponents/datatypes/point/point";
 import {GradumMap} from "../../gradumComponents/datatypes/map/map";
 import {GradumEventNameEntry} from "../../types/eventNaming.types";
+import {gradum} from "../../gradumFunctions/gradumFunctions";
 
 /**
  * @class GradumEvent
@@ -54,6 +55,31 @@ class GradumEvent extends Event {
      * @description The screen position the event was fired from.
      */
     public readonly position: Point;
+
+    /**
+     * @description Everything this event was dispatched over, innermost first: the composed path with any
+     * objects reported by a {@link GradumSelector.hitResolver} spliced in ahead of the element that reported
+     * them. Equal to `composedPath()` when nothing resolved. Move events carry the z-stack under the pointer
+     * instead, which is what they are dispatched over.
+     */
+    public dispatchPath: readonly object[] = [];
+
+    /**
+     * @description The objects a {@link GradumSelector.hitResolver} reported at this event's position,
+     * topmost first, or empty when the pointer only touched real elements.
+     */
+    public hits: object[] = [];
+
+    /**
+     * @readonly
+     * @description The most specific thing the event actually hit: the topmost object reported by a
+     * {@link GradumSelector.hitResolver}, or {@link GradumEvent.target} when no resolver contributed. Use it
+     * over `target` when the thing interacted with might have been painted inside an element rather than
+     * being one — reading it costs nothing when nothing is.
+     */
+    public get hitTarget(): object {
+        return this.hits[0] ?? this.target;
+    }
 
     /**
      * @description Whether {@link GradumEvent.scaledPosition} and its per-pointer equivalents actually
@@ -133,8 +159,10 @@ class GradumEvent extends Event {
         strict: Element | boolean = true,
         from: ClosestOrigin = ClosestOrigin.target
     ): T | Element | null {
-        const elements = from === ClosestOrigin.target ? [this.target]
-            : document.elementsFromPoint(this.position.x, this.position.y);
+        //Starts from hitTarget rather than target, so a match painted inside an element is found before the
+        //element itself. Falls back to target when nothing was hit, which is the common case.
+        const elements: any[] = from === ClosestOrigin.target ? [this.hitTarget]
+            : [...this.hits, ...document.elementsFromPoint(this.position.x, this.position.y)];
 
         const strictElement = strict instanceof Element ? strict : null;
         const isStrict = strict === true || strictElement !== null;
@@ -144,15 +172,18 @@ class GradumEvent extends Event {
 
         for (let element of elements) {
             if (!ctor) {
-                // No registered custom element for the string — CSS selector fallback.
-                const match = (element as Element).closest(type as string);
+                // No registered custom element for the string — CSS selector fallback. Selectors cannot match
+                // an object that was never in the DOM, so hits are skipped and the element behind them wins.
+                if (!(element instanceof Element)) continue;
+                const match = element.closest(type as string);
                 if (match && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? match)))
                     return match;
                 continue;
             }
+            // Climbs with getParent, so a hit target reaches the element that drew it and carries on up.
             while (element && !((element instanceof ctor)
                 && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? element))
-            )) element = element.parentElement;
+            )) element = gradum(element, true).getParent();
             if (element) return element as T;
         }
         return null;
@@ -167,6 +198,9 @@ class GradumEvent extends Event {
      * @returns {boolean} Whether the position is inside the element.
      */
     private isPositionInsideElement(position: Point, element: Element): boolean {
+        //A hit target has no rect to test unless it chooses to expose one — and it does not need to: it only
+        //exists here because a resolver reported it at this very position, so containment is already settled.
+        if (typeof element?.getBoundingClientRect !== "function") return true;
         const rect = element.getBoundingClientRect();
         return position.x >= rect.left && position.x <= rect.right
             && position.y >= rect.top && position.y <= rect.bottom;

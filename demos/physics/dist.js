@@ -9784,6 +9784,39 @@
   glo[importIdentifier] = true;
 
   /**
+   * @typedef {Object} AutoOptions
+   * @group Decorators
+   * @category Augmentation
+   *
+   * @template Type - The type of the decorated property.
+   * @description Options for configuring the `@auto` decorator.
+   * @property {boolean} [override] - If true, will try to override the defined property in `super`.
+   * @property {boolean} [cancelIfUnchanged=true] - If true, cancels the setter if the new value is the same as the
+   * current value. Defaults to `true`.
+   * @property {(value: Type) => Type} [preprocessValue] - Optional callback to execute on the value and preprocess it
+   * just before it is set. The returned value will be stored.
+   * @property {(value: Type) => void} [callBefore] - Optional function to call before preprocessing and setting the value.
+   * @property {(value: Type) => void} [callAfter] - Optional function to call after setting the value.
+   * @property {boolean} [setIfUndefined] - If true, will fire the setter when the underlying value is `undefined` and
+   * the program is trying to access it (maybe through its getter).
+   * @property {boolean} [returnDefinedGetterValue] - If true and a custom getter is defined, the return value of this
+   * getter will be returned when accessing the property. Otherwise, the underlying saved value will always be returned.
+   * Defaults to `false`.
+   * @property {boolean} [executeSetterBeforeStoring] - If true, when setting the value, the setter will execute first,
+   * and then the value will be stored. In this case, accessing the value in the setter will return the previous value.
+   * Defaults to `false`.
+   * @property {Type} [defaultValue] - If defined, whenever the underlying value is `undefined` and trying to be
+   * accessed, it will be set to `defaultValue` through the setter before getting accessed.
+   * @property {() => Type} [defaultValueCallback] - If defined, whenever the underlying value is `undefined` and
+   * trying to be accessed, it will be set to the return value of `defaultValueCallback` through the setter before
+   * getting accessed.
+   * @property {Type} [initialValue] - If defined, on initialization, the property will be set to `initialValue`.
+   * @property {() => Type} [initialValueCallback] - If defined, on initialization, the property will be set to the
+   * return value of `initialValueCallback`.
+   */
+
+
+  /**
    * @internal
    */
   class AutoUtils {
@@ -16773,6 +16806,13 @@
           previousPositions = new GradumMap();
           positions;
           lastTargetOrigin;
+          /**
+           * @description The objects a {@link GradumSelector.hitResolver} reported where the drag began. Resolved
+           * alongside {@link lastTargetOrigin} and reused for the rest of the drag, so grabbing a shape on a canvas
+           * keeps sending it the drag even once the pointer has moved off it — the same way pointer capture keeps a
+           * drag with the element it started on.
+           */
+          lastOriginHits;
           //Single timer instance --> easily cancel it and set it again
           timerMap = new GradumMap();
           //All created tools
@@ -16860,6 +16900,28 @@
            */
           position;
           /**
+           * @description Everything this event was dispatched over, innermost first: the composed path with any
+           * objects reported by a {@link GradumSelector.hitResolver} spliced in ahead of the element that reported
+           * them. Equal to `composedPath()` when nothing resolved. Move events carry the z-stack under the pointer
+           * instead, which is what they are dispatched over.
+           */
+          dispatchPath = [];
+          /**
+           * @description The objects a {@link GradumSelector.hitResolver} reported at this event's position,
+           * topmost first, or empty when the pointer only touched real elements.
+           */
+          hits = [];
+          /**
+           * @readonly
+           * @description The most specific thing the event actually hit: the topmost object reported by a
+           * {@link GradumSelector.hitResolver}, or {@link GradumEvent.target} when no resolver contributed. Use it
+           * over `target` when the thing interacted with might have been painted inside an element rather than
+           * being one — reading it costs nothing when nothing is.
+           */
+          get hitTarget() {
+              return this.hits[0] ?? this.target;
+          }
+          /**
            * @description Whether {@link GradumEvent.scaledPosition} and its per-pointer equivalents actually
            * scale, or hand back the raw position. Assign a callback to decide per read — useful when a canvas
            * is only sometimes transformed. Defaults to `true`.
@@ -16898,22 +16960,28 @@
               return this.eventManager.getToolByName(this.toolName);
           }
           closest(type, strict = true, from = ClosestOrigin.target) {
-              const elements = from === ClosestOrigin.target ? [this.target]
-                  : document.elementsFromPoint(this.position.x, this.position.y);
+              //Starts from hitTarget rather than target, so a match painted inside an element is found before the
+              //element itself. Falls back to target when nothing was hit, which is the common case.
+              const elements = from === ClosestOrigin.target ? [this.hitTarget]
+                  : [...this.hits, ...document.elementsFromPoint(this.position.x, this.position.y)];
               const strictElement = strict instanceof Element ? strict : null;
               const isStrict = strict === true || strictElement !== null;
               const ctor = typeof type === "string" ? customElements.get(type) : type;
               for (let element of elements) {
                   if (!ctor) {
-                      // No registered custom element for the string — CSS selector fallback.
+                      // No registered custom element for the string — CSS selector fallback. Selectors cannot match
+                      // an object that was never in the DOM, so hits are skipped and the element behind them wins.
+                      if (!(element instanceof Element))
+                          continue;
                       const match = element.closest(type);
                       if (match && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? match)))
                           return match;
                       continue;
                   }
+                  // Climbs with getParent, so a hit target reaches the element that drew it and carries on up.
                   while (element && !((element instanceof ctor)
                       && (!isStrict || this.isPositionInsideElement(this.position, strictElement ?? element))))
-                      element = element.parentElement;
+                      element = gradum(element, true).getParent();
                   if (element)
                       return element;
               }
@@ -16928,6 +16996,10 @@
            * @returns {boolean} Whether the position is inside the element.
            */
           isPositionInsideElement(position, element) {
+              //A hit target has no rect to test unless it chooses to expose one — and it does not need to: it only
+              //exists here because a resolver reported it at this very position, so containment is already settled.
+              if (typeof element?.getBoundingClientRect !== "function")
+                  return true;
               const rect = element.getBoundingClientRect();
               return position.x >= rect.left && position.x <= rect.right
                   && position.y >= rect.top && position.y <= rect.bottom;
@@ -17557,9 +17629,11 @@
           this.model.positions = new GradumMap();
           // Only update the current pointer's position (others remain tracked from prior moves)
           this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
-          // Clear cached target origin if not dragging
-          if (this.model.currentAction !== ActionMode.drag)
+          // Clear cached target origin, and the hit targets grabbed with it, if not dragging
+          if (this.model.currentAction !== ActionMode.drag) {
               this.model.lastTargetOrigin = null;
+              this.model.lastOriginHits = null;
+          }
           //Fire touch scroll/pinch events (2-finger only)
           if (isTouch && this.element.wheelEventsEnabled) {
               const currentPos = new Point(e.clientX, e.clientY);
@@ -17707,6 +17781,12 @@
           if (!this.model.lastTargetOrigin || reload) {
               const origin = this.model.origins.first ? this.model.origins.first : positions.first;
               this.model.lastTargetOrigin = document.elementFromPoint(origin.x, origin.y);
+              //Resolved here, with the origin, rather than per event: a drag has to keep reaching the object it
+              //grabbed, not whatever the pointer has since moved over. Stays a Node itself, because the
+              //dispatch operator calls the native dispatchEvent on it.
+              this.model.lastOriginHits = this.model.lastTargetOrigin
+                  ? gradum(this.model.lastTargetOrigin).hitResolver?.(origin, undefined) ?? null
+                  : null;
           }
           return this.model.lastTargetOrigin;
       }
@@ -17716,10 +17796,12 @@
    * @internal
    * @class GradumEventManagerDispatchOperator
    * @extends GradumOperator
-   * @description Dispatches Gradum events along the composed path. It runs two sequential passes: a
-   * capture pass from the document down to the target, which invokes tool `@behavior` methods, then a
-   * bubble pass back up, which invokes interactor `@listener` methods and `gradum(el).on()` listeners.
-   * Each pass stops early when a handler returns anything other than `Propagation.propagate`.
+   * @description Dispatches Gradum events along the composed path. It runs two sequential passes over that
+   * same path: a capture pass from the outermost entry down to the event target, then a bubble pass back up.
+   * The capture pass reaches only listeners bound with `capture: true`. The bubble pass reaches every other
+   * listener — `@listener` methods and those bound with `gradum(el).on()` — and is the only pass that runs
+   * tool `@behavior` methods. Each pass stops early when a handler returns anything other than
+   * `Propagation.propagate`.
    *
    * *Note: move events are the exception. Their composed path is the drag origin's ancestor chain, which
    * omits elements merely sitting under the cursor, so they are dispatched in a single pass over the
@@ -17750,6 +17832,60 @@
               this.element.setTool(undefined, ClickMode.key, { select: false });
           target.dispatchEvent(new eventType(properties));
       };
+      /**
+       * @private
+       * @function expandPath
+       * @description Splice the objects reported by any {@link GradumSelector.hitResolver} in the path into the
+       * path itself, so things an element merely paints — shapes on a canvas — are dispatched to like children
+       * of it. Hits land at lower indices than the element that reported them, which is what gives them the
+       * right position in both passes: capture descends into them last, bubble reaches them first.
+       *
+       * Each hit is given the reporting element as its {@link GradumSelector.hitParent} unless it already names
+       * one, so climbing back out works without the scene having to track parentage.
+       * @param {EventTarget[]} path - The path to expand, from {@link Event.composedPath} or a z-stack.
+       * @param {Event} event - The event being dispatched, passed on to the resolvers.
+       * @returns {object} The expanded path, and the set of entries that were contributed. Returns `path`
+       * itself when no resolver contributed anything, so dispatch is untouched for everyone not using this.
+       */
+      expandPath(path, event) {
+          const position = event instanceof GradumEvent ? event.position : undefined;
+          if (!position)
+              return { path, hits: [] };
+          let expanded;
+          const hits = [];
+          //A drag stays with what it grabbed. The hits were resolved once at the drag origin, so re-running the
+          //resolver at the current pointer would hand the drag to whatever is underneath now. Move events are
+          //deliberately excluded: hovering wants what is under the cursor, not what was grabbed.
+          const sticky = event instanceof GradumDragEvent
+              && event.eventName !== GradumMoveEventName.move
+              && this.model.lastOriginHits;
+          for (let i = 0; i < path.length; i++) {
+              const entry = path[i];
+              const resolver = entry instanceof Node ? gradum(entry).hitResolver : undefined;
+              const resolved = !resolver ? []
+                  : sticky && entry === this.model.lastTargetOrigin ? this.model.lastOriginHits
+                      : resolver(position, event) ?? [];
+              if (resolved.length === 0) {
+                  expanded?.push(entry);
+                  continue;
+              }
+              //First contribution: catch the output up to everything skipped so far.
+              expanded ??= path.slice(0, i);
+              for (const hit of resolved) {
+                  if (!hit || typeof hit !== "object")
+                      continue;
+                  //Wrapped raw: gradum() otherwise unwraps any object carrying an `element` field, which is
+                  //right for an MVC piece but would silently bind a scene object's parentage to whatever it
+                  //happens to keep under that name.
+                  if (!gradum(hit, true).hitParent)
+                      gradum(hit, true).hitParent = entry;
+                  hits.push(hit);
+                  expanded.push(hit);
+              }
+              expanded.push(entry);
+          }
+          return { path: expanded ?? path, hits };
+      }
       getToolHandlingCallback(type, e) {
           const toolName = this.element.getCurrentToolName(this.model.currentClick);
           // For move events, composedPath() is the drag-origin's ancestor chain and never
@@ -17758,9 +17894,10 @@
           // and stopping at the first handler that returns non-propagate.
           if (type === GradumMoveEventName.move && e instanceof GradumDragEvent && e.position) {
               const { x, y } = e.position;
-              const stack = document.elementsFromPoint?.(x, y) ?? [];
-              for (const el of stack) {
-                  if (!(el instanceof Node))
+              const stack = this.expandPath(document.elementsFromPoint?.(x, y) ?? [], e);
+              this.recordHits(e, stack);
+              for (const el of stack.path) {
+                  if (!this.isDispatchable(el, stack))
                       continue;
                   const propagate = gradum(el).executeAction(type, toolName, e, undefined, this.element);
                   if (propagate !== Propagation.propagate)
@@ -17768,9 +17905,11 @@
               }
               return;
           }
-          const path = e.composedPath?.() || [];
+          const expanded = this.expandPath(e.composedPath?.() || [], e);
+          this.recordHits(e, expanded);
+          const path = expanded.path;
           for (let i = path.length - 1; i >= 0; i--) {
-              if (!(path[i] instanceof Node))
+              if (!this.isDispatchable(path[i], expanded))
                   continue;
               const propagate = gradum(path[i]).executeAction(type, toolName, e, { capture: true }, this.element);
               if (propagate !== Propagation.propagate) {
@@ -17779,7 +17918,7 @@
               }
           }
           for (let i = 0; i < path.length; i++) {
-              if (!(path[i] instanceof Node))
+              if (!this.isDispatchable(path[i], expanded))
                   continue;
               const propagate = gradum(path[i]).executeAction(type, toolName, e, undefined, this.element);
               if (propagate !== Propagation.propagate) {
@@ -17787,6 +17926,25 @@
                   break;
               }
           }
+      }
+      /**
+       * @private
+       * @description Whether a path entry should be dispatched to. Nodes always are; anything else only when a
+       * hit resolver contributed it, which keeps `Window` — in every composed path, and not a Node — out.
+       */
+      isDispatchable(entry, expanded) {
+          return entry instanceof Node || expanded.hits.includes(entry);
+      }
+      /**
+       * @private
+       * @description Hand the expansion to the event, so handlers and {@link GradumEvent.closest} can read what
+       * was hit without resolving anything again.
+       */
+      recordHits(e, expanded) {
+          if (!(e instanceof GradumEvent))
+              return;
+          e.dispatchPath = expanded.path;
+          e.hits = expanded.hits;
       }
       setupCustomDispatcher(type) {
           if (this.boundHooks.has(type))
@@ -18957,6 +19115,8 @@
    * @description Shared helpers and per-element state behind the event functions on {@link GradumSelector}.
    */
   class EventFunctionsUtils {
+      //Keyed by object rather than by Node: a hit resolver can contribute targets that were never in the DOM,
+      //and those take part in dispatch exactly like elements do.
       dataMap = new WeakMap;
       data(element) {
           if (element instanceof GradumSelector)
@@ -18970,6 +19130,37 @@
                   this.dataMap.set(element, entry);
           }
           return this.dataMap.get(element);
+      }
+      /**
+       * @function peek
+       * @description The listener state already held against an object, without creating it. Use it for reads
+       * that must not allocate — walking a parent chain touches every ancestor.
+       * @param {object} element - The object to look up.
+       * @returns {ObjectListeners} The entry, or `undefined` when the object has none.
+       */
+      peek(element) {
+          if (element instanceof GradumSelector)
+              element = element.element;
+          return element ? this.dataMap.get(element) : undefined;
+      }
+      /**
+       * @function parentOf
+       * @description One step up the tree, for a DOM node or a virtual hit target alike. Tries the DOM
+       * relationships first and falls back to an explicitly assigned {@link GradumSelector.hitParent}, which is
+       * how an object painted inside a canvas reaches the element that drew it.
+       * @param {object} node - The node or object to climb from.
+       * @returns {object} The parent, or `undefined` at the top of the chain.
+       */
+      parentOf(node) {
+          if (!node || typeof node !== "object")
+              return undefined;
+          //Window is not a Node, and its `parent` is the parent *window* — itself, at top level. Following that
+          //would never terminate, and nothing sits above it in a dispatch anyway.
+          if (typeof Window !== "undefined" && node instanceof Window)
+              return undefined;
+          if (node instanceof Node)
+              return node.parentElement ?? node.parentNode ?? this.peek(node)?.hitParent?.deref();
+          return node.parent ?? this.peek(node)?.hitParent?.deref();
       }
       getBoundListenersSet(element) {
           let set = this.data(element).boundListeners;
@@ -19066,6 +19257,42 @@
           configurable: true,
           enumerable: true
       });
+      /**
+       * @description Lets an element contribute dispatch targets the DOM cannot see, by reporting the objects
+       * it is displaying at a given position. See {@link HitResolver}.
+       */
+      Object.defineProperty(GradumSelector.prototype, "hitResolver", {
+          get: function () {
+              return utils$5.data(this)?.hitResolver;
+          },
+          set: function (value) {
+              utils$5.data(this).hitResolver = value;
+          },
+          configurable: true,
+          enumerable: true
+      });
+      /**
+       * @description The object standing in as this one's parent when it has no DOM parent, so a virtual hit
+       * target can still be climbed out of. Held weakly: naming a parent never keeps it alive.
+       */
+      Object.defineProperty(GradumSelector.prototype, "hitParent", {
+          get: function () {
+              return utils$5.peek(this)?.hitParent?.deref();
+          },
+          set: function (value) {
+              utils$5.data(this).hitParent = value ? new WeakRef(value) : undefined;
+          },
+          configurable: true,
+          enumerable: true
+      });
+      /**
+       * @description One step up the tree, whether this is a DOM node or an object contributed by a hit
+       * resolver. Falls back to {@link GradumSelector.hitParent} when there is no DOM parent.
+       * @returns {object} The parent, or `undefined` at the top of the chain.
+       */
+      GradumSelector.prototype.getParent = function _getParent() {
+          return utils$5.parentOf(this.element);
+      };
       /**
        * @description Adds an event listener to the element.
        * @param {string} type - The type of the event.
@@ -19173,7 +19400,9 @@
                           propagation = Propagation.stopImmediatePropagation;
                   }
               }
-              checkConstrainers(target.parentNode, tool);
+              //Climbs with parentOf rather than parentNode, so a target contributed by a hit resolver still
+              //reaches the constrainers of the element that drew it.
+              checkConstrainers(utils$5.parentOf(target), tool);
           };
           const runListeners = (target, tool) => {
               if (tool && (gradum(target).isToolIgnored(tool, type, manager) || originIgnoresTool(tool)))

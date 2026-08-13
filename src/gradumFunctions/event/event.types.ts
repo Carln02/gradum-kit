@@ -2,6 +2,7 @@ import {GradumEventManagerStateProperties} from "../../eventHandling/gradumEvent
 import {GradumEventManager} from "../../eventHandling/gradumEventManager/gradumEventManager";
 import {ListenerCallback, ListenerOptions} from "../../gradumComponents/datatypes/listener/listener.types";
 import {ListenerSet} from "../../gradumComponents/datatypes/listener/listenerSet";
+import {Point} from "../../gradumComponents/datatypes/point/point";
 
 /**
  * @enum {Propagation}
@@ -19,6 +20,20 @@ enum Propagation {
     stopPropagation = "stopPropagation",
     stopImmediatePropagation = "stopImmediatePropagation",
 }
+
+/**
+ * @callback HitResolver
+ * @group GradumSelector
+ * @category Events
+ *
+ * @description Finds the objects an element is displaying at a screen position. Assign one to an element
+ * whose contents the DOM cannot see into — a canvas, a WebGL surface — and the objects it returns join the
+ * event dispatch as if they were children of it. See {@link GradumSelector.hitResolver}.
+ * @param {Point} position - The screen position to test.
+ * @param {Event} event - The event being dispatched, for resolvers that answer differently per event.
+ * @returns {object[]} The objects at that position, topmost first. Return an empty array for a miss.
+ */
+type HitResolver = (position: Point, event: Event) => object[];
 
 /**
  * @type {PreventDefaultOptions}
@@ -86,6 +101,45 @@ declare module "../gradumSelector" {
          * defines when to bypass the manager according to the passed event.
          */
         bypassManagerOn: (e: Event) => boolean | GradumEventManagerStateProperties;
+
+        /**
+         * @category Events
+         * @description Lets an element contribute targets the DOM cannot see. Assign a {@link HitResolver} to
+         * an element that paints its contents — a canvas — and whatever it reports at the pointer joins the
+         * dispatch as if it were a child of it: capture reaches it last, bubble reaches it first, and it can
+         * carry listeners, tools, and constrainers like any element.
+         *
+         * *Note: the objects are looked up once per event, so keep the resolver cheap — test bounding boxes
+         * before exact shapes.*
+         *
+         * @example
+         * ```ts
+         * gradum(canvas).hitResolver = position => scene.objectsAt(position); //topmost first
+         * ```
+         */
+        hitResolver: HitResolver;
+
+        /**
+         * @category Events
+         * @description The object to treat as this one's parent when it has no DOM parent, letting a virtual
+         * hit target still be found by {@link GradumEvent.closest} and still trigger the constrainers of the
+         * element that drew it. Held weakly, so naming a parent never keeps it alive.
+         *
+         * *Note: objects returned by a {@link HitResolver} get the resolving element as their parent
+         * automatically. Assign this only for a scene that nests, where the real parent is another object.*
+         */
+        hitParent: object;
+
+        /**
+         * @function getParent
+         * @category Events
+         * @description One step up the tree, for a DOM node and a virtual hit target alike: the DOM parent
+         * when there is one, otherwise the {@link GradumSelector.hitParent}. This is the climb
+         * {@link GradumEvent.closest} and the constrainer checks follow, so an object painted inside a canvas
+         * still reaches the element that drew it and everything above that.
+         * @returns {object} The parent, or `undefined` at the top of the chain.
+         */
+        getParent(): object;
 
         /**
          * @function on
@@ -238,4 +292,4 @@ declare module "../gradumSelector" {
     }
 }
 
-export {Propagation, PreventDefaultOptions, BasicInputEvents, NonPassiveEvents};
+export {Propagation, PreventDefaultOptions, BasicInputEvents, NonPassiveEvents, HitResolver};

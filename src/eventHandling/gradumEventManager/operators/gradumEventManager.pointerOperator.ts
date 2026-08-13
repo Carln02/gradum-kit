@@ -9,6 +9,7 @@ import {GradumDragEvent} from "../../events/gradumDragEvent";
 import {GradumWheelEvent} from "../../events/gradumWheelEvent";
 import {clearCache} from "../../../decorators/cache/cache";
 import {GradumEventName, GradumEventNameEntry} from "../../../types/eventNaming.types";
+import {gradum} from "../../../gradumFunctions/gradumFunctions";
 
 /**
  * @internal
@@ -95,8 +96,11 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
         // Only update the current pointer's position (others remain tracked from prior moves)
         this.model.positions.set(e.pointerId, new Point(e.clientX, e.clientY));
 
-        // Clear cached target origin if not dragging
-        if (this.model.currentAction !== ActionMode.drag) this.model.lastTargetOrigin = null;
+        // Clear cached target origin, and the hit targets grabbed with it, if not dragging
+        if (this.model.currentAction !== ActionMode.drag) {
+            this.model.lastTargetOrigin = null;
+            this.model.lastOriginHits = null;
+        }
 
         //Fire touch scroll/pinch events (2-finger only)
         if (isTouch && this.element.wheelEventsEnabled) {
@@ -261,6 +265,12 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
         if (!this.model.lastTargetOrigin || reload) {
             const origin = this.model.origins.first ? this.model.origins.first : positions.first;
             this.model.lastTargetOrigin = document.elementFromPoint(origin.x, origin.y) as Node;
+            //Resolved here, with the origin, rather than per event: a drag has to keep reaching the object it
+            //grabbed, not whatever the pointer has since moved over. Stays a Node itself, because the
+            //dispatch operator calls the native dispatchEvent on it.
+            this.model.lastOriginHits = this.model.lastTargetOrigin
+                ? gradum(this.model.lastTargetOrigin).hitResolver?.(origin, undefined) ?? null
+                : null;
         }
         return this.model.lastTargetOrigin;
     }

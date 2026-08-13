@@ -1,5 +1,6 @@
 import {
     BasicInputEvents,
+    HitResolver,
     NonPassiveEvents,
     PreventDefaultOptions,
     Propagation
@@ -51,6 +52,45 @@ export function setupEventFunctions() {
         configurable: true,
         enumerable: true
     });
+
+    /**
+     * @description Lets an element contribute dispatch targets the DOM cannot see, by reporting the objects
+     * it is displaying at a given position. See {@link HitResolver}.
+     */
+    Object.defineProperty(GradumSelector.prototype, "hitResolver", {
+        get: function (): HitResolver {
+            return utils.data(this)?.hitResolver;
+        },
+        set: function (value: HitResolver) {
+            utils.data(this).hitResolver = value;
+        },
+        configurable: true,
+        enumerable: true
+    });
+
+    /**
+     * @description The object standing in as this one's parent when it has no DOM parent, so a virtual hit
+     * target can still be climbed out of. Held weakly: naming a parent never keeps it alive.
+     */
+    Object.defineProperty(GradumSelector.prototype, "hitParent", {
+        get: function (): object {
+            return utils.peek(this)?.hitParent?.deref();
+        },
+        set: function (value: object) {
+            utils.data(this).hitParent = value ? new WeakRef(value) : undefined;
+        },
+        configurable: true,
+        enumerable: true
+    });
+
+    /**
+     * @description One step up the tree, whether this is a DOM node or an object contributed by a hit
+     * resolver. Falls back to {@link GradumSelector.hitParent} when there is no DOM parent.
+     * @returns {object} The parent, or `undefined` at the top of the chain.
+     */
+    GradumSelector.prototype.getParent = function _getParent(this: GradumSelector): object {
+        return utils.parentOf(this.element);
+    };
 
     /**
      * @description Adds an event listener to the element.
@@ -180,7 +220,9 @@ export function setupEventFunctions() {
                     if (!check) propagation = Propagation.stopImmediatePropagation;
                 }
             }
-            checkConstrainers(target.parentNode, tool);
+            //Climbs with parentOf rather than parentNode, so a target contributed by a hit resolver still
+            //reaches the constrainers of the element that drew it.
+            checkConstrainers(utils.parentOf(target) as Node, tool);
         };
 
         const runListeners = (target: Node, tool?: string) => {

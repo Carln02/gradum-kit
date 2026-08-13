@@ -2281,6 +2281,19 @@ declare enum Propagation {
     stopImmediatePropagation = "stopImmediatePropagation"
 }
 /**
+ * @callback HitResolver
+ * @group GradumSelector
+ * @category Events
+ *
+ * @description Finds the objects an element is displaying at a screen position. Assign one to an element
+ * whose contents the DOM cannot see into — a canvas, a WebGL surface — and the objects it returns join the
+ * event dispatch as if they were children of it. See {@link GradumSelector.hitResolver}.
+ * @param {Point} position - The screen position to test.
+ * @param {Event} event - The event being dispatched, for resolvers that answer differently per event.
+ * @returns {object[]} The objects at that position, topmost first. Return an empty array for a miss.
+ */
+type HitResolver = (position: Point, event: Event) => object[];
+/**
  * @type {PreventDefaultOptions}
  * @group GradumSelector
  * @category Events
@@ -2320,157 +2333,6 @@ declare const BasicInputEvents: readonly ["mousedown", "mouseup", "mousemove", "
  *  * `preventDefault()` (e.g., scroll/touch/pointer interactions).
  */
 declare const NonPassiveEvents: readonly ["wheel", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "pointercancel"];
-declare module "./gradum-kit" {
-    interface GradumSelector {
-        /**
-         * @category Events
-         * @description Readonly set of listeners bound to this node.
-         */
-        readonly boundListeners: ListenerSet;
-        /**
-         * @category Events
-         * @description If you want the element to bypass the event manager and allow native events to seep through
-         * (in case you are preventing default events), you can set this field to a predicate that
-         * defines when to bypass the manager according to the passed event.
-         */
-        bypassManagerOn: (e: Event) => boolean | GradumEventManagerStateProperties;
-        /**
-         * @function on
-         * @category Events
-         * @template {Node} Type - The type of the element.
-         * @description Adds an event listener to the element.
-         * @param {string} type - The type of the event.
-         * @param {ListenerCallback<Type>} listener - The function that receives a notification.
-         * @param {ListenerOptions} [options] - An options object that specifies characteristics
-         * about the event listener.
-         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
-         * or a new instantiated one if none already exist.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        on<Type extends Node>(type: string, listener: ListenerCallback<Type>, options?: ListenerOptions, manager?: GradumEventManager): this;
-        /**
-         * @function onTool
-         * @category Events
-         * @template {Node} Type - The type of the element.
-         * @description Adds an event listener to the element.
-         * @param {string} type - The type of the event.
-         * @param {string} toolName - The name of the tool. Set to null or undefined to check for listeners not bound
-         * to a tool.
-         * @param {ListenerCallback<Type>} listener - The function that receives a notification.
-         * @param {ListenerOptions} [options] - An options object that specifies characteristics
-         * about the event listener.
-         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
-         * or a new instantiated one if none already exist.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        onTool<Type extends Node>(type: string, toolName: string, listener: ListenerCallback<Type>, options?: ListenerOptions, manager?: GradumEventManager): this;
-        /**
-         * @function executeAction
-         * @category Events
-         * @description Execute the listeners bound on this element for the given `type` and `toolName`. Simulates
-         * firing a `type` event on the element with `toolName` active.
-         * @param {string} type -  The type of the event.
-         * @param {string} toolName - The name of the tool. Set to null or undefined to fire listeners not bound
-         * to a tool.
-         * @param {Event} event - The event to pass as parameter to the listeners.
-         * @param {ListenerOptions} [options] - Options object that specifies characteristics
-         * about the event listeners to fire.
-         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
-         * or a new instantiated one if none already exist.
-         */
-        executeAction(type: string, toolName: string, event: Event, options?: ListenerOptions, manager?: GradumEventManager): Propagation;
-        /**
-         * @function hasListener
-         * @category Events
-         * @description Checks if the given event listener is bound to the element (in its boundListeners list).
-         * @param {string} type - The type of the event. Set to null or undefined to get all event types.
-         * @param {ListenerCallback} listener - The function that receives a notification.
-         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
-         * or a new instantiated one if none already exist.
-         * @returns {boolean} Whether the element has the given listener.
-         */
-        hasListener(type: string, listener: ListenerCallback, manager?: GradumEventManager): boolean;
-        /**
-         * @function hasToolListener
-         * @category Events
-         * @description Checks if the given event listener is bound to the element (in its boundListeners list).
-         * @param {string} type - The type of the event. Set to null or undefined to get all event types.
-         * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
-         * to check for listeners not bound to a tool.
-         * @param {ListenerCallback} listener - The function that receives a notification.
-         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
-         * or a new instantiated one if none already exist.
-         * @returns {boolean} Whether the element has the given listener.
-         */
-        hasToolListener(type: string, toolName: string, listener: ListenerCallback, manager?: GradumEventManager): boolean;
-        /**
-         * @function hasListenersByType
-         * @category Events
-         * @description Checks if the element has bound listeners of the given type (in its boundListeners list).
-         * @param {string} type - The type of the event. Set to null or undefined to get all event types.
-         * @param {string} toolName - The name of the tool to consider (if any). Set to null or undefined
-         * to check for listeners not bound to a tool.
-         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
-         * or a new instantiated one if none already exist.
-         * @returns {boolean} Whether the element has a listener of this type.
-         */
-        hasListenersByType(type: string, toolName?: string, manager?: GradumEventManager): boolean;
-        /**
-         * @function removeListener
-         * @category Events
-         * @description Removes an event listener that is bound to the element (in its boundListeners list).
-         * @param {string} type - The type of the event.
-         * @param {ListenerCallback} listener - The function that receives a notification.
-         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
-         * or a new instantiated one if none already exist.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeListener(type: string, listener: ListenerCallback, manager?: GradumEventManager): this;
-        /**
-         * @function removeToolListener
-         * @category Events
-         * @description Removes an event listener that is bound to the element (in its boundListeners list).
-         * @param {string} type - The type of the event.
-         * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
-         * to check for listeners not bound to a tool.
-         * @param {ListenerCallback} listener - The function that receives a notification.
-         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
-         * or a new instantiated one if none already exist.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeToolListener(type: string, toolName: string, listener: ListenerCallback, manager?: GradumEventManager): this;
-        /**
-         * @function removeListenersByType
-         * @category Events
-         * @description Removes all event listeners bound to the element (in its boundListeners list) assigned to the
-         * specified type.
-         * @param {string} type - The type of the event. Set to null or undefined to consider all types.
-         * @param {string} [toolName] - The name of the tool associated (if any). Set to null or undefined
-         * to check for listeners not bound to a tool.
-         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
-         * or a new instantiated one if none already exist.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeListenersByType(type: string, toolName?: string, manager?: GradumEventManager): this;
-        /**
-         * @function removeAllListeners
-         * @category Events
-         * @description Removes all event listeners bound to the element (in its boundListeners list).
-         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
-         * or a new instantiated one if none already exist.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeAllListeners(manager?: GradumEventManager): this;
-        /**
-         * @category Events
-         * @description Prevent default browser behavior on the provided event types. By default, all basic input events
-         * will be processed.
-         * @param {PreventDefaultOptions} [options] - An options object to customize the behavior of the function.
-         */
-        preventDefault(options?: PreventDefaultOptions): this;
-    }
-}
-
 /**
  * @type {ListenerProperties}
  * @group Components
@@ -2890,178 +2752,6 @@ type ToolBehaviorOptions = {
     isEmbedded?: boolean;
     embeddedTarget?: Node;
 };
-declare module "./gradum-kit" {
-    interface GradumSelector {
-        /**
-         * @function makeTool
-         * @category Tools
-         * @description Turns the element into a tool identified by `toolName`, optionally wiring activation and
-         * key mapping. By default, this function also sets up an event listener on the element to activate the
-         * tool on click. This behavior can be overridden via the `options` parameter.
-         * @param {string} toolName - The unique name of the tool to register under the manager. Reusing an existing
-         * `toolName` will make this element another instance of `toolName`.
-         * @param {MakeToolOptions} [options] - Tool creation options (custom activation, click mode, key mapping, manager).
-         * @returns {this} Itself for chaining.
-         */
-        makeTool(toolName: string, options?: MakeToolOptions): this;
-        /**
-         * @function isTool
-         * @category Tools
-         * @description Whether this element is registered as a tool for the provided manager.
-         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
-         * @returns {boolean} True if the element is a tool, false otherwise.
-         */
-        isTool(manager?: GradumEventManager): boolean;
-        /**
-         * @function getToolNames
-         * @category Tools
-         * @description Returns all tool names registered on this element for the provided manager.
-         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
-         * @returns {string[]} The list of tool names.
-         */
-        getToolNames(manager?: GradumEventManager): string[];
-        /**
-         * @function getToolName
-         * @category Tools
-         * @description Returns the first registered tool name on this element for the provided manager.
-         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
-         * @returns {string} The first tool name, if any.
-         */
-        getToolName(manager?: GradumEventManager): string;
-        /**
-         * @function onToolActivate
-         * @category Tools
-         * @description Retrieve the delegate fired when this tool is activated in the corresponding manager.
-         * @param {string} [toolName=this.getToolName()] - The name of the tool.
-         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
-         * @returns {Delegate<() => void} The delegate.
-         */
-        onToolActivate(toolName?: string, manager?: GradumEventManager): Delegate<() => void>;
-        /**
-         * @function onToolDeactivate
-         * @category Tools
-         * @description Retrieve the delegate fired when this tool is deactivated in the corresponding manager.
-         * @param {string} [toolName=this.getToolName()] - The name of the tool.
-         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
-         * @returns {Delegate<() => void} The delegate.
-         */
-        onToolDeactivate(toolName?: string, manager?: GradumEventManager): Delegate<() => void>;
-        /**
-         * @function addToolBehavior
-         * @category Tools
-         * @description Adds a behavior callback for a given tool and a given type. This callback will attempt to be
-         * executed on the target element when a `type` event is fired and `toolName` is active. It is applied to
-         * all instances of the tool.
-         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
-         * @param {ToolBehaviorCallback} callback - The behavior function. Return `true` to stop propagation.
-         * @param {string} [toolName=this.getToolName()] - Tool name to bind the behavior to. Defaults to this
-         * element's first tool.
-         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
-         * @returns {this} Itself for chaining.
-         */
-        addToolBehavior(type: string, callback: ToolBehaviorCallback, toolName?: string, manager?: GradumEventManager): this;
-        /**
-         * @function hasToolBehavior
-         * @category Tools
-         * @description Checks whether there is at least one tool behavior for the pair "`type`, `toolName`."
-         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
-         * @param {string} [toolName=this.getToolName()] - The tool name to check under. Defaults to this
-         * element's first tool.
-         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
-         * @returns {boolean} True if one or more behaviors are registered.
-         */
-        hasToolBehavior(type: string, toolName?: string, manager?: GradumEventManager): boolean;
-        /**
-         * @function removeToolBehaviors
-         * @category Tools
-         * @description Removes all behaviors for the pair "`type`, `toolName`" under the given manager.
-         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
-         * @param {string} [toolName=this.getToolName()] - The tool name whose behaviors will be removed. Defaults to this
-         * element's first tool.
-         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
-         * @returns {this} Itself for chaining.
-         */
-        removeToolBehaviors(type: string, toolName?: string, manager?: GradumEventManager): this;
-        /**
-         * @function applyTool
-         * @category Tools
-         * @description Executes all behaviors registered for the pair "`type`, `toolName`" against this element.
-         * @param {string} toolName - The name of the tool whose behaviors should run.
-         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
-         * @param {Event} event - The triggering event instance.
-         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
-         * @returns {boolean} True if at least one behavior returned `true` (to stop propagation of the event).
-         */
-        applyTool(toolName: string, type: string, event: Event, manager?: GradumEventManager): Propagation;
-        /**
-         * @function clearToolBehaviors
-         * @category Tools
-         * @description Clears all registered behaviors for the tools attached to this element.
-         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
-         * @returns {this} Itself for chaining.
-         */
-        clearToolBehaviors(manager?: GradumEventManager): this;
-        /**
-         * @function embedTool
-         * @category Tools
-         * @description Embeds this tool into a target node, so all interactions on the tool element apply to the
-         * defined target.
-         * @param {Node} target - The node to manipulate when interacting with the tool element itself.
-         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
-         * @returns {this} Itself for chaining.
-         */
-        embedTool(target: Node, manager?: GradumEventManager): this;
-        /**
-         * @function isEmbeddedTool
-         * @category Tools
-         * @description Whether this tool is embedded under the provided manager.
-         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
-         * @returns {boolean} True if an embedded target is present.
-         */
-        isEmbeddedTool(manager?: GradumEventManager): boolean;
-        /**
-         * @function getEmbeddedToolTarget
-         * @category Tools
-         * @description Returns the target node for this embedded tool under the provided manager.
-         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
-         * @returns {Node} The embedded tool's target node, if any.
-         */
-        getEmbeddedToolTarget(manager?: GradumEventManager): Node;
-        /**
-         * @function ignoreTool
-         * @category Tools
-         * @description Make the current element ignore the provided tool, so interacting with the tool on this
-         * element will have no effect and propagate.
-         * @param {string} toolName - The name of the tool to ignore.
-         * @param {string} [type] - The type of the event. If undefined, all event types will be considered.
-         * @param {boolean} [ignore] - Whether to ignore the tool. Defaults to true.
-         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
-         * @returns {this} Itself for chaining.
-         */
-        ignoreTool(toolName: string, type?: string, ignore?: boolean, manager?: GradumEventManager): this;
-        /**
-         * @function ignoreTool
-         * @category Tools
-         * @description Make the current element ignore all tools, so interacting with any tool on this
-         * element will have no effect and propagate.
-         * @param {boolean} [ignore] - Whether to ignore the tools. Defaults to true.
-         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
-         * @returns {this} Itself for chaining.
-         */
-        ignoreAllTools(ignore?: boolean, manager?: GradumEventManager): this;
-        /**
-         * @function isToolIgnored
-         * @category Tools
-         * @description Whether the current element is ignoring the provided tool.
-         * @param {string} toolName - The name of the tool to check for.
-         * @param {string} [type] - The type of the event. If undefined, all event types will be considered.
-         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
-         * @returns {boolean} Whether the tool is ignored for the provided event type.
-         */
-        isToolIgnored(toolName: string, type?: string, manager?: GradumEventManager): boolean;
-    }
-}
-
 /**
  * @type {GradumToolProperties}
  * @group MVC
@@ -3083,28 +2773,6 @@ type GradumToolProperties<ElementType extends object = object, ViewType extends 
     toolName?: string;
     embeddedTarget?: Node;
 };
-declare module "./gradum-kit" {
-    interface GradumTool<ElementType extends object = object> {
-        /**
-         * @function customActivation
-         * @description Custom activation function.
-         * @param {Gradum<Element>} element - The tool element itself.
-         * @param {GradumEventManager} [manager] - The event manager instance this tool should register against. Defaults
-         * to `GradumEventManager.instance`.
-         */
-        customActivation(element: ElementType, manager?: GradumEventManager): void;
-        /**
-         * @function onActivate
-         * @description Function to execute when the tool is activated.
-         */
-        onActivate(): void;
-        /**
-         * @function onDeactivate
-         * @description Function to execute when the tool is deactivated.
-         */
-        onDeactivate(): void;
-    }
-}
 
 /**
  * @class GradumTool
@@ -3195,20 +2863,6 @@ declare class GradumTool<ElementType extends object = object, ViewType extends G
 type GradumConstrainerProperties<ElementType extends object = object, ViewType extends GradumView = GradumView, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & MakeConstrainerOptions & {
     constrainerName?: string;
 };
-declare module "./gradum-kit" {
-    interface GradumConstrainer {
-        /**
-         * @function onActivate
-         * @description Function to execute when the constrainer is activated.
-         */
-        onActivate(): void;
-        /**
-         * @function onDeactivate
-         * @description Function to execute when the constrainer is deactivated.
-         */
-        onDeactivate(): void;
-    }
-}
 
 /**
  * @class GradumQueue
@@ -4503,84 +4157,6 @@ type GradumProperties<Tag extends ValidTag = "div"> = ElementTagDefinition<Tag> 
     out?: string | Node;
     [key: string]: any;
 };
-declare module "./gradum-kit" {
-    interface GradumSelector<Type extends object = Node> {
-        /**
-         * @function setProperties
-         * @category Element
-         * @template {ValidTag} Tag - The HTML tag of the element (for accurate autocompletion of available properties).
-         * @description Sets the declared properties to the element (if possible).
-         * @param {GradumProperties<Tag>} properties - The properties object.
-         * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
-         * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        setProperties<Tag extends ValidTag>(properties: GradumProperties<Tag>, setOnlyBaseProperties?: boolean): this;
-        /**
-         * @category Element
-         * @description Read every own field of the element as a plain object, so it can be diffed or cloned.
-         * @returns {Record<string, any>} The element's fields, keyed by name.
-         */
-        getFields(): Record<string, any>;
-        /**
-         * @category Element
-         * @description Create a copy of the element. By default the copy carries the same properties and children,
-         * but none of the bound listeners.
-         * @param {CloneElementOptions} [options] - What to carry over to the copy.
-         * @returns {Type} The cloned element.
-         */
-        clone(options?: CloneElementOptions): Type;
-        /**
-         * @category Element
-         * @description Destroys the element by removing it from the document and removing all its bound listeners.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        destroy(): this;
-        /**
-         * @category Element
-         * @description Sets the value of an attribute on the element.
-         * @param {string} name The name of the attribute.
-         * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent
-         * a true boolean.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        setAttribute(name: string, value?: string | number | boolean): this;
-        /**
-         * @category Element
-         * @description Removes an attribute from the element.
-         * @param {string} name The name of the attribute to remove.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeAttribute(name: string): this;
-        /**
-         * @category Element
-         * @description Causes the element to lose focus.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        blur(): this;
-        /**
-         * @category Element
-         * @description Sets focus on the element.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        focus(): this;
-        /**
-         * @category Element
-         * @description Push the element's feedforward properties down to its children, so newly added descendants
-         * pick up the same defaults.
-         * @param {FeedforwardProperties} [options] - Properties to feed forward. Defaults to
-         * {@link GradumSelector.defaultFeedforwardProperties}.
-         * @returns {Type} The element, allowing for method chaining.
-         */
-        feedforward(options?: FeedforwardProperties): Type;
-        /**
-         * @category Element
-         * @description The properties passed on to children created through {@link GradumSelector.feedforward},
-         * letting a parent seed its descendants with shared defaults.
-         */
-        defaultFeedforwardProperties: GradumElementProperties;
-    }
-}
 
 /**
  * @internal
@@ -4617,15 +4193,6 @@ type GradumProxiedProperties<Tag extends ValidTag = "div", ViewType extends Grad
     defaultSelectedClasses?: string | string[];
     defaultClasses?: string | string[];
 };
-declare module "./gradum-kit" {
-    interface GradumProxiedElement extends GradumElementDefaultInterface {
-    }
-    interface GradumProxiedElement<ElementTag extends ValidTag = ValidTag, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel> extends GradumElementMvcInterface<ViewType, DataType, ModelType> {
-    }
-    interface GradumProxiedElement extends GradumElementUiInterface {
-    }
-}
-
 /**
  * @type {GradumElementProperties}
  * @group MVC
@@ -4641,17 +4208,6 @@ declare module "./gradum-kit" {
  * without the tag.
  */
 type GradumElementProperties<ViewType extends GradumView = GradumView, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> = GradumProxiedProperties<"div", ViewType, DataType, ModelType, EmitterType>;
-declare module "./gradum-kit" {
-    interface GradumElement {
-        readonly tagName: string;
-    }
-    interface GradumElement extends GradumElementDefaultInterface {
-    }
-    interface GradumElement<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel> extends GradumElementMvcInterface<ViewType, DataType, ModelType> {
-    }
-    interface GradumElement extends GradumElementUiInterface {
-    }
-}
 
 /**
  * @internal
@@ -4786,252 +4342,6 @@ type MvcGenerationProperties<ViewType extends GradumView = GradumView<any, any>,
     data?: DataType;
     initialize?: boolean;
 };
-declare module "./gradum-kit" {
-    interface GradumSelector<Type extends object = Node> {
-        /**
-         * @readonly
-         * @category MVC
-         * @description Every MVC piece bound to the element — its view, model, emitter, and the operator, handler,
-         * interactor, tool, and constrainer collections — in one object.
-         */
-        readonly mvc: MvcProperties;
-        /**
-         * @category MVC
-         * @description The model of the element's MVC structure.
-         */
-        model: any;
-        /**
-         * @category MVC
-         * @description The view of the element's MVC structure.
-         */
-        view: any;
-        /**
-         * @category MVC
-         * @description The emitter of the element's MVC structure.
-         */
-        emitter: any;
-        /**
-         * @category MVC
-         * @description The main data block attached to the element's model.
-         */
-        data: any;
-        /**
-         * @category MVC
-         * @description A key-value store attached to the element, backed by its own {@link GradumModel} and
-         * created on first read — so it is available whether or not the element has a model of its own. Use
-         * it for flags that tools and behaviors read off an element: `selectable`, `dragAndDroppable`, and
-         * the like. Assigning a plain object replaces the store's contents; assigning a model adopts it.
-         *
-         * Reads participate in effect tracking once a signal exists for the key, so
-         * `metadata.makeSignal("flag")` at setup makes `metadata.get("flag")` reactive inside an `@effect`.
-         */
-        get metadata(): GradumModel<object>;
-        set metadata(value: GradumModel<object> | object);
-        /**
-         * @category MVC
-         * @description The ID of the main data block of the element's model.
-         */
-        dataId: string;
-        /**
-         * @category MVC
-         * @description The numerical index of the main data block of the element's model.
-         */
-        dataIndex: number;
-        /**
-         * @category MVC
-         * @description The size (number) of the main data block of the element's model.
-         */
-        readonly dataSize: number;
-        /**
-         * @category MVC
-         * @description The operators of the element's MVC structure.
-         */
-        operators: GradumOperator[];
-        /**
-         * @category MVC
-         * @description The handlers attached to the element's model.
-         * Returns an empty array if no model is set.
-         */
-        handlers: GradumHandler[];
-        /**
-         * @category MVC
-         * @description The interactors of the element's MVC structure.
-         */
-        interactors: GradumInteractor[];
-        /**
-         * @category MVC
-         * @description The tools of the element's MVC structure.
-         */
-        tools: GradumTool[];
-        /**
-         * @category MVC
-         * @description The constrainers of the element's MVC structure.
-         */
-        constrainers: GradumConstrainer[];
-        /**
-         * @function setMvc
-         * @category MVC
-         * @description Configures the MVC structure for the element. Sets the provided MVC pieces (model, view,
-         * emitter, operators, handlers, interactors, tools, constrainers) on the element, initializes a default
-         * emitter if none is provided, and initializes all MVC pieces unless explicitly disabled.
-         * @param {MvcGenerationProperties} properties - The properties to configure the MVC structure.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        setMvc(properties: MvcGenerationProperties): this;
-        /**
-         * @function initializeMvc
-         * @category MVC
-         * @description Initializes all MVC pieces attached to the element, in the following order: view,
-         * operators, interactors, tools, constrainers, and model. The model is initialized last to allow
-         * the view and operators to set up their change callbacks first.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        initializeMvc(): this;
-        /**
-         * @function getMvcDifference
-         * @category MVC
-         * @template {GradumView} ViewType - The element's view type.
-         * @template {object} DataType - The element's data type.
-         * @template {GradumModel<DataType>} ModelType - The element's model type.
-         * @template {GradumEmitter} EmitterType - The element's emitter type.
-         * @description Computes the structural difference between the element's current MVC configuration
-         * and a provided configuration description. The comparison is constructor-based (not instance-based):
-         * - For singular fields (`view`, `model`, `emitter`), the constructors are compared.
-         * - For collection fields (`operators`, `handlers`, `interactors`, `tools`, `constrainers`),
-         *   the result contains constructors present in the current MVC but absent from the provided configuration.
-         * @param {MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>} [properties={}] -
-         *  The configuration to compare against.
-         * @returns {MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>}
-         *  A partial configuration of constructors describing pieces present in the current MVC
-         *  but not in the provided configuration.
-         */
-        getMvcDifference<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>>(properties?: MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>): MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>;
-        /**
-         * @function getOperator
-         * @category MVC
-         * @description Retrieves the attached MVC operator with the given key.
-         * @param {string} key - The operator's key.
-         * @returns {GradumOperator} The operator.
-         */
-        getOperator(key: string): GradumOperator;
-        /**
-         * @function addOperator
-         * @category MVC
-         * @description Adds the given operator to the element's MVC structure.
-         * @param {GradumOperator} operator - The operator to add.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        addOperator(operator: GradumOperator): this;
-        /**
-         * @function removeOperator
-         * @category MVC
-         * @description Removes the given operator from the element's MVC structure and unlinks it.
-         * @param {string | GradumOperator} keyOrInstance - The operator's key or instance to remove.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeOperator(keyOrInstance: string | GradumOperator): this;
-        /**
-         * @function getHandler
-         * @category MVC
-         * @description Retrieves the attached MVC handler with the given key.
-         * Returns undefined if no model is set.
-         * @param {string} key - The handler's key.
-         * @returns {GradumHandler} The handler.
-         */
-        getHandler(key: string): GradumHandler;
-        /**
-         * @function addHandler
-         * @category MVC
-         * @description Adds the given handler to the element's model.
-         * If no model is set, this operation is a no-op.
-         * @param {GradumHandler} handler - The handler to add.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        addHandler(handler: GradumHandler): this;
-        /**
-         * @function removeHandler
-         * @category MVC
-         * @description Removes the given handler from the element's model and unlinks it.
-         * If no model is set, this operation is a no-op.
-         * @param {string | GradumHandler} keyOrInstance - The handler's key or instance to remove.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeHandler(keyOrInstance: string | GradumHandler): this;
-        /**
-         * @function getInteractor
-         * @category MVC
-         * @description Retrieves the attached MVC interactor with the given key.
-         * @param {string} key - The interactor's key.
-         * @returns {GradumInteractor} The interactor.
-         */
-        getInteractor(key: string): GradumInteractor;
-        /**
-         * @function addInteractor
-         * @category MVC
-         * @description Adds the given interactor to the element's MVC structure.
-         * @param {GradumInteractor} interactor - The interactor to add.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        addInteractor(interactor: GradumInteractor): this;
-        /**
-         * @function removeInteractor
-         * @category MVC
-         * @description Removes the given interactor from the element's MVC structure and unlinks it.
-         * @param {string | GradumInteractor} keyOrInstance - The interactor's key or instance to remove.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeInteractor(keyOrInstance: string | GradumInteractor): this;
-        /**
-         * @function getTool
-         * @category MVC
-         * @description Retrieves the attached MVC tool with the given key.
-         * @param {string} key - The tool's key.
-         * @returns {GradumTool} The tool.
-         */
-        getTool(key: string): GradumTool;
-        /**
-         * @function addTool
-         * @category MVC
-         * @description Adds the given tool to the element's MVC structure.
-         * @param {GradumTool} tool - The tool to add.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        addTool(tool: GradumTool): this;
-        /**
-         * @function removeTool
-         * @category MVC
-         * @description Removes the given tool from the element's MVC structure and unlinks it.
-         * @param {string | GradumTool} keyOrInstance - The tool's key or instance to remove.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeTool(keyOrInstance: string | GradumTool): this;
-        /**
-         * @function getConstrainer
-         * @category MVC
-         * @description Retrieves the attached MVC constrainer with the given key.
-         * @param {string} key - The constrainer's key.
-         * @returns {GradumConstrainer} The constrainer.
-         */
-        getConstrainer(key: string): GradumConstrainer;
-        /**
-         * @function addConstrainer
-         * @category MVC
-         * @description Adds the given constrainer to the element's MVC structure.
-         * @param {GradumConstrainer} constrainer - The constrainer to add.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        addConstrainer(constrainer: GradumConstrainer): this;
-        /**
-         * @function removeConstrainer
-         * @category MVC
-         * @description Removes the given constrainer from the element's MVC structure and unlinks it.
-         * @param {string | GradumConstrainer} keyOrInstance - The constrainer's key or instance to remove.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeConstrainer(keyOrInstance: string | GradumConstrainer): this;
-    }
-}
-
 /**
  * @type {GradumHeadlessProperties}
  * @group MVC
@@ -5047,12 +4357,6 @@ type GradumHeadlessProperties<ViewType extends GradumView = GradumView, DataType
     out?: string | Node;
     [key: string]: any;
 };
-declare module "./gradum-kit" {
-    interface GradumHeadlessElement extends GradumElementDefaultInterface {
-    }
-    interface GradumHeadlessElement<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel> extends GradumElementMvcInterface<ViewType, DataType, ModelType> {
-    }
-}
 
 /**
  * @internal
@@ -5261,6 +4565,13 @@ declare class GradumEventManagerModel extends GradumModel {
     readonly previousPositions: GradumMap<number, Point>;
     positions: GradumMap<number, Point>;
     lastTargetOrigin: Node;
+    /**
+     * @description The objects a {@link GradumSelector.hitResolver} reported where the drag began. Resolved
+     * alongside {@link lastTargetOrigin} and reused for the rest of the drag, so grabbing a shape on a canvas
+     * keeps sending it the drag even once the pointer has moved off it — the same way pointer capture keeps a
+     * drag with the element it started on.
+     */
+    lastOriginHits: object[];
     readonly timerMap: GradumMap<string, NodeJS.Timeout>;
     readonly tools: Map<string, GradumWeakSet<Node>>;
     readonly mappedKeysToTool: Map<string, string>;
@@ -5646,6 +4957,26 @@ declare class GradumEvent extends Event {
      */
     readonly position: Point;
     /**
+     * @description Everything this event was dispatched over, innermost first: the composed path with any
+     * objects reported by a {@link GradumSelector.hitResolver} spliced in ahead of the element that reported
+     * them. Equal to `composedPath()` when nothing resolved. Move events carry the z-stack under the pointer
+     * instead, which is what they are dispatched over.
+     */
+    dispatchPath: readonly object[];
+    /**
+     * @description The objects a {@link GradumSelector.hitResolver} reported at this event's position,
+     * topmost first, or empty when the pointer only touched real elements.
+     */
+    hits: object[];
+    /**
+     * @readonly
+     * @description The most specific thing the event actually hit: the topmost object reported by a
+     * {@link GradumSelector.hitResolver}, or {@link GradumEvent.target} when no resolver contributed. Use it
+     * over `target` when the thing interacted with might have been painted inside an element rather than
+     * being one — reading it costs nothing when nothing is.
+     */
+    get hitTarget(): object;
+    /**
      * @description Whether {@link GradumEvent.scaledPosition} and its per-pointer equivalents actually
      * scale, or hand back the raw position. Assign a callback to decide per read — useful when a canvas
      * is only sometimes transformed. Defaults to `true`.
@@ -5734,10 +5065,12 @@ declare class GradumEvent extends Event {
  * @internal
  * @class GradumEventManagerDispatchOperator
  * @extends GradumOperator
- * @description Dispatches Gradum events along the composed path. It runs two sequential passes: a
- * capture pass from the document down to the target, which invokes tool `@behavior` methods, then a
- * bubble pass back up, which invokes interactor `@listener` methods and `gradum(el).on()` listeners.
- * Each pass stops early when a handler returns anything other than `Propagation.propagate`.
+ * @description Dispatches Gradum events along the composed path. It runs two sequential passes over that
+ * same path: a capture pass from the outermost entry down to the event target, then a bubble pass back up.
+ * The capture pass reaches only listeners bound with `capture: true`. The bubble pass reaches every other
+ * listener — `@listener` methods and those bound with `gradum(el).on()` — and is the only pass that runs
+ * tool `@behavior` methods. Each pass stops early when a handler returns anything other than
+ * `Propagation.propagate`.
  *
  * *Note: move events are the exception. Their composed path is the drag origin's ancestor chain, which
  * omits elements merely sitting under the cursor, so they are dispatched in a single pass over the
@@ -5749,7 +5082,35 @@ declare class GradumEventManagerDispatchOperator extends GradumOperator<GradumEv
     private boundHooks;
     protected setupChangedCallbacks(): void;
     protected dispatchEvent: <EventType extends GradumEvent = GradumEvent, PropertiesType extends GradumRawEventProperties = GradumRawEventProperties>(target: Node, eventType: new (properties: PropertiesType) => EventType, properties: Partial<PropertiesType>) => void;
+    /**
+     * @private
+     * @function expandPath
+     * @description Splice the objects reported by any {@link GradumSelector.hitResolver} in the path into the
+     * path itself, so things an element merely paints — shapes on a canvas — are dispatched to like children
+     * of it. Hits land at lower indices than the element that reported them, which is what gives them the
+     * right position in both passes: capture descends into them last, bubble reaches them first.
+     *
+     * Each hit is given the reporting element as its {@link GradumSelector.hitParent} unless it already names
+     * one, so climbing back out works without the scene having to track parentage.
+     * @param {EventTarget[]} path - The path to expand, from {@link Event.composedPath} or a z-stack.
+     * @param {Event} event - The event being dispatched, passed on to the resolvers.
+     * @returns {object} The expanded path, and the set of entries that were contributed. Returns `path`
+     * itself when no resolver contributed anything, so dispatch is untouched for everyone not using this.
+     */
+    private expandPath;
     private getToolHandlingCallback;
+    /**
+     * @private
+     * @description Whether a path entry should be dispatched to. Nodes always are; anything else only when a
+     * hit resolver contributed it, which keeps `Window` — in every composed path, and not a Node — out.
+     */
+    private isDispatchable;
+    /**
+     * @private
+     * @description Hand the expansion to the event, so handlers and {@link GradumEvent.closest} can read what
+     * was hit without resolving anything again.
+     */
+    private recordHits;
     setupCustomDispatcher(type: string): void;
     removeCustomDispatcher(type: string): void;
 }
@@ -6249,343 +5610,6 @@ type ConstrainerAddCallbackProperties<Type extends ConstrainerChecker | Constrai
     constrainer?: string;
     priority?: number;
 };
-declare module "./gradum-kit" {
-    interface GradumSelector {
-        /**
-         * @category Constrainers
-         * @description Array of all the constrainers attached to this element.
-         */
-        readonly constrainersNames: string[];
-        /**
-         * @function makeConstrainer
-         * @category Constrainers
-         * @description Creates a new constrainer attached to this element. Useful to maintain certain constraints or
-         * ensure some behaviors persist on a list of objects (by attaching solvers to this constrainer).
-         * @param {string} name - The name of the new constrainer.
-         * @param {MakeConstrainerOptions} [options] - Options parameter to configure the newly-created constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        makeConstrainer(name: string, options?: MakeConstrainerOptions): this;
-        /**
-         * @category Constrainers
-         * @description Array of active constrainers on this element.
-         */
-        readonly activeConstrainers: string[];
-        /**
-         * @function activateConstrainer
-         * @category Constrainers
-         * @description Activate the given constrainer.
-         * @param {string[]} constrainers - The name of the constrainer(s) to activate. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        activateConstrainer(...constrainers: string[]): this;
-        /**
-         * @function deactivateConstrainer
-         * @category Constrainers
-         * @description Deactivate the given constrainer.
-         * @param {string[]} constrainers - The name of the constrainer(s) to deactivate. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        deactivateConstrainer(...constrainers: string[]): this;
-        /**
-         * @function toggleConstrainer
-         * @category Constrainers
-         * @description Toggle the active state of the given constrainer.
-         * @param {string} constrainer - The name of the constrainer to toggle. Defaults to the first active constrainer.
-         * @param {boolean} [force] - If set, the constrainer's active state will be set to this value.
-         * @returns {this} Itself for chaining.
-         */
-        toggleConstrainer(constrainer?: string, force?: boolean): this;
-        /**
-         * @function activateOnlyConstrainer
-         * @category Constrainers
-         * @description Activate the provided constrainer and deactivate all other constrainers attached to this element.
-         * @param {string} constrainer - The constrainer name to activate as the single active constrainer. Defaults to the
-         * first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        activateOnlyConstrainer(constrainer: string): this;
-        /**
-         * @function activateAllConstrainers
-         * @category Constrainers
-         * @description Activate all the constrainers attached to this element.
-         * @returns {this} Itself for chaining.
-         */
-        activateAllConstrainers(): this;
-        /**
-         * @function deactivateAllConstrainers
-         * @category Constrainers
-         * @description Deactivate all the constrainers attached to this element.
-         * @returns {this} Itself for chaining.
-         */
-        deactivateAllConstrainers(): this;
-        /**
-         * @function onConstrainerActivate
-         * @category Constrainers
-         * @description Get the delegate fired when the constrainer of the given name is activated.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {Delegate<() => void>} The delegate.
-         */
-        onConstrainerActivate(constrainer?: string): Delegate<() => void>;
-        /**
-         * @function onConstrainerDeactivate
-         * @category Constrainers
-         * @description Get the delegate fired when the constrainer of the given name is deactivated.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {Delegate<() => void>} The delegate.
-         */
-        onConstrainerDeactivate(constrainer?: string): Delegate<() => void>;
-        /**
-         * @function getConstrainerPriority
-         * @category Constrainers
-         * @description Get the priority of the targeted constrainer. Higher priority constrainers (lower number) should
-         * be resolved first.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {number} The constrainer priority.
-         */
-        getConstrainerPriority(constrainer?: string): number;
-        /**
-         * @function setConstrainerPriority
-         * @category Constrainers
-         * @description Set the priority of the targeted constrainer. Higher priority constrainers (lower number) should
-         * be resolved first.
-         * @param {number} priority - The priority value to set.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        setConstrainerPriority(priority: number, constrainer?: string): this;
-        /**
-         * @function getConstrainerObjectList
-         * @category Constrainers
-         * @description Retrieve the list of objects that are constrained by the given constrainer.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {GradumNodeList} The list of objects. To manipulate, check {@link GradumNodeList}.
-         */
-        getConstrainerObjectList(constrainer?: string): GradumNodeList;
-        /**
-         * @function onConstrainerObjectListChange
-         * @category Constrainers
-         * @description Get the delegate fired whenever an object is added to or removed from the constrainer's object list.
-         * Defaults to the children of the element the constrainer is attached to.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {Delegate<(object: object, status: "added" | "removed") => void>} The delegate.
-         */
-        onConstrainerObjectListChange(constrainer?: string): Delegate<(object: object, status: "added" | "removed") => void>;
-        /**
-         * @function getConstrainerTriggerList
-         * @category Constrainers
-         * @description Retrieve the list of objects that trigger the given constrainer to resolve.
-         * Interacting with any of these objects would typically lead to the solving of the given constrainer.
-         * Defaults to the constrainer's object list.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {GradumNodeList} The list of trigger objects. To manipulate, check {@link GradumNodeList}.
-         */
-        getConstrainerTriggerList(constrainer?: string): GradumNodeList;
-        /**
-         * @function getConstrainerQueue
-         * @category Constrainers
-         * @description Retrieve the current queue to be processed by the constrainer while resolving.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {GradumQueue<object>} The current constrainer queue.
-         */
-        getConstrainerQueue(constrainer?: string): GradumQueue<object>;
-        /**
-         * @function getDefaultConstrainerQueue
-         * @category Constrainers
-         * @description Retrieve the default queue template for the constrainer, used when starting a new resolving pass.
-         * It defaults to the constrainer's object list.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {GradumQueue<object>} The default constrainer queue.
-         */
-        getDefaultConstrainerQueue(constrainer?: string): GradumQueue<object>;
-        /**
-         * @function setDefaultConstrainerQueue
-         * @category Constrainers
-         * @description Define the default queue template for the constrainer, used when starting a new resolving pass.
-         * @param {object[] | GradumQueue<object>} queue - The queue (or list to build a queue from).
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        setDefaultConstrainerQueue(queue: object[] | GradumQueue<object>, constrainer?: string): this;
-        /**
-         * @function getObjectPassesForConstrainer
-         * @category Constrainers
-         * @description Retrieve how many times the given object has been processed for the current resolving session
-         * of the constrainer.
-         * @param {object} object - The object to query.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {number} Number of passes already performed on this object.
-         */
-        getObjectPassesForConstrainer(object: object, constrainer?: string): number;
-        /**
-         * @function getMaxPassesForConstrainer
-         * @category Constrainers
-         * @description Get the maximum number of passes allowed per object for this constrainer during resolving.
-         * This helps prevent infinite cycles in constraint propagation.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {number} The maximum allowed passes.
-         */
-        getMaxPassesForConstrainer(constrainer?: string): number;
-        /**
-         * @function setMaxPassesForConstrainer
-         * @category Constrainers
-         * @description Set the maximum number of passes allowed per object for this constrainer during resolving. This
-         * helps prevent infinite cycles in constraint propagation.
-         * @param {number} passes - Maximum number of passes.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        setMaxPassesForConstrainer(passes: number, constrainer?: string): this;
-        /**
-         * @function getObjectDataForConstrainer
-         * @category Constrainers
-         * @description Retrieve custom per-object data for this constrainer. It is reset on every new
-         * resolving session.
-         * @param {object} object - The object to query.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {Record<string, any>} The stored data object (or an empty object if none).
-         */
-        getObjectDataForConstrainer(object: object, constrainer?: string): Record<string, any>;
-        /**
-         * @function setObjectDataForConstrainer
-         * @category Constrainers
-         * @description Set custom per-object data for this constrainer. It is reset on every new resolving session.
-         * @param {object} object - The object to update.
-         * @param {Record<string, any>} [data] - The new data object to associate with this object.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        setObjectDataForConstrainer(object: object, data?: Record<string, any>, constrainer?: string): this;
-        /**
-         * @function addChecker
-         * @category Constrainers
-         * @description Register a checker in the constrainer. Checkers dictate whether the event should continue
-         * executing depending on the provided context (event, tool, target, etc.).
-         * @param {ConstrainerAddCallbackProperties<ConstrainerChecker>} properties - Configuration object, including the
-         * checker `callback` to be executed, the `name` of the checker to access it later, the name of the attached
-         * `constrainer`, and the `priority` of the checker.
-         * @returns {this} Itself for chaining.
-         */
-        addChecker(properties: ConstrainerAddCallbackProperties<ConstrainerChecker>): this;
-        /**
-         * @function removeChecker
-         * @category Constrainers
-         * @description Remove a checker from the given constrainer by its name.
-         * @param {string} name - The checker name.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        removeChecker(name: string, constrainer?: string): this;
-        /**
-         * @function clearCheckers
-         * @category Constrainers
-         * @description Remove all checkers attached to the given constrainer.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        clearCheckers(constrainer?: string): this;
-        /**
-         * @function checkConstrainer
-         * @category Constrainers
-         * @description Evaluate all checkers for the targeted constrainer and return whether the event should proceed or halt.
-         * @param {ConstrainerCallbackProperties} [properties] - Context passed to each checker.
-         * @returns {boolean} Whether the constrainer passes all checks.
-         */
-        checkConstrainer(properties?: ConstrainerCallbackProperties): boolean;
-        /**
-         * @function checkConstrainersForEvent
-         * @category Constrainers
-         * @description Evaluate checkers for all relevant constrainers for a given event context.
-         * @param {ConstrainerCallbackProperties} [properties] - Event context.
-         * @returns {boolean} Whether all the checkers allowed the event to proceed.
-         */
-        checkConstrainersForEvent(properties?: ConstrainerCallbackProperties): boolean;
-        /**
-         * @function addMutator
-         * @category Constrainers
-         * @description Register a mutator in the constrainer. Mutators compute or transform a value based on the context.
-         * @param {ConstrainerAddCallbackProperties<ConstrainerMutator>} properties - Configuration object, including the
-         * mutator `callback` to be executed, the `name` of the mutator to access it later, the name of the attached
-         * `constrainer`, and the `priority` of the mutator.
-         * @returns {this} Itself for chaining.
-         */
-        addMutator(properties: ConstrainerAddCallbackProperties<ConstrainerMutator>): this;
-        /**
-         * @function removeMutator
-         * @category Constrainers
-         * @description Remove a mutator from the given constrainer by its name.
-         * @param {string} name - The mutator name.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        removeMutator(name: string, constrainer?: string): this;
-        /**
-         * @function clearMutators
-         * @category Constrainers
-         * @description Remove all mutators attached to the given constrainer.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        clearMutators(constrainer?: string): this;
-        /**
-         * @function mutate
-         * @category Constrainers
-         * @template Type - The type of the value to mutate
-         * @description Execute a mutator for the targeted constrainer and return the resulting value.
-         * @param {ConstrainerMutatorProperties<Type>} [properties] - Context object, including the
-         * `mutation` to execute, and the input `value` to mutate.
-         * @returns {Type} The mutated result.
-         */
-        mutate<Type = any>(properties?: ConstrainerMutatorProperties<Type>): Type;
-        /**
-         * @function addSolver
-         * @category Constrainers
-         * @description Register a solver in the constrainer. Solvers typically execute after an event is fired to
-         * ensure the constrainer's constraints are maintained. They process all objects in the constrainer's queue,
-         * one after the other.
-         * @param {ConstrainerAddCallbackProperties<ConstrainerSolver>} properties - Configuration object, including the
-         * solver `callback` to be executed, the `name` of the solver to access it later, the name of the attached
-         * `constrainer`, and the `priority` of the solver.
-         * @returns {this} Itself for chaining.
-         */
-        addSolver(properties: ConstrainerAddCallbackProperties<ConstrainerSolver>): this;
-        /**
-         * @function removeSolver
-         * @category Constrainers
-         * @description Remove the given function from the constrainer's list of solvers.
-         * @param {string} name - The solver's name.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        removeSolver(name: string, constrainer?: string): this;
-        /**
-         * @function clearSolvers
-         * @category Constrainers
-         * @description Remove all solvers attached to the constrainer.
-         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
-         * @returns {this} Itself for chaining.
-         */
-        clearSolvers(constrainer?: string): this;
-        /**
-         * @function solveConstrainer
-         * @category Constrainers
-         * @description Solve the constrainer by executing all of its attached solvers. Each solver will be executed
-         * on every object in the constrainer's queue, incrementing its number of passes in the process.
-         * @param {ConstrainerCallbackProperties} [properties] - Options object to configure the context.
-         * @returns {this} Itself for chaining.
-         */
-        solveConstrainer(properties?: ConstrainerCallbackProperties): this;
-        /**
-         * @function solveConstrainersForEvent
-         * @category Constrainers
-         * @description Solve all relevant constrainers for a given event context.
-         * @param {ConstrainerCallbackProperties} [properties] - Event context to pass to solvers.
-         * @returns {this} Itself for chaining.
-         */
-        solveConstrainersForEvent(properties?: ConstrainerCallbackProperties): this;
-    }
-}
-
 /**
  * @decorator
  * @function solver
@@ -7832,67 +6856,6 @@ type StylesRoot = ShadowRoot | HTMLHeadElement;
  * method). It includes strings, numbers, and records of CSS attributes to strings or numbers.
  */
 type StylesType = string | number | PartialRecord<keyof CSSStyleDeclaration, string | number>;
-declare module "./gradum-kit" {
-    interface GradumSelector {
-        /**
-         * @category Style
-         * @description The closest root to the element in the document (the closest ShadowRoot, or the document's head).
-         */
-        readonly closestRoot: StylesRoot;
-        /**
-         * @category Style
-         * @description Whether the element is selected or not. Setting it on an Element will accordingly toggle on it
-         * the "selected" CSS class (or whichever default selected class was set for this element) and update the UI.
-         */
-        selected: boolean;
-        /**
-         * @category Style
-         * @description The CSS classes applied when the element is selected. Assigning a new value moves the
-         * classes over if the element is currently selected.
-         */
-        defaultSelectedClasses: string | string[];
-        /**
-         * @readonly
-         * @category Style
-         * @description Delegate fired whenever the element's selected state changes. Receives the new state.
-         */
-        readonly onSelected: Delegate<(value: boolean) => void>;
-        /**
-         * @function setStyle
-         * @category Style
-         * @description Set a certain style attribute of the element to the provided value.
-         * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to set.
-         * @param {string | number} value - THe value to append.
-         * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next
-         * animation frame.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        setStyle(attribute: keyof CSSStyleDeclaration, value: string | number, instant?: boolean): this;
-        /**
-         * @function appendStyle
-         * @category Style
-         * @description Append the provided value to a certain style attribute.
-         * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to append to.
-         * @param {string | number} value - The value to append.
-         * @param {string} [separator=", "] - The separator to use between the existing and new values.
-         * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next
-         * animation frame.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        appendStyle(attribute: keyof CSSStyleDeclaration, value: string | number, separator?: string, instant?: boolean): this;
-        /**
-         * @function setStyles
-         * @category Style
-         * @description Parses and applies the given CSS to the element's inline styles.
-         * @param {StylesType} styles - Acceptable styles to set.
-         * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next
-         * animation frame.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        setStyles(styles: StylesType, instant?: boolean): this;
-    }
-}
-
 /**
  * @function stylesheet
  * @group Element Creation
@@ -8027,12 +6990,6 @@ declare class GradumWheelEvent extends GradumEvent {
      * @param {GradumWheelEventProperties} properties - The scroll delta and the input context.
      */
     constructor(properties: GradumWheelEventProperties);
-}
-
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-button": GradumButton;
-    }
 }
 
 /**
@@ -8354,11 +7311,6 @@ type GradumIconProperties<ViewType extends GradumView = GradumView, DataType ext
     iconColor?: string;
     onLoaded?: (svg: SVGElement) => void;
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-icon": GradumIcon;
-    }
-}
 
 /**
  * @class GradumIcon
@@ -8492,11 +7444,6 @@ type GradumRichElementProperties<ElementTag extends ValidTag = any, ViewType ext
     rightIcon?: string | GradumIcon;
     rightCustomElements?: Element | Element[];
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-rich-element": GradumRichElement;
-    }
-}
 
 /**
  * @class GradumRichElement
@@ -9291,11 +8238,6 @@ type GradumIconSwitchProperties<State extends string | number | symbol, ViewType
     defaultState?: State;
     appendStateToIconName?: boolean;
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-icon-switch": GradumIconSwitch;
-    }
-}
 
 /**
  * @group Components
@@ -9327,11 +8269,6 @@ type GradumIconToggleProperties<ViewType extends GradumView = GradumView, DataTy
     stopPropagationOnClick?: boolean;
     onToggle?: (value: boolean, el: GradumIconToggle) => void;
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-icon-toggle": GradumIconToggle;
-    }
-}
 
 /**
  * @group Components
@@ -9410,12 +8347,6 @@ type GradumInputProperties<InputTag extends "input" | "textarea" = "input", Valu
     pattern?: string;
     size?: string;
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-input": GradumInput;
-    }
-}
-
 /**
  * @type {GradumLabelElementProperties}
  * @group Components
@@ -9633,11 +8564,6 @@ type GradumNumericalInputProperties<ValueType = string, ViewType extends GradumV
     min?: number;
     max?: number;
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-numerical-input": GradumNumericalInput;
-    }
-}
 
 /**
  * @group Components
@@ -9976,12 +8902,6 @@ type GradumSelectElementProperties<ValueType = string, SecondaryValueType = stri
     entriesClasses?: string | string[];
     selectedEntriesClasses?: string | string[];
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-select-element": GradumSelectElement;
-    }
-}
-
 /**
  * @group Components
  * @category Reifects
@@ -10204,11 +9124,6 @@ type GradumContentSwitchProperties<ViewType extends GradumView = GradumView<any,
     transitionDuration?: number;
     transitionReifect?: StatefulReifect<Shown> | StatefulReifectProperties<Shown>;
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-content-switch": GradumContentSwitch;
-    }
-}
 
 /**
  * @class GradumContentSwitch
@@ -10284,11 +9199,6 @@ type GradumDrawerProperties<ViewType extends GradumView = GradumView, DataType e
     open?: boolean;
     transition?: Reifect<HTMLElement>;
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-drawer": GradumDrawer;
-    }
-}
 
 /**
  * @group Components
@@ -10468,11 +9378,6 @@ declare enum PopupFallbackMode {
     invert = "invert",
     offset = "offset",
     none = "none"
-}
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-popup": GradumPopup;
-    }
 }
 
 /**
@@ -10832,11 +9737,6 @@ type GradumDropdownProperties<ValueType = string, SecondaryValueType = string, E
     selectorClasses?: string | string[];
     popupClasses?: string | string[];
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-dropdown": GradumDropdown;
-    }
-}
 
 /**
  * @class GradumDropdown
@@ -10890,11 +9790,6 @@ type GradumMarkingMenuProperties<ValueType = string, SecondaryValueType = string
     semiMinor?: number;
     minDragDistance?: number;
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-marking-menu": GradumMarkingMenu;
-    }
-}
 
 /**
  * @group Components
@@ -10947,11 +9842,6 @@ type GradumSelectWheelStylingProperties = {
     size: Record<Range, number>;
     defaultComputedStyles: PartialRecord<keyof CSSStyleDeclaration, string | number>;
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-select-wheel": GradumSelectWheel;
-    }
-}
 
 /**
  * @class GradumSelectWheel
@@ -11170,11 +10060,6 @@ type GradumButtonPopupProperties<ElementTag extends ValidTag = any, ViewType ext
     popup?: HTMLElement;
     popupClasses?: string | string[];
 };
-declare module "./gradum-kit" {
-    interface GradumElementTagNameMap {
-        "gradum-button-popup": GradumButtonPopup;
-    }
-}
 
 /**
  * @class GradumButtonPopup
@@ -11378,41 +10263,6 @@ declare class GradumProxiedElement<ElementTag extends ValidTag = ValidTag, ViewT
     protected setupUIListeners(): void;
 }
 
-declare module "./gradum-kit" {
-    interface GradumSelector {
-        /**
-         * @category Classes
-         * @description Add one or more CSS classes to the element.
-         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        addClass(classes?: string | string[]): this;
-        /**
-         * @category Classes
-         * @description Remove one or more CSS classes from the element.
-         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeClass(classes?: string | string[]): this;
-        /**
-         * @category Classes
-         * @description Toggle one or more CSS classes in the element.
-         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
-         * @param {boolean} force - (Optional) Boolean that turns the toggle into a one way-only operation. If set to false,
-         * then the class will only be removed, but not added. If set to true, then token will only be added, but not removed.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        toggleClass(classes?: string | string[], force?: boolean): this;
-        /**
-         * @category Classes
-         * @description Check if the element's class list contains the provided class(es).
-         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
-         * @returns {boolean} Whether the element carries every one of the given classes.
-         */
-        hasClass(classes?: string | string[]): boolean;
-    }
-}
-
 /**
  * @class GradumSelector
  * @group GradumSelector
@@ -11481,11 +10331,6 @@ type GradumifyOptions = {
     excludeMiscFunctions?: boolean;
     excludeReifectFunctions?: boolean;
 };
-declare module "./gradum-kit" {
-    interface GradumSelector extends Node {
-    }
-}
-
 /**
  * @overload
  * @function gradum
@@ -11684,206 +10529,6 @@ declare const gradumify: (options?: GradumifyOptions) => void;
  * @description A type that represents all entities that can hold and manage children (an element or a shadow root).
  */
 type ChildHandler = Node | ShadowRoot;
-declare module "./gradum-kit" {
-    interface GradumSelector {
-        /**
-         * @category Hierarchy
-         * @description The child handler object associated with the node. It is the node itself (if it is handling
-         * its children) or its shadow root (if defined). Set it to change the node where the children are added/
-         * removed/queried from when manipulating the node's children.
-         */
-        childHandler: ChildHandler;
-        /**
-         * @category Hierarchy
-         * @description Static array of all the child nodes of the node.
-         */
-        readonly childNodesArray: Node[];
-        /**
-         * @category Hierarchy
-         * @description Static array of all the child elements of the node.
-         */
-        readonly childrenArray: Element[];
-        /**
-         * @category Hierarchy
-         * @description Static array of all the sibling nodes (including the node itself) of the node.
-         */
-        readonly siblingNodes: Node[];
-        /**
-         * @category Hierarchy
-         * @description Static array of all the sibling elements (including the element itself, if it is one) of the node.
-         */
-        readonly siblings: Element[];
-        /**
-         * @function bringToFront
-         * @category Hierarchy
-         * @description Brings the element to the front amongst its siblings in the DOM.
-         * @returns {this} Itself for chaining.
-         */
-        bringToFront(): this;
-        /**
-         * @function sendToBack
-         * @category Hierarchy
-         * @description Sends the element to the back amongst its siblings in the DOM.
-         * @returns {this} Itself for chaining.
-         */
-        sendToBack(): this;
-        /**
-         * @function remove
-         * @category Hierarchy
-         * @description Removes the node from the document.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        remove(): this;
-        /**
-         * @function addToParent
-         * @category Hierarchy
-         * @description Add the element to the given parent node
-         * @param {Node} parent - The parent node to attach the element to.
-         * @param {number} [index] - The position at which to add the element relative to the parent's child list.
-         * Leave undefined to add the element at the end.
-         * @param {Node[] | NodeListOf<Node>} [referenceList=parent.childrenArray] - The child list to
-         * use as computation reference for index placement. Defaults to the parent's `childrenArray`.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        addToParent(parent: Node, index?: number, referenceList?: Node[] | NodeListOf<Node>): this;
-        /**
-         * @function addChild
-         * @category Hierarchy
-         * @description Add one or more children to the element.
-         * @param {Node | Node[]} [children] - Array of (or single) child nodes.
-         * @param {number} [index] - The position at which to add the child relative to the parent's child list.
-         * Leave undefined to add the child at the end.
-         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
-         * use as computation reference for index placement. Defaults to the node's `childrenArray`.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        addChild(children?: Node | Node[], index?: number, referenceList?: Node[] | NodeListOf<Node>): this;
-        /**
-         * @function remChild
-         * @category Hierarchy
-         * @description Remove one or more children from the element.
-         * @param {Node | Node[]} [children] - Array of (or single) child nodes.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        remChild(children?: Node | Node[]): this;
-        /**
-         * @function addChildBefore
-         * @category Hierarchy
-         * @description Add one or more children to the element before the provided sibling. If the
-         * sibling is not found in the parent's children, the nodes will be added to the end of the parent's child list.
-         * @param {Node | Node[]} [children] - Array of (or single) child nodes to insert before sibling.
-         * @param {Node} [sibling] - The sibling node to insert the children before.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        addChildBefore(children?: Node | Node[], sibling?: Node): this;
-        /**
-         * @function removeChildAt
-         * @category Hierarchy
-         * @description Remove one or more child nodes from the element.
-         * @param {number} [index] - The index of the child(ren) to remove.
-         * @param {number} [count=1] - The number of children to remove.
-         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
-         * use as computation reference for index placement and count. Defaults to the node's `childrenArray`.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeChildAt(index?: number, count?: number, referenceList?: Node[] | NodeListOf<Node>): this;
-        /**
-         * @function removeAllChildren
-         * @category Hierarchy
-         * @description Remove all children of the node.
-         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
-         * representing all the nodes to remove. Defaults to the node's `childrenArray`.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeAllChildren(referenceList?: Node[] | NodeListOf<Node>): this;
-        /**
-         * @function childAt
-         * @category Hierarchy
-         * @description Returns the child of the parent node at the given index. Any number inputted (including
-         * negatives) will be reduced modulo length of the list size.
-         * @param {number} [index] - The index of the child to retrieve.
-         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
-         * use as computation reference for index placement. Defaults to the node's `childrenArray`.
-         * @returns {Node} The child at the given index, or `null` if the index is invalid.
-         */
-        childAt(index?: number, referenceList?: Node[] | NodeListOf<Node>): Node;
-        /**
-         * @function indexOfChild
-         * @category Hierarchy
-         * @description Returns the index of the given child.
-         * @param {Node} [child] - The child element to find.
-         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
-         * use as computation reference for index placement. Defaults to the node's `childrenArray`.
-         * @returns {number} The index of the child node in the provided list, or -1 if the child is not found.
-         */
-        indexOfChild(child?: Node, referenceList?: Node[] | NodeListOf<Node>): number;
-        /**
-         * @function hasChild
-         * @category Hierarchy
-         * @description Identify whether one or more children belong to this parent node.
-         * @param {Node | Node[]} [children] - Array of (or single) child nodes.
-         * @returns {boolean} A boolean indicating whether the provided nodes belong to the parent or not.
-         */
-        hasChild(children?: Node | Node[]): boolean;
-        /**
-         * @function findInSubTree
-         * @category Hierarchy
-         * @description Finds whether one or more children belong to this node.
-         * @param {Node | Node[]} [children] - The child or children to check.
-         * @returns {boolean} True if the children belong to the node, false otherwise.
-         */
-        findInSubTree(children?: Node | Node[]): boolean;
-        /**
-         * @function findInParents
-         * @category Hierarchy
-         * @description Finds whether this node is within the given parent(s).
-         * @param {Node | Node[]} [parents] - The parent(s) to check.
-         * @returns {boolean} True if the node is within the given parents, false otherwise.
-         */
-        findInParents(parents?: Node | Node[]): boolean;
-        /**
-         * @function indexInParent
-         * @category Hierarchy
-         * @description Finds whether one or more children belong to this node.
-         * @param {Node[]} [referenceList=this.siblings] - The siblings list to use as computation
-         * reference for index placement. Defaults to the node's `siblings`.
-         * @returns {boolean} True if the children belong to the node, false otherwise.
-         */
-        indexInParent(referenceList?: Node[]): number;
-        /**
-         * @overload
-         * @function closest
-         * @category Hierarchy
-         * @description Finds the closest ancestor of the current element (or the current element itself) that matches
-         * that is an instance of the element associated with the given tag name.
-         * @param {Type} type - The (valid) tag name.
-         * @returns {Element} The matching ancestor element, or null if no match is found.
-         */
-        closest<Tag extends ValidTag>(type: Tag): ValidElement<Tag>;
-        /**
-         * @overload
-         * @function closest
-         * @category Hierarchy
-         * @description Finds the closest ancestor of the current element (or the current element itself) that matches
-         * the provided CSS selector.
-         * @param {Type} type - The (valid) CSS selector string.
-         * @returns {Element} The matching ancestor element, or null if no match is found.
-         */
-        closest<Tag extends string>(type: Tag): Element;
-        /**
-         * @overload
-         * @function closest
-         * @category Hierarchy
-         * @template {Element} Type - The type of element to find.
-         * @description Finds the closest ancestor of the current element (or the current element itself) that is an
-         * instance of the given class.
-         * @param {new (...args: any[]) => Type} type - The class to match.
-         * @returns {Element} The matching ancestor element, or null if no match is found.
-         */
-        closest<Type extends Element>(type: new (...args: any[]) => Type): Type;
-    }
-}
-
 /**
  * @constant
  * @group GradumSelector
@@ -11904,198 +10549,6 @@ type ApplyDefaultsOptions = {
     mergeProperties?: string[];
     removeDuplicates?: boolean;
 };
-declare module "./gradum-kit" {
-    interface GradumSelector {
-        /**
-         * @category Misc
-         * @description Execute a callback on the node while still benefiting from chaining.
-         * @param {(el: this) => void} callback The function to execute, with 1 parameter representing the instance
-         * itself.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        execute(callback: ((el: this) => void)): this;
-        /**
-         * @category Misc
-         * @description Assign every given property onto the element, overwriting existing values.
-         * @param {object} properties - The properties to assign.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        apply(properties: Partial<this["element"]> & Record<string, any>): this;
-        /**
-         * @category Misc
-         * @description Delete the given fields from the element.
-         * @param {(keyof this["element"] | string)[]} keys - The field names to remove.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        removeFields(keys: (keyof this["element"] | string)[]): this;
-        /**
-         * @category Misc
-         * @description Read the element's current values for the given keys, to capture them before overwriting.
-         * @param {(keyof this["element"] | string)[]} defaults - The field names to read.
-         * @returns {object} The current value of each requested field.
-         */
-        getDefaults(defaults: (keyof this["element"] | string)[]): Partial<this["element"]> & Record<string, any>;
-        /**
-         * @category Misc
-         * @description The fields the element and the given object both have, with the element's values.
-         * @param {object} other - The object to compare against.
-         * @returns {object} The shared fields. Neither input is modified.
-         */
-        getIntersection(other: Partial<this["element"]> & Record<string, any>): Partial<this["element"]> & Record<string, any>;
-        /**
-         * @category Misc
-         * @description The fields where the element and the given object disagree, with the element's values.
-         * @param {object} other - The object to compare against.
-         * @returns {object} The differing fields. Neither input is modified.
-         */
-        getDifference(other: Partial<this["element"]> & Record<string, any>): Partial<this["element"]> & Record<string, any>;
-        /**
-         * @category Misc
-         * @description Read the given fields off the element into a plain object, leaving the element unchanged.
-         * @param {(keyof this["element"] | string)[]} keys - The field names to extract.
-         * @returns {object} The requested fields and their values.
-         */
-        extract(keys: (keyof this["element"] | string)[]): Partial<this["element"]> & Record<string, any>;
-        /**
-         * @function applyDefaults
-         * @category Misc
-         * @description Apply default properties to the underlying object, with optional smart merging for
-         * array-like keys. By default, merging will happen on all MVC properties that accept arrays (like
-         * `operators`, `handlers`, `tools`, etc.) to allow for concatenation of such MVC pieces.
-         * @param {Record<string, any>} defaults - Key/value map of defaults to apply on the object.
-         * @param {ApplyDefaultsOptions} [options] - Optional configuration for merging keys.
-         * @returns {this} The same selector instance for chaining.
-         *
-         * @example
-         * ```ts
-         * const properties = {...};
-         * gradum(properties).applyDefaults({
-         *   tag: "my-el",
-         *   view: MyElementView,
-         *   tools: [selectTool, panTool],
-         *   operators: KeyboardOperator
-         * });
-         * ```
-         */
-        applyDefaults(defaults: Partial<this["element"]> & Record<string, any>, options?: ApplyDefaultsOptions): this;
-    }
-}
-
-declare module "./gradum-kit" {
-    interface GradumSelector {
-        /**
-         * @category Reifects
-         * @description Readonly shallow set of the reifects attached to this object.
-         */
-        readonly reifects: Set<StatefulReifect>;
-        /**
-         * @category Reifects
-         * @description The transition used by the element's show() and isShown methods. Directly modifying its
-         * value will modify all elements' default showTransition. Unless this is the desired outcome, set it to a
-         * new custom StatefulReifect.
-         */
-        showTransition: StatefulReifect<Shown>;
-        /**
-         * @category Reifects
-         * @description Boolean indicating whether the element is shown or not, based on its showTransition.
-         */
-        readonly isShown: boolean;
-        /**
-         * @category Reifects
-         * @description Show or hide the element (based on CSS) by transitioning in/out of the element's showTransition.
-         * @param {boolean} b - Whether to show the element.
-         * @param {ReifectAppliedOptions<Shown>} [options] - Options controlling how the transition is applied.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        show(b: boolean, options?: ReifectAppliedOptions<Shown>): this;
-        /**
-         * @function attachReifect
-         * @category Reifects
-         * @description Attach one or more reifects to the object.
-         * @param {StatefulReifect[]} reifects - The reifect(s) to attach.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        attachReifect(...reifects: StatefulReifect[]): this;
-        /**
-         * @function detachReifect
-         * @category Reifects
-         * @description Detach one or more reifects from the object.
-         * @param {StatefulReifect[]} reifects - The reifect(s) to detach.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        detachReifect(...reifects: StatefulReifect[]): this;
-        /**
-         * @function initializeReifect
-         * @category Reifects
-         * @template {string | symbol | number} State - The type of the reifect's states.
-         * @description Initializes the reifect at the given state for the corresponding object.
-         * @param {StatefulReifect<State>} reifect - The reifect to initialize.
-         * @param {State} state - The state to initialize to (if the reifect is not stateless).
-         * @param {ReifectAppliedOptions<State>} [options] - Optional overrides for the default values.
-         * Set to `null` to not set anything on the object.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        initializeReifect<State extends string | symbol | number>(reifect?: StatefulReifect<State>, state?: State, options?: ReifectAppliedOptions<State>): this;
-        /**
-         * @function applyReifect
-         * @category Reifects
-         * @template {string | symbol | number} State - The type of the reifect's states.
-         * @description Applies the reifect at the given state for the corresponding object.
-         * @param {StatefulReifect<State>} reifect - The reifect to apply.
-         * @param {State} state - The state to initialize to (if the reifect is not stateless).
-         * @param {ReifectAppliedOptions<State>} [options] - Optional overrides for the default values.
-         * Set to `null` to not set anything on the object.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        applyReifect<State extends string | symbol | number>(reifect: StatefulReifect<State>, state?: State, options?: ReifectAppliedOptions<State>): this;
-        /**
-         * @function toggleReifect
-         * @category Reifects
-         * @template {string | symbol | number} State - The type of the reifect's states.
-         * @description Toggles the reifect to the next state for the corresponding object.
-         * @param {StatefulReifect<State>} reifect - The reifect to toggle.
-         * @param {ReifectAppliedOptions<State>} [options] - Optional overrides for the default values.
-         * Set to `null` to not set anything on the object.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        toggleReifect<State extends string | symbol | number>(reifect: StatefulReifect<State>, options?: ReifectAppliedOptions<State>): this;
-        /**
-         * @function reloadReifects
-         * @category Reifects
-         * @description Reloads all reifects attached to this object. Doesn't recompute values.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        reloadReifects(): this;
-        /**
-         * @function reloadReifectsChainableStyles
-         * @category Reifects
-         * @description Reloads all transitions attached to this object. Doesn't recompute values.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        reloadReifectsChainableStyles(applyInstantly?: boolean): this;
-        /**
-         * @function reifectEnabledState
-         * @category Reifects
-         * @description Get the reifect enabled state of this object. If a reifect is provided, the enabled state of
-         * the object for this specific reifect will be returned. otherwise, the global state of the object will
-         * be returned.
-         * @param {StatefulReifect} [reifect] - The target reifect.
-         * @returns {ReifectEnabledObject} The enabled state.
-         */
-        reifectEnabledState(reifect?: StatefulReifect): ReifectEnabledObject;
-        /**
-         * @function enableReifect
-         * @category Reifects
-         * @description Set the reifect enabled state of this object. If a reifect is provided, the enabled state of
-         * the object for this specific reifect will be updated. otherwise, the global state of the object will
-         * be updated
-         * @param {boolean | ReifectEnabledObject} value - The new state.
-         * @param {StatefulReifect} [reifect] - The target reifect.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        enableReifect(value: boolean | ReifectEnabledObject, reifect?: StatefulReifect): this;
-    }
-}
 
 declare module "yjs" {
     interface Map<MapType = any> {
@@ -13051,4 +11504,1584 @@ type FontProperties = {
 declare function loadLocalFont(font: FontProperties): void;
 
 export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, GradumBaseElement, GradumButton, GradumButtonPopup, GradumClickEventName, GradumConstrainer, GradumContentSwitch, GradumDragEvent, GradumDragEventName, GradumDrawer, GradumDropdown, GradumElement, GradumEmitter, GradumEvent, GradumEventManager, GradumEventName, GradumGrid, GradumHandler, GradumHeadlessElement, GradumIcon, GradumIconSwitch, GradumIconToggle, GradumInput, GradumInteractor, GradumKeyEvent, GradumKeyEventName, GradumLabelElement, GradumMap, GradumMarkingMenu, GradumModel, GradumMovable, GradumMoveEventName, GradumNestedMap, GradumNodeList, GradumNumericalInput, GradumObserver, GradumOperator, GradumPopup, GradumProxiedElement, GradumQueue, GradumRect, GradumRichElement, GradumSelect, GradumSelectElement, GradumSelectInputEvent, GradumSelectWheel, GradumSelector, GradumTool, GradumView, GradumWeakSet, GradumWheelEvent, GradumWheelEventName, GradumYModel, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, deepObserveAll, deepObserveAny, define, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, g, generateTagFunction, getAllRegistered, getConstructorChain, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, gr, gradum, gradumify, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, modelSignal, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, textToElement, textarea, tool, trackSignal, trim, untrack, urlToBlob, video };
-export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledGradumEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, Gradum, GradumButtonPopupProperties, GradumConstrainerProperties, GradumContentSwitchProperties, GradumDragEventProperties, GradumDrawerProperties, GradumDropdownProperties, GradumElementDefaultInterface, GradumElementMvcInterface, GradumElementProperties, GradumElementPropertiesMap, GradumElementTagNameMap, GradumElementUiInterface, GradumEventManagerLockStateProperties, GradumEventManagerProperties, GradumEventManagerStateProperties, GradumEventNameEntry, GradumEventNameKey, GradumEventProperties, GradumHeadlessProperties, GradumIconProperties, GradumIconSwitchProperties, GradumIconToggleProperties, GradumInputProperties, GradumInteractorProperties, GradumKeyEventProperties, GradumLabelElementProperties, GradumMarkingMenuProperties, GradumModelProperties, GradumModelProxy, GradumNumericalInputProperties, GradumObserverProperties, GradumOperatorProperties, GradumPopupProperties, GradumProperties, GradumProxiedProperties, GradumRawEventProperties, GradumRectProperties, GradumRichElementProperties, GradumSelectElementProperties, GradumSelectInputEventProperties, GradumSelectProperties, GradumSelectWheelProperties, GradumSelectWheelStylingProperties, GradumToolProperties, GradumViewProperties, GradumWheelEventProperties, GradumifyOptions, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
+export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledGradumEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, Gradum, GradumButtonPopupProperties, GradumConstrainerProperties, GradumContentSwitchProperties, GradumDragEventProperties, GradumDrawerProperties, GradumDropdownProperties, GradumElementDefaultInterface, GradumElementMvcInterface, GradumElementProperties, GradumElementPropertiesMap, GradumElementTagNameMap, GradumElementUiInterface, GradumEventManagerLockStateProperties, GradumEventManagerProperties, GradumEventManagerStateProperties, GradumEventNameEntry, GradumEventNameKey, GradumEventProperties, GradumHeadlessProperties, GradumIconProperties, GradumIconSwitchProperties, GradumIconToggleProperties, GradumInputProperties, GradumInteractorProperties, GradumKeyEventProperties, GradumLabelElementProperties, GradumMarkingMenuProperties, GradumModelProperties, GradumModelProxy, GradumNumericalInputProperties, GradumObserverProperties, GradumOperatorProperties, GradumPopupProperties, GradumProperties, GradumProxiedProperties, GradumRawEventProperties, GradumRectProperties, GradumRichElementProperties, GradumSelectElementProperties, GradumSelectInputEventProperties, GradumSelectProperties, GradumSelectWheelProperties, GradumSelectWheelStylingProperties, GradumToolProperties, GradumViewProperties, GradumWheelEventProperties, GradumifyOptions, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, HitResolver, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
+
+// Flattened from relative module augmentations
+interface GradumSelector {
+        /**
+         * @category Events
+         * @description Readonly set of listeners bound to this node.
+         */
+        readonly boundListeners: ListenerSet;
+        /**
+         * @category Events
+         * @description If you want the element to bypass the event manager and allow native events to seep through
+         * (in case you are preventing default events), you can set this field to a predicate that
+         * defines when to bypass the manager according to the passed event.
+         */
+        bypassManagerOn: (e: Event) => boolean | GradumEventManagerStateProperties;
+        /**
+         * @category Events
+         * @description Lets an element contribute targets the DOM cannot see. Assign a {@link HitResolver} to
+         * an element that paints its contents — a canvas — and whatever it reports at the pointer joins the
+         * dispatch as if it were a child of it: capture reaches it last, bubble reaches it first, and it can
+         * carry listeners, tools, and constrainers like any element.
+         *
+         * *Note: the objects are looked up once per event, so keep the resolver cheap — test bounding boxes
+         * before exact shapes.*
+         *
+         * @example
+         * ```ts
+         * gradum(canvas).hitResolver = position => scene.objectsAt(position); //topmost first
+         * ```
+         */
+        hitResolver: HitResolver;
+        /**
+         * @category Events
+         * @description The object to treat as this one's parent when it has no DOM parent, letting a virtual
+         * hit target still be found by {@link GradumEvent.closest} and still trigger the constrainers of the
+         * element that drew it. Held weakly, so naming a parent never keeps it alive.
+         *
+         * *Note: objects returned by a {@link HitResolver} get the resolving element as their parent
+         * automatically. Assign this only for a scene that nests, where the real parent is another object.*
+         */
+        hitParent: object;
+        /**
+         * @function getParent
+         * @category Events
+         * @description One step up the tree, for a DOM node and a virtual hit target alike: the DOM parent
+         * when there is one, otherwise the {@link GradumSelector.hitParent}. This is the climb
+         * {@link GradumEvent.closest} and the constrainer checks follow, so an object painted inside a canvas
+         * still reaches the element that drew it and everything above that.
+         * @returns {object} The parent, or `undefined` at the top of the chain.
+         */
+        getParent(): object;
+        /**
+         * @function on
+         * @category Events
+         * @template {Node} Type - The type of the element.
+         * @description Adds an event listener to the element.
+         * @param {string} type - The type of the event.
+         * @param {ListenerCallback<Type>} listener - The function that receives a notification.
+         * @param {ListenerOptions} [options] - An options object that specifies characteristics
+         * about the event listener.
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        on<Type extends Node>(type: string, listener: ListenerCallback<Type>, options?: ListenerOptions, manager?: GradumEventManager): this;
+        /**
+         * @function onTool
+         * @category Events
+         * @template {Node} Type - The type of the element.
+         * @description Adds an event listener to the element.
+         * @param {string} type - The type of the event.
+         * @param {string} toolName - The name of the tool. Set to null or undefined to check for listeners not bound
+         * to a tool.
+         * @param {ListenerCallback<Type>} listener - The function that receives a notification.
+         * @param {ListenerOptions} [options] - An options object that specifies characteristics
+         * about the event listener.
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        onTool<Type extends Node>(type: string, toolName: string, listener: ListenerCallback<Type>, options?: ListenerOptions, manager?: GradumEventManager): this;
+        /**
+         * @function executeAction
+         * @category Events
+         * @description Execute the listeners bound on this element for the given `type` and `toolName`. Simulates
+         * firing a `type` event on the element with `toolName` active.
+         * @param {string} type -  The type of the event.
+         * @param {string} toolName - The name of the tool. Set to null or undefined to fire listeners not bound
+         * to a tool.
+         * @param {Event} event - The event to pass as parameter to the listeners.
+         * @param {ListenerOptions} [options] - Options object that specifies characteristics
+         * about the event listeners to fire.
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         */
+        executeAction(type: string, toolName: string, event: Event, options?: ListenerOptions, manager?: GradumEventManager): Propagation;
+        /**
+         * @function hasListener
+         * @category Events
+         * @description Checks if the given event listener is bound to the element (in its boundListeners list).
+         * @param {string} type - The type of the event. Set to null or undefined to get all event types.
+         * @param {ListenerCallback} listener - The function that receives a notification.
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {boolean} Whether the element has the given listener.
+         */
+        hasListener(type: string, listener: ListenerCallback, manager?: GradumEventManager): boolean;
+        /**
+         * @function hasToolListener
+         * @category Events
+         * @description Checks if the given event listener is bound to the element (in its boundListeners list).
+         * @param {string} type - The type of the event. Set to null or undefined to get all event types.
+         * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
+         * to check for listeners not bound to a tool.
+         * @param {ListenerCallback} listener - The function that receives a notification.
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {boolean} Whether the element has the given listener.
+         */
+        hasToolListener(type: string, toolName: string, listener: ListenerCallback, manager?: GradumEventManager): boolean;
+        /**
+         * @function hasListenersByType
+         * @category Events
+         * @description Checks if the element has bound listeners of the given type (in its boundListeners list).
+         * @param {string} type - The type of the event. Set to null or undefined to get all event types.
+         * @param {string} toolName - The name of the tool to consider (if any). Set to null or undefined
+         * to check for listeners not bound to a tool.
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {boolean} Whether the element has a listener of this type.
+         */
+        hasListenersByType(type: string, toolName?: string, manager?: GradumEventManager): boolean;
+        /**
+         * @function removeListener
+         * @category Events
+         * @description Removes an event listener that is bound to the element (in its boundListeners list).
+         * @param {string} type - The type of the event.
+         * @param {ListenerCallback} listener - The function that receives a notification.
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeListener(type: string, listener: ListenerCallback, manager?: GradumEventManager): this;
+        /**
+         * @function removeToolListener
+         * @category Events
+         * @description Removes an event listener that is bound to the element (in its boundListeners list).
+         * @param {string} type - The type of the event.
+         * @param {string} toolName - The name of the tool the listener is attached to. Set to null or undefined
+         * to check for listeners not bound to a tool.
+         * @param {ListenerCallback} listener - The function that receives a notification.
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeToolListener(type: string, toolName: string, listener: ListenerCallback, manager?: GradumEventManager): this;
+        /**
+         * @function removeListenersByType
+         * @category Events
+         * @description Removes all event listeners bound to the element (in its boundListeners list) assigned to the
+         * specified type.
+         * @param {string} type - The type of the event. Set to null or undefined to consider all types.
+         * @param {string} [toolName] - The name of the tool associated (if any). Set to null or undefined
+         * to check for listeners not bound to a tool.
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeListenersByType(type: string, toolName?: string, manager?: GradumEventManager): this;
+        /**
+         * @function removeAllListeners
+         * @category Events
+         * @description Removes all event listeners bound to the element (in its boundListeners list).
+         * @param {GradumEventManager} [manager] - The associated event manager. Defaults to the first created manager,
+         * or a new instantiated one if none already exist.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeAllListeners(manager?: GradumEventManager): this;
+        /**
+         * @category Events
+         * @description Prevent default browser behavior on the provided event types. By default, all basic input events
+         * will be processed.
+         * @param {PreventDefaultOptions} [options] - An options object to customize the behavior of the function.
+         */
+        preventDefault(options?: PreventDefaultOptions): this;
+    }
+interface GradumSelector {
+        /**
+         * @function makeTool
+         * @category Tools
+         * @description Turns the element into a tool identified by `toolName`, optionally wiring activation and
+         * key mapping. By default, this function also sets up an event listener on the element to activate the
+         * tool on click. This behavior can be overridden via the `options` parameter.
+         * @param {string} toolName - The unique name of the tool to register under the manager. Reusing an existing
+         * `toolName` will make this element another instance of `toolName`.
+         * @param {MakeToolOptions} [options] - Tool creation options (custom activation, click mode, key mapping, manager).
+         * @returns {this} Itself for chaining.
+         */
+        makeTool(toolName: string, options?: MakeToolOptions): this;
+        /**
+         * @function isTool
+         * @category Tools
+         * @description Whether this element is registered as a tool for the provided manager.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {boolean} True if the element is a tool, false otherwise.
+         */
+        isTool(manager?: GradumEventManager): boolean;
+        /**
+         * @function getToolNames
+         * @category Tools
+         * @description Returns all tool names registered on this element for the provided manager.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {string[]} The list of tool names.
+         */
+        getToolNames(manager?: GradumEventManager): string[];
+        /**
+         * @function getToolName
+         * @category Tools
+         * @description Returns the first registered tool name on this element for the provided manager.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {string} The first tool name, if any.
+         */
+        getToolName(manager?: GradumEventManager): string;
+        /**
+         * @function onToolActivate
+         * @category Tools
+         * @description Retrieve the delegate fired when this tool is activated in the corresponding manager.
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {Delegate<() => void} The delegate.
+         */
+        onToolActivate(toolName?: string, manager?: GradumEventManager): Delegate<() => void>;
+        /**
+         * @function onToolDeactivate
+         * @category Tools
+         * @description Retrieve the delegate fired when this tool is deactivated in the corresponding manager.
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {Delegate<() => void} The delegate.
+         */
+        onToolDeactivate(toolName?: string, manager?: GradumEventManager): Delegate<() => void>;
+        /**
+         * @function addToolBehavior
+         * @category Tools
+         * @description Adds a behavior callback for a given tool and a given type. This callback will attempt to be
+         * executed on the target element when a `type` event is fired and `toolName` is active. It is applied to
+         * all instances of the tool.
+         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
+         * @param {ToolBehaviorCallback} callback - The behavior function. Return `true` to stop propagation.
+         * @param {string} [toolName=this.getToolName()] - Tool name to bind the behavior to. Defaults to this
+         * element's first tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {this} Itself for chaining.
+         */
+        addToolBehavior(type: string, callback: ToolBehaviorCallback, toolName?: string, manager?: GradumEventManager): this;
+        /**
+         * @function hasToolBehavior
+         * @category Tools
+         * @description Checks whether there is at least one tool behavior for the pair "`type`, `toolName`."
+         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
+         * @param {string} [toolName=this.getToolName()] - The tool name to check under. Defaults to this
+         * element's first tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {boolean} True if one or more behaviors are registered.
+         */
+        hasToolBehavior(type: string, toolName?: string, manager?: GradumEventManager): boolean;
+        /**
+         * @function removeToolBehaviors
+         * @category Tools
+         * @description Removes all behaviors for the pair "`type`, `toolName`" under the given manager.
+         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
+         * @param {string} [toolName=this.getToolName()] - The tool name whose behaviors will be removed. Defaults to this
+         * element's first tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {this} Itself for chaining.
+         */
+        removeToolBehaviors(type: string, toolName?: string, manager?: GradumEventManager): this;
+        /**
+         * @function applyTool
+         * @category Tools
+         * @description Executes all behaviors registered for the pair "`type`, `toolName`" against this element.
+         * @param {string} toolName - The name of the tool whose behaviors should run.
+         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
+         * @param {Event} event - The triggering event instance.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {boolean} True if at least one behavior returned `true` (to stop propagation of the event).
+         */
+        applyTool(toolName: string, type: string, event: Event, manager?: GradumEventManager): Propagation;
+        /**
+         * @function clearToolBehaviors
+         * @category Tools
+         * @description Clears all registered behaviors for the tools attached to this element.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {this} Itself for chaining.
+         */
+        clearToolBehaviors(manager?: GradumEventManager): this;
+        /**
+         * @function embedTool
+         * @category Tools
+         * @description Embeds this tool into a target node, so all interactions on the tool element apply to the
+         * defined target.
+         * @param {Node} target - The node to manipulate when interacting with the tool element itself.
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
+         * @returns {this} Itself for chaining.
+         */
+        embedTool(target: Node, manager?: GradumEventManager): this;
+        /**
+         * @function isEmbeddedTool
+         * @category Tools
+         * @description Whether this tool is embedded under the provided manager.
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
+         * @returns {boolean} True if an embedded target is present.
+         */
+        isEmbeddedTool(manager?: GradumEventManager): boolean;
+        /**
+         * @function getEmbeddedToolTarget
+         * @category Tools
+         * @description Returns the target node for this embedded tool under the provided manager.
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
+         * @returns {Node} The embedded tool's target node, if any.
+         */
+        getEmbeddedToolTarget(manager?: GradumEventManager): Node;
+        /**
+         * @function ignoreTool
+         * @category Tools
+         * @description Make the current element ignore the provided tool, so interacting with the tool on this
+         * element will have no effect and propagate.
+         * @param {string} toolName - The name of the tool to ignore.
+         * @param {string} [type] - The type of the event. If undefined, all event types will be considered.
+         * @param {boolean} [ignore] - Whether to ignore the tool. Defaults to true.
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
+         * @returns {this} Itself for chaining.
+         */
+        ignoreTool(toolName: string, type?: string, ignore?: boolean, manager?: GradumEventManager): this;
+        /**
+         * @function ignoreTool
+         * @category Tools
+         * @description Make the current element ignore all tools, so interacting with any tool on this
+         * element will have no effect and propagate.
+         * @param {boolean} [ignore] - Whether to ignore the tools. Defaults to true.
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
+         * @returns {this} Itself for chaining.
+         */
+        ignoreAllTools(ignore?: boolean, manager?: GradumEventManager): this;
+        /**
+         * @function isToolIgnored
+         * @category Tools
+         * @description Whether the current element is ignoring the provided tool.
+         * @param {string} toolName - The name of the tool to check for.
+         * @param {string} [type] - The type of the event. If undefined, all event types will be considered.
+         * @param {GradumEventManager} [manager] - The associated manager (defaults to `GradumEventManager.instance`).
+         * @returns {boolean} Whether the tool is ignored for the provided event type.
+         */
+        isToolIgnored(toolName: string, type?: string, manager?: GradumEventManager): boolean;
+    }
+interface GradumTool<ElementType extends object = object> {
+        /**
+         * @function customActivation
+         * @description Custom activation function.
+         * @param {Gradum<Element>} element - The tool element itself.
+         * @param {GradumEventManager} [manager] - The event manager instance this tool should register against. Defaults
+         * to `GradumEventManager.instance`.
+         */
+        customActivation(element: ElementType, manager?: GradumEventManager): void;
+        /**
+         * @function onActivate
+         * @description Function to execute when the tool is activated.
+         */
+        onActivate(): void;
+        /**
+         * @function onDeactivate
+         * @description Function to execute when the tool is deactivated.
+         */
+        onDeactivate(): void;
+    }
+interface GradumConstrainer {
+        /**
+         * @function onActivate
+         * @description Function to execute when the constrainer is activated.
+         */
+        onActivate(): void;
+        /**
+         * @function onDeactivate
+         * @description Function to execute when the constrainer is deactivated.
+         */
+        onDeactivate(): void;
+    }
+interface GradumSelector<Type extends object = Node> {
+        /**
+         * @function setProperties
+         * @category Element
+         * @template {ValidTag} Tag - The HTML tag of the element (for accurate autocompletion of available properties).
+         * @description Sets the declared properties to the element (if possible).
+         * @param {GradumProperties<Tag>} properties - The properties object.
+         * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
+         * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        setProperties<Tag extends ValidTag>(properties: GradumProperties<Tag>, setOnlyBaseProperties?: boolean): this;
+        /**
+         * @category Element
+         * @description Read every own field of the element as a plain object, so it can be diffed or cloned.
+         * @returns {Record<string, any>} The element's fields, keyed by name.
+         */
+        getFields(): Record<string, any>;
+        /**
+         * @category Element
+         * @description Create a copy of the element. By default the copy carries the same properties and children,
+         * but none of the bound listeners.
+         * @param {CloneElementOptions} [options] - What to carry over to the copy.
+         * @returns {Type} The cloned element.
+         */
+        clone(options?: CloneElementOptions): Type;
+        /**
+         * @category Element
+         * @description Destroys the element by removing it from the document and removing all its bound listeners.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        destroy(): this;
+        /**
+         * @category Element
+         * @description Sets the value of an attribute on the element.
+         * @param {string} name The name of the attribute.
+         * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent
+         * a true boolean.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        setAttribute(name: string, value?: string | number | boolean): this;
+        /**
+         * @category Element
+         * @description Removes an attribute from the element.
+         * @param {string} name The name of the attribute to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeAttribute(name: string): this;
+        /**
+         * @category Element
+         * @description Causes the element to lose focus.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        blur(): this;
+        /**
+         * @category Element
+         * @description Sets focus on the element.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        focus(): this;
+        /**
+         * @category Element
+         * @description Push the element's feedforward properties down to its children, so newly added descendants
+         * pick up the same defaults.
+         * @param {FeedforwardProperties} [options] - Properties to feed forward. Defaults to
+         * {@link GradumSelector.defaultFeedforwardProperties}.
+         * @returns {Type} The element, allowing for method chaining.
+         */
+        feedforward(options?: FeedforwardProperties): Type;
+        /**
+         * @category Element
+         * @description The properties passed on to children created through {@link GradumSelector.feedforward},
+         * letting a parent seed its descendants with shared defaults.
+         */
+        defaultFeedforwardProperties: GradumElementProperties;
+    }
+interface GradumProxiedElement extends GradumElementDefaultInterface {
+    }
+interface GradumProxiedElement<ElementTag extends ValidTag = ValidTag, ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel> extends GradumElementMvcInterface<ViewType, DataType, ModelType> {
+    }
+interface GradumProxiedElement extends GradumElementUiInterface {
+    }
+interface GradumElement {
+        readonly tagName: string;
+    }
+interface GradumElement extends GradumElementDefaultInterface {
+    }
+interface GradumElement<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel> extends GradumElementMvcInterface<ViewType, DataType, ModelType> {
+    }
+interface GradumElement extends GradumElementUiInterface {
+    }
+interface GradumSelector<Type extends object = Node> {
+        /**
+         * @readonly
+         * @category MVC
+         * @description Every MVC piece bound to the element — its view, model, emitter, and the operator, handler,
+         * interactor, tool, and constrainer collections — in one object.
+         */
+        readonly mvc: MvcProperties;
+        /**
+         * @category MVC
+         * @description The model of the element's MVC structure.
+         */
+        model: any;
+        /**
+         * @category MVC
+         * @description The view of the element's MVC structure.
+         */
+        view: any;
+        /**
+         * @category MVC
+         * @description The emitter of the element's MVC structure.
+         */
+        emitter: any;
+        /**
+         * @category MVC
+         * @description The main data block attached to the element's model.
+         */
+        data: any;
+        /**
+         * @category MVC
+         * @description A key-value store attached to the element, backed by its own {@link GradumModel} and
+         * created on first read — so it is available whether or not the element has a model of its own. Use
+         * it for flags that tools and behaviors read off an element: `selectable`, `dragAndDroppable`, and
+         * the like. Assigning a plain object replaces the store's contents; assigning a model adopts it.
+         *
+         * Reads participate in effect tracking once a signal exists for the key, so
+         * `metadata.makeSignal("flag")` at setup makes `metadata.get("flag")` reactive inside an `@effect`.
+         */
+        get metadata(): GradumModel<object>;
+        set metadata(value: GradumModel<object> | object);
+        /**
+         * @category MVC
+         * @description The ID of the main data block of the element's model.
+         */
+        dataId: string;
+        /**
+         * @category MVC
+         * @description The numerical index of the main data block of the element's model.
+         */
+        dataIndex: number;
+        /**
+         * @category MVC
+         * @description The size (number) of the main data block of the element's model.
+         */
+        readonly dataSize: number;
+        /**
+         * @category MVC
+         * @description The operators of the element's MVC structure.
+         */
+        operators: GradumOperator[];
+        /**
+         * @category MVC
+         * @description The handlers attached to the element's model.
+         * Returns an empty array if no model is set.
+         */
+        handlers: GradumHandler[];
+        /**
+         * @category MVC
+         * @description The interactors of the element's MVC structure.
+         */
+        interactors: GradumInteractor[];
+        /**
+         * @category MVC
+         * @description The tools of the element's MVC structure.
+         */
+        tools: GradumTool[];
+        /**
+         * @category MVC
+         * @description The constrainers of the element's MVC structure.
+         */
+        constrainers: GradumConstrainer[];
+        /**
+         * @function setMvc
+         * @category MVC
+         * @description Configures the MVC structure for the element. Sets the provided MVC pieces (model, view,
+         * emitter, operators, handlers, interactors, tools, constrainers) on the element, initializes a default
+         * emitter if none is provided, and initializes all MVC pieces unless explicitly disabled.
+         * @param {MvcGenerationProperties} properties - The properties to configure the MVC structure.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        setMvc(properties: MvcGenerationProperties): this;
+        /**
+         * @function initializeMvc
+         * @category MVC
+         * @description Initializes all MVC pieces attached to the element, in the following order: view,
+         * operators, interactors, tools, constrainers, and model. The model is initialized last to allow
+         * the view and operators to set up their change callbacks first.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        initializeMvc(): this;
+        /**
+         * @function getMvcDifference
+         * @category MVC
+         * @template {GradumView} ViewType - The element's view type.
+         * @template {object} DataType - The element's data type.
+         * @template {GradumModel<DataType>} ModelType - The element's model type.
+         * @template {GradumEmitter} EmitterType - The element's emitter type.
+         * @description Computes the structural difference between the element's current MVC configuration
+         * and a provided configuration description. The comparison is constructor-based (not instance-based):
+         * - For singular fields (`view`, `model`, `emitter`), the constructors are compared.
+         * - For collection fields (`operators`, `handlers`, `interactors`, `tools`, `constrainers`),
+         *   the result contains constructors present in the current MVC but absent from the provided configuration.
+         * @param {MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>} [properties={}] -
+         *  The configuration to compare against.
+         * @returns {MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>}
+         *  A partial configuration of constructors describing pieces present in the current MVC
+         *  but not in the provided configuration.
+         */
+        getMvcDifference<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>>(properties?: MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>): MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>;
+        /**
+         * @function getOperator
+         * @category MVC
+         * @description Retrieves the attached MVC operator with the given key.
+         * @param {string} key - The operator's key.
+         * @returns {GradumOperator} The operator.
+         */
+        getOperator(key: string): GradumOperator;
+        /**
+         * @function addOperator
+         * @category MVC
+         * @description Adds the given operator to the element's MVC structure.
+         * @param {GradumOperator} operator - The operator to add.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addOperator(operator: GradumOperator): this;
+        /**
+         * @function removeOperator
+         * @category MVC
+         * @description Removes the given operator from the element's MVC structure and unlinks it.
+         * @param {string | GradumOperator} keyOrInstance - The operator's key or instance to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeOperator(keyOrInstance: string | GradumOperator): this;
+        /**
+         * @function getHandler
+         * @category MVC
+         * @description Retrieves the attached MVC handler with the given key.
+         * Returns undefined if no model is set.
+         * @param {string} key - The handler's key.
+         * @returns {GradumHandler} The handler.
+         */
+        getHandler(key: string): GradumHandler;
+        /**
+         * @function addHandler
+         * @category MVC
+         * @description Adds the given handler to the element's model.
+         * If no model is set, this operation is a no-op.
+         * @param {GradumHandler} handler - The handler to add.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addHandler(handler: GradumHandler): this;
+        /**
+         * @function removeHandler
+         * @category MVC
+         * @description Removes the given handler from the element's model and unlinks it.
+         * If no model is set, this operation is a no-op.
+         * @param {string | GradumHandler} keyOrInstance - The handler's key or instance to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeHandler(keyOrInstance: string | GradumHandler): this;
+        /**
+         * @function getInteractor
+         * @category MVC
+         * @description Retrieves the attached MVC interactor with the given key.
+         * @param {string} key - The interactor's key.
+         * @returns {GradumInteractor} The interactor.
+         */
+        getInteractor(key: string): GradumInteractor;
+        /**
+         * @function addInteractor
+         * @category MVC
+         * @description Adds the given interactor to the element's MVC structure.
+         * @param {GradumInteractor} interactor - The interactor to add.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addInteractor(interactor: GradumInteractor): this;
+        /**
+         * @function removeInteractor
+         * @category MVC
+         * @description Removes the given interactor from the element's MVC structure and unlinks it.
+         * @param {string | GradumInteractor} keyOrInstance - The interactor's key or instance to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeInteractor(keyOrInstance: string | GradumInteractor): this;
+        /**
+         * @function getTool
+         * @category MVC
+         * @description Retrieves the attached MVC tool with the given key.
+         * @param {string} key - The tool's key.
+         * @returns {GradumTool} The tool.
+         */
+        getTool(key: string): GradumTool;
+        /**
+         * @function addTool
+         * @category MVC
+         * @description Adds the given tool to the element's MVC structure.
+         * @param {GradumTool} tool - The tool to add.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addTool(tool: GradumTool): this;
+        /**
+         * @function removeTool
+         * @category MVC
+         * @description Removes the given tool from the element's MVC structure and unlinks it.
+         * @param {string | GradumTool} keyOrInstance - The tool's key or instance to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeTool(keyOrInstance: string | GradumTool): this;
+        /**
+         * @function getConstrainer
+         * @category MVC
+         * @description Retrieves the attached MVC constrainer with the given key.
+         * @param {string} key - The constrainer's key.
+         * @returns {GradumConstrainer} The constrainer.
+         */
+        getConstrainer(key: string): GradumConstrainer;
+        /**
+         * @function addConstrainer
+         * @category MVC
+         * @description Adds the given constrainer to the element's MVC structure.
+         * @param {GradumConstrainer} constrainer - The constrainer to add.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addConstrainer(constrainer: GradumConstrainer): this;
+        /**
+         * @function removeConstrainer
+         * @category MVC
+         * @description Removes the given constrainer from the element's MVC structure and unlinks it.
+         * @param {string | GradumConstrainer} keyOrInstance - The constrainer's key or instance to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeConstrainer(keyOrInstance: string | GradumConstrainer): this;
+    }
+interface GradumHeadlessElement extends GradumElementDefaultInterface {
+    }
+interface GradumHeadlessElement<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel> extends GradumElementMvcInterface<ViewType, DataType, ModelType> {
+    }
+interface GradumSelector {
+        /**
+         * @category Constrainers
+         * @description Array of all the constrainers attached to this element.
+         */
+        readonly constrainersNames: string[];
+        /**
+         * @function makeConstrainer
+         * @category Constrainers
+         * @description Creates a new constrainer attached to this element. Useful to maintain certain constraints or
+         * ensure some behaviors persist on a list of objects (by attaching solvers to this constrainer).
+         * @param {string} name - The name of the new constrainer.
+         * @param {MakeConstrainerOptions} [options] - Options parameter to configure the newly-created constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        makeConstrainer(name: string, options?: MakeConstrainerOptions): this;
+        /**
+         * @category Constrainers
+         * @description Array of active constrainers on this element.
+         */
+        readonly activeConstrainers: string[];
+        /**
+         * @function activateConstrainer
+         * @category Constrainers
+         * @description Activate the given constrainer.
+         * @param {string[]} constrainers - The name of the constrainer(s) to activate. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        activateConstrainer(...constrainers: string[]): this;
+        /**
+         * @function deactivateConstrainer
+         * @category Constrainers
+         * @description Deactivate the given constrainer.
+         * @param {string[]} constrainers - The name of the constrainer(s) to deactivate. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        deactivateConstrainer(...constrainers: string[]): this;
+        /**
+         * @function toggleConstrainer
+         * @category Constrainers
+         * @description Toggle the active state of the given constrainer.
+         * @param {string} constrainer - The name of the constrainer to toggle. Defaults to the first active constrainer.
+         * @param {boolean} [force] - If set, the constrainer's active state will be set to this value.
+         * @returns {this} Itself for chaining.
+         */
+        toggleConstrainer(constrainer?: string, force?: boolean): this;
+        /**
+         * @function activateOnlyConstrainer
+         * @category Constrainers
+         * @description Activate the provided constrainer and deactivate all other constrainers attached to this element.
+         * @param {string} constrainer - The constrainer name to activate as the single active constrainer. Defaults to the
+         * first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        activateOnlyConstrainer(constrainer: string): this;
+        /**
+         * @function activateAllConstrainers
+         * @category Constrainers
+         * @description Activate all the constrainers attached to this element.
+         * @returns {this} Itself for chaining.
+         */
+        activateAllConstrainers(): this;
+        /**
+         * @function deactivateAllConstrainers
+         * @category Constrainers
+         * @description Deactivate all the constrainers attached to this element.
+         * @returns {this} Itself for chaining.
+         */
+        deactivateAllConstrainers(): this;
+        /**
+         * @function onConstrainerActivate
+         * @category Constrainers
+         * @description Get the delegate fired when the constrainer of the given name is activated.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {Delegate<() => void>} The delegate.
+         */
+        onConstrainerActivate(constrainer?: string): Delegate<() => void>;
+        /**
+         * @function onConstrainerDeactivate
+         * @category Constrainers
+         * @description Get the delegate fired when the constrainer of the given name is deactivated.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {Delegate<() => void>} The delegate.
+         */
+        onConstrainerDeactivate(constrainer?: string): Delegate<() => void>;
+        /**
+         * @function getConstrainerPriority
+         * @category Constrainers
+         * @description Get the priority of the targeted constrainer. Higher priority constrainers (lower number) should
+         * be resolved first.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {number} The constrainer priority.
+         */
+        getConstrainerPriority(constrainer?: string): number;
+        /**
+         * @function setConstrainerPriority
+         * @category Constrainers
+         * @description Set the priority of the targeted constrainer. Higher priority constrainers (lower number) should
+         * be resolved first.
+         * @param {number} priority - The priority value to set.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        setConstrainerPriority(priority: number, constrainer?: string): this;
+        /**
+         * @function getConstrainerObjectList
+         * @category Constrainers
+         * @description Retrieve the list of objects that are constrained by the given constrainer.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {GradumNodeList} The list of objects. To manipulate, check {@link GradumNodeList}.
+         */
+        getConstrainerObjectList(constrainer?: string): GradumNodeList;
+        /**
+         * @function onConstrainerObjectListChange
+         * @category Constrainers
+         * @description Get the delegate fired whenever an object is added to or removed from the constrainer's object list.
+         * Defaults to the children of the element the constrainer is attached to.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {Delegate<(object: object, status: "added" | "removed") => void>} The delegate.
+         */
+        onConstrainerObjectListChange(constrainer?: string): Delegate<(object: object, status: "added" | "removed") => void>;
+        /**
+         * @function getConstrainerTriggerList
+         * @category Constrainers
+         * @description Retrieve the list of objects that trigger the given constrainer to resolve.
+         * Interacting with any of these objects would typically lead to the solving of the given constrainer.
+         * Defaults to the constrainer's object list.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {GradumNodeList} The list of trigger objects. To manipulate, check {@link GradumNodeList}.
+         */
+        getConstrainerTriggerList(constrainer?: string): GradumNodeList;
+        /**
+         * @function getConstrainerQueue
+         * @category Constrainers
+         * @description Retrieve the current queue to be processed by the constrainer while resolving.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {GradumQueue<object>} The current constrainer queue.
+         */
+        getConstrainerQueue(constrainer?: string): GradumQueue<object>;
+        /**
+         * @function getDefaultConstrainerQueue
+         * @category Constrainers
+         * @description Retrieve the default queue template for the constrainer, used when starting a new resolving pass.
+         * It defaults to the constrainer's object list.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {GradumQueue<object>} The default constrainer queue.
+         */
+        getDefaultConstrainerQueue(constrainer?: string): GradumQueue<object>;
+        /**
+         * @function setDefaultConstrainerQueue
+         * @category Constrainers
+         * @description Define the default queue template for the constrainer, used when starting a new resolving pass.
+         * @param {object[] | GradumQueue<object>} queue - The queue (or list to build a queue from).
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        setDefaultConstrainerQueue(queue: object[] | GradumQueue<object>, constrainer?: string): this;
+        /**
+         * @function getObjectPassesForConstrainer
+         * @category Constrainers
+         * @description Retrieve how many times the given object has been processed for the current resolving session
+         * of the constrainer.
+         * @param {object} object - The object to query.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {number} Number of passes already performed on this object.
+         */
+        getObjectPassesForConstrainer(object: object, constrainer?: string): number;
+        /**
+         * @function getMaxPassesForConstrainer
+         * @category Constrainers
+         * @description Get the maximum number of passes allowed per object for this constrainer during resolving.
+         * This helps prevent infinite cycles in constraint propagation.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {number} The maximum allowed passes.
+         */
+        getMaxPassesForConstrainer(constrainer?: string): number;
+        /**
+         * @function setMaxPassesForConstrainer
+         * @category Constrainers
+         * @description Set the maximum number of passes allowed per object for this constrainer during resolving. This
+         * helps prevent infinite cycles in constraint propagation.
+         * @param {number} passes - Maximum number of passes.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        setMaxPassesForConstrainer(passes: number, constrainer?: string): this;
+        /**
+         * @function getObjectDataForConstrainer
+         * @category Constrainers
+         * @description Retrieve custom per-object data for this constrainer. It is reset on every new
+         * resolving session.
+         * @param {object} object - The object to query.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {Record<string, any>} The stored data object (or an empty object if none).
+         */
+        getObjectDataForConstrainer(object: object, constrainer?: string): Record<string, any>;
+        /**
+         * @function setObjectDataForConstrainer
+         * @category Constrainers
+         * @description Set custom per-object data for this constrainer. It is reset on every new resolving session.
+         * @param {object} object - The object to update.
+         * @param {Record<string, any>} [data] - The new data object to associate with this object.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        setObjectDataForConstrainer(object: object, data?: Record<string, any>, constrainer?: string): this;
+        /**
+         * @function addChecker
+         * @category Constrainers
+         * @description Register a checker in the constrainer. Checkers dictate whether the event should continue
+         * executing depending on the provided context (event, tool, target, etc.).
+         * @param {ConstrainerAddCallbackProperties<ConstrainerChecker>} properties - Configuration object, including the
+         * checker `callback` to be executed, the `name` of the checker to access it later, the name of the attached
+         * `constrainer`, and the `priority` of the checker.
+         * @returns {this} Itself for chaining.
+         */
+        addChecker(properties: ConstrainerAddCallbackProperties<ConstrainerChecker>): this;
+        /**
+         * @function removeChecker
+         * @category Constrainers
+         * @description Remove a checker from the given constrainer by its name.
+         * @param {string} name - The checker name.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        removeChecker(name: string, constrainer?: string): this;
+        /**
+         * @function clearCheckers
+         * @category Constrainers
+         * @description Remove all checkers attached to the given constrainer.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        clearCheckers(constrainer?: string): this;
+        /**
+         * @function checkConstrainer
+         * @category Constrainers
+         * @description Evaluate all checkers for the targeted constrainer and return whether the event should proceed or halt.
+         * @param {ConstrainerCallbackProperties} [properties] - Context passed to each checker.
+         * @returns {boolean} Whether the constrainer passes all checks.
+         */
+        checkConstrainer(properties?: ConstrainerCallbackProperties): boolean;
+        /**
+         * @function checkConstrainersForEvent
+         * @category Constrainers
+         * @description Evaluate checkers for all relevant constrainers for a given event context.
+         * @param {ConstrainerCallbackProperties} [properties] - Event context.
+         * @returns {boolean} Whether all the checkers allowed the event to proceed.
+         */
+        checkConstrainersForEvent(properties?: ConstrainerCallbackProperties): boolean;
+        /**
+         * @function addMutator
+         * @category Constrainers
+         * @description Register a mutator in the constrainer. Mutators compute or transform a value based on the context.
+         * @param {ConstrainerAddCallbackProperties<ConstrainerMutator>} properties - Configuration object, including the
+         * mutator `callback` to be executed, the `name` of the mutator to access it later, the name of the attached
+         * `constrainer`, and the `priority` of the mutator.
+         * @returns {this} Itself for chaining.
+         */
+        addMutator(properties: ConstrainerAddCallbackProperties<ConstrainerMutator>): this;
+        /**
+         * @function removeMutator
+         * @category Constrainers
+         * @description Remove a mutator from the given constrainer by its name.
+         * @param {string} name - The mutator name.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        removeMutator(name: string, constrainer?: string): this;
+        /**
+         * @function clearMutators
+         * @category Constrainers
+         * @description Remove all mutators attached to the given constrainer.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        clearMutators(constrainer?: string): this;
+        /**
+         * @function mutate
+         * @category Constrainers
+         * @template Type - The type of the value to mutate
+         * @description Execute a mutator for the targeted constrainer and return the resulting value.
+         * @param {ConstrainerMutatorProperties<Type>} [properties] - Context object, including the
+         * `mutation` to execute, and the input `value` to mutate.
+         * @returns {Type} The mutated result.
+         */
+        mutate<Type = any>(properties?: ConstrainerMutatorProperties<Type>): Type;
+        /**
+         * @function addSolver
+         * @category Constrainers
+         * @description Register a solver in the constrainer. Solvers typically execute after an event is fired to
+         * ensure the constrainer's constraints are maintained. They process all objects in the constrainer's queue,
+         * one after the other.
+         * @param {ConstrainerAddCallbackProperties<ConstrainerSolver>} properties - Configuration object, including the
+         * solver `callback` to be executed, the `name` of the solver to access it later, the name of the attached
+         * `constrainer`, and the `priority` of the solver.
+         * @returns {this} Itself for chaining.
+         */
+        addSolver(properties: ConstrainerAddCallbackProperties<ConstrainerSolver>): this;
+        /**
+         * @function removeSolver
+         * @category Constrainers
+         * @description Remove the given function from the constrainer's list of solvers.
+         * @param {string} name - The solver's name.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        removeSolver(name: string, constrainer?: string): this;
+        /**
+         * @function clearSolvers
+         * @category Constrainers
+         * @description Remove all solvers attached to the constrainer.
+         * @param {string} [constrainer] - The name of the targeted constrainer. Defaults to the first active constrainer.
+         * @returns {this} Itself for chaining.
+         */
+        clearSolvers(constrainer?: string): this;
+        /**
+         * @function solveConstrainer
+         * @category Constrainers
+         * @description Solve the constrainer by executing all of its attached solvers. Each solver will be executed
+         * on every object in the constrainer's queue, incrementing its number of passes in the process.
+         * @param {ConstrainerCallbackProperties} [properties] - Options object to configure the context.
+         * @returns {this} Itself for chaining.
+         */
+        solveConstrainer(properties?: ConstrainerCallbackProperties): this;
+        /**
+         * @function solveConstrainersForEvent
+         * @category Constrainers
+         * @description Solve all relevant constrainers for a given event context.
+         * @param {ConstrainerCallbackProperties} [properties] - Event context to pass to solvers.
+         * @returns {this} Itself for chaining.
+         */
+        solveConstrainersForEvent(properties?: ConstrainerCallbackProperties): this;
+    }
+interface GradumSelector {
+        /**
+         * @category Style
+         * @description The closest root to the element in the document (the closest ShadowRoot, or the document's head).
+         */
+        readonly closestRoot: StylesRoot;
+        /**
+         * @category Style
+         * @description Whether the element is selected or not. Setting it on an Element will accordingly toggle on it
+         * the "selected" CSS class (or whichever default selected class was set for this element) and update the UI.
+         */
+        selected: boolean;
+        /**
+         * @category Style
+         * @description The CSS classes applied when the element is selected. Assigning a new value moves the
+         * classes over if the element is currently selected.
+         */
+        defaultSelectedClasses: string | string[];
+        /**
+         * @readonly
+         * @category Style
+         * @description Delegate fired whenever the element's selected state changes. Receives the new state.
+         */
+        readonly onSelected: Delegate<(value: boolean) => void>;
+        /**
+         * @function setStyle
+         * @category Style
+         * @description Set a certain style attribute of the element to the provided value.
+         * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to set.
+         * @param {string | number} value - THe value to append.
+         * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next
+         * animation frame.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        setStyle(attribute: keyof CSSStyleDeclaration, value: string | number, instant?: boolean): this;
+        /**
+         * @function appendStyle
+         * @category Style
+         * @description Append the provided value to a certain style attribute.
+         * @param {keyof CSSStyleDeclaration} attribute - A string representing the style attribute to append to.
+         * @param {string | number} value - The value to append.
+         * @param {string} [separator=", "] - The separator to use between the existing and new values.
+         * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next
+         * animation frame.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        appendStyle(attribute: keyof CSSStyleDeclaration, value: string | number, separator?: string, instant?: boolean): this;
+        /**
+         * @function setStyles
+         * @category Style
+         * @description Parses and applies the given CSS to the element's inline styles.
+         * @param {StylesType} styles - Acceptable styles to set.
+         * @param {boolean} [instant=false] - If true, will set the fields directly. Otherwise, will set them on next
+         * animation frame.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        setStyles(styles: StylesType, instant?: boolean): this;
+    }
+interface GradumElementTagNameMap {
+        "gradum-button": GradumButton;
+    }
+interface GradumElementTagNameMap {
+        "gradum-icon": GradumIcon;
+    }
+interface GradumElementTagNameMap {
+        "gradum-rich-element": GradumRichElement;
+    }
+interface GradumElementTagNameMap {
+        "gradum-icon-switch": GradumIconSwitch;
+    }
+interface GradumElementTagNameMap {
+        "gradum-icon-toggle": GradumIconToggle;
+    }
+interface GradumElementTagNameMap {
+        "gradum-input": GradumInput;
+    }
+interface GradumElementTagNameMap {
+        "gradum-numerical-input": GradumNumericalInput;
+    }
+interface GradumElementTagNameMap {
+        "gradum-select-element": GradumSelectElement;
+    }
+interface GradumElementTagNameMap {
+        "gradum-content-switch": GradumContentSwitch;
+    }
+interface GradumElementTagNameMap {
+        "gradum-drawer": GradumDrawer;
+    }
+interface GradumElementTagNameMap {
+        "gradum-popup": GradumPopup;
+    }
+interface GradumElementTagNameMap {
+        "gradum-dropdown": GradumDropdown;
+    }
+interface GradumElementTagNameMap {
+        "gradum-marking-menu": GradumMarkingMenu;
+    }
+interface GradumElementTagNameMap {
+        "gradum-select-wheel": GradumSelectWheel;
+    }
+interface GradumElementTagNameMap {
+        "gradum-button-popup": GradumButtonPopup;
+    }
+interface GradumSelector {
+        /**
+         * @category Classes
+         * @description Add one or more CSS classes to the element.
+         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addClass(classes?: string | string[]): this;
+        /**
+         * @category Classes
+         * @description Remove one or more CSS classes from the element.
+         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeClass(classes?: string | string[]): this;
+        /**
+         * @category Classes
+         * @description Toggle one or more CSS classes in the element.
+         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
+         * @param {boolean} force - (Optional) Boolean that turns the toggle into a one way-only operation. If set to false,
+         * then the class will only be removed, but not added. If set to true, then token will only be added, but not removed.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        toggleClass(classes?: string | string[], force?: boolean): this;
+        /**
+         * @category Classes
+         * @description Check if the element's class list contains the provided class(es).
+         * @param {string | string[]} [classes] - String of classes separated by spaces, or array of strings.
+         * @returns {boolean} Whether the element carries every one of the given classes.
+         */
+        hasClass(classes?: string | string[]): boolean;
+    }
+interface GradumSelector extends Node {
+    }
+interface GradumSelector {
+        /**
+         * @category Hierarchy
+         * @description The child handler object associated with the node. It is the node itself (if it is handling
+         * its children) or its shadow root (if defined). Set it to change the node where the children are added/
+         * removed/queried from when manipulating the node's children.
+         */
+        childHandler: ChildHandler;
+        /**
+         * @category Hierarchy
+         * @description Static array of all the child nodes of the node.
+         */
+        readonly childNodesArray: Node[];
+        /**
+         * @category Hierarchy
+         * @description Static array of all the child elements of the node.
+         */
+        readonly childrenArray: Element[];
+        /**
+         * @category Hierarchy
+         * @description Static array of all the sibling nodes (including the node itself) of the node.
+         */
+        readonly siblingNodes: Node[];
+        /**
+         * @category Hierarchy
+         * @description Static array of all the sibling elements (including the element itself, if it is one) of the node.
+         */
+        readonly siblings: Element[];
+        /**
+         * @function bringToFront
+         * @category Hierarchy
+         * @description Brings the element to the front amongst its siblings in the DOM.
+         * @returns {this} Itself for chaining.
+         */
+        bringToFront(): this;
+        /**
+         * @function sendToBack
+         * @category Hierarchy
+         * @description Sends the element to the back amongst its siblings in the DOM.
+         * @returns {this} Itself for chaining.
+         */
+        sendToBack(): this;
+        /**
+         * @function remove
+         * @category Hierarchy
+         * @description Removes the node from the document.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        remove(): this;
+        /**
+         * @function addToParent
+         * @category Hierarchy
+         * @description Add the element to the given parent node
+         * @param {Node} parent - The parent node to attach the element to.
+         * @param {number} [index] - The position at which to add the element relative to the parent's child list.
+         * Leave undefined to add the element at the end.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=parent.childrenArray] - The child list to
+         * use as computation reference for index placement. Defaults to the parent's `childrenArray`.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addToParent(parent: Node, index?: number, referenceList?: Node[] | NodeListOf<Node>): this;
+        /**
+         * @function addChild
+         * @category Hierarchy
+         * @description Add one or more children to the element.
+         * @param {Node | Node[]} [children] - Array of (or single) child nodes.
+         * @param {number} [index] - The position at which to add the child relative to the parent's child list.
+         * Leave undefined to add the child at the end.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * use as computation reference for index placement. Defaults to the node's `childrenArray`.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addChild(children?: Node | Node[], index?: number, referenceList?: Node[] | NodeListOf<Node>): this;
+        /**
+         * @function remChild
+         * @category Hierarchy
+         * @description Remove one or more children from the element.
+         * @param {Node | Node[]} [children] - Array of (or single) child nodes.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        remChild(children?: Node | Node[]): this;
+        /**
+         * @function addChildBefore
+         * @category Hierarchy
+         * @description Add one or more children to the element before the provided sibling. If the
+         * sibling is not found in the parent's children, the nodes will be added to the end of the parent's child list.
+         * @param {Node | Node[]} [children] - Array of (or single) child nodes to insert before sibling.
+         * @param {Node} [sibling] - The sibling node to insert the children before.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        addChildBefore(children?: Node | Node[], sibling?: Node): this;
+        /**
+         * @function removeChildAt
+         * @category Hierarchy
+         * @description Remove one or more child nodes from the element.
+         * @param {number} [index] - The index of the child(ren) to remove.
+         * @param {number} [count=1] - The number of children to remove.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * use as computation reference for index placement and count. Defaults to the node's `childrenArray`.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeChildAt(index?: number, count?: number, referenceList?: Node[] | NodeListOf<Node>): this;
+        /**
+         * @function removeAllChildren
+         * @category Hierarchy
+         * @description Remove all children of the node.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * representing all the nodes to remove. Defaults to the node's `childrenArray`.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeAllChildren(referenceList?: Node[] | NodeListOf<Node>): this;
+        /**
+         * @function childAt
+         * @category Hierarchy
+         * @description Returns the child of the parent node at the given index. Any number inputted (including
+         * negatives) will be reduced modulo length of the list size.
+         * @param {number} [index] - The index of the child to retrieve.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * use as computation reference for index placement. Defaults to the node's `childrenArray`.
+         * @returns {Node} The child at the given index, or `null` if the index is invalid.
+         */
+        childAt(index?: number, referenceList?: Node[] | NodeListOf<Node>): Node;
+        /**
+         * @function indexOfChild
+         * @category Hierarchy
+         * @description Returns the index of the given child.
+         * @param {Node} [child] - The child element to find.
+         * @param {Node[] | NodeListOf<Node>} [referenceList=this.childrenArray] - The child list to
+         * use as computation reference for index placement. Defaults to the node's `childrenArray`.
+         * @returns {number} The index of the child node in the provided list, or -1 if the child is not found.
+         */
+        indexOfChild(child?: Node, referenceList?: Node[] | NodeListOf<Node>): number;
+        /**
+         * @function hasChild
+         * @category Hierarchy
+         * @description Identify whether one or more children belong to this parent node.
+         * @param {Node | Node[]} [children] - Array of (or single) child nodes.
+         * @returns {boolean} A boolean indicating whether the provided nodes belong to the parent or not.
+         */
+        hasChild(children?: Node | Node[]): boolean;
+        /**
+         * @function findInSubTree
+         * @category Hierarchy
+         * @description Finds whether one or more children belong to this node.
+         * @param {Node | Node[]} [children] - The child or children to check.
+         * @returns {boolean} True if the children belong to the node, false otherwise.
+         */
+        findInSubTree(children?: Node | Node[]): boolean;
+        /**
+         * @function findInParents
+         * @category Hierarchy
+         * @description Finds whether this node is within the given parent(s).
+         * @param {Node | Node[]} [parents] - The parent(s) to check.
+         * @returns {boolean} True if the node is within the given parents, false otherwise.
+         */
+        findInParents(parents?: Node | Node[]): boolean;
+        /**
+         * @function indexInParent
+         * @category Hierarchy
+         * @description Finds whether one or more children belong to this node.
+         * @param {Node[]} [referenceList=this.siblings] - The siblings list to use as computation
+         * reference for index placement. Defaults to the node's `siblings`.
+         * @returns {boolean} True if the children belong to the node, false otherwise.
+         */
+        indexInParent(referenceList?: Node[]): number;
+        /**
+         * @overload
+         * @function closest
+         * @category Hierarchy
+         * @description Finds the closest ancestor of the current element (or the current element itself) that matches
+         * that is an instance of the element associated with the given tag name.
+         * @param {Type} type - The (valid) tag name.
+         * @returns {Element} The matching ancestor element, or null if no match is found.
+         */
+        closest<Tag extends ValidTag>(type: Tag): ValidElement<Tag>;
+        /**
+         * @overload
+         * @function closest
+         * @category Hierarchy
+         * @description Finds the closest ancestor of the current element (or the current element itself) that matches
+         * the provided CSS selector.
+         * @param {Type} type - The (valid) CSS selector string.
+         * @returns {Element} The matching ancestor element, or null if no match is found.
+         */
+        closest<Tag extends string>(type: Tag): Element;
+        /**
+         * @overload
+         * @function closest
+         * @category Hierarchy
+         * @template {Element} Type - The type of element to find.
+         * @description Finds the closest ancestor of the current element (or the current element itself) that is an
+         * instance of the given class.
+         * @param {new (...args: any[]) => Type} type - The class to match.
+         * @returns {Element} The matching ancestor element, or null if no match is found.
+         */
+        closest<Type extends Element>(type: new (...args: any[]) => Type): Type;
+    }
+interface GradumSelector {
+        /**
+         * @category Misc
+         * @description Execute a callback on the node while still benefiting from chaining.
+         * @param {(el: this) => void} callback The function to execute, with 1 parameter representing the instance
+         * itself.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        execute(callback: ((el: this) => void)): this;
+        /**
+         * @category Misc
+         * @description Assign every given property onto the element, overwriting existing values.
+         * @param {object} properties - The properties to assign.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        apply(properties: Partial<this["element"]> & Record<string, any>): this;
+        /**
+         * @category Misc
+         * @description Delete the given fields from the element.
+         * @param {(keyof this["element"] | string)[]} keys - The field names to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeFields(keys: (keyof this["element"] | string)[]): this;
+        /**
+         * @category Misc
+         * @description Read the element's current values for the given keys, to capture them before overwriting.
+         * @param {(keyof this["element"] | string)[]} defaults - The field names to read.
+         * @returns {object} The current value of each requested field.
+         */
+        getDefaults(defaults: (keyof this["element"] | string)[]): Partial<this["element"]> & Record<string, any>;
+        /**
+         * @category Misc
+         * @description The fields the element and the given object both have, with the element's values.
+         * @param {object} other - The object to compare against.
+         * @returns {object} The shared fields. Neither input is modified.
+         */
+        getIntersection(other: Partial<this["element"]> & Record<string, any>): Partial<this["element"]> & Record<string, any>;
+        /**
+         * @category Misc
+         * @description The fields where the element and the given object disagree, with the element's values.
+         * @param {object} other - The object to compare against.
+         * @returns {object} The differing fields. Neither input is modified.
+         */
+        getDifference(other: Partial<this["element"]> & Record<string, any>): Partial<this["element"]> & Record<string, any>;
+        /**
+         * @category Misc
+         * @description Read the given fields off the element into a plain object, leaving the element unchanged.
+         * @param {(keyof this["element"] | string)[]} keys - The field names to extract.
+         * @returns {object} The requested fields and their values.
+         */
+        extract(keys: (keyof this["element"] | string)[]): Partial<this["element"]> & Record<string, any>;
+        /**
+         * @function applyDefaults
+         * @category Misc
+         * @description Apply default properties to the underlying object, with optional smart merging for
+         * array-like keys. By default, merging will happen on all MVC properties that accept arrays (like
+         * `operators`, `handlers`, `tools`, etc.) to allow for concatenation of such MVC pieces.
+         * @param {Record<string, any>} defaults - Key/value map of defaults to apply on the object.
+         * @param {ApplyDefaultsOptions} [options] - Optional configuration for merging keys.
+         * @returns {this} The same selector instance for chaining.
+         *
+         * @example
+         * ```ts
+         * const properties = {...};
+         * gradum(properties).applyDefaults({
+         *   tag: "my-el",
+         *   view: MyElementView,
+         *   tools: [selectTool, panTool],
+         *   operators: KeyboardOperator
+         * });
+         * ```
+         */
+        applyDefaults(defaults: Partial<this["element"]> & Record<string, any>, options?: ApplyDefaultsOptions): this;
+    }
+interface GradumSelector {
+        /**
+         * @category Reifects
+         * @description Readonly shallow set of the reifects attached to this object.
+         */
+        readonly reifects: Set<StatefulReifect>;
+        /**
+         * @category Reifects
+         * @description The transition used by the element's show() and isShown methods. Directly modifying its
+         * value will modify all elements' default showTransition. Unless this is the desired outcome, set it to a
+         * new custom StatefulReifect.
+         */
+        showTransition: StatefulReifect<Shown>;
+        /**
+         * @category Reifects
+         * @description Boolean indicating whether the element is shown or not, based on its showTransition.
+         */
+        readonly isShown: boolean;
+        /**
+         * @category Reifects
+         * @description Show or hide the element (based on CSS) by transitioning in/out of the element's showTransition.
+         * @param {boolean} b - Whether to show the element.
+         * @param {ReifectAppliedOptions<Shown>} [options] - Options controlling how the transition is applied.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        show(b: boolean, options?: ReifectAppliedOptions<Shown>): this;
+        /**
+         * @function attachReifect
+         * @category Reifects
+         * @description Attach one or more reifects to the object.
+         * @param {StatefulReifect[]} reifects - The reifect(s) to attach.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        attachReifect(...reifects: StatefulReifect[]): this;
+        /**
+         * @function detachReifect
+         * @category Reifects
+         * @description Detach one or more reifects from the object.
+         * @param {StatefulReifect[]} reifects - The reifect(s) to detach.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        detachReifect(...reifects: StatefulReifect[]): this;
+        /**
+         * @function initializeReifect
+         * @category Reifects
+         * @template {string | symbol | number} State - The type of the reifect's states.
+         * @description Initializes the reifect at the given state for the corresponding object.
+         * @param {StatefulReifect<State>} reifect - The reifect to initialize.
+         * @param {State} state - The state to initialize to (if the reifect is not stateless).
+         * @param {ReifectAppliedOptions<State>} [options] - Optional overrides for the default values.
+         * Set to `null` to not set anything on the object.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        initializeReifect<State extends string | symbol | number>(reifect?: StatefulReifect<State>, state?: State, options?: ReifectAppliedOptions<State>): this;
+        /**
+         * @function applyReifect
+         * @category Reifects
+         * @template {string | symbol | number} State - The type of the reifect's states.
+         * @description Applies the reifect at the given state for the corresponding object.
+         * @param {StatefulReifect<State>} reifect - The reifect to apply.
+         * @param {State} state - The state to initialize to (if the reifect is not stateless).
+         * @param {ReifectAppliedOptions<State>} [options] - Optional overrides for the default values.
+         * Set to `null` to not set anything on the object.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        applyReifect<State extends string | symbol | number>(reifect: StatefulReifect<State>, state?: State, options?: ReifectAppliedOptions<State>): this;
+        /**
+         * @function toggleReifect
+         * @category Reifects
+         * @template {string | symbol | number} State - The type of the reifect's states.
+         * @description Toggles the reifect to the next state for the corresponding object.
+         * @param {StatefulReifect<State>} reifect - The reifect to toggle.
+         * @param {ReifectAppliedOptions<State>} [options] - Optional overrides for the default values.
+         * Set to `null` to not set anything on the object.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        toggleReifect<State extends string | symbol | number>(reifect: StatefulReifect<State>, options?: ReifectAppliedOptions<State>): this;
+        /**
+         * @function reloadReifects
+         * @category Reifects
+         * @description Reloads all reifects attached to this object. Doesn't recompute values.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        reloadReifects(): this;
+        /**
+         * @function reloadReifectsChainableStyles
+         * @category Reifects
+         * @description Reloads all transitions attached to this object. Doesn't recompute values.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        reloadReifectsChainableStyles(applyInstantly?: boolean): this;
+        /**
+         * @function reifectEnabledState
+         * @category Reifects
+         * @description Get the reifect enabled state of this object. If a reifect is provided, the enabled state of
+         * the object for this specific reifect will be returned. otherwise, the global state of the object will
+         * be returned.
+         * @param {StatefulReifect} [reifect] - The target reifect.
+         * @returns {ReifectEnabledObject} The enabled state.
+         */
+        reifectEnabledState(reifect?: StatefulReifect): ReifectEnabledObject;
+        /**
+         * @function enableReifect
+         * @category Reifects
+         * @description Set the reifect enabled state of this object. If a reifect is provided, the enabled state of
+         * the object for this specific reifect will be updated. otherwise, the global state of the object will
+         * be updated
+         * @param {boolean | ReifectEnabledObject} value - The new state.
+         * @param {StatefulReifect} [reifect] - The target reifect.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        enableReifect(value: boolean | ReifectEnabledObject, reifect?: StatefulReifect): this;
+    }

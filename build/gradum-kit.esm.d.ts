@@ -2281,6 +2281,19 @@ declare enum Propagation {
     stopImmediatePropagation = "stopImmediatePropagation"
 }
 /**
+ * @callback HitResolver
+ * @group GradumSelector
+ * @category Events
+ *
+ * @description Finds the objects an element is displaying at a screen position. Assign one to an element
+ * whose contents the DOM cannot see into — a canvas, a WebGL surface — and the objects it returns join the
+ * event dispatch as if they were children of it. See {@link GradumSelector.hitResolver}.
+ * @param {Point} position - The screen position to test.
+ * @param {Event} event - The event being dispatched, for resolvers that answer differently per event.
+ * @returns {object[]} The objects at that position, topmost first. Return an empty array for a miss.
+ */
+type HitResolver = (position: Point, event: Event) => object[];
+/**
  * @type {PreventDefaultOptions}
  * @group GradumSelector
  * @category Events
@@ -4552,6 +4565,13 @@ declare class GradumEventManagerModel extends GradumModel {
     readonly previousPositions: GradumMap<number, Point>;
     positions: GradumMap<number, Point>;
     lastTargetOrigin: Node;
+    /**
+     * @description The objects a {@link GradumSelector.hitResolver} reported where the drag began. Resolved
+     * alongside {@link lastTargetOrigin} and reused for the rest of the drag, so grabbing a shape on a canvas
+     * keeps sending it the drag even once the pointer has moved off it — the same way pointer capture keeps a
+     * drag with the element it started on.
+     */
+    lastOriginHits: object[];
     readonly timerMap: GradumMap<string, NodeJS.Timeout>;
     readonly tools: Map<string, GradumWeakSet<Node>>;
     readonly mappedKeysToTool: Map<string, string>;
@@ -4937,6 +4957,26 @@ declare class GradumEvent extends Event {
      */
     readonly position: Point;
     /**
+     * @description Everything this event was dispatched over, innermost first: the composed path with any
+     * objects reported by a {@link GradumSelector.hitResolver} spliced in ahead of the element that reported
+     * them. Equal to `composedPath()` when nothing resolved. Move events carry the z-stack under the pointer
+     * instead, which is what they are dispatched over.
+     */
+    dispatchPath: readonly object[];
+    /**
+     * @description The objects a {@link GradumSelector.hitResolver} reported at this event's position,
+     * topmost first, or empty when the pointer only touched real elements.
+     */
+    hits: object[];
+    /**
+     * @readonly
+     * @description The most specific thing the event actually hit: the topmost object reported by a
+     * {@link GradumSelector.hitResolver}, or {@link GradumEvent.target} when no resolver contributed. Use it
+     * over `target` when the thing interacted with might have been painted inside an element rather than
+     * being one — reading it costs nothing when nothing is.
+     */
+    get hitTarget(): object;
+    /**
      * @description Whether {@link GradumEvent.scaledPosition} and its per-pointer equivalents actually
      * scale, or hand back the raw position. Assign a callback to decide per read — useful when a canvas
      * is only sometimes transformed. Defaults to `true`.
@@ -5025,10 +5065,12 @@ declare class GradumEvent extends Event {
  * @internal
  * @class GradumEventManagerDispatchOperator
  * @extends GradumOperator
- * @description Dispatches Gradum events along the composed path. It runs two sequential passes: a
- * capture pass from the document down to the target, which invokes tool `@behavior` methods, then a
- * bubble pass back up, which invokes interactor `@listener` methods and `gradum(el).on()` listeners.
- * Each pass stops early when a handler returns anything other than `Propagation.propagate`.
+ * @description Dispatches Gradum events along the composed path. It runs two sequential passes over that
+ * same path: a capture pass from the outermost entry down to the event target, then a bubble pass back up.
+ * The capture pass reaches only listeners bound with `capture: true`. The bubble pass reaches every other
+ * listener — `@listener` methods and those bound with `gradum(el).on()` — and is the only pass that runs
+ * tool `@behavior` methods. Each pass stops early when a handler returns anything other than
+ * `Propagation.propagate`.
  *
  * *Note: move events are the exception. Their composed path is the drag origin's ancestor chain, which
  * omits elements merely sitting under the cursor, so they are dispatched in a single pass over the
@@ -5040,7 +5082,35 @@ declare class GradumEventManagerDispatchOperator extends GradumOperator<GradumEv
     private boundHooks;
     protected setupChangedCallbacks(): void;
     protected dispatchEvent: <EventType extends GradumEvent = GradumEvent, PropertiesType extends GradumRawEventProperties = GradumRawEventProperties>(target: Node, eventType: new (properties: PropertiesType) => EventType, properties: Partial<PropertiesType>) => void;
+    /**
+     * @private
+     * @function expandPath
+     * @description Splice the objects reported by any {@link GradumSelector.hitResolver} in the path into the
+     * path itself, so things an element merely paints — shapes on a canvas — are dispatched to like children
+     * of it. Hits land at lower indices than the element that reported them, which is what gives them the
+     * right position in both passes: capture descends into them last, bubble reaches them first.
+     *
+     * Each hit is given the reporting element as its {@link GradumSelector.hitParent} unless it already names
+     * one, so climbing back out works without the scene having to track parentage.
+     * @param {EventTarget[]} path - The path to expand, from {@link Event.composedPath} or a z-stack.
+     * @param {Event} event - The event being dispatched, passed on to the resolvers.
+     * @returns {object} The expanded path, and the set of entries that were contributed. Returns `path`
+     * itself when no resolver contributed anything, so dispatch is untouched for everyone not using this.
+     */
+    private expandPath;
     private getToolHandlingCallback;
+    /**
+     * @private
+     * @description Whether a path entry should be dispatched to. Nodes always are; anything else only when a
+     * hit resolver contributed it, which keeps `Window` — in every composed path, and not a Node — out.
+     */
+    private isDispatchable;
+    /**
+     * @private
+     * @description Hand the expansion to the event, so handlers and {@link GradumEvent.closest} can read what
+     * was hit without resolving anything again.
+     */
+    private recordHits;
     setupCustomDispatcher(type: string): void;
     removeCustomDispatcher(type: string): void;
 }
@@ -11434,7 +11504,7 @@ type FontProperties = {
 declare function loadLocalFont(font: FontProperties): void;
 
 export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, GradumBaseElement, GradumButton, GradumButtonPopup, GradumClickEventName, GradumConstrainer, GradumContentSwitch, GradumDragEvent, GradumDragEventName, GradumDrawer, GradumDropdown, GradumElement, GradumEmitter, GradumEvent, GradumEventManager, GradumEventName, GradumGrid, GradumHandler, GradumHeadlessElement, GradumIcon, GradumIconSwitch, GradumIconToggle, GradumInput, GradumInteractor, GradumKeyEvent, GradumKeyEventName, GradumLabelElement, GradumMap, GradumMarkingMenu, GradumModel, GradumMovable, GradumMoveEventName, GradumNestedMap, GradumNodeList, GradumNumericalInput, GradumObserver, GradumOperator, GradumPopup, GradumProxiedElement, GradumQueue, GradumRect, GradumRichElement, GradumSelect, GradumSelectElement, GradumSelectInputEvent, GradumSelectWheel, GradumSelector, GradumTool, GradumView, GradumWeakSet, GradumWheelEvent, GradumWheelEventName, GradumYModel, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, deepObserveAll, deepObserveAny, define, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, g, generateTagFunction, getAllRegistered, getConstructorChain, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, gr, gradum, gradumify, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, modelSignal, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, textToElement, textarea, tool, trackSignal, trim, untrack, urlToBlob, video };
-export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledGradumEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, Gradum, GradumButtonPopupProperties, GradumConstrainerProperties, GradumContentSwitchProperties, GradumDragEventProperties, GradumDrawerProperties, GradumDropdownProperties, GradumElementDefaultInterface, GradumElementMvcInterface, GradumElementProperties, GradumElementPropertiesMap, GradumElementTagNameMap, GradumElementUiInterface, GradumEventManagerLockStateProperties, GradumEventManagerProperties, GradumEventManagerStateProperties, GradumEventNameEntry, GradumEventNameKey, GradumEventProperties, GradumHeadlessProperties, GradumIconProperties, GradumIconSwitchProperties, GradumIconToggleProperties, GradumInputProperties, GradumInteractorProperties, GradumKeyEventProperties, GradumLabelElementProperties, GradumMarkingMenuProperties, GradumModelProperties, GradumModelProxy, GradumNumericalInputProperties, GradumObserverProperties, GradumOperatorProperties, GradumPopupProperties, GradumProperties, GradumProxiedProperties, GradumRawEventProperties, GradumRectProperties, GradumRichElementProperties, GradumSelectElementProperties, GradumSelectInputEventProperties, GradumSelectProperties, GradumSelectWheelProperties, GradumSelectWheelStylingProperties, GradumToolProperties, GradumViewProperties, GradumWheelEventProperties, GradumifyOptions, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
+export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledGradumEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, Gradum, GradumButtonPopupProperties, GradumConstrainerProperties, GradumContentSwitchProperties, GradumDragEventProperties, GradumDrawerProperties, GradumDropdownProperties, GradumElementDefaultInterface, GradumElementMvcInterface, GradumElementProperties, GradumElementPropertiesMap, GradumElementTagNameMap, GradumElementUiInterface, GradumEventManagerLockStateProperties, GradumEventManagerProperties, GradumEventManagerStateProperties, GradumEventNameEntry, GradumEventNameKey, GradumEventProperties, GradumHeadlessProperties, GradumIconProperties, GradumIconSwitchProperties, GradumIconToggleProperties, GradumInputProperties, GradumInteractorProperties, GradumKeyEventProperties, GradumLabelElementProperties, GradumMarkingMenuProperties, GradumModelProperties, GradumModelProxy, GradumNumericalInputProperties, GradumObserverProperties, GradumOperatorProperties, GradumPopupProperties, GradumProperties, GradumProxiedProperties, GradumRawEventProperties, GradumRectProperties, GradumRichElementProperties, GradumSelectElementProperties, GradumSelectInputEventProperties, GradumSelectProperties, GradumSelectWheelProperties, GradumSelectWheelStylingProperties, GradumToolProperties, GradumViewProperties, GradumWheelEventProperties, GradumifyOptions, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, HitResolver, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
 
 // Flattened from relative module augmentations
 interface GradumSelector {
@@ -11450,6 +11520,42 @@ interface GradumSelector {
          * defines when to bypass the manager according to the passed event.
          */
         bypassManagerOn: (e: Event) => boolean | GradumEventManagerStateProperties;
+        /**
+         * @category Events
+         * @description Lets an element contribute targets the DOM cannot see. Assign a {@link HitResolver} to
+         * an element that paints its contents — a canvas — and whatever it reports at the pointer joins the
+         * dispatch as if it were a child of it: capture reaches it last, bubble reaches it first, and it can
+         * carry listeners, tools, and constrainers like any element.
+         *
+         * *Note: the objects are looked up once per event, so keep the resolver cheap — test bounding boxes
+         * before exact shapes.*
+         *
+         * @example
+         * ```ts
+         * gradum(canvas).hitResolver = position => scene.objectsAt(position); //topmost first
+         * ```
+         */
+        hitResolver: HitResolver;
+        /**
+         * @category Events
+         * @description The object to treat as this one's parent when it has no DOM parent, letting a virtual
+         * hit target still be found by {@link GradumEvent.closest} and still trigger the constrainers of the
+         * element that drew it. Held weakly, so naming a parent never keeps it alive.
+         *
+         * *Note: objects returned by a {@link HitResolver} get the resolving element as their parent
+         * automatically. Assign this only for a scene that nests, where the real parent is another object.*
+         */
+        hitParent: object;
+        /**
+         * @function getParent
+         * @category Events
+         * @description One step up the tree, for a DOM node and a virtual hit target alike: the DOM parent
+         * when there is one, otherwise the {@link GradumSelector.hitParent}. This is the climb
+         * {@link GradumEvent.closest} and the constrainer checks follow, so an object painted inside a canvas
+         * still reaches the element that drew it and everything above that.
+         * @returns {object} The parent, or `undefined` at the top of the chain.
+         */
+        getParent(): object;
         /**
          * @function on
          * @category Events

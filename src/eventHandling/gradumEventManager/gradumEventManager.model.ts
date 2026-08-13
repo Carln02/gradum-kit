@@ -69,6 +69,14 @@ export class GradumEventManagerModel extends GradumModel {
 
     public lastTargetOrigin: Node;
 
+    /**
+     * @description The objects a {@link GradumSelector.hitResolver} reported where the drag began. Resolved
+     * alongside {@link lastTargetOrigin} and reused for the rest of the drag, so grabbing a shape on a canvas
+     * keeps sending it the drag even once the pointer has moved off it — the same way pointer capture keeps a
+     * drag with the element it started on.
+     */
+    public lastOriginHits: object[];
+
     //Single timer instance --> easily cancel it and set it again
     public readonly timerMap: GradumMap<string, NodeJS.Timeout> = new GradumMap();
 

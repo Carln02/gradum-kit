@@ -185,8 +185,8 @@ import {MakeConstrainerOptions, ConstrainerSolver, ConstrainerChecker, Constrain
 export {MakeConstrainerOptions, ConstrainerSolver, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerCallbackProperties, ConstrainerAddCallbackProperties};
 import {GradumProperties, CloneElementOptions, FeedforwardProperties} from "./gradumFunctions/element/element.types";
 export {GradumProperties, CloneElementOptions, FeedforwardProperties};
-import {Propagation, PreventDefaultOptions, BasicInputEvents, NonPassiveEvents} from "./gradumFunctions/event/event.types";
-export {Propagation, PreventDefaultOptions, BasicInputEvents, NonPassiveEvents};
+import {Propagation, PreventDefaultOptions, BasicInputEvents, NonPassiveEvents, HitResolver} from "./gradumFunctions/event/event.types";
+export {Propagation, PreventDefaultOptions, BasicInputEvents, NonPassiveEvents, HitResolver};
 import {$, g, gr, gradum, gradumify} from "./gradumFunctions/gradumFunctions";
 export {$, g, gr, gradum, gradumify};
 import {Gradum, GradumifyOptions} from "./gradumFunctions/gradumFunctions.types";
