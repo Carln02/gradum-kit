@@ -39,22 +39,20 @@ export class StickyLineConstrainer extends GradumConstrainer<StickyLine, StickyL
         const end = this.view.endHandle?.position;
         if (!start || !end) return;
 
-        //Asked for the centre rather than derived from left/top: `x`/`y` name the rect's anchor now, so a
-        //centre-anchored shape would come out half a box off.
-        const center = getRect(target)?.center;
-        if (!center) return;
+        const anchor = getRect(target)?.origin;
+        if (!anchor) return;
 
         const isFeedforward = properties.eventType !== DefaultEventName.dragEnd
             && !manipulatingStickyLine && !(target instanceof StickyLine);
 
         if (!manipulatingStickyLine || !this.objectData.has(target))
-            this.objectData.set(target, closestPointOnSegment(center, start, end)?.positionOnSegment(start, end));
+            this.objectData.set(target, closestPointOnSegment(anchor, start, end)?.positionOnSegment(start, end));
         const data = this.objectData.get(target);
         if (!data) return;
 
         const destination = start.add(end.sub(start).mul(data));
         const EPS = 0.25;
-        if (Point.dist(center, destination) < EPS) return;
+        if (Point.dist(anchor, destination) < EPS) return;
 
         let toMove = target;
         if (isFeedforward) toMove = gradum(target).feedforward({

@@ -1,4 +1,4 @@
-import {GradumView, element, SvgNamespace, gradum, effect} from "../../../../build/gradum-kit.esm";
+import {GradumView, element, SvgNamespace, gradum, effect, Color} from "../../../../build/gradum-kit.esm";
 import {StickyLine} from "./stickyLine";
 import {StickyLineModel} from "./stickyLine.model";
 import {Square} from "../square/square";
@@ -23,8 +23,8 @@ export class StickyLineView extends GradumView<StickyLine, StickyLineModel> {
         this.hitLine = element({tag: "line", namespace: SvgNamespace}) as SVGLineElement;
         gradum(this.hitLine).setAttribute("stroke", "transparent").setAttribute("pointer-events", "stroke");
 
-        this.startHandle = Square.create({size: 20, color: "white", classes: "handle"});
-        this.endHandle = Square.create({size: 20, color: "white", classes: "handle"});
+        this.startHandle = Square.create({size: 20, color: Color.from("#FFFFFF"), classes: "handle"});
+        this.endHandle = Square.create({size: 20, color: Color.from("#FFFFFF"), classes: "handle"});
     }
 
     protected setupUILayout() {

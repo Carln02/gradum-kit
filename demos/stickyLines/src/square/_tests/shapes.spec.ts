@@ -1,5 +1,5 @@
 import {describe, it, expect} from "vitest";
-import {gradum, Point} from "../../../../../build/gradum-kit.esm";
+import {Anchor, gradum, Point} from "../../../../../build/gradum-kit.esm";
 import {Square} from "../square";
 import {Circle} from "../../circle/circle";
 import {Triangle} from "../../triangle/triangle";
@@ -43,11 +43,20 @@ describe("the shapes share the new Square", () => {
         expect(triangle.position.x).toBe(120); //moves double
     });
 
-    it("reports a centre the sticky line constrainer can align to", () => {
-        const square = Square.create({position: new Point(400, 300), size: 100}) as Square;
-        //Anchored at its centre, so that is where the rect says it is — not left/top plus half.
-        expect(getRect(square).center.x).toBeCloseTo(400);
-        expect(getRect(square).center.y).toBeCloseTo(300);
+    it("reports the anchor the sticky line constrainer aligns to", () => {
+        //`origin` is the anchor's position, and it is the same point `position` writes — which is what lets
+        //the constrainer measure and place through the same value.
+        const centred = Square.create({position: new Point(400, 300), size: 100}) as Square;
+        expect(getRect(centred).origin.x).toBeCloseTo(400);
+        expect(getRect(centred).origin.y).toBeCloseTo(300);
+        expect(getRect(centred).center.x).toBeCloseTo(400);
+
+        //Anchored elsewhere, the anchor is still at `position` while the box hangs off it — so this one
+        //would stand on a line rather than sit astride it.
+        const standing = Square.create({position: new Point(400, 300), size: 100,
+            anchor: Anchor.BottomMiddle}) as Square;
+        expect(getRect(standing).origin.y).toBeCloseTo(300);
+        expect(getRect(standing).center.y).toBeCloseTo(250);
     });
 });
 

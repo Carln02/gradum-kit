@@ -1,4 +1,6 @@
 .demo-triangle {
+    box-sizing: content-box;
+
     width: 0;
     height: 0;
     border-left: 40px solid transparent;

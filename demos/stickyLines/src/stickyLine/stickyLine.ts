@@ -6,6 +6,13 @@ import {Square} from "../square/square";
 import {StickyLineConstrainer} from "./stickyLine.constrainer";
 
 export class StickyLine extends GradumElement<StickyLineView, any, StickyLineModel> {
+    public static defaultProperties = {
+        model: StickyLineModel,
+        view: StickyLineView,
+        constrainers: StickyLineConstrainer,
+        origin: new Point(500, 300),
+    };
+
     @expose("view", false) public accessor startHandle: Square;
     @expose("view", false) public accessor endHandle: Square;
 
@@ -17,17 +24,10 @@ export class StickyLine extends GradumElement<StickyLineView, any, StickyLineMod
         this.move(value.sub(this.position));
     }
 
-    public static defaultProperties = {
-        model: StickyLineModel,
-        view: StickyLineView,
-        constrainers: StickyLineConstrainer,
-        origin: new Point(500, 300),
-    };
-
     public initialize() {
         super.initialize();
-        //Not a Square, so it marks itself: the select tool only moves and selects what says it is modifiable.
         gradum(this).metadata.set(true, "modifiable");
+        gradum(this).metadata.set(false, "selectionBox");
     }
 
     public move(delta: Point) {

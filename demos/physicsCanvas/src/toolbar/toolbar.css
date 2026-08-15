@@ -22,7 +22,7 @@ demo-toolbar .gradum-icon {
     height: 1.4em;
 }
 
-demo-toolbar > * {
+demo-toolbar > .gradum-button {
     padding: 7px;
     border-radius: calc(var(--radius) - 4px);
 
@@ -44,22 +44,29 @@ demo-toolbar svg {
     fill: var(--muted);
 }
 
-demo-toolbar > *:hover {
+demo-toolbar > .gradum-button:hover {
     background-color: var(--hover);
     color: var(--text);
 }
 
 /* The active tool. Filled rather than outlined, so which mode you are in reads at a glance. */
-demo-toolbar > *.selected {
+demo-toolbar > .gradum-button.selected {
     background-color: var(--active);
     color: var(--text);
 }
 
-demo-toolbar > *:hover svg, demo-toolbar > *.selected svg {
+demo-toolbar > .gradum-button:hover svg, demo-toolbar > .gradum-button.selected svg {
     fill: var(--text);
 }
 
-demo-toolbar > * > * {
+demo-toolbar > .gradum-button > * {
     margin: 0;
     padding: 0;
+}
+
+.divider {
+    width: 2px;
+    margin: 8px;
+    background-color: var(--line);
+    border-radius: 100px;
 }

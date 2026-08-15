@@ -17,6 +17,7 @@ export class SelectTool extends GradumTool {
     //anything else clears the selection.
     @behavior() public clickStart(e: GradumEvent, el: Node) {
         if (this.selectionBox?.contains(e.target)) return Propagation.propagate;
+        if (gradum(el).metadata?.get("selectionBox") === false) return Propagation.propagate;
         if (gradum(el).metadata?.get("modifiable")) {
             if (!this.selectionBox) this.selectionBox = SelectionBox.create({parent: document.body});
             this.selectionBox.target = el;

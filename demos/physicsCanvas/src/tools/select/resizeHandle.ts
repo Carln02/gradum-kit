@@ -16,6 +16,7 @@ export class ResizeHandle extends GradumElement {
 
     private updateAnchor() {
         this.resizeTool.toolName = `resize-${this.anchor}`;
+        this.resizeTool.customActivation = () => {};
         const corner = AnchorPoint.enumToPoint(this.anchor);
         this.resizeTool.anchor = AnchorPoint.pointToEnum(corner.mul(-1));
         gradum(this).setStyles({left: `${(corner.x + 100) / 2}%`, top: `${(corner.y + 100) / 2}%`});

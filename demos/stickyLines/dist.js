@@ -29203,7 +29203,7 @@
       }
     }
 
-    var css_248z$6 = "demo-toolbar{background-color:var(--surface);border:1px solid var(--line);border-radius:var(--radius);bottom:20px;box-shadow:0 8px 24px rgb(0 0 0/8%),0 1px 2px rgb(0 0 0/5%);display:flex;flex-direction:row;gap:6px;left:50%;padding:8px;position:absolute;transform:translateX(-50%);z-index:2}demo-toolbar>*{background-color:transparent;border:1px solid transparent;border-radius:calc(var(--radius) - 4px);color:var(--muted);cursor:pointer;font-size:13px;line-height:1;padding:7px 12px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;-moz-user-select:none;user-select:none;white-space:nowrap}demo-toolbar>:hover{background-color:var(--hover);color:var(--text)}demo-toolbar>.selected{background-color:var(--active);color:var(--text)}demo-toolbar>*>*{margin:0;padding:0}";
+    var css_248z$6 = "demo-toolbar{background-color:var(--surface);border:1px solid var(--line);border-radius:var(--radius);bottom:20px;box-shadow:0 8px 24px rgb(0 0 0/8%),0 1px 2px rgb(0 0 0/5%);display:flex;flex-direction:row;gap:6px;left:50%;padding:8px;position:absolute;transform:translateX(-50%);z-index:2}demo-toolbar .gradum-icon{display:block;height:1.4em;width:1.4em}demo-toolbar>.gradum-button{background-color:transparent;border:1px solid transparent;border-radius:calc(var(--radius) - 4px);color:var(--muted);cursor:pointer;fill:var(--muted);font-size:13px;line-height:1;padding:7px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;-moz-user-select:none;user-select:none;white-space:nowrap}demo-toolbar svg{fill:var(--muted)}demo-toolbar>.gradum-button:hover{background-color:var(--hover);color:var(--text)}demo-toolbar>.gradum-button.selected{background-color:var(--active);color:var(--text)}demo-toolbar>.gradum-button.selected svg,demo-toolbar>.gradum-button:hover svg{fill:var(--text)}demo-toolbar>.gradum-button>*{margin:0;padding:0}.divider{background-color:var(--line);border-radius:100px;margin:8px;width:2px}";
     styleInject(css_248z$6);
 
     let Toolbar = (() => {
@@ -29296,6 +29296,7 @@
             }
             updateAnchor() {
                 this.resizeTool.toolName = `resize-${this.anchor}`;
+                this.resizeTool.customActivation = () => { };
                 const corner = AnchorPoint.enumToPoint(this.anchor);
                 this.resizeTool.anchor = AnchorPoint.pointToEnum(corner.mul(-1));
                 gradum(this).setStyles({ left: `${(corner.x + 100) / 2}%`, top: `${(corner.y + 100) / 2}%` });
@@ -29403,10 +29404,6 @@
         };
     })();
 
-    //The rotation zone just beyond a corner grip, the way drawing tools do it: grab the corner itself to resize,
-    //grab the empty space diagonally outside it to spin the shape instead. It sits under the grip in the DOM so
-    //the grip keeps the few pixels the two share, and it only ever extends outwards — reaching inwards would
-    //steal drags from the shape underneath.
     let RotateHandle = (() => {
         let _classSuper = GradumElement;
         let _instanceExtraInitializers = [];
@@ -29431,13 +29428,16 @@
             static defaultProperties = { tools: RotateTool };
             anchor = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _anchor_initializers, void 0));
             rotateTool = (__runInitializers$1(this, _anchor_extraInitializers), __runInitializers$1(this, _rotateTool_initializers, void 0));
+            initialize() {
+                super.initialize();
+                this.rotateTool.customActivation = () => { };
+            }
             updateAnchor() {
                 const corner = AnchorPoint.enumToPoint(this.anchor);
                 gradum(this).setStyles({
                     left: `${(corner.x + 100) / 2}%`,
                     top: `${(corner.y + 100) / 2}%`,
-                    marginLeft: corner.x < 0 ? "calc(-1 * var(--rotate-zone))" : "0",
-                    marginTop: corner.y < 0 ? "calc(-1 * var(--rotate-zone))" : "0"
+                    transform: `translate(${corner.x < 0 ? -100 : 0}%, ${corner.y < 0 ? -100 : 0}%)`
                 });
             }
             retarget(target) {
@@ -29545,6 +29545,8 @@
             //anything else clears the selection.
             clickStart(e, el) {
                 if (this.selectionBox?.contains(e.target))
+                    return Propagation.propagate;
+                if (gradum(el).metadata?.get("selectionBox") === false)
                     return Propagation.propagate;
                 if (gradum(el).metadata?.get("modifiable")) {
                     if (!this.selectionBox)
@@ -29747,7 +29749,7 @@
         };
     })();
 
-    var css_248z$4 = ".demo-square{align-items:center;display:flex;height:100px;justify-content:center;position:absolute;width:100px}";
+    var css_248z$4 = ".demo-square{align-items:center;box-sizing:border-box;display:flex;height:100px;justify-content:center;position:absolute;width:100px}";
     styleInject(css_248z$4);
 
     //Custom square element, defined as a custom element
@@ -29902,8 +29904,8 @@
                 this.line = element({ tag: "line", namespace: SvgNamespace });
                 this.hitLine = element({ tag: "line", namespace: SvgNamespace });
                 gradum(this.hitLine).setAttribute("stroke", "transparent").setAttribute("pointer-events", "stroke");
-                this.startHandle = Square.create({ size: 20, color: "white", classes: "handle" });
-                this.endHandle = Square.create({ size: 20, color: "white", classes: "handle" });
+                this.startHandle = Square.create({ size: 20, color: Color.from("#FFFFFF"), classes: "handle" });
+                this.endHandle = Square.create({ size: 20, color: Color.from("#FFFFFF"), classes: "handle" });
             }
             setupUILayout() {
                 super.setupUILayout();
@@ -30006,21 +30008,19 @@
                 const end = this.view.endHandle?.position;
                 if (!start || !end)
                     return;
-                //Asked for the centre rather than derived from left/top: `x`/`y` name the rect's anchor now, so a
-                //centre-anchored shape would come out half a box off.
-                const center = getRect(target)?.center;
-                if (!center)
+                const anchor = getRect(target)?.origin;
+                if (!anchor)
                     return;
                 const isFeedforward = properties.eventType !== DefaultEventName.dragEnd
                     && !manipulatingStickyLine && !(target instanceof StickyLine);
                 if (!manipulatingStickyLine || !this.objectData.has(target))
-                    this.objectData.set(target, closestPointOnSegment(center, start, end)?.positionOnSegment(start, end));
+                    this.objectData.set(target, closestPointOnSegment(anchor, start, end)?.positionOnSegment(start, end));
                 const data = this.objectData.get(target);
                 if (!data)
                     return;
                 const destination = start.add(end.sub(start).mul(data));
                 const EPS = 0.25;
-                if (Point.dist(center, destination) < EPS)
+                if (Point.dist(anchor, destination) < EPS)
                     return;
                 let toMove = target;
                 if (isFeedforward)
@@ -30066,6 +30066,12 @@
                 __esDecorate$1(this, null, _endHandle_decorators, { kind: "accessor", name: "endHandle", static: false, private: false, access: { has: obj => "endHandle" in obj, get: obj => obj.endHandle, set: (obj, value) => { obj.endHandle = value; } }, metadata: _metadata }, _endHandle_initializers, _endHandle_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
+            static defaultProperties = {
+                model: StickyLineModel,
+                view: StickyLineView,
+                constrainers: StickyLineConstrainer,
+                origin: new Point(500, 300),
+            };
             #startHandle_accessor_storage = __runInitializers$1(this, _startHandle_initializers, void 0);
             get startHandle() { return this.#startHandle_accessor_storage; }
             set startHandle(value) { this.#startHandle_accessor_storage = value; }
@@ -30078,16 +30084,10 @@
             set position(value) {
                 this.move(value.sub(this.position));
             }
-            static defaultProperties = {
-                model: StickyLineModel,
-                view: StickyLineView,
-                constrainers: StickyLineConstrainer,
-                origin: new Point(500, 300),
-            };
             initialize() {
                 super.initialize();
-                //Not a Square, so it marks itself: the select tool only moves and selects what says it is modifiable.
                 gradum(this).metadata.set(true, "modifiable");
+                gradum(this).metadata.set(false, "selectionBox");
             }
             move(delta) {
                 this.view.startHandle?.move(delta);
@@ -30266,7 +30266,7 @@
         };
     })();
 
-    var css_248z = ".demo-triangle{border-bottom:70px solid;border-left:40px solid transparent;border-right:40px solid transparent;height:0;width:0}";
+    var css_248z = ".demo-triangle{border-bottom:70px solid;border-left:40px solid transparent;border-right:40px solid transparent;box-sizing:content-box;height:0;width:0}";
     styleInject(css_248z);
 
     //View of the square element
@@ -30338,18 +30338,20 @@
         };
     })();
 
+    GradumIcon.defaultProperties.directory = "assets";
     Canvas.create({ parent: document.body });
     Toolbar.create({
         parent: document.body,
         entries: [
-            GradumButton.create({ text: "Select", tools: SelectTool, classes: "demo-button" }),
-            GradumButton.create({ text: "Resize", tools: ResizeTool, classes: "demo-button" }),
-            GradumButton.create({ text: "Rotate", tools: RotateTool, classes: "demo-button" }),
-            GradumButton.create({ text: "Add Square", tools: AddSquareTool, classes: "demo-button" }),
-            GradumButton.create({ text: "Add Circle", tools: AddCircleTool, classes: "demo-button" }),
-            GradumButton.create({ text: "Add Triangle", tools: AddTriangleTool, classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "cursor", tools: SelectTool, classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "resize", tools: ResizeTool, classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "rotate", tools: RotateTool, classes: "demo-button" }),
+            Bucket.create({ leftIcon: "bucket", classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "addSquare", tools: AddSquareTool, classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "addCircle", tools: AddCircleTool, classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "addTriangle", tools: AddTriangleTool, classes: "demo-button" }),
+            div({ classes: "divider" }),
             GradumButton.create({ text: "Add StickyLine", tools: AddStickyLineTool, classes: "demo-button" }),
-            Bucket.create({ text: "Bucket", classes: "demo-button" }),
         ]
     });
 

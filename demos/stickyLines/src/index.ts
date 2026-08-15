@@ -1,5 +1,5 @@
 import {Toolbar} from "./toolbar/toolbar";
-import {GradumButton} from "../../../build/gradum-kit.esm";
+import {GradumButton, GradumIcon, div} from "../../../build/gradum-kit.esm";
 import {SelectTool} from "./tools/select/select.tool";
 import {ResizeTool} from "./tools/resize.tool";
 import {RotateTool} from "./tools/rotate.tool";
@@ -10,17 +10,20 @@ import {AddStickyLineTool} from "./tools/addStickyLine.tool";
 import {AddCircleTool} from "./tools/addCircle.tool";
 import {AddTriangleTool} from "./tools/addTriangle.tool";
 
+GradumIcon.defaultProperties.directory = "assets";
+
 Canvas.create({parent: document.body});
 Toolbar.create({
     parent: document.body,
     entries: [
-        GradumButton.create({text: "Select", tools: SelectTool, classes: "demo-button"}),
-        GradumButton.create({text: "Resize", tools: ResizeTool, classes: "demo-button"}),
-        GradumButton.create({text: "Rotate", tools: RotateTool, classes: "demo-button"}),
-        GradumButton.create({text: "Add Square", tools: AddSquareTool, classes: "demo-button"}),
-        GradumButton.create({text: "Add Circle", tools: AddCircleTool, classes: "demo-button"}),
-        GradumButton.create({text: "Add Triangle", tools: AddTriangleTool, classes: "demo-button"}),
+        GradumButton.create({leftIcon: "cursor", tools: SelectTool, classes: "demo-button"}),
+        GradumButton.create({leftIcon: "resize", tools: ResizeTool, classes: "demo-button"}),
+        GradumButton.create({leftIcon: "rotate", tools: RotateTool, classes: "demo-button"}),
+        Bucket.create({leftIcon: "bucket", classes: "demo-button"}),
+        GradumButton.create({leftIcon: "addSquare", tools: AddSquareTool, classes: "demo-button"}),
+        GradumButton.create({leftIcon: "addCircle", tools: AddCircleTool, classes: "demo-button"}),
+        GradumButton.create({leftIcon: "addTriangle", tools: AddTriangleTool, classes: "demo-button"}),
+        div({classes: "divider"}),
         GradumButton.create({text: "Add StickyLine", tools: AddStickyLineTool, classes: "demo-button"}),
-        Bucket.create({text: "Bucket", classes: "demo-button"}),
     ]
 });

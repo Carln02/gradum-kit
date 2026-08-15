@@ -1,4 +1,4 @@
-import {GradumButton, GradumIcon} from "../../../build/gradum-kit.esm";
+import {GradumButton, GradumIcon, div} from "../../../build/gradum-kit.esm";
 import {SelectTool} from "./tools/select/select.tool";
 import {PusherSubstrateTool} from "./tools/pusherSubstrate.tool";
 import {AddSquareTool} from "./tools/addSquare.tool";
@@ -21,11 +21,11 @@ Toolbar.create({
         GradumButton.create({leftIcon: "resize", tools: ResizeTool, classes: "demo-button"}),
         GradumButton.create({leftIcon: "rotate", tools: RotateTool, classes: "demo-button"}),
         Bucket.create({leftIcon: "bucket", classes: "demo-button"}),
-
-        GradumButton.create({text: "Add Square", tools: AddSquareTool, classes: "demo-button"}),
-        GradumButton.create({text: "Pusher Substrate", tools: PusherSubstrateTool, classes: "demo-button"}),
-        GradumButton.create({text: "Spacer Substrate", tools: SpacerSubstrateTool, classes: "demo-button"}),
+        GradumButton.create({leftIcon: "addSquare", tools: AddSquareTool, classes: "demo-button"}),
+        div({classes: "divider"}),
         GradumButton.create({text: "Make Pusher", tools: MakePusherTool, classes: "demo-button"}),
         GradumButton.create({text: "Make Spacer", tools: MakeSpacerTool, classes: "demo-button"}),
+        GradumButton.create({text: "Pusher Substrate", tools: PusherSubstrateTool, classes: "demo-button"}),
+        GradumButton.create({text: "Spacer Substrate", tools: SpacerSubstrateTool, classes: "demo-button"}),
     ]
 });

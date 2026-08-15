@@ -29231,6 +29231,7 @@
           }
           updateAnchor() {
               this.resizeTool.toolName = `resize-${this.anchor}`;
+              this.resizeTool.customActivation = () => { };
               const corner = AnchorPoint.enumToPoint(this.anchor);
               this.resizeTool.anchor = AnchorPoint.pointToEnum(corner.mul(-1));
               gradum(this).setStyles({ left: `${(corner.x + 100) / 2}%`, top: `${(corner.y + 100) / 2}%` });
@@ -29338,10 +29339,6 @@
       };
   })();
 
-  //The rotation zone just beyond a corner grip, the way drawing tools do it: grab the corner itself to resize,
-  //grab the empty space diagonally outside it to spin the shape instead. It sits under the grip in the DOM so
-  //the grip keeps the few pixels the two share, and it only ever extends outwards — reaching inwards would
-  //steal drags from the shape underneath.
   let RotateHandle = (() => {
       let _classSuper = GradumElement;
       let _instanceExtraInitializers = [];
@@ -29366,13 +29363,16 @@
           static defaultProperties = { tools: RotateTool };
           anchor = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _anchor_initializers, void 0));
           rotateTool = (__runInitializers(this, _anchor_extraInitializers), __runInitializers(this, _rotateTool_initializers, void 0));
+          initialize() {
+              super.initialize();
+              this.rotateTool.customActivation = () => { };
+          }
           updateAnchor() {
               const corner = AnchorPoint.enumToPoint(this.anchor);
               gradum(this).setStyles({
                   left: `${(corner.x + 100) / 2}%`,
                   top: `${(corner.y + 100) / 2}%`,
-                  marginLeft: corner.x < 0 ? "calc(-1 * var(--rotate-zone))" : "0",
-                  marginTop: corner.y < 0 ? "calc(-1 * var(--rotate-zone))" : "0"
+                  transform: `translate(${corner.x < 0 ? -100 : 0}%, ${corner.y < 0 ? -100 : 0}%)`
               });
           }
           retarget(target) {
@@ -29943,8 +29943,6 @@
               _rotation_decorators = [signal];
               _anchor_decorators = [signal];
               _size_decorators = [signal, auto({
-                      //Read through Point.from so `size: 20` and `size: {x, y}` work as well as a Point, and never let a
-                      //shape collapse to nothing.
                       preprocessValue: (value) => (Point.from(value) ?? new Point(100, 100)).bound(5, Infinity, 5, Infinity)
                   })];
               __esDecorate(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
@@ -30018,7 +30016,7 @@
       };
   })();
 
-  var css_248z$1 = ".demo-square{align-items:center;display:flex;height:100px;justify-content:center;position:absolute;width:100px}";
+  var css_248z$1 = ".demo-square{align-items:center;box-sizing:border-box;display:flex;height:100px;justify-content:center;position:absolute;width:100px}";
   styleInject(css_248z$1);
 
   //Custom square element, defined as a custom element
@@ -30195,7 +30193,7 @@
       }
   }
 
-  var css_248z = "demo-toolbar{background-color:var(--surface);border:1px solid var(--line);border-radius:var(--radius);bottom:20px;box-shadow:0 8px 24px rgb(0 0 0/8%),0 1px 2px rgb(0 0 0/5%);display:flex;flex-direction:row;gap:6px;left:50%;padding:8px;position:absolute;transform:translateX(-50%);z-index:2}demo-toolbar>*{background-color:transparent;border:1px solid transparent;border-radius:calc(var(--radius) - 4px);color:var(--muted);cursor:pointer;font-size:13px;line-height:1;padding:7px 12px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;-moz-user-select:none;user-select:none;white-space:nowrap}demo-toolbar>:hover{background-color:var(--hover);color:var(--text)}demo-toolbar>.selected{background-color:var(--active);color:var(--text)}demo-toolbar>*>*{margin:0;padding:0}";
+  var css_248z = "demo-toolbar{background-color:var(--surface);border:1px solid var(--line);border-radius:var(--radius);bottom:20px;box-shadow:0 8px 24px rgb(0 0 0/8%),0 1px 2px rgb(0 0 0/5%);display:flex;flex-direction:row;gap:6px;left:50%;padding:8px;position:absolute;transform:translateX(-50%);z-index:2}demo-toolbar .gradum-icon{display:block;height:1.4em;width:1.4em}demo-toolbar>.gradum-button{background-color:transparent;border:1px solid transparent;border-radius:calc(var(--radius) - 4px);color:var(--muted);cursor:pointer;fill:var(--muted);font-size:13px;line-height:1;padding:7px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;-moz-user-select:none;user-select:none;white-space:nowrap}demo-toolbar svg{fill:var(--muted)}demo-toolbar>.gradum-button:hover{background-color:var(--hover);color:var(--text)}demo-toolbar>.gradum-button.selected{background-color:var(--active);color:var(--text)}demo-toolbar>.gradum-button.selected svg,demo-toolbar>.gradum-button:hover svg{fill:var(--text)}demo-toolbar>.gradum-button>*{margin:0;padding:0}.divider{background-color:var(--line);border-radius:100px;margin:8px;width:2px}";
   styleInject(css_248z);
 
   let Toolbar = (() => {
@@ -30315,19 +30313,21 @@
   })();
   define(Bucket, "demo-bucket");
 
+  GradumIcon.defaultProperties.directory = "assets";
   Canvas.create({ parent: document.body });
   Toolbar.create({
       parent: document.body,
       entries: [
-          GradumButton.create({ text: "Select", tools: SelectTool, classes: "demo-button" }),
-          GradumButton.create({ text: "Resize", tools: ResizeTool, classes: "demo-button" }),
-          GradumButton.create({ text: "Rotate", tools: RotateTool, classes: "demo-button" }),
-          GradumButton.create({ text: "Add Square", tools: AddSquareTool, classes: "demo-button" }),
-          Bucket.create({ text: "Bucket", classes: "demo-button" }),
-          GradumButton.create({ text: "Pusher Substrate", tools: PusherSubstrateTool, classes: "demo-button" }),
-          GradumButton.create({ text: "Spacer Substrate", tools: SpacerSubstrateTool, classes: "demo-button" }),
+          GradumButton.create({ leftIcon: "cursor", tools: SelectTool, classes: "demo-button" }),
+          GradumButton.create({ leftIcon: "resize", tools: ResizeTool, classes: "demo-button" }),
+          GradumButton.create({ leftIcon: "rotate", tools: RotateTool, classes: "demo-button" }),
+          Bucket.create({ leftIcon: "bucket", classes: "demo-button" }),
+          GradumButton.create({ leftIcon: "addSquare", tools: AddSquareTool, classes: "demo-button" }),
+          div({ classes: "divider" }),
           GradumButton.create({ text: "Make Pusher", tools: MakePusherTool, classes: "demo-button" }),
           GradumButton.create({ text: "Make Spacer", tools: MakeSpacerTool, classes: "demo-button" }),
+          GradumButton.create({ text: "Pusher Substrate", tools: PusherSubstrateTool, classes: "demo-button" }),
+          GradumButton.create({ text: "Spacer Substrate", tools: SpacerSubstrateTool, classes: "demo-button" }),
       ]
   });
 
