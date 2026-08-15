@@ -10,6 +10,7 @@ import {Toolbar} from "./toolbar/toolbar";
 import {Bucket} from "./tools/bucket/bucket";
 import {ResizeTool} from "./tools/resize.tool";
 import {RotateTool} from "./tools/rotate.tool";
+import {DeleteTool} from "./tools/delete.tool";
 
 GradumIcon.defaultProperties.directory = "assets";
 
@@ -22,6 +23,7 @@ Toolbar.create({
         GradumButton.create({leftIcon: "rotate", tools: RotateTool, classes: "demo-button"}),
         Bucket.create({leftIcon: "bucket", classes: "demo-button"}),
         GradumButton.create({leftIcon: "addSquare", tools: AddSquareTool, classes: "demo-button"}),
+        GradumButton.create({leftIcon: "trash", tools: DeleteTool, classes: "demo-button"}),
         div({classes: "divider"}),
         GradumButton.create({text: "Make Pusher", tools: MakePusherTool, classes: "demo-button"}),
         GradumButton.create({text: "Make Spacer", tools: MakeSpacerTool, classes: "demo-button"}),

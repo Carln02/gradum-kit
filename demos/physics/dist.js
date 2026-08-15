@@ -30090,6 +30090,9 @@
               this.model.size = this.model.size.add(sizeDelta);
               this.model.position = this.model.position.add(pinned.sub(this.getBoundingClientRect().pointAt(anchor)));
           }
+          delete() {
+              this.remove();
+          }
           getBoundingClientRect() {
               return new GradumRect({
                   x: this.model.position.x,
@@ -30313,6 +30316,62 @@
   })();
   define(Bucket, "demo-bucket");
 
+  let DeleteTool = (() => {
+      let _classSuper = GradumTool;
+      let _instanceExtraInitializers = [];
+      let _click_decorators;
+      let _drag_decorators;
+      let _dragEnd_decorators;
+      return class DeleteTool extends _classSuper {
+          static {
+              const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+              _click_decorators = [behavior()];
+              _drag_decorators = [behavior()];
+              _dragEnd_decorators = [behavior()];
+              __esDecorate(this, null, _click_decorators, { kind: "method", name: "click", static: false, private: false, access: { has: obj => "click" in obj, get: obj => obj.click }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
+              __esDecorate(this, null, _dragEnd_decorators, { kind: "method", name: "dragEnd", static: false, private: false, access: { has: obj => "dragEnd" in obj, get: obj => obj.dragEnd }, metadata: _metadata }, null, _instanceExtraInitializers);
+              if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+          }
+          toolName = (__runInitializers(this, _instanceExtraInitializers), "delete"); //Define the tool name
+          radius = 12;
+          onActivate() {
+              gradum(document.body).addClass("erasing");
+          }
+          onDeactivate() {
+              gradum(document.body).removeClass("erasing");
+          }
+          click(e, el) {
+              if (!gradum(el).metadata?.get("modifiable"))
+                  return Propagation.propagate;
+              if ("delete" in el && typeof el.delete === "function")
+                  el.delete(e.position);
+              else
+                  return Propagation.propagate;
+              return Propagation.stopPropagation;
+          }
+          //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "delete", (e, el) => {...});
+          drag(e, el) {
+              if (!gradum(el).metadata?.get("modifiable"))
+                  return Propagation.propagate;
+              if ("deleteAt" in el && typeof el.deleteAt === "function")
+                  el.deleteAt(e.position);
+              else
+                  return Propagation.propagate;
+              return Propagation.stopPropagation;
+          }
+          dragEnd(e, el) {
+              if (!gradum(el).metadata?.get("modifiable"))
+                  return Propagation.propagate;
+              if ("endDeleteAt" in el && typeof el.endDeleteAt === "function")
+                  el.endDeleteAt(e.position);
+              else
+                  return Propagation.propagate;
+              return Propagation.stopPropagation;
+          }
+      };
+  })();
+
   GradumIcon.defaultProperties.directory = "assets";
   Canvas.create({ parent: document.body });
   Toolbar.create({
@@ -30323,6 +30382,7 @@
           GradumButton.create({ leftIcon: "rotate", tools: RotateTool, classes: "demo-button" }),
           Bucket.create({ leftIcon: "bucket", classes: "demo-button" }),
           GradumButton.create({ leftIcon: "addSquare", tools: AddSquareTool, classes: "demo-button" }),
+          GradumButton.create({ leftIcon: "trash", tools: DeleteTool, classes: "demo-button" }),
           div({ classes: "divider" }),
           GradumButton.create({ text: "Make Pusher", tools: MakePusherTool, classes: "demo-button" }),
           GradumButton.create({ text: "Make Spacer", tools: MakeSpacerTool, classes: "demo-button" }),

@@ -9,7 +9,6 @@ demo-text-editor {
     box-shadow: 0 8px 24px rgb(0 0 0 / 6%), 0 1px 2px rgb(0 0 0 / 4%);
 }
 
-/* TipTap's own editable region, which it creates inside the host. */
 demo-text-editor .tiptap {
     outline: none;
     padding: 20px 24px;
@@ -22,4 +21,19 @@ demo-text-editor .tiptap > *:first-child {
 
 demo-text-editor .tiptap > *:last-child {
     margin-bottom: 0;
+}
+
+body.deleting demo-text-editor .tiptap {
+    caret-color: transparent;
+    cursor: cell;
+    user-select: none;
+}
+
+body.deleting demo-text-editor ::selection {
+    background: transparent;
+}
+
+demo-text-editor .tiptap [data-erasing] {
+    color: var(--muted);
+    text-decoration: line-through;
 }

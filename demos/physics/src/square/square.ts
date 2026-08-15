@@ -55,6 +55,10 @@ export class Square extends GradumElement<SquareView, any, SquareModel> {
         this.model.position = this.model.position.add(pinned.sub(this.getBoundingClientRect().pointAt(anchor)));
     }
 
+    public delete() {
+        this.remove();
+    }
+
     public getBoundingClientRect(): GradumRect {
         return new GradumRect({
             x: this.model.position.x,
