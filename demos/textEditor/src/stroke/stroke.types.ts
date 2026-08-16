@@ -1,3 +1,5 @@
+import {TextRange} from "../textEditor/textEditor.types";
+
 /**
  * @type {StrokeProperties}
  * @description What a stroke needs to take hold of a passage: where it sits in the document, what it reads,
@@ -6,6 +8,7 @@
 export type StrokeProperties = {
     from: number,
     text: string,
+    markName?: string,
     coordsAt: (offset: number) => {left: number, right: number, top: number, bottom: number}
 };
 
@@ -17,6 +20,6 @@ export type TextUnit = "word" | "char";
  * offsets into it. What to make of them — struck through, pending, anything at all — is the caller's.
  */
 export type StrokeParts = {
-    trimmed: {from: number, to: number},
-    grown: {from: number, to: number}
+    trimmed: TextRange,
+    grown: TextRange
 };

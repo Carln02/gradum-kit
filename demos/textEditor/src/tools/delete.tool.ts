@@ -11,6 +11,13 @@ export class DeleteTool extends GradumTool {
         return Propagation.stopPropagation;
     }
 
+    @behavior() public dragStart(e: GradumEvent, el: Node) {
+        if (!gradum(el).metadata?.get("modifiable")) return Propagation.propagate;
+        if ("startDeleteAt" in el && typeof el.startDeleteAt === "function") el.startDeleteAt(e.position);
+        else return Propagation.propagate;
+        return Propagation.stopPropagation;
+    }
+
     //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "delete", (e, el) => {...});
     @behavior() public drag(e: GradumDragEvent, el: Node) {
         if (!gradum(el).metadata?.get("modifiable")) return Propagation.propagate;

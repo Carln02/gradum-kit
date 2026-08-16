@@ -6,7 +6,6 @@ export class RotateTool extends GradumTool {
     public activeClasses = "rotating"; //Marks the page while this tool is out
     public anchor: Anchor | Point = Anchor.Center;
 
-    //Where the drag begins settles what it turns, before anything has moved.
     @behavior() public dragStart(e: GradumEvent, el: Node) {
         if (!gradum(el).metadata?.get("modifiable")) return Propagation.propagate;
         if ("startRotate" in el && typeof el.startRotate === "function") el.startRotate(e.position);
@@ -24,10 +23,9 @@ export class RotateTool extends GradumTool {
         return Propagation.stopPropagation;
     }
 
-    //Turning is shown as it goes and settled here, so the whole sweep is one thing to undo.
     @behavior() public dragEnd(e: GradumDragEvent, el: Node) {
         if (!gradum(el).metadata?.get("modifiable")) return Propagation.propagate;
-        if ("endRotate" in el && typeof el.endRotate === "function") el.endRotate();
+        if ("endRotate" in el && typeof el.endRotate === "function") el.endRotate(e.position);
         else return Propagation.propagate;
         return Propagation.stopPropagation;
     }

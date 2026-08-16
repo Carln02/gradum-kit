@@ -9,5 +9,5 @@ const selection = (name: string) => Mark.create({
 
 export const Selection = "selection";
 
-export const RotateSelection = selection("rotate");
-export const ResizeSelection = selection("resize");
+export const RotateSelection = selection("rotating");
+export const ResizeSelection = selection("resizing");

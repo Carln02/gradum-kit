@@ -6,7 +6,6 @@ export class ResizeTool extends GradumTool {
     public activeClasses = "resizing"; //Marks the page while this tool is out
     public anchor: Anchor | Point = Anchor.Center;
 
-    //Where the drag begins settles what it stretches, before anything has moved.
     @behavior() public dragStart(e: GradumEvent, el: Node) {
         if (!gradum(el).metadata?.get("modifiable")) return Propagation.propagate;
         if ("startResize" in el && typeof el.startResize === "function") el.startResize(e.position);
@@ -25,10 +24,9 @@ export class ResizeTool extends GradumTool {
         } catch (e) {return Propagation.stopPropagation}
     }
 
-    //Stretching is shown as it goes and settled here, so the whole drag is one thing to undo.
     @behavior() public dragEnd(e: GradumDragEvent, el: Node) {
         if (!gradum(el).metadata?.get("modifiable")) return Propagation.propagate;
-        if ("endResize" in el && typeof el.endResize === "function") el.endResize();
+        if ("endResize" in el && typeof el.endResize === "function") el.endResize(e.position);
         else return Propagation.propagate;
         return Propagation.stopPropagation;
     }

@@ -29,7 +29,9 @@ body.deleting demo-text-editor .tiptap {
     user-select: none;
 }
 
-body.deleting demo-text-editor ::selection {
+body.deleting demo-text-editor ::selection,
+body.rotating demo-text-editor ::selection,
+body.resizing demo-text-editor ::selection {
     background: transparent;
 }
 
@@ -67,10 +69,10 @@ demo-text-editor .tiptap [data-selection] {
     border-radius: 3px;
 }
 
-demo-text-editor .tiptap [data-selection="rotate"] {
+demo-text-editor .tiptap [data-selection="rotating"] {
     background-color: #e6ddff;
 }
 
-demo-text-editor .tiptap [data-selection="resize"] {
+demo-text-editor .tiptap [data-selection="resizing"] {
     background-color: #d3f5e3;
 }

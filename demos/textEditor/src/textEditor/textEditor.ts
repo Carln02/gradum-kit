@@ -2,7 +2,7 @@ import {Editor} from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import {Erasing} from "../marks/erasing";
 import {Growing} from "../marks/growing";
-import {ResizeSelection, RotateSelection} from "../marks/selection";
+import {ResizeSelection, RotateSelection, Selection} from "../marks/selection";
 import {
     define, GradumElement, GradumEvent, GradumEventManager, GradumEventName, gradum, listener, Point, operator
 } from "../../../../build/gradum-kit.esm";
@@ -10,7 +10,8 @@ import "./textEditor.css";
 import {EditorView} from "@tiptap/pm/view";
 import {EditorState} from "@tiptap/pm/state";
 import {TextEditorMarkOperator} from "./textEditor.markOperator";
-import {TextEditorSequenceOperator} from "./textEditor.sequenceOperator";
+import {TextEditorStrokeOperator} from "./textEditor.strokeOperator";
+import {TextEditorModel} from "./textEditor.model";
 
 const CONTENT = `
     <h2>Lorem ipsum</h2>
@@ -25,24 +26,21 @@ const CONTENT = `
     sunt explicabo.</p>
 `;
 
-export class TextEditor extends GradumElement {
+export class TextEditor extends GradumElement<any, any, TextEditorModel> {
     public static defaultProperties = {
-        operators: [TextEditorMarkOperator, TextEditorSequenceOperator]
+        model: TextEditorModel,
+        operators: [TextEditorMarkOperator, TextEditorStrokeOperator]
     };
 
     public editor: Editor;
-    protected strokeAnchor: number;
 
     @operator() markOperator: TextEditorMarkOperator;
-    @operator() sequenceOperator: TextEditorSequenceOperator;
+    @operator() strokeOperator: TextEditorStrokeOperator;
 
     public initialize() {
         super.initialize();
         gradum(this).metadata.set(true, "modifiable");
-
-        //Reaching for another tool puts down whatever was in hand: a passage belongs to the tool that
-        //marked it, and there is nothing to say what a passage marked by one tool means to another.
-        GradumEventManager.instance.onToolChange.add(() => this.sequenceOperator.release());
+        GradumEventManager.instance.onToolChange.add(() => this.release());
     }
 
     /**
@@ -50,14 +48,13 @@ export class TextEditor extends GradumElement {
      */
     @listener({type: GradumEventName.clickStart, target: document})
     protected releaseSelections(e: GradumEvent) {
-        this.sequenceOperator.release(e.position);
+        this.release(e.position);
     }
 
     @listener({type: "dragstart"})
     protected stopDragStart(e: GradumEvent) {
         e.preventDefault();
     }
-
 
     protected setupUIElements() {
         super.setupUIElements();
@@ -88,69 +85,91 @@ export class TextEditor extends GradumElement {
         return this;
     }
 
-    public deleteAt(position: Point) {
-        const head = this.positionAt(position);
-        if (head === undefined) return;
-        this.strokeAnchor ??= head;
+    /*
+     *
+     * DELETE
+     *
+     */
 
-        this.markOperator.remark("erasing", {
-            from: Math.min(this.strokeAnchor, head),
-            to: Math.max(this.strokeAnchor, head)
-        });
+    public startDeleteAt(position: Point) {
+        this.strokeOperator.startStroke(position);
+    }
+
+    public deleteAt(position: Point) {
+        this.strokeOperator.continueStroke(position, "erasing");
     }
 
     public endDeleteAt() {
-        const ranges = this.markOperator.marked("erasing");
-        this.strokeAnchor = undefined;
-
-        this.markOperator.unmark("erasing");
+        const ranges = this.markOperator.marked(Erasing.name);
+        this.markOperator.unmark(Erasing.name);
         if (ranges.length) this.editor.commands.deleteRange({from: ranges[0].from, to: ranges[ranges.length - 1].to});
+        this.model.clearData();
     }
 
-    /**
-     * @description Begin a stroke: on the passage this tool has marked it turns that passage, and anywhere
-     * else it marks a new one.
+    /*
+     *
+     * ROTATE
+     *
      */
+
     public startRotate(position: Point) {
-        this.sequenceOperator.begin(position, "rotate");
+        this.strokeOperator.startStroke(position);
+        this.model.currentStroke = this.strokeOperator.strokeAtPoint(RotateSelection.name);
+        if (this.model.currentStroke) this.strokeOperator.drawStroke();
+        else this.markOperator.unmark(RotateSelection.name);
     }
 
-    /**
-     * @description Turn the sequence. A full circle cycles it once all the way round, so each step of
-     * `360 / items` carries the last item to the front.
-     */
-    public rotate(from: Point, to: Point) {
-        this.sequenceOperator.turn(from, to);
+    public rotate(_from: Point, to: Point) {
+        if (!this.model.currentStroke) return this.strokeOperator.continueStroke(to, RotateSelection.name);
+        if (this.model.currentStroke.turn(to)) this.strokeOperator.drawStroke();
     }
 
     public endRotate() {
-        this.sequenceOperator.commit();
+        this.strokeOperator.commitStroke();
+        this.model.clearData();
     }
 
-    /**
-     * @description Begin a stroke: on the passage this tool has marked it stretches that passage, and
-     * anywhere else it marks a new one.
+    /*
+     *
+     * RESIZE
+     *
      */
+
     public startResize(position: Point) {
-        this.sequenceOperator.begin(position, "resize");
+        this.model.currentPosition = position;
+        this.strokeOperator.startStroke(position);
+        this.model.currentStroke = this.strokeOperator.strokeAtPoint(ResizeSelection.name);
+        if (this.model.currentStroke) this.strokeOperator.drawStroke();
+        else this.markOperator.unmark(ResizeSelection.name);
     }
 
-    /**
-     * @description Stretch or trim the sequence, an item at a time as the drag runs along it.
-     */
     public resize(delta: Point) {
-        this.sequenceOperator.pull(delta);
+        this.model.currentPosition = this.model.currentPosition?.add(delta);
+        if (!this.model.currentStroke) return this.strokeOperator.continueStroke(this.model.currentPosition, ResizeSelection.name);
+        if (this.model.currentStroke.pull(delta.x)) this.strokeOperator.drawStroke();
     }
 
     public endResize() {
-        this.sequenceOperator.commit();
+        this.strokeOperator.commitStroke();
+        this.model.clearData();
     }
+
+    /*
+     *
+     * UTILS
+     *
+     */
 
     /**
      * @description Where in the document a point on the screen falls, or `undefined` when it falls outside.
      */
     public positionAt(position: Point): number {
         return this.editorView.posAtCoords({left: position.x, top: position.y})?.pos;
+    }
+
+    public release(position?: Point) {
+        const at = position ? this.positionAt(position) : undefined;
+        for (const name of this.markOperator.marksIn(Selection)) this.markOperator.unmarkUnlessAt(name, at);
     }
 }
 

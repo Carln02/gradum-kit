@@ -81,4 +81,24 @@ export class TextEditorMarkOperator extends GradumOperator<TextEditor> {
         });
         return ranges;
     }
+
+    /**
+     * @description A single joined range that carries all the spans of a mark.
+     */
+    public markedJoined(markName: string): TextRange {
+        const ranges = this.element.markOperator.marked(markName);
+        return ranges.length ? {from: ranges[0].from, to: ranges[ranges.length - 1].to} : undefined;
+    }
+
+    public pointInMark(position: number, mark: TextRange): boolean {
+        return mark && position >= mark.from && position <= mark.to;
+    }
+
+    /**
+     * @description Clear a mark unless the given position is inside what it holds.
+     */
+    public unmarkUnlessAt(markName: string, position: number) {
+        if (this.pointInMark(position, this.markedJoined(markName))) return;
+        this.unmark(markName);
+    }
 }
