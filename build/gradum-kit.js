@@ -1,1377 +1,3 @@
-/**
- * @typedef {Object} AutoOptions
- * @group Decorators
- * @category Augmentation
- *
- * @template Type - The type of the decorated property.
- * @description Options for configuring the `@auto` decorator.
- * @property {boolean} [override] - If true, will try to override the defined property in `super`.
- * @property {boolean} [cancelIfUnchanged=true] - If true, cancels the setter if the new value is the same as the
- * current value. Defaults to `true`.
- * @property {(value: Type) => Type} [preprocessValue] - Optional callback to execute on the value and preprocess it
- * just before it is set. The returned value will be stored.
- * @property {(value: Type) => void} [callBefore] - Optional function to call before preprocessing and setting the value.
- * @property {(value: Type) => void} [callAfter] - Optional function to call after setting the value.
- * @property {boolean} [setIfUndefined] - If true, will fire the setter when the underlying value is `undefined` and
- * the program is trying to access it (maybe through its getter).
- * @property {boolean} [returnDefinedGetterValue] - If true and a custom getter is defined, the return value of this
- * getter will be returned when accessing the property. Otherwise, the underlying saved value will always be returned.
- * Defaults to `false`.
- * @property {boolean} [executeSetterBeforeStoring] - If true, when setting the value, the setter will execute first,
- * and then the value will be stored. In this case, accessing the value in the setter will return the previous value.
- * Defaults to `false`.
- * @property {Type} [defaultValue] - If defined, whenever the underlying value is `undefined` and trying to be
- * accessed, it will be set to `defaultValue` through the setter before getting accessed.
- * @property {() => Type} [defaultValueCallback] - If defined, whenever the underlying value is `undefined` and
- * trying to be accessed, it will be set to the return value of `defaultValueCallback` through the setter before
- * getting accessed.
- * @property {Type} [initialValue] - If defined, on initialization, the property will be set to `initialValue`.
- * @property {() => Type} [initialValueCallback] - If defined, on initialization, the property will be set to the
- * return value of `initialValueCallback`.
- */
-
-/**
- * @typedef {Object} CacheOptions
- * @group Decorators
- * @category Cache
- *
- * @description Options for configuring the `@cache` decorator.
- *
- * Defines when and how cached values should expire, refresh, or invalidate.
- * These options apply equally to cached **methods**, **getters**, and **accessors**.
- * @property {number} [timeout]
- *  Duration in milliseconds after which the cached value automatically expires.
- *  Useful for time-based caching where values should refresh periodically.
- * @property {string | string[]} [onEvent]
- *  One or more event names (space-separated string or array) that, when fired on the instance,
- *  immediately clear the cache.
- *  This allows integration with custom event systems or reactive models.
- * @property {() => boolean | Promise<boolean>} [onCallback]
- *  Function (sync or async) periodically called to decide whether to invalidate the cache.
- *  If it returns `true`, the cache is cleared.
- * @property {number} [onCallbackFrequency]
- *  Frequency in milliseconds at which `onCallback` should be executed.
- *  Ignored if `onCallback` is not provided.
- * @property {string | Function | (string | Function)[]} [onFieldChange]
- *  One or more property names or methods to watch for changes.
- *  Whenever any of these fields or functions change, the cache for the decorated member is cleared.
- *  Can be a string, a function reference, or an array of both.
- * @property {boolean} [clearOnNextFrame]
- *  If `true`, clears the cache automatically on the **next animation frame** (or equivalent microtask fallback).
- *  Useful when the cached value is only valid for the current render/update cycle.
- */
-
-/**
- * @typedef {Object} KeyType
- * @group Core Types
- * @category Primitives
- *
- * @description Any value usable as an object key. Key paths throughout the MVC layer — model data,
- * observers, {@link GradumNestedMap} — are arrays of these.
- */
-
-/**
- * @typedef {Object} FlatKeyType
- * @group Core Types
- * @category Primitives
- *
- * @description A whole key path collapsed into one value, so a nested entry can be addressed without an
- * array. Fully numeric paths flatten to a number; anything else to a `"k0|k1|k2"` string.
- */
-
-/**
- * @typedef {Object} FlexRect
- * @group Core Types
- * @category Primitives
- *
- * @description A rectangle where every field is optional, for describing only the edges you care about.
- * Sides and dimensions may be mixed, and any that are omitted are left to the caller to infer.
- * @property {number} [top] - Distance from the top edge.
- * @property {number} [bottom] - Distance from the bottom edge.
- * @property {number} [left] - Distance from the left edge.
- * @property {number} [right] - Distance from the right edge.
- * @property {number} [x] - Horizontal origin.
- * @property {number} [y] - Vertical origin.
- * @property {number} [width] - Width of the rectangle.
- * @property {number} [height] - Height of the rectangle.
- */
-
-/**
- * @typedef {Object} Coordinate
- * @group Core Types
- * @category Primitives
- *
- * @template Type - The type of each component. Defaults to `number`.
- * @description A pair of values on the x and y axes. Generic so the same shape can carry something other
- * than numbers, such as a coordinate per axis expressed as a range.
- * @property {Type} x - The horizontal component.
- * @property {Type} y - The vertical component.
- */
-
-/**
- * @typedef {Object} PartialRecord
- * @group Core Types
- * @category Primitives
- *
- * @template {keyof any} Property - The union of allowed keys.
- * @template Value - The type stored at each key.
- * @description A `Record` whose every key is optional. Use it to accept any subset of a known set of keys.
- */
-
-/**
- * @typedef {Object} GradumModelProxy
- * @group MVC
- * @category Model
- *
- * @template {object} DataType - The type of the wrapped data.
- * @template {KeyType} IdType - The type of the data's ID.
- * @description Plain data that reads and writes through a {@link GradumModel}, as returned by
- * {@link GradumModel.from}. Use the keys of the data directly; reach the backing model through `$model`.
- * @property {GradumModel} $model - The model backing this data.
- */
-
-/**
- * @typedef {Object} GradumModelProperties
- * @group MVC
- * @category Model
- *
- * @template DataType - The type of data stored in the model.
- * @template IdType - The type of the data's ID.
- * @description Configuration object used when creating a {@link GradumModel}.
- * @property {IdType} [id] - Optional ID attached to the model. Useful to reference the data in a nested structure.
- * @property {DataType} [data] - Initial data.
- * @property {boolean} [initialize] - If true, {@link GradumModel.initialize} is called immediately after
- * construction.
- */
-
-/**
- * @typedef {Object} GradumObserverProperties
- * @group MVC
- * @category Model
- *
- * @template DataType - The type of data handled by the observer.
- * @template {object} ComponentType - The instance type created and managed by the observer.
- * @template {KeyType} DataKeyType - The per-item key type.
- * @description Options and lifecycle callbacks used to create a new {@link GradumObserver}.
- * *Note: `self` is the second argument of `onAdded` but the third of `onUpdated` and `onDeleted`, which take
- * the existing instance in second place.*
- * @property {new (...args: any[]) => GradumObserver<DataType, ComponentType, DataKeyType>} [customConstructor] -
- * Observer subclass to instantiate instead of the default {@link GradumObserver}.
- * @property {number} [depth] - How many levels below the attached path to watch. Defaults to the depth
- * implied by the key path the observer is registered on.
- * @property {boolean} [initialize] - If `true`, the observer is initialized on creation, so it immediately
- * reports every entry already present.
- * @property {(data: DataType, self: GradumObserver, ...keys: KeyType[]) => ComponentType | void} [onAdded] -
- * Called when a change is reported at a key path with no instance yet. Return an instance to have it stored
- * and handed back to later callbacks.
- * @property {(data: DataType, instance: ComponentType, self: GradumObserver, ...keys: KeyType[]) => void} [onUpdated] -
- * Called when an entry that already has an instance changes.
- * @property {(data: DataType, instance: ComponentType, self: GradumObserver, ...keys: KeyType[]) => void} [onDeleted] -
- * Called when an entry is removed.
- * @property {(prevData: DataType, newData: DataType, instance: ComponentType, self: GradumObserver, ...keys: KeyType[]) => boolean} [replaceOnUpdate] -
- * Called before `onUpdated`. Return `true` to destroy the existing instance and create a fresh one through
- * `onAdded` instead of updating it in place.
- * @property {(self: GradumObserver) => void} [onInitialize] - Called when the observer is initialized.
- * @property {(self: GradumObserver) => void} [onDestroy] - Called when the observer is destroyed.
- */
-
-/**
- * @typedef {Object} SignalEntry
- * @group Decorators
- * @category Signal
- *
- * @template Type - The type of the value held by the signal.
- * @description The read/write/subscribe surface shared by every signal. {@link SignalBox} adds
- * the ergonomic wrappers on top of this.
- * @property {() => Type} get - Read the current value.
- * @property {(value: Type) => void} set - Store a new value. Subscribers run only if the value actually changed.
- * @property {(updater: (previous: Type) => Type) => void} update - Store a new value derived from the previous one.
- * @property {(fn: SignalSubscriber) => () => void} sub - Subscribe to change notifications. Returns a function that
- * unsubscribes.
- * @property {() => void} emit - Notify subscribers without changing the value. Use it after mutating structural
- * data in place, which `set` cannot detect.
- *
- * @example
- * ```ts
- * const count: SignalEntry<number> = signal(0);
- * const unsub = count.sub(() => console.log("count:", count.get()));
- * count.set(1); // logs "count: 1"
- * count.update(c => c + 1); // logs "count: 2"
- * unsub();
- * ```
- */
-
-/**
- * @typedef {Object} SignalBox
- * @group Decorators
- * @category Signal
- *
- * @template Type - The type of the value held by the signal.
- * @description A {@link SignalEntry} that can also be used directly as its underlying value. It
- * coerces to the inner value in string, number, and JSON contexts, so it can usually be dropped in
- * wherever the raw value was expected.
- * @property {Type} value - The current value. Mirrors `get()` and `set()`.
- * @property {() => Type} toJSON - The raw value, used by `JSON.stringify`.
- * @property {() => Type} valueOf - The raw value, used in arithmetic and comparison.
- * @property {(hint: "default" | "number" | "string") => string | number} [Symbol.toPrimitive] - Coerces to a number
- * for the `"number"` hint, and to a string for `"string"` and `"default"`.
- *
- * @example
- * ```ts
- * const count: SignalBox<number> = signal(0);
- *
- * // Read
- * console.log(count.get()); // 0
- * console.log(count.value); // 0
- * console.log(+count); // 0
- *
- * // Write
- * count.set(5);
- * count.value = 6;
- * count.update(v => v + 1); // 7
- *
- * // JSON / string
- * console.log(`${count}`); // "7"
- * console.log(JSON.stringify(count)); // 7
- *
- * // Reactivity
- * const unsub = count.sub(() => console.log("changed to", count.get()));
- * count.set(8); // triggers subscriber
- * unsub();
- * ```
- */
-
-/**
- * @typedef {Object} GradumViewProperties
- * @group MVC
- * @category View
- *
- * @template {object} ElementType - The type of the element the view renders.
- * @template {GradumModel} ModelType - The element's model type.
- * @template {GradumEmitter} EmitterType - The element's emitter type.
- * @description Properties used to construct a {@link GradumView}.
- * @property {ElementType} element - The element this view renders into.
- * @property {ModelType} [model] - The model the view reads from. Omit for a view with no state of its own.
- * @property {EmitterType} [emitter] - The emitter shared with the element and its operators.
- */
-
-/**
- * @typedef {Object} GradumOperatorProperties
- * @group MVC
- * @category Operator
- *
- * @extends {GradumViewProperties}
- * @template {object} ElementType - The type of the element.
- * @template {GradumView} ViewType - The element's view type, if any.
- * @template {GradumModel} ModelType - The element's model type, if any.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- *
- * @description  Options used to create a new {@link GradumOperator} attached to an element.
- * @property {ViewType} [view] - The MVC view.
- */
-
-/**
- * @typedef {Object} PreventDefaultOptions
- * @group GradumSelector
- * @category Events
- *
- * @description Options for {@link GradumSelector.preventDefault}, which prevents default browser behaviors for
- * selected event types and can optionally stop propagation.
- * @property {string[]} [types] - List of event types to affect. If omitted, defaults to {@link BasicInputEvents}.
- * @property {"capture" | "bubble"} [phase] - Which phase to prevent. Defaults to `"bubble"`.
- * @property {false | "stop" | "immediate"} [stop] - Whether to stop propagation when handling the event:
- * - `false`: do not stop propagation,
- * - `"stop"`: call `stopPropagation`,
- * - `"immediate"`: call `stopImmediatePropagation`.
- * @property {(type: string, e: Event) => boolean} [preventDefaultOn] - Predicate to decide (per event) whether to
- * call `preventDefault`. Return `true` to prevent default for that event.
- * @property {boolean} [clearPreviousListeners] - If true, clears previously installed prevent-default listeners
- * before installing new ones.
- * @property {GradumEventManager} [manager] - Event manager to use. Defaults to {@link GradumEventManager.instance}.
- */
-
-/**
- * @typedef {Object} ListenerProperties
- * @group Components
- * @category Data Structures
- *
- * @template {Node} TargetType - The type of the event target.
- * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
- * @description Configuration object used to construct a {@link Listener}.
- * @property {string} type - Event type (e.g., `"click"`, `"pointermove"`).
- * @property {CallbackType} callback - Listener callback.
- * @property {TargetType} [target] - Target node.
- * @property {string} [toolName] - Tool name to bind this listener to (if applicable).
- * @property {ListenerOptions} [options] - Options controlling registration and execution behaviors.
- * @property {GradumEventManager} [manager] - Event manager to use. Defaults to {@link GradumEventManager.instance}.
- */
-
-/**
- * @typedef {Object} MatchListenerProperties
- * @group Components
- * @category Data Structures
- *
- * @extends ListenerProperties
- * @template {Node} TargetType - The type of the event target.
- * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
- * @description A partial {@link ListenerProperties} used as a search pattern by {@link Listener.match}.
- * Only the fields present are compared, so an empty pattern matches every listener.
- * @property {string[]} [optionsToSkip] - Option keys to ignore when comparing `options`.
- */
-
-/**
- * @typedef {Object} ListenerOptions
- * @group Components
- * @category Data Structures
- * @extends AddEventListenerOptions
- * @description Options used for listeners.
- * @property {boolean} [checkConstrainers] - If true, checks constrainers before execution. Defaults to true.
- * @property {boolean} [solveConstrainers] - If true, triggers constrainer solving after execution. Defaults to true.
- * @property {number} [throttleEveryFrames] - Throttle execution to at most once every N animation frames.
- * @property {number} [throttleEveryMs] - Throttle execution to at most once every N milliseconds.
- */
-
-/**
- * @typedef {Object} GradumInteractorProperties
- * @group MVC
- * @category Interactor
- *
- * @extends {GradumOperatorProperties}
- * @template {object} ElementType - The type of the element.
- * @template {GradumView} ViewType - The element's view type, if any.
- * @template {GradumModel} ModelType - The element's model type, if any.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- *
- * @description  Options used to create a new {@link GradumInteractor} attached to an element.
- * @property {string} [toolName] - The name of the tool (if any) that the event listeners will listen for.
- * @property {Node} [target] - The target that will listen for the events. Defaults to `this.element`.
- * @property {PartialRecord<DefaultEventNameKey, ListenerOptions>} [listenerOptions] - Custom default options to define
- * for all listeners.
- * @property {GradumEventManager} [manager] - The event manager instance the listeners should register against. Defaults
- * to `GradumEventManager.instance`.
- */
-
-/**
- * @typedef {Object} MakeToolOptions
- * @group GradumSelector
- * @category Tools
- *
- * @description Options used to create a new tool attached to an element via {@link GradumSelector.makeTool}.
- * @property {() => void} [onActivate] - Function to execute when the tool is activated.
- * @property {() => void} [onDeactivate] - Function to execute when the tool is deactivated.
- * @property {DefaultEventNameEntry} [activationEvent] - Custom activation event to listen to. Defaults to the
- * default click event name.
- * @property {ClickMode} [clickMode] -  Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
- * @property {(element: Gradum<Element>, manager: GradumEventManager) => void} [customActivation] - Custom activation
- * function. If provided, is called with `(el, manager)` to define when the tool is activated.
- * @property {string} [key] - Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
- * @property {GradumEventManager} [manager] - The event manager instance this tool should register against. Defaults
- * to `GradumEventManager.instance`.
- */
-
-/**
- * @typedef {Object} ToolBehaviorCallback
- * @group GradumSelector
- * @category Tools
- *
- * @description Function signature for a tool behavior. Returning `true` marks the behavior as handled/consumed,
- * leading to stopping the propagation of the event.
- * @param {Event} event - The original DOM/Gradum event.
- * @param {Node} target - The node the behavior should operate on (the object or its embedded target).
- * @param {ToolBehaviorOptions} [options] - Additional info (embedded context, etc.).
- * @returns {boolean} Whether to stop the propagation.
- */
-
-/**
- * @typedef {Object} ToolBehaviorOptions
- * @group GradumSelector
- * @category Tools
- *
- * @description Options object passed to tool behaviors at execution time.
- * @property {boolean} [isEmbedded] - Indicates if the tool is embedded in a target node.
- * @property {Node} [embeddedTarget] - The target of the tool, if it is embedded.
- */
-
-/**
- * @typedef {Object} GradumToolProperties
- * @group MVC
- * @category Tool
- *
- * @extends GradumOperatorProperties
- * @extends MakeToolOptions
- *
- * @template {object} ElementType - The type of the element.
- * @template {GradumView} ViewType - The element's view type, if any.
- * @template {GradumModel} ModelType - The element's model type, if any.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- *
- * @description Options used to create a new {@link GradumTool} attached to an element.
- * @property {string} [toolName] - The name of the tool.
- * @property {Node} [embeddedTarget] - If the tool is embedded, its target.
- */
-
-/**
- * @typedef {Object} GradumConstrainerProperties
- * @group MVC
- * @category Constrainer
- *
- * @extends GradumOperatorProperties
- * @extends MakeConstrainerOptions
- *
- * @template {object} ElementType - The type of the element.
- * @template {GradumView} ViewType - The element's view type, if any.
- * @template {GradumModel} ModelType - The element's model type, if any.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- *
- * @description Options used to create a new {@link GradumConstrainer} attached to an element.
- * @property {string} [constrainerName] - The name of the constrainer.
- */
-
-/**
- * @typedef {Object} NodeListType
- * @group Components
- * @category Data Structures
- *
- * @template {object} EntryType - The type of the nodes held in the collection.
- * @description Anything a {@link GradumNodeList} accepts as a source of entries: another list, a live DOM
- * `HTMLCollection` or `NodeListOf`, a `Set`, or a plain array. Live DOM collections keep reflecting the
- * document after being added, so the list stays in sync with them.
- */
-
-/**
- * @typedef {Object} NodeListSlot
- * @group Components
- * @category Data Structures
- *
- * @template {object} EntryType - The type of the nodes held in the collection.
- * @description One slot of a {@link GradumNodeList}: either a single entry, or a whole sub-collection
- * counted as one position. Unlike {@link NodeListType} it excludes `Set` and array, which are flattened
- * into individual slots when added.
- */
-
-/**
- * @typedef {Object} SVGTagMap
- * @group Core Types
- * @category SVG Tags
- *
- * @description The SVG tag-to-element map, minus `style`. That one tag is excluded because it collides
- * with the HTML `<style>` element of the same name, which would make the combined tag maps ambiguous.
- */
-
-/**
- * @typedef {Object} ElementTagDefinition
- * @group Core Types
- * @category Element Tags
- * @description Represents an element's definition of its tag and its namespace (both optional).
- * @property {string} [tag="div"] - The HTML tag of the element (e.g., "div", "span", "input"). Defaults to "div."
- * @property {string} [namespace] - The namespace of the element. Defaults to HTML. If "svgManipulation" or "mathML"
- * is provided, the corresponding namespace will be used to create the element. Otherwise, the custom namespace
- * provided will be used.
- */
-
-/**
- * @typedef {Object} GradumElementTagNameMap
- * @group Core Types
- * @category Element Tags
- *
- * @description Maps custom element tag names to their classes. Empty by design — every component adds its
- * own entry by augmenting this interface, which is what folds custom tags into {@link ElementTagMap} so
- * they resolve to a concrete class. Augment it the same way to make your own elements type-aware.
- *
- * @example
- * ```ts
- * declare module "gradum-kit" {
- *    interface GradumElementTagNameMap {
- *       "my-widget": MyWidget;
- *    }
- * }
- * ```
- */
-
-/**
- * @typedef {Object} GradumElementPropertiesMap
- * @group Core Types
- * @category Element Tags
- *
- * @description Maps custom element tag names to their properties types, the counterpart of
- * {@link GradumElementTagNameMap}. Augment it alongside that one so the properties accepted when creating
- * your element are resolved from its tag.
- */
-
-/**
- * @typedef {Object} CloneElementOptions
- * @group GradumSelector
- * @category Element
- *
- * @description Controls what {@link GradumSelector.clone} carries over to the copy. By default a clone gets
- * the origin's own fields but shares object and node references; these options let you deepen or narrow
- * that per field.
- * @property {PropertyKey[]} [exclude] - Fields to leave off the clone entirely.
- * @property {PropertyKey[]} [forceInclude] - Fields to copy even though they would normally be skipped.
- * @property {PropertyKey[]} [deepClone] - Fields to deep-clone rather than copy by reference.
- * @property {PropertyKey[]} [copyReference] - Fields to copy by reference even under a deep-clone setting.
- * @property {boolean} [copyNodes] - Whether to copy fields holding DOM nodes.
- * @property {boolean} [deepCloneObjects] - Whether to deep-clone every object-valued field.
- * @property {boolean} [deepCloneNodes] - Whether to deep-clone every node-valued field.
- * @property {boolean} [snapshotData] - Whether the clone's model gets a detached snapshot of the data
- * instead of a live reference. See the note on the field.
- */
-
-/**
- * @typedef {Object} FeedforwardProperties
- * @group GradumSelector
- * @category Element
- *
- * @extends GradumElementProperties
- * @description Controls the preview element {@link GradumSelector.feedforward} produces — everything
- * {@link GradumElementProperties} accepts, plus how the preview is cloned, wrapped, and torn down. Used to
- * show the user what an interaction is about to do before they commit to it.
- * @property {boolean} [removeOnPointerRelease] - Whether the preview removes itself when the pointer is released.
- * @property {string} [type] - A label identifying the kind of feedforward, for callers that show several.
- * @property {CloneElementOptions} [cloneOptions] - How to clone the origin element into the preview.
- * @property {boolean} [wrap] - Whether to wrap the clone in a positioning wrapper. See the note on the field.
- */
-
-/**
- * @typedef {Object} GradumProperties
- * @group GradumSelector
- * @category Element
- *
- * @template {ValidTag} Tag - The HTML (or other) tag of the element, if passing it as a property. Defaults to "div".
- * @template {GradumView} ViewType - The element's view type, if any.
- * @template {object} DataType - The element's data type, if any.
- * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- *
- * @description Object containing properties for configuring an Element. A tag (and
- * possibly a namespace) can be provided for element creation. Already-created elements will ignore these
- * properties if set.
- * Any HTML attribute can be passed as key to be processed by the class/function. The type has the following
- * described custom properties:
- * @property {string} [id] - The ID of the element.
- * @property {string | string[]} [classes] - The CSS class(es) to apply to the element (either a string of
- * space-separated classes or an array of class names).
- * @property {string} [style] - The inline style of the element. Use the css literal function for autocompletion.
- * @property {string} [stylesheet] - The associated stylesheet (if any) with the element. Declaring this property will
- * generate automatically a new style element in the element's corresponding root. Use the css literal function
- * for autocompletion.
- * @property {Record<string, EventListenerOrEventListenerObject | ((e: Event, el: Element) => boolean)>} [listeners]
- * - An object containing event listeners to be applied to this element.
- * @property {(e: Event, el: Element) => boolean} [onClick] - Click event listener.
- * @property {(e: Event, el: Element) => boolean} [onDrag] - Drag event listener.
- * @property {Element | Element[]} [children] - An array of child wrappers or elements to append to
- * the created element.
- * @property {Element} [parent] - The parent element to which the created element will be appended.
- * @property {string | Element} [out] - If defined, declares (or sets) the element in the parent as a field with the
- * given value as key.
- * @property {string} [text] - The text content of the element (if any).
- * @property {boolean} [shadowDOM] - If true, indicate that the element will be created under a shadow root.
- */
-
-/**
- * @typedef {Object} GradumElementProperties
- * @group MVC
- * @category Element Classes
- *
- * @extends GradumProperties
- * @template {GradumView} ViewType - The element's view type, if any.
- * @template {object} DataType - The element's data type, if any.
- * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- *
- * @description Object containing properties for configuring a custom HTML element. Is basically GradumProperties
- * without the tag.
- */
-
-/**
- * @typedef {Object} MvcProperties
- * @group MVC
- * @category Configuration
- *
- * @template {GradumView} ViewType - The element's view type, if any.
- * @template {GradumModel} ModelType - The element's model type, if any.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- *
- * @description The set of MVC pieces attached to an element. Pass one to `defaultProperties` or to
- * {@link GradumSelector.setMvc} to declare which classes fill each role; read the assembled set back from
- * {@link GradumSelector.mvc}. Every role is optional, and each accepts either a ready-made instance or a
- * constructor to build one from.
- * @property {MvcInstanceOrConstructor<ViewType, GradumViewProperties>} [view] - The view (or view constructor) to attach.
- * @property {ModelType | (new (data?: any, dataBlocksType?: "map" | "array") => ModelType)} [model] - The model
- * (or model constructor) to attach.
- * @property {MvcInstanceOrConstructor<EmitterType, ModelType>} [emitter] - The emitter (or emitter constructor) to
- * attach. If not defined, a default GradumEmitter will be created.
- * @property {MvcManyInstancesOrConstructors<GradumOperator, GradumOperatorProperties>} [operators] - The
- * operator, constructor of operator, or array of the latter, to attach.
- * @property {MvcManyInstancesOrConstructors<GradumHandler, ModelType>} [handlers] - The
- * handler, constructor of handler, or array of the latter, to attach.
- * @property {MvcManyInstancesOrConstructors<GradumInteractor, GradumInteractorProperties>} [interactors] - The
- * interactor, constructor of interactor, or array of the latter, to attach.
- * @property {MvcManyInstancesOrConstructors<GradumTool, GradumToolProperties>} [tools] - The
- * tool, constructor of tool, or array of the latter, to attach.
- * @property {MvcManyInstancesOrConstructors<GradumConstrainer, GradumConstrainerProperties>} [constrainers] - The
- * constrainer, constructor of constrainer, or array of the latter, to attach.
- */
-
-/**
- * @typedef {Object} MvcGenerationProperties
- * @group MVC
- * @category Configuration
- *
- * @extends MvcProperties
- * @template {GradumView} ViewType - The element's view type, if any.
- * @template {object} DataType - The element's data type, if any.
- * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
- * @description Everything {@link MvcProperties} accepts, plus the data to seed the model with and whether
- * to initialize. This is the shape {@link GradumSelector.setMvc} takes, so the pieces can be attached and
- * brought up in one call.
- * @property {DataType} [data] - The data to attach to the model.
- * @property {boolean} [initialize] - Whether to initialize the MVC pieces after setting them or not. Defaults to true.
- */
-
-/**
- * @typedef {Object} GradumHeadlessProperties
- * @group MVC
- * @category Element Classes
- *
- * @template {GradumView} ViewType - The element's view type, if initializing MVC.
- * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
- * @description Object containing properties for configuring a headless (non-HTML) element, with possibly MVC properties.
- */
-
-/**
- * @typedef {Object} GradumEventManagerStateProperties
- * @group Event Handling
- * @category GradumEventManager
- *
- * @description Whether a {@link GradumEventManager} is running, and which native default actions it
- * suppresses while it does.
- * @property {boolean} [enabled=true] - Whether the manager processes input at all. Set it to `false` to
- * silence every Gradum event without tearing the manager down.
- * @property {boolean} [preventDefaultWheel=false] - Whether to call `preventDefault` on wheel input,
- * suppressing native page zoom and scroll.
- * @property {boolean} [preventDefaultMouse=false] - Whether to call `preventDefault` on mouse input.
- * @property {boolean} [preventDefaultTouch=false] - Whether to call `preventDefault` on touch input,
- * suppressing native scrolling and pinch-zoom.
- */
-
-/**
- * @typedef {Object} EnabledGradumEventTypes
- * @group Event Handling
- * @category GradumEventManager
- *
- * @description Which families of Gradum events a manager fires. The first four switch off input
- * *sources*; the last three switch off *interpretations* the manager derives from them, so you can keep
- * pointer input while dropping, say, drag events. All default to `true`.
- * @property {boolean} [keyEventsEnabled=true] - Whether keyboard input produces {@link GradumKeyEvent}s.
- * @property {boolean} [wheelEventsEnabled=true] - Whether wheel input produces {@link GradumWheelEvent}s.
- * @property {boolean} [mouseEventsEnabled=true] - Whether mouse input is processed.
- * @property {boolean} [touchEventsEnabled=true] - Whether touch input is processed.
- * @property {boolean} [clickEventsEnabled=true] - Whether click, long-press, and click start/end events fire.
- * @property {boolean} [dragEventsEnabled=true] - Whether drag and drag start/end events fire.
- * @property {boolean} [moveEventsEnabled=true] - Whether move events fire.
- */
-
-/**
- * @typedef {Object} GradumEventManagerProperties
- * @group Event Handling
- * @category GradumEventManager
- *
- * @template {GradumEventManagerModel} ModelType - The manager's model type.
- * @description Properties used to construct a {@link GradumEventManager}. Combines the MVC properties of
- * a headless element with {@link GradumEventManagerStateProperties}, {@link EnabledGradumEventTypes}, and
- * the thresholds below.
- * @property {number} [moveThreshold=10] - How far, in pixels, a pointer must travel before the manager
- * treats the interaction as a drag rather than a click.
- * @property {number} [longPressDuration=500] - How long, in milliseconds, a pointer must be held still
- * before a long press fires.
- * @property {boolean | (() => boolean)} [authorizeEventScaling] - Whether fired events compute scaled
- * positions. Pass a callback to decide per event.
- * @property {(position: Point) => Point} [scaleEventPosition] - Converts a screen position into document
- * space for every event this manager fires. Set it to make events aware of a panned or zoomed canvas.
- */
-
-/**
- * @typedef {Object} GradumEventManagerLockStateProperties
- * @group Event Handling
- * @category GradumEventManager
- *
- * @description A {@link GradumEventManagerStateProperties} override held for the duration of one
- * interaction, together with the node that asked for it. Locking lets an element impose its own
- * prevent-default and enabled settings mid-gesture, then hand them back.
- * @property {Node} [lockOrigin] - The node that established the lock, and the only one that can lift it.
- */
-
-/**
- * @typedef {Object} SetToolOptions
- * @group Event Handling
- * @category GradumEventManager
- *
- * @description Options for {@link GradumEventManager.setTool}, controlling the side effects of making a
- * tool current beyond the assignment itself.
- * @property {boolean} [select=true] - Whether to visually select the tool on every toolbar showing it.
- * @property {boolean} [activate=true] - Whether to fire the tool's activation callback.
- * @property {boolean} [setAsNoAction] - Whether the tool also becomes the one used for
- * `ClickMode.none`. Defaults to `true` when the click mode is `ClickMode.left`.
- */
-
-/**
- * @typedef {Object} GradumRawEventProperties
- * @group Event Handling
- * @category GradumEvents
- *
- * @description The fields every Gradum event is built from. The concrete property types
- * ({@link GradumEventProperties}, {@link GradumDragEventProperties}, ...) extend this with whatever
- * positional data their event carries.
- * @property {ClickMode} [clickMode] - The pointer button or input mode the event belongs to. Defaults to
- * the manager's current click mode.
- * @property {InputDevice} [inputDevice] - The device that produced the event. Defaults to
- * `InputDevice.unknown`.
- * @property {string[]} [keys] - Keys held when the event fired. Defaults to the manager's current keys.
- * @property {GradumEventNameEntry} [eventName] - The name the event is dispatched under.
- * @property {GradumEventManager} [eventManager] - The manager firing the event. Defaults to
- * {@link GradumEventManager.instance}.
- * @property {string} [toolName] - The tool the event is attributed to, if any.
- * @property {boolean | (() => boolean)} [authorizeScaling=true] - Whether scaled positions are computed.
- * Pass a callback to decide per read.
- * @property {(position: Point) => Point} [scalePosition] - Converts a screen position into document
- * space. Defaults to returning the position unchanged.
- * @property {EventInit} [eventInitDict] - Native event options, merged over the defaults of `bubbles`
- * and `cancelable` set to `true`.
- */
-
-/**
- * @typedef {Object} GradumEventProperties
- * @group Event Handling
- * @category GradumEvents
- *
- * @description Properties used to construct a {@link GradumEvent}. Extends
- * {@link GradumRawEventProperties} with the single point the event happened at.
- * @property {Point} [position] - The screen position the event was fired from.
- */
-
-/**
- * @typedef {Object} GradumDragEventProperties
- * @group Event Handling
- * @category GradumEvents
- *
- * @description Properties used to construct a {@link GradumDragEvent}. Each map is keyed by pointer id,
- * so a multi-touch drag carries one entry per finger.
- * @property {GradumMap<number, Point>} [origins] - Where each pointer started its drag.
- * @property {GradumMap<number, Point>} [previousPositions] - Where each pointer was on the previous event.
- * @property {GradumMap<number, Point>} [positions] - Where each pointer is now. Its first entry becomes
- * the event's `position`.
- */
-
-/**
- * @typedef {Object} GradumKeyEventProperties
- * @group Event Handling
- * @category GradumEvents
- *
- * @description Properties used to construct a {@link GradumKeyEvent}. Exactly one of the two keys is set,
- * depending on whether the event is a press or a release.
- * @property {string} [keyPressed] - The key that was pressed.
- * @property {string} [keyReleased] - The key that was released.
- */
-
-/**
- * @typedef {Object} GradumWheelEventProperties
- * @group Event Handling
- * @category GradumEvents
- *
- * @description Properties used to construct a {@link GradumWheelEvent}.
- * @property {Point} [delta] - How far the wheel or trackpad scrolled, per axis.
- */
-
-/**
- * @typedef {Object} MakeConstrainerOptions
- * @group GradumSelector
- * @category Constrainers
- *
- * @description Options for turning an object into a constrainer with
- * {@link GradumSelector.makeConstrainer}.
- * @property {() => void} [onActivate] - Callback function to execute when the constrainer is activated.
- * @property {() => void} [onDeactivate] - Callback function to execute when the constrainer is deactivated.
- * @property {number} [priority] - The priority of the constrainer. Higher priority constrainers (lower number) should
- * be resolved first. Defaults to 10.
- * @property {boolean} [active] - Whether the constrainer is active. Defaults to true.
- * @property {GradumConstrainer} [attachedInstance] - The optional GradumConstrainer instance to attach to the constrainer.
- */
-
-/**
- * @typedef {Object} ConstrainerCallbackProperties
- * @group GradumSelector
- * @category Constrainers
- *
- * @description The context handed to a solver as its first argument, naming the constrainer, the object
- * being processed, and the event that triggered it. Passed when solving through
- * {@link GradumSelector.solveConstrainer}.
- * @property {string} [constrainer] - The targeted constrainer. Defaults to `currentConstrainer`.
- * @property {object} [constrainerHost] - The object to which the target constrainer is attached.
- * @property {object} [target] - The current object being processed by the solver. Property set by
- * {@link GradumSelector.solveConstrainer} when processing every object in the constrainer's list.
- * @property {Event} [event] - The event (if any) that fired the resolving of the constrainer.
- * @property {string} [eventType] - The type of the event.
- * @property {Node} [eventTarget] - The target of the event.
- * @property {string} [toolName] - The name of the active tool when the event was fired.
- * @property {ListenerOptions} [eventOptions] - The options of the event.
- * @property {GradumEventManager} [manager] - The event manager that captured the event. Defaults to the first
- * instantiated event manager.
- */
-
-/**
- * @typedef {Object} ConstrainerMutatorProperties
- * @group GradumSelector
- * @category Constrainers
- *
- * @extends ConstrainerCallbackProperties
- * @template Type - The type of the value to mutate.
- * @description The context handed to a mutator as its first argument, naming which mutator to run and the
- * value it should transform. Passed when mutating through {@link GradumSelector.mutate}.
- * @property {string} [mutation] - The name of the mutator to execute.
- * @property {Type} [value] - The value to mutate.
- */
-
-/**
- * @typedef {Object} ConstrainerAddCallbackProperties
- * @group GradumSelector
- * @category Constrainers
- * @template {ConstrainerChecker | ConstrainerMutator | ConstrainerSolver} Type - The type of callback.
- *
- * @description Options for registering a checker, mutator, or solver on an existing constrainer.
- * @property {string} [name] - The name of the callback to add.
- * @property {Type} [callback] - The callback to add.
- * @property {string} [constrainer] - The constrainer to add the callback to.
- * @property {number} [priority] - The priority of the callback.
- */
-
-/**
- * @typedef {Object} DefineOptions
- * @group Decorators
- * @category Registry
- *
- * @description Options object for the {@link define} decorator and imperative function.
- * @property {boolean} [injectAttributeBridge=true] - Whether to inject an `attributeChangedCallback`
- * into the class prototype if one is not already present. When enabled, HTML attribute changes are
- * automatically mirrored to their associated `@observe`-decorated fields, and vice versa.
- */
-
-/**
- * @typedef {Object} RegistryEntry
- * @group Decorators
- * @category Registry
- *
- * @description Represents a single entry in the Gradum Kit class registry, as stored and returned
- * by {@link findRegistered} and related query functions.
- * @property {new (...args: any[]) => any} constructor - The registered class constructor.
- * @property {RegistryCategory | string} category - The category the class was registered under, either
- * passed explicitly to {@link define} or inferred from its inheritance chain. It is a plain string when
- * a custom category was supplied.
- * @property {string} name - The registered name of the class, used as the registry key.
- * Typically the class name as passed to {@link define}.
- * @property {string} [tag] - The custom element tag name associated with this class.
- * Only present for classes registered as custom HTML elements via {@link define}.
- */
-
-/**
- * @typedef {Object} StylesRoot
- * @group GradumSelector
- * @category Style
- *
- * @description A type that represents entities that can hold a <style> object (Shadow root or HTML head).
- */
-
-/**
- * @typedef {Object} StylesType
- * @group GradumSelector
- * @category Style
- *
- * @description A type that represents the types that are accepted as styles entries (mainly by the
- * HTMLElement.setStyles()
- * method). It includes strings, numbers, and records of CSS attributes to strings or numbers.
- */
-
-/**
- * @typedef {Object} GradumIconProperties
- * @group Components
- * @category Basics
- *
- * @extends GradumElementProperties
- * @template {GradumView} ViewType - The element's view type, if initializing MVC.
- * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
- * @description Properties to initialize a {@link GradumIcon}. Values left out fall back to
- * {@link GradumIcon.defaultProperties}.
- * @property {string} icon - Name of the icon, file extension included to override the resolved type.
- * @property {string} [iconColor] - Color applied to the icon.
- * @property {(svg: SVGElement) => void} [onLoaded] - Called with the loaded SVG element, to modify it once
- * it is available. Ignored for icons that are not SVGs.
- * @property {string} [type] - File type of the icon, used when the name carries no extension.
- * @property {string} [directory] - Directory the icon is loaded from.
- */
-
-/**
- * @typedef {Object} GradumRichElementProperties
- * @group Components
- * @category Basics
- *
- * @extends GradumElementProperties
- * @template {ValidTag} ElementTag - The tag of the main element.
- * @template {GradumView} ViewType - The element's view type, if initializing MVC.
- * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
- * @description Properties to initialize a {@link GradumRichElement} — a main element flanked by up to
- * four optional slots. They are laid out left to right in the order below.
- * @property {ElementTag} [elementTag] - The HTML tag used for the main element when `element` is a string
- * or a properties object.
- * @property {string} [text] - Text content of the main element.
- * @property {Element | Element[]} [leftCustomElements] - Elements placed leftmost, before `leftIcon`.
- * @property {string | GradumIcon} [leftIcon] - Icon placed left of the main element. A string is treated as
- * an icon name or path.
- * @property {string | HTMLElement} [prefixEntry] - Content placed immediately before the main element.
- * @property {string | GradumProperties<ElementTag> | ValidElement<ElementTag>} [element] - The main element:
- * its text, the properties to build it from, or an existing element to adopt.
- * @property {string | HTMLElement} [suffixEntry] - Content placed immediately after the main element.
- * @property {string | GradumIcon} [rightIcon] - Icon placed right of the main element. A string is treated as
- * an icon name or path.
- * @property {Element | Element[]} [rightCustomElements] - Elements placed rightmost, after `rightIcon`.
- */
-
-/**
- * @typedef {Object} StateSpecificProperty
- * @group Components
- * @category Reifects
- *
- * @template Type - The type of the configured value.
- * @template {object} ClassType - The type of the attached object.
- * @description A value for one state: either a fixed value, or a {@link ReifectInterpolator} that computes
- * it per object.
- */
-
-/**
- * @typedef {Object} BasicPropertyConfig
- * @group Components
- * @category Reifects
- *
- * @template Type - The type of the configured value.
- * @template {KeyType} State - The set of states the reifect can switch between.
- * @description A property configured either per state, or as one value shared by every state. The
- * interpolator-free counterpart of {@link PropertyConfig}.
- */
-
-/**
- * @typedef {Object} PropertyConfig
- * @group Components
- * @category Reifects
- *
- * @template Type - The type of the configured value.
- * @template {KeyType} State - The set of states the reifect can switch between.
- * @template {object} ClassType - The type of the attached object.
- * @description How a single reifect property may be configured: one value for every state, a value per
- * state (each optionally interpolated per object), or a single {@link StateInterpolator} covering both.
- */
-
-/**
- * @typedef {Object} ReifectObjectData
- * @group Components
- * @category Reifects
- *
- * @template {KeyType} State - The set of states the reifect can switch between.
- * @template {object} ClassType - The type of the attached object.
- * @description The bookkeeping a {@link StatefulReifect} keeps for one attached object. The object is held
- * weakly, so attaching a reifect does not keep it alive once the rest of the application drops it.
- * @property {WeakRef<ClassType>} object - Weak reference to the attached object.
- * @property {ReifectEnabledObject} enabled - Which parts of the reifect apply to this object.
- * @property {State} [lastState] - The state the object was last switched to.
- * @property {ReifectObjectComputedProperties<State, ClassType>} [resolvedValues] - The per-state values
- * resolved for this object, so interpolated configurations are computed once rather than on every switch.
- * @property {number} [index] - The object's position among the attached objects.
- * @property {number} [total] - How many objects are attached in total.
- * @property {ReifectOnSwitchCallback<State, ClassType>} [onSwitch] - Called when this object switches state.
- * @property {() => void} [disposeEffect] - Tears down the effect tracking this object's reactive values.
- */
-
-/**
- * @typedef {Object} StatefulReifectCoreProperties
- * @group Components
- * @category Reifects
- *
- * @template {KeyType} State - The set of states the reifect can switch between.
- * @template {object} ClassType - The type of the attached object.
- * @description What a {@link StatefulReifect} applies to its objects on each state switch. Beyond the
- * named entries, any other key is treated as a property to set on the object itself.
- * @property {PropertyConfig<StylesType, State, ClassType>} [styles] - Inline styles to apply per state.
- * @property {PropertyConfig<string | string[], State, ClassType>} [classes] - CSS classes to toggle per state.
- * @property {PropertyConfig<ClassType, State, ClassType>} [replaceWith] - An object to swap the attached one
- * out for, per state.
- */
-
-/**
- * @typedef {Object} StatefulReifectProperties
- * @group Components
- * @category Reifects
- *
- * @extends StatefulReifectCoreProperties
- * @template {KeyType} State - The set of states the reifect can switch between.
- * @template {object} ClassType - The type of the attached object.
- * @description Options for constructing a {@link StatefulReifect}: everything it applies per state, plus
- * the states themselves and the objects to attach at creation.
- * @property {State[] | object} [states] - The available states, as an array or as an enum-like object.
- * @property {State | boolean} [initialState] - The state to start in.
- * @property {ClassType[]} [attachedObjects] - Objects to attach immediately.
- */
-
-/**
- * @typedef {Object} ReifectAppliedOptions
- * @group Components
- * @category Reifects
- *
- * @template {KeyType} State - The set of states the reifect can switch between.
- * @template {object} ClassType - The type of the attached object.
- * @description Options controlling one application of a reifect — how widely it reaches, and how much of
- * its cached per-object data it recomputes first.
- * @property {boolean} [attachObjects] - Attach any object passed in that is not attached yet.
- * @property {boolean} [executeForAll] - Apply to every attached object rather than only the one given.
- * @property {boolean} [recomputeIndices] - Recompute each object's index and total before applying.
- * @property {boolean} [recomputeProperties] - Re-resolve interpolated values before applying.
- * @property {boolean} [applyStylesInstantly] - Set styles directly instead of on the next frame, skipping
- * any CSS transition.
- * @property {StatefulReifectCoreProperties<State, ClassType>} [propertiesOverride] - Values to use for this
- * application in place of the reifect's own.
- */
-
-/**
- * @typedef {Object} ReifectEnabledObject
- * @group Components
- * @category Reifects
- *
- * @description Which parts of a reifect apply to a given object. Set `global` to `false` to disable the
- * reifect for that object entirely; the rest switch off one category each.
- * @property {boolean} [global] - Whether the reifect applies at all.
- * @property {boolean} [properties] - Whether property values are applied.
- * @property {boolean} [styles] - Whether inline styles are applied.
- * @property {boolean} [classes] - Whether CSS classes are toggled.
- * @property {boolean} [replaceWith] - Whether object replacement is performed.
- */
-
-/**
- * @typedef {Object} GradumIconSwitchProperties
- * @group Components
- * @category Basics
- *
- * @extends GradumIconProperties
- * @template {string | number | symbol} State - The set of states the icon can switch between.
- * @template {GradumView} ViewType - The element's view type, if initializing MVC.
- * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
- * @description Properties to initialize a {@link GradumIconSwitch} — an icon that swaps its appearance as
- * its state changes.
- * @property {StatefulReifect<State, GradumIcon> | StatefulReifectProperties<State, GradumIcon>} [switchReifect] -
- * The reifect driving the transition between states, or the properties to build one from.
- * @property {State} [defaultState] - The state the icon starts in.
- * @property {boolean} [appendStateToIconName=false] - Whether the current state is appended to the icon name,
- * so each state loads its own icon file.
- */
-
-/**
- * @typedef {Object} GradumInputProperties
- * @group Components
- * @category Basics
- *
- * @template {"input" | "textarea"} InputTag - The tag of the inner input element.
- * @template ValueType - The type the input's string value is converted to and from.
- * @template {GradumView} ViewType - The element's view type, if initializing MVC.
- * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
- * @description Properties to initialize a {@link GradumInput}. Extends
- * {@link GradumRichElementProperties} without `element` and `elementTag`, which the input sets itself.
- * @property {InputTag} [inputTag="input"] - Whether the field is an `input` or a `textarea`.
- * @property {GradumProperties<InputTag> | ValidElement<InputTag>} [input] - Properties for the inner input
- * element, or an existing element to use instead of creating one.
- * @property {string} [label] - Text of the label shown next to the field.
- * @property {boolean} [locked=false] - Whether the field rejects user edits.
- * @property {boolean} [dynamicVerticalResize=false] - Whether the field grows to fit its content as the
- * user types. Meant for `textarea`.
- * @property {RegExp | string} [inputRegexCheck] - Pattern the value must match while typing. Input that
- * would break the match is rejected as it is entered.
- * @property {RegExp | string} [blurRegexCheck] - Pattern the value must match when the field loses focus.
- * @property {boolean} [selectTextOnFocus=false] - Whether focusing the field selects all of its text.
- * @property {ValueType} [value] - Initial value of the field.
- * @property {string} [type] - Value of the input's `type` attribute.
- * @property {string} [placeholder] - Text shown while the field is empty.
- * @property {string} [pattern] - Value of the input's `pattern` attribute.
- * @property {string} [size] - Value of the input's `size` attribute.
- */
-
-/**
- * @typedef {Object} GradumLabelElementProperties
- * @group Components
- * @category Basics
- *
- * @extends GradumRichElementProperties
- * @template {ValidTag} ElementTag - The tag of the main element.
- * @template {GradumView} ViewType - The element's view type, if initializing MVC.
- * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
- * @description Properties to initialize a {@link GradumLabelElement} — a rich element paired with a
- * `label` bound to it.
- * @property {string} [label] - Text of the label shown next to the element.
- * @property {boolean} [locked=false] - Whether the element rejects user edits.
- */
-
-/**
- * @typedef {Object} GradumNumericalInputProperties
- * @group Components
- * @category Basics
- *
- * @template ValueType - The type the input's string value is converted to and from.
- * @template {GradumView} ViewType - The element's view type, if initializing MVC.
- * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
- * @description Properties to initialize a {@link GradumNumericalInput}. Extends
- * {@link GradumInputProperties} with the numeric constraints applied to the entered value.
- * @property {number} [multiplier=1] - Factor applied between the displayed value and the stored one.
- * @property {number} [decimalPlaces] - How many decimals the value is rounded to. Left unrounded if omitted.
- * @property {number} [min] - Lowest accepted value. The value is clamped to it.
- * @property {number} [max] - Highest accepted value. The value is clamped to it.
- */
-
-/**
- * @typedef {Object} GradumSelectProperties
- * @group Components
- * @category Basics
- *
- * @template ValueType - The type of the value each entry carries.
- * @template SecondaryValueType - The type of the secondary value each entry carries.
- * @template {object} EntryType - The type of the entries themselves.
- * @description Properties to initialize a {@link GradumSelect}. Entries can be supplied directly through
- * `entries`, or generated from `values` using `createEntry`.
- * @property {string | string[]} [entriesClasses] - CSS class(es) added to every entry.
- * @property {string | string[]} [selectedEntriesClasses] - CSS class(es) added to entries while selected.
- * @property {HTMLCollection | NodeList | EntryType[]} [entries] - The entries to populate the select with.
- * @property {(ValueType | EntryType)[]} [values] - Values to build entries from, using `createEntry`.
- * @property {ValueType[]} [selectedValues] - Values selected initially.
- * @property {(entry: EntryType) => ValueType} [getValue] - Reads the value carried by an entry.
- * @property {(entry: EntryType) => SecondaryValueType} [getSecondaryValue] - Reads an entry's secondary value.
- * @property {(value: ValueType) => EntryType} [createEntry] - Builds an entry for a value in `values`.
- * @property {(entry: EntryType, index: number) => void} [onEntryAdded] - Called when an entry is added.
- * @property {(entry: EntryType) => void} [onEntryRemoved] - Called when an entry is removed.
- * @property {(entry: EntryType, e: Event) => void} [onEntryClicked] - Called when an entry is clicked.
- * @property {boolean} [multiSelection=false] - Whether more than one entry can be selected at a time.
- * @property {boolean} [forceSelection=false] - Whether at least one entry must stay selected, preventing
- * the last selected entry from being deselected.
- * @property {string} [inputName] - Name given to the underlying form inputs, to submit the selection with a form.
- * @property {Element} [parent] - Element the entries are appended to.
- * @property {(b: boolean, entry: EntryType, index: number) => void} [onSelect] - Called when an entry's
- * selected state changes, with the new state.
- * @property {(b: boolean, entry: EntryType, index: number) => void} [onEnabled] - Called when an entry's
- * enabled state changes, with the new state.
- */
-
-/**
- * @typedef {Object} GradumSelectInputEventProperties
- * @group Components
- * @category Basics
- *
- * @extends GradumRawEventProperties
- * @template ValueType - The type of the value each entry carries.
- * @template SecondaryValueType - The type of the secondary value each entry carries.
- * @template {object} EntryType - The type of the entries themselves.
- * @description Properties to initialize a {@link GradumSelectInputEvent}, the event a select fires when
- * its selection changes.
- * @property {EntryType} toggledEntry - The entry whose selected state just changed.
- * @property {ValueType[]} values - The values selected after the change.
- */
-
-/**
- * @typedef {Object} GradumSelectElementProperties
- * @group Components
- * @category Basics
- *
- * @extends GradumElementProperties
- * @extends GradumSelectProperties
- * @template ValueType - The type of the value held by each entry.
- * @template SecondaryValueType - The type of each entry's secondary value.
- * @template {HTMLElement} EntryType - The type of the entry elements.
- * @template {GradumView} ViewType - The element's view type, if initializing MVC.
- * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
- * @description Properties for configuring a {@link GradumSelectElement} — everything a selection accepts,
- * plus the element-level options and the classes applied to its entries.
- * @property {string | string[]} [entriesClasses] - CSS class(es) applied to every entry.
- * @property {string | string[]} [selectedEntriesClasses] - CSS class(es) applied to selected entries.
- */
-
-/**
- * @typedef {Object} GradumContentSwitchProperties
- * @group Components
- * @category Containers
- *
- * @template {GradumView} ViewType - The element's view type, if initializing MVC.
- * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
- * @description Properties accepted when creating a {@link GradumContentSwitch}.
- * @property {ContentSwitchMode} [mode=ContentSwitchMode.fadeRight] - The transition played when the
- * selected entry changes.
- * @property {number} [transitionDuration=0.3] - How long that transition lasts, in seconds.
- * @property {StatefulReifect<Shown> | StatefulReifectProperties<Shown>} [transitionReifect] - The reifect
- * driving the transition. Pass an existing {@link StatefulReifect} to share one between components, or a
- * properties object to have one built.
- */
-
-/**
- * @typedef {Object} ScopedKey
- * @group Components
- * @category Data Structures
- *
- * @template KeyType - The per-item key type.
- * @template BlockKeyType - The block-grouping key type.
- * @description An item key together with the block it belongs to, used to address an entry that is
- * scoped to one block rather than to the store as a whole.
- * @property {BlockKeyType} [blockKey] - The block the item belongs to. Omit it to target the default block.
- * @property {KeyType} [key] - The item's key inside that block.
- */
-
-/**
- * @typedef {Object} BlockStoreType
- * @group Components
- * @category Data Structures
- *
- * @template {"array" | "map"} Type - How the blocks are stored. Defaults to `"map"`.
- * @template {object} BlockType - The type of one block.
- * @description The container a nested store keeps its blocks in, resolved from `Type`: a `Map` keyed by
- * block name for `"map"`, or a plain array indexed by position for `"array"`.
- */
-
-/**
- * @typedef {Object} GradumDropdownProperties
- * @group Components
- * @category Menus
- *
- * @extends GradumProperties
- * @description Properties for configuring a Dropdown.
- * @property {(string | HTMLElement)} [selector] - Element or descriptor used as the dropdown selector. If a
- * string is passed, a Button with the given string as text will be assigned as the selector.
- * @property {HTMLElement} [popup] - The element used as a container for the dropdown entries.
- * @property {boolean} [multiSelection=false] - Enables selection of multiple dropdown entries.
- * @property {ValidTag} [selectorTag] - Custom HTML tag for the selector's text. Overrides the
- * default tag set in GradumConfig.Dropdown.
- * @property {string | string[]} [selectorClasses] - Custom CSS class(es) for the selector. Overrides the default
- * classes set in GradumConfig.Dropdown.
- * @property {string | string[]} [popupClasses] - Custom CSS class(es) for the popup container. Overrides the
- * default classes set in GradumConfig.Dropdown.
- */
-
-/**
- * @typedef {Object} GradumButtonPopupProperties
- * @group Components
- * @category Basics
- *
- * @extends GradumRichElementProperties
- * @template {ValidTag} ElementTag - The tag of the main element.
- * @template {GradumView} ViewType - The element's view type, if initializing MVC.
- * @template {object} DataType - The element's data type, if initializing MVC.
- * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
- * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
- * @description Properties to initialize a {@link GradumButtonPopup} — a button that shows a popup when
- * activated. Adds the popup container to everything {@link GradumRichElementProperties} accepts.
- * @property {HTMLElement} [popup] - Element used as the popup container. One is created if omitted.
- * @property {string | string[]} [popupClasses] - CSS class(es) to add to the popup container.
- */
-
-/**
- * @typedef {Object} Gradum
- * @group GradumSelector
- * @category Core
- *
- * @template {object} Type - The type of the wrapped object. Defaults to `Node`.
- * @description What {@link gradum} hands back: the wrapped object plus the whole selector API, intersected.
- * That means a wrapped element still answers to its own members — `el.textContent` works alongside
- * `el.addChild(...)` — so a `Gradum<HTMLDivElement>` can be used anywhere the raw element was.
- */
-
-/**
- * @typedef {Object} GradumifyOptions
- * @group GradumSelector
- * @category Core
- *
- * @description Which families of selector functions {@link gradumify} should skip. Every family is installed
- * by default; set a flag to leave that family off the {@link GradumSelector} prototype. Excluding a family
- * means its functions simply do not exist, so only do it if you know nothing in your app calls them.
- * @property {boolean} [excludeHierarchyFunctions] - Skip `addChild`, `closest`, `childHandler`, and the rest of the DOM-hierarchy functions.
- * @property {boolean} [excludeMvcFunctions] - Skip `model`, `view`, `emitter`, and the MVC add/get/remove methods.
- * @property {boolean} [excludeStyleFunctions] - Skip `setStyle`, `setStyles`, `selected`, and `closestRoot`.
- * @property {boolean} [excludeClassFunctions] - Skip `addClass`, `removeClass`, `toggleClass`, and `hasClass`.
- * @property {boolean} [excludeElementFunctions] - Skip `setProperties`, `clone`, `destroy`, and `feedforward`.
- * @property {boolean} [excludeEventFunctions] - Skip `on`, `onTool`, `executeAction`, and `preventDefault`.
- * @property {boolean} [excludeToolFunctions] - Skip `makeTool`, `applyTool`, and `embedTool`.
- * @property {boolean} [excludeConstrainerFunctions] - Skip `makeConstrainer`, `solveConstrainer`, and `mutate`.
- * @property {boolean} [excludeMiscFunctions] - Skip `apply`, `applyDefaults`, `extract`, and `getDifference`.
- * @property {boolean} [excludeReifectFunctions] - Skip `show`, `applyReifect`, and `attachReifect`.
- */
-
-/**
- * @typedef {Object} ChildHandler
- * @group GradumSelector
- * @category Hierarchy
- *
- * @description A type that represents all entities that can hold and manage children (an element or a shadow root).
- */
-
-/**
- * @typedef {Object} ApplyDefaultsOptions
- * @group GradumSelector
- * @category Misc
- *
- * @description Options for {@link GradumSelector.applyDefaults}.
- * @property {string[]} [mergeProperties] - Array-like keys to merge. Defaults to {@link ApplyDefaultsMergeProperties}.
- * @property {boolean} [removeDuplicates] - Whether to remove duplicates when merging arrays. Defaults to `true`.
- */
-
-/**
- * @typedef {Object} YDocumentProperties
- * @group Utilities
- * @category Yjs
- *
- * @template {GradumView} ViewType - The element's view type.
- * @template {object} DataType - The element's data type.
- * @template {GradumModel<DataType>} ModelType - The element's model type.
- * @template {GradumEmitter} EmitterType - The element's emitter type.
- * @description Properties for an element backed by a Y.js document. Everything
- * {@link GradumElementProperties} accepts, plus the document the element's data lives in.
- * @property {YDoc} document - The Y.js document backing this element.
- */
-
-/**
- * @typedef {Object} FontProperties
- * @group Utilities
- * @category Font
- *
- * @description Describes a local font to load with {@link loadLocalFont} — either a single file or a whole
- * family living in one directory. Which of the two is inferred from `pathOrDirectory`: a path with a file
- * extension is treated as one font, a path without one as a directory of them.
- * @property {string} name - The font family name to register it under. For a family, each file must also be
- * named `name-subName`, matching the keys of `stylesPerWeights`.
- * @property {string} pathOrDirectory - Path to the font file, or to the directory holding the family.
- * @property {Record<string, string> | Record<number, Record<string, string>>} [stylesPerWeights] - For a single
- * font, a `{weight: style}` record, defaulting to `{"normal": "normal"}`. For a family, a
- * `{weight: {subName: style}}` record, defaulting to common sub-names and styles for weights 100 through 900.
- * @property {string} [format="woff2"] - The font format declared in the generated `@font-face` rule.
- * @property {string} [extension=".ttf"] - The file extension of the family's files. A missing leading dot is
- * added for you.
- */
-
 var Gradum = (function (exports, yjs) {
     'use strict';
 
@@ -6952,1620 +5578,6 @@ var Gradum = (function (exports, yjs) {
     }
 
     /**
-     * @internal
-     * @function defineDefaultProperties
-     * @template {new (...args: any[]) => any} Type - The class being set up.
-     * @description Install the shared element behaviour on a class prototype — `destroy`, `initialize`,
-     * `initialized`, `feedforward`, `clone`, and `defaultFeedforwardProperties`. This is what gives every
-     * element class the same lifecycle without inheriting from a common base. Called once per element class
-     * at definition time.
-     * @param {Type} constructor - The class whose prototype receives the behaviour.
-     */
-    function defineDefaultProperties(constructor) {
-        const prototype = constructor.prototype;
-        const initializedKey = Symbol("__initialized__");
-        Object.defineProperty(prototype, "destroy", {
-            value: function () { },
-            configurable: true,
-            enumerable: false,
-        });
-        Object.defineProperty(prototype, "initialized", {
-            get: function () {
-                return this[initializedKey] ?? false;
-            },
-            configurable: true,
-            enumerable: false,
-        });
-        Object.defineProperty(prototype, "initialize", {
-            value: function () {
-                if (this[initializedKey])
-                    return;
-                this[initializedKey] = true;
-                this.setupUIElements?.();
-                this.setupUILayout?.();
-                this.setupUIListeners?.();
-                this.setupFields?.();
-                this.setupChangedCallbacks?.();
-                gradum(this).initializeMvc();
-                initializeEffects(this);
-            },
-            configurable: true,
-            enumerable: false,
-        });
-        Object.defineProperty(prototype, "clone", {
-            value: function (properties) { return gradum(this).clone(properties); },
-            configurable: true,
-            enumerable: false,
-        });
-        const ffKey = Symbol("__defaultFeedforwardProperties__");
-        Object.defineProperty(prototype, "defaultFeedforwardProperties", {
-            get() {
-                if (!this[ffKey])
-                    this[ffKey] = {};
-                return this[ffKey];
-            },
-            set(value) { this[ffKey] = value; },
-            configurable: true,
-            enumerable: true
-        });
-        Object.defineProperty(prototype, "feedforward", {
-            value: function (properties) { return gradum(this).feedforward(properties); },
-            configurable: true,
-            enumerable: false,
-        });
-    }
-
-    /**
-     * @internal
-     * @function defineMvcAccessors
-     * @template {new (...args: any[]) => any} Type - The class being set up.
-     * @description Install the MVC surface on a class prototype, so instances expose `view`, `model`,
-     * `emitter`, `operators`, `handlers`, `interactors`, `tools`, `constrainers`, `data`, `dataId`,
-     * `dataIndex`, `dataSize`, and the matching add/get/remove methods. Each one forwards to the element's
-     * selector, which is where the state actually lives. Called once per element class at definition time.
-     * @param {Type} constructor - The class whose prototype receives the accessors.
-     */
-    function defineMvcAccessors(constructor) {
-        const prototype = constructor.prototype;
-        // Fields — proxy through gradum(this)
-        [...MvcFields, "data", "dataId", "dataIndex"].forEach(fieldName => {
-            Object.defineProperty(prototype, fieldName, {
-                get() { return gradum(this)[fieldName]; },
-                set(value) { gradum(this)[fieldName] = value; },
-                configurable: true,
-                enumerable: true,
-            });
-        });
-        ["dataSize"].forEach(fieldName => {
-            Object.defineProperty(prototype, fieldName, {
-                get() { return gradum(this)[fieldName]; },
-                configurable: true,
-                enumerable: true,
-            });
-        });
-    }
-
-    /**
-     * @internal
-     * @function defineUIPrototype
-     * @template {new (...args: any[]) => any} Type - The class being set up.
-     * @description Install the UI surface on a class prototype — `shadowDOM`, `defaultClasses`, and
-     * `unsetDefaultClasses` — backed by private symbols so the values do not collide with user fields.
-     * Called once per element class at definition time.
-     * @param {Type} constructor - The class whose prototype receives the accessors.
-     */
-    function defineUIPrototype(constructor) {
-        const prototype = constructor.prototype;
-        const shadowDOMKey = Symbol("__shadow_dom__");
-        const unsetDefaultClassesKey = Symbol("__unset_default_classes__");
-        const defaultClassesKey = Symbol("__default_classes__");
-        Object.defineProperty(prototype, "shadowDOM", {
-            get: function () { return this[shadowDOMKey] ?? false; },
-            set: function (value) {
-                this[shadowDOMKey] = value;
-                const el = this.element;
-                if (value && !el.shadowRoot)
-                    try {
-                        el.attachShadow({ mode: "open" });
-                    }
-                    catch { }
-                if (el.shadowRoot) {
-                    const from = value ? el : el.shadowRoot;
-                    const to = value ? el.shadowRoot : el;
-                    while (from.childNodes.length > 0)
-                        to.appendChild(from.childNodes[0]);
-                }
-            },
-            enumerable: true,
-            configurable: true,
-        });
-        Object.defineProperty(prototype, "unsetDefaultClasses", {
-            get: function () { return this[unsetDefaultClassesKey] ?? false; },
-            set: function (value) {
-                this[unsetDefaultClassesKey] = value;
-                gradum(this).toggleClass(this.defaultClasses, !value);
-            },
-            enumerable: true,
-            configurable: true,
-        });
-        Object.defineProperty(prototype, "defaultClasses", {
-            get: function () { return this[defaultClassesKey] ?? ""; },
-            set: function (value) {
-                if (!this.unsetDefaultClasses)
-                    gradum(this).toggleClass(this[defaultClassesKey], false);
-                this[defaultClassesKey] = value;
-                if (!this.unsetDefaultClasses)
-                    gradum(this).toggleClass(value, true);
-            },
-            enumerable: true,
-            configurable: true,
-        });
-    }
-
-    const VOID       = -1;
-    const PRIMITIVE  = 0;
-    const ARRAY      = 1;
-    const OBJECT     = 2;
-    const DATE       = 3;
-    const REGEXP     = 4;
-    const MAP        = 5;
-    const SET        = 6;
-    const ERROR      = 7;
-    const BIGINT     = 8;
-    // export const SYMBOL = 9;
-
-    const env = typeof self === 'object' ? self : globalThis;
-
-    const guard = (name, init) => {
-      switch (name) {
-        case 'Function':
-        case 'SharedWorker':
-        case 'Worker':
-        case 'eval':
-        case 'setInterval':
-        case 'setTimeout':
-          throw new TypeError('unable to deserialize ' + name);
-      }
-      return new env[name](init);
-    };
-
-    const deserializer = ($, _) => {
-      const as = (out, index) => {
-        $.set(index, out);
-        return out;
-      };
-
-      const unpair = index => {
-        if ($.has(index))
-          return $.get(index);
-
-        const [type, value] = _[index];
-        switch (type) {
-          case PRIMITIVE:
-          case VOID:
-            return as(value, index);
-          case ARRAY: {
-            const arr = as([], index);
-            for (const index of value)
-              arr.push(unpair(index));
-            return arr;
-          }
-          case OBJECT: {
-            const object = as({}, index);
-            for (const [key, index] of value)
-              object[unpair(key)] = unpair(index);
-            return object;
-          }
-          case DATE:
-            return as(new Date(value), index);
-          case REGEXP: {
-            const {source, flags} = value;
-            return as(new RegExp(source, flags), index);
-          }
-          case MAP: {
-            const map = as(new Map, index);
-            for (const [key, index] of value)
-              map.set(unpair(key), unpair(index));
-            return map;
-          }
-          case SET: {
-            const set = as(new Set, index);
-            for (const index of value)
-              set.add(unpair(index));
-            return set;
-          }
-          case ERROR: {
-            const {name, message} = value;
-            return as(
-              typeof env[name] === 'function' ?
-                guard(name, message) :
-                new Error(message),
-              index
-            );
-          }
-          case BIGINT:
-            return as(BigInt(value), index);
-          case 'BigInt':
-            return as(Object(BigInt(value)), index);
-          case 'ArrayBuffer':
-            return as(new Uint8Array(value).buffer, value);
-          case 'DataView': {
-            const { buffer } = new Uint8Array(value);
-            return as(new DataView(buffer), value);
-          }
-        }
-        return as(guard(type, value), index);
-      };
-
-      return unpair;
-    };
-
-    /**
-     * @typedef {Array<string,any>} Record a type representation
-     */
-
-    /**
-     * Returns a deserialized value from a serialized array of Records.
-     * @param {Record[]} serialized a previously serialized value.
-     * @returns {any}
-     */
-    const deserialize = serialized => deserializer(new Map, serialized)(0);
-
-    /*! (c) Andrea Giammarchi - ISC */
-
-
-    const {parse: $parse} = JSON;
-
-    /**
-     * Revive a previously stringified structured clone.
-     * @param {string} str previously stringified data as string.
-     * @returns {any} whatever was previously stringified as clone.
-     */
-    const parse = str => deserialize($parse(str));
-
-    /**
-     * @class GradumElement
-     * @group MVC
-     * @category Element Classes
-     *
-     * @extends HTMLElement
-     * @template {GradumView} ViewType - The element's view type, if initializing MVC.
-     * @template {object} DataType - The element's data type, if initializing MVC.
-     * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
-     * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
-     * @description Base GradumElement class, extending the base HTML element with a few useful tools and functions.
-     * */
-    class GradumElement extends HTMLElement {
-        /**
-         * @description Default properties assigned to a new instance.
-         */
-        static defaultProperties = {
-            defaultSelectedClasses: "selected"
-        };
-        // public static create<Type extends new (...args: any[]) => GradumElement>
-        // (this: Type, properties: InstanceType<Type>["properties"] = {}): InstanceType<Type> {
-        //     return (this as any).customCreate.call(this, properties);
-        // }
-        /**
-         * @function create
-         * @static
-         * @description Instantiate this class with the given properties. Defaults declared by every class in the
-         * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
-         * its parent's. The return type follows the class it is called on, and the MVC type parameters are read
-         * back off the properties — passing `model: MyModel` types `.model` as `MyModel` without a cast.
-         *
-         * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`, because the
-         * latter instantiates a generic class' parameters with their constraints instead of their defaults,
-         * which is what forced casts at call sites.*
-         * @template {{prototype: GradumElement}} This - The class `create` was called on.
-         * @template {GradumView} ViewType - Inferred from `properties.view`.
-         * @template {object} DataType - Inferred from `properties.data`.
-         * @template {GradumModel} ModelType - Inferred from `properties.model`.
-         * @template {GradumEmitter} EmitterType - Inferred from `properties.emitter`.
-         * @param {GradumElementProperties} [properties] - Properties to set on the new instance.
-         * @returns {GradumElement} The created instance, typed as the class this was called on.
-         */
-        static create(properties) {
-            return this.customCreate(properties ?? {});
-        }
-        /**
-         * @protected
-         * @static
-         * @function customCreate
-         * @description The construction step behind {@link create}. Override it to change how instances of a class
-         * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
-         * `create` performs.
-         * @param {object} properties - Properties to set on the new instance, defaults already merged in.
-         * @returns {object} The created instance.
-         */
-        static customCreate(properties) {
-            const prototypeChain = getPrototypeChain(this);
-            for (const prototype of prototypeChain)
-                gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
-            return element({ ...properties });
-        }
-        /**
-         * @description Delegate fired when the element is attached to DOM.
-         */
-        onAttach = new Delegate();
-        /**
-         * @description Delegate fired when the element is detached from the DOM.
-         */
-        onDetach = new Delegate();
-        /**
-         * @description Delegate fired when the element is adopted by a new parent in the DOM.
-         */
-        onAdopt = new Delegate();
-        /**
-         * @function setupChangedCallbacks
-         * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
-         * @protected
-         */
-        setupChangedCallbacks() {
-        }
-        /**
-         * @function setupUIElements
-         * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
-         * them in fields. Called on `initialize()`.
-         * @protected
-         */
-        setupUIElements() {
-        }
-        /**
-         * @function setupUILayout
-         * @description Setup method to create the layout structure of the element by adding all created sub-elements to
-         * this element's child tree. Called on `initialize()`.
-         * @protected
-         */
-        setupUILayout() {
-        }
-        /**
-         * @function setupUIListeners
-         * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
-         * `initialize()`.
-         * @protected
-         */
-        setupUIListeners() {
-        }
-        /**
-         * @function connectedCallback
-         * @description function called when the element is attached to the DOM.
-         */
-        connectedCallback() {
-            if (!this.initialized) {
-                const prototypeChain = getPrototypeChain(this);
-                const defaults = {};
-                for (const proto of prototypeChain)
-                    gradum(defaults).applyDefaults(proto.constructor?.["defaultProperties"]);
-                const toApply = {};
-                for (const [key, value] of Object.entries(defaults))
-                    if (isUndefined(this[key]))
-                        toApply[key] = value;
-                gradum(this).setProperties(toApply);
-                for (const attribute of this.constructor["observedAttributes"] ?? []) {
-                    if (!this.hasAttribute(attribute))
-                        continue;
-                    const property = kebabToCamelCase(attribute);
-                    const current = this.getAttribute(attribute);
-                    this[property] = parse(current);
-                }
-            }
-            this.onAttach.fire();
-        }
-        /**
-         * @function disconnectedCallback
-         * @description function called when the element is detached from the DOM.
-         */
-        disconnectedCallback() {
-            this.onDetach.fire();
-        }
-        /**
-         * @function adoptedCallback
-         * @description function called when the element is adopted by a new parent in the DOM.
-         */
-        adoptedCallback() {
-            this.onAdopt.fire();
-        }
-    }
-    (() => {
-        defineDefaultProperties(GradumElement);
-        defineMvcAccessors(GradumElement);
-        defineUIPrototype(GradumElement);
-    })();
-    addRegistryCategory(GradumElement);
-
-    /**
-     * @class GradumBaseElement
-     * @group MVC
-     * @category Element Classes
-     *
-     * @template {GradumView} ViewType - The element's view type, if initializing MVC.
-     * @template {object} DataType - The element's data type, if initializing MVC.
-     * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
-     * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
-     * @description GradumHeadlessElement class, similar to GradumElement but without extending HTMLElement.
-     */
-    class GradumBaseElement {
-        /**
-         * @description Default properties assigned to a new instance.
-         */
-        static defaultProperties = {};
-        /**
-         * @function create
-         * @static
-         * @description Instantiate this class with the given properties. Defaults declared by every class in the
-         * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
-         * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
-         * @param {PropertiesType} [properties] - Properties to set on the new instance.
-         * @returns {InstanceType<Type>} The created instance.
-         */
-        static create(properties = {}) {
-            return this.customCreate.call(this, properties);
-        }
-        /**
-         * @protected
-         * @static
-         * @function customCreate
-         * @description The construction step behind {@link create}. Override it to change how instances of a class
-         * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
-         * `create` performs.
-         * @param {object} properties - Properties to set on the new instance, defaults already merged in.
-         * @returns {object} The created instance.
-         */
-        static customCreate(properties) {
-            const prototypeChain = getPrototypeChain(this);
-            for (const prototype of prototypeChain)
-                gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
-            const obj = new this();
-            gradum(obj).setProperties(properties);
-            return obj;
-        }
-    }
-    (() => {
-        defineDefaultProperties(GradumBaseElement);
-    })();
-    addRegistryCategory(GradumBaseElement);
-
-    const elementSymbol = Symbol("___element___");
-    /**
-     * @class GradumProxiedElement
-     * @group MVC
-     * @category Element Classes
-     *
-     * @template {GradumView} ViewType - The element's view type, if initializing MVC.
-     * @template {object} DataType - The element's data type, if initializing MVC.
-     * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
-     * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
-     * @description GradumProxiedElement class, similar to GradumElement but containing an HTML element instead of being one.
-     */
-    class GradumProxiedElement {
-        /**
-         * @description Default properties assigned to a new instance.
-         */
-        static defaultProperties = {
-            defaultSelectedClasses: "selected"
-        };
-        /**
-         * @function create
-         * @static
-         * @description Instantiate this class with the given properties. Defaults declared by every class in the
-         * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
-         * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
-         * @param {PropertiesType} [properties] - Properties to set on the new instance.
-         * @returns {InstanceType<Type>} The created instance.
-         */
-        static create(properties) {
-            const props = properties ?? {};
-            const prototypeChain = getPrototypeChain(this);
-            for (const prototype of prototypeChain)
-                gradum(props).applyDefaults(prototype["defaultProperties"] ?? {});
-            return this.customCreate.call(this, props);
-        }
-        /**
-         * @protected
-         * @static
-         * @function customCreate
-         * @description The construction step behind {@link create}. Override it to change how instances of a class
-         * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
-         * `create` performs.
-         * @param {object} properties - Properties to set on the new instance, defaults already merged in.
-         * @returns {object} The created instance.
-         */
-        static customCreate(properties) {
-            const obj = new this();
-            obj[elementSymbol] = blindElement({ tag: properties["tag"] });
-            // gradum(obj) without raw unwraps to obj.element, which is the same key the model getter
-            // resolves to later. Using raw=true here would key MVC data under obj instead, making
-            // gradum(obj).model return undefined during initialize().
-            // The back-reference lets extractClassEssenceName walk obj's prototype chain (FlowEntry,
-            // etc.) instead of the raw SVGGElement chain, so handler/operator key derivation works.
-            obj[elementSymbol][proxyWrapperSymbol] = obj;
-            const shouldInitialize = properties["initialize"] !== false;
-            gradum(obj).setProperties(Object.assign({}, properties, { initialize: false }));
-            // Dispatch custom wrapper setters that setProperties couldn't reach.
-            // gradum(obj) routes through obj.element (the raw DOM node), so properties that have no
-            // meaning on the raw element (e.g. FlowEntry.flow) are silently dropped. We replay them
-            // onto obj directly — but only when: (1) not an MVC field already handled by GradumSelector,
-            // (2) the raw element has no descriptor for the key (setProperties already handled it), and
-            // (3) obj's prototype chain has a real setter for the key.
-            const rawEl = obj[elementSymbol];
-            for (const [key, value] of Object.entries(properties)) {
-                if (MvcFields.includes(key))
-                    continue;
-                if (getFirstDescriptorInChain(rawEl, key))
-                    continue;
-                const desc = getFirstDescriptorInChain(obj, key);
-                if (desc?.set)
-                    obj[key] = value;
-            }
-            if (shouldInitialize && typeof obj["initialize"] === "function")
-                obj["initialize"]();
-            return obj;
-        }
-        /**
-         * @description The HTML (or other) element wrapped inside this instance.
-         */
-        get element() {
-            return this[elementSymbol];
-        }
-        /**
-         * @function setupChangedCallbacks
-         * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
-         * @protected
-         */
-        setupChangedCallbacks() {
-        }
-        /**
-         * @function setupUIElements
-         * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
-         * them in fields. Called on `initialize()`.
-         * @protected
-         */
-        setupUIElements() {
-        }
-        /**
-         * @function setupUILayout
-         * @description Setup method to create the layout structure of the element by adding all created sub-elements to
-         * this element's child tree. Called on `initialize()`.
-         * @protected
-         */
-        setupUILayout() {
-        }
-        /**
-         * @function setupUIListeners
-         * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
-         * `initialize()`.
-         * @protected
-         */
-        setupUIListeners() {
-        }
-    }
-    (() => {
-        defineDefaultProperties(GradumProxiedElement);
-        defineMvcAccessors(GradumProxiedElement);
-        defineUIPrototype(GradumProxiedElement);
-    })();
-    addRegistryCategory(GradumProxiedElement);
-
-    /**
-     * @class GradumHeadlessElement
-     * @group MVC
-     * @category Element Classes
-     *
-     * @template {GradumView} ViewType - The element's view type, if initializing MVC.
-     * @template {object} DataType - The element's data type, if initializing MVC.
-     * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
-     * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
-     * @description GradumHeadlessElement class, similar to GradumElement but without extending HTMLElement.
-     */
-    class GradumHeadlessElement {
-        /**
-         * @description Default properties assigned to a new instance.
-         */
-        static defaultProperties = {};
-        /**
-         * @function create
-         * @static
-         * @description Instantiate this class with the given properties. Defaults declared by every class in the
-         * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
-         * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
-         * @param {PropertiesType} [properties] - Properties to set on the new instance.
-         * @returns {InstanceType<Type>} The created instance.
-         */
-        static create(properties = {}) {
-            return this.customCreate.call(this, properties);
-        }
-        /**
-         * @protected
-         * @static
-         * @function customCreate
-         * @description The construction step behind {@link create}. Override it to change how instances of a class
-         * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
-         * `create` performs.
-         * @param {object} properties - Properties to set on the new instance, defaults already merged in.
-         * @returns {object} The created instance.
-         */
-        static customCreate(properties) {
-            const prototypeChain = getPrototypeChain(this);
-            for (const prototype of prototypeChain)
-                gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
-            const obj = new this();
-            gradum(obj).setProperties(properties);
-            return obj;
-        }
-    }
-    (() => {
-        defineDefaultProperties(GradumHeadlessElement);
-        defineMvcAccessors(GradumHeadlessElement);
-    })();
-    addRegistryCategory(GradumHeadlessElement);
-
-    /**
-     * @function trim
-     * @group Utilities
-     * @category Numbers
-     *
-     * @description Clamp a number into a range. Anything that is not a number comes back as the fallback rather
-     * than as `NaN`, so it is safe to pass unvalidated input straight in.
-     * *Note: the bounds are given max-first.*
-     * @param {number} value - The value to clamp.
-     * @param {number} max - Upper bound, inclusive.
-     * @param {number} [min=0] - Lower bound, inclusive.
-     * @param {number} [fallback=0] - Returned when `value` is not a number.
-     * @returns {number} The value clamped into `[min, max]`, or `fallback` if it was not a number.
-     */
-    function trim(value, max, min = 0, fallback = 0) {
-        if (value === undefined || typeof value !== "number")
-            return fallback;
-        if (value < min)
-            value = min;
-        if (value > max)
-            value = max;
-        return value;
-    }
-    /**
-     * @function mod
-     * @group Utilities
-     * @category Numbers
-     *
-     * @description Wrap a number into `[0, modValue)`, so negative inputs come back positive — unlike the `%`
-     * operator, which keeps the sign of its left operand. Use it to cycle an index around a list.
-     * @param {number} value - The value to wrap.
-     * @param {number} modValue - The modulus. Must be non-zero.
-     * @returns {number} The wrapped value, always in `[0, modValue)`.
-     * @throws {RangeError} If `modValue` is `0`, since no value can be wrapped into an empty range. Guard the
-     * call when the modulus comes from a length that may be zero.
-     */
-    function mod(value, modValue) {
-        if (modValue === 0)
-            throw new RangeError("mod: modValue must be non-zero.");
-        return ((value % modValue) + modValue) % modValue;
-    }
-
-    /**
-     * @group Components
-     * @category Data Structures
-     */
-    class Point {
-        /**
-         * @readonly
-         * @description The point's x coordinate. Points are immutable — the arithmetic methods return new
-         * points rather than changing this one.
-         */
-        x;
-        /**
-         * @readonly
-         * @description The point's y coordinate.
-         */
-        y;
-        constructor(x = 0, y = typeof x == "number" ? x : 0) {
-            if (typeof x == "number") {
-                this.x = x;
-                this.y = y;
-            }
-            else if ("clientX" in x) {
-                this.x = x.clientX;
-                this.y = x.clientY;
-            }
-            else if ("x" in x) {
-                this.x = x.x;
-                this.y = x.y;
-            }
-            else {
-                this.x = x[0];
-                this.y = x[1];
-            }
-        }
-        // Static methods
-        /**
-         * @description Calculate the distance between two Position2D points.
-         * @param {Point} p1 - First point
-         * @param {Point} p2 - Second point
-         */
-        static dist(p1, p2) {
-            return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
-        }
-        /**
-         * @description Calculate the mid-point from the provided points
-         * @param {Point[]} arr - Undetermined number of point parameters
-         */
-        static midPoint(...arr) {
-            const points = arr.filter(p => p != null);
-            if (points.length == 0)
-                return null;
-            const x = points.reduce((sum, p) => sum + p.x, 0) / points.length;
-            const y = points.reduce((sum, p) => sum + p.y, 0) / points.length;
-            return new Point(x, y);
-        }
-        /**
-         * @description Calculate the max on both x and y from the provided points
-         * @param {Point[]} arr - Undetermined number of point parameters
-         */
-        static max(...arr) {
-            const points = arr.filter(p => p != null);
-            if (points.length == 0)
-                return null;
-            const x = points.reduce((max, p) => Math.max(max, p.x), -Infinity);
-            const y = points.reduce((max, p) => Math.max(max, p.y), -Infinity);
-            return new Point(x, y);
-        }
-        /**
-         * @description Calculate the min on both x and y from the provided points
-         * @param {Point[]} arr - Undetermined number of point parameters
-         */
-        static min(...arr) {
-            const points = arr.filter(p => p != null);
-            if (points.length == 0)
-                return null;
-            const x = points.reduce((min, p) => Math.min(min, p.x), Infinity);
-            const y = points.reduce((min, p) => Math.min(min, p.y), Infinity);
-            return new Point(x, y);
-        }
-        // Instance methods
-        /**
-         * @readonly
-         * @description This point as a plain `{x, y}` object, detached from this instance.
-         */
-        get object() {
-            return { x: this.x, y: this.y };
-        }
-        equals(x, y = 0) {
-            if (typeof x == "number")
-                return this.x == x && this.y == y;
-            return this.x == x.x && this.y == x.y;
-        }
-        /**
-         * @function boundX
-         * @description Clamp this point's x coordinate to a range.
-         * @param {number} x1 - The lower bound.
-         * @param {number} x2 - The upper bound.
-         * @returns {number} The clamped x coordinate. This point is left unchanged.
-         */
-        boundX(x1, x2) {
-            return this.x < x1 ? x1
-                : this.x > x2 ? x2
-                    : this.x;
-        }
-        /**
-         * @function boundY
-         * @description Clamp this point's y coordinate to a range.
-         * @param {number} y1 - The lower bound.
-         * @param {number} y2 - The upper bound.
-         * @returns {number} The clamped y coordinate. This point is left unchanged.
-         */
-        boundY(y1, y2) {
-            return this.y < y1 ? y1
-                : this.y > y2 ? y2
-                    : this.y;
-        }
-        bound(x1, x2, y1 = x1, y2 = x2) {
-            return new Point(this.boundX(x1, x2), this.boundY(y1, y2));
-        }
-        add(x, y) {
-            if (typeof x == "number")
-                return new Point(this.x + x, this.y + (y || y == 0 ? y : x));
-            return new Point(this.x + x.x, this.y + x.y);
-        }
-        sub(x, y) {
-            if (typeof x == "number")
-                return new Point(this.x - x, this.y - (y || y == 0 ? y : x));
-            return new Point(this.x - x.x, this.y - x.y);
-        }
-        mul(x, y) {
-            if (typeof x == "number")
-                return new Point(this.x * x, this.y * (y || y == 0 ? y : x));
-            return new Point(this.x * x.x, this.y * x.y);
-        }
-        div(x, y) {
-            if (typeof x == "number")
-                return new Point(this.x / x, this.y / (y || y == 0 ? y : x));
-            return new Point(this.x / x.x, this.y / x.y);
-        }
-        mod(x, y) {
-            const modDiv = typeof x == "number" ?
-                { x: x, y: (y || y == 0 ? y : x) } : { x: x.x, y: x.y };
-            const temp = this.object;
-            while (temp.x < 0)
-                temp.x += modDiv.x;
-            while (temp.x >= modDiv.x)
-                temp.x -= modDiv.x;
-            while (temp.y < 0)
-                temp.y += modDiv.y;
-            while (temp.y >= modDiv.y)
-                temp.y -= modDiv.y;
-            return new Point(temp);
-        }
-        /**
-         * @description Calculate the absolute value of the coordinates
-         * @returns {Point} A new point with both coordinates made positive. This point is left unchanged.
-         */
-        get abs() {
-            return new Point(Math.abs(this.x), Math.abs(this.y));
-        }
-        /**
-         * @description Get the maximum value between x and y coordinates
-         * @returns {number} The larger of the two coordinates.
-         */
-        get max() {
-            return Math.max(this.x, this.y);
-        }
-        /**
-         * @description Get the minimum value between x and y coordinates
-         * @returns {number} The smaller of the two coordinates.
-         */
-        get min() {
-            return Math.min(this.x, this.y);
-        }
-        /**
-         * @description Turn this point by an angle, about the origin or about another point.
-         * @param {number} angle - The angle to turn by, in radians. Positive turns from the x axis towards the y.
-         * @param {Coordinate} [around] - The point to turn around. Defaults to the origin, which turns this point
-         * as a vector rather than as a position.
-         * @returns {Point} A new point holding the result. This point is left unchanged.
-         *
-         * @example
-         * ```ts
-         * //A vector expressed in a box's own frame, brought back into screen space.
-         * const screen = local.rotate(box.angleRad);
-         * //A corner swung around the point it is pinned to.
-         * const moved = corner.rotate(swept, pivot);
-         * ```
-         */
-        rotate(angle, around) {
-            if (!angle)
-                return new Point(this.x, this.y);
-            const cos = Math.cos(angle), sin = Math.sin(angle);
-            const x = this.x - (around?.x ?? 0), y = this.y - (around?.y ?? 0);
-            return new Point(x * cos - y * sin + (around?.x ?? 0), x * sin + y * cos + (around?.y ?? 0));
-        }
-        /**
-         * @description The angle from this point to another, measured from the x axis.
-         * @param {Coordinate} to - The point to measure towards.
-         * @returns {number} The angle in radians, in (-π, π].
-         */
-        angleTo(to) {
-            return Math.atan2(to.y - this.y, to.x - this.x);
-        }
-        /**
-         * @description The angle swept around this point in going from one place to another — how far something
-         * turned, treating this point as the pivot.
-         *
-         * The result is folded back into (-π, π]. Subtracting two raw angles instead would jump by a full turn
-         * whenever the sweep crosses the seam directly behind the pivot, reporting a near-complete spin in the
-         * opposite direction for what was a small movement.
-         * @param {Coordinate} from - Where the sweep started.
-         * @param {Coordinate} to - Where it ended.
-         * @returns {number} The angle swept, in radians, in (-π, π].
-         */
-        angleBetween(from, to) {
-            const swept = this.angleTo(to) - this.angleTo(from);
-            return Math.atan2(Math.sin(swept), Math.cos(swept));
-        }
-        /**
-         * @readonly
-         * @description The squared distance from the origin to this point. Cheaper than {@link Point.length}
-         * since it skips the square root — use it when comparing magnitudes.
-         */
-        get length2() {
-            return this.x * this.x + this.y * this.y;
-        }
-        /**
-         * @readonly
-         * @description The distance from the origin to this point.
-         */
-        get length() {
-            return Math.sqrt(this.length2);
-        }
-        /**
-         * @function dot
-         * @description Compute the dot product of this point and another, treating both as vectors.
-         * @param {Point} p - The other vector.
-         * @returns {number} The dot product. Zero means the two are perpendicular.
-         */
-        dot(p) {
-            return this.x * p.x + this.y * p.y;
-        }
-        /**
-         * @description Create a copy of the current point
-         * @returns {Point} A new point with the same coordinates.
-         */
-        copy() {
-            return new Point(this.x, this.y);
-        }
-        /**
-         * @description Get the coordinates as an array
-         * @returns {number[]} A two-element array, `[x, y]`.
-         */
-        arr() {
-            return [this.x, this.y];
-        }
-        /**
-         * @function positionOnSegment
-         * @description Find how far along a segment this point projects, as a fraction from its start to its
-         * end. Useful for snapping a position onto a line.
-         * @param {Point} start - The segment's start.
-         * @param {Point} end - The segment's end.
-         * @returns {number} A value from `0` (at the start) to `1` (at the end), clamped to that range.
-         * Returns `0` for a zero-length segment.
-         */
-        positionOnSegment(start, end) {
-            const shiftedEnd = end.sub(start);
-            const shiftedLength2 = shiftedEnd.length2;
-            if (shiftedLength2 < 1e-9)
-                return 0;
-            return trim((this.sub(start).dot(shiftedEnd)) / shiftedLength2, 1);
-        }
-        /**
-         * @function linearInterpolation
-         * @static
-         * @description Interpolate between two points.
-         * @param {Point} start - The point at `t = 0`.
-         * @param {Point} end - The point at `t = 1`.
-         * @param {number} t - The interpolation fraction. Values outside `0`–`1` extrapolate past the ends.
-         * @returns {Point} The interpolated point.
-         */
-        static linearInterpolation(start, end, t) {
-            return start.add(end.sub(start).mul(t));
-        }
-        /**
-         * @function toString
-         * @description Serialize this point to a JSON string, in the form {@link Point.fromString} reads.
-         * @returns {string} The serialized point, e.g. `'{"x":1,"y":2}'`.
-         */
-        toString() {
-            return JSON.stringify({ x: this.x, y: this.y });
-        }
-        static from(value) {
-            if (value instanceof Point)
-                return value;
-            if (typeof value === "number")
-                return new Point(value);
-            if (typeof value === "string") {
-                try {
-                    const parsed = JSON.parse(value);
-                    if (typeof parsed?.x === "number" && typeof parsed?.y === "number")
-                        return new Point(parsed.x, parsed.y);
-                }
-                catch { /* fall through to undefined */ }
-                return undefined;
-            }
-            if (Array.isArray(value))
-                return typeof value[0] === "number" && typeof value[1] === "number"
-                    ? new Point(value[0], value[1]) : undefined;
-            if (value && typeof value === "object") {
-                if (typeof value.x === "number" && typeof value.y === "number")
-                    return new Point(value.x, value.y);
-                if (typeof value.clientX === "number" && typeof value.clientY === "number")
-                    return new Point(value.clientX, value.clientY);
-            }
-            return undefined;
-        }
-        /**
-         * @function fromString
-         * @description Parse a point from a JSON string produced by {@link Point.toString}. Delegates to
-         * {@link Point.from}; it exists as an instance method because {@link GradumInput} discovers a value's
-         * parser by looking for `fromString` on the value itself, which a static member would not satisfy.
-         * @param {string} value - The string to parse.
-         * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
-         * `x` and `y` fields.
-         */
-        fromString(value) {
-            return Point.from(value);
-        }
-    }
-
-    /**
-     * @class GradumMovable
-     * @group Components
-     * @category Wrappers
-     *
-     * @extends GradumElement
-     * @description Positioning wrapper that places arbitrary content via pure CSS transforms.
-     * Set {@link translation} (alias {@link position}) and {@link rotation} to move/rotate the
-     * wrapper without touching the content's own fields — useful for previews (feedforwards),
-     * ghosts, overlays, or any element that must be positioned independently of how its content
-     * renders itself.
-     *
-     * @example
-     * ```ts
-     * const movable = GradumMovable.create({content: myElement});
-     * movable.translation = new Point(120, 40);
-     * movable.rotation = Math.PI / 6;
-     * movable.translateBy(new Point(5, 0));
-     * ```
-     */
-    let GradumMovable = (() => {
-        let _classSuper = GradumElement;
-        let _instanceExtraInitializers = [];
-        let _translation_decorators;
-        let _translation_initializers = [];
-        let _translation_extraInitializers = [];
-        let _rotation_decorators;
-        let _rotation_initializers = [];
-        let _rotation_extraInitializers = [];
-        let _centerAnchor_decorators;
-        let _centerAnchor_initializers = [];
-        let _centerAnchor_extraInitializers = [];
-        let _set_content_decorators;
-        let _updateTransform_decorators;
-        return class GradumMovable extends _classSuper {
-            static {
-                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _translation_decorators = [signal];
-                _rotation_decorators = [signal];
-                _centerAnchor_decorators = [signal];
-                _set_content_decorators = [auto()];
-                _updateTransform_decorators = [effect];
-                __esDecorate(this, null, _set_content_decorators, { kind: "setter", name: "content", static: false, private: false, access: { has: obj => "content" in obj, set: (obj, value) => { obj.content = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate(this, null, _updateTransform_decorators, { kind: "method", name: "updateTransform", static: false, private: false, access: { has: obj => "updateTransform" in obj, get: obj => obj.updateTransform }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate(null, null, _translation_decorators, { kind: "field", name: "translation", static: false, private: false, access: { has: obj => "translation" in obj, get: obj => obj.translation, set: (obj, value) => { obj.translation = value; } }, metadata: _metadata }, _translation_initializers, _translation_extraInitializers);
-                __esDecorate(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
-                __esDecorate(null, null, _centerAnchor_decorators, { kind: "field", name: "centerAnchor", static: false, private: false, access: { has: obj => "centerAnchor" in obj, get: obj => obj.centerAnchor, set: (obj, value) => { obj.centerAnchor = value; } }, metadata: _metadata }, _centerAnchor_initializers, _centerAnchor_extraInitializers);
-                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-            }
-            /** @description The translation applied to the wrapper, in pixels. */
-            translation = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _translation_initializers, new Point()));
-            /** @description The rotation applied to the wrapper, in radians. */
-            rotation = (__runInitializers(this, _translation_extraInitializers), __runInitializers(this, _rotation_initializers, 0));
-            /** @description When true, the wrapper is offset by -50% so translation refers to its center. */
-            centerAnchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _centerAnchor_initializers, false));
-            /** @description The content element wrapped by this movable. Assigning it appends it as a child. */
-            set content(value) {
-                if (value)
-                    gradum(this).addChild(value);
-            }
-            setupUILayout() {
-                super.setupUILayout();
-                gradum(this).setStyles({ display: "inline-block", position: "absolute", left: "0", top: "0" });
-            }
-            updateTransform() {
-                const offset = this.centerAnchor ? " - 50%" : "";
-                // Instant so per-pointer-event positioning isn't deferred a frame behind by the
-                // rAF-batched style queue.
-                gradum(this).setStyle("transform", `translate3d(
-            calc(${this.translation.x}px${offset}),
-            calc(${this.translation.y}px${offset}),
-            0) rotate(${this.rotation}rad)`, true);
-            }
-            /** @description Add the given delta to the current translation. */
-            translateBy(delta) {
-                this.translation = this.translation.add(delta);
-            }
-            /** @description Add the given angle (radians) to the current rotation. */
-            rotateBy(angle) {
-                this.rotation += angle;
-            }
-            /**
-             * @description Alias of {@link translation}, so code that positions elements through a
-             * `position` field (e.g. constrainer solvers) works on the wrapper as-is.
-             */
-            get position() {
-                return this.translation;
-            }
-            set position(value) {
-                if (!value)
-                    return;
-                this.translation = value instanceof Point ? value : new Point(value);
-            }
-            constructor() {
-                super(...arguments);
-                __runInitializers(this, _centerAnchor_extraInitializers);
-            }
-        };
-    })();
-    define(GradumMovable, "gradum-movable");
-
-    const utils$7 = new ElementFunctionsUtils();
-    /**
-     * @internal
-     * @function setupElementFunctions
-     * @description Install the element functions (`setProperties`, `clone`, `destroy`, `feedforward`, ...) onto the
-     * {@link GradumSelector} prototype. Called once by
-     * {@link gradumify}; the matching `exclude` option skips it.
-     */
-    function setupElementFunctions() {
-        /**
-         * @template Tag - The HTML tag of the element.
-         * @description Apply the given properties to the element.
-         * @param {GradumProperties<Tag>} [properties] - The properties object.
-         * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
-         * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        GradumSelector.prototype.setProperties = function _setProperties(properties = {}, setOnlyBaseProperties = false) {
-            if (!this.element)
-                return this;
-            const props = { ...properties };
-            const element = this.element instanceof Element ? this.element :
-                this.element["element"] instanceof Element ? this.element["element"] : undefined;
-            gradum(props, true).removeFields(["tag", "namespace"]);
-            const { out, shadowDOM, initialize, parent, model, data, dataId } = gradum(props, true).extract(["out", "shadowDOM", "initialize", "parent", "model", "data", "dataId"]);
-            let mvcUpdated = false;
-            if (out) {
-                if (typeof out == "string")
-                    this["__outName"] = out;
-                else
-                    Object.assign(out, this);
-            }
-            if (!!shadowDOM) {
-                if ("shadowDOM" in this.element)
-                    this["shadowDOM"] = shadowDOM;
-                else if (element)
-                    element.attachShadow({ mode: "open" });
-            }
-            if (!element || (element && !setOnlyBaseProperties)) {
-                if (model) {
-                    this.model = model;
-                    if (data && this.model) {
-                        this.model.setDataWithoutInitializing(data);
-                        //Only assign when an id was actually supplied. Assigning unconditionally writes
-                        //`undefined` into the model's id, which on a model whose `id` is a @modelSignal lands
-                        //in the data itself and wipes the id that came in with `data`.
-                        if (!isUndefined(dataId))
-                            this.model.id = dataId;
-                    }
-                    mvcUpdated = true;
-                }
-                const mvc = gradum(props, true).extract(MvcFields);
-                for (const [key, value] of Object.entries(mvc)) {
-                    try {
-                        this[key] = value;
-                        mvcUpdated = true;
-                    }
-                    catch {
-                    }
-                }
-            }
-            if (element) {
-                const elementProps = gradum(props, true).extract(["text", "style",
-                    "stylesheet", "id", "classes", "listeners", "onClick", "onDrag", "children"]);
-                for (const [property, value] of Object.entries(elementProps)) {
-                    if (value === undefined)
-                        continue;
-                    switch (property) {
-                        case "text":
-                            if (element instanceof HTMLElement)
-                                element.innerText = value;
-                            break;
-                        case "style":
-                            if (!(element instanceof HTMLElement || element instanceof SVGElement))
-                                break;
-                            gradum(element).setStyles(value, true);
-                            break;
-                        case "stylesheet":
-                            stylesheet(value, gradum(element).closestRoot);
-                            break;
-                        case "id":
-                            element.id = value;
-                            break;
-                        case "classes":
-                            gradum(element).addClass(value);
-                            break;
-                        case "listeners":
-                            Object.entries(value).forEach(([type, callback]) => gradum(element).on(type, callback));
-                            break;
-                        case "onClick":
-                            gradum(element).on(DefaultEventName.click, value);
-                            break;
-                        case "onDrag":
-                            gradum(element).on(DefaultEventName.drag, value);
-                            break;
-                        case "children":
-                            gradum(element).addChild(value);
-                            break;
-                    }
-                }
-            }
-            if (!element || !setOnlyBaseProperties) {
-                for (const [property, value] of Object.entries(props)) {
-                    if (value === undefined)
-                        continue;
-                    try {
-                        this.element[property] = value;
-                    }
-                    catch {
-                        if (element)
-                            try {
-                                element.setAttribute(property, stringify(value));
-                            }
-                            catch (e) {
-                                console.error(e);
-                            }
-                    }
-                }
-            }
-            if (parent)
-                gradum(element).addToParent(parent);
-            if (initialize === undefined || initialize) {
-                if ("initialize" in this.element && typeof this.element.initialize === "function")
-                    this.element.initialize();
-                else if (mvcUpdated)
-                    this.initializeMvc();
-            }
-            return this;
-        };
-        GradumSelector.prototype.getFields = function _getFields() {
-            if (!this.element)
-                return {};
-            const chain = getPrototypeChain(this.element);
-            const seen = new Set();
-            const result = {};
-            const builtinPrototypes = new Set([
-                GradumElement.prototype, GradumBaseElement.prototype, GradumProxiedElement.prototype,
-                GradumHeadlessElement.prototype, Element.prototype, HTMLElement.prototype, Node.prototype,
-                SVGElement.prototype, MathMLElement.prototype, EventTarget.prototype, Object.prototype
-            ]);
-            for (const proto of [this.element, ...chain].reverse()) {
-                if (builtinPrototypes.has(proto)) {
-                    for (const key of Object.getOwnPropertyNames(proto))
-                        seen.add(key);
-                    continue;
-                }
-                for (const key of Object.getOwnPropertyNames(proto)) {
-                    if (seen.has(key) || key.startsWith("_"))
-                        continue;
-                    const desc = Object.getOwnPropertyDescriptor(proto, key);
-                    if (!desc || typeof desc.value === "function" || (desc.get && !desc.set))
-                        continue;
-                    seen.add(key);
-                    result[key] = this.element[key];
-                }
-            }
-            return result;
-        };
-        GradumSelector.prototype.clone = function _clone(options = {}) {
-            const originElement = this.element instanceof Node ? this.element : undefined;
-            if (!originElement)
-                return;
-            const exclude = new Set(options.exclude ?? []);
-            const force = new Set(options.forceInclude ?? []);
-            const deepClone = new Set(options.deepClone ?? []);
-            const copyReference = new Set(options.copyReference ?? []);
-            const shouldCopy = (key, value, prototype) => {
-                if (force.has(key))
-                    return true;
-                if (exclude.has(key) || key === "mvc" || key === "__proto__" || key === "prototype")
-                    return false;
-                if (typeof value === "function" || value instanceof Delegate)
-                    return false;
-                if (key === "model" || key === "view" || key === "emitter" || key === "operators"
-                    || key === "handlers" || key === "interactors" || key === "tools" || key === "constrainers")
-                    return false;
-                const desc = Object.getOwnPropertyDescriptor(prototype, key);
-                if (!desc)
-                    return false;
-                if (desc.get && !desc.set)
-                    return false;
-                if (desc.writable === false)
-                    return false;
-                return true;
-            };
-            const copyField = (key, value) => {
-                if (value === null || value === undefined || typeof value !== "object")
-                    return value;
-                if (copyReference.has(key))
-                    return value;
-                if (value instanceof Node) {
-                    if (deepClone.has(key) || options.deepCloneNodes) {
-                        try {
-                            return gradum(value).clone(options);
-                        }
-                        catch {
-                            return undefined;
-                        }
-                    }
-                    return options.copyNodes ? value : undefined;
-                }
-                if (options.deepCloneObjects || deepClone.has(key)) {
-                    try {
-                        return structuredClone(value);
-                    }
-                    catch { /* fall through to reference */ }
-                }
-                return value;
-            };
-            const constructor = originElement.constructor;
-            const prototypeChain = getPrototypeChain(originElement);
-            const properties = {};
-            if (originElement["model"] && originElement["data"] != null) {
-                const rawData = originElement["data"];
-                let clonedData = rawData;
-                if (options.snapshotData || options.deepCloneObjects) {
-                    // Y.js types: deep-copy into a fresh detached Y.Doc. The clone's model machinery
-                    // (observers, nested models, views) then works unchanged on real Y types, and
-                    // nothing syncs since the doc has no provider. A plain-object (toJSON) snapshot
-                    // renders degraded previews — observers never populate from plain data.
-                    if (options.snapshotData && rawData instanceof yjs.AbstractType
-                        && typeof rawData.clone === "function") {
-                        try {
-                            const yClone = rawData.clone();
-                            // Y types must be inside a document before they can be read.
-                            new yjs.Doc().getMap("__gradum_snapshot__").set("data", yClone);
-                            clonedData = yClone;
-                        }
-                        catch { }
-                    }
-                    // Fallbacks: toJSON (plain detached object), then structuredClone. Only under
-                    // snapshotData — deepCloneObjects keeps its documented fallback to reference
-                    // sharing for non-structured-cloneable data.
-                    if (clonedData === rawData && options.snapshotData && typeof rawData.toJSON === "function")
-                        try {
-                            clonedData = rawData.toJSON();
-                        }
-                        catch { }
-                    if (clonedData === rawData)
-                        try {
-                            clonedData = structuredClone(rawData);
-                        }
-                        catch { }
-                }
-                properties.data = clonedData;
-            }
-            try {
-                Object.assign(properties, gradum(originElement).getMvcDifference());
-            }
-            catch { }
-            let clone;
-            if (typeof constructor.create === "function") {
-                try {
-                    clone = constructor.create(properties);
-                }
-                catch { }
-            }
-            if (!clone) {
-                if (originElement instanceof Element) {
-                    clone = gradum(document.createElement(originElement.tagName)).setProperties(properties).element;
-                }
-                else {
-                    try {
-                        clone = originElement.cloneNode(false);
-                    }
-                    catch { }
-                }
-            }
-            if (!clone)
-                return;
-            if (originElement instanceof Element && clone instanceof Element) {
-                for (const attr of Array.from(originElement.attributes)) {
-                    if (exclude.has(attr.name))
-                        continue;
-                    try {
-                        clone.setAttribute(attr.name, attr.value);
-                    }
-                    catch { }
-                }
-            }
-            const keys = new Map();
-            const addKeys = (prototype) => {
-                for (const property of Object.getOwnPropertyNames(prototype))
-                    if (!keys.has(property))
-                        keys.set(property, prototype);
-                for (const property of Object.getOwnPropertySymbols(prototype))
-                    if (!keys.has(property))
-                        keys.set(property, prototype);
-            };
-            const mathMLProto = typeof MathMLElement !== "undefined" ? MathMLElement.prototype : null;
-            addKeys(originElement);
-            for (const prototype of prototypeChain) {
-                if (equalToAny(prototype, GradumElement.prototype, GradumBaseElement.prototype, GradumProxiedElement.prototype, GradumHeadlessElement.prototype, Element.prototype, Node.prototype, HTMLElement.prototype, SVGElement.prototype, mathMLProto, EventTarget.prototype, Object.prototype))
-                    break;
-                addKeys(prototype);
-            }
-            for (const [key, prototype] of keys.entries()) {
-                const value = originElement[key];
-                if (!shouldCopy(key, value, prototype))
-                    continue;
-                const newValue = copyField(key, value);
-                if (newValue !== undefined)
-                    try {
-                        clone[key] = newValue;
-                    }
-                    catch { }
-            }
-            return clone;
-        };
-        /**
-         * @description Destroys the node by removing it from the document and removing all its bound listeners.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        GradumSelector.prototype.destroy = function _destroy() {
-            this.removeAllListeners();
-            this.remove();
-            if (this.element && "destroy" in this.element && typeof this.element.destroy === "function")
-                this.element.destroy();
-            return this;
-        };
-        /**
-         * @description Sets the value of an attribute on the underlying element.
-         * @param {string} name The name of the attribute.
-         * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent a
-         * true boolean.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        GradumSelector.prototype.setAttribute = function _setAttribute(name, value) {
-            if (this.element instanceof Element)
-                this.element.setAttribute(name, value?.toString() || "true");
-            return this;
-        };
-        /**
-         * @description Removes an attribute from the underlying element.
-         * @param {string} name The name of the attribute to remove.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        GradumSelector.prototype.removeAttribute = function _removeAttribute(name) {
-            if (this.element instanceof Element)
-                this.element.removeAttribute(name);
-            return this;
-        };
-        /**
-         * @description Causes the element to lose focus.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        GradumSelector.prototype.blur = function _blur() {
-            if (this.element instanceof HTMLElement)
-                this.element.blur();
-            return this;
-        };
-        /**
-         * @description Sets focus on the element.
-         * @returns {this} Itself, allowing for method chaining.
-         */
-        GradumSelector.prototype.focus = function _focus() {
-            if (this.element instanceof HTMLElement)
-                this.element.focus();
-            return this;
-        };
-        const FEEDFORWARD_STYLE_ID = "gradum-feedforward-styles";
-        const wrapFeedforwardClone = (clone) => {
-            // Stylesheet !important beats the inline styles the clone's view keeps writing
-            // (its snapshot model still renders the original position). Injected once.
-            // position: static keeps absolutely-positioned clones (cards, nodes) in the wrapper's
-            // flow — otherwise they collapse the wrapper to 0x0 and break centerAnchor centering.
-            if (!document.getElementById(FEEDFORWARD_STYLE_ID)) {
-                const sheet = document.createElement("style");
-                sheet.id = FEEDFORWARD_STYLE_ID;
-                sheet.textContent = ".gradum-feedforward-wrapper > .gradum-feedforward-clone " +
-                    "{transform: none !important; position: static !important;}";
-                document.head.appendChild(sheet);
-            }
-            if (clone instanceof Element)
-                clone.classList.add("gradum-feedforward-clone");
-            const wrapper = GradumMovable.create({ content: clone instanceof Element ? clone : undefined });
-            wrapper.classList.add("gradum-feedforward-wrapper");
-            Object.defineProperty(wrapper, "feedforwardClone", { value: clone, configurable: true });
-            return wrapper;
-        };
-        GradumSelector.prototype.feedforward = function _feedforward(properties = {}) {
-            if (properties.removeOnPointerRelease === undefined)
-                properties.removeOnPointerRelease = true;
-            if (!this.element)
-                return;
-            const type = properties?.type ?? "___DEFAULT___";
-            const feedforwardElements = utils$7.data(this.element).feedforwardElements;
-            if (!feedforwardElements)
-                return;
-            let saved = feedforwardElements.get(type);
-            if (!saved) {
-                // Feedforwards are visual previews — snapshot the data so MVC/synced elements
-                // don't produce a live twin writing through the shared (e.g. Y.js) model.
-                const cloneOptions = { snapshotData: true, ...properties?.cloneOptions };
-                if (typeof this.element["clone"] === "function")
-                    saved = this.element["clone"](cloneOptions);
-                else
-                    saved = this.clone(cloneOptions);
-                // Positioning wrapper: callers move/rotate the preview through pure CSS
-                // transforms on the wrapper, never through the clone's semantic fields.
-                if (properties.wrap && saved)
-                    saved = wrapFeedforwardClone(saved);
-                // Register cleanup once per clone, not once per feedforward() call.
-                if (properties.removeOnPointerRelease && saved) {
-                    const savedClone = saved;
-                    gradum(document.body).on(DefaultEventName.clickEnd, () => {
-                        if (typeof savedClone["remove"] === "function")
-                            savedClone["remove"]();
-                        if (feedforwardElements.get(type) === savedClone)
-                            feedforwardElements.delete(type);
-                    }, { capture: true, once: true });
-                }
-            }
-            // feedforward() is called in hot paths (per pointer event). Re-applying an unchanged
-            // parent re-appends the whole subtree each call — custom-element disconnect/reconnect
-            // churn and forced reflows. Strip parent when the element is already inside it.
-            const stripUnchangedParent = (props) => {
-                if (!props?.parent || !(saved instanceof Node))
-                    return props;
-                const parentNode = props.parent instanceof GradumSelector ? props.parent.element : props.parent;
-                if (saved.parentNode === parentNode)
-                    return { ...props, parent: undefined };
-                return props;
-            };
-            gradum(saved).setProperties(stripUnchangedParent(this.defaultFeedforwardProperties ?? {}))
-                .setProperties(stripUnchangedParent({
-                ...properties,
-                cloneOptions: undefined,
-                type: undefined,
-                removeOnPointerRelease: undefined,
-                wrap: undefined
-            }));
-            feedforwardElements.set(type, saved);
-            return saved;
-        };
-        Object.defineProperty(GradumSelector.prototype, "defaultFeedforwardProperties", {
-            get: function () {
-                if ("defaultFeedforwardProperties" in this.element)
-                    return this.element.defaultFeedforwardProperties;
-                return utils$7.data(this.element).defaultFeedforwardProperties;
-            },
-            set: function (value) {
-                if ("defaultFeedforwardProperties" in this.element)
-                    this.element.defaultFeedforwardProperties = value;
-                utils$7.data(this.element).defaultFeedforwardProperties = value;
-            },
-            configurable: true,
-            enumerable: true
-        });
-    }
-
-    /**
-     * @enum {Propagation}
-     * @group GradumSelector
-     * @category Events
-     *
-     * @description Enum dictating the propagation of an event.
-     * @property {Propagation.propagate} propagate - Continue normal propagation.
-     * @property {Propagation.stopPropagation} stopPropagation - Stop propagation to parent targets.
-     * @property {Propagation.stopImmediatePropagation} stopImmediatePropagation - Stop propagation and prevent any
-     * additional listeners on the same target from executing.
-     */
-    exports.Propagation = void 0;
-    (function (Propagation) {
-        Propagation["propagate"] = "propagate";
-        Propagation["stopPropagation"] = "stopPropagation";
-        Propagation["stopImmediatePropagation"] = "stopImmediatePropagation";
-    })(exports.Propagation || (exports.Propagation = {}));
-    /**
-     * @group GradumSelector
-     * @category Events
-     * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
-     */
-    const BasicInputEvents = [
-        "mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu",
-        "dragstart", "selectstart",
-        "touchstart", "touchmove", "touchend", "touchcancel",
-        "pointerdown", "pointermove", "pointerup",
-        "wheel"
-    ];
-    /**
-     * @group GradumSelector
-     * @category Events
-     * @description Event types that should usually be registered as **non-passive** when you intend to call
-     *  * `preventDefault()` (e.g., scroll/touch/pointer interactions).
-     */
-    const NonPassiveEvents = [
-        "wheel", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "pointercancel"
-    ];
-
-    /**
      * @enum {ActionMode}
      * @group Event Handling
      * @category Event Modes
@@ -9330,161 +6342,6 @@ var Gradum = (function (exports, yjs) {
     }
 
     /**
-     * @internal
-     * @class ListenerUtils
-     * @description Stores the listener and behavior declarations gathered from `@listener` and `@behavior`,
-     * keyed by prototype, so they can be attached once the instance exists.
-     */
-    class ListenerUtils {
-        constructorMap = new WeakMap();
-        constructorData(prototype) {
-            let obj = this.constructorMap.get(prototype);
-            if (!obj) {
-                obj = { listeners: new Map() };
-                this.constructorMap.set(prototype, obj);
-            }
-            return obj;
-        }
-        addListener(prototype, listener) {
-            if (!listener.methodName)
-                return;
-            const data = this.constructorData(prototype)?.listeners;
-            if (!data || data.has(listener.methodName))
-                return;
-            data.set(listener.methodName, listener);
-        }
-        getAllListeners(instance) {
-            let prototype = Object.getPrototypeOf(instance);
-            const results = new Map();
-            while (prototype && prototype !== Object.prototype) {
-                const map = this.constructorData(prototype).listeners;
-                if (map?.size)
-                    for (const [key, value] of map.entries()) {
-                        if (!results.has(key))
-                            results.set(key, value);
-                    }
-                prototype = Object.getPrototypeOf(prototype);
-            }
-            return results;
-        }
-    }
-
-    const utils$6 = new ListenerUtils();
-    /**
-     * @decorator
-     * @function listener
-     * @group Decorators
-     * @category Listeners
-     *
-     * @description Method decorator that registers the decorated method as an event listener, to be attached later
-     * via {@link attachListenersAndBehaviors}.
-     * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
-     * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
-     * to derive the event name from {@link DefaultEventName}.
-     *
-     * @example ```ts
-     * class MyElement {
-     *   @listener() click(e: Event) { ... }
-     *   //Equivalent to: gradum(this).on(DefaultEventName.click, (e: Event) => { ... });
-     * }
-     * ```
-     */
-    function listener(properties = {}) {
-        return function (value, context) {
-            //TODO FIX
-            GradumEventManager.instance;
-            let type = properties.type;
-            if (!type) {
-                const kebab = camelToKebabCase(String(context.name));
-                type = Object.values(DefaultEventName).includes("gradum-" + kebab) ? "gradum-" + kebab : kebab;
-            }
-            context.addInitializer(function () {
-                utils$6.addListener(Object.getPrototypeOf(this), { ...properties, type, methodName: context.name, kind: "listener" });
-            });
-            return value;
-        };
-    }
-    /**
-     * @decorator
-     * @function behavior
-     * @group Decorators
-     * @category Listeners
-     *
-     * @description Method decorator that registers the decorated method as a tool behavior, to be attached later
-     * via {@link attachListenersAndBehaviors}.
-     * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
-     * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
-     * to derive the event name from {@link DefaultEventName}.
-     *
-     * @example ```ts
-     * class MyElement {
-     *   @behavior() click(e: Event) { ... }
-     *   //Equivalent to: gradum(this).addToolBehavior(DefaultEventName.click, (e: Event) => { ... });
-     * }
-     * ```
-     */
-    function behavior(properties = {}) {
-        return function (value, context) {
-            //TODO FIX
-            GradumEventManager.instance;
-            let type = properties.type;
-            if (!type) {
-                const kebab = camelToKebabCase(String(context.name));
-                type = Object.values(DefaultEventName).includes("gradum-" + kebab) ? "gradum-" + kebab : kebab;
-            }
-            context.addInitializer(function () {
-                utils$6.addListener(Object.getPrototypeOf(this), { ...properties, type, methodName: context.name, kind: "behavior" });
-            });
-            return value;
-        };
-    }
-    /**
-     * @decorator
-     * @function attachListenersAndBehaviors
-     * @group Decorators
-     * @category Listeners
-     *
-     * @description Attach all previously-decorated listeners and behaviors recorded on the given `context`. It attempts to
-     * resolve defaults from the latter, such as the `target`, `toolName`, `options`, and `manager`. This method is called
-     * automatically in the GradumElement lifecycle.
-     * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
-     */
-    function attachListenersAndBehaviors(context) {
-        if (!context || typeof context !== "object")
-            return;
-        const listeners = utils$6.getAllListeners(context);
-        if (!listeners || listeners.size === 0)
-            return;
-        const defaultTarget = context.target instanceof Node
-            ? context.target : context instanceof Node
-            ? context : context.element instanceof Node
-            ? context.element : undefined;
-        const defaultTool = typeof context.toolName === "string" ? context.toolName : undefined;
-        const defaultOptions = typeof context.options === "object" ? context.options : undefined;
-        const defaultManager = context.manager instanceof GradumEventManager ? context.manager : undefined;
-        for (const [, listener] of listeners) {
-            const method = context[listener.methodName];
-            if (typeof method !== "function")
-                continue;
-            const target = listener.target ?? defaultTarget;
-            const tool = listener.toolName ?? defaultTool;
-            const manager = listener.manager ?? defaultManager;
-            if (listener.kind === "behavior") {
-                if (!tool)
-                    continue;
-                const callback = (e, el, options) => method.call(context, e, el, options);
-                callback.sourceFunction = method;
-                gradum(context).addToolBehavior(listener.type, callback, tool, manager);
-            }
-            else if (listener.kind === "listener") {
-                if (!(target instanceof Node))
-                    continue;
-                gradum(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el), listener.options ?? defaultOptions, manager);
-            }
-        }
-    }
-
-    /**
      * @class GradumOperator
      * @group MVC
      * @category Operator
@@ -9630,6 +6487,380 @@ var Gradum = (function (exports, yjs) {
         constructor(properties) {
             super({ ...properties, position: null });
             this.delta = properties.delta;
+        }
+    }
+
+    /**
+     * @function trim
+     * @group Utilities
+     * @category Numbers
+     *
+     * @description Clamp a number into a range. Anything that is not a number comes back as the fallback rather
+     * than as `NaN`, so it is safe to pass unvalidated input straight in.
+     * *Note: the bounds are given max-first.*
+     * @param {number} value - The value to clamp.
+     * @param {number} max - Upper bound, inclusive.
+     * @param {number} [min=0] - Lower bound, inclusive.
+     * @param {number} [fallback=0] - Returned when `value` is not a number.
+     * @returns {number} The value clamped into `[min, max]`, or `fallback` if it was not a number.
+     */
+    function trim(value, max, min = 0, fallback = 0) {
+        if (value === undefined || typeof value !== "number")
+            return fallback;
+        if (value < min)
+            value = min;
+        if (value > max)
+            value = max;
+        return value;
+    }
+    /**
+     * @function mod
+     * @group Utilities
+     * @category Numbers
+     *
+     * @description Wrap a number into `[0, modValue)`, so negative inputs come back positive — unlike the `%`
+     * operator, which keeps the sign of its left operand. Use it to cycle an index around a list.
+     * @param {number} value - The value to wrap.
+     * @param {number} modValue - The modulus. Must be non-zero.
+     * @returns {number} The wrapped value, always in `[0, modValue)`.
+     * @throws {RangeError} If `modValue` is `0`, since no value can be wrapped into an empty range. Guard the
+     * call when the modulus comes from a length that may be zero.
+     */
+    function mod(value, modValue) {
+        if (modValue === 0)
+            throw new RangeError("mod: modValue must be non-zero.");
+        return ((value % modValue) + modValue) % modValue;
+    }
+
+    /**
+     * @group Components
+     * @category Data Structures
+     */
+    class Point {
+        /**
+         * @readonly
+         * @description The point's x coordinate. Points are immutable — the arithmetic methods return new
+         * points rather than changing this one.
+         */
+        x;
+        /**
+         * @readonly
+         * @description The point's y coordinate.
+         */
+        y;
+        constructor(x = 0, y = typeof x == "number" ? x : 0) {
+            if (typeof x == "number") {
+                this.x = x;
+                this.y = y;
+            }
+            else if ("clientX" in x) {
+                this.x = x.clientX;
+                this.y = x.clientY;
+            }
+            else if ("x" in x) {
+                this.x = x.x;
+                this.y = x.y;
+            }
+            else {
+                this.x = x[0];
+                this.y = x[1];
+            }
+        }
+        // Static methods
+        /**
+         * @description Calculate the distance between two Position2D points.
+         * @param {Point} p1 - First point
+         * @param {Point} p2 - Second point
+         */
+        static dist(p1, p2) {
+            return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+        }
+        /**
+         * @description Calculate the mid-point from the provided points
+         * @param {Point[]} arr - Undetermined number of point parameters
+         */
+        static midPoint(...arr) {
+            const points = arr.filter(p => p != null);
+            if (points.length == 0)
+                return null;
+            const x = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+            const y = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+            return new Point(x, y);
+        }
+        /**
+         * @description Calculate the max on both x and y from the provided points
+         * @param {Point[]} arr - Undetermined number of point parameters
+         */
+        static max(...arr) {
+            const points = arr.filter(p => p != null);
+            if (points.length == 0)
+                return null;
+            const x = points.reduce((max, p) => Math.max(max, p.x), -Infinity);
+            const y = points.reduce((max, p) => Math.max(max, p.y), -Infinity);
+            return new Point(x, y);
+        }
+        /**
+         * @description Calculate the min on both x and y from the provided points
+         * @param {Point[]} arr - Undetermined number of point parameters
+         */
+        static min(...arr) {
+            const points = arr.filter(p => p != null);
+            if (points.length == 0)
+                return null;
+            const x = points.reduce((min, p) => Math.min(min, p.x), Infinity);
+            const y = points.reduce((min, p) => Math.min(min, p.y), Infinity);
+            return new Point(x, y);
+        }
+        // Instance methods
+        /**
+         * @readonly
+         * @description This point as a plain `{x, y}` object, detached from this instance.
+         */
+        get object() {
+            return { x: this.x, y: this.y };
+        }
+        equals(x, y = 0) {
+            if (typeof x == "number")
+                return this.x == x && this.y == y;
+            return this.x == x.x && this.y == x.y;
+        }
+        /**
+         * @function boundX
+         * @description Clamp this point's x coordinate to a range.
+         * @param {number} x1 - The lower bound.
+         * @param {number} x2 - The upper bound.
+         * @returns {number} The clamped x coordinate. This point is left unchanged.
+         */
+        boundX(x1, x2) {
+            return this.x < x1 ? x1
+                : this.x > x2 ? x2
+                    : this.x;
+        }
+        /**
+         * @function boundY
+         * @description Clamp this point's y coordinate to a range.
+         * @param {number} y1 - The lower bound.
+         * @param {number} y2 - The upper bound.
+         * @returns {number} The clamped y coordinate. This point is left unchanged.
+         */
+        boundY(y1, y2) {
+            return this.y < y1 ? y1
+                : this.y > y2 ? y2
+                    : this.y;
+        }
+        bound(x1, x2, y1 = x1, y2 = x2) {
+            return new Point(this.boundX(x1, x2), this.boundY(y1, y2));
+        }
+        add(x, y) {
+            if (typeof x == "number")
+                return new Point(this.x + x, this.y + (y || y == 0 ? y : x));
+            return new Point(this.x + x.x, this.y + x.y);
+        }
+        sub(x, y) {
+            if (typeof x == "number")
+                return new Point(this.x - x, this.y - (y || y == 0 ? y : x));
+            return new Point(this.x - x.x, this.y - x.y);
+        }
+        mul(x, y) {
+            if (typeof x == "number")
+                return new Point(this.x * x, this.y * (y || y == 0 ? y : x));
+            return new Point(this.x * x.x, this.y * x.y);
+        }
+        div(x, y) {
+            if (typeof x == "number")
+                return new Point(this.x / x, this.y / (y || y == 0 ? y : x));
+            return new Point(this.x / x.x, this.y / x.y);
+        }
+        mod(x, y) {
+            const modDiv = typeof x == "number" ?
+                { x: x, y: (y || y == 0 ? y : x) } : { x: x.x, y: x.y };
+            const temp = this.object;
+            while (temp.x < 0)
+                temp.x += modDiv.x;
+            while (temp.x >= modDiv.x)
+                temp.x -= modDiv.x;
+            while (temp.y < 0)
+                temp.y += modDiv.y;
+            while (temp.y >= modDiv.y)
+                temp.y -= modDiv.y;
+            return new Point(temp);
+        }
+        /**
+         * @description Calculate the absolute value of the coordinates
+         * @returns {Point} A new point with both coordinates made positive. This point is left unchanged.
+         */
+        get abs() {
+            return new Point(Math.abs(this.x), Math.abs(this.y));
+        }
+        /**
+         * @description Get the maximum value between x and y coordinates
+         * @returns {number} The larger of the two coordinates.
+         */
+        get max() {
+            return Math.max(this.x, this.y);
+        }
+        /**
+         * @description Get the minimum value between x and y coordinates
+         * @returns {number} The smaller of the two coordinates.
+         */
+        get min() {
+            return Math.min(this.x, this.y);
+        }
+        /**
+         * @description Turn this point by an angle, about the origin or about another point.
+         * @param {number} angle - The angle to turn by, in radians. Positive turns from the x axis towards the y.
+         * @param {Coordinate} [around] - The point to turn around. Defaults to the origin, which turns this point
+         * as a vector rather than as a position.
+         * @returns {Point} A new point holding the result. This point is left unchanged.
+         *
+         * @example
+         * ```ts
+         * //A vector expressed in a box's own frame, brought back into screen space.
+         * const screen = local.rotate(box.angleRad);
+         * //A corner swung around the point it is pinned to.
+         * const moved = corner.rotate(swept, pivot);
+         * ```
+         */
+        rotate(angle, around) {
+            if (!angle)
+                return new Point(this.x, this.y);
+            const cos = Math.cos(angle), sin = Math.sin(angle);
+            const x = this.x - (around?.x ?? 0), y = this.y - (around?.y ?? 0);
+            return new Point(x * cos - y * sin + (around?.x ?? 0), x * sin + y * cos + (around?.y ?? 0));
+        }
+        /**
+         * @description The angle from this point to another, measured from the x axis.
+         * @param {Coordinate} to - The point to measure towards.
+         * @returns {number} The angle in radians, in (-π, π].
+         */
+        angleTo(to) {
+            return Math.atan2(to.y - this.y, to.x - this.x);
+        }
+        /**
+         * @description The angle swept around this point in going from one place to another — how far something
+         * turned, treating this point as the pivot.
+         *
+         * The result is folded back into (-π, π]. Subtracting two raw angles instead would jump by a full turn
+         * whenever the sweep crosses the seam directly behind the pivot, reporting a near-complete spin in the
+         * opposite direction for what was a small movement.
+         * @param {Coordinate} from - Where the sweep started.
+         * @param {Coordinate} to - Where it ended.
+         * @returns {number} The angle swept, in radians, in (-π, π].
+         */
+        angleBetween(from, to) {
+            const swept = this.angleTo(to) - this.angleTo(from);
+            return Math.atan2(Math.sin(swept), Math.cos(swept));
+        }
+        /**
+         * @readonly
+         * @description The squared distance from the origin to this point. Cheaper than {@link Point.length}
+         * since it skips the square root — use it when comparing magnitudes.
+         */
+        get length2() {
+            return this.x * this.x + this.y * this.y;
+        }
+        /**
+         * @readonly
+         * @description The distance from the origin to this point.
+         */
+        get length() {
+            return Math.sqrt(this.length2);
+        }
+        /**
+         * @function dot
+         * @description Compute the dot product of this point and another, treating both as vectors.
+         * @param {Point} p - The other vector.
+         * @returns {number} The dot product. Zero means the two are perpendicular.
+         */
+        dot(p) {
+            return this.x * p.x + this.y * p.y;
+        }
+        /**
+         * @description Create a copy of the current point
+         * @returns {Point} A new point with the same coordinates.
+         */
+        copy() {
+            return new Point(this.x, this.y);
+        }
+        /**
+         * @description Get the coordinates as an array
+         * @returns {number[]} A two-element array, `[x, y]`.
+         */
+        arr() {
+            return [this.x, this.y];
+        }
+        /**
+         * @function positionOnSegment
+         * @description Find how far along a segment this point projects, as a fraction from its start to its
+         * end. Useful for snapping a position onto a line.
+         * @param {Point} start - The segment's start.
+         * @param {Point} end - The segment's end.
+         * @returns {number} A value from `0` (at the start) to `1` (at the end), clamped to that range.
+         * Returns `0` for a zero-length segment.
+         */
+        positionOnSegment(start, end) {
+            const shiftedEnd = end.sub(start);
+            const shiftedLength2 = shiftedEnd.length2;
+            if (shiftedLength2 < 1e-9)
+                return 0;
+            return trim((this.sub(start).dot(shiftedEnd)) / shiftedLength2, 1);
+        }
+        /**
+         * @function linearInterpolation
+         * @static
+         * @description Interpolate between two points.
+         * @param {Point} start - The point at `t = 0`.
+         * @param {Point} end - The point at `t = 1`.
+         * @param {number} t - The interpolation fraction. Values outside `0`–`1` extrapolate past the ends.
+         * @returns {Point} The interpolated point.
+         */
+        static linearInterpolation(start, end, t) {
+            return start.add(end.sub(start).mul(t));
+        }
+        /**
+         * @function toString
+         * @description Serialize this point to a JSON string, in the form {@link Point.fromString} reads.
+         * @returns {string} The serialized point, e.g. `'{"x":1,"y":2}'`.
+         */
+        toString() {
+            return JSON.stringify({ x: this.x, y: this.y });
+        }
+        static from(value) {
+            if (value instanceof Point)
+                return value;
+            if (typeof value === "number")
+                return new Point(value);
+            if (typeof value === "string") {
+                try {
+                    const parsed = JSON.parse(value);
+                    if (typeof parsed?.x === "number" && typeof parsed?.y === "number")
+                        return new Point(parsed.x, parsed.y);
+                }
+                catch { /* fall through to undefined */ }
+                return undefined;
+            }
+            if (Array.isArray(value))
+                return typeof value[0] === "number" && typeof value[1] === "number"
+                    ? new Point(value[0], value[1]) : undefined;
+            if (value && typeof value === "object") {
+                if (typeof value.x === "number" && typeof value.y === "number")
+                    return new Point(value.x, value.y);
+                if (typeof value.clientX === "number" && typeof value.clientY === "number")
+                    return new Point(value.clientX, value.clientY);
+            }
+            return undefined;
+        }
+        /**
+         * @function fromString
+         * @description Parse a point from a JSON string produced by {@link Point.toString}. Delegates to
+         * {@link Point.from}; it exists as an instance method because {@link GradumInput} discovers a value's
+         * parser by looking for `fromString` on the value itself, which a static member would not satisfy.
+         * @param {string} value - The string to parse.
+         * @returns {Point} The parsed point, or `undefined` if the string is not valid JSON holding numeric
+         * `x` and `y` fields.
+         */
+        fromString(value) {
+            return Point.from(value);
         }
     }
 
@@ -10050,6 +7281,45 @@ var Gradum = (function (exports, yjs) {
     }
 
     /**
+     * @enum {Propagation}
+     * @group GradumSelector
+     * @category Events
+     *
+     * @description Enum dictating the propagation of an event.
+     * @property {Propagation.propagate} propagate - Continue normal propagation.
+     * @property {Propagation.stopPropagation} stopPropagation - Stop propagation to parent targets.
+     * @property {Propagation.stopImmediatePropagation} stopImmediatePropagation - Stop propagation and prevent any
+     * additional listeners on the same target from executing.
+     */
+    exports.Propagation = void 0;
+    (function (Propagation) {
+        Propagation["propagate"] = "propagate";
+        Propagation["stopPropagation"] = "stopPropagation";
+        Propagation["stopImmediatePropagation"] = "stopImmediatePropagation";
+    })(exports.Propagation || (exports.Propagation = {}));
+    /**
+     * @group GradumSelector
+     * @category Events
+     * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
+     */
+    const BasicInputEvents = [
+        "mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu",
+        "dragstart", "selectstart",
+        "touchstart", "touchmove", "touchend", "touchcancel",
+        "pointerdown", "pointermove", "pointerup",
+        "wheel"
+    ];
+    /**
+     * @group GradumSelector
+     * @category Events
+     * @description Event types that should usually be registered as **non-passive** when you intend to call
+     *  * `preventDefault()` (e.g., scroll/touch/pointer interactions).
+     */
+    const NonPassiveEvents = [
+        "wheel", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "pointercancel"
+    ];
+
+    /**
      * @internal
      * @class GradumEventManagerDispatchOperator
      * @extends GradumOperator
@@ -10316,11 +7586,11 @@ var Gradum = (function (exports, yjs) {
             clearTimeout(timer);
             this.model.timerMap.delete(timerName);
         }
-        activateTool(element, toolName, value) {
+        activateTool(element, toolName, value, manager) {
             if (value)
-                $(element).onToolActivate(toolName).fire();
+                $(element).onToolActivate(toolName, manager).fire();
             else
-                $(element).onToolDeactivate(toolName).fire();
+                $(element).onToolDeactivate(toolName, manager).fire();
         }
     }
 
@@ -10517,6 +7787,58 @@ var Gradum = (function (exports, yjs) {
             applyExpose(this, key, rootKey, exposeSetter);
         });
     }
+
+    /**
+     * @class GradumBaseElement
+     * @group MVC
+     * @category Element Classes
+     *
+     * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+     * @template {object} DataType - The element's data type, if initializing MVC.
+     * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+     * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+     * @description GradumHeadlessElement class, similar to GradumElement but without extending HTMLElement.
+     */
+    class GradumBaseElement {
+        /**
+         * @description Default properties assigned to a new instance.
+         */
+        static defaultProperties = {};
+        /**
+         * @function create
+         * @static
+         * @description Instantiate this class with the given properties. Defaults declared by every class in the
+         * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
+         * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
+         * @param {PropertiesType} [properties] - Properties to set on the new instance.
+         * @returns {InstanceType<Type>} The created instance.
+         */
+        static create(properties = {}) {
+            return this.customCreate.call(this, properties);
+        }
+        /**
+         * @protected
+         * @static
+         * @function customCreate
+         * @description The construction step behind {@link create}. Override it to change how instances of a class
+         * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
+         * `create` performs.
+         * @param {object} properties - Properties to set on the new instance, defaults already merged in.
+         * @returns {object} The created instance.
+         */
+        static customCreate(properties) {
+            const prototypeChain = getPrototypeChain(this);
+            for (const prototype of prototypeChain)
+                gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+            const obj = new this();
+            gradum(obj).setProperties(properties);
+            return obj;
+        }
+    }
+    (() => {
+        defineDefaultProperties(GradumBaseElement);
+    })();
+    addRegistryCategory(GradumBaseElement);
 
     //TODO Create merged events maybe --> fire event x when "mousedown" | "touchstart" | "mousemove" etc.
     //ToDO Create "interaction" event --> when element interacted with
@@ -11092,7 +8414,7 @@ var Gradum = (function (exports, yjs) {
                         if (options.select)
                             gradum(element).selected = false;
                         if (options.activate)
-                            this.model.utils.activateTool(element, this.getToolName(previousTool), false);
+                            this.model.utils.activateTool(element, this.getToolName(previousTool), false, this);
                     });
                 }
                 //Select new tool (and maybe set it as the tool for no click mode)
@@ -11102,7 +8424,7 @@ var Gradum = (function (exports, yjs) {
                 //Select and activate the tool
                 this.getSimilarTools(tool).forEach(element => {
                     if (options.activate)
-                        this.model.utils.activateTool(element, this.getToolName(tool), true);
+                        this.model.utils.activateTool(element, this.getToolName(tool), true, this);
                     if (options.select)
                         gradum(element).selected = true;
                 });
@@ -11178,6 +8500,1325 @@ var Gradum = (function (exports, yjs) {
         };
     })();
     define(GradumEventManager);
+
+    /**
+     * @internal
+     * @class ListenerUtils
+     * @description Stores the listener and behavior declarations gathered from `@listener` and `@behavior`,
+     * keyed by prototype, so they can be attached once the instance exists.
+     */
+    class ListenerUtils {
+        constructorMap = new WeakMap();
+        constructorData(prototype) {
+            let obj = this.constructorMap.get(prototype);
+            if (!obj) {
+                obj = { listeners: new Map() };
+                this.constructorMap.set(prototype, obj);
+            }
+            return obj;
+        }
+        addListener(prototype, listener) {
+            if (!listener.methodName)
+                return;
+            const data = this.constructorData(prototype)?.listeners;
+            if (!data || data.has(listener.methodName))
+                return;
+            data.set(listener.methodName, listener);
+        }
+        getAllListeners(instance) {
+            let prototype = Object.getPrototypeOf(instance);
+            const results = new Map();
+            while (prototype && prototype !== Object.prototype) {
+                const map = this.constructorData(prototype).listeners;
+                if (map?.size)
+                    for (const [key, value] of map.entries()) {
+                        if (!results.has(key))
+                            results.set(key, value);
+                    }
+                prototype = Object.getPrototypeOf(prototype);
+            }
+            return results;
+        }
+    }
+
+    const utils$7 = new ListenerUtils();
+    /**
+     * @decorator
+     * @function listener
+     * @group Decorators
+     * @category Listeners
+     *
+     * @description Method decorator that registers the decorated method as an event listener, to be attached later
+     * via {@link attachListenersAndBehaviors}. Usable on elements (`GradumElement`, `GradumHeadlessElement`,
+     * `GradumProxiedElement`), views, operators, and interactors: each attaches what it declares when it
+     * initializes.
+     *
+     * What the listener binds to, unless `properties.target` names it: the instance itself when it is a node, and
+     * otherwise its `element`. A headless element is neither, so it has to name its target.
+     * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
+     * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
+     * to derive the event name from {@link DefaultEventName}.
+     *
+     * @example ```ts
+     * class MyElement {
+     *   @listener() click(e: Event) { ... }
+     *   //Equivalent to: gradum(this).on(DefaultEventName.click, (e: Event) => { ... });
+     * }
+     * ```
+     * @example ```ts
+     * class MyHeadlessElement {
+     *   @listener({target: document}) gradumClick(e: GradumEvent) { ... }
+     *   //Nothing of its own to listen on, so it says where to listen.
+     * }
+     * ```
+     */
+    function listener(properties = {}) {
+        return function (value, context) {
+            //TODO FIX
+            GradumEventManager.instance;
+            let type = properties.type;
+            if (!type) {
+                const kebab = camelToKebabCase(String(context.name));
+                type = Object.values(DefaultEventName).includes("gradum-" + kebab) ? "gradum-" + kebab : kebab;
+            }
+            context.addInitializer(function () {
+                utils$7.addListener(Object.getPrototypeOf(this), { ...properties, type, methodName: context.name, kind: "listener" });
+            });
+            return value;
+        };
+    }
+    /**
+     * @decorator
+     * @function behavior
+     * @group Decorators
+     * @category Listeners
+     *
+     * @description Method decorator that registers the decorated method as a tool behavior, to be attached later
+     * via {@link attachListenersAndBehaviors}.
+     * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
+     * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
+     * to derive the event name from {@link DefaultEventName}.
+     *
+     * @example ```ts
+     * class MyElement {
+     *   @behavior() click(e: Event) { ... }
+     *   //Equivalent to: gradum(this).addToolBehavior(DefaultEventName.click, (e: Event) => { ... });
+     * }
+     * ```
+     */
+    function behavior(properties = {}) {
+        return function (value, context) {
+            //TODO FIX
+            GradumEventManager.instance;
+            let type = properties.type;
+            if (!type) {
+                const kebab = camelToKebabCase(String(context.name));
+                type = Object.values(DefaultEventName).includes("gradum-" + kebab) ? "gradum-" + kebab : kebab;
+            }
+            context.addInitializer(function () {
+                utils$7.addListener(Object.getPrototypeOf(this), { ...properties, type, methodName: context.name, kind: "behavior" });
+            });
+            return value;
+        };
+    }
+    /**
+     * @decorator
+     * @function attachListenersAndBehaviors
+     * @group Decorators
+     * @category Listeners
+     *
+     * @description Attach all previously-decorated listeners and behaviors recorded on the given `context`. It attempts to
+     * resolve defaults from the latter, such as the `target`, `toolName`, `options`, and `manager`. This method is called
+     * automatically when an element, view, or operator initializes, so declaring a listener is all that is needed.
+     *
+     * A declaration with no target to bind to is skipped: `@listener` on something that is neither a node nor holds
+     * one does nothing until it names a `target`.
+     * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
+     */
+    function attachListenersAndBehaviors(context) {
+        if (!context || typeof context !== "object")
+            return;
+        const listeners = utils$7.getAllListeners(context);
+        if (!listeners || listeners.size === 0)
+            return;
+        const defaultTarget = context.target instanceof Node
+            ? context.target : context instanceof Node
+            ? context : context.element instanceof Node
+            ? context.element : undefined;
+        const defaultTool = typeof context.toolName === "string" ? context.toolName : undefined;
+        const defaultOptions = typeof context.options === "object" ? context.options : undefined;
+        const defaultManager = context.manager instanceof GradumEventManager ? context.manager : undefined;
+        for (const [, listener] of listeners) {
+            const method = context[listener.methodName];
+            if (typeof method !== "function")
+                continue;
+            const target = listener.target ?? defaultTarget;
+            const tool = listener.toolName ?? defaultTool;
+            const manager = listener.manager ?? defaultManager;
+            if (listener.kind === "behavior") {
+                if (!tool)
+                    continue;
+                const callback = (e, el, options) => method.call(context, e, el, options);
+                callback.sourceFunction = method;
+                gradum(context).addToolBehavior(listener.type, callback, tool, manager);
+            }
+            else if (listener.kind === "listener") {
+                if (!(target instanceof Node))
+                    continue;
+                gradum(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el), listener.options ?? defaultOptions, manager);
+            }
+        }
+    }
+
+    /**
+     * @internal
+     * @function defineDefaultProperties
+     * @template {new (...args: any[]) => any} Type - The class being set up.
+     * @description Install the shared element behaviour on a class prototype — `destroy`, `initialize`,
+     * `initialized`, `feedforward`, `clone`, and `defaultFeedforwardProperties`. This is what gives every
+     * element class the same lifecycle without inheriting from a common base. Called once per element class
+     * at definition time.
+     * @param {Type} constructor - The class whose prototype receives the behaviour.
+     */
+    function defineDefaultProperties(constructor) {
+        const prototype = constructor.prototype;
+        const initializedKey = Symbol("__initialized__");
+        Object.defineProperty(prototype, "destroy", {
+            value: function () { },
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, "initialized", {
+            get: function () {
+                return this[initializedKey] ?? false;
+            },
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, "initialize", {
+            value: function () {
+                if (this[initializedKey])
+                    return;
+                this[initializedKey] = true;
+                this.setupUIElements?.();
+                this.setupUILayout?.();
+                this.setupUIListeners?.();
+                attachListenersAndBehaviors(this);
+                this.setupFields?.();
+                this.setupChangedCallbacks?.();
+                gradum(this).initializeMvc();
+                initializeEffects(this);
+            },
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, "clone", {
+            value: function (properties) { return gradum(this).clone(properties); },
+            configurable: true,
+            enumerable: false,
+        });
+        const ffKey = Symbol("__defaultFeedforwardProperties__");
+        Object.defineProperty(prototype, "defaultFeedforwardProperties", {
+            get() {
+                if (!this[ffKey])
+                    this[ffKey] = {};
+                return this[ffKey];
+            },
+            set(value) { this[ffKey] = value; },
+            configurable: true,
+            enumerable: true
+        });
+        Object.defineProperty(prototype, "feedforward", {
+            value: function (properties) { return gradum(this).feedforward(properties); },
+            configurable: true,
+            enumerable: false,
+        });
+    }
+
+    /**
+     * @internal
+     * @function defineMvcAccessors
+     * @template {new (...args: any[]) => any} Type - The class being set up.
+     * @description Install the MVC surface on a class prototype, so instances expose `view`, `model`,
+     * `emitter`, `operators`, `handlers`, `interactors`, `tools`, `constrainers`, `data`, `dataId`,
+     * `dataIndex`, `dataSize`, and the matching add/get/remove methods. Each one forwards to the element's
+     * selector, which is where the state actually lives. Called once per element class at definition time.
+     * @param {Type} constructor - The class whose prototype receives the accessors.
+     */
+    function defineMvcAccessors(constructor) {
+        const prototype = constructor.prototype;
+        // Fields — proxy through gradum(this)
+        [...MvcFields, "data", "dataId", "dataIndex"].forEach(fieldName => {
+            Object.defineProperty(prototype, fieldName, {
+                get() { return gradum(this)[fieldName]; },
+                set(value) { gradum(this)[fieldName] = value; },
+                configurable: true,
+                enumerable: true,
+            });
+        });
+        ["dataSize"].forEach(fieldName => {
+            Object.defineProperty(prototype, fieldName, {
+                get() { return gradum(this)[fieldName]; },
+                configurable: true,
+                enumerable: true,
+            });
+        });
+    }
+
+    /**
+     * @internal
+     * @function defineUIPrototype
+     * @template {new (...args: any[]) => any} Type - The class being set up.
+     * @description Install the UI surface on a class prototype — `shadowDOM`, `defaultClasses`, and
+     * `unsetDefaultClasses` — backed by private symbols so the values do not collide with user fields.
+     * Called once per element class at definition time.
+     * @param {Type} constructor - The class whose prototype receives the accessors.
+     */
+    function defineUIPrototype(constructor) {
+        const prototype = constructor.prototype;
+        const shadowDOMKey = Symbol("__shadow_dom__");
+        const unsetDefaultClassesKey = Symbol("__unset_default_classes__");
+        const defaultClassesKey = Symbol("__default_classes__");
+        Object.defineProperty(prototype, "shadowDOM", {
+            get: function () { return this[shadowDOMKey] ?? false; },
+            set: function (value) {
+                this[shadowDOMKey] = value;
+                const el = this.element;
+                if (value && !el.shadowRoot)
+                    try {
+                        el.attachShadow({ mode: "open" });
+                    }
+                    catch { }
+                if (el.shadowRoot) {
+                    const from = value ? el : el.shadowRoot;
+                    const to = value ? el.shadowRoot : el;
+                    while (from.childNodes.length > 0)
+                        to.appendChild(from.childNodes[0]);
+                }
+            },
+            enumerable: true,
+            configurable: true,
+        });
+        Object.defineProperty(prototype, "unsetDefaultClasses", {
+            get: function () { return this[unsetDefaultClassesKey] ?? false; },
+            set: function (value) {
+                this[unsetDefaultClassesKey] = value;
+                gradum(this).toggleClass(this.defaultClasses, !value);
+            },
+            enumerable: true,
+            configurable: true,
+        });
+        Object.defineProperty(prototype, "defaultClasses", {
+            get: function () { return this[defaultClassesKey] ?? ""; },
+            set: function (value) {
+                if (!this.unsetDefaultClasses)
+                    gradum(this).toggleClass(this[defaultClassesKey], false);
+                this[defaultClassesKey] = value;
+                if (!this.unsetDefaultClasses)
+                    gradum(this).toggleClass(value, true);
+            },
+            enumerable: true,
+            configurable: true,
+        });
+    }
+
+    const VOID       = -1;
+    const PRIMITIVE  = 0;
+    const ARRAY      = 1;
+    const OBJECT     = 2;
+    const DATE       = 3;
+    const REGEXP     = 4;
+    const MAP        = 5;
+    const SET        = 6;
+    const ERROR      = 7;
+    const BIGINT     = 8;
+    // export const SYMBOL = 9;
+
+    const env = typeof self === 'object' ? self : globalThis;
+
+    const guard = (name, init) => {
+      switch (name) {
+        case 'Function':
+        case 'SharedWorker':
+        case 'Worker':
+        case 'eval':
+        case 'setInterval':
+        case 'setTimeout':
+          throw new TypeError('unable to deserialize ' + name);
+      }
+      return new env[name](init);
+    };
+
+    const deserializer = ($, _) => {
+      const as = (out, index) => {
+        $.set(index, out);
+        return out;
+      };
+
+      const unpair = index => {
+        if ($.has(index))
+          return $.get(index);
+
+        const [type, value] = _[index];
+        switch (type) {
+          case PRIMITIVE:
+          case VOID:
+            return as(value, index);
+          case ARRAY: {
+            const arr = as([], index);
+            for (const index of value)
+              arr.push(unpair(index));
+            return arr;
+          }
+          case OBJECT: {
+            const object = as({}, index);
+            for (const [key, index] of value)
+              object[unpair(key)] = unpair(index);
+            return object;
+          }
+          case DATE:
+            return as(new Date(value), index);
+          case REGEXP: {
+            const {source, flags} = value;
+            return as(new RegExp(source, flags), index);
+          }
+          case MAP: {
+            const map = as(new Map, index);
+            for (const [key, index] of value)
+              map.set(unpair(key), unpair(index));
+            return map;
+          }
+          case SET: {
+            const set = as(new Set, index);
+            for (const index of value)
+              set.add(unpair(index));
+            return set;
+          }
+          case ERROR: {
+            const {name, message} = value;
+            return as(
+              typeof env[name] === 'function' ?
+                guard(name, message) :
+                new Error(message),
+              index
+            );
+          }
+          case BIGINT:
+            return as(BigInt(value), index);
+          case 'BigInt':
+            return as(Object(BigInt(value)), index);
+          case 'ArrayBuffer':
+            return as(new Uint8Array(value).buffer, value);
+          case 'DataView': {
+            const { buffer } = new Uint8Array(value);
+            return as(new DataView(buffer), value);
+          }
+        }
+        return as(guard(type, value), index);
+      };
+
+      return unpair;
+    };
+
+    /**
+     * @typedef {Array<string,any>} Record a type representation
+     */
+
+    /**
+     * Returns a deserialized value from a serialized array of Records.
+     * @param {Record[]} serialized a previously serialized value.
+     * @returns {any}
+     */
+    const deserialize = serialized => deserializer(new Map, serialized)(0);
+
+    /*! (c) Andrea Giammarchi - ISC */
+
+
+    const {parse: $parse} = JSON;
+
+    /**
+     * Revive a previously stringified structured clone.
+     * @param {string} str previously stringified data as string.
+     * @returns {any} whatever was previously stringified as clone.
+     */
+    const parse = str => deserialize($parse(str));
+
+    /**
+     * @class GradumElement
+     * @group MVC
+     * @category Element Classes
+     *
+     * @extends HTMLElement
+     * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+     * @template {object} DataType - The element's data type, if initializing MVC.
+     * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+     * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+     * @description Base GradumElement class, extending the base HTML element with a few useful tools and functions.
+     * */
+    class GradumElement extends HTMLElement {
+        /**
+         * @description Default properties assigned to a new instance.
+         */
+        static defaultProperties = {
+            defaultSelectedClasses: "selected"
+        };
+        // public static create<Type extends new (...args: any[]) => GradumElement>
+        // (this: Type, properties: InstanceType<Type>["properties"] = {}): InstanceType<Type> {
+        //     return (this as any).customCreate.call(this, properties);
+        // }
+        /**
+         * @function create
+         * @static
+         * @description Instantiate this class with the given properties. Defaults declared by every class in the
+         * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
+         * its parent's. The return type follows the class it is called on, and the MVC type parameters are read
+         * back off the properties — passing `model: MyModel` types `.model` as `MyModel` without a cast.
+         *
+         * *Note: the callee is read through `this["prototype"]` rather than `InstanceType<this>`, because the
+         * latter instantiates a generic class' parameters with their constraints instead of their defaults,
+         * which is what forced casts at call sites.*
+         * @template {{prototype: GradumElement}} This - The class `create` was called on.
+         * @template {GradumView} ViewType - Inferred from `properties.view`.
+         * @template {object} DataType - Inferred from `properties.data`.
+         * @template {GradumModel} ModelType - Inferred from `properties.model`.
+         * @template {GradumEmitter} EmitterType - Inferred from `properties.emitter`.
+         * @param {GradumElementProperties} [properties] - Properties to set on the new instance.
+         * @returns {GradumElement} The created instance, typed as the class this was called on.
+         */
+        static create(properties) {
+            return this.customCreate(properties ?? {});
+        }
+        /**
+         * @protected
+         * @static
+         * @function customCreate
+         * @description The construction step behind {@link create}. Override it to change how instances of a class
+         * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
+         * `create` performs.
+         * @param {object} properties - Properties to set on the new instance, defaults already merged in.
+         * @returns {object} The created instance.
+         */
+        static customCreate(properties) {
+            const prototypeChain = getPrototypeChain(this);
+            for (const prototype of prototypeChain)
+                gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+            return element({ ...properties });
+        }
+        /**
+         * @description Delegate fired when the element is attached to DOM.
+         */
+        onAttach = new Delegate();
+        /**
+         * @description Delegate fired when the element is detached from the DOM.
+         */
+        onDetach = new Delegate();
+        /**
+         * @description Delegate fired when the element is adopted by a new parent in the DOM.
+         */
+        onAdopt = new Delegate();
+        /**
+         * @function setupChangedCallbacks
+         * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
+         * @protected
+         */
+        setupChangedCallbacks() {
+        }
+        /**
+         * @function setupUIElements
+         * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
+         * them in fields. Called on `initialize()`.
+         * @protected
+         */
+        setupUIElements() {
+        }
+        /**
+         * @function setupUILayout
+         * @description Setup method to create the layout structure of the element by adding all created sub-elements to
+         * this element's child tree. Called on `initialize()`.
+         * @protected
+         */
+        setupUILayout() {
+        }
+        /**
+         * @function setupUIListeners
+         * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
+         * `initialize()`.
+         * @protected
+         */
+        setupUIListeners() {
+        }
+        /**
+         * @function connectedCallback
+         * @description function called when the element is attached to the DOM.
+         */
+        connectedCallback() {
+            if (!this.initialized) {
+                const prototypeChain = getPrototypeChain(this);
+                const defaults = {};
+                for (const proto of prototypeChain)
+                    gradum(defaults).applyDefaults(proto.constructor?.["defaultProperties"]);
+                const toApply = {};
+                for (const [key, value] of Object.entries(defaults))
+                    if (isUndefined(this[key]))
+                        toApply[key] = value;
+                gradum(this).setProperties(toApply);
+                for (const attribute of this.constructor["observedAttributes"] ?? []) {
+                    if (!this.hasAttribute(attribute))
+                        continue;
+                    const property = kebabToCamelCase(attribute);
+                    const current = this.getAttribute(attribute);
+                    this[property] = parse(current);
+                }
+            }
+            this.onAttach.fire();
+        }
+        /**
+         * @function disconnectedCallback
+         * @description function called when the element is detached from the DOM.
+         */
+        disconnectedCallback() {
+            this.onDetach.fire();
+        }
+        /**
+         * @function adoptedCallback
+         * @description function called when the element is adopted by a new parent in the DOM.
+         */
+        adoptedCallback() {
+            this.onAdopt.fire();
+        }
+    }
+    (() => {
+        defineDefaultProperties(GradumElement);
+        defineMvcAccessors(GradumElement);
+        defineUIPrototype(GradumElement);
+    })();
+    addRegistryCategory(GradumElement);
+
+    const elementSymbol = Symbol("___element___");
+    /**
+     * @class GradumProxiedElement
+     * @group MVC
+     * @category Element Classes
+     *
+     * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+     * @template {object} DataType - The element's data type, if initializing MVC.
+     * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+     * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+     * @description GradumProxiedElement class, similar to GradumElement but containing an HTML element instead of being one.
+     */
+    class GradumProxiedElement {
+        /**
+         * @description Default properties assigned to a new instance.
+         */
+        static defaultProperties = {
+            defaultSelectedClasses: "selected"
+        };
+        /**
+         * @function create
+         * @static
+         * @description Instantiate this class with the given properties. Defaults declared by every class in the
+         * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
+         * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
+         * @param {PropertiesType} [properties] - Properties to set on the new instance.
+         * @returns {InstanceType<Type>} The created instance.
+         */
+        static create(properties) {
+            const props = properties ?? {};
+            const prototypeChain = getPrototypeChain(this);
+            for (const prototype of prototypeChain)
+                gradum(props).applyDefaults(prototype["defaultProperties"] ?? {});
+            return this.customCreate.call(this, props);
+        }
+        /**
+         * @protected
+         * @static
+         * @function customCreate
+         * @description The construction step behind {@link create}. Override it to change how instances of a class
+         * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
+         * `create` performs.
+         * @param {object} properties - Properties to set on the new instance, defaults already merged in.
+         * @returns {object} The created instance.
+         */
+        static customCreate(properties) {
+            const obj = new this();
+            obj[elementSymbol] = blindElement({ tag: properties["tag"] });
+            // gradum(obj) without raw unwraps to obj.element, which is the same key the model getter
+            // resolves to later. Using raw=true here would key MVC data under obj instead, making
+            // gradum(obj).model return undefined during initialize().
+            // The back-reference lets extractClassEssenceName walk obj's prototype chain (FlowEntry,
+            // etc.) instead of the raw SVGGElement chain, so handler/operator key derivation works.
+            obj[elementSymbol][proxyWrapperSymbol] = obj;
+            const shouldInitialize = properties["initialize"] !== false;
+            gradum(obj).setProperties(Object.assign({}, properties, { initialize: false }));
+            // Dispatch custom wrapper setters that setProperties couldn't reach.
+            // gradum(obj) routes through obj.element (the raw DOM node), so properties that have no
+            // meaning on the raw element (e.g. FlowEntry.flow) are silently dropped. We replay them
+            // onto obj directly — but only when: (1) not an MVC field already handled by GradumSelector,
+            // (2) the raw element has no descriptor for the key (setProperties already handled it), and
+            // (3) obj's prototype chain has a real setter for the key.
+            const rawEl = obj[elementSymbol];
+            for (const [key, value] of Object.entries(properties)) {
+                if (MvcFields.includes(key))
+                    continue;
+                if (getFirstDescriptorInChain(rawEl, key))
+                    continue;
+                const desc = getFirstDescriptorInChain(obj, key);
+                if (desc?.set)
+                    obj[key] = value;
+            }
+            if (shouldInitialize && typeof obj["initialize"] === "function")
+                obj["initialize"]();
+            return obj;
+        }
+        /**
+         * @description The HTML (or other) element wrapped inside this instance.
+         */
+        get element() {
+            return this[elementSymbol];
+        }
+        /**
+         * @function setupChangedCallbacks
+         * @description Setup method intended to initialize change listeners and callbacks. Called on `initialize()`.
+         * @protected
+         */
+        setupChangedCallbacks() {
+        }
+        /**
+         * @function setupUIElements
+         * @description Setup method intended to initialize all direct sub-elements attached to this element, and store
+         * them in fields. Called on `initialize()`.
+         * @protected
+         */
+        setupUIElements() {
+        }
+        /**
+         * @function setupUILayout
+         * @description Setup method to create the layout structure of the element by adding all created sub-elements to
+         * this element's child tree. Called on `initialize()`.
+         * @protected
+         */
+        setupUILayout() {
+        }
+        /**
+         * @function setupUIListeners
+         * @description Setup method to initialize and define all input/DOM event listeners of the element. Called on
+         * `initialize()`.
+         * @protected
+         */
+        setupUIListeners() {
+        }
+    }
+    (() => {
+        defineDefaultProperties(GradumProxiedElement);
+        defineMvcAccessors(GradumProxiedElement);
+        defineUIPrototype(GradumProxiedElement);
+    })();
+    addRegistryCategory(GradumProxiedElement);
+
+    /**
+     * @class GradumHeadlessElement
+     * @group MVC
+     * @category Element Classes
+     *
+     * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+     * @template {object} DataType - The element's data type, if initializing MVC.
+     * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+     * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+     * @description GradumHeadlessElement class, similar to GradumElement but without extending HTMLElement.
+     */
+    class GradumHeadlessElement {
+        /**
+         * @description Default properties assigned to a new instance.
+         */
+        static defaultProperties = {};
+        /**
+         * @function create
+         * @static
+         * @description Instantiate this class with the given properties. Defaults declared by every class in the
+         * inheritance chain are applied first, nearest ancestor last, so a subclass' `defaultProperties` win over
+         * its parent's. The return type follows the class it is called on, so a subclass gets its own type back.
+         * @param {PropertiesType} [properties] - Properties to set on the new instance.
+         * @returns {InstanceType<Type>} The created instance.
+         */
+        static create(properties = {}) {
+            return this.customCreate.call(this, properties);
+        }
+        /**
+         * @protected
+         * @static
+         * @function customCreate
+         * @description The construction step behind {@link create}. Override it to change how instances of a class
+         * are built — to route through a factory, or to wrap the instance — while keeping the default-merging that
+         * `create` performs.
+         * @param {object} properties - Properties to set on the new instance, defaults already merged in.
+         * @returns {object} The created instance.
+         */
+        static customCreate(properties) {
+            const prototypeChain = getPrototypeChain(this);
+            for (const prototype of prototypeChain)
+                gradum(properties).applyDefaults(prototype["defaultProperties"] ?? {});
+            const obj = new this();
+            gradum(obj).setProperties(properties);
+            return obj;
+        }
+    }
+    (() => {
+        defineDefaultProperties(GradumHeadlessElement);
+        defineMvcAccessors(GradumHeadlessElement);
+    })();
+    addRegistryCategory(GradumHeadlessElement);
+
+    /**
+     * @class GradumMovable
+     * @group Components
+     * @category Wrappers
+     *
+     * @extends GradumElement
+     * @description Positioning wrapper that places arbitrary content via pure CSS transforms.
+     * Set {@link translation} (alias {@link position}) and {@link rotation} to move/rotate the
+     * wrapper without touching the content's own fields — useful for previews (feedforwards),
+     * ghosts, overlays, or any element that must be positioned independently of how its content
+     * renders itself.
+     *
+     * @example
+     * ```ts
+     * const movable = GradumMovable.create({content: myElement});
+     * movable.translation = new Point(120, 40);
+     * movable.rotation = Math.PI / 6;
+     * movable.translateBy(new Point(5, 0));
+     * ```
+     */
+    let GradumMovable = (() => {
+        let _classSuper = GradumElement;
+        let _instanceExtraInitializers = [];
+        let _translation_decorators;
+        let _translation_initializers = [];
+        let _translation_extraInitializers = [];
+        let _rotation_decorators;
+        let _rotation_initializers = [];
+        let _rotation_extraInitializers = [];
+        let _centerAnchor_decorators;
+        let _centerAnchor_initializers = [];
+        let _centerAnchor_extraInitializers = [];
+        let _set_content_decorators;
+        let _updateTransform_decorators;
+        return class GradumMovable extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _translation_decorators = [signal];
+                _rotation_decorators = [signal];
+                _centerAnchor_decorators = [signal];
+                _set_content_decorators = [auto()];
+                _updateTransform_decorators = [effect];
+                __esDecorate(this, null, _set_content_decorators, { kind: "setter", name: "content", static: false, private: false, access: { has: obj => "content" in obj, set: (obj, value) => { obj.content = value; } }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(this, null, _updateTransform_decorators, { kind: "method", name: "updateTransform", static: false, private: false, access: { has: obj => "updateTransform" in obj, get: obj => obj.updateTransform }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, null, _translation_decorators, { kind: "field", name: "translation", static: false, private: false, access: { has: obj => "translation" in obj, get: obj => obj.translation, set: (obj, value) => { obj.translation = value; } }, metadata: _metadata }, _translation_initializers, _translation_extraInitializers);
+                __esDecorate(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
+                __esDecorate(null, null, _centerAnchor_decorators, { kind: "field", name: "centerAnchor", static: false, private: false, access: { has: obj => "centerAnchor" in obj, get: obj => obj.centerAnchor, set: (obj, value) => { obj.centerAnchor = value; } }, metadata: _metadata }, _centerAnchor_initializers, _centerAnchor_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            /** @description The translation applied to the wrapper, in pixels. */
+            translation = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _translation_initializers, new Point()));
+            /** @description The rotation applied to the wrapper, in radians. */
+            rotation = (__runInitializers(this, _translation_extraInitializers), __runInitializers(this, _rotation_initializers, 0));
+            /** @description When true, the wrapper is offset by -50% so translation refers to its center. */
+            centerAnchor = (__runInitializers(this, _rotation_extraInitializers), __runInitializers(this, _centerAnchor_initializers, false));
+            /** @description The content element wrapped by this movable. Assigning it appends it as a child. */
+            set content(value) {
+                if (value)
+                    gradum(this).addChild(value);
+            }
+            setupUILayout() {
+                super.setupUILayout();
+                gradum(this).setStyles({ display: "inline-block", position: "absolute", left: "0", top: "0" });
+            }
+            updateTransform() {
+                const offset = this.centerAnchor ? " - 50%" : "";
+                // Instant so per-pointer-event positioning isn't deferred a frame behind by the
+                // rAF-batched style queue.
+                gradum(this).setStyle("transform", `translate3d(
+            calc(${this.translation.x}px${offset}),
+            calc(${this.translation.y}px${offset}),
+            0) rotate(${this.rotation}rad)`, true);
+            }
+            /** @description Add the given delta to the current translation. */
+            translateBy(delta) {
+                this.translation = this.translation.add(delta);
+            }
+            /** @description Add the given angle (radians) to the current rotation. */
+            rotateBy(angle) {
+                this.rotation += angle;
+            }
+            /**
+             * @description Alias of {@link translation}, so code that positions elements through a
+             * `position` field (e.g. constrainer solvers) works on the wrapper as-is.
+             */
+            get position() {
+                return this.translation;
+            }
+            set position(value) {
+                if (!value)
+                    return;
+                this.translation = value instanceof Point ? value : new Point(value);
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers(this, _centerAnchor_extraInitializers);
+            }
+        };
+    })();
+    define(GradumMovable, "gradum-movable");
+
+    const utils$6 = new ElementFunctionsUtils();
+    /**
+     * @internal
+     * @function setupElementFunctions
+     * @description Install the element functions (`setProperties`, `clone`, `destroy`, `feedforward`, ...) onto the
+     * {@link GradumSelector} prototype. Called once by
+     * {@link gradumify}; the matching `exclude` option skips it.
+     */
+    function setupElementFunctions() {
+        /**
+         * @template Tag - The HTML tag of the element.
+         * @description Apply the given properties to the element.
+         * @param {GradumProperties<Tag>} [properties] - The properties object.
+         * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
+         * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        GradumSelector.prototype.setProperties = function _setProperties(properties = {}, setOnlyBaseProperties = false) {
+            if (!this.element)
+                return this;
+            const props = { ...properties };
+            const element = this.element instanceof Element ? this.element :
+                this.element["element"] instanceof Element ? this.element["element"] : undefined;
+            gradum(props, true).removeFields(["tag", "namespace"]);
+            const { out, shadowDOM, initialize, parent, model, data, dataId } = gradum(props, true).extract(["out", "shadowDOM", "initialize", "parent", "model", "data", "dataId"]);
+            let mvcUpdated = false;
+            if (out) {
+                if (typeof out == "string")
+                    this["__outName"] = out;
+                else
+                    Object.assign(out, this);
+            }
+            if (!!shadowDOM) {
+                if ("shadowDOM" in this.element)
+                    this["shadowDOM"] = shadowDOM;
+                else if (element)
+                    element.attachShadow({ mode: "open" });
+            }
+            if (!element || (element && !setOnlyBaseProperties)) {
+                if (model) {
+                    this.model = model;
+                    if (data && this.model) {
+                        this.model.setDataWithoutInitializing(data);
+                        //Only assign when an id was actually supplied. Assigning unconditionally writes
+                        //`undefined` into the model's id, which on a model whose `id` is a @modelSignal lands
+                        //in the data itself and wipes the id that came in with `data`.
+                        if (!isUndefined(dataId))
+                            this.model.id = dataId;
+                    }
+                    mvcUpdated = true;
+                }
+                const mvc = gradum(props, true).extract(MvcFields);
+                for (const [key, value] of Object.entries(mvc)) {
+                    try {
+                        this[key] = value;
+                        mvcUpdated = true;
+                    }
+                    catch {
+                    }
+                }
+            }
+            if (element) {
+                const elementProps = gradum(props, true).extract(["text", "style",
+                    "stylesheet", "id", "classes", "listeners", "onClick", "onDrag", "children"]);
+                for (const [property, value] of Object.entries(elementProps)) {
+                    if (value === undefined)
+                        continue;
+                    switch (property) {
+                        case "text":
+                            if (element instanceof HTMLElement)
+                                element.innerText = value;
+                            break;
+                        case "style":
+                            if (!(element instanceof HTMLElement || element instanceof SVGElement))
+                                break;
+                            gradum(element).setStyles(value, true);
+                            break;
+                        case "stylesheet":
+                            stylesheet(value, gradum(element).closestRoot);
+                            break;
+                        case "id":
+                            element.id = value;
+                            break;
+                        case "classes":
+                            gradum(element).addClass(value);
+                            break;
+                        case "listeners":
+                            Object.entries(value).forEach(([type, callback]) => gradum(element).on(type, callback));
+                            break;
+                        case "onClick":
+                            gradum(element).on(DefaultEventName.click, value);
+                            break;
+                        case "onDrag":
+                            gradum(element).on(DefaultEventName.drag, value);
+                            break;
+                        case "children":
+                            gradum(element).addChild(value);
+                            break;
+                    }
+                }
+            }
+            if (!element || !setOnlyBaseProperties) {
+                for (const [property, value] of Object.entries(props)) {
+                    if (value === undefined)
+                        continue;
+                    try {
+                        this.element[property] = value;
+                    }
+                    catch {
+                        if (element)
+                            try {
+                                element.setAttribute(property, stringify(value));
+                            }
+                            catch (e) {
+                                console.error(e);
+                            }
+                    }
+                }
+            }
+            if (parent)
+                gradum(element).addToParent(parent);
+            if (initialize === undefined || initialize) {
+                if ("initialize" in this.element && typeof this.element.initialize === "function")
+                    this.element.initialize();
+                else if (mvcUpdated)
+                    this.initializeMvc();
+            }
+            return this;
+        };
+        GradumSelector.prototype.getFields = function _getFields() {
+            if (!this.element)
+                return {};
+            const chain = getPrototypeChain(this.element);
+            const seen = new Set();
+            const result = {};
+            const builtinPrototypes = new Set([
+                GradumElement.prototype, GradumBaseElement.prototype, GradumProxiedElement.prototype,
+                GradumHeadlessElement.prototype, Element.prototype, HTMLElement.prototype, Node.prototype,
+                SVGElement.prototype, MathMLElement.prototype, EventTarget.prototype, Object.prototype
+            ]);
+            for (const proto of [this.element, ...chain].reverse()) {
+                if (builtinPrototypes.has(proto)) {
+                    for (const key of Object.getOwnPropertyNames(proto))
+                        seen.add(key);
+                    continue;
+                }
+                for (const key of Object.getOwnPropertyNames(proto)) {
+                    if (seen.has(key) || key.startsWith("_"))
+                        continue;
+                    const desc = Object.getOwnPropertyDescriptor(proto, key);
+                    if (!desc || typeof desc.value === "function" || (desc.get && !desc.set))
+                        continue;
+                    seen.add(key);
+                    result[key] = this.element[key];
+                }
+            }
+            return result;
+        };
+        GradumSelector.prototype.clone = function _clone(options = {}) {
+            const originElement = this.element instanceof Node ? this.element : undefined;
+            if (!originElement)
+                return;
+            const exclude = new Set(options.exclude ?? []);
+            const force = new Set(options.forceInclude ?? []);
+            const deepClone = new Set(options.deepClone ?? []);
+            const copyReference = new Set(options.copyReference ?? []);
+            const shouldCopy = (key, value, prototype) => {
+                if (force.has(key))
+                    return true;
+                if (exclude.has(key) || key === "mvc" || key === "__proto__" || key === "prototype")
+                    return false;
+                if (typeof value === "function" || value instanceof Delegate)
+                    return false;
+                if (key === "model" || key === "view" || key === "emitter" || key === "operators"
+                    || key === "handlers" || key === "interactors" || key === "tools" || key === "constrainers")
+                    return false;
+                const desc = Object.getOwnPropertyDescriptor(prototype, key);
+                if (!desc)
+                    return false;
+                if (desc.get && !desc.set)
+                    return false;
+                if (desc.writable === false)
+                    return false;
+                return true;
+            };
+            const copyField = (key, value) => {
+                if (value === null || value === undefined || typeof value !== "object")
+                    return value;
+                if (copyReference.has(key))
+                    return value;
+                if (value instanceof Node) {
+                    if (deepClone.has(key) || options.deepCloneNodes) {
+                        try {
+                            return gradum(value).clone(options);
+                        }
+                        catch {
+                            return undefined;
+                        }
+                    }
+                    return options.copyNodes ? value : undefined;
+                }
+                if (options.deepCloneObjects || deepClone.has(key)) {
+                    try {
+                        return structuredClone(value);
+                    }
+                    catch { /* fall through to reference */ }
+                }
+                return value;
+            };
+            const constructor = originElement.constructor;
+            const prototypeChain = getPrototypeChain(originElement);
+            const properties = {};
+            if (originElement["model"] && originElement["data"] != null) {
+                const rawData = originElement["data"];
+                let clonedData = rawData;
+                if (options.snapshotData || options.deepCloneObjects) {
+                    // Y.js types: deep-copy into a fresh detached Y.Doc. The clone's model machinery
+                    // (observers, nested models, views) then works unchanged on real Y types, and
+                    // nothing syncs since the doc has no provider. A plain-object (toJSON) snapshot
+                    // renders degraded previews — observers never populate from plain data.
+                    if (options.snapshotData && rawData instanceof yjs.AbstractType
+                        && typeof rawData.clone === "function") {
+                        try {
+                            const yClone = rawData.clone();
+                            // Y types must be inside a document before they can be read.
+                            new yjs.Doc().getMap("__gradum_snapshot__").set("data", yClone);
+                            clonedData = yClone;
+                        }
+                        catch { }
+                    }
+                    // Fallbacks: toJSON (plain detached object), then structuredClone. Only under
+                    // snapshotData — deepCloneObjects keeps its documented fallback to reference
+                    // sharing for non-structured-cloneable data.
+                    if (clonedData === rawData && options.snapshotData && typeof rawData.toJSON === "function")
+                        try {
+                            clonedData = rawData.toJSON();
+                        }
+                        catch { }
+                    if (clonedData === rawData)
+                        try {
+                            clonedData = structuredClone(rawData);
+                        }
+                        catch { }
+                }
+                properties.data = clonedData;
+            }
+            try {
+                Object.assign(properties, gradum(originElement).getMvcDifference());
+            }
+            catch { }
+            let clone;
+            if (typeof constructor.create === "function") {
+                try {
+                    clone = constructor.create(properties);
+                }
+                catch { }
+            }
+            if (!clone) {
+                if (originElement instanceof Element) {
+                    clone = gradum(document.createElement(originElement.tagName)).setProperties(properties).element;
+                }
+                else {
+                    try {
+                        clone = originElement.cloneNode(false);
+                    }
+                    catch { }
+                }
+            }
+            if (!clone)
+                return;
+            if (originElement instanceof Element && clone instanceof Element) {
+                for (const attr of Array.from(originElement.attributes)) {
+                    if (exclude.has(attr.name))
+                        continue;
+                    try {
+                        clone.setAttribute(attr.name, attr.value);
+                    }
+                    catch { }
+                }
+            }
+            const keys = new Map();
+            const addKeys = (prototype) => {
+                for (const property of Object.getOwnPropertyNames(prototype))
+                    if (!keys.has(property))
+                        keys.set(property, prototype);
+                for (const property of Object.getOwnPropertySymbols(prototype))
+                    if (!keys.has(property))
+                        keys.set(property, prototype);
+            };
+            const mathMLProto = typeof MathMLElement !== "undefined" ? MathMLElement.prototype : null;
+            addKeys(originElement);
+            for (const prototype of prototypeChain) {
+                if (equalToAny(prototype, GradumElement.prototype, GradumBaseElement.prototype, GradumProxiedElement.prototype, GradumHeadlessElement.prototype, Element.prototype, Node.prototype, HTMLElement.prototype, SVGElement.prototype, mathMLProto, EventTarget.prototype, Object.prototype))
+                    break;
+                addKeys(prototype);
+            }
+            for (const [key, prototype] of keys.entries()) {
+                const value = originElement[key];
+                if (!shouldCopy(key, value, prototype))
+                    continue;
+                const newValue = copyField(key, value);
+                if (newValue !== undefined)
+                    try {
+                        clone[key] = newValue;
+                    }
+                    catch { }
+            }
+            return clone;
+        };
+        /**
+         * @description Destroys the node by removing it from the document and removing all its bound listeners.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        GradumSelector.prototype.destroy = function _destroy() {
+            this.removeAllListeners();
+            this.remove();
+            if (this.element && "destroy" in this.element && typeof this.element.destroy === "function")
+                this.element.destroy();
+            return this;
+        };
+        /**
+         * @description Sets the value of an attribute on the underlying element.
+         * @param {string} name The name of the attribute.
+         * @param {string | number | boolean} [value] The value of the attribute. Can be left blank to represent a
+         * true boolean.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        GradumSelector.prototype.setAttribute = function _setAttribute(name, value) {
+            if (this.element instanceof Element)
+                this.element.setAttribute(name, value?.toString() || "true");
+            return this;
+        };
+        /**
+         * @description Removes an attribute from the underlying element.
+         * @param {string} name The name of the attribute to remove.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        GradumSelector.prototype.removeAttribute = function _removeAttribute(name) {
+            if (this.element instanceof Element)
+                this.element.removeAttribute(name);
+            return this;
+        };
+        /**
+         * @description Causes the element to lose focus.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        GradumSelector.prototype.blur = function _blur() {
+            if (this.element instanceof HTMLElement)
+                this.element.blur();
+            return this;
+        };
+        /**
+         * @description Sets focus on the element.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        GradumSelector.prototype.focus = function _focus() {
+            if (this.element instanceof HTMLElement)
+                this.element.focus();
+            return this;
+        };
+        const FEEDFORWARD_STYLE_ID = "gradum-feedforward-styles";
+        const wrapFeedforwardClone = (clone) => {
+            // Stylesheet !important beats the inline styles the clone's view keeps writing
+            // (its snapshot model still renders the original position). Injected once.
+            // position: static keeps absolutely-positioned clones (cards, nodes) in the wrapper's
+            // flow — otherwise they collapse the wrapper to 0x0 and break centerAnchor centering.
+            if (!document.getElementById(FEEDFORWARD_STYLE_ID)) {
+                const sheet = document.createElement("style");
+                sheet.id = FEEDFORWARD_STYLE_ID;
+                sheet.textContent = ".gradum-feedforward-wrapper > .gradum-feedforward-clone " +
+                    "{transform: none !important; position: static !important;}";
+                document.head.appendChild(sheet);
+            }
+            if (clone instanceof Element)
+                clone.classList.add("gradum-feedforward-clone");
+            const wrapper = GradumMovable.create({ content: clone instanceof Element ? clone : undefined });
+            wrapper.classList.add("gradum-feedforward-wrapper");
+            Object.defineProperty(wrapper, "feedforwardClone", { value: clone, configurable: true });
+            return wrapper;
+        };
+        GradumSelector.prototype.feedforward = function _feedforward(properties = {}) {
+            if (properties.removeOnPointerRelease === undefined)
+                properties.removeOnPointerRelease = true;
+            if (!this.element)
+                return;
+            const type = properties?.type ?? "___DEFAULT___";
+            const feedforwardElements = utils$6.data(this.element).feedforwardElements;
+            if (!feedforwardElements)
+                return;
+            let saved = feedforwardElements.get(type);
+            if (!saved) {
+                // Feedforwards are visual previews — snapshot the data so MVC/synced elements
+                // don't produce a live twin writing through the shared (e.g. Y.js) model.
+                const cloneOptions = { snapshotData: true, ...properties?.cloneOptions };
+                if (typeof this.element["clone"] === "function")
+                    saved = this.element["clone"](cloneOptions);
+                else
+                    saved = this.clone(cloneOptions);
+                // Positioning wrapper: callers move/rotate the preview through pure CSS
+                // transforms on the wrapper, never through the clone's semantic fields.
+                if (properties.wrap && saved)
+                    saved = wrapFeedforwardClone(saved);
+                // Register cleanup once per clone, not once per feedforward() call.
+                if (properties.removeOnPointerRelease && saved) {
+                    const savedClone = saved;
+                    gradum(document.body).on(DefaultEventName.clickEnd, () => {
+                        if (typeof savedClone["remove"] === "function")
+                            savedClone["remove"]();
+                        if (feedforwardElements.get(type) === savedClone)
+                            feedforwardElements.delete(type);
+                    }, { capture: true, once: true });
+                }
+            }
+            // feedforward() is called in hot paths (per pointer event). Re-applying an unchanged
+            // parent re-appends the whole subtree each call — custom-element disconnect/reconnect
+            // churn and forced reflows. Strip parent when the element is already inside it.
+            const stripUnchangedParent = (props) => {
+                if (!props?.parent || !(saved instanceof Node))
+                    return props;
+                const parentNode = props.parent instanceof GradumSelector ? props.parent.element : props.parent;
+                if (saved.parentNode === parentNode)
+                    return { ...props, parent: undefined };
+                return props;
+            };
+            gradum(saved).setProperties(stripUnchangedParent(this.defaultFeedforwardProperties ?? {}))
+                .setProperties(stripUnchangedParent({
+                ...properties,
+                cloneOptions: undefined,
+                type: undefined,
+                removeOnPointerRelease: undefined,
+                wrap: undefined
+            }));
+            feedforwardElements.set(type, saved);
+            return saved;
+        };
+        Object.defineProperty(GradumSelector.prototype, "defaultFeedforwardProperties", {
+            get: function () {
+                if ("defaultFeedforwardProperties" in this.element)
+                    return this.element.defaultFeedforwardProperties;
+                return utils$6.data(this.element).defaultFeedforwardProperties;
+            },
+            set: function (value) {
+                if ("defaultFeedforwardProperties" in this.element)
+                    this.element.defaultFeedforwardProperties = value;
+                utils$6.data(this.element).defaultFeedforwardProperties = value;
+            },
+            configurable: true,
+            enumerable: true
+        });
+    }
 
     /**
      * @class Listener
@@ -12232,6 +10873,13 @@ var Gradum = (function (exports, yjs) {
                 }, undefined, options.manager);
             }
             utils$3.saveTool(this, toolName, options.manager);
+            if (options.activeClasses) {
+                const target = options.activeClassesTarget ?? document.body;
+                utils$3.getActivationDelegate(this, toolName, options.manager)
+                    .add(() => gradum(target).addClass(options.activeClasses));
+                utils$3.getDeactivationDelegate(this, toolName, options.manager)
+                    .add(() => gradum(target).removeClass(options.activeClasses));
+            }
             if (options.onActivate)
                 utils$3.getActivationDelegate(this, toolName, options.manager).add(options.onActivate);
             if (options.onDeactivate)
@@ -21464,6 +20112,25 @@ var Gradum = (function (exports, yjs) {
          */
         key;
         /**
+         * @description CSS class or classes marking that this tool is the active one, added when it is activated and
+         * removed when it is not. A tool changes what interacting means, and the page usually has to show it —
+         * a different cursor, text that no longer takes a caret — which is a matter for CSS rather than for the
+         * tool itself.
+         * @example
+         * ```ts
+         * class EraserTool extends GradumTool {
+         *   public toolName = "eraser";
+         *   public activeClasses = "erasing";  //body.erasing in the stylesheet
+         * }
+         * ```
+         */
+        activeClasses;
+        /**
+         * @description What carries {@link GradumTool.activeClasses}. Defaults to `document.body`, so a
+         * stylesheet can reach anything on the page from it.
+         */
+        activeClassesTarget;
+        /**
          * @constructor
          * @description Create a tool bound to an element. Anything omitted from `properties` falls back to the
          * value already declared on the instance, then to a default — the event manager to
@@ -21489,6 +20156,10 @@ var Gradum = (function (exports, yjs) {
                 this.customActivation = properties.customActivation;
             if (properties.key)
                 this.key = properties.key;
+            if (properties.activeClasses)
+                this.activeClasses = properties.activeClasses;
+            if (properties.activeClassesTarget)
+                this.activeClassesTarget = properties.activeClassesTarget;
             this.manager = properties.manager ?? this.manager ?? GradumEventManager.instance;
             this.setup();
         }
@@ -21507,6 +20178,8 @@ var Gradum = (function (exports, yjs) {
                     clickMode: this.clickMode,
                     customActivation: typeof this.customActivation === "function" ? this.customActivation.bind(this) : undefined,
                     key: this.key,
+                    activeClasses: this.activeClasses,
+                    activeClassesTarget: this.activeClassesTarget,
                     manager: this.manager,
                 });
             if (this.embeddedTarget)
@@ -21568,6 +20241,9 @@ var Gradum = (function (exports, yjs) {
             this.setupUIElements();
             this.setupUILayout();
             this.setupUIListeners();
+            //Attached here rather than inside `setupUIListeners` so that a view overriding that method cannot
+            //drop its own declared listeners by forgetting to call `super`.
+            attachListenersAndBehaviors(this);
             this.setupChangedCallbacks();
         }
         /**
@@ -21598,7 +20274,6 @@ var Gradum = (function (exports, yjs) {
          * @protected
          */
         setupUIListeners() {
-            attachListenersAndBehaviors(this);
         }
     }
     addRegistryCategory(GradumView);

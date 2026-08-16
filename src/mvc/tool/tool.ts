@@ -73,6 +73,27 @@ class GradumTool<
     public readonly key: string;
 
     /**
+     * @description CSS class or classes marking that this tool is the active one, added when it is activated and
+     * removed when it is not. A tool changes what interacting means, and the page usually has to show it —
+     * a different cursor, text that no longer takes a caret — which is a matter for CSS rather than for the
+     * tool itself.
+     * @example
+     * ```ts
+     * class EraserTool extends GradumTool {
+     *   public toolName = "eraser";
+     *   public activeClasses = "erasing";  //body.erasing in the stylesheet
+     * }
+     * ```
+     */
+    public activeClasses: string | string[];
+
+    /**
+     * @description What carries {@link GradumTool.activeClasses}. Defaults to `document.body`, so a
+     * stylesheet can reach anything on the page from it.
+     */
+    public activeClassesTarget: Element;
+
+    /**
      * @constructor
      * @description Create a tool bound to an element. Anything omitted from `properties` falls back to the
      * value already declared on the instance, then to a default — the event manager to
@@ -92,6 +113,8 @@ class GradumTool<
         if (properties.clickMode) this.clickMode = properties.clickMode;
         if (properties.customActivation) this.customActivation = properties.customActivation;
         if (properties.key) this.key = properties.key;
+        if (properties.activeClasses) this.activeClasses = properties.activeClasses;
+        if (properties.activeClassesTarget) this.activeClassesTarget = properties.activeClassesTarget;
         this.manager = properties.manager ?? this.manager ?? GradumEventManager.instance;
         this.setup();
     }
@@ -110,6 +133,8 @@ class GradumTool<
             clickMode: this.clickMode,
             customActivation: typeof this.customActivation === "function" ? this.customActivation.bind(this) : undefined,
             key: this.key,
+            activeClasses: this.activeClasses,
+            activeClassesTarget: this.activeClassesTarget,
             manager: this.manager,
         });
 

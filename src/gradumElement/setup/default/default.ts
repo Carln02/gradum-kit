@@ -1,5 +1,6 @@
 import {gradum} from "../../../gradumFunctions/gradumFunctions";
 import {initializeEffects} from "../../../decorators/reactivity/reactivity";
+import {attachListenersAndBehaviors} from "../../../decorators/listener/listener";
 import {CloneElementOptions, FeedforwardProperties} from "../../../gradumFunctions/element/element.types";
 
 /**
@@ -37,6 +38,7 @@ export function defineDefaultProperties<Type extends new (...args: any[]) => any
             this.setupUIElements?.();
             this.setupUILayout?.();
             this.setupUIListeners?.();
+            attachListenersAndBehaviors(this);
             this.setupFields?.();
             this.setupChangedCallbacks?.();
             gradum(this).initializeMvc();

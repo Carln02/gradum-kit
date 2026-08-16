@@ -34,6 +34,29 @@ describe("GradumEventManager: tools & locks", () => {
         expect(mgr.getCurrentToolName(ClickMode.left)).toBe("eraser");
     });
 
+    it("activates tools registered on a manager other than the shared one", () => {
+        //The activation delegates are kept per manager, so a manager has to look them up under itself. A
+        //page with its own manager would otherwise register activation callbacks that never run.
+        GradumEventManager.create();
+        const own = GradumEventManager.create();
+
+        const toolEl = div({parent: document.body});
+        $(toolEl).makeTool("stamp", {manager: own});
+
+        const onAct = vi.fn();
+        const onDeact = vi.fn();
+        $(toolEl).onToolActivate("stamp", own).add(onAct);
+        $(toolEl).onToolDeactivate("stamp", own).add(onDeact);
+
+        own.setTool(toolEl, ClickMode.left, {select: true, activate: true});
+        expect(onAct).toHaveBeenCalledTimes(1);
+
+        const other = div({parent: document.body});
+        $(other).makeTool("plain", {manager: own});
+        own.setTool(other, ClickMode.left, {select: true, activate: true});
+        expect(onDeact).toHaveBeenCalledTimes(1);
+    });
+
     it("key mapping: setToolByKey picks the mapped tool; key release clears key mode", () => {
         const mgr = GradumEventManager.create();
         const toolEl = div({parent: document.body});

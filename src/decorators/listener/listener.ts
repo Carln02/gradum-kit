@@ -15,7 +15,12 @@ const utils = new ListenerUtils();
  * @category Listeners
  *
  * @description Method decorator that registers the decorated method as an event listener, to be attached later
- * via {@link attachListenersAndBehaviors}.
+ * via {@link attachListenersAndBehaviors}. Usable on elements (`GradumElement`, `GradumHeadlessElement`,
+ * `GradumProxiedElement`), views, operators, and interactors: each attaches what it declares when it
+ * initializes.
+ *
+ * What the listener binds to, unless `properties.target` names it: the instance itself when it is a node, and
+ * otherwise its `element`. A headless element is neither, so it has to name its target.
  * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
  * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
  * to derive the event name from {@link DefaultEventName}.
@@ -24,6 +29,12 @@ const utils = new ListenerUtils();
  * class MyElement {
  *   @listener() click(e: Event) { ... }
  *   //Equivalent to: gradum(this).on(DefaultEventName.click, (e: Event) => { ... });
+ * }
+ * ```
+ * @example ```ts
+ * class MyHeadlessElement {
+ *   @listener({target: document}) gradumClick(e: GradumEvent) { ... }
+ *   //Nothing of its own to listen on, so it says where to listen.
  * }
  * ```
  */
@@ -96,7 +107,10 @@ function behavior(properties: Partial<Omit<ListenerProperties, "callback" | "opt
  *
  * @description Attach all previously-decorated listeners and behaviors recorded on the given `context`. It attempts to
  * resolve defaults from the latter, such as the `target`, `toolName`, `options`, and `manager`. This method is called
- * automatically in the GradumElement lifecycle.
+ * automatically when an element, view, or operator initializes, so declaring a listener is all that is needed.
+ *
+ * A declaration with no target to bind to is skipped: `@listener` on something that is neither a node nor holds
+ * one does nothing until it names a `target`.
  * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
  */
 function attachListenersAndBehaviors(context: any) {

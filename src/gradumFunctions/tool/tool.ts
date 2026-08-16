@@ -6,6 +6,7 @@ import {MakeToolOptions, ToolBehaviorCallback, ToolBehaviorOptions} from "./tool
 import {ToolFunctionsUtils} from "./tool.utils";
 import {DefaultEventName} from "../../types/eventNaming.types";
 import {Propagation} from "../event/event.types";
+import {gradum} from "../gradumFunctions";
 
 const utils = new ToolFunctionsUtils();
 
@@ -43,6 +44,14 @@ export function setupToolFunctions() {
             }, undefined, options.manager);
         }
         utils.saveTool(this, toolName, options.manager);
+
+        if (options.activeClasses) {
+            const target = options.activeClassesTarget ?? document.body;
+            utils.getActivationDelegate(this, toolName, options.manager)
+                .add(() => gradum(target).addClass(options.activeClasses));
+            utils.getDeactivationDelegate(this, toolName, options.manager)
+                .add(() => gradum(target).removeClass(options.activeClasses));
+        }
 
         if (options.onActivate) utils.getActivationDelegate(this, toolName, options.manager).add(options.onActivate);
         if (options.onDeactivate) utils.getDeactivationDelegate(this, toolName, options.manager).add(options.onDeactivate);

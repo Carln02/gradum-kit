@@ -29,7 +29,7 @@ type GradumToolProperties<
     EmitterType extends GradumEmitter = GradumEmitter
 > = GradumOperatorProperties<ElementType, ViewType, ModelType, EmitterType> & MakeToolOptions & {
     toolName?: string,
-    embeddedTarget?: Node
+    embeddedTarget?: Node,
 };
 
 declare module "./tool" {

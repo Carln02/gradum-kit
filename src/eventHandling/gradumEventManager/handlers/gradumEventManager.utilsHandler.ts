@@ -2,6 +2,7 @@ import {GradumEventManagerModel} from "../gradumEventManager.model";
 import {ClickMode} from "../gradumEventManager.types";
 import {$} from "../../../gradumFunctions/gradumFunctions";
 import {GradumHandler} from "../../../mvc/handler/handler";
+import {GradumEventManager} from "../gradumEventManager";
 import {DefaultEventName} from "../../../types/eventNaming.types";
 
 /**
@@ -57,8 +58,8 @@ export class GradumEventManagerUtilsHandler extends GradumHandler<GradumEventMan
         this.model.timerMap.delete(timerName);
     }
 
-    public activateTool(element: Node, toolName: string, value: boolean) {
-        if (value) $(element).onToolActivate(toolName).fire();
-        else $(element).onToolDeactivate(toolName).fire();
+    public activateTool(element: Node, toolName: string, value: boolean, manager?: GradumEventManager) {
+        if (value) $(element).onToolActivate(toolName, manager).fire();
+        else $(element).onToolDeactivate(toolName, manager).fire();
     }
 }

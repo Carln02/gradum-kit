@@ -1,7 +1,6 @@
 import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
 import {GradumEventManager} from "../../eventHandling/gradumEventManager/gradumEventManager";
 import {ClickMode} from "../../eventHandling/gradumEventManager/gradumEventManager.types";
-import {Gradum} from "../gradumFunctions.types";
 import {DefaultEventNameEntry} from "../../types/eventNaming.types";
 import {Propagation} from "../event/event.types";
 
@@ -19,17 +18,23 @@ import {Propagation} from "../event/event.types";
  * @property {(element: Gradum<Element>, manager: GradumEventManager) => void} [customActivation] - Custom activation
  * function. If provided, is called with `(el, manager)` to define when the tool is activated.
  * @property {string} [key] - Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
+ * @property {string | string[]} [activeClasses] - Class or classes marking that this tool is active.
+ * @property {Element} [activeClassesTarget] - What carries the active classes. Defaults to `document.body`.
  * @property {GradumEventManager} [manager] - The event manager instance this tool should register against. Defaults
  * to `GradumEventManager.instance`.
  */
 type MakeToolOptions<ElementType extends object = object> = {
+    clickMode?: ClickMode,
+    key?: string,
+
     onActivate?: () => void,
     onDeactivate?: () => void,
-
     activationEvent?: DefaultEventNameEntry,
-    clickMode?: ClickMode,
     customActivation?: (element: ElementType, manager?: GradumEventManager) => void,
-    key?: string,
+
+    activeClasses?: string | string[],
+    activeClassesTarget?: Element
+
     manager?: GradumEventManager
 };
 

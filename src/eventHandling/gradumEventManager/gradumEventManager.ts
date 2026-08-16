@@ -562,7 +562,7 @@ class GradumEventManager<ToolType extends string = string> extends GradumBaseEle
             //Deselect and deactivate previous tool
             this.getSimilarTools(previousTool).forEach(element => {
                 if (options.select) gradum(element).selected = false;
-                if (options.activate) this.model.utils.activateTool(element, this.getToolName(previousTool), false);
+                if (options.activate) this.model.utils.activateTool(element, this.getToolName(previousTool), false, this);
             });
         }
 
@@ -572,7 +572,7 @@ class GradumEventManager<ToolType extends string = string> extends GradumBaseEle
 
         //Select and activate the tool
         this.getSimilarTools(tool).forEach(element => {
-            if (options.activate) this.model.utils.activateTool(element, this.getToolName(tool), true);
+            if (options.activate) this.model.utils.activateTool(element, this.getToolName(tool), true, this);
             if (options.select) gradum(element).selected = true;
         });
 

@@ -63,6 +63,9 @@ class GradumView<
         this.setupUIElements();
         this.setupUILayout();
         this.setupUIListeners();
+        //Attached here rather than inside `setupUIListeners` so that a view overriding that method cannot
+        //drop its own declared listeners by forgetting to call `super`.
+        attachListenersAndBehaviors(this);
         this.setupChangedCallbacks();
     }
 
@@ -97,7 +100,6 @@ class GradumView<
      * @protected
      */
     protected setupUIListeners(): void {
-        attachListenersAndBehaviors(this);
     }
 }
 
