@@ -2,16 +2,9 @@ import {GradumTool, GradumDragEvent, Propagation, behavior, gradum, GradumEvent}
 
 export class DeleteTool extends GradumTool {
     public toolName = "delete"; //Define the tool name
+    public activeClasses = "erasing"; //Marks the page while this tool is out
 
     public radius: number = 12;
-
-    public onActivate() {
-        gradum(document.body).addClass("erasing");
-    }
-
-    public onDeactivate() {
-        gradum(document.body).removeClass("erasing");
-    }
 
     @behavior() public click(e: GradumEvent, el: Node) {
         if (!gradum(el).metadata?.get("modifiable")) return Propagation.propagate;

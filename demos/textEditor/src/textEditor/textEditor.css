@@ -33,7 +33,44 @@ body.deleting demo-text-editor ::selection {
     background: transparent;
 }
 
+/* A stroke that turns or stretches the text works on what is already selected, so the browser must not
+   start selecting something else underneath it. */
+body.rotating demo-text-editor .tiptap,
+body.resizing demo-text-editor .tiptap {
+    caret-color: transparent;
+    user-select: none;
+}
+
+body.rotating demo-text-editor .tiptap {
+    cursor: grab;
+}
+
+body.resizing demo-text-editor .tiptap {
+    cursor: ew-resize;
+}
+
 demo-text-editor .tiptap [data-erasing] {
     color: var(--muted);
     text-decoration: line-through;
+}
+
+/* What a stretch has added, held apart from the text until the drag lets go of it. */
+demo-text-editor .tiptap [data-growing] {
+    color: var(--muted);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+}
+
+/* The passage each tool has hold of. A colour per tool, so it is plain which tool a passage belongs to and
+   what the next drag on it will do. */
+demo-text-editor .tiptap [data-selection] {
+    border-radius: 3px;
+}
+
+demo-text-editor .tiptap [data-selection="rotate"] {
+    background-color: #e6ddff;
+}
+
+demo-text-editor .tiptap [data-selection="resize"] {
+    background-color: #d3f5e3;
 }
