@@ -1,0 +1,12 @@
+demo-text-editor .tiptap [data-budget] {
+    border-bottom: 2px solid #f0b429;
+    background-color: #fdf3d8;
+}
+
+body.budgeting demo-text-editor .tiptap {
+    user-select: none;
+}
+
+body.budgeting demo-text-editor ::selection {
+    background: transparent;
+}

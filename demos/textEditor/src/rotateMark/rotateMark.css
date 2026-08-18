@@ -1,0 +1,14 @@
+demo-text-editor .tiptap [data-selection="rotating"] {
+    background-color: #e6ddff;
+    border-radius: 3px;
+}
+
+body.rotating demo-text-editor .tiptap {
+    cursor: grab;
+    caret-color: transparent;
+    user-select: none;
+}
+
+body.rotating demo-text-editor ::selection {
+    background: transparent;
+}

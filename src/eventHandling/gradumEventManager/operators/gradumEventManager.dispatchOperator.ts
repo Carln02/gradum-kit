@@ -83,13 +83,13 @@ export class GradumEventManagerDispatchOperator extends GradumOperator<GradumEve
         //deliberately excluded: hovering wants what is under the cursor, not what was grabbed.
         const sticky = event instanceof GradumDragEvent
             && event.eventName !== GradumMoveEventName.move
-            && this.model.lastOriginHits;
+            && this.model.lastOriginHits?.size > 0;
 
         for (let i = 0; i < path.length; i++) {
             const entry = path[i];
             const resolver = entry instanceof Node ? gradum(entry).hitResolver : undefined;
             const resolved = !resolver ? []
-                : sticky && entry === this.model.lastTargetOrigin ? this.model.lastOriginHits
+                : sticky && this.model.lastOriginHits.has(entry as Node) ? this.model.lastOriginHits.get(entry as Node)
                     : resolver(position, event) ?? [];
 
             if (resolved.length === 0) {

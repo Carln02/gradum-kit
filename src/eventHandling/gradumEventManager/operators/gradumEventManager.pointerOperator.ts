@@ -99,7 +99,7 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
         // Clear cached target origin, and the hit targets grabbed with it, if not dragging
         if (this.model.currentAction !== ActionMode.drag) {
             this.model.lastTargetOrigin = null;
-            this.model.lastOriginHits = null;
+            this.model.lastOriginHits = undefined;
         }
 
         //Fire touch scroll/pinch events (2-finger only)
@@ -261,6 +261,13 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
         });
     }
 
+    /**
+     * @description One step up the DOM from a node, crossing out of a shadow root by its host.
+     */
+    private parentOf(node: Node): Node {
+        return node.parentElement ?? (node instanceof ShadowRoot ? node.host : undefined);
+    }
+
     private getFireOrigin(positions?: GradumMap<number, Point>, reload: boolean = false): Node {
         if (!this.model.lastTargetOrigin || reload) {
             const origin = this.model.origins.first ? this.model.origins.first : positions.first;
@@ -268,9 +275,15 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
             //Resolved here, with the origin, rather than per event: a drag has to keep reaching the object it
             //grabbed, not whatever the pointer has since moved over. Stays a Node itself, because the
             //dispatch operator calls the native dispatchEvent on it.
-            this.model.lastOriginHits = this.model.lastTargetOrigin
-                ? gradum(this.model.lastTargetOrigin).hitResolver?.(origin, undefined) ?? null
-                : null;
+            //
+            //Asked of every resolver from the origin upwards, because the node a drag starts on is not
+            //always the one that knows what is under it — a canvas is its own deepest node, but an editor
+            //has elements of its own in between.
+            this.model.lastOriginHits = new Map();
+            for (let node = this.model.lastTargetOrigin; node; node = this.parentOf(node)) {
+                const resolver = gradum(node).hitResolver;
+                if (resolver) this.model.lastOriginHits.set(node, resolver(origin, undefined) ?? []);
+            }
         }
         return this.model.lastTargetOrigin;
     }

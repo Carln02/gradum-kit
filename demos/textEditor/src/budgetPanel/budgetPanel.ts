@@ -2,15 +2,12 @@ import {
     define, div, effect, GradumElement, gradum, input, Point, signal, span
 } from "../../../../build/gradum-kit.esm";
 import "./budgetPanel.css";
-import {Delegate} from "../../../../build/gradum-kit.esm";
 
 export class BudgetPanel extends GradumElement {
     @signal public words: number = 0;
     @signal public max: number;
 
     @signal public position: Point;
-
-    public readonly onMaxChanged: Delegate<(max: number) => void> = new Delegate();
 
     protected count: HTMLElement;
     protected limit: HTMLInputElement;
@@ -31,7 +28,7 @@ export class BudgetPanel extends GradumElement {
 
     protected setupUIListeners() {
         super.setupUIListeners();
-        this.limit.addEventListener("change", () => this.onMaxChanged.fire(Number(this.limit.value)));
+        this.limit.addEventListener("change", () => this.max = Number(this.limit.value));
     }
 
     @effect private updateCount() {

@@ -1,0 +1,6 @@
+/* What a stretch has added, held apart from the text until the drag lets go of it. */
+demo-text-editor .tiptap [data-growing] {
+    color: var(--muted);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+}

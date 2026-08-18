@@ -6078,6 +6078,9 @@ let GradumEventManagerModel = (() => {
          * alongside {@link lastTargetOrigin} and reused for the rest of the drag, so grabbing a shape on a canvas
          * keeps sending it the drag even once the pointer has moved off it — the same way pointer capture keeps a
          * drag with the element it started on.
+         *
+         * Kept per resolving element, since the node a drag starts on is not always the one that reported what
+         * is under it: a resolver can sit on an ancestor, with ordinary elements of its own in between.
          */
         lastOriginHits;
         //Single timer instance --> easily cancel it and set it again
@@ -7120,7 +7123,7 @@ class GradumEventManagerPointerOperator extends GradumOperator {
         // Clear cached target origin, and the hit targets grabbed with it, if not dragging
         if (this.model.currentAction !== ActionMode.drag) {
             this.model.lastTargetOrigin = null;
-            this.model.lastOriginHits = null;
+            this.model.lastOriginHits = undefined;
         }
         //Fire touch scroll/pinch events (2-finger only)
         if (isTouch && this.element.wheelEventsEnabled) {
@@ -7265,6 +7268,12 @@ class GradumEventManagerPointerOperator extends GradumOperator {
             eventName: eventName
         });
     }
+    /**
+     * @description One step up the DOM from a node, crossing out of a shadow root by its host.
+     */
+    parentOf(node) {
+        return node.parentElement ?? (node instanceof ShadowRoot ? node.host : undefined);
+    }
     getFireOrigin(positions, reload = false) {
         if (!this.model.lastTargetOrigin || reload) {
             const origin = this.model.origins.first ? this.model.origins.first : positions.first;
@@ -7272,9 +7281,16 @@ class GradumEventManagerPointerOperator extends GradumOperator {
             //Resolved here, with the origin, rather than per event: a drag has to keep reaching the object it
             //grabbed, not whatever the pointer has since moved over. Stays a Node itself, because the
             //dispatch operator calls the native dispatchEvent on it.
-            this.model.lastOriginHits = this.model.lastTargetOrigin
-                ? gradum(this.model.lastTargetOrigin).hitResolver?.(origin, undefined) ?? null
-                : null;
+            //
+            //Asked of every resolver from the origin upwards, because the node a drag starts on is not
+            //always the one that knows what is under it — a canvas is its own deepest node, but an editor
+            //has elements of its own in between.
+            this.model.lastOriginHits = new Map();
+            for (let node = this.model.lastTargetOrigin; node; node = this.parentOf(node)) {
+                const resolver = gradum(node).hitResolver;
+                if (resolver)
+                    this.model.lastOriginHits.set(node, resolver(origin, undefined) ?? []);
+            }
         }
         return this.model.lastTargetOrigin;
     }
@@ -7385,12 +7401,12 @@ class GradumEventManagerDispatchOperator extends GradumOperator {
         //deliberately excluded: hovering wants what is under the cursor, not what was grabbed.
         const sticky = event instanceof GradumDragEvent
             && event.eventName !== GradumMoveEventName.move
-            && this.model.lastOriginHits;
+            && this.model.lastOriginHits?.size > 0;
         for (let i = 0; i < path.length; i++) {
             const entry = path[i];
             const resolver = entry instanceof Node ? gradum(entry).hitResolver : undefined;
             const resolved = !resolver ? []
-                : sticky && entry === this.model.lastTargetOrigin ? this.model.lastOriginHits
+                : sticky && this.model.lastOriginHits.has(entry) ? this.model.lastOriginHits.get(entry)
                     : resolver(position, event) ?? [];
             if (resolved.length === 0) {
                 expanded?.push(entry);

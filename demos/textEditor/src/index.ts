@@ -13,9 +13,9 @@ Toolbar.create({
     parent: document.body,
     entries: [
         GradumButton.create({leftIcon: "cursor", tools: TextTool, classes: "demo-button"}),
-        GradumButton.create({leftIcon: "trash", tools: DeleteTool, classes: "demo-button"}),
         GradumButton.create({leftIcon: "rotate", tools: RotateTool, classes: "demo-button"}),
         GradumButton.create({leftIcon: "resize", tools: ResizeTool, classes: "demo-button"}),
+        GradumButton.create({leftIcon: "trash", tools: DeleteTool, classes: "demo-button"}),
         spacer({classes: "divider"}),
         GradumButton.create({text: "Word Budget", tools: BudgetTool, classes: "demo-button"}),
     ]

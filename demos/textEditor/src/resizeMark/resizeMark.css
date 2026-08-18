@@ -1,0 +1,14 @@
+demo-text-editor .tiptap [data-selection="resizing"] {
+    background-color: #d3f5e3;
+    border-radius: 3px;
+}
+
+body.resizing demo-text-editor .tiptap {
+    cursor: ew-resize;
+    caret-color: transparent;
+    user-select: none;
+}
+
+body.resizing demo-text-editor ::selection {
+    background: transparent;
+}

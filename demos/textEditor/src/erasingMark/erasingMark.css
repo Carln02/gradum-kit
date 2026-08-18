@@ -1,0 +1,14 @@
+demo-text-editor .tiptap [data-erasing] {
+    color: var(--muted);
+    text-decoration: line-through;
+}
+
+body.deleting demo-text-editor .tiptap {
+    caret-color: transparent;
+    cursor: cell;
+    user-select: none;
+}
+
+body.deleting demo-text-editor ::selection {
+    background: transparent;
+}

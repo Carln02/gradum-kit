@@ -5402,8 +5402,11 @@ declare class GradumEventManagerModel extends GradumModel {
      * alongside {@link lastTargetOrigin} and reused for the rest of the drag, so grabbing a shape on a canvas
      * keeps sending it the drag even once the pointer has moved off it — the same way pointer capture keeps a
      * drag with the element it started on.
+     *
+     * Kept per resolving element, since the node a drag starts on is not always the one that reported what
+     * is under it: a resolver can sit on an ancestor, with ordinary elements of its own in between.
      */
-    lastOriginHits: object[];
+    lastOriginHits: Map<Node, object[]>;
     readonly timerMap: GradumMap<string, NodeJS.Timeout>;
     readonly tools: Map<string, GradumWeakSet<Node>>;
     readonly mappedKeysToTool: Map<string, string>;
@@ -5638,6 +5641,10 @@ declare class GradumEventManagerPointerOperator extends GradumOperator<GradumEve
      * same path emit drag start, drag, and drag end.
      */
     private fireDrag;
+    /**
+     * @description One step up the DOM from a node, crossing out of a shadow root by its host.
+     */
+    private parentOf;
     private getFireOrigin;
 }
 
