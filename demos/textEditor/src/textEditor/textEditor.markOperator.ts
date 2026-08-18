@@ -3,6 +3,7 @@ import {TextEditor} from "./textEditor";
 import {EditorView} from "@tiptap/pm/view";
 import {EditorState} from "@tiptap/pm/state";
 import {TextRange} from "./textEditor.types";
+import {Node} from "@tiptap/pm/model";
 
 export class TextEditorMarkOperator extends GradumOperator<TextEditor> {
     /**
@@ -28,7 +29,7 @@ export class TextEditorMarkOperator extends GradumOperator<TextEditor> {
 
         const transaction = this.editorState.tr;
         this.editorView.dispatch(transaction
-            .addMark(range.from, range.to, mark.create())
+            .addMark(range.from, range.to, mark.create(range.attributes))
             .setMeta("addToHistory", addToHistory));
     }
 
@@ -42,7 +43,7 @@ export class TextEditorMarkOperator extends GradumOperator<TextEditor> {
         const transaction = this.editorState.tr;
         this.editorView.dispatch(transaction
             .removeMark(0, transaction.doc.content.size, mark)
-            .addMark(range.from, range.to, mark.create())
+            .addMark(range.from, range.to, mark.create(range.attributes))
             .setMeta("addToHistory", addToHistory));
     }
 
@@ -71,15 +72,30 @@ export class TextEditorMarkOperator extends GradumOperator<TextEditor> {
     /**
      * @description Every span currently carrying a mark, in document order.
      */
-    public marked(markName: string): TextRange[] {
+    public marked(markName: string, doc: Node = this.editorState.doc): TextRange[] {
         const mark = this.editorState.schema.marks[markName];
         if (!mark) return [];
 
         const ranges: TextRange[] = [];
-        this.editorState.doc.descendants((node, pos) => {
-            if (node.isText && mark.isInSet(node.marks)) ranges.push({from: pos, to: pos + node.nodeSize});
+        doc.descendants((node, pos) => {
+            const found = node.isText && mark.isInSet(node.marks);
+            if (!found) return;
+
+            const range = {markName, from: pos, to: pos + node.nodeSize, attributes: found.attrs};
+            //Marks split wherever the text does — at a bold word, say — so runs that touch and carry the
+            //same attributes are one span as far as anyone outside is concerned.
+            const previous = ranges[ranges.length - 1];
+            if (previous?.to === range.from && this.sameAttributes(previous, range)) previous.to = range.to;
+            else ranges.push(range);
         });
         return ranges;
+    }
+
+    /**
+     * @description Whether two ranges carry a mark with the same attributes.
+     */
+    public sameAttributes(one: TextRange, other: TextRange): boolean {
+        return JSON.stringify(one.attributes ?? {}) === JSON.stringify(other.attributes ?? {});
     }
 
     /**

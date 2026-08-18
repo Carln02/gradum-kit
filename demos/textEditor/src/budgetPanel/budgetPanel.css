@@ -1,0 +1,51 @@
+demo-budget-panel {
+    position: absolute;
+    display: none;
+    align-items: center;
+    gap: 4px;
+
+    padding: 4px 8px;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) - 4px);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 8%);
+
+    font-size: 13px;
+    line-height: 1;
+    color: var(--text);
+    z-index: 20;
+}
+
+demo-budget-panel.shown {
+    display: flex;
+}
+
+demo-budget-panel .budget-count {
+    font-variant-numeric: tabular-nums;
+}
+
+demo-budget-panel .budget-count.over {
+    color: #c2410c;
+}
+
+demo-budget-panel .budget-separator {
+    color: var(--muted);
+}
+
+demo-budget-panel .budget-max {
+    width: 44px;
+    padding: 2px 4px;
+
+    font: inherit;
+    color: inherit;
+    text-align: center;
+
+    background-color: transparent;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+}
+
+demo-budget-panel .budget-max:focus {
+    outline: none;
+    border-color: var(--active);
+}

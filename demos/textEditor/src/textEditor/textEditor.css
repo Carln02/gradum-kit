@@ -76,3 +76,10 @@ demo-text-editor .tiptap [data-selection="rotating"] {
 demo-text-editor .tiptap [data-selection="resizing"] {
     background-color: #d3f5e3;
 }
+
+/* A passage held to a ceiling: underlined rather than filled, since a budget outlasts the drag that set it
+   and should not shout over the text it measures. */
+demo-text-editor .tiptap [data-budget] {
+    border-bottom: 2px solid #f0b429;
+    background-color: #fdf3d8;
+}

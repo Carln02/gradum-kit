@@ -3,15 +3,19 @@ import StarterKit from "@tiptap/starter-kit";
 import {Erasing} from "../marks/erasing";
 import {Growing} from "../marks/growing";
 import {ResizeSelection, RotateSelection, Selection} from "../marks/selection";
+import {Budget} from "../marks/budget";
 import {
-    define, GradumElement, GradumEvent, GradumEventManager, GradumEventName, gradum, listener, Point, operator
+    constrainer, define, GradumElement, GradumEvent, GradumEventManager, GradumEventName, gradum, listener,
+    Point, operator
 } from "../../../../build/gradum-kit.esm";
 import "./textEditor.css";
 import {EditorView} from "@tiptap/pm/view";
-import {EditorState} from "@tiptap/pm/state";
 import {TextEditorMarkOperator} from "./textEditor.markOperator";
 import {TextEditorStrokeOperator} from "./textEditor.strokeOperator";
 import {TextEditorModel} from "./textEditor.model";
+import {TextEditorBudgetConstrainer} from "./textEditor.budgetConstrainer";
+import {BudgetPanel} from "../budgetPanel/budgetPanel";
+import {TextRange} from "./textEditor.types";
 
 const CONTENT = `
     <h2>Lorem ipsum</h2>
@@ -29,11 +33,18 @@ const CONTENT = `
 export class TextEditor extends GradumElement<any, any, TextEditorModel> {
     public static defaultProperties = {
         model: TextEditorModel,
-        operators: [TextEditorMarkOperator, TextEditorStrokeOperator]
+        operators: [TextEditorMarkOperator, TextEditorStrokeOperator],
+        constrainers: TextEditorBudgetConstrainer
     };
+
+    //How much room a passage is given over what it already holds, when a budget is first set on it.
+    public headroom: number = 20;
+
+    protected budgetPanel: BudgetPanel;
 
     public editor: Editor;
 
+    @constrainer() budgetConstrainer: TextEditorBudgetConstrainer;
     @operator() markOperator: TextEditorMarkOperator;
     @operator() strokeOperator: TextEditorStrokeOperator;
 
@@ -60,9 +71,40 @@ export class TextEditor extends GradumElement<any, any, TextEditorModel> {
         super.setupUIElements();
         this.editor = new Editor({
             element: this,
-            extensions: [StarterKit, Erasing, Growing, ResizeSelection, RotateSelection],
             content: CONTENT,
+            extensions: [
+                StarterKit, Erasing, Growing, ResizeSelection, RotateSelection,
+                Budget.configure({allows: transaction => this.budgetConstrainer?.allows(transaction) ?? true})
+            ],
         });
+
+        //The mark travels with the text on its own, but the position remembering which passage the panel is
+        //about does not: text added above it pushes it along, and it has to be carried with it.
+        this.editor.on("transaction", ({transaction}) => {
+            if (!transaction.docChanged) return;
+
+            //Where the change left off. Read from the transaction rather than from the caret, so that it is
+            //right whoever made the change — a tool's stroke has no caret to speak of.
+            this.model.lastEditAt = this.budgetConstrainer.editEnd(transaction) ?? this.model.lastEditAt;
+
+            if (this.model.budgetAnchor !== undefined)
+                this.model.budgetAnchor = transaction.mapping.map(this.model.budgetAnchor);
+        });
+
+        //A change to the text is announced as an event of its own, because ProseMirror's changes are the one
+        //kind the toolkit cannot see: nothing about typing passes through it. Announcing is all the editor
+        //does — which constrainers that leaves to put right is their business, not its.
+        //
+        //Held off while a stroke is live: the stroke keeps its own account of how long the passage is, and
+        //cutting the text from under it mid-drag would leave the two disagreeing. It bites on release.
+        this.editor.on("update", () => {
+            if (this.model.currentStroke) return;
+            gradum(this).executeAction("text-changed", undefined, new CustomEvent("text-changed"));
+            this.showBudget();
+        });
+
+        this.budgetPanel = BudgetPanel.create({parent: document.body});
+        this.budgetPanel.onMaxChanged.add(max => this.setBudgetMax(max));
     }
 
     /**
@@ -70,13 +112,6 @@ export class TextEditor extends GradumElement<any, any, TextEditorModel> {
      */
     public get editorView(): EditorView {
         return this.editor.view;
-    }
-
-    /**
-     * @description The document as it stands, with its schema.
-     */
-    public get editorState(): EditorState {
-        return this.editor.view.state;
     }
 
     public destroy(): this {
@@ -125,8 +160,9 @@ export class TextEditor extends GradumElement<any, any, TextEditorModel> {
     }
 
     public endRotate() {
-        this.strokeOperator.commitStroke();
+        const stroke = this.model.currentStroke;
         this.model.clearData();
+        this.strokeOperator.commitStroke(stroke);
     }
 
     /*
@@ -150,8 +186,92 @@ export class TextEditor extends GradumElement<any, any, TextEditorModel> {
     }
 
     public endResize() {
-        this.strokeOperator.commitStroke();
+        const stroke = this.model.currentStroke;
         this.model.clearData();
+        this.strokeOperator.commitStroke(stroke);
+    }
+
+    /*
+     *
+     * BUDGET
+     *
+     */
+
+    public startBudget(position: Point) {
+        this.strokeOperator.startStroke(position);
+    }
+
+    public budgetAt(position: Point) {
+        this.strokeOperator.continueStroke(position, Budget.name);
+    }
+
+    /**
+     * @description Settle a freshly drawn passage: it is given room for what it holds, plus some to grow
+     * into, and its panel comes up beside it.
+     */
+    public endBudget() {
+        const passage = this.markOperator.marked(Budget.name)
+            .find(range => this.markOperator.pointInMark(this.model.textAnchor, range));
+        if (!passage) return this.showBudget();
+
+        //Only a passage that has just been drawn has no ceiling yet; one drawn over an old one keeps its.
+        if (passage.attributes?.max == null) {
+            this.markOperator.mark(Budget.name, {
+                ...passage,
+                attributes: {max: this.budgetConstrainer.wordCount(passage) + this.headroom}
+            });
+        }
+
+        this.model.budgetAnchor = passage.from;
+        this.showBudget();
+    }
+
+    /**
+     * @description Bring up the panel for the budgeted passage under a point, if there is one.
+     */
+    public focusBudget(position: Point) {
+        const at = this.positionAt(position);
+        const passage = this.markOperator.marked(Budget.name)
+            .find(range => this.markOperator.pointInMark(at, range));
+
+        this.model.budgetAnchor = passage?.from;
+        this.showBudget();
+    }
+
+    /**
+     * @description Give the passage in hand a new ceiling. The constrainer takes it from there.
+     */
+    public setBudgetMax(max: number) {
+        const passage = this.budgetedPassage();
+        if (!passage) return;
+
+        this.markOperator.mark(Budget.name, {...passage, attributes: {max}});
+    }
+
+    /**
+     * @description Show the panel beside the passage in hand, and take it away when there is none left —
+     * the text it was about can be erased like any other.
+     * @protected
+     */
+    protected showBudget() {
+        const passage = this.budgetedPassage();
+        if (!passage) return this.budgetPanel?.hide();
+
+        //Beside the passage rather than over it: out in the margin, level with where it starts.
+        const start = this.editorView.coordsAtPos(passage.from);
+        const edge = this.getBoundingClientRect();
+        this.budgetPanel.show(this.budgetConstrainer.wordCount(passage), passage.attributes?.max,
+            new Point(edge.right + 12, start.top));
+    }
+
+    /**
+     * @description The budgeted passage the panel is about, found again by where it starts.
+     * @protected
+     */
+    protected budgetedPassage(): TextRange {
+        if (this.model.budgetAnchor === undefined) return undefined;
+        return this.markOperator.marked(Budget.name)
+            .find(range => this.markOperator.pointInMark(this.model.budgetAnchor, range));
     }
 
     /*
