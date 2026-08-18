@@ -44,11 +44,16 @@ export class Canvas extends GradumElement implements Substrate {
 
     public addObject(obj: CanvasObject) {
         this.objectsList.add(obj);
+
+        //Where it now lives, and where a hit on it goes next. Said outright rather than left to the first
+        //hit to work out, so an object can find its way off the canvas without having been clicked first.
+        gradum(obj).hitParent = this;
         this.startRendering();
     }
 
     public removeObject(obj: CanvasObject) {
         this.objectsList.delete(obj);
+        gradum(obj).hitParent = undefined;
         this.startRendering()
     }
 

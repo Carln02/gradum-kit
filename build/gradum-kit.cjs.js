@@ -1,3 +1,1379 @@
+/**
+ * @typedef {Object} AutoOptions
+ * @group Decorators
+ * @category Augmentation
+ *
+ * @template Type - The type of the decorated property.
+ * @description Options for configuring the `@auto` decorator.
+ * @property {boolean} [override] - If true, will try to override the defined property in `super`.
+ * @property {boolean} [cancelIfUnchanged=true] - If true, cancels the setter if the new value is the same as the
+ * current value. Defaults to `true`.
+ * @property {(value: Type) => Type} [preprocessValue] - Optional callback to execute on the value and preprocess it
+ * just before it is set. The returned value will be stored.
+ * @property {(value: Type) => void} [callBefore] - Optional function to call before preprocessing and setting the value.
+ * @property {(value: Type) => void} [callAfter] - Optional function to call after setting the value.
+ * @property {boolean} [setIfUndefined] - If true, will fire the setter when the underlying value is `undefined` and
+ * the program is trying to access it (maybe through its getter).
+ * @property {boolean} [returnDefinedGetterValue] - If true and a custom getter is defined, the return value of this
+ * getter will be returned when accessing the property. Otherwise, the underlying saved value will always be returned.
+ * Defaults to `false`.
+ * @property {boolean} [executeSetterBeforeStoring] - If true, when setting the value, the setter will execute first,
+ * and then the value will be stored. In this case, accessing the value in the setter will return the previous value.
+ * Defaults to `false`.
+ * @property {Type} [defaultValue] - If defined, whenever the underlying value is `undefined` and trying to be
+ * accessed, it will be set to `defaultValue` through the setter before getting accessed.
+ * @property {() => Type} [defaultValueCallback] - If defined, whenever the underlying value is `undefined` and
+ * trying to be accessed, it will be set to the return value of `defaultValueCallback` through the setter before
+ * getting accessed.
+ * @property {Type} [initialValue] - If defined, on initialization, the property will be set to `initialValue`.
+ * @property {() => Type} [initialValueCallback] - If defined, on initialization, the property will be set to the
+ * return value of `initialValueCallback`.
+ */
+
+/**
+ * @typedef {Object} CacheOptions
+ * @group Decorators
+ * @category Cache
+ *
+ * @description Options for configuring the `@cache` decorator.
+ *
+ * Defines when and how cached values should expire, refresh, or invalidate.
+ * These options apply equally to cached **methods**, **getters**, and **accessors**.
+ * @property {number} [timeout]
+ *  Duration in milliseconds after which the cached value automatically expires.
+ *  Useful for time-based caching where values should refresh periodically.
+ * @property {string | string[]} [onEvent]
+ *  One or more event names (space-separated string or array) that, when fired on the instance,
+ *  immediately clear the cache.
+ *  This allows integration with custom event systems or reactive models.
+ * @property {() => boolean | Promise<boolean>} [onCallback]
+ *  Function (sync or async) periodically called to decide whether to invalidate the cache.
+ *  If it returns `true`, the cache is cleared.
+ * @property {number} [onCallbackFrequency]
+ *  Frequency in milliseconds at which `onCallback` should be executed.
+ *  Ignored if `onCallback` is not provided.
+ * @property {string | Function | (string | Function)[]} [onFieldChange]
+ *  One or more property names or methods to watch for changes.
+ *  Whenever any of these fields or functions change, the cache for the decorated member is cleared.
+ *  Can be a string, a function reference, or an array of both.
+ * @property {boolean} [clearOnNextFrame]
+ *  If `true`, clears the cache automatically on the **next animation frame** (or equivalent microtask fallback).
+ *  Useful when the cached value is only valid for the current render/update cycle.
+ */
+
+/**
+ * @typedef {Object} KeyType
+ * @group Core Types
+ * @category Primitives
+ *
+ * @description Any value usable as an object key. Key paths throughout the MVC layer — model data,
+ * observers, {@link GradumNestedMap} — are arrays of these.
+ */
+
+/**
+ * @typedef {Object} FlatKeyType
+ * @group Core Types
+ * @category Primitives
+ *
+ * @description A whole key path collapsed into one value, so a nested entry can be addressed without an
+ * array. Fully numeric paths flatten to a number; anything else to a `"k0|k1|k2"` string.
+ */
+
+/**
+ * @typedef {Object} FlexRect
+ * @group Core Types
+ * @category Primitives
+ *
+ * @description A rectangle where every field is optional, for describing only the edges you care about.
+ * Sides and dimensions may be mixed, and any that are omitted are left to the caller to infer.
+ * @property {number} [top] - Distance from the top edge.
+ * @property {number} [bottom] - Distance from the bottom edge.
+ * @property {number} [left] - Distance from the left edge.
+ * @property {number} [right] - Distance from the right edge.
+ * @property {number} [x] - Horizontal origin.
+ * @property {number} [y] - Vertical origin.
+ * @property {number} [width] - Width of the rectangle.
+ * @property {number} [height] - Height of the rectangle.
+ */
+
+/**
+ * @typedef {Object} Coordinate
+ * @group Core Types
+ * @category Primitives
+ *
+ * @template Type - The type of each component. Defaults to `number`.
+ * @description A pair of values on the x and y axes. Generic so the same shape can carry something other
+ * than numbers, such as a coordinate per axis expressed as a range.
+ * @property {Type} x - The horizontal component.
+ * @property {Type} y - The vertical component.
+ */
+
+/**
+ * @typedef {Object} PartialRecord
+ * @group Core Types
+ * @category Primitives
+ *
+ * @template {keyof any} Property - The union of allowed keys.
+ * @template Value - The type stored at each key.
+ * @description A `Record` whose every key is optional. Use it to accept any subset of a known set of keys.
+ */
+
+/**
+ * @typedef {Object} GradumModelProxy
+ * @group MVC
+ * @category Model
+ *
+ * @template {object} DataType - The type of the wrapped data.
+ * @template {KeyType} IdType - The type of the data's ID.
+ * @description Plain data that reads and writes through a {@link GradumModel}, as returned by
+ * {@link GradumModel.from}. Use the keys of the data directly; reach the backing model through `$model`.
+ * @property {GradumModel} $model - The model backing this data.
+ */
+
+/**
+ * @typedef {Object} GradumModelProperties
+ * @group MVC
+ * @category Model
+ *
+ * @template DataType - The type of data stored in the model.
+ * @template IdType - The type of the data's ID.
+ * @description Configuration object used when creating a {@link GradumModel}.
+ * @property {IdType} [id] - Optional ID attached to the model. Useful to reference the data in a nested structure.
+ * @property {DataType} [data] - Initial data.
+ * @property {boolean} [initialize] - If true, {@link GradumModel.initialize} is called immediately after
+ * construction.
+ */
+
+/**
+ * @typedef {Object} GradumObserverProperties
+ * @group MVC
+ * @category Model
+ *
+ * @template DataType - The type of data handled by the observer.
+ * @template {object} ComponentType - The instance type created and managed by the observer.
+ * @template {KeyType} DataKeyType - The per-item key type.
+ * @description Options and lifecycle callbacks used to create a new {@link GradumObserver}.
+ * *Note: `self` is the second argument of `onAdded` but the third of `onUpdated` and `onDeleted`, which take
+ * the existing instance in second place.*
+ * @property {new (...args: any[]) => GradumObserver<DataType, ComponentType, DataKeyType>} [customConstructor] -
+ * Observer subclass to instantiate instead of the default {@link GradumObserver}.
+ * @property {number} [depth] - How many levels below the attached path to watch. Defaults to the depth
+ * implied by the key path the observer is registered on.
+ * @property {boolean} [initialize] - If `true`, the observer is initialized on creation, so it immediately
+ * reports every entry already present.
+ * @property {(data: DataType, self: GradumObserver, ...keys: KeyType[]) => ComponentType | void} [onAdded] -
+ * Called when a change is reported at a key path with no instance yet. Return an instance to have it stored
+ * and handed back to later callbacks.
+ * @property {(data: DataType, instance: ComponentType, self: GradumObserver, ...keys: KeyType[]) => void} [onUpdated] -
+ * Called when an entry that already has an instance changes.
+ * @property {(data: DataType, instance: ComponentType, self: GradumObserver, ...keys: KeyType[]) => void} [onDeleted] -
+ * Called when an entry is removed.
+ * @property {(prevData: DataType, newData: DataType, instance: ComponentType, self: GradumObserver, ...keys: KeyType[]) => boolean} [replaceOnUpdate] -
+ * Called before `onUpdated`. Return `true` to destroy the existing instance and create a fresh one through
+ * `onAdded` instead of updating it in place.
+ * @property {(self: GradumObserver) => void} [onInitialize] - Called when the observer is initialized.
+ * @property {(self: GradumObserver) => void} [onDestroy] - Called when the observer is destroyed.
+ */
+
+/**
+ * @typedef {Object} SignalEntry
+ * @group Decorators
+ * @category Signal
+ *
+ * @template Type - The type of the value held by the signal.
+ * @description The read/write/subscribe surface shared by every signal. {@link SignalBox} adds
+ * the ergonomic wrappers on top of this.
+ * @property {() => Type} get - Read the current value.
+ * @property {(value: Type) => void} set - Store a new value. Subscribers run only if the value actually changed.
+ * @property {(updater: (previous: Type) => Type) => void} update - Store a new value derived from the previous one.
+ * @property {(fn: SignalSubscriber) => () => void} sub - Subscribe to change notifications. Returns a function that
+ * unsubscribes.
+ * @property {() => void} emit - Notify subscribers without changing the value. Use it after mutating structural
+ * data in place, which `set` cannot detect.
+ *
+ * @example
+ * ```ts
+ * const count: SignalEntry<number> = signal(0);
+ * const unsub = count.sub(() => console.log("count:", count.get()));
+ * count.set(1); // logs "count: 1"
+ * count.update(c => c + 1); // logs "count: 2"
+ * unsub();
+ * ```
+ */
+
+/**
+ * @typedef {Object} SignalBox
+ * @group Decorators
+ * @category Signal
+ *
+ * @template Type - The type of the value held by the signal.
+ * @description A {@link SignalEntry} that can also be used directly as its underlying value. It
+ * coerces to the inner value in string, number, and JSON contexts, so it can usually be dropped in
+ * wherever the raw value was expected.
+ * @property {Type} value - The current value. Mirrors `get()` and `set()`.
+ * @property {() => Type} toJSON - The raw value, used by `JSON.stringify`.
+ * @property {() => Type} valueOf - The raw value, used in arithmetic and comparison.
+ * @property {(hint: "default" | "number" | "string") => string | number} [Symbol.toPrimitive] - Coerces to a number
+ * for the `"number"` hint, and to a string for `"string"` and `"default"`.
+ *
+ * @example
+ * ```ts
+ * const count: SignalBox<number> = signal(0);
+ *
+ * // Read
+ * console.log(count.get()); // 0
+ * console.log(count.value); // 0
+ * console.log(+count); // 0
+ *
+ * // Write
+ * count.set(5);
+ * count.value = 6;
+ * count.update(v => v + 1); // 7
+ *
+ * // JSON / string
+ * console.log(`${count}`); // "7"
+ * console.log(JSON.stringify(count)); // 7
+ *
+ * // Reactivity
+ * const unsub = count.sub(() => console.log("changed to", count.get()));
+ * count.set(8); // triggers subscriber
+ * unsub();
+ * ```
+ */
+
+/**
+ * @typedef {Object} GradumViewProperties
+ * @group MVC
+ * @category View
+ *
+ * @template {object} ElementType - The type of the element the view renders.
+ * @template {GradumModel} ModelType - The element's model type.
+ * @template {GradumEmitter} EmitterType - The element's emitter type.
+ * @description Properties used to construct a {@link GradumView}.
+ * @property {ElementType} element - The element this view renders into.
+ * @property {ModelType} [model] - The model the view reads from. Omit for a view with no state of its own.
+ * @property {EmitterType} [emitter] - The emitter shared with the element and its operators.
+ */
+
+/**
+ * @typedef {Object} GradumOperatorProperties
+ * @group MVC
+ * @category Operator
+ *
+ * @extends {GradumViewProperties}
+ * @template {object} ElementType - The type of the element.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description  Options used to create a new {@link GradumOperator} attached to an element.
+ * @property {ViewType} [view] - The MVC view.
+ */
+
+/**
+ * @typedef {Object} PreventDefaultOptions
+ * @group GradumSelector
+ * @category Events
+ *
+ * @description Options for {@link GradumSelector.preventDefault}, which prevents default browser behaviors for
+ * selected event types and can optionally stop propagation.
+ * @property {string[]} [types] - List of event types to affect. If omitted, defaults to {@link BasicInputEvents}.
+ * @property {"capture" | "bubble"} [phase] - Which phase to prevent. Defaults to `"bubble"`.
+ * @property {false | "stop" | "immediate"} [stop] - Whether to stop propagation when handling the event:
+ * - `false`: do not stop propagation,
+ * - `"stop"`: call `stopPropagation`,
+ * - `"immediate"`: call `stopImmediatePropagation`.
+ * @property {(type: string, e: Event) => boolean} [preventDefaultOn] - Predicate to decide (per event) whether to
+ * call `preventDefault`. Return `true` to prevent default for that event.
+ * @property {boolean} [clearPreviousListeners] - If true, clears previously installed prevent-default listeners
+ * before installing new ones.
+ * @property {GradumEventManager} [manager] - Event manager to use. Defaults to {@link GradumEventManager.instance}.
+ */
+
+/**
+ * @typedef {Object} ListenerProperties
+ * @group Components
+ * @category Data Structures
+ *
+ * @template {Node} TargetType - The type of the event target.
+ * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
+ * @description Configuration object used to construct a {@link Listener}.
+ * @property {string} type - Event type (e.g., `"click"`, `"pointermove"`).
+ * @property {CallbackType} callback - Listener callback.
+ * @property {TargetType} [target] - Target node.
+ * @property {string} [toolName] - Tool name to bind this listener to (if applicable).
+ * @property {ListenerOptions} [options] - Options controlling registration and execution behaviors.
+ * @property {GradumEventManager} [manager] - Event manager to use. Defaults to {@link GradumEventManager.instance}.
+ */
+
+/**
+ * @typedef {Object} MatchListenerProperties
+ * @group Components
+ * @category Data Structures
+ *
+ * @extends ListenerProperties
+ * @template {Node} TargetType - The type of the event target.
+ * @template {ListenerCallback<TargetType>} CallbackType - The type of the callback executed by this listener.
+ * @description A partial {@link ListenerProperties} used as a search pattern by {@link Listener.match}.
+ * Only the fields present are compared, so an empty pattern matches every listener.
+ * @property {string[]} [optionsToSkip] - Option keys to ignore when comparing `options`.
+ */
+
+/**
+ * @typedef {Object} ListenerOptions
+ * @group Components
+ * @category Data Structures
+ * @extends AddEventListenerOptions
+ * @description Options used for listeners.
+ * @property {boolean} [checkConstrainers] - If true, checks constrainers before execution. Defaults to true.
+ * @property {boolean} [solveConstrainers] - If true, triggers constrainer solving after execution. Defaults to true.
+ * @property {number} [throttleEveryFrames] - Throttle execution to at most once every N animation frames.
+ * @property {number} [throttleEveryMs] - Throttle execution to at most once every N milliseconds.
+ */
+
+/**
+ * @typedef {Object} GradumInteractorProperties
+ * @group MVC
+ * @category Interactor
+ *
+ * @extends {GradumOperatorProperties}
+ * @template {object} ElementType - The type of the element.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description  Options used to create a new {@link GradumInteractor} attached to an element.
+ * @property {string} [toolName] - The name of the tool (if any) that the event listeners will listen for.
+ * @property {Node} [target] - The target that will listen for the events. Defaults to `this.element`.
+ * @property {PartialRecord<DefaultEventNameKey, ListenerOptions>} [listenerOptions] - Custom default options to define
+ * for all listeners.
+ * @property {GradumEventManager} [manager] - The event manager instance the listeners should register against. Defaults
+ * to `GradumEventManager.instance`.
+ */
+
+/**
+ * @typedef {Object} MakeToolOptions
+ * @group GradumSelector
+ * @category Tools
+ *
+ * @description Options used to create a new tool attached to an element via {@link GradumSelector.makeTool}.
+ * @property {() => void} [onActivate] - Function to execute when the tool is activated.
+ * @property {() => void} [onDeactivate] - Function to execute when the tool is deactivated.
+ * @property {DefaultEventNameEntry} [activationEvent] - Custom activation event to listen to. Defaults to the
+ * default click event name.
+ * @property {ClickMode} [clickMode] -  Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
+ * @property {(element: Gradum<Element>, manager: GradumEventManager) => void} [customActivation] - Custom activation
+ * function. If provided, is called with `(el, manager)` to define when the tool is activated.
+ * @property {string} [key] - Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
+ * @property {string | string[]} [activeClasses] - Class or classes marking that this tool is active.
+ * @property {Element} [activeClassesTarget] - What carries the active classes. Defaults to `document.body`.
+ * @property {GradumEventManager} [manager] - The event manager instance this tool should register against. Defaults
+ * to `GradumEventManager.instance`.
+ */
+
+/**
+ * @typedef {Object} ToolBehaviorCallback
+ * @group GradumSelector
+ * @category Tools
+ *
+ * @description Function signature for a tool behavior. Returning `true` marks the behavior as handled/consumed,
+ * leading to stopping the propagation of the event.
+ * @param {Event} event - The original DOM/Gradum event.
+ * @param {Node} target - The node the behavior should operate on (the object or its embedded target).
+ * @param {ToolBehaviorOptions} [options] - Additional info (embedded context, etc.).
+ * @returns {boolean} Whether to stop the propagation.
+ */
+
+/**
+ * @typedef {Object} ToolBehaviorOptions
+ * @group GradumSelector
+ * @category Tools
+ *
+ * @description Options object passed to tool behaviors at execution time.
+ * @property {boolean} [isEmbedded] - Indicates if the tool is embedded in a target node.
+ * @property {Node} [embeddedTarget] - The target of the tool, if it is embedded.
+ */
+
+/**
+ * @typedef {Object} GradumToolProperties
+ * @group MVC
+ * @category Tool
+ *
+ * @extends GradumOperatorProperties
+ * @extends MakeToolOptions
+ *
+ * @template {object} ElementType - The type of the element.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description Options used to create a new {@link GradumTool} attached to an element.
+ * @property {string} [toolName] - The name of the tool.
+ * @property {Node} [embeddedTarget] - If the tool is embedded, its target.
+ */
+
+/**
+ * @typedef {Object} GradumConstrainerProperties
+ * @group MVC
+ * @category Constrainer
+ *
+ * @extends GradumOperatorProperties
+ * @extends MakeConstrainerOptions
+ *
+ * @template {object} ElementType - The type of the element.
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description Options used to create a new {@link GradumConstrainer} attached to an element.
+ * @property {string} [constrainerName] - The name of the constrainer.
+ */
+
+/**
+ * @typedef {Object} NodeListType
+ * @group Components
+ * @category Data Structures
+ *
+ * @template {object} EntryType - The type of the nodes held in the collection.
+ * @description Anything a {@link GradumNodeList} accepts as a source of entries: another list, a live DOM
+ * `HTMLCollection` or `NodeListOf`, a `Set`, or a plain array. Live DOM collections keep reflecting the
+ * document after being added, so the list stays in sync with them.
+ */
+
+/**
+ * @typedef {Object} NodeListSlot
+ * @group Components
+ * @category Data Structures
+ *
+ * @template {object} EntryType - The type of the nodes held in the collection.
+ * @description One slot of a {@link GradumNodeList}: either a single entry, or a whole sub-collection
+ * counted as one position. Unlike {@link NodeListType} it excludes `Set` and array, which are flattened
+ * into individual slots when added.
+ */
+
+/**
+ * @typedef {Object} SVGTagMap
+ * @group Core Types
+ * @category SVG Tags
+ *
+ * @description The SVG tag-to-element map, minus `style`. That one tag is excluded because it collides
+ * with the HTML `<style>` element of the same name, which would make the combined tag maps ambiguous.
+ */
+
+/**
+ * @typedef {Object} ElementTagDefinition
+ * @group Core Types
+ * @category Element Tags
+ * @description Represents an element's definition of its tag and its namespace (both optional).
+ * @property {string} [tag="div"] - The HTML tag of the element (e.g., "div", "span", "input"). Defaults to "div."
+ * @property {string} [namespace] - The namespace of the element. Defaults to HTML. If "svgManipulation" or "mathML"
+ * is provided, the corresponding namespace will be used to create the element. Otherwise, the custom namespace
+ * provided will be used.
+ */
+
+/**
+ * @typedef {Object} GradumElementTagNameMap
+ * @group Core Types
+ * @category Element Tags
+ *
+ * @description Maps custom element tag names to their classes. Empty by design — every component adds its
+ * own entry by augmenting this interface, which is what folds custom tags into {@link ElementTagMap} so
+ * they resolve to a concrete class. Augment it the same way to make your own elements type-aware.
+ *
+ * @example
+ * ```ts
+ * declare module "gradum-kit" {
+ *    interface GradumElementTagNameMap {
+ *       "my-widget": MyWidget;
+ *    }
+ * }
+ * ```
+ */
+
+/**
+ * @typedef {Object} GradumElementPropertiesMap
+ * @group Core Types
+ * @category Element Tags
+ *
+ * @description Maps custom element tag names to their properties types, the counterpart of
+ * {@link GradumElementTagNameMap}. Augment it alongside that one so the properties accepted when creating
+ * your element are resolved from its tag.
+ */
+
+/**
+ * @typedef {Object} CloneElementOptions
+ * @group GradumSelector
+ * @category Element
+ *
+ * @description Controls what {@link GradumSelector.clone} carries over to the copy. By default a clone gets
+ * the origin's own fields but shares object and node references; these options let you deepen or narrow
+ * that per field.
+ * @property {PropertyKey[]} [exclude] - Fields to leave off the clone entirely.
+ * @property {PropertyKey[]} [forceInclude] - Fields to copy even though they would normally be skipped.
+ * @property {PropertyKey[]} [deepClone] - Fields to deep-clone rather than copy by reference.
+ * @property {PropertyKey[]} [copyReference] - Fields to copy by reference even under a deep-clone setting.
+ * @property {boolean} [copyNodes] - Whether to copy fields holding DOM nodes.
+ * @property {boolean} [deepCloneObjects] - Whether to deep-clone every object-valued field.
+ * @property {boolean} [deepCloneNodes] - Whether to deep-clone every node-valued field.
+ * @property {boolean} [snapshotData] - Whether the clone's model gets a detached snapshot of the data
+ * instead of a live reference. See the note on the field.
+ */
+
+/**
+ * @typedef {Object} FeedforwardProperties
+ * @group GradumSelector
+ * @category Element
+ *
+ * @extends GradumElementProperties
+ * @description Controls the preview element {@link GradumSelector.feedforward} produces — everything
+ * {@link GradumElementProperties} accepts, plus how the preview is cloned, wrapped, and torn down. Used to
+ * show the user what an interaction is about to do before they commit to it.
+ * @property {boolean} [removeOnPointerRelease] - Whether the preview removes itself when the pointer is released.
+ * @property {string} [type] - A label identifying the kind of feedforward, for callers that show several.
+ * @property {CloneElementOptions} [cloneOptions] - How to clone the origin element into the preview.
+ * @property {boolean} [wrap] - Whether to wrap the clone in a positioning wrapper. See the note on the field.
+ */
+
+/**
+ * @typedef {Object} GradumProperties
+ * @group GradumSelector
+ * @category Element
+ *
+ * @template {ValidTag} Tag - The HTML (or other) tag of the element, if passing it as a property. Defaults to "div".
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {object} DataType - The element's data type, if any.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description Object containing properties for configuring an Element. A tag (and
+ * possibly a namespace) can be provided for element creation. Already-created elements will ignore these
+ * properties if set.
+ * Any HTML attribute can be passed as key to be processed by the class/function. The type has the following
+ * described custom properties:
+ * @property {string} [id] - The ID of the element.
+ * @property {string | string[]} [classes] - The CSS class(es) to apply to the element (either a string of
+ * space-separated classes or an array of class names).
+ * @property {string} [style] - The inline style of the element. Use the css literal function for autocompletion.
+ * @property {string} [stylesheet] - The associated stylesheet (if any) with the element. Declaring this property will
+ * generate automatically a new style element in the element's corresponding root. Use the css literal function
+ * for autocompletion.
+ * @property {Record<string, EventListenerOrEventListenerObject | ((e: Event, el: Element) => boolean)>} [listeners]
+ * - An object containing event listeners to be applied to this element.
+ * @property {(e: Event, el: Element) => boolean} [onClick] - Click event listener.
+ * @property {(e: Event, el: Element) => boolean} [onDrag] - Drag event listener.
+ * @property {Element | Element[]} [children] - An array of child wrappers or elements to append to
+ * the created element.
+ * @property {Element} [parent] - The parent element to which the created element will be appended.
+ * @property {string | Element} [out] - If defined, declares (or sets) the element in the parent as a field with the
+ * given value as key.
+ * @property {string} [text] - The text content of the element (if any).
+ * @property {boolean} [shadowDOM] - If true, indicate that the element will be created under a shadow root.
+ */
+
+/**
+ * @typedef {Object} GradumElementProperties
+ * @group MVC
+ * @category Element Classes
+ *
+ * @extends GradumProperties
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {object} DataType - The element's data type, if any.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description Object containing properties for configuring a custom HTML element. Is basically GradumProperties
+ * without the tag.
+ */
+
+/**
+ * @typedef {Object} MvcProperties
+ * @group MVC
+ * @category Configuration
+ *
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {GradumModel} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+ *
+ * @description The set of MVC pieces attached to an element. Pass one to `defaultProperties` or to
+ * {@link GradumSelector.setMvc} to declare which classes fill each role; read the assembled set back from
+ * {@link GradumSelector.mvc}. Every role is optional, and each accepts either a ready-made instance or a
+ * constructor to build one from.
+ * @property {MvcInstanceOrConstructor<ViewType, GradumViewProperties>} [view] - The view (or view constructor) to attach.
+ * @property {ModelType | (new (data?: any, dataBlocksType?: "map" | "array") => ModelType)} [model] - The model
+ * (or model constructor) to attach.
+ * @property {MvcInstanceOrConstructor<EmitterType, ModelType>} [emitter] - The emitter (or emitter constructor) to
+ * attach. If not defined, a default GradumEmitter will be created.
+ * @property {MvcManyInstancesOrConstructors<GradumOperator, GradumOperatorProperties>} [operators] - The
+ * operator, constructor of operator, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<GradumHandler, ModelType>} [handlers] - The
+ * handler, constructor of handler, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<GradumInteractor, GradumInteractorProperties>} [interactors] - The
+ * interactor, constructor of interactor, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<GradumTool, GradumToolProperties>} [tools] - The
+ * tool, constructor of tool, or array of the latter, to attach.
+ * @property {MvcManyInstancesOrConstructors<GradumConstrainer, GradumConstrainerProperties>} [constrainers] - The
+ * constrainer, constructor of constrainer, or array of the latter, to attach.
+ */
+
+/**
+ * @typedef {Object} MvcGenerationProperties
+ * @group MVC
+ * @category Configuration
+ *
+ * @extends MvcProperties
+ * @template {GradumView} ViewType - The element's view type, if any.
+ * @template {object} DataType - The element's data type, if any.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if any.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if any.
+ * @description Everything {@link MvcProperties} accepts, plus the data to seed the model with and whether
+ * to initialize. This is the shape {@link GradumSelector.setMvc} takes, so the pieces can be attached and
+ * brought up in one call.
+ * @property {DataType} [data] - The data to attach to the model.
+ * @property {boolean} [initialize] - Whether to initialize the MVC pieces after setting them or not. Defaults to true.
+ */
+
+/**
+ * @typedef {Object} GradumHeadlessProperties
+ * @group MVC
+ * @category Element Classes
+ *
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Object containing properties for configuring a headless (non-HTML) element, with possibly MVC properties.
+ */
+
+/**
+ * @typedef {Object} GradumEventManagerStateProperties
+ * @group Event Handling
+ * @category GradumEventManager
+ *
+ * @description Whether a {@link GradumEventManager} is running, and which native default actions it
+ * suppresses while it does.
+ * @property {boolean} [enabled=true] - Whether the manager processes input at all. Set it to `false` to
+ * silence every Gradum event without tearing the manager down.
+ * @property {boolean} [preventDefaultWheel=false] - Whether to call `preventDefault` on wheel input,
+ * suppressing native page zoom and scroll.
+ * @property {boolean} [preventDefaultMouse=false] - Whether to call `preventDefault` on mouse input.
+ * @property {boolean} [preventDefaultTouch=false] - Whether to call `preventDefault` on touch input,
+ * suppressing native scrolling and pinch-zoom.
+ */
+
+/**
+ * @typedef {Object} EnabledGradumEventTypes
+ * @group Event Handling
+ * @category GradumEventManager
+ *
+ * @description Which families of Gradum events a manager fires. The first four switch off input
+ * *sources*; the last three switch off *interpretations* the manager derives from them, so you can keep
+ * pointer input while dropping, say, drag events. All default to `true`.
+ * @property {boolean} [keyEventsEnabled=true] - Whether keyboard input produces {@link GradumKeyEvent}s.
+ * @property {boolean} [wheelEventsEnabled=true] - Whether wheel input produces {@link GradumWheelEvent}s.
+ * @property {boolean} [mouseEventsEnabled=true] - Whether mouse input is processed.
+ * @property {boolean} [touchEventsEnabled=true] - Whether touch input is processed.
+ * @property {boolean} [clickEventsEnabled=true] - Whether click, long-press, and click start/end events fire.
+ * @property {boolean} [dragEventsEnabled=true] - Whether drag and drag start/end events fire.
+ * @property {boolean} [moveEventsEnabled=true] - Whether move events fire.
+ */
+
+/**
+ * @typedef {Object} GradumEventManagerProperties
+ * @group Event Handling
+ * @category GradumEventManager
+ *
+ * @template {GradumEventManagerModel} ModelType - The manager's model type.
+ * @description Properties used to construct a {@link GradumEventManager}. Combines the MVC properties of
+ * a headless element with {@link GradumEventManagerStateProperties}, {@link EnabledGradumEventTypes}, and
+ * the thresholds below.
+ * @property {number} [moveThreshold=10] - How far, in pixels, a pointer must travel before the manager
+ * treats the interaction as a drag rather than a click.
+ * @property {number} [longPressDuration=500] - How long, in milliseconds, a pointer must be held still
+ * before a long press fires.
+ * @property {boolean | (() => boolean)} [authorizeEventScaling] - Whether fired events compute scaled
+ * positions. Pass a callback to decide per event.
+ * @property {(position: Point) => Point} [scaleEventPosition] - Converts a screen position into document
+ * space for every event this manager fires. Set it to make events aware of a panned or zoomed canvas.
+ */
+
+/**
+ * @typedef {Object} GradumEventManagerLockStateProperties
+ * @group Event Handling
+ * @category GradumEventManager
+ *
+ * @description A {@link GradumEventManagerStateProperties} override held for the duration of one
+ * interaction, together with the node that asked for it. Locking lets an element impose its own
+ * prevent-default and enabled settings mid-gesture, then hand them back.
+ * @property {Node} [lockOrigin] - The node that established the lock, and the only one that can lift it.
+ */
+
+/**
+ * @typedef {Object} SetToolOptions
+ * @group Event Handling
+ * @category GradumEventManager
+ *
+ * @description Options for {@link GradumEventManager.setTool}, controlling the side effects of making a
+ * tool current beyond the assignment itself.
+ * @property {boolean} [select=true] - Whether to visually select the tool on every toolbar showing it.
+ * @property {boolean} [activate=true] - Whether to fire the tool's activation callback.
+ * @property {boolean} [setAsNoAction] - Whether the tool also becomes the one used for
+ * `ClickMode.none`. Defaults to `true` when the click mode is `ClickMode.left`.
+ */
+
+/**
+ * @typedef {Object} GradumRawEventProperties
+ * @group Event Handling
+ * @category GradumEvents
+ *
+ * @description The fields every Gradum event is built from. The concrete property types
+ * ({@link GradumEventProperties}, {@link GradumDragEventProperties}, ...) extend this with whatever
+ * positional data their event carries.
+ * @property {ClickMode} [clickMode] - The pointer button or input mode the event belongs to. Defaults to
+ * the manager's current click mode.
+ * @property {InputDevice} [inputDevice] - The device that produced the event. Defaults to
+ * `InputDevice.unknown`.
+ * @property {string[]} [keys] - Keys held when the event fired. Defaults to the manager's current keys.
+ * @property {GradumEventNameEntry} [eventName] - The name the event is dispatched under.
+ * @property {GradumEventManager} [eventManager] - The manager firing the event. Defaults to
+ * {@link GradumEventManager.instance}.
+ * @property {string} [toolName] - The tool the event is attributed to, if any.
+ * @property {boolean | (() => boolean)} [authorizeScaling=true] - Whether scaled positions are computed.
+ * Pass a callback to decide per read.
+ * @property {(position: Point) => Point} [scalePosition] - Converts a screen position into document
+ * space. Defaults to returning the position unchanged.
+ * @property {EventInit} [eventInitDict] - Native event options, merged over the defaults of `bubbles`
+ * and `cancelable` set to `true`.
+ */
+
+/**
+ * @typedef {Object} GradumEventProperties
+ * @group Event Handling
+ * @category GradumEvents
+ *
+ * @description Properties used to construct a {@link GradumEvent}. Extends
+ * {@link GradumRawEventProperties} with the single point the event happened at.
+ * @property {Point} [position] - The screen position the event was fired from.
+ */
+
+/**
+ * @typedef {Object} GradumDragEventProperties
+ * @group Event Handling
+ * @category GradumEvents
+ *
+ * @description Properties used to construct a {@link GradumDragEvent}. Each map is keyed by pointer id,
+ * so a multi-touch drag carries one entry per finger.
+ * @property {GradumMap<number, Point>} [origins] - Where each pointer started its drag.
+ * @property {GradumMap<number, Point>} [previousPositions] - Where each pointer was on the previous event.
+ * @property {GradumMap<number, Point>} [positions] - Where each pointer is now. Its first entry becomes
+ * the event's `position`.
+ */
+
+/**
+ * @typedef {Object} GradumKeyEventProperties
+ * @group Event Handling
+ * @category GradumEvents
+ *
+ * @description Properties used to construct a {@link GradumKeyEvent}. Exactly one of the two keys is set,
+ * depending on whether the event is a press or a release.
+ * @property {string} [keyPressed] - The key that was pressed.
+ * @property {string} [keyReleased] - The key that was released.
+ */
+
+/**
+ * @typedef {Object} GradumWheelEventProperties
+ * @group Event Handling
+ * @category GradumEvents
+ *
+ * @description Properties used to construct a {@link GradumWheelEvent}.
+ * @property {Point} [delta] - How far the wheel or trackpad scrolled, per axis.
+ */
+
+/**
+ * @typedef {Object} MakeConstrainerOptions
+ * @group GradumSelector
+ * @category Constrainers
+ *
+ * @description Options for turning an object into a constrainer with
+ * {@link GradumSelector.makeConstrainer}.
+ * @property {() => void} [onActivate] - Callback function to execute when the constrainer is activated.
+ * @property {() => void} [onDeactivate] - Callback function to execute when the constrainer is deactivated.
+ * @property {number} [priority] - The priority of the constrainer. Higher priority constrainers (lower number) should
+ * be resolved first. Defaults to 10.
+ * @property {boolean} [active] - Whether the constrainer is active. Defaults to true.
+ * @property {GradumConstrainer} [attachedInstance] - The optional GradumConstrainer instance to attach to the constrainer.
+ */
+
+/**
+ * @typedef {Object} ConstrainerCallbackProperties
+ * @group GradumSelector
+ * @category Constrainers
+ *
+ * @description The context handed to a solver as its first argument, naming the constrainer, the object
+ * being processed, and the event that triggered it. Passed when solving through
+ * {@link GradumSelector.solveConstrainer}.
+ * @property {string} [constrainer] - The targeted constrainer. Defaults to `currentConstrainer`.
+ * @property {object} [constrainerHost] - The object to which the target constrainer is attached.
+ * @property {object} [target] - The current object being processed by the solver. Property set by
+ * {@link GradumSelector.solveConstrainer} when processing every object in the constrainer's list.
+ * @property {Event} [event] - The event (if any) that fired the resolving of the constrainer.
+ * @property {string} [eventType] - The type of the event.
+ * @property {Node} [eventTarget] - The target of the event.
+ * @property {string} [toolName] - The name of the active tool when the event was fired.
+ * @property {ListenerOptions} [eventOptions] - The options of the event.
+ * @property {GradumEventManager} [manager] - The event manager that captured the event. Defaults to the first
+ * instantiated event manager.
+ */
+
+/**
+ * @typedef {Object} ConstrainerMutatorProperties
+ * @group GradumSelector
+ * @category Constrainers
+ *
+ * @extends ConstrainerCallbackProperties
+ * @template Type - The type of the value to mutate.
+ * @description The context handed to a mutator as its first argument, naming which mutator to run and the
+ * value it should transform. Passed when mutating through {@link GradumSelector.mutate}.
+ * @property {string} [mutation] - The name of the mutator to execute.
+ * @property {Type} [value] - The value to mutate.
+ */
+
+/**
+ * @typedef {Object} ConstrainerAddCallbackProperties
+ * @group GradumSelector
+ * @category Constrainers
+ * @template {ConstrainerChecker | ConstrainerMutator | ConstrainerSolver} Type - The type of callback.
+ *
+ * @description Options for registering a checker, mutator, or solver on an existing constrainer.
+ * @property {string} [name] - The name of the callback to add.
+ * @property {Type} [callback] - The callback to add.
+ * @property {string} [constrainer] - The constrainer to add the callback to.
+ * @property {number} [priority] - The priority of the callback.
+ */
+
+/**
+ * @typedef {Object} DefineOptions
+ * @group Decorators
+ * @category Registry
+ *
+ * @description Options object for the {@link define} decorator and imperative function.
+ * @property {boolean} [injectAttributeBridge=true] - Whether to inject an `attributeChangedCallback`
+ * into the class prototype if one is not already present. When enabled, HTML attribute changes are
+ * automatically mirrored to their associated `@observe`-decorated fields, and vice versa.
+ */
+
+/**
+ * @typedef {Object} RegistryEntry
+ * @group Decorators
+ * @category Registry
+ *
+ * @description Represents a single entry in the Gradum Kit class registry, as stored and returned
+ * by {@link findRegistered} and related query functions.
+ * @property {new (...args: any[]) => any} constructor - The registered class constructor.
+ * @property {RegistryCategory | string} category - The category the class was registered under, either
+ * passed explicitly to {@link define} or inferred from its inheritance chain. It is a plain string when
+ * a custom category was supplied.
+ * @property {string} name - The registered name of the class, used as the registry key.
+ * Typically the class name as passed to {@link define}.
+ * @property {string} [tag] - The custom element tag name associated with this class.
+ * Only present for classes registered as custom HTML elements via {@link define}.
+ */
+
+/**
+ * @typedef {Object} StylesRoot
+ * @group GradumSelector
+ * @category Style
+ *
+ * @description A type that represents entities that can hold a <style> object (Shadow root or HTML head).
+ */
+
+/**
+ * @typedef {Object} StylesType
+ * @group GradumSelector
+ * @category Style
+ *
+ * @description A type that represents the types that are accepted as styles entries (mainly by the
+ * HTMLElement.setStyles()
+ * method). It includes strings, numbers, and records of CSS attributes to strings or numbers.
+ */
+
+/**
+ * @typedef {Object} GradumIconProperties
+ * @group Components
+ * @category Basics
+ *
+ * @extends GradumElementProperties
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumIcon}. Values left out fall back to
+ * {@link GradumIcon.defaultProperties}.
+ * @property {string} icon - Name of the icon, file extension included to override the resolved type.
+ * @property {string} [iconColor] - Color applied to the icon.
+ * @property {(svg: SVGElement) => void} [onLoaded] - Called with the loaded SVG element, to modify it once
+ * it is available. Ignored for icons that are not SVGs.
+ * @property {string} [type] - File type of the icon, used when the name carries no extension.
+ * @property {string} [directory] - Directory the icon is loaded from.
+ */
+
+/**
+ * @typedef {Object} GradumRichElementProperties
+ * @group Components
+ * @category Basics
+ *
+ * @extends GradumElementProperties
+ * @template {ValidTag} ElementTag - The tag of the main element.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumRichElement} — a main element flanked by up to
+ * four optional slots. They are laid out left to right in the order below.
+ * @property {ElementTag} [elementTag] - The HTML tag used for the main element when `element` is a string
+ * or a properties object.
+ * @property {string} [text] - Text content of the main element.
+ * @property {Element | Element[]} [leftCustomElements] - Elements placed leftmost, before `leftIcon`.
+ * @property {string | GradumIcon} [leftIcon] - Icon placed left of the main element. A string is treated as
+ * an icon name or path.
+ * @property {string | HTMLElement} [prefixEntry] - Content placed immediately before the main element.
+ * @property {string | GradumProperties<ElementTag> | ValidElement<ElementTag>} [element] - The main element:
+ * its text, the properties to build it from, or an existing element to adopt.
+ * @property {string | HTMLElement} [suffixEntry] - Content placed immediately after the main element.
+ * @property {string | GradumIcon} [rightIcon] - Icon placed right of the main element. A string is treated as
+ * an icon name or path.
+ * @property {Element | Element[]} [rightCustomElements] - Elements placed rightmost, after `rightIcon`.
+ */
+
+/**
+ * @typedef {Object} StateSpecificProperty
+ * @group Components
+ * @category Reifects
+ *
+ * @template Type - The type of the configured value.
+ * @template {object} ClassType - The type of the attached object.
+ * @description A value for one state: either a fixed value, or a {@link ReifectInterpolator} that computes
+ * it per object.
+ */
+
+/**
+ * @typedef {Object} BasicPropertyConfig
+ * @group Components
+ * @category Reifects
+ *
+ * @template Type - The type of the configured value.
+ * @template {KeyType} State - The set of states the reifect can switch between.
+ * @description A property configured either per state, or as one value shared by every state. The
+ * interpolator-free counterpart of {@link PropertyConfig}.
+ */
+
+/**
+ * @typedef {Object} PropertyConfig
+ * @group Components
+ * @category Reifects
+ *
+ * @template Type - The type of the configured value.
+ * @template {KeyType} State - The set of states the reifect can switch between.
+ * @template {object} ClassType - The type of the attached object.
+ * @description How a single reifect property may be configured: one value for every state, a value per
+ * state (each optionally interpolated per object), or a single {@link StateInterpolator} covering both.
+ */
+
+/**
+ * @typedef {Object} ReifectObjectData
+ * @group Components
+ * @category Reifects
+ *
+ * @template {KeyType} State - The set of states the reifect can switch between.
+ * @template {object} ClassType - The type of the attached object.
+ * @description The bookkeeping a {@link StatefulReifect} keeps for one attached object. The object is held
+ * weakly, so attaching a reifect does not keep it alive once the rest of the application drops it.
+ * @property {WeakRef<ClassType>} object - Weak reference to the attached object.
+ * @property {ReifectEnabledObject} enabled - Which parts of the reifect apply to this object.
+ * @property {State} [lastState] - The state the object was last switched to.
+ * @property {ReifectObjectComputedProperties<State, ClassType>} [resolvedValues] - The per-state values
+ * resolved for this object, so interpolated configurations are computed once rather than on every switch.
+ * @property {number} [index] - The object's position among the attached objects.
+ * @property {number} [total] - How many objects are attached in total.
+ * @property {ReifectOnSwitchCallback<State, ClassType>} [onSwitch] - Called when this object switches state.
+ * @property {() => void} [disposeEffect] - Tears down the effect tracking this object's reactive values.
+ */
+
+/**
+ * @typedef {Object} StatefulReifectCoreProperties
+ * @group Components
+ * @category Reifects
+ *
+ * @template {KeyType} State - The set of states the reifect can switch between.
+ * @template {object} ClassType - The type of the attached object.
+ * @description What a {@link StatefulReifect} applies to its objects on each state switch. Beyond the
+ * named entries, any other key is treated as a property to set on the object itself.
+ * @property {PropertyConfig<StylesType, State, ClassType>} [styles] - Inline styles to apply per state.
+ * @property {PropertyConfig<string | string[], State, ClassType>} [classes] - CSS classes to toggle per state.
+ * @property {PropertyConfig<ClassType, State, ClassType>} [replaceWith] - An object to swap the attached one
+ * out for, per state.
+ */
+
+/**
+ * @typedef {Object} StatefulReifectProperties
+ * @group Components
+ * @category Reifects
+ *
+ * @extends StatefulReifectCoreProperties
+ * @template {KeyType} State - The set of states the reifect can switch between.
+ * @template {object} ClassType - The type of the attached object.
+ * @description Options for constructing a {@link StatefulReifect}: everything it applies per state, plus
+ * the states themselves and the objects to attach at creation.
+ * @property {State[] | object} [states] - The available states, as an array or as an enum-like object.
+ * @property {State | boolean} [initialState] - The state to start in.
+ * @property {ClassType[]} [attachedObjects] - Objects to attach immediately.
+ */
+
+/**
+ * @typedef {Object} ReifectAppliedOptions
+ * @group Components
+ * @category Reifects
+ *
+ * @template {KeyType} State - The set of states the reifect can switch between.
+ * @template {object} ClassType - The type of the attached object.
+ * @description Options controlling one application of a reifect — how widely it reaches, and how much of
+ * its cached per-object data it recomputes first.
+ * @property {boolean} [attachObjects] - Attach any object passed in that is not attached yet.
+ * @property {boolean} [executeForAll] - Apply to every attached object rather than only the one given.
+ * @property {boolean} [recomputeIndices] - Recompute each object's index and total before applying.
+ * @property {boolean} [recomputeProperties] - Re-resolve interpolated values before applying.
+ * @property {boolean} [applyStylesInstantly] - Set styles directly instead of on the next frame, skipping
+ * any CSS transition.
+ * @property {StatefulReifectCoreProperties<State, ClassType>} [propertiesOverride] - Values to use for this
+ * application in place of the reifect's own.
+ */
+
+/**
+ * @typedef {Object} ReifectEnabledObject
+ * @group Components
+ * @category Reifects
+ *
+ * @description Which parts of a reifect apply to a given object. Set `global` to `false` to disable the
+ * reifect for that object entirely; the rest switch off one category each.
+ * @property {boolean} [global] - Whether the reifect applies at all.
+ * @property {boolean} [properties] - Whether property values are applied.
+ * @property {boolean} [styles] - Whether inline styles are applied.
+ * @property {boolean} [classes] - Whether CSS classes are toggled.
+ * @property {boolean} [replaceWith] - Whether object replacement is performed.
+ */
+
+/**
+ * @typedef {Object} GradumIconSwitchProperties
+ * @group Components
+ * @category Basics
+ *
+ * @extends GradumIconProperties
+ * @template {string | number | symbol} State - The set of states the icon can switch between.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumIconSwitch} — an icon that swaps its appearance as
+ * its state changes.
+ * @property {StatefulReifect<State, GradumIcon> | StatefulReifectProperties<State, GradumIcon>} [switchReifect] -
+ * The reifect driving the transition between states, or the properties to build one from.
+ * @property {State} [defaultState] - The state the icon starts in.
+ * @property {boolean} [appendStateToIconName=false] - Whether the current state is appended to the icon name,
+ * so each state loads its own icon file.
+ */
+
+/**
+ * @typedef {Object} GradumInputProperties
+ * @group Components
+ * @category Basics
+ *
+ * @template {"input" | "textarea"} InputTag - The tag of the inner input element.
+ * @template ValueType - The type the input's string value is converted to and from.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumInput}. Extends
+ * {@link GradumRichElementProperties} without `element` and `elementTag`, which the input sets itself.
+ * @property {InputTag} [inputTag="input"] - Whether the field is an `input` or a `textarea`.
+ * @property {GradumProperties<InputTag> | ValidElement<InputTag>} [input] - Properties for the inner input
+ * element, or an existing element to use instead of creating one.
+ * @property {string} [label] - Text of the label shown next to the field.
+ * @property {boolean} [locked=false] - Whether the field rejects user edits.
+ * @property {boolean} [dynamicVerticalResize=false] - Whether the field grows to fit its content as the
+ * user types. Meant for `textarea`.
+ * @property {RegExp | string} [inputRegexCheck] - Pattern the value must match while typing. Input that
+ * would break the match is rejected as it is entered.
+ * @property {RegExp | string} [blurRegexCheck] - Pattern the value must match when the field loses focus.
+ * @property {boolean} [selectTextOnFocus=false] - Whether focusing the field selects all of its text.
+ * @property {ValueType} [value] - Initial value of the field.
+ * @property {string} [type] - Value of the input's `type` attribute.
+ * @property {string} [placeholder] - Text shown while the field is empty.
+ * @property {string} [pattern] - Value of the input's `pattern` attribute.
+ * @property {string} [size] - Value of the input's `size` attribute.
+ */
+
+/**
+ * @typedef {Object} GradumLabelElementProperties
+ * @group Components
+ * @category Basics
+ *
+ * @extends GradumRichElementProperties
+ * @template {ValidTag} ElementTag - The tag of the main element.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumLabelElement} — a rich element paired with a
+ * `label` bound to it.
+ * @property {string} [label] - Text of the label shown next to the element.
+ * @property {boolean} [locked=false] - Whether the element rejects user edits.
+ */
+
+/**
+ * @typedef {Object} GradumNumericalInputProperties
+ * @group Components
+ * @category Basics
+ *
+ * @template ValueType - The type the input's string value is converted to and from.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumNumericalInput}. Extends
+ * {@link GradumInputProperties} with the numeric constraints applied to the entered value.
+ * @property {number} [multiplier=1] - Factor applied between the displayed value and the stored one.
+ * @property {number} [decimalPlaces] - How many decimals the value is rounded to. Left unrounded if omitted.
+ * @property {number} [min] - Lowest accepted value. The value is clamped to it.
+ * @property {number} [max] - Highest accepted value. The value is clamped to it.
+ */
+
+/**
+ * @typedef {Object} GradumSelectProperties
+ * @group Components
+ * @category Basics
+ *
+ * @template ValueType - The type of the value each entry carries.
+ * @template SecondaryValueType - The type of the secondary value each entry carries.
+ * @template {object} EntryType - The type of the entries themselves.
+ * @description Properties to initialize a {@link GradumSelect}. Entries can be supplied directly through
+ * `entries`, or generated from `values` using `createEntry`.
+ * @property {string | string[]} [entriesClasses] - CSS class(es) added to every entry.
+ * @property {string | string[]} [selectedEntriesClasses] - CSS class(es) added to entries while selected.
+ * @property {HTMLCollection | NodeList | EntryType[]} [entries] - The entries to populate the select with.
+ * @property {(ValueType | EntryType)[]} [values] - Values to build entries from, using `createEntry`.
+ * @property {ValueType[]} [selectedValues] - Values selected initially.
+ * @property {(entry: EntryType) => ValueType} [getValue] - Reads the value carried by an entry.
+ * @property {(entry: EntryType) => SecondaryValueType} [getSecondaryValue] - Reads an entry's secondary value.
+ * @property {(value: ValueType) => EntryType} [createEntry] - Builds an entry for a value in `values`.
+ * @property {(entry: EntryType, index: number) => void} [onEntryAdded] - Called when an entry is added.
+ * @property {(entry: EntryType) => void} [onEntryRemoved] - Called when an entry is removed.
+ * @property {(entry: EntryType, e: Event) => void} [onEntryClicked] - Called when an entry is clicked.
+ * @property {boolean} [multiSelection=false] - Whether more than one entry can be selected at a time.
+ * @property {boolean} [forceSelection=false] - Whether at least one entry must stay selected, preventing
+ * the last selected entry from being deselected.
+ * @property {string} [inputName] - Name given to the underlying form inputs, to submit the selection with a form.
+ * @property {Element} [parent] - Element the entries are appended to.
+ * @property {(b: boolean, entry: EntryType, index: number) => void} [onSelect] - Called when an entry's
+ * selected state changes, with the new state.
+ * @property {(b: boolean, entry: EntryType, index: number) => void} [onEnabled] - Called when an entry's
+ * enabled state changes, with the new state.
+ */
+
+/**
+ * @typedef {Object} GradumSelectInputEventProperties
+ * @group Components
+ * @category Basics
+ *
+ * @extends GradumRawEventProperties
+ * @template ValueType - The type of the value each entry carries.
+ * @template SecondaryValueType - The type of the secondary value each entry carries.
+ * @template {object} EntryType - The type of the entries themselves.
+ * @description Properties to initialize a {@link GradumSelectInputEvent}, the event a select fires when
+ * its selection changes.
+ * @property {EntryType} toggledEntry - The entry whose selected state just changed.
+ * @property {ValueType[]} values - The values selected after the change.
+ */
+
+/**
+ * @typedef {Object} GradumSelectElementProperties
+ * @group Components
+ * @category Basics
+ *
+ * @extends GradumElementProperties
+ * @extends GradumSelectProperties
+ * @template ValueType - The type of the value held by each entry.
+ * @template SecondaryValueType - The type of each entry's secondary value.
+ * @template {HTMLElement} EntryType - The type of the entry elements.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel<DataType>} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties for configuring a {@link GradumSelectElement} — everything a selection accepts,
+ * plus the element-level options and the classes applied to its entries.
+ * @property {string | string[]} [entriesClasses] - CSS class(es) applied to every entry.
+ * @property {string | string[]} [selectedEntriesClasses] - CSS class(es) applied to selected entries.
+ */
+
+/**
+ * @typedef {Object} GradumContentSwitchProperties
+ * @group Components
+ * @category Containers
+ *
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties accepted when creating a {@link GradumContentSwitch}.
+ * @property {ContentSwitchMode} [mode=ContentSwitchMode.fadeRight] - The transition played when the
+ * selected entry changes.
+ * @property {number} [transitionDuration=0.3] - How long that transition lasts, in seconds.
+ * @property {StatefulReifect<Shown> | StatefulReifectProperties<Shown>} [transitionReifect] - The reifect
+ * driving the transition. Pass an existing {@link StatefulReifect} to share one between components, or a
+ * properties object to have one built.
+ */
+
+/**
+ * @typedef {Object} ScopedKey
+ * @group Components
+ * @category Data Structures
+ *
+ * @template KeyType - The per-item key type.
+ * @template BlockKeyType - The block-grouping key type.
+ * @description An item key together with the block it belongs to, used to address an entry that is
+ * scoped to one block rather than to the store as a whole.
+ * @property {BlockKeyType} [blockKey] - The block the item belongs to. Omit it to target the default block.
+ * @property {KeyType} [key] - The item's key inside that block.
+ */
+
+/**
+ * @typedef {Object} BlockStoreType
+ * @group Components
+ * @category Data Structures
+ *
+ * @template {"array" | "map"} Type - How the blocks are stored. Defaults to `"map"`.
+ * @template {object} BlockType - The type of one block.
+ * @description The container a nested store keeps its blocks in, resolved from `Type`: a `Map` keyed by
+ * block name for `"map"`, or a plain array indexed by position for `"array"`.
+ */
+
+/**
+ * @typedef {Object} GradumDropdownProperties
+ * @group Components
+ * @category Menus
+ *
+ * @extends GradumProperties
+ * @description Properties for configuring a Dropdown.
+ * @property {(string | HTMLElement)} [selector] - Element or descriptor used as the dropdown selector. If a
+ * string is passed, a Button with the given string as text will be assigned as the selector.
+ * @property {HTMLElement} [popup] - The element used as a container for the dropdown entries.
+ * @property {boolean} [multiSelection=false] - Enables selection of multiple dropdown entries.
+ * @property {ValidTag} [selectorTag] - Custom HTML tag for the selector's text. Overrides the
+ * default tag set in GradumConfig.Dropdown.
+ * @property {string | string[]} [selectorClasses] - Custom CSS class(es) for the selector. Overrides the default
+ * classes set in GradumConfig.Dropdown.
+ * @property {string | string[]} [popupClasses] - Custom CSS class(es) for the popup container. Overrides the
+ * default classes set in GradumConfig.Dropdown.
+ */
+
+/**
+ * @typedef {Object} GradumButtonPopupProperties
+ * @group Components
+ * @category Basics
+ *
+ * @extends GradumRichElementProperties
+ * @template {ValidTag} ElementTag - The tag of the main element.
+ * @template {GradumView} ViewType - The element's view type, if initializing MVC.
+ * @template {object} DataType - The element's data type, if initializing MVC.
+ * @template {GradumModel} ModelType - The element's model type, if initializing MVC.
+ * @template {GradumEmitter} EmitterType - The element's emitter type, if initializing MVC.
+ * @description Properties to initialize a {@link GradumButtonPopup} — a button that shows a popup when
+ * activated. Adds the popup container to everything {@link GradumRichElementProperties} accepts.
+ * @property {HTMLElement} [popup] - Element used as the popup container. One is created if omitted.
+ * @property {string | string[]} [popupClasses] - CSS class(es) to add to the popup container.
+ */
+
+/**
+ * @typedef {Object} Gradum
+ * @group GradumSelector
+ * @category Core
+ *
+ * @template {object} Type - The type of the wrapped object. Defaults to `Node`.
+ * @description What {@link gradum} hands back: the wrapped object plus the whole selector API, intersected.
+ * That means a wrapped element still answers to its own members — `el.textContent` works alongside
+ * `el.addChild(...)` — so a `Gradum<HTMLDivElement>` can be used anywhere the raw element was.
+ */
+
+/**
+ * @typedef {Object} GradumifyOptions
+ * @group GradumSelector
+ * @category Core
+ *
+ * @description Which families of selector functions {@link gradumify} should skip. Every family is installed
+ * by default; set a flag to leave that family off the {@link GradumSelector} prototype. Excluding a family
+ * means its functions simply do not exist, so only do it if you know nothing in your app calls them.
+ * @property {boolean} [excludeHierarchyFunctions] - Skip `addChild`, `closest`, `childHandler`, and the rest of the DOM-hierarchy functions.
+ * @property {boolean} [excludeMvcFunctions] - Skip `model`, `view`, `emitter`, and the MVC add/get/remove methods.
+ * @property {boolean} [excludeStyleFunctions] - Skip `setStyle`, `setStyles`, `selected`, and `closestRoot`.
+ * @property {boolean} [excludeClassFunctions] - Skip `addClass`, `removeClass`, `toggleClass`, and `hasClass`.
+ * @property {boolean} [excludeElementFunctions] - Skip `setProperties`, `clone`, `destroy`, and `feedforward`.
+ * @property {boolean} [excludeEventFunctions] - Skip `on`, `onTool`, `executeAction`, and `preventDefault`.
+ * @property {boolean} [excludeToolFunctions] - Skip `makeTool`, `applyTool`, and `embedTool`.
+ * @property {boolean} [excludeConstrainerFunctions] - Skip `makeConstrainer`, `solveConstrainer`, and `mutate`.
+ * @property {boolean} [excludeMiscFunctions] - Skip `apply`, `applyDefaults`, `extract`, and `getDifference`.
+ * @property {boolean} [excludeReifectFunctions] - Skip `show`, `applyReifect`, and `attachReifect`.
+ */
+
+/**
+ * @typedef {Object} ChildHandler
+ * @group GradumSelector
+ * @category Hierarchy
+ *
+ * @description A type that represents all entities that can hold and manage children (an element or a shadow root).
+ */
+
+/**
+ * @typedef {Object} ApplyDefaultsOptions
+ * @group GradumSelector
+ * @category Misc
+ *
+ * @description Options for {@link GradumSelector.applyDefaults}.
+ * @property {string[]} [mergeProperties] - Array-like keys to merge. Defaults to {@link ApplyDefaultsMergeProperties}.
+ * @property {boolean} [removeDuplicates] - Whether to remove duplicates when merging arrays. Defaults to `true`.
+ */
+
+/**
+ * @typedef {Object} YDocumentProperties
+ * @group Utilities
+ * @category Yjs
+ *
+ * @template {GradumView} ViewType - The element's view type.
+ * @template {object} DataType - The element's data type.
+ * @template {GradumModel<DataType>} ModelType - The element's model type.
+ * @template {GradumEmitter} EmitterType - The element's emitter type.
+ * @description Properties for an element backed by a Y.js document. Everything
+ * {@link GradumElementProperties} accepts, plus the document the element's data lives in.
+ * @property {YDoc} document - The Y.js document backing this element.
+ */
+
+/**
+ * @typedef {Object} FontProperties
+ * @group Utilities
+ * @category Font
+ *
+ * @description Describes a local font to load with {@link loadLocalFont} — either a single file or a whole
+ * family living in one directory. Which of the two is inferred from `pathOrDirectory`: a path with a file
+ * extension is treated as one font, a path without one as a directory of them.
+ * @property {string} name - The font family name to register it under. For a family, each file must also be
+ * named `name-subName`, matching the keys of `stylesPerWeights`.
+ * @property {string} pathOrDirectory - Path to the font file, or to the directory holding the family.
+ * @property {Record<string, string> | Record<number, Record<string, string>>} [stylesPerWeights] - For a single
+ * font, a `{weight: style}` record, defaulting to `{"normal": "normal"}`. For a family, a
+ * `{weight: {subName: style}}` record, defaulting to common sub-names and styles for weights 100 through 900.
+ * @property {string} [format="woff2"] - The font format declared in the generated `@font-face` rule.
+ * @property {string} [extension=".ttf"] - The file extension of the family's files. A missing leading dot is
+ * added for you.
+ */
+
 'use strict';
 
 var yjs = require('yjs');
@@ -12911,6 +14287,7 @@ let StatefulReifect = (() => {
                 data.disposeEffect = undefined;
             }
             this.attachedObjectsData.delete(object);
+            this.attachedObjects.remove(object);
             gradum(object).detachReifect(this);
         }
         /**

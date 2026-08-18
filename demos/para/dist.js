@@ -9840,6 +9840,39 @@
     glo[importIdentifier] = true;
 
     /**
+     * @typedef {Object} AutoOptions
+     * @group Decorators
+     * @category Augmentation
+     *
+     * @template Type - The type of the decorated property.
+     * @description Options for configuring the `@auto` decorator.
+     * @property {boolean} [override] - If true, will try to override the defined property in `super`.
+     * @property {boolean} [cancelIfUnchanged=true] - If true, cancels the setter if the new value is the same as the
+     * current value. Defaults to `true`.
+     * @property {(value: Type) => Type} [preprocessValue] - Optional callback to execute on the value and preprocess it
+     * just before it is set. The returned value will be stored.
+     * @property {(value: Type) => void} [callBefore] - Optional function to call before preprocessing and setting the value.
+     * @property {(value: Type) => void} [callAfter] - Optional function to call after setting the value.
+     * @property {boolean} [setIfUndefined] - If true, will fire the setter when the underlying value is `undefined` and
+     * the program is trying to access it (maybe through its getter).
+     * @property {boolean} [returnDefinedGetterValue] - If true and a custom getter is defined, the return value of this
+     * getter will be returned when accessing the property. Otherwise, the underlying saved value will always be returned.
+     * Defaults to `false`.
+     * @property {boolean} [executeSetterBeforeStoring] - If true, when setting the value, the setter will execute first,
+     * and then the value will be stored. In this case, accessing the value in the setter will return the previous value.
+     * Defaults to `false`.
+     * @property {Type} [defaultValue] - If defined, whenever the underlying value is `undefined` and trying to be
+     * accessed, it will be set to `defaultValue` through the setter before getting accessed.
+     * @property {() => Type} [defaultValueCallback] - If defined, whenever the underlying value is `undefined` and
+     * trying to be accessed, it will be set to the return value of `defaultValueCallback` through the setter before
+     * getting accessed.
+     * @property {Type} [initialValue] - If defined, on initialization, the property will be set to `initialValue`.
+     * @property {() => Type} [initialValueCallback] - If defined, on initialization, the property will be set to the
+     * return value of `initialValueCallback`.
+     */
+
+
+    /**
      * @internal
      */
     class AutoUtils {
@@ -12902,17 +12935,6 @@
         if (elementName && !customElements.get(elementName))
             customElements.define(elementName, Base);
         return Base;
-    }
-    /**
-     * @function getAllRegistered
-     * @group Decorators
-     * @category Registry
-     *
-     * @description Returns all registered entries across every category in the registry.
-     * @returns {RegistryEntry[]} An array of all registry entries.
-     */
-    function getAllRegistered() {
-        return Array.from(utils$9.registry.values()).flatMap(map => Array.from(map.values()));
     }
     /**
      * @function addRegistryCategory
@@ -22086,6 +22108,7 @@
                     data.disposeEffect = undefined;
                 }
                 this.attachedObjectsData.delete(object);
+                this.attachedObjects.remove(object);
                 gradum(object).detachReifect(this);
             }
             /**
@@ -29838,6 +29861,9 @@
                 this.model.size = this.model.size.add(sizeDelta);
                 this.model.position = this.model.position.add(pinned.sub(this.getBoundingClientRect().pointAt(anchor)));
             }
+            delete() {
+                this.remove();
+            }
             getBoundingClientRect() {
                 return new GradumRect({
                     x: this.model.position.x,
@@ -29897,19 +29923,53 @@
                         square.remove();
                 }
                 else if (this.count > this.squares.length) {
-                    for (let i = this.squares.length; i < this.count; i++)
-                        this.squares[i] =
-                            Square.create({ parent: this.canvas });
+                    for (let i = this.squares.length; i < this.count; i++) {
+                        this.squares[i] = Square.create({ parent: this.canvas });
+                        this.squares[i].delete = () => this.deleteSquare(i);
+                    }
                 }
-                //Only the two ends are yours to move: the middles are placed by the reifect, so they are marked
-                //unmodifiable and the select tool leaves them alone.
-                gradum(this.startSquare).metadata.set(true, "modifiable");
-                gradum(this.endSquare).metadata.set(true, "modifiable");
-                const middleSquares = this.squares.slice(1, -1);
-                for (const square of middleSquares)
-                    gradum(square).metadata.set(false, "modifiable");
-                this.reifect.attach(...middleSquares);
-                this.reifect.apply();
+                if (!this.squares.length)
+                    return;
+                for (let i = 0; i < this.squares.length; i++) {
+                    gradum(this.squares[i]).metadata.set(i === 0 || i === this.squares.length - 1, "modifiable");
+                }
+                this.reifect.detach(this.startSquare, this.endSquare);
+                this.reifect.attach(...this.squares.slice(1, -1));
+                this.reifect.apply(undefined, { recomputeProperties: true });
+            }
+            /**
+             * @function deleteSquare
+             * @description Take one square out of the list.
+             *
+             * Which square hardly matters for the middles: they are placed by the reifect off the two ends, so one
+             * fewer of them is the whole of it and the rest spread out again to fill the gap. An end is another
+             * matter — it is placed by hand, and everything else is measured from it — so it steps back to where its
+             * neighbour was, which is another way of saying its neighbour has become the end.
+             * @param index
+             */
+            deleteSquare(index) {
+                if (this.count <= 0 || index < 0 || index >= this.squares.length)
+                    return;
+                this.reifect.detach(...this.squares);
+                if (index !== this.squares.length - 1) {
+                    if (index === 0)
+                        this.copyInto(this.startSquare, this.squares[1]);
+                    this.copyInto(this.squares[this.squares.length - 2], this.endSquare);
+                }
+                this.count--;
+            }
+            /**
+             * @description Give a square everything that says where and what another one is — which is exactly what
+             * the reifect places the middles by, and so exactly what an end has to carry to be an end.
+             * @protected
+             */
+            copyInto(square, other) {
+                if (!square || !other || square === other)
+                    return;
+                square.position = other.position;
+                square.size = other.size;
+                square.color = other.color;
+                square.rotation = other.rotation;
             }
         };
     })();
@@ -29941,7 +30001,6 @@
                     this.currentSquareList.initialize();
                     this.currentSquareList.startSquare.position = e.scaledPosition;
                     this.currentSquareList.endSquare.position = e.scaledPosition;
-                    console.log(getAllRegistered().map(entry => entry.name));
                     return Propagation.stopPropagation;
                 }
             }
@@ -29958,6 +30017,64 @@
     })();
     define(AddSquareListTool);
 
+    /**
+     * @class DeleteTool
+     * @description Takes away whatever says it can be taken away.
+     *
+     * Unlike the tools that move things about, this one does not ask whether its target is modifiable: a square
+     * in the middle of a list is placed by the reifect rather than by hand, which is a reason for the select tool
+     * to leave it alone but no reason at all why it cannot be deleted. Saying `delete` is the whole of the
+     * permission — what deleting one means is the thing's own business.
+     */
+    let DeleteTool = (() => {
+        let _classSuper = GradumTool;
+        let _instanceExtraInitializers = [];
+        let _click_decorators;
+        let _drag_decorators;
+        let _dragEnd_decorators;
+        return class DeleteTool extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _click_decorators = [behavior()];
+                _drag_decorators = [behavior()];
+                _dragEnd_decorators = [behavior()];
+                __esDecorate$1(this, null, _click_decorators, { kind: "method", name: "click", static: false, private: false, access: { has: obj => "click" in obj, get: obj => obj.click }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _dragEnd_decorators, { kind: "method", name: "dragEnd", static: false, private: false, access: { has: obj => "dragEnd" in obj, get: obj => obj.dragEnd }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            toolName = (__runInitializers$1(this, _instanceExtraInitializers), "delete"); //Define the tool name
+            activeClasses = "erasing"; //Marks the page while this tool is out
+            radius = 12;
+            click(e, el) {
+                if ("delete" in el && typeof el.delete === "function")
+                    el.delete(e.position);
+                else
+                    return Propagation.propagate;
+                return Propagation.stopPropagation;
+            }
+            //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "delete", (e, el) => {...});
+            drag(e, el) {
+                if (!gradum(el).metadata?.get("modifiable"))
+                    return Propagation.propagate;
+                if ("deleteAt" in el && typeof el.deleteAt === "function")
+                    el.deleteAt(e.position);
+                else
+                    return Propagation.propagate;
+                return Propagation.stopPropagation;
+            }
+            dragEnd(e, el) {
+                if (!gradum(el).metadata?.get("modifiable"))
+                    return Propagation.propagate;
+                if ("endDeleteAt" in el && typeof el.endDeleteAt === "function")
+                    el.endDeleteAt(e.position);
+                else
+                    return Propagation.propagate;
+                return Propagation.stopPropagation;
+            }
+        };
+    })();
+
     GradumIcon.defaultProperties.directory = "assets";
     Canvas.create({ parent: document.body });
     Toolbar.create({
@@ -29967,6 +30084,7 @@
             GradumButton.create({ leftIcon: "resize", tools: ResizeTool, classes: "demo-button" }),
             GradumButton.create({ leftIcon: "rotate", tools: RotateTool, classes: "demo-button" }),
             Bucket.create({ leftIcon: "bucket", classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "trash", tools: DeleteTool, classes: "demo-button" }),
             div({ classes: "divider" }),
             GradumButton.create({ text: "Add Square List", tools: AddSquareListTool, classes: "demo-button" }),
         ]

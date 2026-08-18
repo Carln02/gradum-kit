@@ -303,6 +303,7 @@ class StatefulReifect<State extends string | number | symbol = any, ClassType ex
         }
 
         this.attachedObjectsData.delete(object);
+        this.attachedObjects.remove(object);
         gradum(object).detachReifect(this);
     }
 

@@ -13,7 +13,6 @@ export class AddSquareListTool extends GradumTool {
             (this.currentSquareList as any).initialize();
             this.currentSquareList.startSquare.position = e.scaledPosition;
             this.currentSquareList.endSquare.position = e.scaledPosition;
-            console.log(getAllRegistered().map(entry => entry.name));
             return Propagation.stopPropagation;
         }
     }

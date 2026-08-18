@@ -3,7 +3,7 @@ import {
 } from "../../../../build/gradum-kit.esm";
 import {SquareModel} from "./square.model";
 import {SquareView} from "./square.view";
-import {CanvasObject} from "../interfaces";
+import {CanvasObject, isSubstrate} from "../interfaces";
 
 export class Square extends GradumHeadlessElement<SquareView, any, SquareModel> implements CanvasObject {
     public static defaultProperties = {
@@ -56,6 +56,15 @@ export class Square extends GradumHeadlessElement<SquareView, any, SquareModel> 
         const pinned = this.getBoundingClientRect().pointAt(anchor);
         this.model.size = this.model.size.add(sizeDelta);
         this.model.position = this.model.position.add(pinned.sub(this.getBoundingClientRect().pointAt(anchor)));
+    }
+
+    /**
+     * @description Take the square off the canvas it sits on. Nothing in the DOM stands for it, so going means
+     * leaving the surface that holds it — after which nothing paints it and nothing can hit it.
+     */
+    public delete() {
+        const substrate = gradum(this).hitParent;
+        if (isSubstrate(substrate)) substrate.removeObject(this);
     }
 
     public getBoundingClientRect(): GradumRect {

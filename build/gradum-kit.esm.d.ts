@@ -2778,16 +2778,20 @@ type GradumEventNameEntry = typeof GradumEventName[GradumEventNameKey];
  * @property {(element: Gradum<Element>, manager: GradumEventManager) => void} [customActivation] - Custom activation
  * function. If provided, is called with `(el, manager)` to define when the tool is activated.
  * @property {string} [key] - Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
+ * @property {string | string[]} [activeClasses] - Class or classes marking that this tool is active.
+ * @property {Element} [activeClassesTarget] - What carries the active classes. Defaults to `document.body`.
  * @property {GradumEventManager} [manager] - The event manager instance this tool should register against. Defaults
  * to `GradumEventManager.instance`.
  */
 type MakeToolOptions<ElementType extends object = object> = {
+    clickMode?: ClickMode;
+    key?: string;
     onActivate?: () => void;
     onDeactivate?: () => void;
     activationEvent?: DefaultEventNameEntry;
-    clickMode?: ClickMode;
     customActivation?: (element: ElementType, manager?: GradumEventManager) => void;
-    key?: string;
+    activeClasses?: string | string[];
+    activeClassesTarget?: Element;
     manager?: GradumEventManager;
 };
 /**
@@ -2889,6 +2893,25 @@ declare class GradumTool<ElementType extends object = object, ViewType extends G
      * @description Optional keyboard key to map to this tool. When pressed, it will be set as the current key tool.
      */
     readonly key: string;
+    /**
+     * @description CSS class or classes marking that this tool is the active one, added when it is activated and
+     * removed when it is not. A tool changes what interacting means, and the page usually has to show it —
+     * a different cursor, text that no longer takes a caret — which is a matter for CSS rather than for the
+     * tool itself.
+     * @example
+     * ```ts
+     * class EraserTool extends GradumTool {
+     *   public toolName = "eraser";
+     *   public activeClasses = "erasing";  //body.erasing in the stylesheet
+     * }
+     * ```
+     */
+    activeClasses: string | string[];
+    /**
+     * @description What carries {@link GradumTool.activeClasses}. Defaults to `document.body`, so a
+     * stylesheet can reach anything on the page from it.
+     */
+    activeClassesTarget: Element;
     /**
      * @constructor
      * @description Create a tool bound to an element. Anything omitted from `properties` falls back to the
@@ -4436,7 +4459,7 @@ declare class GradumEventManagerUtilsHandler extends GradumHandler<GradumEventMa
     applyEventNames(eventNames: Record<string, string>): void;
     setTimer(timerName: string, callback: () => void, duration: number): void;
     clearTimer(timerName: string): void;
-    activateTool(element: Node, toolName: string, value: boolean): void;
+    activateTool(element: Node, toolName: string, value: boolean, manager?: GradumEventManager): void;
 }
 
 /**
@@ -4634,8 +4657,11 @@ declare class GradumEventManagerModel extends GradumModel {
      * alongside {@link lastTargetOrigin} and reused for the rest of the drag, so grabbing a shape on a canvas
      * keeps sending it the drag even once the pointer has moved off it — the same way pointer capture keeps a
      * drag with the element it started on.
+     *
+     * Kept per resolving element, since the node a drag starts on is not always the one that reported what
+     * is under it: a resolver can sit on an ancestor, with ordinary elements of its own in between.
      */
-    lastOriginHits: object[];
+    lastOriginHits: Map<Node, object[]>;
     readonly timerMap: GradumMap<string, NodeJS.Timeout>;
     readonly tools: Map<string, GradumWeakSet<Node>>;
     readonly mappedKeysToTool: Map<string, string>;
@@ -4870,6 +4896,10 @@ declare class GradumEventManagerPointerOperator extends GradumOperator<GradumEve
      * same path emit drag start, drag, and drag end.
      */
     private fireDrag;
+    /**
+     * @description One step up the DOM from a node, crossing out of a shadow root by its host.
+     */
+    private parentOf;
     private getFireOrigin;
 }
 
@@ -6049,7 +6079,12 @@ declare function expose(host: object, rootKey: string, key: string, exposeSetter
  * @category Listeners
  *
  * @description Method decorator that registers the decorated method as an event listener, to be attached later
- * via {@link attachListenersAndBehaviors}.
+ * via {@link attachListenersAndBehaviors}. Usable on elements (`GradumElement`, `GradumHeadlessElement`,
+ * `GradumProxiedElement`), views, operators, and interactors: each attaches what it declares when it
+ * initializes.
+ *
+ * What the listener binds to, unless `properties.target` names it: the instance itself when it is a node, and
+ * otherwise its `element`. A headless element is neither, so it has to name its target.
  * @param {Partial<Omit<ListenerProperties, "callback">>} [properties={}] - Listener configuration. Values
  * will be merged with the detected defaults. If `properties.type` is omitted, the name of the method will be used
  * to derive the event name from {@link DefaultEventName}.
@@ -6058,6 +6093,12 @@ declare function expose(host: object, rootKey: string, key: string, exposeSetter
  * class MyElement {
  *   @listener() click(e: Event) { ... }
  *   //Equivalent to: gradum(this).on(DefaultEventName.click, (e: Event) => { ... });
+ * }
+ * ```
+ * @example ```ts
+ * class MyHeadlessElement {
+ *   @listener({target: document}) gradumClick(e: GradumEvent) { ... }
+ *   //Nothing of its own to listen on, so it says where to listen.
  * }
  * ```
  */
@@ -6090,7 +6131,10 @@ declare function behavior(properties?: Partial<Omit<ListenerProperties, "callbac
  *
  * @description Attach all previously-decorated listeners and behaviors recorded on the given `context`. It attempts to
  * resolve defaults from the latter, such as the `target`, `toolName`, `options`, and `manager`. This method is called
- * automatically in the GradumElement lifecycle.
+ * automatically when an element, view, or operator initializes, so declaring a listener is all that is needed.
+ *
+ * A declaration with no target to bind to is skipped: `@listener` on something that is neither a node nor holds
+ * one does nothing until it names a `target`.
  * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
  */
 declare function attachListenersAndBehaviors(context: any): void;

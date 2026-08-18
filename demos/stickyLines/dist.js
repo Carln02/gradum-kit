@@ -29857,6 +29857,9 @@
                 this.model.size = this.model.size.add(sizeDelta);
                 this.model.position = this.model.position.add(pinned.sub(this.getBoundingClientRect().pointAt(anchor)));
             }
+            delete() {
+                this.remove();
+            }
             getBoundingClientRect() {
                 return new GradumRect({
                     x: this.model.position.x,
@@ -29938,6 +29941,10 @@
                 gradum(this.hitLine).setAttribute("stroke", "transparent").setAttribute("pointer-events", "stroke");
                 this.startHandle = Square.create({ size: 20, color: Color.from("#FFFFFF"), classes: "handle" });
                 this.endHandle = Square.create({ size: 20, color: Color.from("#FFFFFF"), classes: "handle" });
+                //A handle is one end of a line, not a square in its own right: deleting one deletes the line, since a
+                //line with one end left is nothing anybody asked for.
+                for (const handle of [this.startHandle, this.endHandle])
+                    handle.delete = () => this.element.delete();
             }
             setupUILayout() {
                 super.setupUILayout();
@@ -30124,6 +30131,12 @@
             move(delta) {
                 this.view.startHandle?.move(delta);
                 this.view.endHandle?.move(delta);
+            }
+            /**
+             * @description Take the line away, handles and all: they are its view, so they go with it.
+             */
+            delete() {
+                this.remove();
             }
             getBoundingClientRect() {
                 return GradumRect.fromSegment(this.startHandle.position, this.endHandle.position, 10);
@@ -30370,6 +30383,57 @@
         };
     })();
 
+    let DeleteTool = (() => {
+        let _classSuper = GradumTool;
+        let _instanceExtraInitializers = [];
+        let _click_decorators;
+        let _drag_decorators;
+        let _dragEnd_decorators;
+        return class DeleteTool extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _click_decorators = [behavior()];
+                _drag_decorators = [behavior()];
+                _dragEnd_decorators = [behavior()];
+                __esDecorate$1(this, null, _click_decorators, { kind: "method", name: "click", static: false, private: false, access: { has: obj => "click" in obj, get: obj => obj.click }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _drag_decorators, { kind: "method", name: "drag", static: false, private: false, access: { has: obj => "drag" in obj, get: obj => obj.drag }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _dragEnd_decorators, { kind: "method", name: "dragEnd", static: false, private: false, access: { has: obj => "dragEnd" in obj, get: obj => obj.dragEnd }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            toolName = (__runInitializers$1(this, _instanceExtraInitializers), "delete"); //Define the tool name
+            activeClasses = "erasing"; //Marks the page while this tool is out
+            radius = 12;
+            click(e, el) {
+                if (!gradum(el).metadata?.get("modifiable"))
+                    return Propagation.propagate;
+                if ("delete" in el && typeof el.delete === "function")
+                    el.delete(e.position);
+                else
+                    return Propagation.propagate;
+                return Propagation.stopPropagation;
+            }
+            //Equivalent to gradum(tool).addToolBehavior("gradum-drag", "delete", (e, el) => {...});
+            drag(e, el) {
+                if (!gradum(el).metadata?.get("modifiable"))
+                    return Propagation.propagate;
+                if ("deleteAt" in el && typeof el.deleteAt === "function")
+                    el.deleteAt(e.position);
+                else
+                    return Propagation.propagate;
+                return Propagation.stopPropagation;
+            }
+            dragEnd(e, el) {
+                if (!gradum(el).metadata?.get("modifiable"))
+                    return Propagation.propagate;
+                if ("endDeleteAt" in el && typeof el.endDeleteAt === "function")
+                    el.endDeleteAt(e.position);
+                else
+                    return Propagation.propagate;
+                return Propagation.stopPropagation;
+            }
+        };
+    })();
+
     GradumIcon.defaultProperties.directory = "assets";
     Canvas.create({ parent: document.body });
     Toolbar.create({
@@ -30382,6 +30446,7 @@
             GradumButton.create({ leftIcon: "addSquare", tools: AddSquareTool, classes: "demo-button" }),
             GradumButton.create({ leftIcon: "addCircle", tools: AddCircleTool, classes: "demo-button" }),
             GradumButton.create({ leftIcon: "addTriangle", tools: AddTriangleTool, classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "trash", tools: DeleteTool, classes: "demo-button" }),
             div({ classes: "divider" }),
             GradumButton.create({ text: "Add StickyLine", tools: AddStickyLineTool, classes: "demo-button" }),
         ]

@@ -35,6 +35,13 @@ export class StickyLine extends GradumElement<StickyLineView, any, StickyLineMod
         this.view.endHandle?.move(delta);
     }
 
+    /**
+     * @description Take the line away, handles and all: they are its view, so they go with it.
+     */
+    public delete() {
+        this.remove();
+    }
+
     public getBoundingClientRect() {
         return GradumRect.fromSegment(this.startHandle.position, this.endHandle.position, 10);
     }
