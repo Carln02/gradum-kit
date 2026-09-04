@@ -266,6 +266,10 @@ export class ConstrainerFunctionsUtils {
         if (!constrainerData.queue) constrainerData.queue = new GradumQueue();
 
         if (!constrainerData.solvers) return;
+
+        const objectList = this.getField(data.host, data.name, "objectList");
+        const maxPasses = this.getField(data.host, data.name, "maxPasses") ?? constrainerData.maxPasses;
+
         let object: object = properties.eventTarget;
 
         if (properties.eventTarget) constrainerData.queue.remove(properties.eventTarget);
@@ -274,11 +278,11 @@ export class ConstrainerFunctionsUtils {
         const onObjectAdded = (entry: object, state: "added" | "removed") => {
             if (state === "added") constrainerData.queue.push(entry);
         };
-        constrainerData.objectList.onChanged.add(onObjectAdded);
+        if (objectList instanceof GradumNodeList) objectList.onChanged.add(onObjectAdded);
 
         while (object) {
             const passes = constrainerData.passes.get(object) ?? 0;
-            if (passes < constrainerData.maxPasses) {
+            if (passes < maxPasses) {
                 constrainerData.passes.set(object, passes + 1);
 
                 for (const solverName of constrainerData.sortedSolvers) {
@@ -290,6 +294,6 @@ export class ConstrainerFunctionsUtils {
             object = constrainerData.queue.pop();
         }
 
-        constrainerData.objectList.onChanged.remove(onObjectAdded);
+        if (objectList instanceof GradumNodeList) objectList.onChanged.remove(onObjectAdded);
     }
 }

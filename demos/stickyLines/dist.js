@@ -9840,6 +9840,39 @@
     glo[importIdentifier] = true;
 
     /**
+     * @typedef {Object} AutoOptions
+     * @group Decorators
+     * @category Augmentation
+     *
+     * @template Type - The type of the decorated property.
+     * @description Options for configuring the `@auto` decorator.
+     * @property {boolean} [override] - If true, will try to override the defined property in `super`.
+     * @property {boolean} [cancelIfUnchanged=true] - If true, cancels the setter if the new value is the same as the
+     * current value. Defaults to `true`.
+     * @property {(value: Type) => Type} [preprocessValue] - Optional callback to execute on the value and preprocess it
+     * just before it is set. The returned value will be stored.
+     * @property {(value: Type) => void} [callBefore] - Optional function to call before preprocessing and setting the value.
+     * @property {(value: Type) => void} [callAfter] - Optional function to call after setting the value.
+     * @property {boolean} [setIfUndefined] - If true, will fire the setter when the underlying value is `undefined` and
+     * the program is trying to access it (maybe through its getter).
+     * @property {boolean} [returnDefinedGetterValue] - If true and a custom getter is defined, the return value of this
+     * getter will be returned when accessing the property. Otherwise, the underlying saved value will always be returned.
+     * Defaults to `false`.
+     * @property {boolean} [executeSetterBeforeStoring] - If true, when setting the value, the setter will execute first,
+     * and then the value will be stored. In this case, accessing the value in the setter will return the previous value.
+     * Defaults to `false`.
+     * @property {Type} [defaultValue] - If defined, whenever the underlying value is `undefined` and trying to be
+     * accessed, it will be set to `defaultValue` through the setter before getting accessed.
+     * @property {() => Type} [defaultValueCallback] - If defined, whenever the underlying value is `undefined` and
+     * trying to be accessed, it will be set to the return value of `defaultValueCallback` through the setter before
+     * getting accessed.
+     * @property {Type} [initialValue] - If defined, on initialization, the property will be set to `initialValue`.
+     * @property {() => Type} [initialValueCallback] - If defined, on initialization, the property will be set to the
+     * return value of `initialValueCallback`.
+     */
+
+
+    /**
      * @internal
      */
     class AutoUtils {
@@ -19013,8 +19046,24 @@
                 wrap: undefined
             }));
             feedforwardElements.set(type, saved);
+            gradum(saved).metadata?.set(true, "feedforward");
+            gradum(saved).metadata?.set(this.element, "feedforwardOrigin");
             return saved;
         };
+        Object.defineProperty(GradumSelector.prototype, "isFeedforward", {
+            get: function () {
+                return this.metadata?.get("feedforward");
+            },
+            configurable: true,
+            enumerable: true
+        });
+        Object.defineProperty(GradumSelector.prototype, "feedforwardOrigin", {
+            get: function () {
+                return this.metadata?.get("feedforwardOrigin");
+            },
+            configurable: true,
+            enumerable: true
+        });
         Object.defineProperty(GradumSelector.prototype, "defaultFeedforwardProperties", {
             get: function () {
                 if ("defaultFeedforwardProperties" in this.element)
@@ -21365,6 +21414,8 @@
                 constrainerData.queue = new GradumQueue();
             if (!constrainerData.solvers)
                 return;
+            const objectList = this.getField(data.host, data.name, "objectList");
+            const maxPasses = this.getField(data.host, data.name, "maxPasses") ?? constrainerData.maxPasses;
             let object = properties.eventTarget;
             if (properties.eventTarget)
                 constrainerData.queue.remove(properties.eventTarget);
@@ -21374,10 +21425,11 @@
                 if (state === "added")
                     constrainerData.queue.push(entry);
             };
-            constrainerData.objectList.onChanged.add(onObjectAdded);
+            if (objectList instanceof GradumNodeList)
+                objectList.onChanged.add(onObjectAdded);
             while (object) {
                 const passes = constrainerData.passes.get(object) ?? 0;
-                if (passes < constrainerData.maxPasses) {
+                if (passes < maxPasses) {
                     constrainerData.passes.set(object, passes + 1);
                     for (const solverName of constrainerData.sortedSolvers) {
                         const propagation = constrainerData.solvers.get(solverName)?.callback({ ...properties, target: object, constrainer: data.name });
@@ -21387,7 +21439,8 @@
                 }
                 object = constrainerData.queue.pop();
             }
-            constrainerData.objectList.onChanged.remove(onObjectAdded);
+            if (objectList instanceof GradumNodeList)
+                objectList.onChanged.remove(onObjectAdded);
         }
     }
 
@@ -22075,6 +22128,7 @@
                     data.disposeEffect = undefined;
                 }
                 this.attachedObjectsData.delete(object);
+                this.attachedObjects.remove(object);
                 gradum(object).detachReifect(this);
             }
             /**
@@ -29941,10 +29995,10 @@
                 gradum(this.hitLine).setAttribute("stroke", "transparent").setAttribute("pointer-events", "stroke");
                 this.startHandle = Square.create({ size: 20, color: Color.from("#FFFFFF"), classes: "handle" });
                 this.endHandle = Square.create({ size: 20, color: Color.from("#FFFFFF"), classes: "handle" });
-                //A handle is one end of a line, not a square in its own right: deleting one deletes the line, since a
-                //line with one end left is nothing anybody asked for.
-                for (const handle of [this.startHandle, this.endHandle])
+                for (const handle of [this.startHandle, this.endHandle]) {
                     handle.delete = () => this.element.delete();
+                    gradum(handle).metadata.set(false, "selectionBox");
+                }
             }
             setupUILayout() {
                 super.setupUILayout();
@@ -30012,6 +30066,9 @@
     var css_248z$2 = ".sticky-line>svg,.stickyLine{pointer-events:none;position:absolute;touch-action:none}.sticky-line>*{position:absolute}.sticky-line>.handle{border:1px solid #000;border-radius:50%}";
     styleInject(css_248z$2);
 
+    //How close to its spot on the line an object has to be before it is left alone. Solvers run several times
+    //per pointer event, so without it every pass would rewrite a position that is already right.
+    const Epsilon = 0.25;
     let StickyLineConstrainer = (() => {
         let _classSuper = GradumConstrainer;
         let _instanceExtraInitializers = [];
@@ -30024,51 +30081,71 @@
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
             constrainerName = (__runInitializers$1(this, _instanceExtraInitializers), "stickyLine");
-            objectData = new WeakMap();
+            /**
+             * @description Where each held object sits along the line, as a fraction from the start handle to the
+             * end one. Remembered so an object rides the line when the line moves, rather than being re-projected
+             * onto whatever part of it ends up nearest.
+             */
+            positions = new WeakMap();
             initialize() {
                 super.initialize();
                 this.objectList.list = [this.element];
+                //An object the line lets go of keeps nothing of its stay: no spot on the line to return to.
                 this.onObjectListChange.add((object, status) => {
-                    if (object === this.element)
+                    if (object === this.element || status === "added")
                         return;
-                    if (status === "added")
-                        return;
-                    gradum(object).feedforward()?.remove();
+                    this.positions.delete(object);
                 });
             }
             ensureAlignment(properties) {
                 const target = properties.target;
-                if (!target || !(target instanceof Element) || target instanceof StickyLine)
+                //The line's own parts are in the list so that touching them solves the line, not so that the line
+                //aligns them to itself. Another line is skipped too: a line is not something a line holds.
+                if (!(target instanceof Element) || target instanceof StickyLine ||
+                    target === this.element || (target instanceof Node && this.element.contains(target)))
                     return;
-                const manipulatingStickyLine = properties.eventTarget === this.element;
-                if (!manipulatingStickyLine && target instanceof StickyLine)
+                //An object dragged off the line leaves the list mid-event, but the queue it was already in still
+                //carries it. Without this, the pass that follows would snap it straight back.
+                if (!this.objectList.has(target))
                     return;
+                //An object whose feedforward is standing on the line is left where the pointer has it: the copy is
+                //what shows where it will land. Its old spot on the line goes with it, so when it is finally put
+                //down the line asks afresh, and it lands where its copy was rather than where it set off from.
+                for (const entry of this.objectList) {
+                    if (gradum(entry).feedforwardOrigin === target) {
+                        this.positions.delete(target);
+                        return;
+                    }
+                }
                 const start = this.view.startHandle?.position;
                 const end = this.view.endHandle?.position;
                 if (!start || !end)
                     return;
+                //What the target answers for. Usually itself — but the canvas hands the line a feedforward for an
+                //object being dragged, a copy that shows where the object will land while the object itself follows
+                //the pointer. A feedforward belongs wherever the object it stands for currently is.
+                const source = gradum(target).feedforwardOrigin ?? target;
+                //Where the thing being placed is now, and where whatever it answers for is. The two differ only for
+                //a feedforward: it is placed against the object's spot, but checked for drift against its own.
                 const anchor = getRect(target)?.origin;
-                if (!anchor)
+                const sourceAnchor = source === target ? anchor : getRect(source)?.origin;
+                if (!sourceAnchor)
                     return;
-                const isFeedforward = properties.eventType !== DefaultEventName.dragEnd
-                    && !manipulatingStickyLine && !(target instanceof StickyLine);
-                if (!manipulatingStickyLine || !this.objectData.has(target))
-                    this.objectData.set(target, closestPointOnSegment(anchor, start, end)?.positionOnSegment(start, end));
-                const data = this.objectData.get(target);
-                if (!data)
+                //A spot along the line is worked out when the object arrives and kept from then on, so that moving
+                //the line carries what it holds instead of re-projecting it. A feedforward is the exception: it is
+                //there precisely because its object is on the move, so its spot is asked again every pass.
+                if (!this.positions.has(target) || source !== target)
+                    this.positions.set(target, closestPointOnSegment(sourceAnchor, start, end).positionOnSegment(start, end));
+                const position = this.positions.get(target);
+                if (typeof position !== "number")
                     return;
-                const destination = start.add(end.sub(start).mul(data));
-                const EPS = 0.25;
-                if (Point.dist(anchor, destination) < EPS)
+                const destination = start.add(end.sub(start).mul(position));
+                //Facing is part of the constraint, so it is put back whether or not the object has drifted — turning
+                //something on the line without moving it should not leave it lying across the line.
+                this.applyRotation(target, Math.atan2(end.y - start.y, end.x - start.x));
+                if (anchor && Point.dist(anchor, destination) < Epsilon)
                     return;
-                let toMove = target;
-                if (isFeedforward)
-                    toMove = gradum(target).feedforward({
-                        removeOnPointerRelease: true,
-                        parent: target.parentElement
-                    });
-                this.applyRotation(toMove, Math.atan2(end.y - start.y, end.x - start.x));
-                this.applyPosition(toMove, destination);
+                this.applyPosition(target, destination);
             }
             applyRotation(element, angle) {
                 //If element is undefined, not an Element, or doesn't have a rotation field --> return.
@@ -30164,20 +30241,126 @@
             //Define the substrate's name. Equivalent to gradum(canvas).makeSubstrate("main").
             constrainerName = (__runInitializers$1(this, _instanceExtraInitializers), "main");
             defaultQueue = [];
+            /**
+             * @description The feedforward currently standing on the lines in place of the object being dragged, and
+             * the object it stands for. One gesture moves one object, so there is never more than one of either.
+             */
+            feedforward;
+            feedforwardOrigin;
+            /**
+             * @description The tools whose drags are fed forward: the object stays under the pointer and a copy of
+             * it waits on the line until the pointer is released. Every other tool hands the lines the object itself
+             * — resizing or rotating never takes it off the line, so there is nothing to feed forward.
+             */
+            feedforwardTools = ["select"];
             refreshStickyLinesLists(properties) {
-                const target = properties.target;
-                if (!target)
+                const type = properties.eventType;
+                //Nothing here moves on a move event: objects and lines alike are moved by the tools, on the drag
+                //events. A move only ever arrives mid-drag naming the object already under way without saying so,
+                //and acting on it would have the line take hold of the object itself halfway through the gesture.
+                if (type === GradumEventName.move)
                     return;
-                const stickylines = Array.from(this.objectList).filter(entry => entry instanceof StickyLine);
-                const overlaps = this.findOverlaps(target, stickylines);
-                for (const stickyline of stickylines) {
-                    if (stickyline === target)
+                const target = properties.target;
+                if (!target || gradum(target).isFeedforward)
+                    return;
+                //Which of the passes names what the pointer has hold of. Every other pass is one where nothing is
+                //being dragged, so there is nothing to feed forward either.
+                const draggedTarget = type === GradumEventName.dragStart || type === GradumEventName.drag
+                    ? properties.eventTarget : undefined;
+                const lines = [];
+                const objects = [];
+                for (const entry of this.objectList) {
+                    if (gradum(entry).isFeedforward)
                         continue;
-                    if (overlaps.includes(stickyline))
-                        gradum(stickyline).getConstrainerObjectList().add(target);
-                    else if (properties.eventTarget !== stickyline)
-                        gradum(stickyline).getConstrainerObjectList().remove(target);
+                    (entry instanceof StickyLine ? lines : objects).push(entry);
                 }
+                this.refreshFeedforward(draggedTarget, properties, lines, objects);
+                //A line that moves has to be asked the other way around: which objects does it now cover? Asking
+                //only which lines cover the object would leave a line sweeping across the canvas picking up nothing.
+                //It only ever picks up here, never lets go: what it holds travels with it, so an object leaves a
+                //line by being dragged off it — which is the other branch, where the object is the one that moved.
+                if (target instanceof StickyLine) {
+                    for (const object of this.findOverlaps(target, objects))
+                        this.hold(target, object);
+                    return;
+                }
+                const overlaps = this.findOverlaps(target, lines);
+                for (const line of lines) {
+                    if (overlaps.includes(line))
+                        this.hold(line, target);
+                    else
+                        this.release(line, target);
+                }
+            }
+            /**
+             * @description Have the line hold the object, and — while the object is being dragged — the feedforward
+             * for it alongside. The line places the copy and leaves the object alone, which is what lets the object
+             * follow the pointer while the line still shows where it will land.
+             *
+             * The object stays in the list either way. A constrainer is only woken by events naming something in
+             * its list, so a line that let go of the object while standing in for it would stop being told about
+             * the drag at all, and its copy would sit wherever it was last left.
+             * @param {object} line - The line doing the holding.
+             * @param {object} object - The object it should hold.
+             * @protected
+             */
+            hold(line, object) {
+                const list = gradum(line).getConstrainerObjectList();
+                list.add(object);
+                if (object === this.feedforwardOrigin)
+                    list.add(this.feedforward);
+            }
+            /**
+             * @description Have the line let go of the object, and of the feedforward stood there for it.
+             * @param {object} line - The line letting go.
+             * @param {object} object - The object it should let go of.
+             * @protected
+             */
+            release(line, object) {
+                const list = gradum(line).getConstrainerObjectList();
+                list.remove(object);
+                if (object === this.feedforwardOrigin)
+                    list.remove(this.feedforward);
+            }
+            /**
+             * @description Keep a feedforward for the object being dragged for as long as the gesture calls for
+             * one, and none once it does not. Releasing is what commits: the feedforward comes off the lines, and
+             * the object takes its place there on the same pass, so what waited on the line is what lands on it.
+             * @param {object} target - What the pointer has hold of, or nothing when it holds nothing.
+             * @param {ConstrainerCallbackProperties} properties - The current solver pass.
+             * @param {object[]} lines - The lines on the canvas.
+             * @param {object[]} objects - Everything else the canvas holds, which is everything a line can pick up.
+             * @protected
+             */
+            refreshFeedforward(target, properties, lines, objects) {
+                //Wanted for something held over a line by a tool that would carry it off one, until the drag ends —
+                //which is what commits, putting the object itself down where its feedforward was waiting.
+                const wanted = objects.includes(target)
+                    && properties.eventType !== GradumEventName.dragEnd
+                    && this.feedforwardTools.includes(properties.toolName)
+                    && lines.some(line => this.overlaps(target, line));
+                if (wanted) {
+                    const standing = this.feedforward;
+                    this.feedforwardOrigin = target;
+                    //Asking for it again on a later pass hands back the same copy, not a new one, and it takes
+                    //itself away when the pointer is released.
+                    this.feedforward = gradum(target).feedforward({ removeOnPointerRelease: true, parent: target instanceof Element ? target.parentElement : undefined });
+                    //A copy coming back from an earlier stint on a line still sits where that stint left it. It
+                    //starts again on the object it stands for, so it is never seen at the old spot in the moment
+                    //before the line takes it over.
+                    if (!standing && "position" in this.feedforward && "position" in target)
+                        this.feedforward["position"] = target["position"];
+                    return;
+                }
+                if (!this.feedforward)
+                    return;
+                for (const line of lines)
+                    gradum(line).getConstrainerObjectList().remove(this.feedforward);
+                //Off the lists is not enough: nothing places it any more, so left in the page it would hang where it
+                //last stood. The copy itself is kept — asking to feed it forward again puts this same one back.
+                this.feedforward["remove"]?.();
+                this.feedforward = undefined;
+                this.feedforwardOrigin = undefined;
             }
             /**
              * @description Retrieve all elements from the object list that overlap on the screen with the given element.

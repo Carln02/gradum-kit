@@ -12151,6 +12151,15 @@ interface GradumSelector<Type extends object = Node> {
          */
         feedforward(options?: FeedforwardProperties): Type;
         /**
+         * @description Whether this object was created using gradum().feedforward().
+         */
+        readonly isFeedforward: boolean;
+        /**
+         * @description The element this one was fed forward from, when it is a feedforward — what it stands
+         * for, so callers positioning it can ask where the real thing currently is. Undefined otherwise.
+         */
+        readonly feedforwardOrigin: object;
+        /**
          * @category Element
          * @description The properties passed on to children created through {@link GradumSelector.feedforward},
          * letting a parent seed its descendants with shared defaults.

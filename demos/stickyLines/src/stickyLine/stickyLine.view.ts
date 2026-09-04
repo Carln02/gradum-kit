@@ -26,9 +26,10 @@ export class StickyLineView extends GradumView<StickyLine, StickyLineModel> {
         this.startHandle = Square.create({size: 20, color: Color.from("#FFFFFF"), classes: "handle"});
         this.endHandle = Square.create({size: 20, color: Color.from("#FFFFFF"), classes: "handle"});
 
-        //A handle is one end of a line, not a square in its own right: deleting one deletes the line, since a
-        //line with one end left is nothing anybody asked for.
-        for (const handle of [this.startHandle, this.endHandle]) handle.delete = () => this.element.delete();
+        for (const handle of [this.startHandle, this.endHandle]) {
+            handle.delete = () => this.element.delete();
+            gradum(handle).metadata.set(false, "selectionBox");
+        }
     }
 
     protected setupUILayout() {

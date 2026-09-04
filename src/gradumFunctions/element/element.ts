@@ -420,8 +420,26 @@ export function setupElementFunctions() {
                 wrap: undefined
             }));
         feedforwardElements.set(type, saved);
+        gradum(saved).metadata?.set(true, "feedforward");
+        gradum(saved).metadata?.set(this.element, "feedforwardOrigin");
         return saved as any;
     }
+
+    Object.defineProperty(GradumSelector.prototype, "isFeedforward", {
+        get: function () {
+            return this.metadata?.get("feedforward");
+        },
+        configurable: true,
+        enumerable: true
+    });
+
+    Object.defineProperty(GradumSelector.prototype, "feedforwardOrigin", {
+        get: function () {
+            return this.metadata?.get("feedforwardOrigin");
+        },
+        configurable: true,
+        enumerable: true
+    });
 
     Object.defineProperty(GradumSelector.prototype, "defaultFeedforwardProperties", {
         get: function () {

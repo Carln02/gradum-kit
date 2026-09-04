@@ -11194,8 +11194,24 @@ function setupElementFunctions() {
             wrap: undefined
         }));
         feedforwardElements.set(type, saved);
+        gradum(saved).metadata?.set(true, "feedforward");
+        gradum(saved).metadata?.set(this.element, "feedforwardOrigin");
         return saved;
     };
+    Object.defineProperty(GradumSelector.prototype, "isFeedforward", {
+        get: function () {
+            return this.metadata?.get("feedforward");
+        },
+        configurable: true,
+        enumerable: true
+    });
+    Object.defineProperty(GradumSelector.prototype, "feedforwardOrigin", {
+        get: function () {
+            return this.metadata?.get("feedforwardOrigin");
+        },
+        configurable: true,
+        enumerable: true
+    });
     Object.defineProperty(GradumSelector.prototype, "defaultFeedforwardProperties", {
         get: function () {
             if ("defaultFeedforwardProperties" in this.element)
@@ -13546,6 +13562,8 @@ class ConstrainerFunctionsUtils {
             constrainerData.queue = new GradumQueue();
         if (!constrainerData.solvers)
             return;
+        const objectList = this.getField(data.host, data.name, "objectList");
+        const maxPasses = this.getField(data.host, data.name, "maxPasses") ?? constrainerData.maxPasses;
         let object = properties.eventTarget;
         if (properties.eventTarget)
             constrainerData.queue.remove(properties.eventTarget);
@@ -13555,10 +13573,11 @@ class ConstrainerFunctionsUtils {
             if (state === "added")
                 constrainerData.queue.push(entry);
         };
-        constrainerData.objectList.onChanged.add(onObjectAdded);
+        if (objectList instanceof GradumNodeList)
+            objectList.onChanged.add(onObjectAdded);
         while (object) {
             const passes = constrainerData.passes.get(object) ?? 0;
-            if (passes < constrainerData.maxPasses) {
+            if (passes < maxPasses) {
                 constrainerData.passes.set(object, passes + 1);
                 for (const solverName of constrainerData.sortedSolvers) {
                     const propagation = constrainerData.solvers.get(solverName)?.callback({ ...properties, target: object, constrainer: data.name });
@@ -13568,7 +13587,8 @@ class ConstrainerFunctionsUtils {
             }
             object = constrainerData.queue.pop();
         }
-        constrainerData.objectList.onChanged.remove(onObjectAdded);
+        if (objectList instanceof GradumNodeList)
+            objectList.onChanged.remove(onObjectAdded);
     }
 }
 
