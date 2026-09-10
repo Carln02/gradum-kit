@@ -111,10 +111,14 @@ function behavior(properties: Partial<Omit<ListenerProperties, "callback" | "opt
  *
  * A declaration with no target to bind to is skipped: `@listener` on something that is neither a node nor holds
  * one does nothing until it names a `target`.
+ *
+ * Calling it again re-attaches from scratch: whatever it bound last time is taken back first, so a context whose
+ * target has changed ends up bound once, to the new one.
  * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
  */
 function attachListenersAndBehaviors(context: any) {
     if (!context || typeof context !== "object") return;
+    detachListenersAndBehaviors(context);
     const listeners = utils.getAllListeners(context);
     if (!listeners || listeners.size === 0) return;
 
@@ -141,12 +145,47 @@ function attachListenersAndBehaviors(context: any) {
                 method.call(context, e, el, options);
             (callback as any).sourceFunction = method;
             gradum(context).addToolBehavior(listener.type, callback, tool, manager);
+            utils.addAttachment(context, {kind: "behavior", type: listener.type, toolName: tool, callback, manager});
         } else if (listener.kind === "listener") {
             if (!(target instanceof Node)) continue;
-            gradum(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el),
-                listener.options ?? defaultOptions, manager);
+            const callback = (e: Event, el: Node) => method.call(context, e, el);
+            gradum(target).onTool(listener.type, tool, callback, listener.options ?? defaultOptions, manager);
+            utils.addAttachment(context,
+                {kind: "listener", target, type: listener.type, toolName: tool, callback, manager});
         }
     }
 }
 
-export {listener, behavior, attachListenersAndBehaviors};
+/**
+ * @function detachListenersAndBehaviors
+ * @group Decorators
+ * @category Listeners
+ *
+ * @description Take back every listener and behavior {@link attachListenersAndBehaviors} bound for the given
+ * context, and nothing else. Called for you when an operator, interactor, tool, or constrainer is removed from
+ * an element, so a piece that has been taken off stops responding to events.
+ * @param {any} context - The object whose bindings should be taken back.
+ */
+function detachListenersAndBehaviors(context: any) {
+    if (!context || typeof context !== "object") return;
+    utils.removeAttachments(context);
+}
+
+/**
+ * @function reattachListenersAndBehaviors
+ * @group Decorators
+ * @category Listeners
+ *
+ * @description Bind the context's listeners and behaviors again, but only if they were ever bound in the first
+ * place. For anything that has to be re-bound when what it listens on changes, without that change reaching
+ * forward and attaching listeners to something that has not initialized yet.
+ * @param {any} context - The object to re-bind.
+ * @returns {boolean} Whether anything was re-bound.
+ */
+function reattachListenersAndBehaviors(context: any): boolean {
+    if (!context || typeof context !== "object" || !utils.hasAttachments(context)) return false;
+    attachListenersAndBehaviors(context);
+    return true;
+}
+
+export {listener, behavior, attachListenersAndBehaviors, detachListenersAndBehaviors, reattachListenersAndBehaviors};

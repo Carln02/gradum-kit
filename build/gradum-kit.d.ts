@@ -1973,8 +1973,10 @@ declare class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKey
      * @description Trigger all callbacks registered for the given event name.
      * @param {string} event - The event name.
      * @param {...any[]} args - Arguments passed to each callback.
+     * @returns {any} What the callbacks returned — the last one to return anything wins — or `undefined`
+     * when none did. Lets a caller learn the outcome of what it fired, rather than only that it fired.
      */
-    fire(event: string, ...args: any[]): void;
+    fire(event: string, ...args: any[]): any;
     /**
      * @function addKey
      * @description Register a callback fired when the entry at the given key path changes in the model.
@@ -2185,6 +2187,16 @@ declare class GradumOperator<ElementType extends object = object, ViewType exten
      * @description Initializes the operator. Specifically, it will set up the change callbacks.
      */
     initialize(): void;
+    /**
+     * @function detach
+     * @description Undoes {@link initialize}'s listener work: every `@listener` and `@behavior` this operator
+     * bound is taken back, so a piece removed from an element stops responding to events. Called for you when
+     * the operator is removed. Initializing it again binds them afresh.
+     *
+     * Note that this covers listeners and behaviors only — anything a subclass sets up by hand in
+     * `setupChangedCallbacks` is its own to undo.
+     */
+    detach(): void;
     /**
      * @function setupUIListeners
      * @description Setup method for defining DOM and input event listeners.
@@ -2510,10 +2522,17 @@ declare class GradumInteractor<ElementType extends object = object, ViewType ext
      * default to "something".
      */
     keyName: string;
+    private _target;
     /**
-     * @description The target of the event listeners. Defaults to the element itself.
+     * @description The node the interactor's `@listener` methods are bound to. Defaults to the element itself.
+     *
+     * It can be changed at any point: assigning after the interactor has initialized takes the listeners off
+     * the old node and binds them to the new one, so an interactor can follow a target that is only known
+     * later — a parent assigned during layout, or a node another view creates. Assigning before it initializes
+     * simply decides where they will first be bound.
      */
-    accessor target: Node;
+    get target(): Node;
+    set target(value: Node);
     /**
      * @readonly
      * @description The name of the tool (if any) to listen for.
@@ -4834,6 +4853,10 @@ declare enum InputDevice {
  * @extends GradumOperator
  * @description Translates native keyboard input into {@link GradumKeyEvent}s. It keeps the manager's
  * list of currently-held keys up to date and activates any tool bound to the pressed key.
+ *
+ * The events are dispatched at the element under the pointer rather than at the document, so a keyboard
+ * interactor binds to its own element the way a pointer one does, and a handler's `preventDefault()` is
+ * carried back to the native key event so it actually stops the browser.
  */
 declare class GradumEventManagerKeyOperator extends GradumOperator<GradumEventManager, any, GradumEventManagerModel> {
     keyName: string;
@@ -4841,6 +4864,18 @@ declare class GradumEventManagerKeyOperator extends GradumOperator<GradumEventMa
     protected keyDownFn(e: KeyboardEvent): void;
     keyUp: (e: KeyboardEvent) => void;
     protected keyUpFn(e: KeyboardEvent): void;
+    /**
+     * @protected
+     * @function hoveredTarget
+     * @description Where a key press happens, as far as the tree is concerned: the element under the pointer.
+     *
+     * A keyboard has no target of its own, so key events used to be fired at the document, which left every
+     * keyboard listener on the page hearing every keystroke and working out for itself whether it was meant.
+     * Firing at the hovered element lets one bind to its own element the way a pointer listener does. Nothing
+     * bound to the document loses out: it is still on the path of an event fired on a descendant.
+     * @returns {Node} The element under the pointer, or the document when there is none.
+     */
+    protected hoveredTarget(): Node;
 }
 
 /**
@@ -4988,23 +5023,27 @@ type GradumDragEventProperties = GradumRawEventProperties & {
  * @category GradumEvents
  *
  * @description Properties used to construct a {@link GradumKeyEvent}. Exactly one of the two keys is set,
- * depending on whether the event is a press or a release.
+ * depending on whether the event is a press or a release. Extends {@link GradumEventProperties}: a key event
+ * carries a position like any other, defaulting to where the pointer was last seen.
  * @property {string} [keyPressed] - The key that was pressed.
  * @property {string} [keyReleased] - The key that was released.
+ * @property {boolean} [repeat] - Whether this is the browser repeating a held key rather than a fresh press.
  */
-type GradumKeyEventProperties = GradumRawEventProperties & {
+type GradumKeyEventProperties = GradumEventProperties & {
     keyPressed?: string;
     keyReleased?: string;
+    repeat?: boolean;
 };
 /**
  * @type {GradumWheelEventProperties}
  * @group Event Handling
  * @category GradumEvents
  *
- * @description Properties used to construct a {@link GradumWheelEvent}.
+ * @description Properties used to construct a {@link GradumWheelEvent}. Extends
+ * {@link GradumEventProperties}: a wheel event happens at a position like any other.
  * @property {Point} [delta] - How far the wheel or trackpad scrolled, per axis.
  */
-type GradumWheelEventProperties = GradumRawEventProperties & {
+type GradumWheelEventProperties = GradumEventProperties & {
     delta?: Point;
 };
 
@@ -5166,6 +5205,9 @@ declare class GradumEvent extends Event {
  * tool `@behavior` methods. Each pass stops early when a handler returns anything other than
  * `Propagation.propagate`.
  *
+ * Dispatch hands the event back, so whoever fired it can read what handlers did with it — `defaultPrevented`
+ * above all, which the operators that synthesize from native input carry back to the native event.
+ *
  * *Note: move events are the exception. Their composed path is the drag origin's ancestor chain, which
  * omits elements merely sitting under the cursor, so they are dispatched in a single pass over the
  * z-stack at the pointer instead — topmost first, stopping at the first handler that does not
@@ -5175,7 +5217,7 @@ declare class GradumEventManagerDispatchOperator extends GradumOperator<GradumEv
     keyName: string;
     private boundHooks;
     protected setupChangedCallbacks(): void;
-    protected dispatchEvent: <EventType extends GradumEvent = GradumEvent, PropertiesType extends GradumRawEventProperties = GradumRawEventProperties>(target: Node, eventType: new (properties: PropertiesType) => EventType, properties: Partial<PropertiesType>) => void;
+    protected dispatchEvent: <EventType extends GradumEvent = GradumEvent, PropertiesType extends GradumRawEventProperties = GradumRawEventProperties>(target: Node, eventType: new (properties: PropertiesType) => EventType, properties: Partial<PropertiesType>) => EventType;
     /**
      * @private
      * @function expandPath
@@ -6135,9 +6177,35 @@ declare function behavior(properties?: Partial<Omit<ListenerProperties, "callbac
  *
  * A declaration with no target to bind to is skipped: `@listener` on something that is neither a node nor holds
  * one does nothing until it names a `target`.
+ *
+ * Calling it again re-attaches from scratch: whatever it bound last time is taken back first, so a context whose
+ * target has changed ends up bound once, to the new one.
  * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
  */
 declare function attachListenersAndBehaviors(context: any): void;
+/**
+ * @function detachListenersAndBehaviors
+ * @group Decorators
+ * @category Listeners
+ *
+ * @description Take back every listener and behavior {@link attachListenersAndBehaviors} bound for the given
+ * context, and nothing else. Called for you when an operator, interactor, tool, or constrainer is removed from
+ * an element, so a piece that has been taken off stops responding to events.
+ * @param {any} context - The object whose bindings should be taken back.
+ */
+declare function detachListenersAndBehaviors(context: any): void;
+/**
+ * @function reattachListenersAndBehaviors
+ * @group Decorators
+ * @category Listeners
+ *
+ * @description Bind the context's listeners and behaviors again, but only if they were ever bound in the first
+ * place. For anything that has to be re-bound when what it listens on changes, without that change reaching
+ * forward and attaching listeners to something that has not initialized yet.
+ * @param {any} context - The object to re-bind.
+ * @returns {boolean} Whether anything was re-bound.
+ */
+declare function reattachListenersAndBehaviors(context: any): boolean;
 
 /**
  * @decorator
@@ -7058,8 +7126,7 @@ declare class GradumDragEvent extends GradumEvent {
  *
  * @extends GradumEvent
  * @description The event fired for `gradum-key-pressed` and `gradum-key-released`. Which of the two key
- * fields is set tells you which happened. Key events carry no pointer position, so
- * {@link GradumEvent.position} is `null`.
+ * fields is set tells you which happened.
  */
 declare class GradumKeyEvent extends GradumEvent {
     /**
@@ -7071,8 +7138,16 @@ declare class GradumKeyEvent extends GradumEvent {
      */
     readonly keyReleased: string;
     /**
+     * @description Whether this press is the browser repeating a key that is being held, rather than a fresh
+     * one. Mirrors [`KeyboardEvent.repeat`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/repeat).
+     * Repeats are what a held key drives a continuous action with — scrubbing, nudging, stepping — so ignore
+     * them when one press should mean one thing. Always `false` on a release.
+     */
+    readonly repeat: boolean;
+    /**
      * @constructor
-     * @description Create a key event. Its position is always `null`.
+     * @description Create a key event. Its position defaults to where the manager last saw the pointer, and
+     * is `null` when it has not seen one.
      * @param {GradumKeyEventProperties} properties - The key involved and the input context.
      */
     constructor(properties: GradumKeyEventProperties);
@@ -7084,8 +7159,8 @@ declare class GradumKeyEvent extends GradumEvent {
  * @category GradumEvents
  *
  * @extends GradumEvent
- * @description The event fired for `gradum-scroll` and `gradum-pinch`. Wheel events carry no pointer
- * position, so {@link GradumEvent.position} is `null` — read {@link GradumWheelEvent.delta} instead.
+ * @description The event fired for `gradum-scroll` and `gradum-pinch`. It carries where the wheel was
+ * turned in {@link GradumEvent.position}, and how far in {@link GradumWheelEvent.delta}.
  */
 declare class GradumWheelEvent extends GradumEvent {
     /**
@@ -7094,8 +7169,8 @@ declare class GradumWheelEvent extends GradumEvent {
     readonly delta: Point;
     /**
      * @constructor
-     * @description Create a wheel event. Its position is always `null`.
-     * @param {GradumWheelEventProperties} properties - The scroll delta and the input context.
+     * @description Create a wheel event.
+     * @param {GradumWheelEventProperties} properties - The scroll delta, the position, and the input context.
      */
     constructor(properties: GradumWheelEventProperties);
 }
@@ -11692,7 +11767,7 @@ type FontProperties = {
  */
 declare function loadLocalFont(font: FontProperties): void;
 
-export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, GradumBaseElement, GradumButton, GradumButtonPopup, GradumClickEventName, GradumConstrainer, GradumContentSwitch, GradumDragEvent, GradumDragEventName, GradumDrawer, GradumDropdown, GradumElement, GradumEmitter, GradumEvent, GradumEventManager, GradumEventName, GradumGrid, GradumHandler, GradumHeadlessElement, GradumIcon, GradumIconSwitch, GradumIconToggle, GradumInput, GradumInteractor, GradumKeyEvent, GradumKeyEventName, GradumLabelElement, GradumMap, GradumMarkingMenu, GradumModel, GradumMovable, GradumMoveEventName, GradumNestedMap, GradumNodeList, GradumNumericalInput, GradumObserver, GradumOperator, GradumPopup, GradumProxiedElement, GradumQueue, GradumRect, GradumRichElement, GradumSelect, GradumSelectElement, GradumSelectInputEvent, GradumSelectWheel, GradumSelector, GradumTool, GradumView, GradumWeakSet, GradumWheelEvent, GradumWheelEventName, GradumYModel, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, deepObserveAll, deepObserveAny, define, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, g, generateTagFunction, getAllRegistered, getConstructorChain, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, gr, gradum, gradumify, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, modelSignal, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, textToElement, textarea, tool, trackSignal, trim, untrack, urlToBlob, video };
+export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, GradumBaseElement, GradumButton, GradumButtonPopup, GradumClickEventName, GradumConstrainer, GradumContentSwitch, GradumDragEvent, GradumDragEventName, GradumDrawer, GradumDropdown, GradumElement, GradumEmitter, GradumEvent, GradumEventManager, GradumEventName, GradumGrid, GradumHandler, GradumHeadlessElement, GradumIcon, GradumIconSwitch, GradumIconToggle, GradumInput, GradumInteractor, GradumKeyEvent, GradumKeyEventName, GradumLabelElement, GradumMap, GradumMarkingMenu, GradumModel, GradumMovable, GradumMoveEventName, GradumNestedMap, GradumNodeList, GradumNumericalInput, GradumObserver, GradumOperator, GradumPopup, GradumProxiedElement, GradumQueue, GradumRect, GradumRichElement, GradumSelect, GradumSelectElement, GradumSelectInputEvent, GradumSelectWheel, GradumSelector, GradumTool, GradumView, GradumWeakSet, GradumWheelEvent, GradumWheelEventName, GradumYModel, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, deepObserveAll, deepObserveAny, define, detachListenersAndBehaviors, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, g, generateTagFunction, getAllRegistered, getConstructorChain, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, gr, gradum, gradumify, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, modelSignal, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, reattachListenersAndBehaviors, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, textToElement, textarea, tool, trackSignal, trim, untrack, urlToBlob, video };
 export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledGradumEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, Gradum, GradumButtonPopupProperties, GradumConstrainerProperties, GradumContentSwitchProperties, GradumDragEventProperties, GradumDrawerProperties, GradumDropdownProperties, GradumElementDefaultInterface, GradumElementMvcInterface, GradumElementProperties, GradumElementPropertiesMap, GradumElementTagNameMap, GradumElementUiInterface, GradumEventManagerLockStateProperties, GradumEventManagerProperties, GradumEventManagerStateProperties, GradumEventNameEntry, GradumEventNameKey, GradumEventProperties, GradumHeadlessProperties, GradumIconProperties, GradumIconSwitchProperties, GradumIconToggleProperties, GradumInputProperties, GradumInteractorProperties, GradumKeyEventProperties, GradumLabelElementProperties, GradumMarkingMenuProperties, GradumModelProperties, GradumModelProxy, GradumNumericalInputProperties, GradumObserverProperties, GradumOperatorProperties, GradumPopupProperties, GradumProperties, GradumProxiedProperties, GradumRawEventProperties, GradumRectProperties, GradumRichElementProperties, GradumSelectElementProperties, GradumSelectInputEventProperties, GradumSelectProperties, GradumSelectWheelProperties, GradumSelectWheelStylingProperties, GradumToolProperties, GradumViewProperties, GradumWheelEventProperties, GradumifyOptions, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, HitResolver, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
 
 // Flattened from relative module augmentations
@@ -11960,6 +12035,20 @@ interface GradumSelector {
          * @returns {boolean} True if one or more behaviors are registered.
          */
         hasToolBehavior(type: string, toolName?: string, manager?: GradumEventManager): boolean;
+        /**
+         * @function removeToolBehavior
+         * @category Tools
+         * @description Removes one behavior — the one registered with this exact callback — for the pair
+         * "`type`, `toolName`" under the given manager. Use it over {@link removeToolBehaviors} whenever the
+         * callback is at hand, which leaves every other behavior on the same pair in place.
+         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
+         * @param {ToolBehaviorCallback} callback - The behavior function that was registered.
+         * @param {string} [toolName=this.getToolName()] - The tool name the behavior was bound under. Defaults
+         * to this element's first tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {this} Itself for chaining.
+         */
+        removeToolBehavior(type: string, callback: ToolBehaviorCallback, toolName?: string, manager?: GradumEventManager): this;
         /**
          * @function removeToolBehaviors
          * @category Tools

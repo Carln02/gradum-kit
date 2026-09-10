@@ -28,9 +28,6 @@ export class CanvasConstrainer extends GradumConstrainer<Substrate> {
     public initialize() {
         super.initialize();
         this.defaultQueue = [];
-
-        this.objectList = this.element["objectsList"];
-        this.triggerList = this.objectList;
     }
 
     /**

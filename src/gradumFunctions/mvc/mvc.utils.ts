@@ -24,6 +24,8 @@ import {MvcManyInstancesOrConstructors} from "./mvc.types";
  * @property {Map<string, GradumInteractor>} interactors - Interactors by key name.
  * @property {Map<string, GradumTool>} tools - Tools by key name.
  * @property {Map<string, GradumConstrainer>} constrainers - Constrainers by key name.
+ * @property {boolean} [initialized] - Whether the element's pieces have been initialized. What tells a piece
+ * handed over later that it has missed that pass and has to initialize itself.
  * @property {(value: any, key: string) => void} emitterCallback - Relays named emitter events to the element.
  * @property {(value: any, ...keys: KeyType[]) => void} emitterKeyCallback - Relays key-path events to the element.
  */
@@ -36,6 +38,7 @@ type MvcData = {
     interactors: Map<string, GradumInteractor>;
     tools: Map<string, GradumTool>;
     constrainers: Map<string, GradumConstrainer>;
+    initialized?: boolean;
     emitterCallback: (value: any, key: string) => void;
     emitterKeyCallback: (value: any, ...keys: KeyType[]) => void;
 };
@@ -178,9 +181,36 @@ export class MvcFunctionsUtils {
         const key = typeof keyOrInstance === "string" ? keyOrInstance
             : Array.from(map.entries()).find(([, v]) => v === keyOrInstance)?.[0];
         if (!key) return;
+        const instance = map.get(key);
+        //Unlinking the model, view and emitter is not enough on its own: the piece's listeners would go on
+        //firing, now against the references just taken away from it. It is let go of first, then unlinked.
+        instance?.detach?.();
         const methodName = "update" + kind.charAt(0).toUpperCase() + kind.slice(1);
-        this[methodName]?.(element, map.get(key), false);
+        this[methodName]?.(element, instance, false);
         map.delete(key);
+    }
+
+    /**
+     * @function keyIsTaken
+     * @description Whether the key an MVC piece derived is already spoken for, and say so out loud when it is
+     * spoken for by something else. Two classes whose essence names come out the same — a hazard of deriving
+     * keys from class names — would otherwise have the second one quietly discarded, leaving nothing to
+     * explain why its listeners never fire.
+     * @param {Map<string, any>} map - The map the piece would be registered in.
+     * @param {string} key - The key it derived or was given.
+     * @param {object} instance - The piece being registered.
+     * @param {string} kind - What kind of piece it is, for the warning.
+     * @returns {boolean} Whether registration should be skipped.
+     */
+    public keyIsTaken(map: Map<string, any>, key: string, instance: object, kind: string): boolean {
+        if (!map) return false;
+        const existing = map.get(key);
+        if (existing === undefined) return false;
+        //Re-adding the same piece is the idempotent case this check exists for, and stays quiet.
+        if (existing !== instance) console.warn(
+            `Gradum: ${instance?.constructor?.name} was not added — the ${kind} key "${key}" on this element `
+            + `already belongs to ${existing?.constructor?.name}. Give one of them a distinct keyName.`);
+        return true;
     }
 
     public generateInstance<Type>(data: MvcManyInstancesOrConstructors<Type>, element?: object): Type {

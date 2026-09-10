@@ -6,6 +6,7 @@ import {GradumEmitter} from "../emitter/emitter";
 import {GradumModel} from "../model/model";
 import {GradumOperator} from "../operator/operator";
 import {addRegistryCategory, define} from "../../decorators/define/define";
+import {reattachListenersAndBehaviors} from "../../decorators/listener/listener";
 
 /**
  * @class GradumInteractor
@@ -33,10 +34,27 @@ class GradumInteractor<
      */
     public declare keyName: string;
 
+    private declare _target: Node;
+
     /**
-     * @description The target of the event listeners. Defaults to the element itself.
+     * @description The node the interactor's `@listener` methods are bound to. Defaults to the element itself.
+     *
+     * It can be changed at any point: assigning after the interactor has initialized takes the listeners off
+     * the old node and binds them to the new one, so an interactor can follow a target that is only known
+     * later — a parent assigned during layout, or a node another view creates. Assigning before it initializes
+     * simply decides where they will first be bound.
      */
-    public accessor target: Node;
+    public get target(): Node {
+        return this._target;
+    }
+
+    public set target(value: Node) {
+        if (this._target === value) return;
+        this._target = value;
+        //A no-op until the listeners have actually been bound once, so setting a target during construction
+        //does not reach forward and bind them before the interactor has initialized.
+        reattachListenersAndBehaviors(this);
+    }
 
     /**
      * @readonly

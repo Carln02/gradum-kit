@@ -16,7 +16,7 @@ export class Canvas extends GradumElement implements Substrate {
 
     protected canvas: HTMLCanvasElement;
     protected context: CanvasRenderingContext2D;
-    public objectsList: Set<CanvasObject> = new Set();
+    public objectsList: GradumNodeList<CanvasObject> = new GradumNodeList();
     private stopRendering: () => void;
 
     public initialize() {
@@ -24,7 +24,14 @@ export class Canvas extends GradumElement implements Substrate {
         gradum(this).metadata.set(true, "substrate");
         gradum(this).hitResolver = (position: Point) => this.objectsAt(position);
 
-        // this.objectsList.onChanged.add(() => this.startRendering());
+        for (const name of gradum(this).constrainersNames)
+            gradum(this).getConstrainerObjectList(name).clear().add(this.objectsList);
+
+        this.objectsList.onChanged.add((obj, state) => {
+            gradum(obj).hitParent = state === "added" ? this : undefined;
+            this.startRendering()
+        });
+
         window.addEventListener("resize", () => this.resize());
         this.resize();
     }
@@ -44,17 +51,10 @@ export class Canvas extends GradumElement implements Substrate {
 
     public addObject(obj: CanvasObject) {
         this.objectsList.add(obj);
-
-        //Where it now lives, and where a hit on it goes next. Said outright rather than left to the first
-        //hit to work out, so an object can find its way off the canvas without having been clicked first.
-        gradum(obj).hitParent = this;
-        this.startRendering();
     }
 
     public removeObject(obj: CanvasObject) {
-        this.objectsList.delete(obj);
-        gradum(obj).hitParent = undefined;
-        this.startRendering()
+        this.objectsList.remove(obj);
     }
 
     /**

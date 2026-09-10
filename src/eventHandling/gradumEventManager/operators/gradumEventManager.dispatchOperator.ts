@@ -2,7 +2,7 @@ import {GradumEventManagerModel} from "../gradumEventManager.model";
 import {GradumEventManager} from "../gradumEventManager";
 import {ClickMode} from "../gradumEventManager.types";
 import {GradumEvent} from "../../events/gradumEvent";
-import {GradumRawEventProperties} from "../../events/gradumEvent.types";
+import {GradumEventProperties, GradumRawEventProperties} from "../../events/gradumEvent.types";
 import {gradum} from "../../../gradumFunctions/gradumFunctions";
 import {GradumOperator} from "../../../mvc/operator/operator";
 import {GradumKeyEventName, GradumMoveEventName} from "../../../types/eventNaming.types";
@@ -19,6 +19,9 @@ import {Propagation} from "../../../gradumFunctions/event/event.types";
  * listener — `@listener` methods and those bound with `gradum(el).on()` — and is the only pass that runs
  * tool `@behavior` methods. Each pass stops early when a handler returns anything other than
  * `Propagation.propagate`.
+ *
+ * Dispatch hands the event back, so whoever fired it can read what handlers did with it — `defaultPrevented`
+ * above all, which the operators that synthesize from native input carry back to the native event.
  *
  * *Note: move events are the exception. Their composed path is the drag origin's ancestor chain, which
  * omits elements merely sitting under the cursor, so they are dispatched in a single pass over the
@@ -40,7 +43,9 @@ export class GradumEventManagerDispatchOperator extends GradumOperator<GradumEve
         PropertiesType extends GradumRawEventProperties = GradumRawEventProperties
     >(target: Node, eventType: new (properties: PropertiesType) => EventType, properties: Partial<PropertiesType>) => {
         if (!target) return;
-        properties.keys = this.model.currentKeys;
+        //A copy of the held keys, not the manager's own list: that one is pushed to and spliced from for the
+        //life of the page, so every event handed the list itself would go on changing after it fired.
+        properties.keys = [...this.model.currentKeys];
         properties.toolName = this.element.getCurrentToolName(this.model.currentClick) as string;
         properties.clickMode = this.model.currentClick;
         properties.inputDevice = this.model.inputDevice;
@@ -50,10 +55,21 @@ export class GradumEventManagerDispatchOperator extends GradumOperator<GradumEve
         properties.authorizeScaling = this.element.authorizeEventScaling;
         properties.scalePosition = this.element.scaleEventPosition;
 
+        //An event that names no position of its own still happens somewhere. A key press is the case that
+        //matters: it happens wherever the pointer is, which is what lets a handler ask what it is over
+        //through `closest` or `scaledPosition`. The manager's positions map is rebuilt on every pointer move
+        //and never cleared, so it names the pointer's last known place.
+        const positioned = properties as GradumEventProperties;
+        if (positioned.position === undefined) positioned.position = this.model.positions?.first ?? null;
+
         if (properties.eventName === GradumKeyEventName.keyPressed) this.element.setToolByKey(properties["keyPressed"]);
         else if (properties.eventName === GradumKeyEventName.keyReleased) this.element.setTool(undefined, ClickMode.key, {select: false});
 
-        target.dispatchEvent(new eventType(properties as PropertiesType));
+        //Handed back so the caller can read the outcome — above all whether a handler called
+        //`preventDefault()`, which is only a decision until it is carried to the native event.
+        const event = new eventType(properties as PropertiesType);
+        target.dispatchEvent(event);
+        return event;
     }
 
     /**

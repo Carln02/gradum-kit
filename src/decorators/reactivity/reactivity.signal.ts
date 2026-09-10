@@ -75,8 +75,17 @@ export class SignalUtils {
             let customSetter: (this: any, value: Value) => void;
 
             const read = function (this: any) {
-                if (baseGetter && !this[shadowKey]) return baseGetter.call(this);
-                if (customGetter && !this[shadowKey]) return customGetter.call(this);
+                if (!this[shadowKey]) {
+                    if (baseGetter) {
+                        const value = baseGetter.call(this);
+                        //The base pair answers first, and only gives way when it has nothing to say. That is
+                        //what lets a default carried by whatever is installed closer to the declaration —
+                        //`@modelSignal @auto({defaultValue})` — still be reached: the model holds nothing
+                        //until something is written, and the default is the answer until then.
+                        if (!isUndefined(value) || !customGetter) return value;
+                    }
+                    if (customGetter) return customGetter.call(this);
+                }
                 return this[backingKey];
             };
 
@@ -84,13 +93,24 @@ export class SignalUtils {
                 if (!customSetter && !baseSetter) {
                     this[backingKey] = v;
                     this[shadowKey] = true;
-                } else {
-                    if (baseSetter) baseSetter.call(this, v);
-                    if (customSetter) customSetter.call(this, v);
-                    if (!customGetter && !baseGetter) {
-                        this[backingKey] = v;
-                        this[shadowKey] = true;
-                    }
+                    return;
+                }
+                //Whatever is installed closer to the declaration writes first, and what it made of the value
+                //is what carries on to the base pair. `@modelSignal @auto({preprocessValue})` is the case
+                //that needs it: the preprocessing lives in the installed setter, while the model is where
+                //reads come from — so handing the model the raw value would leave it holding exactly what
+                //the preprocessor had just turned down, with the processed one stranded where nothing looks.
+                if (customSetter) {
+                    customSetter.call(this, v);
+                    //Only worth asking what it made of the value when there is a base pair to carry it on
+                    //to — otherwise the installed pair is where the value already lives, and reading it
+                    //back would be an extra call to a getter that may well be counting them.
+                    if (baseSetter && customGetter) v = customGetter.call(this);
+                }
+                if (baseSetter) baseSetter.call(this, v);
+                if (!customGetter && !baseGetter) {
+                    this[backingKey] = v;
+                    this[shadowKey] = true;
                 }
             };
 

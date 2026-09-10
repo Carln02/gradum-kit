@@ -1,5 +1,6 @@
 import {describe, it, expect, vi} from "vitest";
-import {effect, initializeEffects, signal} from "../reactivity/reactivity";
+import {effect, initializeEffects, modelSignal, signal} from "../reactivity/reactivity";
+import {GradumModel} from "../../mvc/model/model";
 import {auto} from "../auto/auto";
 import {Point} from "../../gradumComponents/datatypes/point/point";
 
@@ -138,3 +139,99 @@ describe("@signal on its own is unchanged", () => {
         expect(box.count).toBe(18);
     });
 });
+
+describe("@modelSignal stacked on @auto", () => {
+    //A model signal keeps its value in the model's data rather than on the instance, so a decorator applied
+    //closer to the declaration has to be composed with rather than stepped over: the value the model is
+    //handed must be the one that came back out of it, or the clamp reads as enforced and is not.
+    const cap10 = (value: number) => Math.min(value, 10);
+
+    it("routes writes through @auto's preprocessValue", () => {
+        class ProbeModel extends GradumModel {
+            @modelSignal() @auto({preprocessValue: cap10}) public capped: number;
+        }
+
+        const model = new ProbeModel({data: {}});
+        model.capped = 99;
+
+        expect(model.capped).toBe(10);
+    });
+
+    it("stores the processed value in the model's data, not the raw one", () => {
+        class ProbeModel extends GradumModel {
+            @modelSignal() @auto({preprocessValue: cap10}) public capped: number;
+        }
+
+        const model = new ProbeModel({data: {}});
+        model.capped = 99;
+
+        //What makes the difference visible: reads come from the data, so a raw value landing there is the
+        //whole bug — the property would report 99 however the preprocessor was written.
+        expect(model.get("capped")).toBe(10);
+    });
+
+    it("preprocesses on the way to a nested key path", () => {
+        class ProbeModel extends GradumModel {
+            @modelSignal("bounds", "width") @auto({preprocessValue: cap10}) public width: number;
+        }
+
+        const model = new ProbeModel({data: {bounds: {}}});
+        model.width = 40;
+
+        expect(model.width).toBe(10);
+        expect(model.get("bounds", "width")).toBe(10);
+    });
+
+    it("runs @auto's callBefore with the value being written", () => {
+        const seen: number[] = [];
+
+        class ProbeModel extends GradumModel {
+            @modelSignal() @auto({callBefore: (value: number) => {seen.push(value)}}) public tracked: number;
+        }
+
+        const model = new ProbeModel({data: {}});
+        model.tracked = 4;
+        model.tracked = 7;
+
+        expect(seen).toEqual([4, 7]);
+        expect(model.tracked).toBe(7);
+    });
+
+    it("falls back to @auto's defaultValue when the data holds nothing", () => {
+        class ProbeModel extends GradumModel {
+            @modelSignal() @auto({defaultValue: 3}) public sized: number;
+        }
+
+        expect(new ProbeModel({data: {}}).sized).toBe(3);
+    });
+
+    it("leaves a plain @modelSignal untouched", () => {
+        class ProbeModel extends GradumModel {
+            @modelSignal() public plain: number;
+        }
+
+        const model = new ProbeModel({data: {}});
+        model.plain = 99;
+
+        expect(model.plain).toBe(99);
+        expect(model.get("plain")).toBe(99);
+    });
+
+    it("keeps effects firing on a preprocessed write", async () => {
+        class ProbeModel extends GradumModel {
+            @modelSignal() @auto({preprocessValue: cap10}) public capped: number;
+
+            public seen: number[] = [];
+
+            @effect public watch() {this.seen.push(this.capped)}
+        }
+
+        const model = new ProbeModel({data: {}});
+        initializeEffects(model);
+        model.capped = 99;
+        await tick();
+
+        expect(model.seen.at(-1)).toBe(10);
+    });
+});
+

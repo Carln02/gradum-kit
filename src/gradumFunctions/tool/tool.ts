@@ -135,6 +135,17 @@ export function setupToolFunctions() {
         return utils.getToolBehaviors(toolName, type, manager).length > 0;
     }
 
+    GradumSelector.prototype.removeToolBehavior = function _removeToolBehavior(
+        this: GradumSelector,
+        type: string,
+        callback: ToolBehaviorCallback,
+        toolName: string = this.getToolName(),
+        manager: GradumEventManager = GradumEventManager.instance
+    ): GradumSelector {
+        if (type && toolName && callback) utils.removeToolBehavior(toolName, type, callback, manager);
+        return this;
+    }
+
     GradumSelector.prototype.removeToolBehaviors = function _removeToolBehaviors(
         this: GradumSelector,
         type: string,

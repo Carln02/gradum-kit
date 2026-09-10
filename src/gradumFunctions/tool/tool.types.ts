@@ -179,6 +179,22 @@ declare module "../gradumSelector" {
         hasToolBehavior(type: string, toolName?: string, manager?: GradumEventManager): boolean;
 
         /**
+         * @function removeToolBehavior
+         * @category Tools
+         * @description Removes one behavior — the one registered with this exact callback — for the pair
+         * "`type`, `toolName`" under the given manager. Use it over {@link removeToolBehaviors} whenever the
+         * callback is at hand, which leaves every other behavior on the same pair in place.
+         * @param {string} type - The type of the event (e.g., "pointerdown", "click", custom gradum event).
+         * @param {ToolBehaviorCallback} callback - The behavior function that was registered.
+         * @param {string} [toolName=this.getToolName()] - The tool name the behavior was bound under. Defaults
+         * to this element's first tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {this} Itself for chaining.
+         */
+        removeToolBehavior(type: string, callback: ToolBehaviorCallback, toolName?: string,
+                           manager?: GradumEventManager): this;
+
+        /**
          * @function removeToolBehaviors
          * @category Tools
          * @description Removes all behaviors for the pair "`type`, `toolName`" under the given manager.

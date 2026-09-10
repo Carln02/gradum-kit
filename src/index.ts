@@ -16,8 +16,8 @@ import {DefineOptions, RegistryEntry, RegistryCategory} from "./decorators/defin
 export {DefineOptions, RegistryEntry, RegistryCategory};
 import {expose} from "./decorators/expose";
 export {expose};
-import {listener, behavior, attachListenersAndBehaviors} from "./decorators/listener/listener";
-export {listener, behavior, attachListenersAndBehaviors};
+import {listener, behavior, attachListenersAndBehaviors, detachListenersAndBehaviors, reattachListenersAndBehaviors} from "./decorators/listener/listener";
+export {listener, behavior, attachListenersAndBehaviors, detachListenersAndBehaviors, reattachListenersAndBehaviors};
 import {operator, handler, interactor, tool, constrainer} from "./decorators/mvc";
 export {operator, handler, interactor, tool, constrainer};
 import {observe} from "./decorators/observe/observe";

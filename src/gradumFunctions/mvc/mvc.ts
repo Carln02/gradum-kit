@@ -241,6 +241,7 @@ export function setupMvcFunctions() {
         mvc.tools.forEach(tool => tool.initialize());
         mvc.constrainers.forEach(constrainer => constrainer.initialize());
         mvc.model?.initialize();
+        mvc.initialized = true;
         return this;
     }
 
@@ -304,9 +305,12 @@ export function setupMvcFunctions() {
         if (!operator.keyName) operator.keyName =
             utils.extractClassEssenceName(this.element, operator.constructor as new (...args: any[]) => any, "Operator");
         const data = utils.data(this.element);
-        if (data.operators.has(operator.keyName)) return this;
+        if (utils.keyIsTaken(data.operators, operator.keyName, operator, "operator")) return this;
         data.operators.set(operator.keyName, operator);
         utils.updateOperator(this.element, operator);
+        //A piece added to an element that has already initialized has missed the pass that would
+        //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+        if (data.initialized) operator.initialize?.();
         return this;
     };
 
@@ -325,7 +329,7 @@ export function setupMvcFunctions() {
         if (!handler.keyName) handler.keyName =
             utils.extractClassEssenceName(this.element, handler.constructor as new (...args: any[]) => any, "Handler");
         const data = utils.data(this.element);
-        if (data.model?.handlers.has(handler.keyName)) return this;
+        if (utils.keyIsTaken(data.model?.handlers, handler.keyName, handler, "handler")) return this;
         data.model?.handlers.set(handler.keyName, handler);
         utils.updateHandler(this.element, handler);
         return this;
@@ -346,9 +350,12 @@ export function setupMvcFunctions() {
         if (!interactor.keyName) interactor.keyName =
             utils.extractClassEssenceName(this.element, interactor.constructor as any, "Interactor");
         const data = utils.data(this.element);
-        if (data.interactors.has(interactor.keyName)) return this;
+        if (utils.keyIsTaken(data.interactors, interactor.keyName, interactor, "interactor")) return this;
         data.interactors.set(interactor.keyName, interactor);
         utils.updateInteractor(this.element, interactor);
+        //A piece added to an element that has already initialized has missed the pass that would
+        //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+        if (data.initialized) interactor.initialize?.();
         return this;
     };
 
@@ -367,9 +374,12 @@ export function setupMvcFunctions() {
         if (!tool.keyName) tool.keyName =
             utils.extractClassEssenceName(this.element, tool.constructor as any, "Tool");
         const data = utils.data(this.element);
-        if (data.tools.has(tool.keyName)) return this;
+        if (utils.keyIsTaken(data.tools, tool.keyName, tool, "tool")) return this;
         data.tools.set(tool.keyName, tool);
         utils.updateTool(this.element, tool);
+        //A piece added to an element that has already initialized has missed the pass that would
+        //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+        if (data.initialized) tool.initialize?.();
         return this;
     };
 
@@ -388,9 +398,12 @@ export function setupMvcFunctions() {
         if (!constrainer.keyName) constrainer.keyName =
             utils.extractClassEssenceName(this.element, constrainer.constructor as any, "Constrainer");
         const data = utils.data(this.element);
-        if (data.constrainers.has(constrainer.keyName)) return this;
+        if (utils.keyIsTaken(data.constrainers, constrainer.keyName, constrainer, "constrainer")) return this;
         data.constrainers.set(constrainer.keyName, constrainer);
         utils.updateConstrainer(this.element, constrainer);
+        //A piece added to an element that has already initialized has missed the pass that would
+        //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+        if (data.initialized) constrainer.initialize?.();
         return this;
     };
 

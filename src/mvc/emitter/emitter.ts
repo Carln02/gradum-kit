@@ -68,9 +68,11 @@ class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKeyType ext
      * @description Trigger all callbacks registered for the given event name.
      * @param {string} event - The event name.
      * @param {...any[]} args - Arguments passed to each callback.
+     * @returns {any} What the callbacks returned — the last one to return anything wins — or `undefined`
+     * when none did. Lets a caller learn the outcome of what it fired, rather than only that it fired.
      */
-    public fire(event: string, ...args: any[]): void {
-        this.callbacks.get(event)?.fire(...args);
+    public fire(event: string, ...args: any[]): any {
+        return this.callbacks.get(event)?.fire(...args);
     }
 
     /**

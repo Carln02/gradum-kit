@@ -93,13 +93,16 @@ type GradumDragEventProperties = GradumRawEventProperties & {
  * @category GradumEvents
  *
  * @description Properties used to construct a {@link GradumKeyEvent}. Exactly one of the two keys is set,
- * depending on whether the event is a press or a release.
+ * depending on whether the event is a press or a release. Extends {@link GradumEventProperties}: a key event
+ * carries a position like any other, defaulting to where the pointer was last seen.
  * @property {string} [keyPressed] - The key that was pressed.
  * @property {string} [keyReleased] - The key that was released.
+ * @property {boolean} [repeat] - Whether this is the browser repeating a held key rather than a fresh press.
  */
-type GradumKeyEventProperties = GradumRawEventProperties & {
+type GradumKeyEventProperties = GradumEventProperties & {
     keyPressed?: string,
-    keyReleased?: string
+    keyReleased?: string,
+    repeat?: boolean
 };
 
 /**
@@ -107,10 +110,11 @@ type GradumKeyEventProperties = GradumRawEventProperties & {
  * @group Event Handling
  * @category GradumEvents
  *
- * @description Properties used to construct a {@link GradumWheelEvent}.
+ * @description Properties used to construct a {@link GradumWheelEvent}. Extends
+ * {@link GradumEventProperties}: a wheel event happens at a position like any other.
  * @property {Point} [delta] - How far the wheel or trackpad scrolled, per axis.
  */
-type GradumWheelEventProperties = GradumRawEventProperties & {
+type GradumWheelEventProperties = GradumEventProperties & {
     delta?: Point
 };
 

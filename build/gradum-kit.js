@@ -774,9 +774,11 @@
  * @category GradumEvents
  *
  * @description Properties used to construct a {@link GradumKeyEvent}. Exactly one of the two keys is set,
- * depending on whether the event is a press or a release.
+ * depending on whether the event is a press or a release. Extends {@link GradumEventProperties}: a key event
+ * carries a position like any other, defaulting to where the pointer was last seen.
  * @property {string} [keyPressed] - The key that was pressed.
  * @property {string} [keyReleased] - The key that was released.
+ * @property {boolean} [repeat] - Whether this is the browser repeating a held key rather than a fresh press.
  */
 
 /**
@@ -784,7 +786,8 @@
  * @group Event Handling
  * @category GradumEvents
  *
- * @description Properties used to construct a {@link GradumWheelEvent}.
+ * @description Properties used to construct a {@link GradumWheelEvent}. Extends
+ * {@link GradumEventProperties}: a wheel event happens at a position like any other.
  * @property {Point} [delta] - How far the wheel or trackpad scrolled, per axis.
  */
 
@@ -3472,26 +3475,45 @@ var Gradum = (function (exports, yjs) {
                 let customGetter;
                 let customSetter;
                 const read = function () {
-                    if (baseGetter && !this[shadowKey])
-                        return baseGetter.call(this);
-                    if (customGetter && !this[shadowKey])
-                        return customGetter.call(this);
+                    if (!this[shadowKey]) {
+                        if (baseGetter) {
+                            const value = baseGetter.call(this);
+                            //The base pair answers first, and only gives way when it has nothing to say. That is
+                            //what lets a default carried by whatever is installed closer to the declaration —
+                            //`@modelSignal @auto({defaultValue})` — still be reached: the model holds nothing
+                            //until something is written, and the default is the answer until then.
+                            if (!isUndefined(value) || !customGetter)
+                                return value;
+                        }
+                        if (customGetter)
+                            return customGetter.call(this);
+                    }
                     return this[backingKey];
                 };
                 const write = function (v) {
                     if (!customSetter && !baseSetter) {
                         this[backingKey] = v;
                         this[shadowKey] = true;
+                        return;
                     }
-                    else {
-                        if (baseSetter)
-                            baseSetter.call(this, v);
-                        if (customSetter)
-                            customSetter.call(this, v);
-                        if (!customGetter && !baseGetter) {
-                            this[backingKey] = v;
-                            this[shadowKey] = true;
-                        }
+                    //Whatever is installed closer to the declaration writes first, and what it made of the value
+                    //is what carries on to the base pair. `@modelSignal @auto({preprocessValue})` is the case
+                    //that needs it: the preprocessing lives in the installed setter, while the model is where
+                    //reads come from — so handing the model the raw value would leave it holding exactly what
+                    //the preprocessor had just turned down, with the processed one stranded where nothing looks.
+                    if (customSetter) {
+                        customSetter.call(this, v);
+                        //Only worth asking what it made of the value when there is a base pair to carry it on
+                        //to — otherwise the installed pair is where the value already lives, and reading it
+                        //back would be an extra call to a getter that may well be counting them.
+                        if (baseSetter && customGetter)
+                            v = customGetter.call(this);
+                    }
+                    if (baseSetter)
+                        baseSetter.call(this, v);
+                    if (!customGetter && !baseGetter) {
+                        this[backingKey] = v;
+                        this[shadowKey] = true;
                     }
                 };
                 const ensureEntry = (self, diffOnWrite = true) => {
@@ -6281,9 +6303,11 @@ var Gradum = (function (exports, yjs) {
          * @description Trigger all callbacks registered for the given event name.
          * @param {string} event - The event name.
          * @param {...any[]} args - Arguments passed to each callback.
+         * @returns {any} What the callbacks returned — the last one to return anything wins — or `undefined`
+         * when none did. Lets a caller learn the outcome of what it fired, rather than only that it fired.
          */
         fire(event, ...args) {
-            this.callbacks.get(event)?.fire(...args);
+            return this.callbacks.get(event)?.fire(...args);
         }
         /**
          * @function addKey
@@ -6493,9 +6517,37 @@ var Gradum = (function (exports, yjs) {
                 : Array.from(map.entries()).find(([, v]) => v === keyOrInstance)?.[0];
             if (!key)
                 return;
+            const instance = map.get(key);
+            //Unlinking the model, view and emitter is not enough on its own: the piece's listeners would go on
+            //firing, now against the references just taken away from it. It is let go of first, then unlinked.
+            instance?.detach?.();
             const methodName = "update" + kind.charAt(0).toUpperCase() + kind.slice(1);
-            this[methodName]?.(element, map.get(key), false);
+            this[methodName]?.(element, instance, false);
             map.delete(key);
+        }
+        /**
+         * @function keyIsTaken
+         * @description Whether the key an MVC piece derived is already spoken for, and say so out loud when it is
+         * spoken for by something else. Two classes whose essence names come out the same — a hazard of deriving
+         * keys from class names — would otherwise have the second one quietly discarded, leaving nothing to
+         * explain why its listeners never fire.
+         * @param {Map<string, any>} map - The map the piece would be registered in.
+         * @param {string} key - The key it derived or was given.
+         * @param {object} instance - The piece being registered.
+         * @param {string} kind - What kind of piece it is, for the warning.
+         * @returns {boolean} Whether registration should be skipped.
+         */
+        keyIsTaken(map, key, instance, kind) {
+            if (!map)
+                return false;
+            const existing = map.get(key);
+            if (existing === undefined)
+                return false;
+            //Re-adding the same piece is the idempotent case this check exists for, and stays quiet.
+            if (existing !== instance)
+                console.warn(`Gradum: ${instance?.constructor?.name} was not added — the ${kind} key "${key}" on this element `
+                    + `already belongs to ${existing?.constructor?.name}. Give one of them a distinct keyName.`);
+            return true;
         }
         generateInstance(data, element) {
             if (!data)
@@ -6789,6 +6841,7 @@ var Gradum = (function (exports, yjs) {
             mvc.tools.forEach(tool => tool.initialize());
             mvc.constrainers.forEach(constrainer => constrainer.initialize());
             mvc.model?.initialize();
+            mvc.initialized = true;
             return this;
         };
         GradumSelector.prototype.getMvcDifference = function (properties = {}) {
@@ -6851,10 +6904,14 @@ var Gradum = (function (exports, yjs) {
                 operator.keyName =
                     utils$8.extractClassEssenceName(this.element, operator.constructor, "Operator");
             const data = utils$8.data(this.element);
-            if (data.operators.has(operator.keyName))
+            if (utils$8.keyIsTaken(data.operators, operator.keyName, operator, "operator"))
                 return this;
             data.operators.set(operator.keyName, operator);
             utils$8.updateOperator(this.element, operator);
+            //A piece added to an element that has already initialized has missed the pass that would
+            //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+            if (data.initialized)
+                operator.initialize?.();
             return this;
         };
         GradumSelector.prototype.removeOperator = function (keyOrInstance) {
@@ -6873,7 +6930,7 @@ var Gradum = (function (exports, yjs) {
                 handler.keyName =
                     utils$8.extractClassEssenceName(this.element, handler.constructor, "Handler");
             const data = utils$8.data(this.element);
-            if (data.model?.handlers.has(handler.keyName))
+            if (utils$8.keyIsTaken(data.model?.handlers, handler.keyName, handler, "handler"))
                 return this;
             data.model?.handlers.set(handler.keyName, handler);
             utils$8.updateHandler(this.element, handler);
@@ -6895,10 +6952,14 @@ var Gradum = (function (exports, yjs) {
                 interactor.keyName =
                     utils$8.extractClassEssenceName(this.element, interactor.constructor, "Interactor");
             const data = utils$8.data(this.element);
-            if (data.interactors.has(interactor.keyName))
+            if (utils$8.keyIsTaken(data.interactors, interactor.keyName, interactor, "interactor"))
                 return this;
             data.interactors.set(interactor.keyName, interactor);
             utils$8.updateInteractor(this.element, interactor);
+            //A piece added to an element that has already initialized has missed the pass that would
+            //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+            if (data.initialized)
+                interactor.initialize?.();
             return this;
         };
         GradumSelector.prototype.removeInteractor = function (keyOrInstance) {
@@ -6917,10 +6978,14 @@ var Gradum = (function (exports, yjs) {
                 tool.keyName =
                     utils$8.extractClassEssenceName(this.element, tool.constructor, "Tool");
             const data = utils$8.data(this.element);
-            if (data.tools.has(tool.keyName))
+            if (utils$8.keyIsTaken(data.tools, tool.keyName, tool, "tool"))
                 return this;
             data.tools.set(tool.keyName, tool);
             utils$8.updateTool(this.element, tool);
+            //A piece added to an element that has already initialized has missed the pass that would
+            //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+            if (data.initialized)
+                tool.initialize?.();
             return this;
         };
         GradumSelector.prototype.removeTool = function (keyOrInstance) {
@@ -6939,10 +7004,14 @@ var Gradum = (function (exports, yjs) {
                 constrainer.keyName =
                     utils$8.extractClassEssenceName(this.element, constrainer.constructor, "Constrainer");
             const data = utils$8.data(this.element);
-            if (data.constrainers.has(constrainer.keyName))
+            if (utils$8.keyIsTaken(data.constrainers, constrainer.keyName, constrainer, "constrainer"))
                 return this;
             data.constrainers.set(constrainer.keyName, constrainer);
             utils$8.updateConstrainer(this.element, constrainer);
+            //A piece added to an element that has already initialized has missed the pass that would
+            //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+            if (data.initialized)
+                constrainer.initialize?.();
             return this;
         };
         GradumSelector.prototype.removeConstrainer = function (keyOrInstance) {
@@ -7591,7 +7660,10 @@ var Gradum = (function (exports, yjs) {
                 this.scalePosition = properties.scalePosition ?? ((position) => position);
                 this.clickMode = properties.clickMode ?? GradumEventManager.instance.currentClick;
                 this.inputDevice = properties.inputDevice ?? exports.InputDevice.unknown;
-                this.keys = properties.keys ?? GradumEventManager.instance.currentKeys;
+                //Copied, not referenced: the manager's list is one array it pushes to and splices from for the life
+                //of the page, so an event holding it would report the keys held now rather than the keys held when
+                //it fired — which anything reading it after the fact would get wrong.
+                this.keys = [...(properties.keys ?? GradumEventManager.instance.currentKeys)];
                 this.eventName = properties.eventName;
                 this.position = properties.position;
                 this.toolName = properties.toolName;
@@ -7609,7 +7681,8 @@ var Gradum = (function (exports, yjs) {
                 //Starts from hitTarget rather than target, so a match painted inside an element is found before the
                 //element itself. Falls back to target when nothing was hit, which is the common case.
                 const elements = from === exports.ClosestOrigin.target ? [this.hitTarget]
-                    : [...this.hits, ...document.elementsFromPoint(this.position.x, this.position.y)];
+                    : [...this.hits, ...(this.position
+                            ? document.elementsFromPoint(this.position.x, this.position.y) : [])];
                 const strictElement = strict instanceof Element ? strict : null;
                 const isStrict = strict === true || strictElement !== null;
                 const ctor = typeof type === "string" ? customElements.get(type) : type;
@@ -7696,8 +7769,7 @@ var Gradum = (function (exports, yjs) {
      *
      * @extends GradumEvent
      * @description The event fired for `gradum-key-pressed` and `gradum-key-released`. Which of the two key
-     * fields is set tells you which happened. Key events carry no pointer position, so
-     * {@link GradumEvent.position} is `null`.
+     * fields is set tells you which happened.
      */
     class GradumKeyEvent extends GradumEvent {
         /**
@@ -7709,14 +7781,24 @@ var Gradum = (function (exports, yjs) {
          */
         keyReleased;
         /**
+         * @description Whether this press is the browser repeating a key that is being held, rather than a fresh
+         * one. Mirrors [`KeyboardEvent.repeat`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/repeat).
+         * Repeats are what a held key drives a continuous action with — scrubbing, nudging, stepping — so ignore
+         * them when one press should mean one thing. Always `false` on a release.
+         */
+        repeat;
+        /**
          * @constructor
-         * @description Create a key event. Its position is always `null`.
+         * @description Create a key event. Its position defaults to where the manager last saw the pointer, and
+         * is `null` when it has not seen one.
          * @param {GradumKeyEventProperties} properties - The key involved and the input context.
          */
         constructor(properties) {
-            super({ ...properties, position: null });
+            const manager = properties.eventManager ?? GradumEventManager.instance;
+            super({ ...properties, position: properties.position ?? manager?.model?.positions?.first ?? null });
             this.keyPressed = properties.keyPressed;
             this.keyReleased = properties.keyReleased;
+            this.repeat = properties.repeat ?? false;
         }
     }
 
@@ -7790,6 +7872,18 @@ var Gradum = (function (exports, yjs) {
             this.setupChangedCallbacks();
         }
         /**
+         * @function detach
+         * @description Undoes {@link initialize}'s listener work: every `@listener` and `@behavior` this operator
+         * bound is taken back, so a piece removed from an element stops responding to events. Called for you when
+         * the operator is removed. Initializing it again binds them afresh.
+         *
+         * Note that this covers listeners and behaviors only — anything a subclass sets up by hand in
+         * `setupChangedCallbacks` is its own to undo.
+         */
+        detach() {
+            detachListenersAndBehaviors(this);
+        }
+        /**
          * @function setupUIListeners
          * @description Setup method for defining DOM and input event listeners.
          * @protected
@@ -7815,6 +7909,10 @@ var Gradum = (function (exports, yjs) {
      * @extends GradumOperator
      * @description Translates native keyboard input into {@link GradumKeyEvent}s. It keeps the manager's
      * list of currently-held keys up to date and activates any tool bound to the pressed key.
+     *
+     * The events are dispatched at the element under the pointer rather than at the document, so a keyboard
+     * interactor binds to its own element the way a pointer one does, and a handler's `preventDefault()` is
+     * carried back to the native key event so it actually stops the browser.
      */
     class GradumEventManagerKeyOperator extends GradumOperator {
         keyName = "key";
@@ -7822,13 +7920,16 @@ var Gradum = (function (exports, yjs) {
         keyDownFn(e) {
             if (!this.element.enabled)
                 return;
-            //Return if key already pressed
-            if (this.model.currentKeys.includes(e.key))
-                return;
-            //Add key to currentKeys
-            this.model.currentKeys.push(e.key);
-            //Fire a keyPressed event (only once)
-            this.emitter.fire("dispatchEvent", document, GradumKeyEvent, { eventName: GradumKeyEventName.keyPressed, keyPressed: e.key });
+            //A held key repeats. The list of keys held has no use for the repeats — it would only fill up with
+            //duplicates — but handlers do: a repeat is what a held key drives a continuous action with, so they
+            //are fired all the same, and named as repeats so anything wanting one press to mean one thing can
+            //say so.
+            const repeat = this.model.currentKeys.includes(e.key);
+            if (!repeat)
+                this.model.currentKeys.push(e.key);
+            const dispatched = this.emitter.fire("dispatchEvent", this.hoveredTarget(), GradumKeyEvent, { eventName: GradumKeyEventName.keyPressed, keyPressed: e.key, repeat });
+            if (dispatched?.defaultPrevented)
+                e.preventDefault();
         }
         keyUp = (e) => this.keyUpFn(e);
         keyUpFn(e) {
@@ -7839,8 +7940,24 @@ var Gradum = (function (exports, yjs) {
                 return;
             //Remove key from currentKeys
             this.model.currentKeys.splice(this.model.currentKeys.indexOf(e.key), 1);
-            //Fire a keyReleased event
-            this.emitter.fire("dispatchEvent", document, GradumKeyEvent, { eventName: GradumKeyEventName.keyReleased, keyReleased: e.key });
+            const dispatched = this.emitter.fire("dispatchEvent", this.hoveredTarget(), GradumKeyEvent, { eventName: GradumKeyEventName.keyReleased, keyReleased: e.key });
+            if (dispatched?.defaultPrevented)
+                e.preventDefault();
+        }
+        /**
+         * @protected
+         * @function hoveredTarget
+         * @description Where a key press happens, as far as the tree is concerned: the element under the pointer.
+         *
+         * A keyboard has no target of its own, so key events used to be fired at the document, which left every
+         * keyboard listener on the page hearing every keystroke and working out for itself whether it was meant.
+         * Firing at the hovered element lets one bind to its own element the way a pointer listener does. Nothing
+         * bound to the document loses out: it is still on the path of an event fired on a descendant.
+         * @returns {Node} The element under the pointer, or the document when there is none.
+         */
+        hoveredTarget() {
+            const position = this.model.positions?.first;
+            return (position && document.elementFromPoint?.(position.x, position.y)) || document;
         }
     }
 
@@ -7850,8 +7967,8 @@ var Gradum = (function (exports, yjs) {
      * @category GradumEvents
      *
      * @extends GradumEvent
-     * @description The event fired for `gradum-scroll` and `gradum-pinch`. Wheel events carry no pointer
-     * position, so {@link GradumEvent.position} is `null` — read {@link GradumWheelEvent.delta} instead.
+     * @description The event fired for `gradum-scroll` and `gradum-pinch`. It carries where the wheel was
+     * turned in {@link GradumEvent.position}, and how far in {@link GradumWheelEvent.delta}.
      */
     class GradumWheelEvent extends GradumEvent {
         /**
@@ -7860,11 +7977,11 @@ var Gradum = (function (exports, yjs) {
         delta;
         /**
          * @constructor
-         * @description Create a wheel event. Its position is always `null`.
-         * @param {GradumWheelEventProperties} properties - The scroll delta and the input context.
+         * @description Create a wheel event.
+         * @param {GradumWheelEventProperties} properties - The scroll delta, the position, and the input context.
          */
         constructor(properties) {
-            super({ ...properties, position: null });
+            super(properties);
             this.delta = properties.delta;
         }
     }
@@ -8276,8 +8393,13 @@ var Gradum = (function (exports, yjs) {
             const eventName = (this.model.inputDevice == exports.InputDevice.trackpad && e.ctrlKey)
                 ? GradumEventName.pinch
                 : GradumEventName.scroll;
-            const target = document.elementFromPoint?.(e.clientX, e.clientY) || document;
-            this.emitter.fire("dispatchEvent", target, GradumWheelEvent, { delta: new Point(e.deltaX, e.deltaY), eventName: eventName });
+            const position = new Point(e.clientX, e.clientY);
+            const target = document.elementFromPoint?.(position.x, position.y) || document;
+            const dispatched = this.emitter.fire("dispatchEvent", target, GradumWheelEvent, { delta: new Point(e.deltaX, e.deltaY), position, eventName: eventName });
+            //The event a handler sees is synthesized, so preventing it stops nothing on its own — the page would
+            //scroll or zoom regardless. The decision is carried back to the native event, which the browser acts on.
+            if (dispatched?.defaultPrevented)
+                e.preventDefault();
         };
     }
 
@@ -8722,6 +8844,9 @@ var Gradum = (function (exports, yjs) {
      * tool `@behavior` methods. Each pass stops early when a handler returns anything other than
      * `Propagation.propagate`.
      *
+     * Dispatch hands the event back, so whoever fired it can read what handlers did with it — `defaultPrevented`
+     * above all, which the operators that synthesize from native input carry back to the native event.
+     *
      * *Note: move events are the exception. Their composed path is the drag origin's ancestor chain, which
      * omits elements merely sitting under the cursor, so they are dispatched in a single pass over the
      * z-stack at the pointer instead — topmost first, stopping at the first handler that does not
@@ -8737,7 +8862,9 @@ var Gradum = (function (exports, yjs) {
         dispatchEvent = (target, eventType, properties) => {
             if (!target)
                 return;
-            properties.keys = this.model.currentKeys;
+            //A copy of the held keys, not the manager's own list: that one is pushed to and spliced from for the
+            //life of the page, so every event handed the list itself would go on changing after it fired.
+            properties.keys = [...this.model.currentKeys];
             properties.toolName = this.element.getCurrentToolName(this.model.currentClick);
             properties.clickMode = this.model.currentClick;
             properties.inputDevice = this.model.inputDevice;
@@ -8745,11 +8872,22 @@ var Gradum = (function (exports, yjs) {
             properties.eventInitDict = { bubbles: true, cancelable: true, composed: true };
             properties.authorizeScaling = this.element.authorizeEventScaling;
             properties.scalePosition = this.element.scaleEventPosition;
+            //An event that names no position of its own still happens somewhere. A key press is the case that
+            //matters: it happens wherever the pointer is, which is what lets a handler ask what it is over
+            //through `closest` or `scaledPosition`. The manager's positions map is rebuilt on every pointer move
+            //and never cleared, so it names the pointer's last known place.
+            const positioned = properties;
+            if (positioned.position === undefined)
+                positioned.position = this.model.positions?.first ?? null;
             if (properties.eventName === GradumKeyEventName.keyPressed)
                 this.element.setToolByKey(properties["keyPressed"]);
             else if (properties.eventName === GradumKeyEventName.keyReleased)
                 this.element.setTool(undefined, exports.ClickMode.key, { select: false });
-            target.dispatchEvent(new eventType(properties));
+            //Handed back so the caller can read the outcome — above all whether a handler called
+            //`preventDefault()`, which is only a decision until it is carried to the native event.
+            const event = new eventType(properties);
+            target.dispatchEvent(event);
+            return event;
         };
         /**
          * @private
@@ -9897,10 +10035,16 @@ var Gradum = (function (exports, yjs) {
      * @internal
      * @class ListenerUtils
      * @description Stores the listener and behavior declarations gathered from `@listener` and `@behavior`,
-     * keyed by prototype, so they can be attached once the instance exists.
+     * keyed by prototype, so they can be attached once the instance exists — and, once they have been, what was
+     * bound for each instance, so it can be unbound again.
      */
     class ListenerUtils {
         constructorMap = new WeakMap();
+        /**
+         * @description What has actually been bound, per context. Held weakly, so recording an attachment never
+         * keeps the interactor or element it belongs to alive.
+         */
+        attachedMap = new WeakMap();
         constructorData(prototype) {
             let obj = this.constructorMap.get(prototype);
             if (!obj) {
@@ -9930,6 +10074,51 @@ var Gradum = (function (exports, yjs) {
                 prototype = Object.getPrototypeOf(prototype);
             }
             return results;
+        }
+        /**
+         * @function addAttachment
+         * @description Note one binding against the context that owns it.
+         * @param {object} context - The object the binding was made for.
+         * @param {AttachedListener} attachment - What was bound, and where.
+         */
+        addAttachment(context, attachment) {
+            let attached = this.attachedMap.get(context);
+            if (!attached)
+                this.attachedMap.set(context, attached = []);
+            attached.push(attachment);
+        }
+        /**
+         * @function hasAttachments
+         * @description Whether anything has been bound for the given context — which is to say, whether it has
+         * ever attached. What tells a re-attach that there is something to redo.
+         * @param {object} context - The object to check.
+         * @returns {boolean} Whether it holds any bindings.
+         */
+        hasAttachments(context) {
+            return this.attachedMap.has(context);
+        }
+        /**
+         * @function removeAttachments
+         * @description Take back every binding noted for the given context, and nothing else.
+         *
+         * It removes the exact wrappers that were bound, which is what lets it be precise where a caller cannot:
+         * the wrapper around a decorated method is built at attach time and kept nowhere a caller could reach, so
+         * unbinding a single declaration by hand would otherwise mean clearing every listener of that type on the
+         * target.
+         * @param {object} context - The object whose bindings should be taken back.
+         */
+        removeAttachments(context) {
+            const attached = this.attachedMap.get(context);
+            if (!attached)
+                return;
+            this.attachedMap.delete(context);
+            for (const entry of attached) {
+                if (entry.kind === "behavior")
+                    gradum(context)
+                        .removeToolBehavior(entry.type, entry.callback, entry.toolName, entry.manager);
+                else
+                    gradum(entry.target).removeToolListener(entry.type, entry.toolName, entry.callback, entry.manager);
+            }
         }
     }
 
@@ -10025,11 +10214,15 @@ var Gradum = (function (exports, yjs) {
      *
      * A declaration with no target to bind to is skipped: `@listener` on something that is neither a node nor holds
      * one does nothing until it names a `target`.
+     *
+     * Calling it again re-attaches from scratch: whatever it bound last time is taken back first, so a context whose
+     * target has changed ends up bound once, to the new one.
      * @param {any} context - The object/instance/prototype to attach the listeners and behaviors defined for it.
      */
     function attachListenersAndBehaviors(context) {
         if (!context || typeof context !== "object")
             return;
+        detachListenersAndBehaviors(context);
         const listeners = utils$7.getAllListeners(context);
         if (!listeners || listeners.size === 0)
             return;
@@ -10053,13 +10246,48 @@ var Gradum = (function (exports, yjs) {
                 const callback = (e, el, options) => method.call(context, e, el, options);
                 callback.sourceFunction = method;
                 gradum(context).addToolBehavior(listener.type, callback, tool, manager);
+                utils$7.addAttachment(context, { kind: "behavior", type: listener.type, toolName: tool, callback, manager });
             }
             else if (listener.kind === "listener") {
                 if (!(target instanceof Node))
                     continue;
-                gradum(target).onTool(listener.type, tool, (e, el) => method.call(context, e, el), listener.options ?? defaultOptions, manager);
+                const callback = (e, el) => method.call(context, e, el);
+                gradum(target).onTool(listener.type, tool, callback, listener.options ?? defaultOptions, manager);
+                utils$7.addAttachment(context, { kind: "listener", target, type: listener.type, toolName: tool, callback, manager });
             }
         }
+    }
+    /**
+     * @function detachListenersAndBehaviors
+     * @group Decorators
+     * @category Listeners
+     *
+     * @description Take back every listener and behavior {@link attachListenersAndBehaviors} bound for the given
+     * context, and nothing else. Called for you when an operator, interactor, tool, or constrainer is removed from
+     * an element, so a piece that has been taken off stops responding to events.
+     * @param {any} context - The object whose bindings should be taken back.
+     */
+    function detachListenersAndBehaviors(context) {
+        if (!context || typeof context !== "object")
+            return;
+        utils$7.removeAttachments(context);
+    }
+    /**
+     * @function reattachListenersAndBehaviors
+     * @group Decorators
+     * @category Listeners
+     *
+     * @description Bind the context's listeners and behaviors again, but only if they were ever bound in the first
+     * place. For anything that has to be re-bound when what it listens on changes, without that change reaching
+     * forward and attaching listeners to something that has not initialized yet.
+     * @param {any} context - The object to re-bind.
+     * @returns {boolean} Whether anything was re-bound.
+     */
+    function reattachListenersAndBehaviors(context) {
+        if (!context || typeof context !== "object" || !utils$7.hasAttachments(context))
+            return false;
+        attachListenersAndBehaviors(context);
+        return true;
     }
 
     /**
@@ -12201,6 +12429,9 @@ var Gradum = (function (exports, yjs) {
         getToolBehaviors(toolName, type, manager) {
             return this.getToolsData(manager, toolName).behaviors?.getListeners({ toolName, manager, type });
         }
+        removeToolBehavior(toolName, type, callback, manager) {
+            this.getToolsData(manager, toolName).behaviors?.removeMatchingListeners({ toolName, manager, type, callback });
+        }
         removeToolBehaviors(toolName, type, manager) {
             this.getToolsData(manager, toolName).behaviors?.removeMatchingListeners({ toolName, manager, type });
         }
@@ -12336,6 +12567,11 @@ var Gradum = (function (exports, yjs) {
             if (!type || !toolName)
                 return false;
             return utils$3.getToolBehaviors(toolName, type, manager).length > 0;
+        };
+        GradumSelector.prototype.removeToolBehavior = function _removeToolBehavior(type, callback, toolName = this.getToolName(), manager = GradumEventManager.instance) {
+            if (type && toolName && callback)
+                utils$3.removeToolBehavior(toolName, type, callback, manager);
+            return this;
         };
         GradumSelector.prototype.removeToolBehaviors = function _removeToolBehaviors(type, toolName = this.getToolName(), manager = GradumEventManager.instance) {
             if (type && toolName)
@@ -17267,12 +17503,25 @@ var Gradum = (function (exports, yjs) {
      * the custom defined target.
      */
     class GradumInteractor extends GradumOperator {
-        #target_accessor_storage;
         /**
-         * @description The target of the event listeners. Defaults to the element itself.
+         * @description The node the interactor's `@listener` methods are bound to. Defaults to the element itself.
+         *
+         * It can be changed at any point: assigning after the interactor has initialized takes the listeners off
+         * the old node and binds them to the new one, so an interactor can follow a target that is only known
+         * later — a parent assigned during layout, or a node another view creates. Assigning before it initializes
+         * simply decides where they will first be bound.
          */
-        get target() { return this.#target_accessor_storage; }
-        set target(value) { this.#target_accessor_storage = value; }
+        get target() {
+            return this._target;
+        }
+        set target(value) {
+            if (this._target === value)
+                return;
+            this._target = value;
+            //A no-op until the listeners have actually been bound once, so setting a target during construction
+            //does not reach forward and bind them before the interactor has initialized.
+            reattachListenersAndBehaviors(this);
+        }
         /**
          * @readonly
          * @description The name of the tool (if any) to listen for.
@@ -22428,6 +22677,7 @@ var Gradum = (function (exports, yjs) {
     exports.deepObserveAll = deepObserveAll;
     exports.deepObserveAny = deepObserveAny;
     exports.define = define;
+    exports.detachListenersAndBehaviors = detachListenersAndBehaviors;
     exports.disposeEffect = disposeEffect;
     exports.div = div;
     exports.drawer = drawer;
@@ -22510,6 +22760,7 @@ var Gradum = (function (exports, yjs) {
     exports.randomFromRange = randomFromRange;
     exports.randomId = randomId;
     exports.randomString = randomString;
+    exports.reattachListenersAndBehaviors = reattachListenersAndBehaviors;
     exports.removeFromYArray = removeFromYArray;
     exports.replaceUrlParams = replaceUrlParams;
     exports.segmentIntersectsPolygon = segmentIntersectsPolygon;

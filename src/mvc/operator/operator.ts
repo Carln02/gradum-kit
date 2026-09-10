@@ -1,6 +1,6 @@
 import {GradumView} from "../view/view";
 import {initializeEffects} from "../../decorators/reactivity/reactivity";
-import {attachListenersAndBehaviors} from "../../decorators/listener/listener";
+import {attachListenersAndBehaviors, detachListenersAndBehaviors} from "../../decorators/listener/listener";
 import {GradumModel} from "../model/model";
 import {GradumEmitter} from "../emitter/emitter";
 import {addRegistryCategory, define} from "../../decorators/define/define";
@@ -83,6 +83,19 @@ class GradumOperator<
     public initialize(): void {
         this.setupUIListeners();
         this.setupChangedCallbacks();
+    }
+
+    /**
+     * @function detach
+     * @description Undoes {@link initialize}'s listener work: every `@listener` and `@behavior` this operator
+     * bound is taken back, so a piece removed from an element stops responding to events. Called for you when
+     * the operator is removed. Initializing it again binds them afresh.
+     *
+     * Note that this covers listeners and behaviors only — anything a subclass sets up by hand in
+     * `setupChangedCallbacks` is its own to undo.
+     */
+    public detach(): void {
+        detachListenersAndBehaviors(this);
     }
 
     /**

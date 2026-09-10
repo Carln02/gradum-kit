@@ -39,7 +39,12 @@ export class GradumEventManagerWheelOperator extends GradumOperator<GradumEventM
             ? GradumEventName.pinch
             : GradumEventName.scroll;
 
-        const target = document.elementFromPoint?.(e.clientX, e.clientY) || document;
-        this.emitter.fire("dispatchEvent", target, GradumWheelEvent, {delta: new Point(e.deltaX, e.deltaY), eventName: eventName});
+        const position = new Point(e.clientX, e.clientY);
+        const target = document.elementFromPoint?.(position.x, position.y) || document;
+        const dispatched: GradumWheelEvent = this.emitter.fire("dispatchEvent", target, GradumWheelEvent,
+            {delta: new Point(e.deltaX, e.deltaY), position, eventName: eventName});
+        //The event a handler sees is synthesized, so preventing it stops nothing on its own — the page would
+        //scroll or zoom regardless. The decision is carried back to the native event, which the browser acts on.
+        if (dispatched?.defaultPrevented) e.preventDefault();
     };
 }

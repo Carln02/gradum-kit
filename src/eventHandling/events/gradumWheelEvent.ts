@@ -8,8 +8,8 @@ import {Point} from "../../gradumComponents/datatypes/point/point";
  * @category GradumEvents
  *
  * @extends GradumEvent
- * @description The event fired for `gradum-scroll` and `gradum-pinch`. Wheel events carry no pointer
- * position, so {@link GradumEvent.position} is `null` — read {@link GradumWheelEvent.delta} instead.
+ * @description The event fired for `gradum-scroll` and `gradum-pinch`. It carries where the wheel was
+ * turned in {@link GradumEvent.position}, and how far in {@link GradumWheelEvent.delta}.
  */
 class GradumWheelEvent extends GradumEvent {
     /**
@@ -19,11 +19,11 @@ class GradumWheelEvent extends GradumEvent {
 
     /**
      * @constructor
-     * @description Create a wheel event. Its position is always `null`.
-     * @param {GradumWheelEventProperties} properties - The scroll delta and the input context.
+     * @description Create a wheel event.
+     * @param {GradumWheelEventProperties} properties - The scroll delta, the position, and the input context.
      */
     constructor(properties: GradumWheelEventProperties) {
-        super({...properties, position: null});
+        super(properties);
         this.delta = properties.delta;
     }
 }

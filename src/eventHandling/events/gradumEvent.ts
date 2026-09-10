@@ -110,7 +110,10 @@ class GradumEvent extends Event {
 
         this.clickMode = properties.clickMode ?? GradumEventManager.instance.currentClick;
         this.inputDevice = properties.inputDevice ?? InputDevice.unknown;
-        this.keys = properties.keys ?? GradumEventManager.instance.currentKeys;
+        //Copied, not referenced: the manager's list is one array it pushes to and splices from for the life
+        //of the page, so an event holding it would report the keys held now rather than the keys held when
+        //it fired — which anything reading it after the fact would get wrong.
+        this.keys = [...(properties.keys ?? GradumEventManager.instance.currentKeys)];
 
         this.eventName = properties.eventName;
         this.position = properties.position;
@@ -162,7 +165,8 @@ class GradumEvent extends Event {
         //Starts from hitTarget rather than target, so a match painted inside an element is found before the
         //element itself. Falls back to target when nothing was hit, which is the common case.
         const elements: any[] = from === ClosestOrigin.target ? [this.hitTarget]
-            : [...this.hits, ...document.elementsFromPoint(this.position.x, this.position.y)];
+            : [...this.hits, ...(this.position
+                ? document.elementsFromPoint(this.position.x, this.position.y) : [])];
 
         const strictElement = strict instanceof Element ? strict : null;
         const isStrict = strict === true || strictElement !== null;

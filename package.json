@@ -1,6 +1,6 @@
 {
   "name": "gradum-kit",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "A lightweight JavaScript library for quickly creating and appending DOM elements.",
   "type": "module",
   "main": "build/gradum-kit.cjs.js",

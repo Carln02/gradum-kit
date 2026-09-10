@@ -130,6 +130,11 @@ export class ToolFunctionsUtils {
         return this.getToolsData(manager, toolName).behaviors?.getListeners({toolName, manager, type});
     }
 
+    public removeToolBehavior(toolName: string, type: string, callback: ToolBehaviorCallback,
+                              manager: GradumEventManager): void {
+        this.getToolsData(manager, toolName).behaviors?.removeMatchingListeners({toolName, manager, type, callback});
+    }
+
     public removeToolBehaviors(toolName: string, type: string, manager: GradumEventManager): void {
         this.getToolsData(manager, toolName).behaviors?.removeMatchingListeners({toolName, manager, type});
     }
