@@ -1,6 +1,6 @@
 import {ReactivityUtils} from "./reactivity.utils";
 import {SignalBox, SignalEntry} from "./reactivity.types";
-import {getFirstDescriptorInChain} from "../../utils/dataManipulation/prototype";
+import {getDeclaringPrototype, getFirstDescriptorInChain} from "../../utils/dataManipulation/prototype";
 import {isUndefined} from "../../utils/dataManipulation/misc";
 
 /**
@@ -67,6 +67,14 @@ export class SignalUtils {
         const shadowKey = Symbol(`[[signal:${String(key)}:shadow]]`);
 
         const utils = this.utils;
+
+        /**
+         * Where the decorated accessor was written, which is not always where its initializer runs: the
+         * initializer runs for instances of subclasses too, and those name their own prototype. Looked up
+         * once, on the first instance built — after that the descriptor has been replaced by the wrapper,
+         * and {@link getDeclaringPrototype} has nothing left to recognise it by.
+         */
+        let declaredOn: object;
 
         context.addInitializer(function (this: any) {
             const prototype = isStatic ? this : this.constructor.prototype;
@@ -153,15 +161,17 @@ export class SignalUtils {
                     set: (v: Value) => entry.set(v),
                 });
             } else if (kind === "getter" || kind === "setter") {
-                const installed = utils.constructorData(prototype).installed;
+                if (!declaredOn) declaredOn = getDeclaringPrototype(
+                    isStatic ? this : Object.getPrototypeOf(this), key, value as Function) ?? prototype;
+                const installed = utils.constructorData(declaredOn).installed;
                 if (installed.get(key)) return;
                 installed.set(key, true);
 
-                const descriptor = getFirstDescriptorInChain(prototype, key) ?? {};
+                const descriptor = getFirstDescriptorInChain(declaredOn, key) ?? {};
                 if (typeof descriptor.get === "function") customGetter = descriptor.get;
                 if (typeof descriptor.set === "function") customSetter = descriptor.set;
 
-                Object.defineProperty(prototype, key, {
+                Object.defineProperty(declaredOn, key, {
                     configurable: descriptor?.configurable ?? true,
                     enumerable: !!descriptor?.enumerable,
                     get: function (this: any) {

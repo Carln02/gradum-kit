@@ -12,6 +12,10 @@ import {Propagation} from "../event/event.types";
  * @description Options used to create a new tool attached to an element via {@link GradumSelector.makeTool}.
  * @property {() => void} [onActivate] - Function to execute when the tool is activated.
  * @property {() => void} [onDeactivate] - Function to execute when the tool is deactivated.
+ * @property {(target: Node, toolInstance: object) => void} [onEngage] - Function to execute when this element
+ * becomes the one the tool is being used through. Handed the tool object the behaviors run against.
+ * @property {(target: Node, toolInstance: object) => void} [onDisengage] - Function to execute when another
+ * element takes over.
  * @property {DefaultEventNameEntry} [activationEvent] - Custom activation event to listen to. Defaults to the
  * default click event name.
  * @property {ClickMode} [clickMode] -  Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
@@ -29,6 +33,8 @@ type MakeToolOptions<ElementType extends object = object> = {
 
     onActivate?: () => void,
     onDeactivate?: () => void,
+    onEngage?: (target: Node, toolInstance: object) => void,
+    onDisengage?: (target: Node, toolInstance: object) => void,
     activationEvent?: DefaultEventNameEntry,
     customActivation?: (element: ElementType, manager?: GradumEventManager) => void,
 
@@ -141,6 +147,77 @@ declare module "../gradumSelector" {
          * @returns {Delegate<() => void} The delegate.
          */
         onToolDeactivate(toolName?: string, manager?: GradumEventManager): Delegate<() => void>;
+
+        /**
+         * @function engageTool
+         * @category Tools
+         * @description Note that this element is the one a named tool is being used through, telling it so
+         * and telling whichever element was being used before that it no longer is. Called for you as an
+         * event reaches an element carrying an embedded tool, ahead of that tool's behaviors; call it
+         * yourself only to hand a tool over without an interaction having done it.
+         *
+         * Saying the same element again does nothing, so this is safe to call on every event.
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {Node} [target=this.getEmbeddedToolTarget()] - What this element's tool is acting on.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        engageTool(toolName?: string, target?: Node, manager?: GradumEventManager): this;
+
+        /**
+         * @function onToolEngage
+         * @category Tools
+         * @description Retrieve the delegate fired when this element becomes the one a tool is being used
+         * through — the handle being dragged, of several carrying the same tool.
+         *
+         * Distinct from {@link GradumSelector.onToolActivate}, which is about which tool the user is holding
+         * and fires on every element carrying that tool at once. This fires on one element only, and on
+         * whichever one the interaction actually reached, so several elements can share a tool name and still
+         * each set up their own.
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {Delegate<(target: Node, toolInstance: object) => void>} The delegate, fired with what the tool
+         * is acting on and the tool object its behaviors run against.
+         */
+        onToolEngage(toolName?: string,
+                     manager?: GradumEventManager): Delegate<(target: Node, toolInstance: object) => void>;
+
+        /**
+         * @function onToolDisengage
+         * @category Tools
+         * @description Retrieve the delegate fired when another element takes over a tool this one was being
+         * used through. Fired with what this element's tool had been acting on.
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {Delegate<(target: Node, toolInstance: object) => void>} The delegate.
+         */
+        onToolDisengage(toolName?: string,
+                        manager?: GradumEventManager): Delegate<(target: Node, toolInstance: object) => void>;
+
+        /**
+         * @function getEngagedTool
+         * @category Tools
+         * @description The element a named tool is currently being used through, of all the elements carrying
+         * it. Answers "which handle is being dragged" where {@link GradumSelector.getToolName} only answers
+         * "which tool".
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {Node} The engaged element, or `undefined` if the tool has not been used yet.
+         */
+        getEngagedTool(toolName?: string, manager?: GradumEventManager): Node;
+
+        /**
+         * @function getToolInstance
+         * @category Tools
+         * @description The tool object a named tool's behaviors run against. A behavior is registered once
+         * per name, by whichever element carrying it got there first, so every element sharing that name
+         * shares this one object — set it up rather than the element's own tool when several elements are
+         * the same tool. It is what {@link GradumSelector.onToolEngage} hands you.
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {object} The tool object, or `undefined` if nothing has registered a behavior for that name.
+         */
+        getToolInstance(toolName?: string, manager?: GradumEventManager): object;
 
         /*
          *

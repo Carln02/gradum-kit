@@ -258,11 +258,20 @@ export function setupEventFunctions() {
         };
 
         const main = () => {
+            //Which element carries the tool in play. A tool the user is holding was picked up on one
+            //particular element, and the manager remembers which — so even there, "the resize tool" means a
+            //specific one of the elements that are it. Unknown when a caller names a tool directly rather
+            //than the user holding it, and then there is nothing to prefer over the one that registered.
+            const currentTool = manager.getCurrentTool();
+            const activeHost = activeTool && currentTool && manager.getToolName(currentTool) === activeTool
+                ? currentTool : undefined;
+
             if (activeTool) {
                 runListeners(this, activeTool);
                 if (propagation !== Propagation.propagate) return;
             }
 
+            if (activeHost) gradum(activeHost).engageTool(activeTool, this.element, manager);
             applyTool(this.element, activeTool);
             if (propagation !== Propagation.propagate) return;
 
@@ -270,6 +279,13 @@ export function setupEventFunctions() {
             const objectTools = this.getToolNames(manager);
 
             if (embeddedTarget && objectTools.length > 0) {
+                //This element is the one the interaction reached, so its tools are the ones being used —
+                //said before any of them run, so what a tool is told on engagement is in place by the time
+                //its behaviors read it. Only a change is announced, so the many events one gesture takes
+                //do not each count as taking the tool up again. Same as above, for tools reached this way
+                //rather than by being held.
+                for (const toolName of objectTools) this.engageTool(toolName, embeddedTarget, manager);
+
                 for (const toolName of objectTools) {
                     runListeners(embeddedTarget, toolName);
                     if (propagation as any === Propagation.stopImmediatePropagation) return;

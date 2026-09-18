@@ -18,6 +18,10 @@ import {Listener} from "../../gradumComponents/datatypes/listener/listener";
  * @property {Node} [embeddedTarget] - The node the element's tools act on, when embedded elsewhere.
  * @property {Map<string, Delegate<() => void>>} activationDelegates - Fired when a named tool activates.
  * @property {Map<string, Delegate<() => void>>} deactivationDelegates - Fired when a named tool deactivates.
+ * @property {Map<string, Delegate<(target: Node) => void>>} engagementDelegates - Fired when this element
+ * becomes the one a named tool is being used through.
+ * @property {Map<string, Delegate<(target: Node) => void>>} disengagementDelegates - Fired when another
+ * element takes over.
  */
 type ElementData = {
     tools: Set<string>,
@@ -25,17 +29,26 @@ type ElementData = {
     ignoredTools: Map<string, "all" | Set<string>>,
     embeddedTarget?: Node,
     activationDelegates: Map<string, Delegate<() => void>>,
-    deactivationDelegates: Map<string, Delegate<() => void>>
+    deactivationDelegates: Map<string, Delegate<() => void>>,
+    engagementDelegates: Map<string, Delegate<(target: Node, toolInstance: object) => void>>,
+    disengagementDelegates: Map<string, Delegate<(target: Node, toolInstance: object) => void>>
 };
 
 /**
  * @internal
  * @type {ToolData}
- * @description The behaviors registered for one named tool on one event manager.
+ * @description The behaviors registered for one named tool on one event manager, and which of the elements
+ * carrying that tool is currently being used through.
  * @property {ListenerSet<Node, ToolBehaviorCallback>} behaviors - The tool's capture-phase behaviors.
+ * @property {WeakRef<Node>} [engagedHost] - The element the tool is currently being used through. Held
+ * weakly: being engaged never keeps an element alive.
+ * @property {WeakRef<Node>} [engagedTarget] - What that element's tool was acting on, kept so it can be
+ * named again when the element is disengaged.
  */
 type ToolData = {
-    behaviors: ListenerSet<Node, ToolBehaviorCallback>
+    behaviors: ListenerSet<Node, ToolBehaviorCallback>,
+    engagedHost?: WeakRef<Node>,
+    engagedTarget?: WeakRef<Node>
 };
 
 /**
@@ -68,6 +81,8 @@ export class ToolFunctionsUtils {
             ignoredTools: new Map(),
             activationDelegates: new Map(),
             deactivationDelegates: new Map(),
+            engagementDelegates: new Map(),
+            disengagementDelegates: new Map(),
         }));
     }
 
@@ -88,6 +103,77 @@ export class ToolFunctionsUtils {
         const map = this.getElementData(element, manager).deactivationDelegates;
         if (!map.get(toolName)) map.set(toolName, new Delegate());
         return map.get(toolName);
+    }
+
+    public getEngagementDelegate(element: Node, toolName: string,
+                                 manager: GradumEventManager): Delegate<(target: Node, toolInstance: object) => void> {
+        const map = this.getElementData(element, manager).engagementDelegates;
+        if (!map.get(toolName)) map.set(toolName, new Delegate());
+        return map.get(toolName);
+    }
+
+    public getDisengagementDelegate(element: Node, toolName: string,
+                                    manager: GradumEventManager): Delegate<(target: Node, toolInstance: object) => void> {
+        const map = this.getElementData(element, manager).disengagementDelegates;
+        if (!map.get(toolName)) map.set(toolName, new Delegate());
+        return map.get(toolName);
+    }
+
+    /**
+     * @function engageTool
+     * @description Note which element a named tool is being used through, and tell the elements involved
+     * when that changes. Nothing fires while the same element keeps being used, however many events it
+     * takes — engagement is about which one, not about how often.
+     * @param {Node} host - The element the tool is being used through.
+     * @param {string} toolName - The name of the tool.
+     * @param {Node} target - What that element's tool is acting on.
+     * @param {GradumEventManager} manager - The associated event manager.
+     */
+    public engageTool(host: Node, toolName: string, target: Node, manager: GradumEventManager): void {
+        if (host instanceof GradumSelector) host = host.element;
+        const data = this.getToolsData(manager, toolName);
+
+        const previousHost = data.engagedHost?.deref();
+        if (previousHost === host) return;
+
+        const toolInstance = this.getToolInstance(toolName, manager);
+
+        //The one being let go of is told what it was working on, not what the new one is about to.
+        if (previousHost) this.getDisengagementDelegate(previousHost, toolName, manager)
+            .fire(data.engagedTarget?.deref(), toolInstance);
+
+        data.engagedHost = host ? new WeakRef(host) : undefined;
+        data.engagedTarget = target ? new WeakRef(target) : undefined;
+        if (host) this.getEngagementDelegate(host, toolName, manager).fire(target, toolInstance);
+    }
+
+    /**
+     * @function getToolInstance
+     * @description The tool object a named tool's behaviors run against. A behavior is registered once per
+     * name, by whichever element carrying it got there first, so every element sharing that name shares this
+     * one object — which is what an element sets up when it is engaged.
+     * @param {string} toolName - The name of the tool.
+     * @param {GradumEventManager} manager - The associated event manager.
+     * @returns {object} The tool object, or `undefined` if nothing has registered a behavior for that name.
+     */
+    public getToolInstance(toolName: string, manager: GradumEventManager): object {
+        const behaviors = this.getToolsData(manager, toolName).behaviors?.getListeners({toolName, manager});
+        for (const behavior of behaviors ?? []) {
+            const instance = (behavior.callback as any)?.instance;
+            if (instance) return instance;
+        }
+        return undefined;
+    }
+
+    /**
+     * @function getEngagedTool
+     * @description The element a named tool is currently being used through.
+     * @param {string} toolName - The name of the tool.
+     * @param {GradumEventManager} manager - The associated event manager.
+     * @returns {Node} The engaged element, or `undefined` if the tool has not been used yet.
+     */
+    public getEngagedTool(toolName: string, manager: GradumEventManager): Node {
+        return this.getToolsData(manager, toolName).engagedHost?.deref();
     }
 
     public saveTool(element: Node, toolName: string, manager: GradumEventManager): void {

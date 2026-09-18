@@ -82,6 +82,41 @@ function getLastPrototypeInChainWith(object: object, key: PropertyKey): any {
 }
 
 /**
+ * @function getDeclaringPrototype
+ * @group Utilities
+ * @category Prototype
+ *
+ * @description Find which prototype in a chain declared a particular getter, setter, or method — the one
+ * whose own descriptor still holds the given function. Where {@link getFirstPrototypeInChainWith} answers
+ * "who declares this name", this answers "who declares *this* function", so an override of the same name is
+ * passed over rather than matched.
+ *
+ * Use it when a decorator needs the class a member was written on: a decorator's initializer runs for
+ * instances of subclasses too, and those report their own prototype rather than the declaring one.
+ *
+ * The search starts at `object` itself, unlike {@link getFirstPrototypeInChainWith}, and stops before
+ * `Object.prototype`.
+ *
+ * *Note: the answer is only available while the member is still in place. Once something has redefined the
+ * property — a decorator installing a wrapper over it, say — the function is nowhere in the chain and the
+ * result is `undefined`, so look it up before replacing anything.*
+ * @param {object} object - The object or prototype to search from.
+ * @param {PropertyKey} key - The property the function is defined under.
+ * @param {Function} member - The function to look for: a getter, a setter, or a method.
+ * @returns {any} The prototype declaring it, or `undefined` if the function is nowhere in the chain.
+ */
+function getDeclaringPrototype(object: object, key: PropertyKey, member: Function): any {
+    let currentObject: any = object;
+    while (currentObject && currentObject !== Object.prototype) {
+        const descriptor = Object.getOwnPropertyDescriptor(currentObject, key);
+        if (descriptor && (descriptor.get === member || descriptor.set === member
+            || descriptor.value === member)) return currentObject;
+        currentObject = Object.getPrototypeOf(currentObject);
+    }
+    return undefined;
+}
+
+/**
  * @function getSuperMethod
  * @group Utilities
  * @category Prototype
@@ -170,4 +205,4 @@ function getConstructorChain(object: object): any[] {
     return chain;
 }
 
-export {getPrototypeChain, getConstructorChain, getFirstDescriptorInChain, getFirstPrototypeInChainWith, hasPropertyInChain, getSuperMethod, getSuperDescriptor};
+export {getPrototypeChain, getConstructorChain, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getDeclaringPrototype, hasPropertyInChain, getSuperMethod, getSuperDescriptor};

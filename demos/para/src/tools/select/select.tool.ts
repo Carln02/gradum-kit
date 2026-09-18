@@ -2,7 +2,6 @@ import {
     GradumTool, GradumDragEvent, GradumEvent, gradum, Coordinate, Propagation, behavior
 } from "../../../../../build/gradum-kit.esm";
 import {SelectionBox} from "./selectionBox";
-import {Square} from "../../square/square";
 
 //Select tool
 export class SelectTool extends GradumTool {

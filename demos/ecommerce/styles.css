@@ -1,0 +1,34 @@
+:root {
+    --surface: #ffffff;
+    --line: #d9e5f4;
+    --text: #020c22;
+    --muted: #9aa3ae;
+    --hover: #e4f8ff;
+    --active: #b5eeff;
+    --radius: 10px;
+
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+}
+
+.gradum-icon {
+    width: 0.8rem;
+    height: 0.8rem;
+}
+
+.gradum-icon > svg {
+    width: 100%;
+    height: 100%;
+}
+.item-shelf {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1.5rem;
+}

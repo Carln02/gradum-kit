@@ -55,6 +55,8 @@ export function setupToolFunctions() {
 
         if (options.onActivate) utils.getActivationDelegate(this, toolName, options.manager).add(options.onActivate);
         if (options.onDeactivate) utils.getDeactivationDelegate(this, toolName, options.manager).add(options.onDeactivate);
+        if (options.onEngage) utils.getEngagementDelegate(this, toolName, options.manager).add(options.onEngage);
+        if (options.onDisengage) utils.getDisengagementDelegate(this, toolName, options.manager).add(options.onDisengage);
 
         return this;
     }
@@ -103,6 +105,48 @@ export function setupToolFunctions() {
     ): Delegate<() => void> {
         if (!toolName) toolName = this.getToolName(manager);
         return utils.getDeactivationDelegate(this, toolName, manager);
+    }
+
+    GradumSelector.prototype.engageTool = function _engageTool(
+        this: GradumSelector,
+        toolName: string = this.getToolName(),
+        target: Node = this.getEmbeddedToolTarget(),
+        manager: GradumEventManager = GradumEventManager.instance
+    ): GradumSelector {
+        if (toolName) utils.engageTool(this.element, toolName, target, manager);
+        return this;
+    }
+
+    GradumSelector.prototype.getToolInstance = function _getToolInstance(
+        this: GradumSelector,
+        toolName: string = this.getToolName(),
+        manager: GradumEventManager = GradumEventManager.instance
+    ): object {
+        return utils.getToolInstance(toolName, manager);
+    }
+
+    GradumSelector.prototype.onToolEngage = function _onEngage(
+        this: GradumSelector,
+        toolName: string = this.getToolName(),
+        manager: GradumEventManager = GradumEventManager.instance
+    ): Delegate<(target: Node, toolInstance: object) => void> {
+        return utils.getEngagementDelegate(this, toolName, manager);
+    }
+
+    GradumSelector.prototype.onToolDisengage = function _onDisengage(
+        this: GradumSelector,
+        toolName: string = this.getToolName(),
+        manager: GradumEventManager = GradumEventManager.instance
+    ): Delegate<(target: Node, toolInstance: object) => void> {
+        return utils.getDisengagementDelegate(this, toolName, manager);
+    }
+
+    GradumSelector.prototype.getEngagedTool = function _getEngagedTool(
+        this: GradumSelector,
+        toolName: string = this.getToolName(),
+        manager: GradumEventManager = GradumEventManager.instance
+    ): Node {
+        return utils.getEngagedTool(toolName, manager);
     }
 
     /*

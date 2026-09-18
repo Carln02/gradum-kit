@@ -89,9 +89,12 @@ function auto(options?: AutoOptions) {
                 if (readFlag) return value;
                 readFlag = true;
                 if (!options.returnDefinedGetterValue && isUndefined(value)) {
-                    if (options.defaultValue) value = options.defaultValue;
+                    //Asked whether a default was given, not whether it is truthy: `0`, `""` and `false` are
+                    //all perfectly good defaults, and a member declaring one of them used to get none.
+                    const hasDefault = !isUndefined(options.defaultValue);
+                    if (hasDefault) value = options.defaultValue;
                     else if (options.defaultValueCallback) value = options.defaultValueCallback.call(this);
-                    if (options.setIfUndefined || options.defaultValue || options.defaultValueCallback) {
+                    if (options.setIfUndefined || hasDefault || options.defaultValueCallback) {
                         write.call(this, value);
                         value = baseRead.call(this);
                     }
@@ -130,7 +133,7 @@ function auto(options?: AutoOptions) {
             if (isUndefined(baseRead.call(this))) {
                 let initialValue: any = kind === "field" ? value : undefined;
                 if (isUndefined(initialValue)) {
-                    if (options.initialValue) initialValue = options.initialValue;
+                    if (!isUndefined(options.initialValue)) initialValue = options.initialValue;
                     else if (options.initialValueCallback) initialValue = options.initialValueCallback.call(this);
                 }
                 //Falling back to the value the member was declared with. Both an `accessor`'s slot and a

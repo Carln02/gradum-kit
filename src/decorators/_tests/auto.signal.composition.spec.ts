@@ -235,3 +235,42 @@ describe("@modelSignal stacked on @auto", () => {
     });
 });
 
+describe("@auto accepts a falsy default", () => {
+    //`0`, `""` and `false` are all perfectly good values for a member to fall back to. They used to be
+    //tested for truthiness rather than for having been given, so declaring any of them got you nothing.
+    it("falls back to a zero default", () => {
+        class Box {
+            @auto({defaultValue: 0}) accessor count: number;
+        }
+        expect(new Box().count).toBe(0);
+    });
+
+    it("falls back to an empty-string default", () => {
+        class Box {
+            @auto({defaultValue: ""}) accessor label: string;
+        }
+        expect(new Box().label).toBe("");
+    });
+
+    it("falls back to a false default", () => {
+        class Box {
+            @auto({defaultValue: false}) accessor flag: boolean;
+        }
+        expect(new Box().flag).toBe(false);
+    });
+
+    it("takes a zero as an initial value", () => {
+        class Box {
+            @auto({initialValue: 0}) accessor count: number;
+        }
+        expect(new Box().count).toBe(0);
+    });
+
+    it("reaches a zero default through a model signal", () => {
+        class ProbeModel extends GradumModel {
+            @modelSignal() @auto({defaultValue: 0}) public price: number;
+        }
+        expect(new ProbeModel({data: {}}).price).toBe(0);
+    });
+});
+

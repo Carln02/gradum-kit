@@ -54,6 +54,29 @@ declare module "./tool" {
          * @description Function to execute when the tool is deactivated.
          */
         onDeactivate(): void;
+
+        /**
+         * @function onEngage
+         * @description Function to execute when this tool's element becomes the one the tool is being used
+         * through. Where {@link GradumTool.onActivate} says the user picked up this kind of tool — and fires
+         * on every element carrying it — this says the interaction reached *this* one, so several elements
+         * can share a tool name and still each prepare their own.
+         *
+         * Nothing fires while the same element keeps being used, however many events that takes.
+         * @param {Node} target - What this element's tool is acting on.
+         * @param {GradumTool} toolInstance - The tool object the behaviors run against, shared by every element
+         * carrying this tool name. Set it up here to have this element's settings be the ones they use.
+         */
+        onEngage(target: Node, toolInstance: GradumTool): void;
+
+        /**
+         * @function onDisengage
+         * @description Function to execute when another element takes over a tool this one was being used
+         * through.
+         * @param {Node} target - What this element's tool had been acting on.
+         * @param {GradumTool} toolInstance - The tool object the behaviors run against.
+         */
+        onDisengage(target: Node, toolInstance: GradumTool): void;
     }
 }
 

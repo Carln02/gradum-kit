@@ -2791,6 +2791,10 @@ type GradumEventNameEntry = typeof GradumEventName[GradumEventNameKey];
  * @description Options used to create a new tool attached to an element via {@link GradumSelector.makeTool}.
  * @property {() => void} [onActivate] - Function to execute when the tool is activated.
  * @property {() => void} [onDeactivate] - Function to execute when the tool is deactivated.
+ * @property {(target: Node, toolInstance: object) => void} [onEngage] - Function to execute when this element
+ * becomes the one the tool is being used through. Handed the tool object the behaviors run against.
+ * @property {(target: Node, toolInstance: object) => void} [onDisengage] - Function to execute when another
+ * element takes over.
  * @property {DefaultEventNameEntry} [activationEvent] - Custom activation event to listen to. Defaults to the
  * default click event name.
  * @property {ClickMode} [clickMode] -  Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
@@ -2807,6 +2811,8 @@ type MakeToolOptions<ElementType extends object = object> = {
     key?: string;
     onActivate?: () => void;
     onDeactivate?: () => void;
+    onEngage?: (target: Node, toolInstance: object) => void;
+    onDisengage?: (target: Node, toolInstance: object) => void;
     activationEvent?: DefaultEventNameEntry;
     customActivation?: (element: ElementType, manager?: GradumEventManager) => void;
     activeClasses?: string | string[];
@@ -2938,7 +2944,7 @@ declare class GradumTool<ElementType extends object = object, ViewType extends G
      * {@link GradumEventManager.instance}, the activation event to the default click name, and the click mode
      * to `ClickMode.left`.
      * @param {GradumToolProperties} properties - The element to attach to, plus the tool name, embedded
-     * target, activation event, click mode, mapped key, and activation callbacks.
+     * target, activation event, click mode, mapped key, and the activation and engagement callbacks.
      */
     constructor(properties: GradumToolProperties<ElementType, ViewType, ModelType, EmitterType>);
     /**
@@ -11327,6 +11333,31 @@ declare function hasPropertyInChain(object: object, key: PropertyKey): boolean;
  */
 declare function getFirstPrototypeInChainWith(object: object, key: PropertyKey): any;
 /**
+ * @function getDeclaringPrototype
+ * @group Utilities
+ * @category Prototype
+ *
+ * @description Find which prototype in a chain declared a particular getter, setter, or method — the one
+ * whose own descriptor still holds the given function. Where {@link getFirstPrototypeInChainWith} answers
+ * "who declares this name", this answers "who declares *this* function", so an override of the same name is
+ * passed over rather than matched.
+ *
+ * Use it when a decorator needs the class a member was written on: a decorator's initializer runs for
+ * instances of subclasses too, and those report their own prototype rather than the declaring one.
+ *
+ * The search starts at `object` itself, unlike {@link getFirstPrototypeInChainWith}, and stops before
+ * `Object.prototype`.
+ *
+ * *Note: the answer is only available while the member is still in place. Once something has redefined the
+ * property — a decorator installing a wrapper over it, say — the function is nowhere in the chain and the
+ * result is `undefined`, so look it up before replacing anything.*
+ * @param {object} object - The object or prototype to search from.
+ * @param {PropertyKey} key - The property the function is defined under.
+ * @param {Function} member - The function to look for: a getter, a setter, or a method.
+ * @returns {any} The prototype declaring it, or `undefined` if the function is nowhere in the chain.
+ */
+declare function getDeclaringPrototype(object: object, key: PropertyKey, member: Function): any;
+/**
  * @function getSuperMethod
  * @group Utilities
  * @category Prototype
@@ -11767,7 +11798,7 @@ type FontProperties = {
  */
 declare function loadLocalFont(font: FontProperties): void;
 
-export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, GradumBaseElement, GradumButton, GradumButtonPopup, GradumClickEventName, GradumConstrainer, GradumContentSwitch, GradumDragEvent, GradumDragEventName, GradumDrawer, GradumDropdown, GradumElement, GradumEmitter, GradumEvent, GradumEventManager, GradumEventName, GradumGrid, GradumHandler, GradumHeadlessElement, GradumIcon, GradumIconSwitch, GradumIconToggle, GradumInput, GradumInteractor, GradumKeyEvent, GradumKeyEventName, GradumLabelElement, GradumMap, GradumMarkingMenu, GradumModel, GradumMovable, GradumMoveEventName, GradumNestedMap, GradumNodeList, GradumNumericalInput, GradumObserver, GradumOperator, GradumPopup, GradumProxiedElement, GradumQueue, GradumRect, GradumRichElement, GradumSelect, GradumSelectElement, GradumSelectInputEvent, GradumSelectWheel, GradumSelector, GradumTool, GradumView, GradumWeakSet, GradumWheelEvent, GradumWheelEventName, GradumYModel, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, deepObserveAll, deepObserveAny, define, detachListenersAndBehaviors, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, g, generateTagFunction, getAllRegistered, getConstructorChain, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, gr, gradum, gradumify, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, modelSignal, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, reattachListenersAndBehaviors, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, textToElement, textarea, tool, trackSignal, trim, untrack, urlToBlob, video };
+export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, GradumBaseElement, GradumButton, GradumButtonPopup, GradumClickEventName, GradumConstrainer, GradumContentSwitch, GradumDragEvent, GradumDragEventName, GradumDrawer, GradumDropdown, GradumElement, GradumEmitter, GradumEvent, GradumEventManager, GradumEventName, GradumGrid, GradumHandler, GradumHeadlessElement, GradumIcon, GradumIconSwitch, GradumIconToggle, GradumInput, GradumInteractor, GradumKeyEvent, GradumKeyEventName, GradumLabelElement, GradumMap, GradumMarkingMenu, GradumModel, GradumMovable, GradumMoveEventName, GradumNestedMap, GradumNodeList, GradumNumericalInput, GradumObserver, GradumOperator, GradumPopup, GradumProxiedElement, GradumQueue, GradumRect, GradumRichElement, GradumSelect, GradumSelectElement, GradumSelectInputEvent, GradumSelectWheel, GradumSelector, GradumTool, GradumView, GradumWeakSet, GradumWheelEvent, GradumWheelEventName, GradumYModel, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, deepObserveAll, deepObserveAny, define, detachListenersAndBehaviors, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, g, generateTagFunction, getAllRegistered, getConstructorChain, getDeclaringPrototype, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, gr, gradum, gradumify, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, modelSignal, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, reattachListenersAndBehaviors, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, textToElement, textarea, tool, trackSignal, trim, untrack, urlToBlob, video };
 export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledGradumEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, Gradum, GradumButtonPopupProperties, GradumConstrainerProperties, GradumContentSwitchProperties, GradumDragEventProperties, GradumDrawerProperties, GradumDropdownProperties, GradumElementDefaultInterface, GradumElementMvcInterface, GradumElementProperties, GradumElementPropertiesMap, GradumElementTagNameMap, GradumElementUiInterface, GradumEventManagerLockStateProperties, GradumEventManagerProperties, GradumEventManagerStateProperties, GradumEventNameEntry, GradumEventNameKey, GradumEventProperties, GradumHeadlessProperties, GradumIconProperties, GradumIconSwitchProperties, GradumIconToggleProperties, GradumInputProperties, GradumInteractorProperties, GradumKeyEventProperties, GradumLabelElementProperties, GradumMarkingMenuProperties, GradumModelProperties, GradumModelProxy, GradumNumericalInputProperties, GradumObserverProperties, GradumOperatorProperties, GradumPopupProperties, GradumProperties, GradumProxiedProperties, GradumRawEventProperties, GradumRectProperties, GradumRichElementProperties, GradumSelectElementProperties, GradumSelectInputEventProperties, GradumSelectProperties, GradumSelectWheelProperties, GradumSelectWheelStylingProperties, GradumToolProperties, GradumViewProperties, GradumWheelEventProperties, GradumifyOptions, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, HitResolver, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
 
 // Flattened from relative module augmentations
@@ -12011,6 +12042,70 @@ interface GradumSelector {
          */
         onToolDeactivate(toolName?: string, manager?: GradumEventManager): Delegate<() => void>;
         /**
+         * @function engageTool
+         * @category Tools
+         * @description Note that this element is the one a named tool is being used through, telling it so
+         * and telling whichever element was being used before that it no longer is. Called for you as an
+         * event reaches an element carrying an embedded tool, ahead of that tool's behaviors; call it
+         * yourself only to hand a tool over without an interaction having done it.
+         *
+         * Saying the same element again does nothing, so this is safe to call on every event.
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {Node} [target=this.getEmbeddedToolTarget()] - What this element's tool is acting on.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        engageTool(toolName?: string, target?: Node, manager?: GradumEventManager): this;
+        /**
+         * @function onToolEngage
+         * @category Tools
+         * @description Retrieve the delegate fired when this element becomes the one a tool is being used
+         * through — the handle being dragged, of several carrying the same tool.
+         *
+         * Distinct from {@link GradumSelector.onToolActivate}, which is about which tool the user is holding
+         * and fires on every element carrying that tool at once. This fires on one element only, and on
+         * whichever one the interaction actually reached, so several elements can share a tool name and still
+         * each set up their own.
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {Delegate<(target: Node, toolInstance: object) => void>} The delegate, fired with what the tool
+         * is acting on and the tool object its behaviors run against.
+         */
+        onToolEngage(toolName?: string, manager?: GradumEventManager): Delegate<(target: Node, toolInstance: object) => void>;
+        /**
+         * @function onToolDisengage
+         * @category Tools
+         * @description Retrieve the delegate fired when another element takes over a tool this one was being
+         * used through. Fired with what this element's tool had been acting on.
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {Delegate<(target: Node, toolInstance: object) => void>} The delegate.
+         */
+        onToolDisengage(toolName?: string, manager?: GradumEventManager): Delegate<(target: Node, toolInstance: object) => void>;
+        /**
+         * @function getEngagedTool
+         * @category Tools
+         * @description The element a named tool is currently being used through, of all the elements carrying
+         * it. Answers "which handle is being dragged" where {@link GradumSelector.getToolName} only answers
+         * "which tool".
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {Node} The engaged element, or `undefined` if the tool has not been used yet.
+         */
+        getEngagedTool(toolName?: string, manager?: GradumEventManager): Node;
+        /**
+         * @function getToolInstance
+         * @category Tools
+         * @description The tool object a named tool's behaviors run against. A behavior is registered once
+         * per name, by whichever element carrying it got there first, so every element sharing that name
+         * shares this one object — set it up rather than the element's own tool when several elements are
+         * the same tool. It is what {@link GradumSelector.onToolEngage} hands you.
+         * @param {string} [toolName=this.getToolName()] - The name of the tool.
+         * @param {GradumEventManager} [manager] - The associated event manager (defaults to `GradumEventManager.instance`).
+         * @returns {object} The tool object, or `undefined` if nothing has registered a behavior for that name.
+         */
+        getToolInstance(toolName?: string, manager?: GradumEventManager): object;
+        /**
          * @function addToolBehavior
          * @category Tools
          * @description Adds a behavior callback for a given tool and a given type. This callback will attempt to be
@@ -12157,6 +12252,27 @@ interface GradumTool<ElementType extends object = object> {
          * @description Function to execute when the tool is deactivated.
          */
         onDeactivate(): void;
+        /**
+         * @function onEngage
+         * @description Function to execute when this tool's element becomes the one the tool is being used
+         * through. Where {@link GradumTool.onActivate} says the user picked up this kind of tool — and fires
+         * on every element carrying it — this says the interaction reached *this* one, so several elements
+         * can share a tool name and still each prepare their own.
+         *
+         * Nothing fires while the same element keeps being used, however many events that takes.
+         * @param {Node} target - What this element's tool is acting on.
+         * @param {GradumTool} toolInstance - The tool object the behaviors run against, shared by every element
+         * carrying this tool name. Set it up here to have this element's settings be the ones they use.
+         */
+        onEngage(target: Node, toolInstance: GradumTool): void;
+        /**
+         * @function onDisengage
+         * @description Function to execute when another element takes over a tool this one was being used
+         * through.
+         * @param {Node} target - What this element's tool had been acting on.
+         * @param {GradumTool} toolInstance - The tool object the behaviors run against.
+         */
+        onDisengage(target: Node, toolInstance: GradumTool): void;
     }
 interface GradumConstrainer {
         /**

@@ -100,7 +100,7 @@ class GradumTool<
      * {@link GradumEventManager.instance}, the activation event to the default click name, and the click mode
      * to `ClickMode.left`.
      * @param {GradumToolProperties} properties - The element to attach to, plus the tool name, embedded
-     * target, activation event, click mode, mapped key, and activation callbacks.
+     * target, activation event, click mode, mapped key, and the activation and engagement callbacks.
      */
     public constructor(properties: GradumToolProperties<ElementType, ViewType, ModelType, EmitterType>) {
         super(properties);
@@ -109,6 +109,8 @@ class GradumTool<
 
         if (properties.onActivate) this.onActivate = properties.onActivate;
         if (properties.onDeactivate) this.onDeactivate = properties.onDeactivate;
+        if (properties.onEngage) this.onEngage = properties.onEngage;
+        if (properties.onDisengage) this.onDisengage = properties.onDisengage;
         if (properties.activationEvent) this.activationEvent = properties.activationEvent;
         if (properties.clickMode) this.clickMode = properties.clickMode;
         if (properties.customActivation) this.customActivation = properties.customActivation;
@@ -129,6 +131,8 @@ class GradumTool<
         if (this.toolName) gradum(this).makeTool(this.toolName, {
             onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
             onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
+            onEngage: typeof this.onEngage === "function" ? this.onEngage.bind(this) : undefined,
+            onDisengage: typeof this.onDisengage === "function" ? this.onDisengage.bind(this) : undefined,
             activationEvent: this.activationEvent,
             clickMode: this.clickMode,
             customActivation: typeof this.customActivation === "function" ? this.customActivation.bind(this) : undefined,

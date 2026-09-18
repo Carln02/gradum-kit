@@ -1,0 +1,104 @@
+demo-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    box-sizing: border-box;
+    width: 15rem;
+    padding: 0.8rem;
+
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+demo-item .item-picture {
+    width: 100%;
+    height: 8rem;
+    object-fit: cover;
+    border-radius: calc(var(--radius) - 4px);
+    background: var(--hover);
+}
+
+demo-item .item-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+demo-item .item-title {
+    font-weight: 600;
+}
+
+demo-item .item-price {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+demo-item .item-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+}
+
+demo-item .item-label {
+    width: 3.2rem;
+    flex: none;
+    color: var(--muted);
+}
+
+demo-item .item-cart-picker {
+    /* Takes the rest of the first line and pushes the amount, button and total onto the next, rather
+       than being squeezed down to its arrow by everything sharing one row. */
+    flex: 1 0 7rem;
+    padding: 0.25rem;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) - 5px);
+}
+
+demo-item .item-amount input {
+    width: 3.5rem;
+    padding: 0.25rem;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+    text-align: right;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) - 5px);
+}
+
+demo-item .item-add {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.85rem;
+    background: var(--hover);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) - 5px);
+    cursor: pointer;
+}
+
+demo-item .item-add:hover {
+    background: var(--active);
+}
+
+/* No cart to add to — the button stays in place so the row does not jump, but does nothing. */
+demo-item .item-add.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+demo-item .item-subtotal {
+    margin-left: auto;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+demo-item .item-unit {
+    color: var(--muted);
+}

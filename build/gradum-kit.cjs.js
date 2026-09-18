@@ -359,6 +359,10 @@
  * @description Options used to create a new tool attached to an element via {@link GradumSelector.makeTool}.
  * @property {() => void} [onActivate] - Function to execute when the tool is activated.
  * @property {() => void} [onDeactivate] - Function to execute when the tool is deactivated.
+ * @property {(target: Node, toolInstance: object) => void} [onEngage] - Function to execute when this element
+ * becomes the one the tool is being used through. Handed the tool object the behaviors run against.
+ * @property {(target: Node, toolInstance: object) => void} [onDisengage] - Function to execute when another
+ * element takes over.
  * @property {DefaultEventNameEntry} [activationEvent] - Custom activation event to listen to. Defaults to the
  * default click event name.
  * @property {ClickMode} [clickMode] -  Click mode that will hold this tool when activated. Defaults to `ClickMode.left`.
@@ -1509,6 +1513,41 @@ function getFirstPrototypeInChainWith(object, key) {
     return undefined;
 }
 /**
+ * @function getDeclaringPrototype
+ * @group Utilities
+ * @category Prototype
+ *
+ * @description Find which prototype in a chain declared a particular getter, setter, or method — the one
+ * whose own descriptor still holds the given function. Where {@link getFirstPrototypeInChainWith} answers
+ * "who declares this name", this answers "who declares *this* function", so an override of the same name is
+ * passed over rather than matched.
+ *
+ * Use it when a decorator needs the class a member was written on: a decorator's initializer runs for
+ * instances of subclasses too, and those report their own prototype rather than the declaring one.
+ *
+ * The search starts at `object` itself, unlike {@link getFirstPrototypeInChainWith}, and stops before
+ * `Object.prototype`.
+ *
+ * *Note: the answer is only available while the member is still in place. Once something has redefined the
+ * property — a decorator installing a wrapper over it, say — the function is nowhere in the chain and the
+ * result is `undefined`, so look it up before replacing anything.*
+ * @param {object} object - The object or prototype to search from.
+ * @param {PropertyKey} key - The property the function is defined under.
+ * @param {Function} member - The function to look for: a getter, a setter, or a method.
+ * @returns {any} The prototype declaring it, or `undefined` if the function is nowhere in the chain.
+ */
+function getDeclaringPrototype(object, key, member) {
+    let currentObject = object;
+    while (currentObject && currentObject !== Object.prototype) {
+        const descriptor = Object.getOwnPropertyDescriptor(currentObject, key);
+        if (descriptor && (descriptor.get === member || descriptor.set === member
+            || descriptor.value === member))
+            return currentObject;
+        currentObject = Object.getPrototypeOf(currentObject);
+    }
+    return undefined;
+}
+/**
  * @function getSuperMethod
  * @group Utilities
  * @category Prototype
@@ -1665,11 +1704,14 @@ function auto(options) {
                     return value;
                 readFlag = true;
                 if (!options.returnDefinedGetterValue && isUndefined(value)) {
-                    if (options.defaultValue)
+                    //Asked whether a default was given, not whether it is truthy: `0`, `""` and `false` are
+                    //all perfectly good defaults, and a member declaring one of them used to get none.
+                    const hasDefault = !isUndefined(options.defaultValue);
+                    if (hasDefault)
                         value = options.defaultValue;
                     else if (options.defaultValueCallback)
                         value = options.defaultValueCallback.call(this);
-                    if (options.setIfUndefined || options.defaultValue || options.defaultValueCallback) {
+                    if (options.setIfUndefined || hasDefault || options.defaultValueCallback) {
                         write.call(this, value);
                         value = baseRead.call(this);
                     }
@@ -1705,7 +1747,7 @@ function auto(options) {
             if (isUndefined(baseRead.call(this))) {
                 let initialValue = kind === "field" ? value : undefined;
                 if (isUndefined(initialValue)) {
-                    if (options.initialValue)
+                    if (!isUndefined(options.initialValue))
                         initialValue = options.initialValue;
                     else if (options.initialValueCallback)
                         initialValue = options.initialValueCallback.call(this);
@@ -3471,6 +3513,13 @@ class SignalUtils {
         const backingKey = Symbol(`[[signal:${String(key)}]]`);
         const shadowKey = Symbol(`[[signal:${String(key)}:shadow]]`);
         const utils = this.utils;
+        /**
+         * Where the decorated accessor was written, which is not always where its initializer runs: the
+         * initializer runs for instances of subclasses too, and those name their own prototype. Looked up
+         * once, on the first instance built — after that the descriptor has been replaced by the wrapper,
+         * and {@link getDeclaringPrototype} has nothing left to recognise it by.
+         */
+        let declaredOn;
         context.addInitializer(function () {
             const prototype = isStatic ? this : this.constructor.prototype;
             let customGetter;
@@ -3558,16 +3607,18 @@ class SignalUtils {
                 });
             }
             else if (kind === "getter" || kind === "setter") {
-                const installed = utils.constructorData(prototype).installed;
+                if (!declaredOn)
+                    declaredOn = getDeclaringPrototype(isStatic ? this : Object.getPrototypeOf(this), key, value) ?? prototype;
+                const installed = utils.constructorData(declaredOn).installed;
                 if (installed.get(key))
                     return;
                 installed.set(key, true);
-                const descriptor = getFirstDescriptorInChain(prototype, key) ?? {};
+                const descriptor = getFirstDescriptorInChain(declaredOn, key) ?? {};
                 if (typeof descriptor.get === "function")
                     customGetter = descriptor.get;
                 if (typeof descriptor.set === "function")
                     customSetter = descriptor.set;
-                Object.defineProperty(prototype, key, {
+                Object.defineProperty(declaredOn, key, {
                     configurable: descriptor?.configurable ?? true,
                     enumerable: !!descriptor?.enumerable,
                     get: function () {
@@ -10246,6 +10297,10 @@ function attachListenersAndBehaviors(context) {
                 continue;
             const callback = (e, el, options) => method.call(context, e, el, options);
             callback.sourceFunction = method;
+            //Which object the behavior runs against. A behavior is registered once per tool name, so this is
+            //the one instance every element carrying that name shares — what `onEngage` is handed so an
+            //element can set it up without having to guess which of them it is.
+            callback.instance = context;
             gradum(context).addToolBehavior(listener.type, callback, tool, manager);
             utils$7.addAttachment(context, { kind: "behavior", type: listener.type, toolName: tool, callback, manager });
         }
@@ -11978,17 +12033,33 @@ function setupEventFunctions() {
             propagation = gradum(target).applyTool(tool, type, event, manager);
         };
         const main = () => {
+            //Which element carries the tool in play. A tool the user is holding was picked up on one
+            //particular element, and the manager remembers which — so even there, "the resize tool" means a
+            //specific one of the elements that are it. Unknown when a caller names a tool directly rather
+            //than the user holding it, and then there is nothing to prefer over the one that registered.
+            const currentTool = manager.getCurrentTool();
+            const activeHost = activeTool && currentTool && manager.getToolName(currentTool) === activeTool
+                ? currentTool : undefined;
             if (activeTool) {
                 runListeners(this, activeTool);
                 if (propagation !== exports.Propagation.propagate)
                     return;
             }
+            if (activeHost)
+                gradum(activeHost).engageTool(activeTool, this.element, manager);
             applyTool(this.element, activeTool);
             if (propagation !== exports.Propagation.propagate)
                 return;
             const embeddedTarget = this.getEmbeddedToolTarget(manager);
             const objectTools = this.getToolNames(manager);
             if (embeddedTarget && objectTools.length > 0) {
+                //This element is the one the interaction reached, so its tools are the ones being used —
+                //said before any of them run, so what a tool is told on engagement is in place by the time
+                //its behaviors read it. Only a change is announced, so the many events one gesture takes
+                //do not each count as taking the tool up again. Same as above, for tools reached this way
+                //rather than by being held.
+                for (const toolName of objectTools)
+                    this.engageTool(toolName, embeddedTarget, manager);
                 for (const toolName of objectTools) {
                     runListeners(embeddedTarget, toolName);
                     if (propagation === exports.Propagation.stopImmediatePropagation)
@@ -12364,6 +12435,8 @@ class ToolFunctionsUtils {
             ignoredTools: new Map(),
             activationDelegates: new Map(),
             deactivationDelegates: new Map(),
+            engagementDelegates: new Map(),
+            disengagementDelegates: new Map(),
         }));
     }
     getToolsData(manager, toolName) {
@@ -12383,6 +12456,73 @@ class ToolFunctionsUtils {
         if (!map.get(toolName))
             map.set(toolName, new Delegate());
         return map.get(toolName);
+    }
+    getEngagementDelegate(element, toolName, manager) {
+        const map = this.getElementData(element, manager).engagementDelegates;
+        if (!map.get(toolName))
+            map.set(toolName, new Delegate());
+        return map.get(toolName);
+    }
+    getDisengagementDelegate(element, toolName, manager) {
+        const map = this.getElementData(element, manager).disengagementDelegates;
+        if (!map.get(toolName))
+            map.set(toolName, new Delegate());
+        return map.get(toolName);
+    }
+    /**
+     * @function engageTool
+     * @description Note which element a named tool is being used through, and tell the elements involved
+     * when that changes. Nothing fires while the same element keeps being used, however many events it
+     * takes — engagement is about which one, not about how often.
+     * @param {Node} host - The element the tool is being used through.
+     * @param {string} toolName - The name of the tool.
+     * @param {Node} target - What that element's tool is acting on.
+     * @param {GradumEventManager} manager - The associated event manager.
+     */
+    engageTool(host, toolName, target, manager) {
+        if (host instanceof GradumSelector)
+            host = host.element;
+        const data = this.getToolsData(manager, toolName);
+        const previousHost = data.engagedHost?.deref();
+        if (previousHost === host)
+            return;
+        const toolInstance = this.getToolInstance(toolName, manager);
+        //The one being let go of is told what it was working on, not what the new one is about to.
+        if (previousHost)
+            this.getDisengagementDelegate(previousHost, toolName, manager)
+                .fire(data.engagedTarget?.deref(), toolInstance);
+        data.engagedHost = host ? new WeakRef(host) : undefined;
+        data.engagedTarget = target ? new WeakRef(target) : undefined;
+        if (host)
+            this.getEngagementDelegate(host, toolName, manager).fire(target, toolInstance);
+    }
+    /**
+     * @function getToolInstance
+     * @description The tool object a named tool's behaviors run against. A behavior is registered once per
+     * name, by whichever element carrying it got there first, so every element sharing that name shares this
+     * one object — which is what an element sets up when it is engaged.
+     * @param {string} toolName - The name of the tool.
+     * @param {GradumEventManager} manager - The associated event manager.
+     * @returns {object} The tool object, or `undefined` if nothing has registered a behavior for that name.
+     */
+    getToolInstance(toolName, manager) {
+        const behaviors = this.getToolsData(manager, toolName).behaviors?.getListeners({ toolName, manager });
+        for (const behavior of behaviors ?? []) {
+            const instance = behavior.callback?.instance;
+            if (instance)
+                return instance;
+        }
+        return undefined;
+    }
+    /**
+     * @function getEngagedTool
+     * @description The element a named tool is currently being used through.
+     * @param {string} toolName - The name of the tool.
+     * @param {GradumEventManager} manager - The associated event manager.
+     * @returns {Node} The engaged element, or `undefined` if the tool has not been used yet.
+     */
+    getEngagedTool(toolName, manager) {
+        return this.getToolsData(manager, toolName).engagedHost?.deref();
     }
     saveTool(element, toolName, manager) {
         if (element instanceof GradumSelector)
@@ -12524,6 +12664,10 @@ function setupToolFunctions() {
             utils$3.getActivationDelegate(this, toolName, options.manager).add(options.onActivate);
         if (options.onDeactivate)
             utils$3.getDeactivationDelegate(this, toolName, options.manager).add(options.onDeactivate);
+        if (options.onEngage)
+            utils$3.getEngagementDelegate(this, toolName, options.manager).add(options.onEngage);
+        if (options.onDisengage)
+            utils$3.getDisengagementDelegate(this, toolName, options.manager).add(options.onDisengage);
         return this;
     };
     GradumSelector.prototype.isTool = function _isTool(manager = GradumEventManager.instance) {
@@ -12551,6 +12695,23 @@ function setupToolFunctions() {
         if (!toolName)
             toolName = this.getToolName(manager);
         return utils$3.getDeactivationDelegate(this, toolName, manager);
+    };
+    GradumSelector.prototype.engageTool = function _engageTool(toolName = this.getToolName(), target = this.getEmbeddedToolTarget(), manager = GradumEventManager.instance) {
+        if (toolName)
+            utils$3.engageTool(this.element, toolName, target, manager);
+        return this;
+    };
+    GradumSelector.prototype.getToolInstance = function _getToolInstance(toolName = this.getToolName(), manager = GradumEventManager.instance) {
+        return utils$3.getToolInstance(toolName, manager);
+    };
+    GradumSelector.prototype.onToolEngage = function _onEngage(toolName = this.getToolName(), manager = GradumEventManager.instance) {
+        return utils$3.getEngagementDelegate(this, toolName, manager);
+    };
+    GradumSelector.prototype.onToolDisengage = function _onDisengage(toolName = this.getToolName(), manager = GradumEventManager.instance) {
+        return utils$3.getDisengagementDelegate(this, toolName, manager);
+    };
+    GradumSelector.prototype.getEngagedTool = function _getEngagedTool(toolName = this.getToolName(), manager = GradumEventManager.instance) {
+        return utils$3.getEngagedTool(toolName, manager);
     };
     /*
      *
@@ -18018,7 +18179,9 @@ let GradumInput = (() => {
                     strValue = this.lastValidForBlur;
             }
             this.element.value = strValue;
-            this.emitter.fire("valueSet");
+            //Asked of the emitter only if there is one. An input built on its own — no model, no view — has
+            //none, and assigning to it is still the ordinary way to fill it in.
+            this.emitter?.fire("valueSet");
         }
         /**
          * @function setValueSilently
@@ -21800,7 +21963,7 @@ class GradumTool extends GradumOperator {
      * {@link GradumEventManager.instance}, the activation event to the default click name, and the click mode
      * to `ClickMode.left`.
      * @param {GradumToolProperties} properties - The element to attach to, plus the tool name, embedded
-     * target, activation event, click mode, mapped key, and activation callbacks.
+     * target, activation event, click mode, mapped key, and the activation and engagement callbacks.
      */
     constructor(properties) {
         super(properties);
@@ -21811,6 +21974,10 @@ class GradumTool extends GradumOperator {
             this.onActivate = properties.onActivate;
         if (properties.onDeactivate)
             this.onDeactivate = properties.onDeactivate;
+        if (properties.onEngage)
+            this.onEngage = properties.onEngage;
+        if (properties.onDisengage)
+            this.onDisengage = properties.onDisengage;
         if (properties.activationEvent)
             this.activationEvent = properties.activationEvent;
         if (properties.clickMode)
@@ -21837,6 +22004,8 @@ class GradumTool extends GradumOperator {
             gradum(this).makeTool(this.toolName, {
                 onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
                 onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
+                onEngage: typeof this.onEngage === "function" ? this.onEngage.bind(this) : undefined,
+                onDisengage: typeof this.onDisengage === "function" ? this.onDisengage.bind(this) : undefined,
                 activationEvent: this.activationEvent,
                 clickMode: this.clickMode,
                 customActivation: typeof this.customActivation === "function" ? this.customActivation.bind(this) : undefined,
@@ -22701,6 +22870,7 @@ exports.g = g;
 exports.generateTagFunction = generateTagFunction;
 exports.getAllRegistered = getAllRegistered;
 exports.getConstructorChain = getConstructorChain;
+exports.getDeclaringPrototype = getDeclaringPrototype;
 exports.getEventPosition = getEventPosition;
 exports.getFileExtension = getFileExtension;
 exports.getFirstDescriptorInChain = getFirstDescriptorInChain;

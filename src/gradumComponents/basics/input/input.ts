@@ -225,7 +225,9 @@ class GradumInput<
             if (!re.test(strValue)) strValue = this.lastValidForBlur;
         }
         this.element.value = strValue;
-        this.emitter.fire("valueSet");
+        //Asked of the emitter only if there is one. An input built on its own — no model, no view — has
+        //none, and assigning to it is still the ordinary way to fill it in.
+        this.emitter?.fire("valueSet");
     }
 
     /**

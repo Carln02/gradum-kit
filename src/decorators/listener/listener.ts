@@ -144,6 +144,10 @@ function attachListenersAndBehaviors(context: any) {
             const callback = (e: Event, el: Node, options?: ToolBehaviorOptions) =>
                 method.call(context, e, el, options);
             (callback as any).sourceFunction = method;
+            //Which object the behavior runs against. A behavior is registered once per tool name, so this is
+            //the one instance every element carrying that name shares — what `onEngage` is handed so an
+            //element can set it up without having to guess which of them it is.
+            (callback as any).instance = context;
             gradum(context).addToolBehavior(listener.type, callback, tool, manager);
             utils.addAttachment(context, {kind: "behavior", type: listener.type, toolName: tool, callback, manager});
         } else if (listener.kind === "listener") {
