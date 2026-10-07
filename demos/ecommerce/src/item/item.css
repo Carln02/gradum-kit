@@ -12,9 +12,37 @@ demo-item {
     border-radius: var(--radius);
 }
 
+/* The picture sits beside the name and price rather than above them, so the card leads with what the item
+   is at a glance and stays short enough to line several up. */
+/* A card put on the canvas places itself; one in a list is laid out by the list. */
+/* Dragging a card should move it, not sweep a text selection across its name and price. */
+demo-item {
+    user-select: none;
+}
+
+/* Except in the amount fields, which are there to be typed in. */
+demo-item input {
+    user-select: text;
+}
+
+demo-item.placed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 15rem;
+}
+
+demo-item .item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
 demo-item .item-picture {
-    width: 100%;
-    height: 8rem;
+    flex: none;
+    width: 3.25rem;
+    height: 3.25rem;
     object-fit: cover;
     border-radius: calc(var(--radius) - 4px);
     background: var(--hover);
@@ -24,6 +52,13 @@ demo-item .item-heading {
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
+    min-width: 0;
+}
+
+demo-item .item-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 demo-item .item-title {
@@ -44,26 +79,13 @@ demo-item .item-row {
 }
 
 demo-item .item-label {
-    width: 3.2rem;
+    width: 2.75rem;
     flex: none;
     color: var(--muted);
 }
 
-demo-item .item-cart-picker {
-    /* Takes the rest of the first line and pushes the amount, button and total onto the next, rather
-       than being squeezed down to its arrow by everything sharing one row. */
-    flex: 1 0 7rem;
-    padding: 0.25rem;
-    color: inherit;
-    font: inherit;
-    font-size: 0.85rem;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: calc(var(--radius) - 5px);
-}
-
 demo-item .item-amount input {
-    width: 3.5rem;
+    width: 3.25rem;
     padding: 0.25rem;
     color: inherit;
     font: inherit;
@@ -74,7 +96,14 @@ demo-item .item-amount input {
     border-radius: calc(var(--radius) - 5px);
 }
 
+demo-item .item-add-dropdown {
+    display: flex;
+    flex: none;
+}
+
 demo-item .item-add {
+    display: flex;
+    align-items: center;
     padding: 0.25rem 0.6rem;
     font-size: 0.85rem;
     background: var(--hover);
@@ -83,22 +112,69 @@ demo-item .item-add {
     cursor: pointer;
 }
 
+/* A rich element puts its text in a heading, and a heading brings its own margins — which is what was
+   making the button twice the height of the field beside it. */
+demo-item .item-add > * {
+    margin: 0;
+    font-size: inherit;
+}
+
 demo-item .item-add:hover {
     background: var(--active);
 }
 
 /* No cart to add to — the button stays in place so the row does not jump, but does nothing. */
-demo-item .item-add.disabled {
+demo-item .item-add-dropdown.disabled {
     opacity: 0.4;
     pointer-events: none;
 }
 
 demo-item .item-subtotal {
     margin-left: auto;
+    flex: none;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
 }
 
 demo-item .item-unit {
     color: var(--muted);
+}
+
+.item-cart-popup > * {
+    display: flex;
+    flex-direction: column;
+    min-width: 8rem;
+}
+
+.item-cart-option {
+    padding: 0.35rem 0.6rem;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: calc(var(--radius) - 5px);
+    cursor: pointer;
+}
+
+.item-cart-option:hover {
+    background: var(--hover);
+}
+
+/* The dropdown's popup is moved into the shared popup container, so it is no longer inside the card. */
+.item-cart-popup {
+    padding: 0.3rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgb(2 12 34 / 12%);
+}
+
+/* The ghost the select tool drags about. It is only a picture of the card, so it neither takes the pointer
+   nor stands in the way of finding what is under it. */
+.drag-ghost {
+    z-index: 10;
+    opacity: 0.55;
+    pointer-events: none;
 }

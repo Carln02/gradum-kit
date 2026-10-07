@@ -104,3 +104,56 @@ describe("GradumSelector.setProperties (text/style)", () => {
         expect(el.style.width).toBe("10px");
     });
 });
+
+describe("GradumSelector.setProperties (data-* attributes)", () => {
+    it("sets a data-* key as the attribute it names, readable through dataset", () => {
+        const el = document.createElement("button");
+
+        $(el).setProperties({"data-cart": "cart-1"} as any);
+
+        expect(el.getAttribute("data-cart")).toBe("cart-1");
+        expect(el.dataset.cart).toBe("cart-1");
+        expect(el.outerHTML).toBe(`<button data-cart="cart-1"></button>`);
+        //The point of the whole thing: it is an attribute, not a property that merely looks like one.
+        expect((el as any)["data-cart"]).toBeUndefined();
+    });
+
+    it("stringifies non-string values, and keeps multi-word keys camel-cased in dataset", () => {
+        const el = document.createElement("div");
+
+        $(el).setProperties({"data-count": 3, "data-open": true, "data-cart-id": "cart-2"} as any);
+
+        expect(el.getAttribute("data-count")).toBe("3");
+        expect(el.getAttribute("data-open")).toBe("true");
+        expect(el.dataset.cartId).toBe("cart-2");
+    });
+
+    it("takes the attribute off for null, and leaves it alone for undefined", () => {
+        const el = document.createElement("div");
+        el.setAttribute("data-kept", "yes");
+        el.setAttribute("data-gone", "yes");
+
+        $(el).setProperties({"data-gone": null, "data-kept": undefined} as any);
+
+        expect(el.hasAttribute("data-gone")).toBe(false);
+        expect(el.getAttribute("data-kept")).toBe("yes");
+    });
+
+    it("leaves a bare `data-` key to the property path, since it names no attribute", () => {
+        const el = document.createElement("div");
+
+        $(el).setProperties({"data-": "x"} as any);
+
+        expect(el.hasAttribute("data-")).toBe(false);
+        expect((el as any)["data-"]).toBe("x");
+    });
+
+    it("sets data-* even when only base properties are asked for", () => {
+        const el = document.createElement("div");
+
+        $(el).setProperties({"data-cart": "cart-1", someField: "ignored"} as any, true);
+
+        expect(el.getAttribute("data-cart")).toBe("cart-1");
+        expect((el as any).someField).toBeUndefined();
+    });
+});

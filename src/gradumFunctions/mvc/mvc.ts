@@ -240,6 +240,8 @@ export function setupMvcFunctions() {
         mvc.interactors.forEach(interactor => interactor.initialize());
         mvc.tools.forEach(tool => tool.initialize());
         mvc.constrainers.forEach(constrainer => constrainer.initialize());
+        //Before the model's own initialize, so that anything it does can rely on its handlers being live.
+        mvc.model?.handlers.forEach(handler => handler.initialize?.());
         mvc.model?.initialize();
         mvc.initialized = true;
         return this;
@@ -332,6 +334,9 @@ export function setupMvcFunctions() {
         if (utils.keyIsTaken(data.model?.handlers, handler.keyName, handler, "handler")) return this;
         data.model?.handlers.set(handler.keyName, handler);
         utils.updateHandler(this.element, handler);
+        //A piece added to an element that has already initialized has missed the pass that would
+        //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+        if (data.initialized) handler.initialize?.();
         return this;
     };
 

@@ -1,0 +1,121 @@
+demo-cart {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    /* The fraction of their natural size the cards are drawn at. Left at 1 unless a fit operator that
+       shrinks them says otherwise. */
+    --cart-fit-scale: 1;
+    /* No z-index of its own, so the cart raises no stacking context and its header can sit above the items
+       while its area stays below them. The items carry `z-index: 1`, which is what puts them on top of the
+       area they are lying on. */
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    box-sizing: border-box;
+    padding-bottom: 0.4rem;
+    overflow-y: auto;
+
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+}
+
+/* The cards a cart is holding are laid out by it, down its length and across its width. Everything that
+   takes up room is measured against `--cart-fit-scale`, so a fit operator that shrinks the cards has one
+   number to set rather than a list of properties to write. */
+demo-cart > demo-item {
+    position: static;
+    flex: none;
+    width: auto;
+    margin: 0 0.4rem;
+
+    gap: calc(0.6rem * var(--cart-fit-scale));
+    padding: calc(0.8rem * var(--cart-fit-scale));
+    font-size: calc(1rem * var(--cart-fit-scale));
+}
+
+demo-cart > demo-item .item-header {
+    gap: calc(0.6rem * var(--cart-fit-scale));
+}
+
+demo-cart > demo-item .item-picture {
+    width: calc(3.25rem * var(--cart-fit-scale));
+    height: calc(3.25rem * var(--cart-fit-scale));
+}
+
+/* Said by the view, when the fit operator reports the contents running past the area. */
+demo-cart.cart-full .cart-count {
+    color: #b26a00;
+    font-weight: 600;
+}
+
+demo-cart.locked {
+    border-style: solid;
+}
+
+/* The only part of a cart that takes the pointer. Everything below it is left alone so an item lying on the
+   cart can still be picked up through it. */
+demo-cart .cart-header {
+    /* Above the items, so a cart covered in cards can still be named, locked and added to — and pinned to
+       the top, so a fit operator that scrolls the cards does not carry the header off with them. */
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    flex: none;
+
+    background: inherit;
+
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    padding: 0.35rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+demo-cart .cart-name {
+    font-weight: 600;
+}
+
+demo-cart .cart-count {
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+/* Pushed to the far end of the strip, so the two buttons sit together. */
+demo-cart .cart-lock {
+    margin-left: auto;
+}
+
+demo-cart .cart-lock,
+demo-cart .cart-add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 1.4rem;
+    height: 1.4rem;
+    padding: 0;
+
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+
+    background: rgb(255 255 255 / 55%);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) - 5px);
+    cursor: pointer;
+}
+
+demo-cart .cart-lock:hover,
+demo-cart .cart-add:hover {
+    background: rgb(255 255 255 / 90%);
+}
+
+/* A locked cart still says what it holds, but nothing on it can be pressed. */
+demo-cart.locked .cart-add {
+    opacity: 0.4;
+    pointer-events: none;
+}

@@ -1229,6 +1229,11 @@ declare class GradumHandler<ModelType extends GradumModel = GradumModel> {
      */
     model: ModelType;
     /**
+     * @readonly
+     * @description Whether {@link GradumHandler.initialize} has run.
+     */
+    initialized: boolean;
+    /**
      * @constructor
      * @description Create a handler. Handlers are normally constructed without arguments — the MVC wiring
      * binds {@link GradumHandler.model} when the handler is registered on its model.
@@ -1242,6 +1247,16 @@ declare class GradumHandler<ModelType extends GradumModel = GradumModel> {
      * @protected
      */
     protected setup(): void;
+    /**
+     * @function initialize
+     * @description Starts the handler's `@effect` methods. Called by the MVC wiring once the handler's
+     * model is bound; there is no need to call it by hand.
+     *
+     * Not done in the constructor: a method decorator registers its effect as the instance is built, after
+     * the base constructor has run, so effects started there would be started before there were any — and
+     * before {@link GradumHandler.model} was bound for them to read.
+     */
+    initialize(): void;
 }
 
 /**
@@ -8665,6 +8680,14 @@ declare class GradumInput<InputTag extends "input" | "textarea" = "input", Value
     private lastValidForInput;
     private lastValidForBlur;
     /**
+     * @private
+     * @description The last value assigned through {@link GradumInput.value}, kept for its type rather than
+     * its contents: it is what tells a read which type to parse the element's text back into. Nothing else
+     * holds it — the element stores text, and the string form written to it cannot be turned back into a
+     * `Point` or a `Color` without knowing that is what it was.
+     */
+    private typedValue;
+    /**
      * @readonly
      * @description Fired when the input gains focus.
      */
@@ -8700,9 +8723,13 @@ declare class GradumInput<InputTag extends "input" | "textarea" = "input", Value
      */
     protected setupUIListeners(): void;
     /**
-     * @description The input's value, parsed from its text. Numbers and JSON are converted automatically,
-     * and a current value exposing `fromString` is used to parse the text into its own type. Assigning
-     * writes the value's string form back to the element.
+     * @description The input's value, parsed from its text. Text that reads as a whole number is returned
+     * as one, text left over from a value that exposes `fromString` is parsed back into that value's type,
+     * and anything else is tried as JSON before being handed back as the string it is. Assigning writes
+     * the value's string form to the element and remembers the type it came in as.
+     *
+     * *Note: a number wins over `fromString`, so an input holding a `Point` whose text reads `"5"` gives
+     * back `5` rather than a point.*
      */
     get value(): ValueType;
     set value(value: ValueType);
@@ -10046,6 +10073,18 @@ declare class GradumDropdown<ValueType = string, SecondaryValueType = string, En
     set popup(value: HTMLElement);
     initialize(): void;
     private openPopup;
+    /**
+     * @description Take the dropdown off the page, and its popup with it. The popup is parked in the shared
+     * popup container rather than kept inside the dropdown, so it is not carried off by the dropdown being
+     * removed — it has to be removed itself.
+     */
+    remove(): void;
+    /**
+     * @function destroy
+     * @description Get rid of the dropdown and its popup, listeners included. What
+     * {@link GradumSelector.destroy} calls when a subtree holding a dropdown is destroyed.
+     */
+    destroy(): this;
 }
 
 /**
@@ -10355,6 +10394,18 @@ declare class GradumButtonPopup<ElementTag extends ValidTag = any, ViewType exte
     set popup(value: HTMLElement);
     protected setupUIListeners(): void;
     private openPopup;
+    /**
+     * @description Take the button off the page, and its popup with it. The popup is parked in the shared
+     * popup container rather than kept inside the button, so it is not carried off by the button being
+     * removed — it has to be removed itself.
+     */
+    remove(): void;
+    /**
+     * @function destroy
+     * @description Get rid of the button and its popup, listeners included. What {@link GradumSelector.destroy}
+     * calls when a subtree holding a button is destroyed.
+     */
+    destroy(): this;
 }
 
 /**
@@ -13383,11 +13434,18 @@ interface GradumSelector {
         readonly reifects: Set<StatefulReifect>;
         /**
          * @category Reifects
-         * @description The transition used by the element's show() and isShown methods. Directly modifying its
+         * @description The transition used by the element's show() and isShown methods. By default,
+         * it toggles the CSS visibility of the element. Directly modifying this
          * value will modify all elements' default showTransition. Unless this is the desired outcome, set it to a
          * new custom StatefulReifect.
          */
         showTransition: StatefulReifect<Shown>;
+        /**
+         * @category Reifects
+         * @description An alternative transition you can use for the element's show() and isShown methods.
+         * It modifies the CSS display of the element.
+         */
+        readonly displayTransition: StatefulReifect<Shown>;
         /**
          * @category Reifects
          * @description Boolean indicating whether the element is shown or not, based on its showTransition.

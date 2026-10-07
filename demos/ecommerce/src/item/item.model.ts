@@ -1,6 +1,7 @@
-import {auto, GradumModel, modelSignal, signal} from "../../../../build/gradum-kit.esm";
-import {Cart, ItemData} from "./item.types";
+import {auto, GradumModel, modelSignal, Point, signal} from "../../../../build/gradum-kit.esm";
+import {ItemData} from "./item.types";
 import {atLeastZero} from "../utils";
+import {Cart} from "../cart/cart";
 
 /**
  * @class ItemModel
@@ -19,18 +20,10 @@ export class ItemModel extends GradumModel<ItemData> {
 
     @signal @auto({preprocessValue: atLeastZero}) accessor cartAmount: number = 1;
     @signal @auto({preprocessValue: atLeastZero}) accessor recipeAmount: number = 1;
+
     @signal public cart: Cart = undefined;
 
-    /**
-     * @description The carts this item can be added to. Assigning picks the first of them, unless the cart
-     * already picked is among them — so an item handed its carts after it was created ends up with one, and
-     * one whose carts change keeps the cart it was on if that cart is still there.
-     */
-    @signal @auto({
-        callAfter: function (this: ItemModel, value: Cart[]) {
-            if (!value?.includes(this.cart)) this.cart = value?.[0];
-        }
-    }) accessor carts: Cart[] = [];
+    @signal public position: Point = undefined;
 
     public get cartCost(): number {
         return this.price * this.cartAmount;

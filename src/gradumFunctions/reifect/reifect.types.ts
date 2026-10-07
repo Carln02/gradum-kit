@@ -4,7 +4,6 @@ import {
     ReifectEnabledObject
 } from "../../gradumComponents/wrappers/statefulReifect/statefulReifect.types";
 import {Shown} from "../../types/enums.types";
-import {Delegate} from "../../gradumComponents/datatypes/delegate/delegate";
 
 declare module "../gradumSelector" {
     interface GradumSelector {
@@ -16,11 +15,19 @@ declare module "../gradumSelector" {
 
         /**
          * @category Reifects
-         * @description The transition used by the element's show() and isShown methods. Directly modifying its
+         * @description The transition used by the element's show() and isShown methods. By default,
+         * it toggles the CSS visibility of the element. Directly modifying this
          * value will modify all elements' default showTransition. Unless this is the desired outcome, set it to a
          * new custom StatefulReifect.
          */
         showTransition: StatefulReifect<Shown>;
+
+        /**
+         * @category Reifects
+         * @description An alternative transition you can use for the element's show() and isShown methods.
+         * It modifies the CSS display of the element.
+         */
+        readonly displayTransition: StatefulReifect<Shown>;
 
         /**
          * @category Reifects

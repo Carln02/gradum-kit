@@ -50,7 +50,7 @@ class GradumButtonPopup<
 
     protected setupUIListeners() {
         super.setupUIListeners();
-        gradum(document.body).on(DefaultEventName.click, () => e => {
+        gradum(document.body).on(DefaultEventName.click, e => {
             if (this.popupOpen && !this.contains(e.target as Node)) this.openPopup(false);
         }, {capture: true});
 
@@ -65,6 +65,26 @@ class GradumButtonPopup<
         this.popupOpen = b;
         if ("show" in this.popup && typeof this.popup.show === "function") this.popup.show(b);
         else gradum(this.popup).show(b);
+    }
+
+    /**
+     * @description Take the button off the page, and its popup with it. The popup is parked in the shared
+     * popup container rather than kept inside the button, so it is not carried off by the button being
+     * removed — it has to be removed itself.
+     */
+    public remove(): void {
+        gradum(this.popup).remove();
+        super.remove();
+    }
+
+    /**
+     * @function destroy
+     * @description Get rid of the button and its popup, listeners included. What {@link GradumSelector.destroy}
+     * calls when a subtree holding a button is destroyed.
+     */
+    public destroy(): this {
+        gradum(this.popup).destroy();
+        return this;
     }
 }
 

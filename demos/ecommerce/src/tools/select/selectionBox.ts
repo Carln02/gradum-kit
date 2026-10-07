@@ -10,7 +10,7 @@ import {
 } from "../../../../../build/gradum-kit.esm";
 import {ResizeHandle} from "./resizeHandle";
 import {RotateHandle} from "./rotateHandle";
-import {utils} from "../../utils";
+import {getRect} from "../../utils";
 import "./selectionBox.css";
 
 //Module-level rather than a static: a private static makes TypeScript reduce `Gradum<this>` to `never`.
@@ -58,7 +58,7 @@ export class SelectionBox extends GradumElement {
 
     public track() {
         this.stopTracking = effect(() => {
-            const rect = utils(this.target);
+            const rect = getRect(this.target);
             if (!rect) return;
             gradum(this).setStyles({
                 transform: `translate(${rect.topLeft.x}px, ${rect.topLeft.y}px) rotate(${rect.angleRad ?? 0}rad)`,

@@ -27,6 +27,12 @@ class GradumHandler<ModelType extends GradumModel = GradumModel> {
     public model: ModelType;
 
     /**
+     * @readonly
+     * @description Whether {@link GradumHandler.initialize} has run.
+     */
+    public initialized: boolean = false;
+
+    /**
      * @constructor
      * @description Create a handler. Handlers are normally constructed without arguments — the MVC wiring
      * binds {@link GradumHandler.model} when the handler is registered on its model.
@@ -43,7 +49,20 @@ class GradumHandler<ModelType extends GradumModel = GradumModel> {
      * before `this.initialize()` is called.
      * @protected
      */
-    protected setup(): void {
+    protected setup(): void {}
+
+    /**
+     * @function initialize
+     * @description Starts the handler's `@effect` methods. Called by the MVC wiring once the handler's
+     * model is bound; there is no need to call it by hand.
+     *
+     * Not done in the constructor: a method decorator registers its effect as the instance is built, after
+     * the base constructor has run, so effects started there would be started before there were any — and
+     * before {@link GradumHandler.model} was bound for them to read.
+     */
+    public initialize(): void {
+        if (this.initialized) return;
+        this.initialized = true;
         initializeEffects(this);
     }
 }

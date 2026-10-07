@@ -1,7 +1,10 @@
-import {define, expose, GradumElement} from "../../../../build/gradum-kit.esm";
+import {
+    CloneElementOptions, define, effect, expose, GradumElement, gradum, Point
+} from "../../../../build/gradum-kit.esm";
 import {ItemModel} from "./item.model";
 import {ItemView} from "./item.view";
-import {Cart, ItemData} from "./item.types";
+import {ItemData, ItemProperties} from "./item.types";
+import {Cart} from "../cart/cart";
 import "./item.css";
 
 /**
@@ -13,6 +16,7 @@ import "./item.css";
  * any number of carts and adds to whichever one is picked.
  */
 export class Item extends GradumElement<ItemView, ItemData, ItemModel> {
+    public declare properties: ItemProperties;
     public static defaultProperties = {
         view: ItemView,
         model: ItemModel,
@@ -24,10 +28,17 @@ export class Item extends GradumElement<ItemView, ItemData, ItemModel> {
     @expose("model") image: string;
     @expose("model") price: number;
     @expose("model") unit: string;
-    @expose("model") carts: Cart[];
     @expose("model") cart: Cart;
     @expose("model") cartAmount: number;
+
+    /**
+     * @description Where the card sits on the canvas. Unset while it is in a list.
+     */
+    @expose("model") position: Point;
     @expose("model") recipeAmount: number;
+
+    @expose("view") showAddButton: boolean;
+    @expose("view") showRecipe: boolean;
 
     /**
      * @readonly
@@ -36,15 +47,43 @@ export class Item extends GradumElement<ItemView, ItemData, ItemModel> {
     @expose("model", false) cartCost: number;
 
     /**
-     * @description Put an amount of this item in the cart it currently points at. Nothing happens when no
-     * cart is picked or the amount is zero, so the button is safe to press at any time.
-     * @param {number} [amount=this.cartAmount] - How many units to add. Defaults to the amount on the card.
-     * @returns {boolean} Whether a cart took the item.
+     * @description How the card is taken hold of, which follows from whether it places itself. A card with a
+     * position of its own is dragged where it stands; one laid out by whatever it is in — the shelf, a cart —
+     * is dragged and dropped instead, since moving it in place would mean nothing.
      */
-    public addToCart(amount: number = this.cartAmount): boolean {
-        if (!this.cart || !(amount > 0)) return false;
-        this.cart.addItem(this, amount);
-        return true;
+    @effect protected isModifiable() {
+        const placed = !!this.model.position;
+        gradum(this).metadata.set(placed, "modifiable");
+        gradum(this).metadata.set(!placed, "dragAndDroppable");
+    }
+
+    /**
+     * @function clone
+     * @description A second card for the same item. What the shelf hands over when one of its cards is
+     * dragged onto the canvas: the shelf's own card is a catalogue entry and stays where it is.
+     *
+     * Give it the parent it is going to rather than adding it afterwards — a card works out what it can be
+     * added to from where it is, and it works that out as it is built.
+     * @param {CloneElementOptions} [options] - Where the new card goes, under `parent`.
+     * @returns {Item} The new card.
+     */
+    public clone(options: CloneElementOptions & {parent?: Element} = {}): this {
+        return Item.create({
+            parent: options.parent,
+            data: {name: this.name, image: this.image, price: this.price, unit: this.unit},
+            cartAmount: this.cartAmount,
+            recipeAmount: this.recipeAmount
+        }) as this;
+    }
+
+    /**
+     * @function delete
+     * @description Get rid of the card, and the add dropdown's popup with it. What the delete tool calls.
+     * Use it over `remove()`: the popup is parked outside the card, so removing the card alone would leave
+     * it behind.
+     */
+    public delete() {
+        gradum(this).destroy();
     }
 }
 

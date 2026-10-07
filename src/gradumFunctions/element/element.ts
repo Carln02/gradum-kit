@@ -32,7 +32,10 @@ const utils = new ElementFunctionsUtils();
 export function setupElementFunctions() {
     /**
      * @template Tag - The HTML tag of the element.
-     * @description Apply the given properties to the element.
+     * @description Apply the given properties to the element. A `data-*` key is set as the attribute it
+     * names — `{"data-cart": "cart-1"}` gives `data-cart="cart-1"`, readable back through `dataset.cart` —
+     * and a `null` takes the attribute off. Anything else is assigned as a property, falling back to an
+     * attribute when the element will not take it.
      * @param {GradumProperties<Tag>} [properties] - The properties object.
      * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
      * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
@@ -119,6 +122,19 @@ export function setupElementFunctions() {
                         gradum(element).addChild(value);
                         break;
                 }
+            }
+
+            //A `data-*` key becomes the attribute it looks like. Without this it would fall through to the
+            //assignment below and land as a property named `"data-x"` — nothing in the markup, nothing in
+            //`dataset`, and no sign that it went anywhere.
+            const dataProps = gradum(props, true).extract(Object.keys(props).filter(utils.isDataKey));
+            for (const [attribute, value] of Object.entries(dataProps)) {
+                try {
+                    //`null` reads as taking the attribute off, which is how an attribute is unset anywhere
+                    //else. `undefined` never arrives — extracting a property leaves undefined ones behind.
+                    if (value === null) element.removeAttribute(attribute);
+                    else element.setAttribute(attribute, stringify(value));
+                } catch (e) {console.error(e)}
             }
         }
 
@@ -297,9 +313,20 @@ export function setupElementFunctions() {
 
     /**
      * @description Destroys the node by removing it from the document and removing all its bound listeners.
+     * Every descendant is destroyed first, so a component that keeps something of its own outside itself —
+     * a popup parked in the shared popup container, say — takes it away too. Use this over `remove()`
+     * wherever a subtree is being got rid of rather than moved.
      * @returns {this} Itself, allowing for method chaining.
      */
     GradumSelector.prototype.destroy = function _destroy(this: GradumSelector): GradumSelector {
+        //Descendants first, and while the subtree is still in the page: once the host is detached there is
+        //nothing left to find them from.
+        if (this.element instanceof Element) for (const descendant of Array.from(this.element.querySelectorAll("*"))) {
+            gradum(descendant).removeAllListeners();
+            const destroy = (descendant as any).destroy;
+            if (typeof destroy === "function") try {destroy.call(descendant)} catch (e) {console.error(e)}
+        }
+
         this.removeAllListeners();
         this.remove();
         if (this.element && "destroy" in this.element && typeof this.element.destroy === "function") this.element.destroy();

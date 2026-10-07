@@ -1,0 +1,24 @@
+{
+  "items": [
+    {"name": "Sourdough loaf", "category": "Bread", "price": 4.5, "unit": "each", "emoji": "🍞", "tint": "#f6e3cd"},
+    {"name": "Baguette", "category": "Bread", "price": 2.2, "unit": "each", "emoji": "🥖", "tint": "#f4e4c8"},
+    {"name": "Croissant", "category": "Bread", "price": 1.8, "unit": "each", "emoji": "🥐", "tint": "#f7e6c4"},
+
+    {"name": "Carrots", "category": "Vegetables", "price": 1.9, "unit": "kg", "emoji": "🥕", "tint": "#fde3cd"},
+    {"name": "Broccoli", "category": "Vegetables", "price": 3.4, "unit": "kg", "emoji": "🥦", "tint": "#dff0d8"},
+    {"name": "Tomatoes", "category": "Vegetables", "price": 4.2, "unit": "kg", "emoji": "🍅", "tint": "#fbdcd8"},
+    {"name": "Aubergine", "category": "Vegetables", "price": 3.1, "unit": "each", "emoji": "🍆", "tint": "#e6dcf0"},
+
+    {"name": "Bananas", "category": "Fruit", "price": 2.4, "unit": "kg", "emoji": "🍌", "tint": "#fdf3d0"},
+    {"name": "Strawberries", "category": "Fruit", "price": 6.8, "unit": "punnet", "emoji": "🍓", "tint": "#fbd8dd"},
+    {"name": "Lemons", "category": "Fruit", "price": 0.6, "unit": "each", "emoji": "🍋", "tint": "#fdf6c9"},
+
+    {"name": "Parmesan", "category": "Dairy", "price": 28, "unit": "kg", "emoji": "🧀", "tint": "#fdf0c4"},
+    {"name": "Butter", "category": "Dairy", "price": 3.2, "unit": "each", "emoji": "🧈", "tint": "#fdf2d4"},
+    {"name": "Eggs", "category": "Dairy", "price": 0.45, "unit": "each", "emoji": "🥚", "tint": "#fdf6e6"},
+
+    {"name": "Olive oil", "category": "Pantry", "price": 9.5, "unit": "bottle", "emoji": "🫒", "tint": "#e6eed6"},
+    {"name": "Spaghetti", "category": "Pantry", "price": 1.6, "unit": "pack", "emoji": "🍝", "tint": "#fae4d2"},
+    {"name": "Honey", "category": "Pantry", "price": 7.4, "unit": "jar", "emoji": "🍯", "tint": "#fdeec4"}
+  ]
+}

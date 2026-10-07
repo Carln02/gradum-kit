@@ -119,6 +119,15 @@ class GradumInput<
     private lastValidForBlur = "";
 
     /**
+     * @private
+     * @description The last value assigned through {@link GradumInput.value}, kept for its type rather than
+     * its contents: it is what tells a read which type to parse the element's text back into. Nothing else
+     * holds it — the element stores text, and the string form written to it cannot be turned back into a
+     * `Point` or a `Color` without knowing that is what it was.
+     */
+    private typedValue: ValueType;
+
+    /**
      * @readonly
      * @description Fired when the input gains focus.
      */
@@ -185,27 +194,37 @@ class GradumInput<
     }
 
     /**
-     * @description The input's value, parsed from its text. Numbers and JSON are converted automatically,
-     * and a current value exposing `fromString` is used to parse the text into its own type. Assigning
-     * writes the value's string form back to the element.
+     * @description The input's value, parsed from its text. Text that reads as a whole number is returned
+     * as one, text left over from a value that exposes `fromString` is parsed back into that value's type,
+     * and anything else is tried as JSON before being handed back as the string it is. Assigning writes
+     * the value's string form to the element and remembers the type it came in as.
+     *
+     * *Note: a number wins over `fromString`, so an input holding a `Point` whose text reads `"5"` gives
+     * back `5` rather than a point.*
      */
     @signal public get value(): ValueType {
         const value = this.rawValue;
         if (!value) return undefined;
-        try {
-            const num = parseFloat(value);
-            if (!isNaN(num)) return num as ValueType;
-        } catch {}
-        try {
-            const current = this.value;
-            if (current && typeof current === "object" && "fromString" in current
-                && typeof current.fromString === "function") return current.fromString(value) as ValueType;
-        } catch {}
+
+        //Whole-number-or-nothing, rather than `parseFloat`, which reads "3 clips" as 3 and would turn any
+        //description starting with a digit into a number.
+        const trimmed = value.trim();
+        if (trimmed) {
+            const num = Number(trimmed);
+            if (!Number.isNaN(num)) return num as ValueType;
+        }
+
+        //The last value assigned, for its type: `this.value` here would be this getter calling itself.
+        const current = this.typedValue;
+        if (current && typeof current === "object" && "fromString" in current
+            && typeof current.fromString === "function") return (current.fromString as any)(value) as ValueType;
+
         try {return JSON.parse(value) as ValueType;} catch {}
         return value as ValueType;
     }
 
     public set value(value: ValueType) {
+        this.typedValue = value;
         this.rawValue = value.toString();
     }
 
@@ -238,6 +257,8 @@ class GradumInput<
      */
     public setValueSilently(value: ValueType) {
         if (!(this.element instanceof HTMLInputElement) && !(this.element instanceof HTMLTextAreaElement)) return;
+        //Remembered here too, or the type a read parses back into would be the one before this write.
+        this.typedValue = value;
         this.element.value = typeof (value as any)?.toString === "function" ? (value as any).toString() : String(value);
     }
 

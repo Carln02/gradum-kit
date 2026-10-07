@@ -1,32 +1,38 @@
 import {
-    DefaultEventName, div, effect, element, GradumButton, GradumNumericalInput, GradumView, gradum, img,
-    span, untrack
+    div, effect, element, GradumDropdown, GradumNumericalInput, GradumView, gradum, img, signal, span,
+    untrack
 } from "../../../../build/gradum-kit.esm";
 import {Item} from "./item";
 import {ItemModel} from "./item.model";
-
-//Money the way a shop writes it. One currency, since a demo has no reason to carry a second.
-const formatPrice = (value: number) => `$${(value ?? 0).toFixed(2)}`;
+import {formatPrice} from "../utils";
+import {Canvas} from "../canvas/canvas";
+import {Cart} from "../cart/cart";
 
 /**
  * @class ItemView
  *
  * @extends GradumView
- * @description The card itself: the item's picture, name and unit price, then the row that puts an amount
- * of it in a cart, and the row that says how much of it a recipe uses.
+ * @description The card itself: the item's picture beside its name and unit price, then the row that puts an
+ * amount of it in a cart, and the row that says how much of it a recipe uses. Which cart is chosen from a
+ * popup hung off the add button, so the card stays the size of what the item is rather than of what can be
+ * done with it.
  */
 export class ItemView extends GradumView<Item, ItemModel> {
+    @signal public showAddButton: boolean = true;
+    @signal public showRecipe: boolean = true;
+
     protected picture: HTMLImageElement;
     protected title: HTMLElement;
     protected price: HTMLElement;
 
-    protected cartPicker: HTMLSelectElement;
     protected cartAmountInput: GradumNumericalInput;
-    protected addButton: GradumButton;
+    protected addDropdown: GradumDropdown;
     protected subtotal: HTMLElement;
-
     protected recipeAmountInput: GradumNumericalInput;
     protected recipeUnit: HTMLElement;
+
+    protected cartRow: HTMLElement;
+    protected recipeRow: HTMLElement;
 
     protected setupUIElements() {
         super.setupUIElements();
@@ -35,29 +41,43 @@ export class ItemView extends GradumView<Item, ItemModel> {
         this.title = span({classes: "item-title"});
         this.price = span({classes: "item-price"});
 
-        this.cartPicker = element({tag: "select", classes: "item-cart-picker"});
-        this.cartAmountInput = this.createAmountInput();
-        this.addButton = GradumButton.create({classes: "item-add", text: "Add"});
+        this.cartAmountInput = GradumNumericalInput.create({classes: "item-amount", min: 0, decimalPlaces: 2});
         this.subtotal = span({classes: "item-subtotal"});
 
-        this.recipeAmountInput = this.createAmountInput();
+        //A dropdown is the add button and its list of carts in one: a selector to click and a popup hung off
+        //it. The selector is a plain button rather than a GradumButton on purpose — a dropdown rewrites a
+        //GradumButton selector to show what was picked, and this one is an action, not a choice. It should
+        //go on saying "Add".
+        this.addDropdown = GradumDropdown.create({
+            classes: "item-add-dropdown",
+            selector: element({tag: "button", classes: "item-add", text: "Add"}),
+            popupClasses: "item-cart-popup"
+        });
+
+        gradum(this.addDropdown).showTransition = gradum().displayTransition;
+
+        this.recipeAmountInput = GradumNumericalInput.create({classes: "item-amount", min: 0, decimalPlaces: 2});
         this.recipeUnit = span({classes: "item-unit"});
     }
 
     protected setupUILayout() {
         super.setupUILayout();
-
         gradum(this).addChild([
-            this.picture,
-            div({classes: "item-heading", children: [this.title, this.price]}),
             div({
+                classes: "item-header",
+                children: [
+                    this.picture,
+                    div({classes: "item-heading", children: [this.title, this.price]})
+                ]
+            }),
+            this.cartRow = div({
                 classes: ["item-row", "item-cart-row"],
                 children: [
                     span({classes: "item-label", text: "Cart"}),
-                    this.cartPicker, this.cartAmountInput, this.addButton, this.subtotal
+                    this.cartAmountInput, this.addDropdown, this.subtotal
                 ]
             }),
-            div({
+            this.recipeRow = div({
                 classes: ["item-row", "item-recipe-row"],
                 children: [
                     span({classes: "item-label", text: "Recipe"}),
@@ -65,21 +85,22 @@ export class ItemView extends GradumView<Item, ItemModel> {
                 ]
             })
         ]);
+        gradum(this.recipeRow).showTransition = gradum().displayTransition;
     }
 
     protected setupUIListeners() {
         super.setupUIListeners();
-
-        //Carts are picked by their place in the list rather than by name, so two carts called the same
-        //thing are still told apart.
-        gradum(this.cartPicker).on(DefaultEventName.change, () =>
-            this.model.cart = this.model.carts?.[Number(this.cartPicker.value)]);
-
-        //An empty field reads back as NaN, which the model turns into zero along with anything negative.
         this.cartAmountInput.onInput.add(() => this.model.cartAmount = this.cartAmountInput.value);
         this.recipeAmountInput.onInput.add(() => this.model.recipeAmount = this.recipeAmountInput.value);
+        this.addDropdown.select.onEntryClicked = entry =>
+            this.addTo(gradum(this).closest(Canvas)?.getCart(entry.dataset?.cart));
+    }
 
-        gradum(this.addButton).on(DefaultEventName.click, () => this.element.addToCart());
+    @effect protected updatePlacement() {
+        const position = this.model.position;
+        gradum(this).toggleClass("placed", !!position);
+        gradum(this).setStyle("transform",
+            position ? `translate(${position.x}px, ${position.y}px)` : "", true);
     }
 
     @effect protected updatePicture() {
@@ -98,20 +119,26 @@ export class ItemView extends GradumView<Item, ItemModel> {
     }
 
     /**
-     * @description Rebuild the cart picker and mark the picked cart. Both are done together rather than in
-     * an effect each, because rebuilding the options drops whatever was picked — so the two have to happen
-     * in that order, which only holds inside one effect.
+     * @description Rebuild the list of carts the popup offers. An item with no carts has nothing to be added
+     * to, so its add button says as much rather than opening on an empty list.
      * @protected
      */
     @effect protected updateCarts() {
-        const carts = this.model.carts ?? [];
-        this.cartPicker.replaceChildren(...carts.map((cart, index) =>
-            element({tag: "option", text: cart.name, value: String(index)})));
+        const carts = gradum(this).closest(Canvas)?.carts ?? [];
+        this.addDropdown.select.clear();
+        for (const cart of carts) this.addDropdown.select.addEntry(element({
+            tag: "button", classes: "item-cart-option", text: cart.name, "data-cart": cart.dataId
+        }));
 
-        const picked = carts.indexOf(this.model.cart);
-        this.cartPicker.value = picked < 0 ? "" : String(picked);
-        //There is nothing to add to until the item has been given a cart.
-        gradum(this.addButton).toggleClass("disabled", picked < 0);
+        gradum(this.addDropdown).toggleClass("disabled", carts.length === 0);
+    }
+
+    @effect protected showDropdown() {
+        gradum(this.addDropdown).show(this.showAddButton);
+    }
+
+    @effect protected showRecipeStuff() {
+        gradum(this.recipeRow).show(this.showRecipe);
     }
 
     @effect protected updateCartAmount() {
@@ -128,13 +155,17 @@ export class ItemView extends GradumView<Item, ItemModel> {
     }
 
     /**
-     * @description Build one of the card's two amount fields. Both accept the same thing — some number of
-     * units, never negative — and differ only in what is done with what they hold.
-     * @returns {GradumNumericalInput} The field, not yet attached to anything.
+     * @description Hand the amount on the card to the cart that was chosen. Choosing is also what picks the
+     * cart, so the card goes on pointing at the one it was last added to.
+     * @param {Cart} cart - The cart chosen from the dropdown.
      * @protected
      */
-    protected createAmountInput(): GradumNumericalInput {
-        return GradumNumericalInput.create({classes: "item-amount", min: 0, decimalPlaces: 2});
+    protected addTo(cart: Cart) {
+        if (!cart) return;
+        this.model.cart = cart;
+        //Asked of the cart rather than of the card: taking something in is the cart's own business, and
+        //whether it will is the cart's own decision.
+        cart.addItem(this.element, this.model.cartAmount);
     }
 
     /**
@@ -150,8 +181,6 @@ export class ItemView extends GradumView<Item, ItemModel> {
     protected showAmount(input: GradumNumericalInput, amount: number) {
         untrack(() => {
             const shown = input.value;
-            //An empty field reads as NaN. Someone has just cleared it to type a new number, and writing the
-            //zero the model made of that straight back over them is what makes a field impossible to type in.
             if (Number.isNaN(shown) && amount === 0) return;
             if (shown === amount) return;
             input.value = amount;

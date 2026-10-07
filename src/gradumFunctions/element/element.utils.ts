@@ -23,6 +23,17 @@ type ElementData = {
 export class ElementFunctionsUtils {
     private dataMap = new WeakMap<Node, ElementData>;
 
+    /**
+     * @function isDataKey
+     * @description Whether a property name is a `data-*` attribute rather than a field to assign. The bare
+     * `"data-"` is not one: it names no attribute.
+     * @param {string} key - The property name to test.
+     * @returns {boolean} Whether it names a `data-*` attribute.
+     */
+    public isDataKey = (key: string): boolean => {
+        return typeof key === "string" && key.startsWith("data-") && key.length > "data-".length;
+    };
+
     public data(element: Node): ElementData {
         if (element instanceof GradumSelector) element = element.element;
         if (!element || !this.dataMap.has(element)) {

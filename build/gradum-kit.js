@@ -3248,6 +3248,16 @@ var Gradum = (function (exports, yjs) {
      */
     class ElementFunctionsUtils {
         dataMap = new WeakMap;
+        /**
+         * @function isDataKey
+         * @description Whether a property name is a `data-*` attribute rather than a field to assign. The bare
+         * `"data-"` is not one: it names no attribute.
+         * @param {string} key - The property name to test.
+         * @returns {boolean} Whether it names a `data-*` attribute.
+         */
+        isDataKey = (key) => {
+            return typeof key === "string" && key.startsWith("data-") && key.length > "data-".length;
+        };
         data(element) {
             if (element instanceof GradumSelector)
                 element = element.element;
@@ -6891,6 +6901,8 @@ var Gradum = (function (exports, yjs) {
             mvc.interactors.forEach(interactor => interactor.initialize());
             mvc.tools.forEach(tool => tool.initialize());
             mvc.constrainers.forEach(constrainer => constrainer.initialize());
+            //Before the model's own initialize, so that anything it does can rely on its handlers being live.
+            mvc.model?.handlers.forEach(handler => handler.initialize?.());
             mvc.model?.initialize();
             mvc.initialized = true;
             return this;
@@ -6985,6 +6997,10 @@ var Gradum = (function (exports, yjs) {
                 return this;
             data.model?.handlers.set(handler.keyName, handler);
             utils$8.updateHandler(this.element, handler);
+            //A piece added to an element that has already initialized has missed the pass that would
+            //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+            if (data.initialized)
+                handler.initialize?.();
             return this;
         };
         GradumSelector.prototype.removeHandler = function (keyOrInstance) {
@@ -9093,6 +9109,11 @@ var Gradum = (function (exports, yjs) {
          */
         model;
         /**
+         * @readonly
+         * @description Whether {@link GradumHandler.initialize} has run.
+         */
+        initialized = false;
+        /**
          * @constructor
          * @description Create a handler. Handlers are normally constructed without arguments — the MVC wiring
          * binds {@link GradumHandler.model} when the handler is registered on its model.
@@ -9109,7 +9130,20 @@ var Gradum = (function (exports, yjs) {
          * before `this.initialize()` is called.
          * @protected
          */
-        setup() {
+        setup() { }
+        /**
+         * @function initialize
+         * @description Starts the handler's `@effect` methods. Called by the MVC wiring once the handler's
+         * model is bound; there is no need to call it by hand.
+         *
+         * Not done in the constructor: a method decorator registers its effect as the instance is built, after
+         * the base constructor has run, so effects started there would be started before there were any — and
+         * before {@link GradumHandler.model} was bound for them to read.
+         */
+        initialize() {
+            if (this.initialized)
+                return;
+            this.initialized = true;
             initializeEffects(this);
         }
     }
@@ -11055,7 +11089,10 @@ var Gradum = (function (exports, yjs) {
     function setupElementFunctions() {
         /**
          * @template Tag - The HTML tag of the element.
-         * @description Apply the given properties to the element.
+         * @description Apply the given properties to the element. A `data-*` key is set as the attribute it
+         * names — `{"data-cart": "cart-1"}` gives `data-cart="cart-1"`, readable back through `dataset.cart` —
+         * and a `null` takes the attribute off. Anything else is assigned as a property, falling back to an
+         * attribute when the element will not take it.
          * @param {GradumProperties<Tag>} [properties] - The properties object.
          * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
          * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
@@ -11142,6 +11179,23 @@ var Gradum = (function (exports, yjs) {
                         case "children":
                             gradum(element).addChild(value);
                             break;
+                    }
+                }
+                //A `data-*` key becomes the attribute it looks like. Without this it would fall through to the
+                //assignment below and land as a property named `"data-x"` — nothing in the markup, nothing in
+                //`dataset`, and no sign that it went anywhere.
+                const dataProps = gradum(props, true).extract(Object.keys(props).filter(utils$6.isDataKey));
+                for (const [attribute, value] of Object.entries(dataProps)) {
+                    try {
+                        //`null` reads as taking the attribute off, which is how an attribute is unset anywhere
+                        //else. `undefined` never arrives — extracting a property leaves undefined ones behind.
+                        if (value === null)
+                            element.removeAttribute(attribute);
+                        else
+                            element.setAttribute(attribute, stringify(value));
+                    }
+                    catch (e) {
+                        console.error(e);
                     }
                 }
             }
@@ -11355,9 +11409,26 @@ var Gradum = (function (exports, yjs) {
         };
         /**
          * @description Destroys the node by removing it from the document and removing all its bound listeners.
+         * Every descendant is destroyed first, so a component that keeps something of its own outside itself —
+         * a popup parked in the shared popup container, say — takes it away too. Use this over `remove()`
+         * wherever a subtree is being got rid of rather than moved.
          * @returns {this} Itself, allowing for method chaining.
          */
         GradumSelector.prototype.destroy = function _destroy() {
+            //Descendants first, and while the subtree is still in the page: once the host is detached there is
+            //nothing left to find them from.
+            if (this.element instanceof Element)
+                for (const descendant of Array.from(this.element.querySelectorAll("*"))) {
+                    gradum(descendant).removeAllListeners();
+                    const destroy = descendant.destroy;
+                    if (typeof destroy === "function")
+                        try {
+                            destroy.call(descendant);
+                        }
+                        catch (e) {
+                            console.error(e);
+                        }
+                }
             this.removeAllListeners();
             this.remove();
             if (this.element && "destroy" in this.element && typeof this.element.destroy === "function")
@@ -15604,6 +15675,10 @@ var Gradum = (function (exports, yjs) {
         states: [exports.Shown.visible, exports.Shown.hidden],
         styles: (state) => `visibility: ${state}`
     });
+    const displayTransition = new StatefulReifect({
+        states: [exports.Shown.visible, exports.Shown.hidden],
+        styles: (state) => `display: ${state === exports.Shown.visible ? "" : "none"}`
+    });
     /**
      * @internal
      * @function setupReifectFunctions
@@ -15640,6 +15715,13 @@ var Gradum = (function (exports, yjs) {
                 if (!this.element)
                     return;
                 utils$1.data(this.element).showTransition = value;
+            },
+            configurable: true,
+            enumerable: true
+        });
+        Object.defineProperty(GradumSelector.prototype, "displayTransition", {
+            get: function () {
+                return displayTransition;
             },
             configurable: true,
             enumerable: true
@@ -18064,6 +18146,14 @@ var Gradum = (function (exports, yjs) {
             lastValidForInput = "";
             lastValidForBlur = "";
             /**
+             * @private
+             * @description The last value assigned through {@link GradumInput.value}, kept for its type rather than
+             * its contents: it is what tells a read which type to parse the element's text back into. Nothing else
+             * holds it — the element stores text, and the string form written to it cannot be turned back into a
+             * `Point` or a `Color` without knowing that is what it was.
+             */
+            typedValue;
+            /**
              * @readonly
              * @description Fired when the input gains focus.
              */
@@ -18131,27 +18221,31 @@ var Gradum = (function (exports, yjs) {
                 });
             }
             /**
-             * @description The input's value, parsed from its text. Numbers and JSON are converted automatically,
-             * and a current value exposing `fromString` is used to parse the text into its own type. Assigning
-             * writes the value's string form back to the element.
+             * @description The input's value, parsed from its text. Text that reads as a whole number is returned
+             * as one, text left over from a value that exposes `fromString` is parsed back into that value's type,
+             * and anything else is tried as JSON before being handed back as the string it is. Assigning writes
+             * the value's string form to the element and remembers the type it came in as.
+             *
+             * *Note: a number wins over `fromString`, so an input holding a `Point` whose text reads `"5"` gives
+             * back `5` rather than a point.*
              */
             get value() {
                 const value = this.rawValue;
                 if (!value)
                     return undefined;
-                try {
-                    const num = parseFloat(value);
-                    if (!isNaN(num))
+                //Whole-number-or-nothing, rather than `parseFloat`, which reads "3 clips" as 3 and would turn any
+                //description starting with a digit into a number.
+                const trimmed = value.trim();
+                if (trimmed) {
+                    const num = Number(trimmed);
+                    if (!Number.isNaN(num))
                         return num;
                 }
-                catch { }
-                try {
-                    const current = this.value;
-                    if (current && typeof current === "object" && "fromString" in current
-                        && typeof current.fromString === "function")
-                        return current.fromString(value);
-                }
-                catch { }
+                //The last value assigned, for its type: `this.value` here would be this getter calling itself.
+                const current = this.typedValue;
+                if (current && typeof current === "object" && "fromString" in current
+                    && typeof current.fromString === "function")
+                    return current.fromString(value);
                 try {
                     return JSON.parse(value);
                 }
@@ -18159,6 +18253,7 @@ var Gradum = (function (exports, yjs) {
                 return value;
             }
             set value(value) {
+                this.typedValue = value;
                 this.rawValue = value.toString();
             }
             /**
@@ -18191,6 +18286,8 @@ var Gradum = (function (exports, yjs) {
             setValueSilently(value) {
                 if (!(this.element instanceof HTMLInputElement) && !(this.element instanceof HTMLTextAreaElement))
                     return;
+                //Remembered here too, or the type a read parses back into would be the one before this write.
+                this.typedValue = value;
                 this.element.value = typeof value?.toString === "function" ? value.toString() : String(value);
             }
             /**
@@ -20079,7 +20176,9 @@ var Gradum = (function (exports, yjs) {
             }
         };
     })();
-    define(GradumPopup);
+    //Named outright rather than derived from the class name: a build that renames the class — vitest's
+    //esbuild pass renames it to `_GradumPopup` — would otherwise derive a tag the browser rejects.
+    define(GradumPopup, "gradum-popup", "GradumPopup");
 
     /**
      * @class AnchorPoint
@@ -20899,7 +20998,7 @@ var Gradum = (function (exports, yjs) {
             initialize() {
                 super.initialize();
                 this.selector;
-                gradum(document.body).on(DefaultEventName.click, () => e => {
+                gradum(document.body).on(DefaultEventName.click, e => {
                     if (this.popupOpen && !this.contains(e.target))
                         this.openPopup(false);
                 }, { capture: true });
@@ -20912,6 +21011,24 @@ var Gradum = (function (exports, yjs) {
                     this.popup.show(b);
                 else
                     gradum(this.popup).show(b);
+            }
+            /**
+             * @description Take the dropdown off the page, and its popup with it. The popup is parked in the shared
+             * popup container rather than kept inside the dropdown, so it is not carried off by the dropdown being
+             * removed — it has to be removed itself.
+             */
+            remove() {
+                gradum(this.popup).remove();
+                super.remove();
+            }
+            /**
+             * @function destroy
+             * @description Get rid of the dropdown and its popup, listeners included. What
+             * {@link GradumSelector.destroy} calls when a subtree holding a dropdown is destroyed.
+             */
+            destroy() {
+                gradum(this.popup).destroy();
+                return this;
             }
             constructor() {
                 super(...arguments);
@@ -21520,7 +21637,7 @@ var Gradum = (function (exports, yjs) {
             }
             setupUIListeners() {
                 super.setupUIListeners();
-                gradum(document.body).on(DefaultEventName.click, () => e => {
+                gradum(document.body).on(DefaultEventName.click, e => {
                     if (this.popupOpen && !this.contains(e.target))
                         this.openPopup(false);
                 }, { capture: true });
@@ -21537,6 +21654,24 @@ var Gradum = (function (exports, yjs) {
                     this.popup.show(b);
                 else
                     gradum(this.popup).show(b);
+            }
+            /**
+             * @description Take the button off the page, and its popup with it. The popup is parked in the shared
+             * popup container rather than kept inside the button, so it is not carried off by the button being
+             * removed — it has to be removed itself.
+             */
+            remove() {
+                gradum(this.popup).remove();
+                super.remove();
+            }
+            /**
+             * @function destroy
+             * @description Get rid of the button and its popup, listeners included. What {@link GradumSelector.destroy}
+             * calls when a subtree holding a button is destroyed.
+             */
+            destroy() {
+                gradum(this.popup).destroy();
+                return this;
             }
             constructor() {
                 super(...arguments);

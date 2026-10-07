@@ -9980,6 +9980,41 @@
         return undefined;
     }
     /**
+     * @function getDeclaringPrototype
+     * @group Utilities
+     * @category Prototype
+     *
+     * @description Find which prototype in a chain declared a particular getter, setter, or method — the one
+     * whose own descriptor still holds the given function. Where {@link getFirstPrototypeInChainWith} answers
+     * "who declares this name", this answers "who declares *this* function", so an override of the same name is
+     * passed over rather than matched.
+     *
+     * Use it when a decorator needs the class a member was written on: a decorator's initializer runs for
+     * instances of subclasses too, and those report their own prototype rather than the declaring one.
+     *
+     * The search starts at `object` itself, unlike {@link getFirstPrototypeInChainWith}, and stops before
+     * `Object.prototype`.
+     *
+     * *Note: the answer is only available while the member is still in place. Once something has redefined the
+     * property — a decorator installing a wrapper over it, say — the function is nowhere in the chain and the
+     * result is `undefined`, so look it up before replacing anything.*
+     * @param {object} object - The object or prototype to search from.
+     * @param {PropertyKey} key - The property the function is defined under.
+     * @param {Function} member - The function to look for: a getter, a setter, or a method.
+     * @returns {any} The prototype declaring it, or `undefined` if the function is nowhere in the chain.
+     */
+    function getDeclaringPrototype(object, key, member) {
+        let currentObject = object;
+        while (currentObject && currentObject !== Object.prototype) {
+            const descriptor = Object.getOwnPropertyDescriptor(currentObject, key);
+            if (descriptor && (descriptor.get === member || descriptor.set === member
+                || descriptor.value === member))
+                return currentObject;
+            currentObject = Object.getPrototypeOf(currentObject);
+        }
+        return undefined;
+    }
+    /**
      * @function getSuperMethod
      * @group Utilities
      * @category Prototype
@@ -10117,11 +10152,14 @@
                         return value;
                     readFlag = true;
                     if (!options.returnDefinedGetterValue && isUndefined(value)) {
-                        if (options.defaultValue)
+                        //Asked whether a default was given, not whether it is truthy: `0`, `""` and `false` are
+                        //all perfectly good defaults, and a member declaring one of them used to get none.
+                        const hasDefault = !isUndefined(options.defaultValue);
+                        if (hasDefault)
                             value = options.defaultValue;
                         else if (options.defaultValueCallback)
                             value = options.defaultValueCallback.call(this);
-                        if (options.setIfUndefined || options.defaultValue || options.defaultValueCallback) {
+                        if (options.setIfUndefined || hasDefault || options.defaultValueCallback) {
                             write.call(this, value);
                             value = baseRead.call(this);
                         }
@@ -10157,7 +10195,7 @@
                 if (isUndefined(baseRead.call(this))) {
                     let initialValue = kind === "field" ? value : undefined;
                     if (isUndefined(initialValue)) {
-                        if (options.initialValue)
+                        if (!isUndefined(options.initialValue))
                             initialValue = options.initialValue;
                         else if (options.initialValueCallback)
                             initialValue = options.initialValueCallback.call(this);
@@ -11436,6 +11474,16 @@
      */
     class ElementFunctionsUtils {
         dataMap = new WeakMap;
+        /**
+         * @function isDataKey
+         * @description Whether a property name is a `data-*` attribute rather than a field to assign. The bare
+         * `"data-"` is not one: it names no attribute.
+         * @param {string} key - The property name to test.
+         * @returns {boolean} Whether it names a `data-*` attribute.
+         */
+        isDataKey = (key) => {
+            return typeof key === "string" && key.startsWith("data-") && key.length > "data-".length;
+        };
         data(element) {
             if (element instanceof GradumSelector)
                 element = element.element;
@@ -11700,6 +11748,13 @@
             const backingKey = Symbol(`[[signal:${String(key)}]]`);
             const shadowKey = Symbol(`[[signal:${String(key)}:shadow]]`);
             const utils = this.utils;
+            /**
+             * Where the decorated accessor was written, which is not always where its initializer runs: the
+             * initializer runs for instances of subclasses too, and those name their own prototype. Looked up
+             * once, on the first instance built — after that the descriptor has been replaced by the wrapper,
+             * and {@link getDeclaringPrototype} has nothing left to recognise it by.
+             */
+            let declaredOn;
             context.addInitializer(function () {
                 const prototype = isStatic ? this : this.constructor.prototype;
                 let customGetter;
@@ -11787,16 +11842,18 @@
                     });
                 }
                 else if (kind === "getter" || kind === "setter") {
-                    const installed = utils.constructorData(prototype).installed;
+                    if (!declaredOn)
+                        declaredOn = getDeclaringPrototype(isStatic ? this : Object.getPrototypeOf(this), key, value) ?? prototype;
+                    const installed = utils.constructorData(declaredOn).installed;
                     if (installed.get(key))
                         return;
                     installed.set(key, true);
-                    const descriptor = getFirstDescriptorInChain(prototype, key) ?? {};
+                    const descriptor = getFirstDescriptorInChain(declaredOn, key) ?? {};
                     if (typeof descriptor.get === "function")
                         customGetter = descriptor.get;
                     if (typeof descriptor.set === "function")
                         customSetter = descriptor.set;
-                    Object.defineProperty(prototype, key, {
+                    Object.defineProperty(declaredOn, key, {
                         configurable: descriptor?.configurable ?? true,
                         enumerable: !!descriptor?.enumerable,
                         get: function () {
@@ -14745,6 +14802,8 @@
             mvc.interactors.forEach(interactor => interactor.initialize());
             mvc.tools.forEach(tool => tool.initialize());
             mvc.constrainers.forEach(constrainer => constrainer.initialize());
+            //Before the model's own initialize, so that anything it does can rely on its handlers being live.
+            mvc.model?.handlers.forEach(handler => handler.initialize?.());
             mvc.model?.initialize();
             mvc.initialized = true;
             return this;
@@ -14839,6 +14898,10 @@
                 return this;
             data.model?.handlers.set(handler.keyName, handler);
             utils$8.updateHandler(this.element, handler);
+            //A piece added to an element that has already initialized has missed the pass that would
+            //have initialized it, so it does its own — otherwise it would sit there bound to nothing.
+            if (data.initialized)
+                handler.initialize?.();
             return this;
         };
         GradumSelector.prototype.removeHandler = function (keyOrInstance) {
@@ -16891,6 +16954,11 @@
          */
         model;
         /**
+         * @readonly
+         * @description Whether {@link GradumHandler.initialize} has run.
+         */
+        initialized = false;
+        /**
          * @constructor
          * @description Create a handler. Handlers are normally constructed without arguments — the MVC wiring
          * binds {@link GradumHandler.model} when the handler is registered on its model.
@@ -16907,7 +16975,20 @@
          * before `this.initialize()` is called.
          * @protected
          */
-        setup() {
+        setup() { }
+        /**
+         * @function initialize
+         * @description Starts the handler's `@effect` methods. Called by the MVC wiring once the handler's
+         * model is bound; there is no need to call it by hand.
+         *
+         * Not done in the constructor: a method decorator registers its effect as the instance is built, after
+         * the base constructor has run, so effects started there would be started before there were any — and
+         * before {@link GradumHandler.model} was bound for them to read.
+         */
+        initialize() {
+            if (this.initialized)
+                return;
+            this.initialized = true;
             initializeEffects(this);
         }
     }
@@ -18094,6 +18175,10 @@
                     continue;
                 const callback = (e, el, options) => method.call(context, e, el, options);
                 callback.sourceFunction = method;
+                //Which object the behavior runs against. A behavior is registered once per tool name, so this is
+                //the one instance every element carrying that name shares — what `onEngage` is handed so an
+                //element can set it up without having to guess which of them it is.
+                callback.instance = context;
                 gradum(context).addToolBehavior(listener.type, callback, tool, manager);
                 utils$7.addAttachment(context, { kind: "behavior", type: listener.type, toolName: tool, callback, manager });
             }
@@ -18849,7 +18934,10 @@
     function setupElementFunctions() {
         /**
          * @template Tag - The HTML tag of the element.
-         * @description Apply the given properties to the element.
+         * @description Apply the given properties to the element. A `data-*` key is set as the attribute it
+         * names — `{"data-cart": "cart-1"}` gives `data-cart="cart-1"`, readable back through `dataset.cart` —
+         * and a `null` takes the attribute off. Anything else is assigned as a property, falling back to an
+         * attribute when the element will not take it.
          * @param {GradumProperties<Tag>} [properties] - The properties object.
          * @param {boolean} [setOnlyBaseProperties=false] - If set to true, will only set the base gradum properties (classes,
          * text, style, id, children, parent, etc.) and ignore all other properties not explicitly defined in GradumProperties.
@@ -18936,6 +19024,23 @@
                         case "children":
                             gradum(element).addChild(value);
                             break;
+                    }
+                }
+                //A `data-*` key becomes the attribute it looks like. Without this it would fall through to the
+                //assignment below and land as a property named `"data-x"` — nothing in the markup, nothing in
+                //`dataset`, and no sign that it went anywhere.
+                const dataProps = gradum(props, true).extract(Object.keys(props).filter(utils$6.isDataKey));
+                for (const [attribute, value] of Object.entries(dataProps)) {
+                    try {
+                        //`null` reads as taking the attribute off, which is how an attribute is unset anywhere
+                        //else. `undefined` never arrives — extracting a property leaves undefined ones behind.
+                        if (value === null)
+                            element.removeAttribute(attribute);
+                        else
+                            element.setAttribute(attribute, stringify(value));
+                    }
+                    catch (e) {
+                        console.error(e);
                     }
                 }
             }
@@ -19149,9 +19254,26 @@
         };
         /**
          * @description Destroys the node by removing it from the document and removing all its bound listeners.
+         * Every descendant is destroyed first, so a component that keeps something of its own outside itself —
+         * a popup parked in the shared popup container, say — takes it away too. Use this over `remove()`
+         * wherever a subtree is being got rid of rather than moved.
          * @returns {this} Itself, allowing for method chaining.
          */
         GradumSelector.prototype.destroy = function _destroy() {
+            //Descendants first, and while the subtree is still in the page: once the host is detached there is
+            //nothing left to find them from.
+            if (this.element instanceof Element)
+                for (const descendant of Array.from(this.element.querySelectorAll("*"))) {
+                    gradum(descendant).removeAllListeners();
+                    const destroy = descendant.destroy;
+                    if (typeof destroy === "function")
+                        try {
+                            destroy.call(descendant);
+                        }
+                        catch (e) {
+                            console.error(e);
+                        }
+                }
             this.removeAllListeners();
             this.remove();
             if (this.element && "destroy" in this.element && typeof this.element.destroy === "function")
@@ -19826,17 +19948,33 @@
                 propagation = gradum(target).applyTool(tool, type, event, manager);
             };
             const main = () => {
+                //Which element carries the tool in play. A tool the user is holding was picked up on one
+                //particular element, and the manager remembers which — so even there, "the resize tool" means a
+                //specific one of the elements that are it. Unknown when a caller names a tool directly rather
+                //than the user holding it, and then there is nothing to prefer over the one that registered.
+                const currentTool = manager.getCurrentTool();
+                const activeHost = activeTool && currentTool && manager.getToolName(currentTool) === activeTool
+                    ? currentTool : undefined;
                 if (activeTool) {
                     runListeners(this, activeTool);
                     if (propagation !== Propagation.propagate)
                         return;
                 }
+                if (activeHost)
+                    gradum(activeHost).engageTool(activeTool, this.element, manager);
                 applyTool(this.element, activeTool);
                 if (propagation !== Propagation.propagate)
                     return;
                 const embeddedTarget = this.getEmbeddedToolTarget(manager);
                 const objectTools = this.getToolNames(manager);
                 if (embeddedTarget && objectTools.length > 0) {
+                    //This element is the one the interaction reached, so its tools are the ones being used —
+                    //said before any of them run, so what a tool is told on engagement is in place by the time
+                    //its behaviors read it. Only a change is announced, so the many events one gesture takes
+                    //do not each count as taking the tool up again. Same as above, for tools reached this way
+                    //rather than by being held.
+                    for (const toolName of objectTools)
+                        this.engageTool(toolName, embeddedTarget, manager);
                     for (const toolName of objectTools) {
                         runListeners(embeddedTarget, toolName);
                         if (propagation === Propagation.stopImmediatePropagation)
@@ -20212,6 +20350,8 @@
                 ignoredTools: new Map(),
                 activationDelegates: new Map(),
                 deactivationDelegates: new Map(),
+                engagementDelegates: new Map(),
+                disengagementDelegates: new Map(),
             }));
         }
         getToolsData(manager, toolName) {
@@ -20231,6 +20371,73 @@
             if (!map.get(toolName))
                 map.set(toolName, new Delegate());
             return map.get(toolName);
+        }
+        getEngagementDelegate(element, toolName, manager) {
+            const map = this.getElementData(element, manager).engagementDelegates;
+            if (!map.get(toolName))
+                map.set(toolName, new Delegate());
+            return map.get(toolName);
+        }
+        getDisengagementDelegate(element, toolName, manager) {
+            const map = this.getElementData(element, manager).disengagementDelegates;
+            if (!map.get(toolName))
+                map.set(toolName, new Delegate());
+            return map.get(toolName);
+        }
+        /**
+         * @function engageTool
+         * @description Note which element a named tool is being used through, and tell the elements involved
+         * when that changes. Nothing fires while the same element keeps being used, however many events it
+         * takes — engagement is about which one, not about how often.
+         * @param {Node} host - The element the tool is being used through.
+         * @param {string} toolName - The name of the tool.
+         * @param {Node} target - What that element's tool is acting on.
+         * @param {GradumEventManager} manager - The associated event manager.
+         */
+        engageTool(host, toolName, target, manager) {
+            if (host instanceof GradumSelector)
+                host = host.element;
+            const data = this.getToolsData(manager, toolName);
+            const previousHost = data.engagedHost?.deref();
+            if (previousHost === host)
+                return;
+            const toolInstance = this.getToolInstance(toolName, manager);
+            //The one being let go of is told what it was working on, not what the new one is about to.
+            if (previousHost)
+                this.getDisengagementDelegate(previousHost, toolName, manager)
+                    .fire(data.engagedTarget?.deref(), toolInstance);
+            data.engagedHost = host ? new WeakRef(host) : undefined;
+            data.engagedTarget = target ? new WeakRef(target) : undefined;
+            if (host)
+                this.getEngagementDelegate(host, toolName, manager).fire(target, toolInstance);
+        }
+        /**
+         * @function getToolInstance
+         * @description The tool object a named tool's behaviors run against. A behavior is registered once per
+         * name, by whichever element carrying it got there first, so every element sharing that name shares this
+         * one object — which is what an element sets up when it is engaged.
+         * @param {string} toolName - The name of the tool.
+         * @param {GradumEventManager} manager - The associated event manager.
+         * @returns {object} The tool object, or `undefined` if nothing has registered a behavior for that name.
+         */
+        getToolInstance(toolName, manager) {
+            const behaviors = this.getToolsData(manager, toolName).behaviors?.getListeners({ toolName, manager });
+            for (const behavior of behaviors ?? []) {
+                const instance = behavior.callback?.instance;
+                if (instance)
+                    return instance;
+            }
+            return undefined;
+        }
+        /**
+         * @function getEngagedTool
+         * @description The element a named tool is currently being used through.
+         * @param {string} toolName - The name of the tool.
+         * @param {GradumEventManager} manager - The associated event manager.
+         * @returns {Node} The engaged element, or `undefined` if the tool has not been used yet.
+         */
+        getEngagedTool(toolName, manager) {
+            return this.getToolsData(manager, toolName).engagedHost?.deref();
         }
         saveTool(element, toolName, manager) {
             if (element instanceof GradumSelector)
@@ -20372,6 +20579,10 @@
                 utils$3.getActivationDelegate(this, toolName, options.manager).add(options.onActivate);
             if (options.onDeactivate)
                 utils$3.getDeactivationDelegate(this, toolName, options.manager).add(options.onDeactivate);
+            if (options.onEngage)
+                utils$3.getEngagementDelegate(this, toolName, options.manager).add(options.onEngage);
+            if (options.onDisengage)
+                utils$3.getDisengagementDelegate(this, toolName, options.manager).add(options.onDisengage);
             return this;
         };
         GradumSelector.prototype.isTool = function _isTool(manager = GradumEventManager.instance) {
@@ -20399,6 +20610,23 @@
             if (!toolName)
                 toolName = this.getToolName(manager);
             return utils$3.getDeactivationDelegate(this, toolName, manager);
+        };
+        GradumSelector.prototype.engageTool = function _engageTool(toolName = this.getToolName(), target = this.getEmbeddedToolTarget(), manager = GradumEventManager.instance) {
+            if (toolName)
+                utils$3.engageTool(this.element, toolName, target, manager);
+            return this;
+        };
+        GradumSelector.prototype.getToolInstance = function _getToolInstance(toolName = this.getToolName(), manager = GradumEventManager.instance) {
+            return utils$3.getToolInstance(toolName, manager);
+        };
+        GradumSelector.prototype.onToolEngage = function _onEngage(toolName = this.getToolName(), manager = GradumEventManager.instance) {
+            return utils$3.getEngagementDelegate(this, toolName, manager);
+        };
+        GradumSelector.prototype.onToolDisengage = function _onDisengage(toolName = this.getToolName(), manager = GradumEventManager.instance) {
+            return utils$3.getDisengagementDelegate(this, toolName, manager);
+        };
+        GradumSelector.prototype.getEngagedTool = function _getEngagedTool(toolName = this.getToolName(), manager = GradumEventManager.instance) {
+            return utils$3.getEngagedTool(toolName, manager);
         };
         /*
          *
@@ -23262,6 +23490,10 @@
         states: [Shown.visible, Shown.hidden],
         styles: (state) => `visibility: ${state}`
     });
+    const displayTransition = new StatefulReifect({
+        states: [Shown.visible, Shown.hidden],
+        styles: (state) => `display: ${state === Shown.visible ? "" : "none"}`
+    });
     /**
      * @internal
      * @function setupReifectFunctions
@@ -23298,6 +23530,13 @@
                 if (!this.element)
                     return;
                 utils$1.data(this.element).showTransition = value;
+            },
+            configurable: true,
+            enumerable: true
+        });
+        Object.defineProperty(GradumSelector.prototype, "displayTransition", {
+            get: function () {
+                return displayTransition;
             },
             configurable: true,
             enumerable: true
@@ -25505,6 +25744,14 @@
             lastValidForInput = "";
             lastValidForBlur = "";
             /**
+             * @private
+             * @description The last value assigned through {@link GradumInput.value}, kept for its type rather than
+             * its contents: it is what tells a read which type to parse the element's text back into. Nothing else
+             * holds it — the element stores text, and the string form written to it cannot be turned back into a
+             * `Point` or a `Color` without knowing that is what it was.
+             */
+            typedValue;
+            /**
              * @readonly
              * @description Fired when the input gains focus.
              */
@@ -25572,27 +25819,31 @@
                 });
             }
             /**
-             * @description The input's value, parsed from its text. Numbers and JSON are converted automatically,
-             * and a current value exposing `fromString` is used to parse the text into its own type. Assigning
-             * writes the value's string form back to the element.
+             * @description The input's value, parsed from its text. Text that reads as a whole number is returned
+             * as one, text left over from a value that exposes `fromString` is parsed back into that value's type,
+             * and anything else is tried as JSON before being handed back as the string it is. Assigning writes
+             * the value's string form to the element and remembers the type it came in as.
+             *
+             * *Note: a number wins over `fromString`, so an input holding a `Point` whose text reads `"5"` gives
+             * back `5` rather than a point.*
              */
             get value() {
                 const value = this.rawValue;
                 if (!value)
                     return undefined;
-                try {
-                    const num = parseFloat(value);
-                    if (!isNaN(num))
+                //Whole-number-or-nothing, rather than `parseFloat`, which reads "3 clips" as 3 and would turn any
+                //description starting with a digit into a number.
+                const trimmed = value.trim();
+                if (trimmed) {
+                    const num = Number(trimmed);
+                    if (!Number.isNaN(num))
                         return num;
                 }
-                catch { }
-                try {
-                    const current = this.value;
-                    if (current && typeof current === "object" && "fromString" in current
-                        && typeof current.fromString === "function")
-                        return current.fromString(value);
-                }
-                catch { }
+                //The last value assigned, for its type: `this.value` here would be this getter calling itself.
+                const current = this.typedValue;
+                if (current && typeof current === "object" && "fromString" in current
+                    && typeof current.fromString === "function")
+                    return current.fromString(value);
                 try {
                     return JSON.parse(value);
                 }
@@ -25600,6 +25851,7 @@
                 return value;
             }
             set value(value) {
+                this.typedValue = value;
                 this.rawValue = value.toString();
             }
             /**
@@ -25619,7 +25871,9 @@
                         strValue = this.lastValidForBlur;
                 }
                 this.element.value = strValue;
-                this.emitter.fire("valueSet");
+                //Asked of the emitter only if there is one. An input built on its own — no model, no view — has
+                //none, and assigning to it is still the ordinary way to fill it in.
+                this.emitter?.fire("valueSet");
             }
             /**
              * @function setValueSilently
@@ -25630,6 +25884,8 @@
             setValueSilently(value) {
                 if (!(this.element instanceof HTMLInputElement) && !(this.element instanceof HTMLTextAreaElement))
                     return;
+                //Remembered here too, or the type a read parses back into would be the one before this write.
+                this.typedValue = value;
                 this.element.value = typeof value?.toString === "function" ? value.toString() : String(value);
             }
             /**
@@ -27501,7 +27757,9 @@
             }
         };
     })();
-    define(GradumPopup);
+    //Named outright rather than derived from the class name: a build that renames the class — vitest's
+    //esbuild pass renames it to `_GradumPopup` — would otherwise derive a tag the browser rejects.
+    define(GradumPopup, "gradum-popup", "GradumPopup");
 
     /**
      * @class AnchorPoint
@@ -28321,7 +28579,7 @@
             initialize() {
                 super.initialize();
                 this.selector;
-                gradum(document.body).on(DefaultEventName.click, () => e => {
+                gradum(document.body).on(DefaultEventName.click, e => {
                     if (this.popupOpen && !this.contains(e.target))
                         this.openPopup(false);
                 }, { capture: true });
@@ -28334,6 +28592,24 @@
                     this.popup.show(b);
                 else
                     gradum(this.popup).show(b);
+            }
+            /**
+             * @description Take the dropdown off the page, and its popup with it. The popup is parked in the shared
+             * popup container rather than kept inside the dropdown, so it is not carried off by the dropdown being
+             * removed — it has to be removed itself.
+             */
+            remove() {
+                gradum(this.popup).remove();
+                super.remove();
+            }
+            /**
+             * @function destroy
+             * @description Get rid of the dropdown and its popup, listeners included. What
+             * {@link GradumSelector.destroy} calls when a subtree holding a dropdown is destroyed.
+             */
+            destroy() {
+                gradum(this.popup).destroy();
+                return this;
             }
             constructor() {
                 super(...arguments);
@@ -28942,7 +29218,7 @@
             }
             setupUIListeners() {
                 super.setupUIListeners();
-                gradum(document.body).on(DefaultEventName.click, () => e => {
+                gradum(document.body).on(DefaultEventName.click, e => {
                     if (this.popupOpen && !this.contains(e.target))
                         this.openPopup(false);
                 }, { capture: true });
@@ -28959,6 +29235,24 @@
                     this.popup.show(b);
                 else
                     gradum(this.popup).show(b);
+            }
+            /**
+             * @description Take the button off the page, and its popup with it. The popup is parked in the shared
+             * popup container rather than kept inside the button, so it is not carried off by the button being
+             * removed — it has to be removed itself.
+             */
+            remove() {
+                gradum(this.popup).remove();
+                super.remove();
+            }
+            /**
+             * @function destroy
+             * @description Get rid of the button and its popup, listeners included. What {@link GradumSelector.destroy}
+             * calls when a subtree holding a button is destroyed.
+             */
+            destroy() {
+                gradum(this.popup).destroy();
+                return this;
             }
             constructor() {
                 super(...arguments);
@@ -29366,7 +29660,7 @@
          * {@link GradumEventManager.instance}, the activation event to the default click name, and the click mode
          * to `ClickMode.left`.
          * @param {GradumToolProperties} properties - The element to attach to, plus the tool name, embedded
-         * target, activation event, click mode, mapped key, and activation callbacks.
+         * target, activation event, click mode, mapped key, and the activation and engagement callbacks.
          */
         constructor(properties) {
             super(properties);
@@ -29377,6 +29671,10 @@
                 this.onActivate = properties.onActivate;
             if (properties.onDeactivate)
                 this.onDeactivate = properties.onDeactivate;
+            if (properties.onEngage)
+                this.onEngage = properties.onEngage;
+            if (properties.onDisengage)
+                this.onDisengage = properties.onDisengage;
             if (properties.activationEvent)
                 this.activationEvent = properties.activationEvent;
             if (properties.clickMode)
@@ -29403,6 +29701,8 @@
                 gradum(this).makeTool(this.toolName, {
                     onActivate: typeof this.onActivate === "function" ? this.onActivate.bind(this) : undefined,
                     onDeactivate: typeof this.onDeactivate === "function" ? this.onDeactivate.bind(this) : undefined,
+                    onEngage: typeof this.onEngage === "function" ? this.onEngage.bind(this) : undefined,
+                    onDisengage: typeof this.onDisengage === "function" ? this.onDisengage.bind(this) : undefined,
                     activationEvent: this.activationEvent,
                     clickMode: this.clickMode,
                     customActivation: typeof this.customActivation === "function" ? this.customActivation.bind(this) : undefined,
@@ -29627,10 +29927,9 @@
                 super.initialize();
             }
             updateAnchor() {
-                this.resizeTool.toolName = `resize-${this.anchor}`;
                 this.resizeTool.customActivation = () => { };
                 const corner = AnchorPoint.enumToPoint(this.anchor);
-                this.resizeTool.anchor = AnchorPoint.pointToEnum(corner.mul(-1));
+                this.resizeTool.onEngage = (target, toolInstance) => toolInstance.anchor = AnchorPoint.pointToEnum(corner.mul(-1));
                 gradum(this).setStyles({ left: `${(corner.x + 100) / 2}%`, top: `${(corner.y + 100) / 2}%` });
             }
             retarget(target) {

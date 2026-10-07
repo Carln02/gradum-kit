@@ -17,6 +17,11 @@ const showTransition = new StatefulReifect({
     styles: (state) => `visibility: ${state}`
 });
 
+const displayTransition = new StatefulReifect({
+    states: [Shown.visible, Shown.hidden],
+    styles: (state) => `display: ${state === Shown.visible ? "" : "none"}`
+});
+
 /**
  * @internal
  * @function setupReifectFunctions
@@ -50,6 +55,14 @@ export function setupReifectFunctions() {
         set: function (value: StatefulReifect<Shown>) {
             if (!this.element) return;
             utils.data(this.element).showTransition = value;
+        },
+        configurable: true,
+        enumerable: true
+    });
+
+    Object.defineProperty(GradumSelector.prototype, "displayTransition", {
+        get: function () {
+            return displayTransition;
         },
         configurable: true,
         enumerable: true

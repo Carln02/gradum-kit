@@ -105,7 +105,7 @@ class GradumDropdown<
     public initialize() {
         super.initialize();
         this.selector;
-        gradum(document.body).on(DefaultEventName.click, () => e => {
+        gradum(document.body).on(DefaultEventName.click, e => {
             if (this.popupOpen && !this.contains(e.target as Node)) this.openPopup(false);
         }, {capture: true});
     }
@@ -115,6 +115,26 @@ class GradumDropdown<
         this.popupOpen = b;
         if ("show" in this.popup && typeof this.popup.show === "function") this.popup.show(b);
         else gradum(this.popup).show(b);
+    }
+
+    /**
+     * @description Take the dropdown off the page, and its popup with it. The popup is parked in the shared
+     * popup container rather than kept inside the dropdown, so it is not carried off by the dropdown being
+     * removed — it has to be removed itself.
+     */
+    public remove(): void {
+        gradum(this.popup).remove();
+        super.remove();
+    }
+
+    /**
+     * @function destroy
+     * @description Get rid of the dropdown and its popup, listeners included. What
+     * {@link GradumSelector.destroy} calls when a subtree holding a dropdown is destroyed.
+     */
+    public destroy(): this {
+        gradum(this.popup).destroy();
+        return this;
     }
 }
 

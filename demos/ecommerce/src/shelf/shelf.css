@@ -1,0 +1,113 @@
+/* Inset on every side and rounded, so the panel reads as floating over the canvas rather than fixed to
+   the edge of the window. */
+demo-shelf {
+    position: fixed;
+    top: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    /* Above the cards on the canvas. The shelf is one of the canvas's own children now, so a card dragged
+       across it would otherwise be painted over the panel rather than disappearing behind it. */
+    z-index: 3;
+
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 18rem;
+    overflow: hidden;
+
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 28px rgb(2 12 34 / 10%);
+}
+
+/* The search and tabs stay put while the list scrolls under them. */
+demo-shelf .shelf-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    flex: none;
+
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--line);
+}
+
+demo-shelf .shelf-search input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+
+    color: inherit;
+    font: inherit;
+    font-size: 0.9rem;
+
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) - 4px);
+}
+
+/* One line of tabs that scrolls sideways rather than wrapping, so the header keeps its height however many
+   categories there are. The scrollbar is hidden — the tabs themselves show there is more to reach. */
+demo-shelf .shelf-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.3rem;
+
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+demo-shelf .shelf-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+demo-shelf .shelf-tab {
+    flex: none;
+    padding: 0.2rem 0.55rem;
+    white-space: nowrap;
+
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.8rem;
+
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+demo-shelf .shelf-tab:hover {
+    background: var(--hover);
+}
+
+demo-shelf .shelf-tab.selected {
+    color: var(--text);
+    background: var(--active);
+    border-color: var(--line);
+}
+
+demo-shelf .shelf-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    padding: 0.8rem;
+    overflow-y: auto;
+}
+
+/* The cards fill the panel rather than keeping the width they have on a canvas. */
+demo-shelf .shelf-list demo-item {
+    width: 100%;
+}
+
+demo-shelf .shelf-empty {
+    padding: 0 0.8rem 0.8rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+/* What the search and the tabs filter out, and the notice when they filter out everything. */
+demo-shelf .shelf-hidden {
+    display: none;
+}

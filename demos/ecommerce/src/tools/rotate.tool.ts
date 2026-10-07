@@ -1,5 +1,5 @@
 import {GradumTool, GradumDragEvent, gradum, Propagation, behavior, Anchor, Point} from "../../../../build/gradum-kit.esm";
-import {utils} from "../utils";
+import {getRect} from "../utils";
 
 //Rotate tool
 export class RotateTool extends GradumTool {
@@ -29,7 +29,7 @@ export class RotateTool extends GradumTool {
      * @protected
      */
     protected turn(el: any, from: Point, to: Point) {
-        const rect = utils(el);
+        const rect = getRect(el);
         if (!rect) return;
 
         const pivot = rect.pointAt(this.anchor);

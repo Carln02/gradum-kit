@@ -222,5 +222,7 @@ class GradumPopup<
     }
 }
 
-define(GradumPopup);
+//Named outright rather than derived from the class name: a build that renames the class — vitest's
+//esbuild pass renames it to `_GradumPopup` — would otherwise derive a tag the browser rejects.
+define(GradumPopup, "gradum-popup", "GradumPopup");
 export {GradumPopup};
