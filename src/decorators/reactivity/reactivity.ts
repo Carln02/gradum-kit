@@ -384,8 +384,10 @@ function effect(...args: any[]): any {
             const fn = function () {
                 value?.call(this)
             }
-            const eff = effectUtils.makeEffect(() => fn.call(self));
-            utils.setEffect(self, key, eff);
+            //The factory is kept alongside the effect: this runs once, as the instance is built, but a
+            //detached piece disposes its effects and an attached one has to get them back.
+            const make = () => effectUtils.makeEffect(() => fn.call(self));
+            utils.setEffect(self, key, make(), make);
         });
     } else if (typeof value === "function") {
         const eff = effectUtils.makeEffect(value);
@@ -493,11 +495,17 @@ function markDirtyPath(target: object, keys: KeyType[]): void {
  * @group Decorators
  * @category Effect
  *
- * @description Initializes and runs all the effects attached to the given `target`.
+ * @description Initializes and runs all the effects attached to the given `target`, building any that
+ * were disposed — so a target may be initialized, {@link disposeEffect}ed and initialized again.
  * @param {object} target - The target to which the effects are bound.
  */
 function initializeEffects(target: object) {
-    for (const [, entry] of utils.data(target).propertyKeyMap) entry.effect?.run();
+    for (const [, entry] of utils.data(target).propertyKeyMap) {
+        //Rebuilt where one was disposed, so a piece taken off an element and put back on starts following
+        //its signals again rather than quietly never running.
+        if (!entry.effect && entry.makeEffect) entry.effect = entry.makeEffect();
+        entry.effect?.run();
+    }
 }
 
 /**
@@ -505,7 +513,8 @@ function initializeEffects(target: object) {
  * @group Decorators
  * @category Effect
  *
- * @description Disposes of all the effects attached to the given `target`.
+ * @description Disposes of all the effects attached to the given `target`, so they stop following their
+ * signals. {@link initializeEffects} starts them again.
  * @param {object} target - The target to which the effects are bound.
  */
 function disposeEffect(target: object): void;

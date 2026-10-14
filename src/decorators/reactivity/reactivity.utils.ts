@@ -32,11 +32,16 @@ type ReactivityData = {
  * @type {ReactivityDataEntry}
  * @description The signal and/or effect bound to a single property key.
  * @property {SignalEntry} [signal] - The signal backing the property, if it is reactive.
- * @property {Effect} [effect] - The effect attached to the property, if it is an `@effect` member.
+ * @property {Effect} [effect] - The effect attached to the property, if it is an `@effect` member, and
+ * while it is running. Disposing one clears this and leaves `makeEffect` to build the next.
+ * @property {() => Effect} [makeEffect] - Builds the property's effect. Kept because an effect is
+ * registered once, as the instance is built, while a piece may be detached and attached again — and a
+ * disposed effect cannot be restarted.
  */
 type ReactivityDataEntry = {
     signal?: SignalEntry,
-    effect?: Effect
+    effect?: Effect,
+    makeEffect?: () => Effect
 };
 
 /**
@@ -150,8 +155,10 @@ export class ReactivityUtils {
         return this.getReactivityData(target, key).effect;
     }
 
-    public setEffect(target: object, key: PropertyKey, effect: Effect) {
-        this.getReactivityData(target, key).effect = effect;
+    public setEffect(target: object, key: PropertyKey, effect: Effect, makeEffect?: () => Effect) {
+        const entry = this.getReactivityData(target, key);
+        entry.effect = effect;
+        if (makeEffect) entry.makeEffect = makeEffect;
     }
 
     public markDirty(target: object, key: PropertyKey) {

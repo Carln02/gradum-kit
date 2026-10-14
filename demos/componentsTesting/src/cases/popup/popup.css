@@ -35,3 +35,13 @@
     width: min(520px, 86vw);
     max-width: 86vw;
 }
+
+/* The readout for the "placed without an animation frame" case: the numbers are the point of it. */
+.popup-readout {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.85rem;
+    background: rgb(255 255 255 / 6%);
+    border-radius: 4px;
+}

@@ -275,19 +275,30 @@
  * @group GradumSelector
  * @category Events
  *
- * @description Options for {@link GradumSelector.preventDefault}, which prevents default browser behaviors for
- * selected event types and can optionally stop propagation.
+ * @description The long form of {@link GradumSelector.preventDefaults}, for naming which event types the
+ * decision should reach and what else to do with them. The short forms — a boolean or a predicate — are
+ * this with everything but `on` left at its default.
  * @property {string[]} [types] - List of event types to affect. If omitted, defaults to {@link BasicInputEvents}.
  * @property {"capture" | "bubble"} [phase] - Which phase to prevent. Defaults to `"bubble"`.
  * @property {false | "stop" | "immediate"} [stop] - Whether to stop propagation when handling the event:
  * - `false`: do not stop propagation,
  * - `"stop"`: call `stopPropagation`,
  * - `"immediate"`: call `stopImmediatePropagation`.
- * @property {(type: string, e: Event) => boolean} [preventDefaultOn] - Predicate to decide (per event) whether to
- * call `preventDefault`. Return `true` to prevent default for that event.
+ * @property {boolean | ((type: string, e: Event) => boolean)} [on=true] - The decision itself: whether to
+ * cancel, or a predicate deciding per event.
  * @property {boolean} [clearPreviousListeners] - If true, clears previously installed prevent-default listeners
  * before installing new ones.
  * @property {GradumEventManager} [manager] - Event manager to use. Defaults to {@link GradumEventManager.instance}.
+ */
+
+/**
+ * @typedef {Object} PreventDefaultsSetting
+ * @group GradumSelector
+ * @category Events
+ *
+ * @description What {@link GradumSelector.preventDefaults} accepts: `true` or `false` to settle it for a
+ * subtree, a predicate to decide per event, or {@link PreventDefaultOptions} to also say which event types
+ * the decision should reach.
  */
 
 /**
@@ -1108,6 +1119,10 @@
  * @property {boolean} [locked=false] - Whether the field rejects user edits.
  * @property {boolean} [dynamicVerticalResize=false] - Whether the field grows to fit its content as the
  * user types. Meant for `textarea`.
+ * @property {boolean} [fitContent=false] - Whether the field is only as wide as its value, growing and
+ * shrinking as it changes.
+ * @property {boolean} [plain=false] - Whether the field is drawn as plain text — no box, no border,
+ * inheriting colour, font and alignment.
  * @property {RegExp | string} [inputRegexCheck] - Pattern the value must match while typing. Input that
  * would break the match is rejected as it is entered.
  * @property {RegExp | string} [blurRegexCheck] - Pattern the value must match when the field loses focus.
@@ -3433,8 +3448,11 @@ class ReactivityUtils {
     getEffect(target, key) {
         return this.getReactivityData(target, key).effect;
     }
-    setEffect(target, key, effect) {
-        this.getReactivityData(target, key).effect = effect;
+    setEffect(target, key, effect, makeEffect) {
+        const entry = this.getReactivityData(target, key);
+        entry.effect = effect;
+        if (makeEffect)
+            entry.makeEffect = makeEffect;
     }
     markDirty(target, key) {
         this.getSignal(target, key)?.emit();
@@ -3889,8 +3907,10 @@ function effect(...args) {
             const fn = function () {
                 value?.call(this);
             };
-            const eff = effectUtils.makeEffect(() => fn.call(self));
-            utils$a.setEffect(self, key, eff);
+            //The factory is kept alongside the effect: this runs once, as the instance is built, but a
+            //detached piece disposes its effects and an attached one has to get them back.
+            const make = () => effectUtils.makeEffect(() => fn.call(self));
+            utils$a.setEffect(self, key, make(), make);
         });
     }
     else if (typeof value === "function") {
@@ -3971,12 +3991,18 @@ function markDirtyPath(target, keys) {
  * @group Decorators
  * @category Effect
  *
- * @description Initializes and runs all the effects attached to the given `target`.
+ * @description Initializes and runs all the effects attached to the given `target`, building any that
+ * were disposed — so a target may be initialized, {@link disposeEffect}ed and initialized again.
  * @param {object} target - The target to which the effects are bound.
  */
 function initializeEffects(target) {
-    for (const [, entry] of utils$a.data(target).propertyKeyMap)
+    for (const [, entry] of utils$a.data(target).propertyKeyMap) {
+        //Rebuilt where one was disposed, so a piece taken off an element and put back on starts following
+        //its signals again rather than quietly never running.
+        if (!entry.effect && entry.makeEffect)
+            entry.effect = entry.makeEffect();
         entry.effect?.run();
+    }
 }
 function disposeEffect(target, key) {
     const dispose = (data) => {
@@ -6328,6 +6354,18 @@ class GradumEmitter {
      */
     model;
     /**
+     * @description What each piece subscribed while the emitter was attributing to it, so
+     * {@link GradumEmitter.removeFor} can take exactly those back. Weak, so a piece that is simply
+     * dropped takes its entry with it.
+     * @protected
+     */
+    owned = new WeakMap();
+    /**
+     * @description Whoever is being attributed to right now, if anyone.
+     * @protected
+     */
+    owner;
+    /**
      * @constructor
      * @description Create an emitter, optionally bound to a model so key-path events can be fired against it.
      * @param {ModelType} [model] - The model whose key changes this emitter relays.
@@ -6346,6 +6384,8 @@ class GradumEmitter {
         if (!this.callbacks.has(event))
             this.callbacks.set(event, new Delegate());
         this.callbacks.get(event)?.add(callback);
+        if (this.owner)
+            this.record(this.owner).events.push([event, callback]);
     }
     /**
      * @function remove
@@ -6383,6 +6423,8 @@ class GradumEmitter {
         if (!this.dataCallbacks.has(flatKey))
             this.dataCallbacks.set(flatKey, new Delegate());
         this.dataCallbacks.get(flatKey)?.add(callback);
+        if (this.owner)
+            this.record(this.owner).keys.push([flatKey, callback]);
     }
     /**
      * @function removeKey
@@ -6408,6 +6450,61 @@ class GradumEmitter {
     fireKey(value, ...keys) {
         const flatKey = this.resolveFlatKey(keys);
         this.dataCallbacks.get(flatKey)?.fire(value, ...keys);
+    }
+    /**
+     * @function attributeTo
+     * @description Run some work and remember that whatever it subscribes belongs to `owner`, so
+     * {@link GradumEmitter.removeFor} can take it back later. What the MVC wiring runs a piece's setup
+     * inside, so an operator writing `this.emitter.add(...)` in `setupChangedCallbacks` is on the record
+     * without having to say whose it is.
+     *
+     * Nests safely: the previous owner is restored afterwards, whether the work returns or throws.
+     * @template Type - What the work returns.
+     * @param {object} owner - The piece to attribute to.
+     * @param {() => Type} work - The work to run.
+     * @returns {Type} Whatever the work returned.
+     */
+    attributeTo(owner, work) {
+        const previous = this.owner;
+        this.owner = owner;
+        try {
+            return work();
+        }
+        finally {
+            this.owner = previous;
+        }
+    }
+    /**
+     * @function removeFor
+     * @description Take back everything a piece subscribed through
+     * {@link GradumEmitter.attributeTo}. What a piece being detached calls, so it stops hearing about
+     * things — unbinding its listeners is not enough on its own, since this is the other way a piece
+     * listens, and a detached piece is one whose model and view are about to be taken away.
+     * @param {object} owner - The piece to forget.
+     */
+    removeFor(owner) {
+        const record = this.owned.get(owner);
+        if (!record)
+            return;
+        this.owned.delete(owner);
+        for (const [event, callback] of record.events)
+            this.callbacks.get(event)?.remove(callback);
+        for (const [flatKey, callback] of record.keys)
+            this.dataCallbacks.get(flatKey)?.remove(callback);
+    }
+    /**
+     * @description The record kept for a piece, started if it has none yet.
+     * @param {object} owner - The piece to look up.
+     * @returns {object} Its record.
+     * @protected
+     */
+    record(owner) {
+        let entry = this.owned.get(owner);
+        if (!entry) {
+            entry = { events: [], keys: [] };
+            this.owned.set(owner, entry);
+        }
+        return entry;
     }
     /**
      * @protected
@@ -7936,20 +8033,34 @@ class GradumOperator {
      * @description Initializes the operator. Specifically, it will set up the change callbacks.
      */
     initialize() {
-        this.setupUIListeners();
-        this.setupChangedCallbacks();
+        const setup = () => {
+            this.setupUIListeners();
+            this.setupChangedCallbacks();
+        };
+        //Run against the emitter on the record, so whatever this operator subscribes while setting itself
+        //up is known to be its own and can be taken back when it is detached.
+        if (this.emitter)
+            this.emitter.attributeTo(this, setup);
+        else
+            setup();
     }
     /**
      * @function detach
-     * @description Undoes {@link initialize}'s listener work: every `@listener` and `@behavior` this operator
-     * bound is taken back, so a piece removed from an element stops responding to events. Called for you when
-     * the operator is removed. Initializing it again binds them afresh.
+     * @description Undoes {@link initialize}: the operator stops hearing about anything. Every `@listener`
+     * and `@behavior` it bound is taken back, everything it subscribed on the emitter while initializing is
+     * dropped, and its `@effect` methods are disposed. Called for you when the operator is removed, before
+     * its model, view and emitter are taken away — which is the point, since those are what its callbacks
+     * would go on reading.
      *
-     * Note that this covers listeners and behaviors only — anything a subclass sets up by hand in
-     * `setupChangedCallbacks` is its own to undo.
+     * Initializing it again restores all three, so an operator may be removed and added back.
+     *
+     * *Note: a subscription made outside `initialize` — later, from a method of its own — is not on the
+     * record, and is the operator's own to undo.*
      */
     detach() {
         detachListenersAndBehaviors(this);
+        this.emitter?.removeFor(this);
+        disposeEffect(this);
     }
     /**
      * @function setupUIListeners
@@ -8440,8 +8551,9 @@ class GradumEventManagerWheelOperator extends GradumOperator {
     wheel = (e) => {
         if (!this.element.enabled)
             return;
-        //Prevent default scroll behavior
-        if (this.element.preventDefaultWheel)
+        //Prevent default scroll behavior, unless what the pointer is over asked to be left alone — a scroll
+        //container that must still scroll, say.
+        if (this.element.preventDefaultWheel && gradum(e.target).shouldPreventDefaults(e.type, e))
             e.preventDefault();
         //Most likely trackpad
         if (Math.abs(e.deltaY) <= 40 || e.deltaX != 0)
@@ -8624,6 +8736,48 @@ class GradumEventManagerPointerOperator extends GradumOperator {
     pointerUp = (e) => this.pointerUpFn(e);
     pointerCancel = (e) => this.pointerCancelFn(e);
     lostPointerCapture = (e) => this.lostPointerCaptureFn(e);
+    /**
+     * @description Cancel the browser's own handling of a pointer event, where the manager is set to and
+     * what the pointer is on has not asked to be left alone.
+     *
+     * The target decides, not the manager alone: cancelling the default of a press is how the platform is
+     * told not to move focus, place a caret, or extend a selection as the pointer drags, so a manager set
+     * to prevent would otherwise make every field on the page behave unlike every other field on the
+     * machine. See {@link GradumSelector.preventDefaults} for naming an exception by hand.
+     * @param {PointerEvent} e - The event to cancel.
+     * @param {boolean} isTouch - Whether it came from a touch.
+     * @returns {boolean} Whether the default was cancelled.
+     * @protected
+     */
+    preventDefaults(e, isTouch) {
+        const wanted = isTouch
+            ? (this.element.preventDefaultTouch || this.element.wheelEventsEnabled)
+            : this.element.preventDefaultMouse;
+        if (!wanted)
+            return false;
+        if (!gradum(e.target).shouldPreventDefaults(e.type, e))
+            return false;
+        e.preventDefault();
+        return true;
+    }
+    /**
+     * @description Take focus off whatever had it, when a press lands somewhere else.
+     *
+     * The browser does this itself on a press, and cancelling the default is what stops it — so a field
+     * left focused would stay focused, and stay open, however far away the next press was. Only done where
+     * the default was actually cancelled: everywhere else the browser is still seeing to it.
+     * @param {any} target - What the press landed on.
+     * @protected
+     */
+    moveFocusAway(target) {
+        const active = document.activeElement;
+        if (!active || active === document.body)
+            return;
+        //A press inside whatever is focused is not a press somewhere else.
+        if (target instanceof Node && active.contains(target))
+            return;
+        active.blur?.();
+    }
     pointerDownFn(e) {
         if (!e.composedPath().includes(this.model.lockState.lockOrigin)) {
             document.activeElement?.blur?.();
@@ -8633,11 +8787,10 @@ class GradumEventManagerPointerOperator extends GradumOperator {
             return;
         //Check if it's touch
         const isTouch = e.pointerType === "touch";
-        //Prevent default actions (especially useful for touch events on iOS and iPadOS)
-        if (this.element.preventDefaultMouse && !isTouch)
-            e.preventDefault();
-        if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
-            e.preventDefault();
+        //Prevent default actions (especially useful for touch events on iOS and iPadOS), unless what was
+        //pressed asked to be left alone — and stand in for the focus handling that cancelling takes away.
+        if (this.preventDefaults(e, isTouch))
+            this.moveFocusAway(e.target);
         //Update input device
         if (isTouch)
             this.model.inputDevice = exports.InputDevice.touch;
@@ -8678,10 +8831,7 @@ class GradumEventManagerPointerOperator extends GradumOperator {
             && !(isTouch && this.element.wheelEventsEnabled))
             return;
         //Prevent default actions
-        if (this.element.preventDefaultMouse && !isTouch)
-            e.preventDefault();
-        if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
-            e.preventDefault();
+        this.preventDefaults(e, isTouch);
         //New positions map
         this.model.positions = new GradumMap();
         // Only update the current pointer's position (others remain tracked from prior moves)
@@ -8745,10 +8895,7 @@ class GradumEventManagerPointerOperator extends GradumOperator {
         //Check if is touch
         const isTouch = e.pointerType === "touch";
         //Prevent default actions
-        if (this.element.preventDefaultMouse && !isTouch)
-            e.preventDefault();
-        if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled))
-            e.preventDefault();
+        this.preventDefaults(e, isTouch);
         //Clear any timer set
         this.model.utils.clearTimer(GradumEventName.longPress);
         //Initialize a new positions map
@@ -8882,14 +9029,14 @@ exports.Propagation = void 0;
 /**
  * @group GradumSelector
  * @category Events
- * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
+ * @description Default set of basic input event types reached by {@link GradumSelector.preventDefaults}.
+ * The pointer and wheel events are absent on purpose: the event manager already asks the same question
+ * before cancelling those, so a listener for them here would only cancel what is cancelled already.
  */
 const BasicInputEvents = [
     "mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu",
     "dragstart", "selectstart",
-    "touchstart", "touchmove", "touchend", "touchcancel",
-    "pointerdown", "pointermove", "pointerup",
-    "wheel"
+    "touchstart", "touchmove", "touchend", "touchcancel"
 ];
 /**
  * @group GradumSelector
@@ -9033,15 +9180,19 @@ class GradumEventManagerDispatchOperator extends GradumOperator {
         const expanded = this.expandPath(e.composedPath?.() || [], e);
         this.recordHits(e, expanded);
         const path = expanded.path;
+        //Root to target. A refusal here ends the dispatch outright — the capture phase is for taking an
+        //event away from everything below and after it, and a `break` that only left this loop would hand
+        //the event straight to the bubble pass, which is everything it was being taken from.
         for (let i = path.length - 1; i >= 0; i--) {
             if (!this.isDispatchable(path[i], expanded))
                 continue;
             const propagate = gradum(path[i]).executeAction(type, toolName, e, { capture: true }, this.element);
             if (propagate !== exports.Propagation.propagate) {
                 e.stopPropagation();
-                break;
+                return;
             }
         }
+        //Target to root.
         for (let i = 0; i < path.length; i++) {
             if (!this.isDispatchable(path[i], expanded))
                 continue;
@@ -9146,6 +9297,20 @@ class GradumHandler {
             return;
         this.initialized = true;
         initializeEffects(this);
+    }
+    /**
+     * @function detach
+     * @description Stops the handler's `@effect` methods, so a handler removed from a model stops
+     * recomputing against the model it is about to lose. Called for you when the handler is removed;
+     * initializing it again starts them.
+     *
+     * A handler sees no element and no view, so there is nothing else of its to take back.
+     */
+    detach() {
+        if (!this.initialized)
+            return;
+        this.initialized = false;
+        disposeEffect(this);
     }
 }
 addRegistryCategory(GradumHandler);
@@ -11772,6 +11937,13 @@ class ListenerSet {
 
 /**
  * @internal
+ * @description The `<input>` types that are not text entry. Everything else an `<input>` can be — including
+ * a type the browser does not recognise, which it reports as `"text"` — is somewhere you can type.
+ */
+const nonTextInputTypes = new Set(["button", "checkbox", "color", "file", "hidden", "image", "radio",
+    "range", "reset", "submit"]);
+/**
+ * @internal
  * @class EventFunctionsUtils
  * @description Shared helpers and per-element state behind the event functions on {@link GradumSelector}.
  */
@@ -11849,25 +12021,138 @@ class EventFunctionsUtils {
         }
         return map;
     }
+    /**
+     * @function isTextEntry
+     * @description Whether a node is somewhere the platform lets you type: a text `<input>`, a `<textarea>`,
+     * or anything editable in place. The browser answers this itself, so no element has to say so.
+     * @param {any} node - The node to test.
+     * @returns {boolean} Whether it is text entry.
+     */
+    isTextEntry(node) {
+        if (!(node instanceof HTMLElement))
+            return false;
+        if (node.isContentEditable)
+            return true;
+        if (node instanceof HTMLTextAreaElement)
+            return true;
+        return node instanceof HTMLInputElement && !nonTextInputTypes.has(node.type);
+    }
+    /**
+     * @function shouldPreventDefaults
+     * @description Whether the manager may cancel the browser's own handling of an interaction that started
+     * on this node.
+     *
+     * Answered by the nearest thing up the tree with an opinion: an element that has been given
+     * {@link GradumSelector.preventDefaults} decides for itself and everything inside it, and failing that
+     * text entry decides for itself — cancelling the default of a press on a field is how the platform is
+     * told not to move focus, place the caret, or extend a selection as the pointer drags. Nothing above
+     * saying otherwise, the manager's own settings have the last word.
+     * @param {any} target - What the interaction started on.
+     * @param {string} [type] - The event type being decided, for a node that answers with a function.
+     * @param {Event} [e] - The event being decided, likewise.
+     * @returns {boolean} Whether the default may be cancelled.
+     */
+    shouldPreventDefaults(target, type, e) {
+        let node = target;
+        while (node) {
+            const set = this.peek(node)?.preventDefaults;
+            if (typeof set === "function")
+                return !!set(type, e);
+            if (set !== undefined)
+                return set;
+            if (this.isTextEntry(node))
+                return false;
+            //The same climb a dispatch makes, plus the hop a shadow root needs: its host is not its parent,
+            //and without it a field inside a component would answer for nothing above itself.
+            node = this.parentOf(node) ?? node.host;
+        }
+        return true;
+    }
+    /**
+     * @function reachPreventDefaults
+     * @description Bind a listener per event type so the node's {@link GradumSelector.preventDefaults}
+     * decision reaches the events the event manager never sees — selecting, dragging, the context menu.
+     * Replaces whatever the last call bound, and binds nothing when the decision is an outright no.
+     * @param {GradumSelector} selector - The node to bind on.
+     * @param {PreventDefaultOptions} options - Which events to reach, and what else to do with them.
+     */
+    reachPreventDefaults(selector, options) {
+        const element = selector.element;
+        if (!element)
+            return;
+        //Whatever the last setting bound is taken off first: the types may have changed, and a node told
+        //not to prevent anything should be left with nothing bound at all.
+        const listeners = this.getPreventDefaultListeners(element);
+        for (const [type, listener] of Object.entries(listeners)) {
+            selector.removeListener(type, listener);
+            delete listeners[type];
+        }
+        if (this.peek(element)?.preventDefaults === false)
+            return;
+        const manager = options.manager ?? GradumEventManager.instance;
+        const phase = options.phase ?? "capture";
+        const stop = options.stop ?? false;
+        const nonPassive = new Set(NonPassiveEvents);
+        for (const type of new Set(options.types ?? BasicInputEvents)) {
+            const handler = (event) => {
+                //Resolved from what the event landed on rather than from the node this is bound to, so a
+                //blanket setting high up no longer reaches into the fields inside it.
+                if (!this.shouldPreventDefaults(event.target ?? element, type, event))
+                    return false;
+                event.preventDefault?.();
+                if (stop === "immediate")
+                    event.stopImmediatePropagation?.();
+                else if (stop === "stop")
+                    event.stopPropagation?.();
+                return true;
+            };
+            listeners[type] = handler;
+            const listenerOptions = {};
+            if (phase === "capture")
+                listenerOptions.capture = true;
+            if (nonPassive.has(type))
+                listenerOptions.passive = false;
+            selector.on(type, handler, listenerOptions, manager);
+        }
+    }
+    /**
+     * @function bypassManager
+     * @description Stand the manager down for an element, as far as that element asked for.
+     *
+     * What the predicate returns says what to *bypass*, which is what the name and the one consumer both
+     * read it as — `true` stands the manager down, `false` leaves it alone. A lock is a veto over the
+     * manager's own settings, so bypassing is locking the vetoed parts **off**, and not bypassing is no
+     * lock at all rather than a lock of every part on: a lock also names its origin, which the manager
+     * reads to decide whether a press landed outside what it locked.
+     * @param {Node} element - The element asking.
+     * @param {GradumEventManager} eventManager - The manager to stand down.
+     * @param {boolean | GradumEventManagerStateProperties} bypassResults - What to bypass: `true` for all
+     * of it, `false` for none, or a field per part.
+     */
     bypassManager(element, eventManager, bypassResults) {
         if (element instanceof GradumSelector)
             element = element.element;
         if (!element)
             return;
-        if (typeof bypassResults == "boolean")
-            eventManager.lock(element, {
-                enabled: bypassResults,
-                preventDefaultWheel: bypassResults,
-                preventDefaultMouse: bypassResults,
-                preventDefaultTouch: bypassResults
-            });
-        else
-            eventManager.lock(element, {
-                enabled: bypassResults.enabled ?? false,
+        const bypass = typeof bypassResults === "boolean"
+            ? { enabled: bypassResults, preventDefaultWheel: bypassResults,
+                preventDefaultMouse: bypassResults, preventDefaultTouch: bypassResults }
+            : { enabled: bypassResults.enabled ?? false,
                 preventDefaultWheel: bypassResults.preventDefaultWheel ?? false,
                 preventDefaultMouse: bypassResults.preventDefaultMouse ?? false,
-                preventDefaultTouch: bypassResults.preventDefaultTouch ?? false,
-            });
+                preventDefaultTouch: bypassResults.preventDefaultTouch ?? false };
+        if (!bypass.enabled && !bypass.preventDefaultWheel
+            && !bypass.preventDefaultMouse && !bypass.preventDefaultTouch) {
+            eventManager.unlock();
+            return;
+        }
+        //Each part asked for is vetoed off; the rest are left for the manager's own settings to answer.
+        eventManager.lock(element, {
+            enabled: bypass.enabled ? false : undefined,
+            preventDefaultWheel: bypass.preventDefaultWheel ? false : undefined,
+            preventDefaultMouse: bypass.preventDefaultMouse ? false : undefined,
+            preventDefaultTouch: bypass.preventDefaultTouch ? false : undefined,
+        });
     }
     //TODO FIX IDK
     processPropagation(currentPropagation, storedPropagation = exports.Propagation.propagate, defaultPropagation = exports.Propagation.stopPropagation) {
@@ -12080,7 +12365,10 @@ function setupEventFunctions() {
                 if (firedListeners.has(entry))
                     continue;
                 try {
-                    propagation = utils$5.processPropagation(entry.executeOn(event, ts), propagation);
+                    //A listener that returns nothing means "carry on", as a tool behavior already does and
+                    //as a DOM listener does. Taking silence for `stopPropagation` made every handler that
+                    //ended without a return halt the event without saying so.
+                    propagation = utils$5.processPropagation(entry.executeOn(event, ts), propagation, exports.Propagation.propagate);
                 }
                 finally {
                     firedListeners.add(entry);
@@ -12246,48 +12534,29 @@ function setupEventFunctions() {
         utils$5.getBoundListenersSet(this).removeMatchingListeners({ manager });
         return this;
     };
-    /**
-     * @description Prevent default browser behavior on the provided event types. By default, all basic input events
-     * will be processed.
-     * @param {PreventDefaultOptions} options - An options object to customize the behavior of the function.
-     */
-    GradumSelector.prototype.preventDefault = function _preventDefault(options) {
-        if (!options)
-            options = {};
-        const manager = options.manager ?? GradumEventManager.instance;
-        const types = options.types ?? BasicInputEvents;
-        const phase = options.phase ?? "capture";
-        const stop = options.stop ?? false;
-        utils$5.data(this.element).preventDefaultOn = options.preventDefaultOn
-            ?? utils$5.data(this.element).preventDefaultOn ?? (() => true);
-        const preventDefaultListeners = utils$5.getPreventDefaultListeners(this);
-        if (options.clearPreviousListeners)
-            for (const [type, listener] of Object.entries(preventDefaultListeners)) {
-                this.removeListener(type, listener);
-                delete preventDefaultListeners[type];
-            }
-        const shouldNotBePassive = new Set(NonPassiveEvents);
-        for (const type of new Set(types)) {
-            const handler = (event) => {
-                if (!utils$5.data(this.element).preventDefaultOn(type, event))
-                    return false;
-                event.preventDefault?.();
-                if (stop === "immediate")
-                    event.stopImmediatePropagation?.();
-                else if (stop === "stop")
-                    event.stopPropagation?.();
-                return true;
-            };
-            preventDefaultListeners[type] = handler;
-            const options = {};
-            if (phase === "capture")
-                options.capture = true;
-            if (shouldNotBePassive.has(type))
-                options.passive = false;
-            this.on(type, handler, options, manager);
-        }
-        return this;
+    GradumSelector.prototype.shouldPreventDefaults = function _shouldPreventDefaults(type, e) {
+        return utils$5.shouldPreventDefaults(this.element, type, e);
     };
+    Object.defineProperty(GradumSelector.prototype, "preventDefaults", {
+        get() {
+            return utils$5.peek(this.element)?.preventDefaults;
+        },
+        set(value) {
+            if (!this.element)
+                return;
+            const options = typeof value === "object" && value !== null
+                ? value : { on: value };
+            //Cleared rather than stored as undefined, so the node goes back to having no opinion and the
+            //nearest ancestor with one decides again.
+            const decision = options.on ?? true;
+            if (value === undefined || value === null)
+                delete utils$5.data(this.element).preventDefaults;
+            else
+                utils$5.data(this.element).preventDefaults = typeof decision === "function" ? decision : !!decision;
+            utils$5.reachPreventDefaults(this, options);
+        },
+        configurable: true, enumerable: true,
+    });
 }
 
 /**
@@ -12375,6 +12644,11 @@ function setupStyleFunctions() {
         set(value) {
             const element = this.element;
             if (!element)
+                return;
+            //Only a change is announced. Assigning what is already the case is ordinary — a select
+            //deselecting an entry it is about to deselect again, say — and a listener should hear about it
+            //once or not at all, not once per assignment.
+            if (!!element[selectedKey] === !!value)
                 return;
             if (element instanceof Element) {
                 const prevClass = element[selectedClass];
@@ -16578,8 +16852,8 @@ function styleInject(css, ref) {
   }
 }
 
-var css_248z$4 = "gradum-button{align-items:center;background-color:#dadada;border:1px solid #000;border-radius:.4em;color:#000;display:inline-flex;flex-direction:row;gap:.4em;padding:.5em .7em;text-decoration:none}gradum-button>h4{flex-grow:1}";
-styleInject(css_248z$4);
+var css_248z$5 = "gradum-button{align-items:center;background-color:#dadada;border:1px solid #000;border-radius:.4em;color:#000;display:inline-flex;flex-direction:row;gap:.4em;padding:.5em .7em;text-decoration:none}gradum-button>h4{flex-grow:1}";
+styleInject(css_248z$5);
 
 /**
  * @function getFileExtension
@@ -17852,14 +18126,6 @@ let GradumInputInputInteractor = (() => {
             return this.element.element;
         }
         /**
-         * @function initialize
-         * @description Bind the listeners that keep the input's value and size in step with what is typed.
-         */
-        initialize() {
-            super.initialize();
-            gradum(this.target).bypassManagerOn = () => true;
-        }
-        /**
          * @inheritDoc
          */
         setupChangedCallbacks() {
@@ -18021,6 +18287,9 @@ let GradumLabelElement = (() => {
 })();
 define(GradumLabelElement);
 
+var css_248z$4 = ".gradum-input-plain,.gradum-input-plain input,.gradum-input-plain textarea{background:transparent;border:none;border-radius:0;box-shadow:none;color:inherit;font:inherit;letter-spacing:inherit;margin:0;padding:0;text-align:inherit;text-transform:inherit}.gradum-input-plain input:focus,.gradum-input-plain textarea:focus{outline:none}.gradum-input-fit input,.gradum-input-fit textarea{field-sizing:content;min-width:0}.gradum-input-fit,.gradum-input-fit>*{max-width:100%;min-width:0;width:-moz-fit-content;width:fit-content}";
+styleInject(css_248z$4);
+
 /**
  * @group Components
  * @category Basics
@@ -18037,6 +18306,12 @@ let GradumInput = (() => {
     let _dynamicVerticalResize_decorators;
     let _dynamicVerticalResize_initializers = [];
     let _dynamicVerticalResize_extraInitializers = [];
+    let _fitContent_decorators;
+    let _fitContent_initializers = [];
+    let _fitContent_extraInitializers = [];
+    let _plain_decorators;
+    let _plain_initializers = [];
+    let _plain_extraInitializers = [];
     let _get_element_decorators;
     let _type_decorators;
     let _type_initializers = [];
@@ -18050,6 +18325,8 @@ let GradumInput = (() => {
     let _size_decorators;
     let _size_initializers = [];
     let _size_extraInitializers = [];
+    let _applyFitContent_decorators;
+    let _applyPlain_decorators;
     let _get_value_decorators;
     let _get_rawValue_decorators;
     return class GradumInput extends _classSuper {
@@ -18058,11 +18335,15 @@ let GradumInput = (() => {
             _locked_decorators = [signal];
             _selectTextOnFocus_decorators = [signal];
             _dynamicVerticalResize_decorators = [signal];
+            _fitContent_decorators = [signal];
+            _plain_decorators = [signal];
             _get_element_decorators = [signal];
             _type_decorators = [expose("element")];
             _placeholder_decorators = [expose("element")];
             _pattern_decorators = [expose("element")];
             _size_decorators = [expose("element")];
+            _applyFitContent_decorators = [effect];
+            _applyPlain_decorators = [effect];
             _get_value_decorators = [signal];
             _get_rawValue_decorators = [signal];
             __esDecorate(this, null, _get_element_decorators, { kind: "getter", name: "element", static: false, private: false, access: { has: obj => "element" in obj, get: obj => obj.element }, metadata: _metadata }, null, _instanceExtraInitializers);
@@ -18070,11 +18351,15 @@ let GradumInput = (() => {
             __esDecorate(this, null, _placeholder_decorators, { kind: "accessor", name: "placeholder", static: false, private: false, access: { has: obj => "placeholder" in obj, get: obj => obj.placeholder, set: (obj, value) => { obj.placeholder = value; } }, metadata: _metadata }, _placeholder_initializers, _placeholder_extraInitializers);
             __esDecorate(this, null, _pattern_decorators, { kind: "accessor", name: "pattern", static: false, private: false, access: { has: obj => "pattern" in obj, get: obj => obj.pattern, set: (obj, value) => { obj.pattern = value; } }, metadata: _metadata }, _pattern_initializers, _pattern_extraInitializers);
             __esDecorate(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
+            __esDecorate(this, null, _applyFitContent_decorators, { kind: "method", name: "applyFitContent", static: false, private: false, access: { has: obj => "applyFitContent" in obj, get: obj => obj.applyFitContent }, metadata: _metadata }, null, _instanceExtraInitializers);
+            __esDecorate(this, null, _applyPlain_decorators, { kind: "method", name: "applyPlain", static: false, private: false, access: { has: obj => "applyPlain" in obj, get: obj => obj.applyPlain }, metadata: _metadata }, null, _instanceExtraInitializers);
             __esDecorate(this, null, _get_value_decorators, { kind: "getter", name: "value", static: false, private: false, access: { has: obj => "value" in obj, get: obj => obj.value }, metadata: _metadata }, null, _instanceExtraInitializers);
             __esDecorate(this, null, _get_rawValue_decorators, { kind: "getter", name: "rawValue", static: false, private: false, access: { has: obj => "rawValue" in obj, get: obj => obj.rawValue }, metadata: _metadata }, null, _instanceExtraInitializers);
             __esDecorate(null, null, _locked_decorators, { kind: "field", name: "locked", static: false, private: false, access: { has: obj => "locked" in obj, get: obj => obj.locked, set: (obj, value) => { obj.locked = value; } }, metadata: _metadata }, _locked_initializers, _locked_extraInitializers);
             __esDecorate(null, null, _selectTextOnFocus_decorators, { kind: "field", name: "selectTextOnFocus", static: false, private: false, access: { has: obj => "selectTextOnFocus" in obj, get: obj => obj.selectTextOnFocus, set: (obj, value) => { obj.selectTextOnFocus = value; } }, metadata: _metadata }, _selectTextOnFocus_initializers, _selectTextOnFocus_extraInitializers);
             __esDecorate(null, null, _dynamicVerticalResize_decorators, { kind: "field", name: "dynamicVerticalResize", static: false, private: false, access: { has: obj => "dynamicVerticalResize" in obj, get: obj => obj.dynamicVerticalResize, set: (obj, value) => { obj.dynamicVerticalResize = value; } }, metadata: _metadata }, _dynamicVerticalResize_initializers, _dynamicVerticalResize_extraInitializers);
+            __esDecorate(null, null, _fitContent_decorators, { kind: "field", name: "fitContent", static: false, private: false, access: { has: obj => "fitContent" in obj, get: obj => obj.fitContent, set: (obj, value) => { obj.fitContent = value; } }, metadata: _metadata }, _fitContent_initializers, _fitContent_extraInitializers);
+            __esDecorate(null, null, _plain_decorators, { kind: "field", name: "plain", static: false, private: false, access: { has: obj => "plain" in obj, get: obj => obj.plain, set: (obj, value) => { obj.plain = value; } }, metadata: _metadata }, _plain_initializers, _plain_extraInitializers);
             if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
         }
         /**
@@ -18135,10 +18420,42 @@ let GradumInput = (() => {
          */
         dynamicVerticalResize = (__runInitializers(this, _selectTextOnFocus_extraInitializers), __runInitializers(this, _dynamicVerticalResize_initializers, false));
         /**
+         * @description Whether the input is only as wide as what is in it, growing and shrinking as the value
+         * changes — what a name wants when it stands in for a line of text rather than sitting in a form.
+         *
+         * Uses the browser's own `field-sizing` where there is one, and measures the text and writes the width
+         * where there is not. Either way the width lands on the element laying the text out rather than on the
+         * component around it, which is why setting a width from outside does not work.
+         *
+         * *Pair it with {@link GradumInput.plain} to have the field look like text as well as size like it.*
+         */
+        fitContent = (__runInitializers(this, _dynamicVerticalResize_extraInitializers), __runInitializers(this, _fitContent_initializers, false));
+        /**
+         * @description Whether the input is drawn as plain text: no box, no border, no outline, and colour,
+         * font and alignment taken from whatever it sits in. For a field that stands in for a line of text —
+         * a title edited in place — rather than one in a form.
+         */
+        plain = (__runInitializers(this, _fitContent_extraInitializers), __runInitializers(this, _plain_initializers, false));
+        /**
+         * @private
+         * @static
+         * @description The offscreen element every input measures its text in. Shared: it carries the font of
+         * whichever input is asking at the time, and only for as long as the measurement takes.
+         */
+        static measurer;
+        /**
+         * @readonly
+         * @static
+         * @description Whether the browser sizes a field to its content by itself.
+         */
+        static get supportsFieldSizing() {
+            return typeof CSS !== "undefined" && CSS.supports?.("field-sizing", "content");
+        }
+        /**
          * @description A pattern the value must match while typing. Input that fails it is sanitized if
          * possible, and otherwise reverted to the last value that passed.
          */
-        inputRegexCheck = __runInitializers(this, _dynamicVerticalResize_extraInitializers);
+        inputRegexCheck = __runInitializers(this, _plain_extraInitializers);
         /**
          * @description A pattern the value must match once editing ends. Stricter than
          * {@link GradumInput.inputRegexCheck}, so partial input is allowed mid-typing but not left behind.
@@ -18209,6 +18526,63 @@ let GradumInput = (() => {
         setupChangedCallbacks() {
             super.setupChangedCallbacks();
             this.emitter?.add("processValue", () => this.processInputValue());
+        }
+        /**
+         * @description Keep the field as wide as its value while {@link GradumInput.fitContent} is on. Reads
+         * the value, so it follows what is typed: every accepted change marks it dirty.
+         * @protected
+         */
+        applyFitContent() {
+            const fit = this.fitContent;
+            const value = this.rawValue;
+            const element = this.element;
+            if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLTextAreaElement))
+                return;
+            gradum(this).toggleClass("gradum-input-fit", fit);
+            //The browser's own sizing is applied by the class, and nothing needs writing.
+            if (!fit || GradumInput.supportsFieldSizing) {
+                gradum(element).setStyle("width", "", true);
+                return;
+            }
+            gradum(element).setStyle("width", `${this.measureValueWidth(value)}px`, true);
+        }
+        /**
+         * @description Dress the field down to plain text while {@link GradumInput.plain} is on.
+         * @protected
+         */
+        applyPlain() {
+            gradum(this).toggleClass("gradum-input-plain", this.plain);
+        }
+        /**
+         * @function measureValueWidth
+         * @protected
+         * @description How wide the field has to be to show a piece of text without scrolling: the text as
+         * this field would draw it, plus whatever the field puts around it.
+         *
+         * Measured in an offscreen element carrying this field's own font, rather than counted in `ch` — a
+         * `ch` is the width of a zero, which is the width of nothing else in a proportional font.
+         * @param {string} text - The text to measure. Falls back to the placeholder when empty, so an empty
+         * field is still wide enough to read its prompt.
+         * @returns {number} The width in pixels.
+         */
+        measureValueWidth(text) {
+            const element = this.element;
+            const style = getComputedStyle(element);
+            const measurer = GradumInput.measurer ??= document.createElement("div");
+            measurer.style.cssText = "position:absolute; top:-9999px; left:-9999px; visibility:hidden; white-space:pre";
+            //Re-attached rather than attached once: it is shared and lives as long as the page, so anything
+            //that replaces the body would otherwise leave it orphaned and every measurement at zero.
+            if (!measurer.isConnected)
+                document.body.appendChild(measurer);
+            for (const property of ["fontStyle", "fontVariant", "fontWeight", "fontStretch", "fontSize",
+                "fontFamily", "letterSpacing", "wordSpacing", "textTransform"]) {
+                measurer.style[property] = style[property];
+            }
+            measurer.textContent = text || element.placeholder || "";
+            const around = ["paddingLeft", "paddingRight", "borderLeftWidth", "borderRightWidth"]
+                .reduce((total, property) => total + (parseFloat(style[property]) || 0), 0);
+            //One pixel over, so the caret at the end of the text has somewhere to sit rather than being clipped.
+            return measurer.offsetWidth + around + 1;
         }
         /**
          * @inheritDoc
@@ -18342,7 +18716,9 @@ let GradumInput = (() => {
         }
     };
 })();
-define(GradumInput);
+//Named outright rather than derived from the class name: a build that renames the class — vitest's
+//esbuild pass renames it to `_GradumInput` — would otherwise derive a tag the browser rejects.
+define(GradumInput, "gradum-input", "GradumInput");
 
 /**
  * @group Components
@@ -18481,11 +18857,11 @@ let GradumSelect = (() => {
                     }
                 })];
             _selectedEntriesClasses_decorators = [auto({
-                    callBefore: function () {
-                        this.selectedEntries?.forEach(entry => gradum(entry).removeClass(this.selectedEntryClasses));
-                    },
-                    callAfter: function () {
-                        this.selectedEntries?.forEach(entry => gradum(entry).addClass(this.selectedEntryClasses));
+                    callAfter: function (value) {
+                        this.entries?.forEach((entry) => {
+                            if (entry instanceof HTMLElement)
+                                gradum(entry).defaultSelectedClasses = value;
+                        });
                     },
                 })];
             _entriesClasses_decorators = [auto({
@@ -18618,6 +18994,7 @@ let GradumSelect = (() => {
             for (let i = 0; i < array.length; i++) {
                 this.onEntryAdded.fire(array[i], i);
                 gradum(array[i]).addClass(this.entriesClasses);
+                this.placeEntry(array[i], i);
             }
             this.deselectAll();
             for (let i = 0; i < array.length; i++) {
@@ -18687,7 +19064,11 @@ let GradumSelect = (() => {
             this.forceSelection = !value;
         }
         forceSelection = (__runInitializers(this, _createEntry_extraInitializers), __runInitializers(this, _forceSelection_initializers, void 0));
-        //TODO FIX
+        /**
+         * @description The CSS classes carried by a selected entry. Handed to each entry as its own
+         * {@link GradumSelector.defaultSelectedClasses}, so they are applied by the entry being selected rather
+         * than alongside it; assigning a new value moves them over on whichever entries are selected now.
+         */
         selectedEntriesClasses = (__runInitializers(this, _forceSelection_extraInitializers), __runInitializers(this, _selectedEntriesClasses_initializers, void 0));
         entriesClasses = (__runInitializers(this, _selectedEntriesClasses_extraInitializers), __runInitializers(this, _entriesClasses_initializers, void 0));
         /**
@@ -18747,8 +19128,7 @@ let GradumSelect = (() => {
             gradum(entry).addClass(this.entriesClasses);
             if (Array.isArray(this.entries) && !this.entries.includes(entry))
                 this.entries.splice(index, 0, entry);
-            if (entry instanceof Node && !entry.parentElement && this.parent)
-                gradum(this.parent).addChild(entry, index);
+            this.placeEntry(entry, index);
             this.enableObserver(true);
             requestAnimationFrame(() => this.select(this.selectedEntry));
         }
@@ -18763,6 +19143,10 @@ let GradumSelect = (() => {
                     this.select(fallback);
             }
             this.onEntryRemoved.fire(entry);
+            //Taken off the list unselected, so an entry kept hold of elsewhere does not go on answering that
+            //it is selected by a select it no longer belongs to.
+            if (entry instanceof HTMLElement && gradum(entry).selected)
+                gradum(entry).selected = false;
             if (entry instanceof Node && entry.parentElement)
                 entry.parentElement.removeChild(entry);
             this.clearEntryData(entry);
@@ -18826,8 +19210,14 @@ let GradumSelect = (() => {
             if (!this.multiSelection)
                 this.deselectAll();
             this.getEntryData(entry).selected = selected;
-            if (entry instanceof HTMLElement)
-                gradum(entry).toggleClass(this.selectedEntriesClasses, selected);
+            //Set through the library's own notion of selected rather than by toggling the class beside it.
+            //That applies the class as part of its own contract, and it is what an entry reads to answer
+            //`gradum(entry).selected` and what fires `gradum(entry).onSelected` — the only way an entry that is
+            //itself a component can learn it has been selected, having no reference to the select that owns it.
+            if (entry instanceof HTMLElement) {
+                gradum(entry).defaultSelectedClasses = this.selectedEntriesClasses;
+                gradum(entry).selected = selected;
+            }
             this.initializeSelection();
             this.refreshInputField();
             this.onSelect.fire(selected, entry, this.getIndex(entry));
@@ -18855,7 +19245,7 @@ let GradumSelect = (() => {
         deselectAll() {
             this.selectedEntries.forEach(entry => {
                 if (entry instanceof HTMLElement)
-                    gradum(entry).toggleClass(this.selectedEntriesClasses, false);
+                    gradum(entry).selected = false;
                 this.getEntryData(entry).selected = false;
             });
             this.refreshInputField();
@@ -18942,6 +19332,23 @@ let GradumSelect = (() => {
         }
         get stringSelectedValue() {
             return this.selectedEntries.map(entry => stringify(this.getValue(entry))).join(", ");
+        }
+        /**
+         * @description Put an entry where this selection's entries go, and tell it what it wears when selected.
+         *
+         * Both ways of filling a selection end here — {@link GradumSelect.addEntry} one at a time, and
+         * {@link GradumSelect.entries} all at once. Registering an entry is not enough on its own: the list is
+         * the declarative way to fill a selection, and an entry that is only registered is invisible.
+         * @param {EntryType} entry - The entry to place.
+         * @param {number} index - Where among its siblings it goes.
+         * @protected
+         */
+        placeEntry(entry, index) {
+            //Dressed now, so it is right even if something selects it directly rather than through this select.
+            if (entry instanceof HTMLElement)
+                gradum(entry).defaultSelectedClasses = this.selectedEntriesClasses;
+            if (entry instanceof Node && !entry.parentElement && this.parent)
+                gradum(this.parent).addChild(entry, index);
         }
         clear(disableObserver = true) {
             if (disableObserver)
@@ -19513,14 +19920,19 @@ let GradumDrawer = (() => {
             const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
             _set_thumb_decorators = [auto({
                     setIfUndefined: true,
-                    callBefore: function () { if (this.thumb)
-                        gradum(this).remChild(this.thumb); },
+                    //Off whatever is holding it, not off the drawer: `remChild` goes through `childHandler`, which
+                    //the drawer points at its panel once the layout is up, so removing a thumb from `this` asked the
+                    //panel to remove a node that was never its child. The removal failed, and `setupUILayout` then
+                    //collected the replaced thumb as loose content and moved it *into* the panel.
+                    callBefore: function () { this.thumb?.remove(); },
                     preprocessValue: (value) => value instanceof HTMLElement ? value : div(value)
                 })];
             _set_panel_decorators = [auto({
                     setIfUndefined: true,
-                    callBefore: function () { if (this.panel)
-                        gradum(this).remChild(this.panel); },
+                    //As with the thumb: off its own parent, the panel container. Removing it through the drawer's
+                    //`childHandler` — the panel itself by then — failed, leaving the replaced panel in the container
+                    //beside the new one, two panels deep for the drawer to measure and clip around.
+                    callBefore: function () { this.panel?.remove(); },
                     preprocessValue: (value) => value instanceof HTMLElement ? value : div(value)
                 })];
             _set_icon_decorators = [auto({
@@ -19551,7 +19963,7 @@ let GradumDrawer = (() => {
                     }
                 })];
             _set_open_decorators = [auto({ defaultValue: false })];
-            _set_translation_decorators = [auto()];
+            _set_translation_decorators = [auto({ cancelIfUnchanged: false })];
             _transition_decorators = [auto({
                     defaultValueCallback: function () {
                         return new Reifect({
@@ -19632,6 +20044,11 @@ let GradumDrawer = (() => {
          */
         set hideOverflow(value) {
             gradum(this.panelContainer).setStyle("overflow", value ? "hidden" : "");
+            //The position is carried by a different style on either side of this flag, so the drawer is laid
+            //out again to move it there. Instantly: this is a change of how the drawer is built, not a change
+            //of where it stands, and there is nothing to animate between the two.
+            if (this.initialized)
+                this.refresh(true);
         }
         /**
          * @description Whether the drawer's side is appended to the icon's name, so a different icon file is
@@ -19667,7 +20084,9 @@ let GradumDrawer = (() => {
                 .toggleClass("bottom-drawer", value == exports.Side.bottom)
                 .toggleClass("left-drawer", value == exports.Side.left)
                 .toggleClass("right-drawer", value == exports.Side.right);
-            this.refresh();
+            //Instantly, as with `hideOverflow`: the drawer is moving to another edge, not travelling there,
+            //and the axis its position is written on changes with it.
+            this.refresh(true);
         }
         /**
          * @description How far the drawer sits from its edge, in pixels, given separately for its open and
@@ -19694,50 +20113,45 @@ let GradumDrawer = (() => {
             this.refresh();
         }
         set translation(value) {
-            switch (this.side) {
-                case exports.Side.top:
-                    if (this.hideOverflow)
-                        gradum(this.panelContainer).setStyle("height", value + "px");
-                    else
-                        gradum(this).setStyle("transform", `translateY(${-value}px)`);
-                    break;
-                case exports.Side.bottom:
-                    if (this.hideOverflow)
-                        gradum(this.panelContainer).setStyle("height", value + "px");
-                    else
-                        gradum(this).setStyle("transform", `translateY(${-value}px)`);
-                    break;
-                case exports.Side.left:
-                    if (this.hideOverflow)
-                        gradum(this.panelContainer).setStyle("width", value + "px");
-                    else
-                        gradum(this).setStyle("transform", `translateX(${-value}px)`);
-                    break;
-                case exports.Side.right:
-                    if (this.hideOverflow)
-                        gradum(this.panelContainer).setStyle("width", value + "px");
-                    else
-                        gradum(this).setStyle("transform", `translateX(${-value}px)`);
-                    break;
-            }
+            this.applyTranslation(value);
         }
         transition = __runInitializers(this, _transition_initializers, void 0);
         /**
          * @description How far the drawer is currently displaced from its edge, in pixels. Set while dragging
-         * to follow the pointer; otherwise driven by {@link GradumDrawer.open}.
+         * to follow the pointer; otherwise driven by {@link GradumDrawer.open} and by
+         * {@link GradumDrawer.refresh}.
+         *
+         * Assigning it writes the position whether or not the number changed. The number alone does not say
+         * where the drawer stands: the same one means a container size under `hideOverflow` and a transform
+         * without it, and one axis or the other depending on {@link GradumDrawer.side}. Writing a style the
+         * value it already holds restarts no transition, so there is nothing to save by skipping it.
          */
         get translation() { return; }
         /**
          * @function initialize
-         * @description Set the drawer up and settle it into its closed position without animating, then enable
-         * transitions on the next frame so later changes animate normally.
+         * @description Set the drawer up and settle it into the position its state calls for without
+         * animating, then enable transitions on the next frame so later changes animate normally.
          */
         initialize() {
             super.initialize();
             gradum(this).show(false);
             this.enableTransition(false);
             this.setupResizeObserver();
-            this.open = false;
+            //Laying the drawer out here, rather than waiting for something about it to change. Nothing has to
+            //change for a drawer to need a position: a closed one is `open === false` from the moment it
+            //exists, so the `open = false` that used to stand here was dropped as unchanged and `refresh`
+            //never ran — and what `side` did write while properties were being applied went to a panel
+            //container `setupUIElements` had not created yet. With `hideOverflow` on, that left the container
+            //at the panel's natural size: a drawer standing fully open while reporting itself closed, whose
+            //first click only set `open` to what it already looked like.
+            if (this.open)
+                this.resizeObserver?.observe(this.panel, { box: "border-box" });
+            this.refresh(true);
+            //And again whenever it arrives somewhere, because a drawer built before it is in the document has
+            //nothing to measure: the panel's offset size is 0 while it is detached, so an open one would lay
+            //itself out collapsed and stay that way. The observer is no help there — it is held off until the
+            //drawer's first transition.
+            this.onAttach.add(() => this.refresh(true));
             requestAnimationFrame(() => {
                 gradum(this).show(true);
                 this.enableTransition(true);
@@ -19866,18 +20280,70 @@ let GradumDrawer = (() => {
          * @function refresh
          * @description Re-measure the panel and move the drawer to the position its current state calls for.
          * Call it after changing the panel's contents outside the drawer's own observers.
+         *
+         * Settles within the call, so it is safe to call at interactive rates: a drawer whose panel resizes
+         * continuously can be refreshed on every change without the calls treading on each other.
+         * @param {boolean} [instant=false] - Whether the position is written straight away rather than on the
+         * next animation frame. Used to lay the drawer out as it is built, where there is nothing to animate
+         * from and no frame to wait for.
          */
-        refresh() {
-            if (this.hideOverflow)
-                gradum(this.panel).setStyle("position", "absolute", true);
+        refresh(instant = false) {
             if (this.icon instanceof GradumIconSwitch)
                 this.icon.switchReifect.apply(this.open ? this.getOppositeSide() : this.side);
-            requestAnimationFrame(() => {
-                this.translation = (this.open ? this.offset.open : this.offset.closed)
-                    + (this.open ? (this.isVertical ? this.panel.offsetHeight : this.panel.offsetWidth) : 0);
-                if (this.hideOverflow)
-                    gradum(this.panel).setStyle("position", "relative", true);
-            });
+            const translation = (this.open ? this.offset.open : this.offset.closed)
+                + (this.open ? this.measurePanel() : 0);
+            this.translation = translation;
+            if (instant)
+                this.applyTranslation(translation, true);
+        }
+        /**
+         * @function applyTranslation
+         * @protected
+         * @description Write a displacement to the style that carries it — the panel container's size along
+         * the drawer's axis while the overflow is clipped, a transform on the drawer itself otherwise — and
+         * take it off the styles that do not.
+         *
+         * Which style holds the position is not fixed: it moves with `hideOverflow` and with the drawer's
+         * axis. Whichever one the position has left goes on displacing the drawer by the amount it was given
+         * last, on top of the one now in force, until it is cleared.
+         * @param {number} value - The displacement to write, in pixels.
+         * @param {boolean} [instant=false] - Whether to write it straight away rather than on the next frame.
+         */
+        applyTranslation(value, instant = false) {
+            const size = this.isVertical ? "height" : "width";
+            if (this.hideOverflow) {
+                gradum(this).setStyle("transform", "", instant);
+                gradum(this.panelContainer).setStyle(this.isVertical ? "width" : "height", "", instant)
+                    .setStyle(size, value + "px", instant);
+            }
+            else {
+                gradum(this.panelContainer).setStyle("width", "", instant).setStyle("height", "", instant);
+                gradum(this).setStyle("transform", `translate${this.isVertical ? "Y" : "X"}(${-value}px)`, instant);
+            }
+        }
+        /**
+         * @function measurePanel
+         * @protected
+         * @description How much room the panel's contents want, along the drawer's axis.
+         *
+         * With `hideOverflow` on, the panel is a flex item in a container the drawer has given an explicit
+         * size, so it is shrunk to fit and measures as whatever room it has rather than as what it wants.
+         * Taking it out of flow for the measurement is what gets its natural size — and reading the offset
+         * forces the layout, so the whole thing happens in one pass.
+         *
+         * *It used to span two frames: out of flow now, measured and put back on the next. Overlapping calls
+         * each took it out again and booked their own restore, so a panel resizing during a gesture flickered
+         * for the whole gesture — and a backgrounded tab, whose frame never comes, left it out of flow for good.*
+         * @returns {number} The panel's size along the drawer's axis.
+         */
+        measurePanel() {
+            const axis = this.isVertical ? "offsetHeight" : "offsetWidth";
+            if (!this.hideOverflow)
+                return this.panel[axis];
+            gradum(this.panel).setStyle("position", "absolute", true);
+            const size = this.panel[axis];
+            gradum(this.panel).setStyle("position", "relative", true);
+            return size;
         }
         /**
          * @function enableTransition
@@ -20107,17 +20573,34 @@ let GradumPopup = (() => {
                 this.show(false);
             }, { capture: true });
         }
+        /**
+         * @function recomputePosition
+         * @description Place the popup against its anchor, now.
+         *
+         * Runs itself whenever the anchor or the layout it depends on changes, which covers the ordinary case.
+         * Call it to place the popup without waiting — after moving the anchor, or after showing the popup by
+         * some means of your own — and it will have been placed by the time the call returns.
+         *
+         * *It used to be reachable only through {@link GradumPopup.show}, which also writes `visibility` and
+         * `display` and runs the show transition, so placing an already-shown popup meant showing it again.*
+         */
         recomputePosition() {
             if (!this.anchor)
                 return;
+            //Measured fresh. The getters below cache for the rest of this pass and clear on the next frame,
+            //which is the right trade while frames are coming — but a tab in the background is given none, and
+            //a placement computed from a rect measured before it was last moved is simply wrong.
+            clearCache(this);
             gradum(this).setStyles({ maxHeight: "", maxWidth: "" }, true);
             const left = this.computeAxis(exports.Direction.horizontal);
             const top = this.computeAxis(exports.Direction.vertical);
-            gradum(this).setStyles({ left: `${left}px`, top: `${top}px` });
+            //Written instantly, so this method means "placed" rather than "placed once a frame comes round".
+            //A popup opened in a background tab used to be shown unplaced and stay that way.
+            gradum(this).setStyles({ left: `${left}px`, top: `${top}px` }, true);
             const maxWidth = Math.max(0, Math.min(window.innerWidth - 2 * this.viewportMargin.x, window.innerWidth - 2 * this.viewportMargin.x - this.computedMargins.x));
             const maxHeight = Math.max(0, Math.min(window.innerHeight - 2 * this.viewportMargin.y, window.innerHeight - 2 * this.viewportMargin.y - this.computedMargins.y));
-            gradum(this).setStyle("maxWidth", `${maxWidth}px`);
-            gradum(this).setStyle("maxHeight", `${maxHeight}px`);
+            gradum(this).setStyle("maxWidth", `${maxWidth}px`, true);
+            gradum(this).setStyle("maxHeight", `${maxHeight}px`, true);
         }
         computeAxis(direction) {
             const axis = direction === exports.Direction.horizontal ? "x" : "y";
@@ -20585,9 +21068,9 @@ class GradumRect extends DOMRect {
      * about. Defaults to `Anchor.TopLeft`, which is what makes an unrotated rectangle read exactly like the
      * `DOMRect` it extends.
      *
-     * *Note: the `left`, `top`, `right` and `bottom` inherited from `DOMRect` are derived from `x`, `y`,
-     * `width` and `height` alone, so they describe the box only while it is unrotated and anchored to its
-     * top-left. Use {@link GradumRect.points} or {@link GradumRect.center} otherwise.*
+     * Every other reading resolves through it — `left`, `top`, `right` and `bottom` included — so a
+     * rectangle describes the same box whichever anchor it carries. Use
+     * {@link GradumRect.withAnchor} to get an equivalent rectangle stated from a different one.
      */
     anchor;
     /**
@@ -20624,10 +21107,14 @@ class GradumRect extends DOMRect {
         const angleRad = Math.atan2(dy, dx);
         const mid = new Point((a.x + b.x) / 2, (a.y + b.y) / 2);
         //Anchored and turned about the segment's midpoint, which is what keeps it lying along the segment.
-        return new GradumRect({
+        const { anchor, ...rest } = properties;
+        const rect = new GradumRect({
             x: mid.x, y: mid.y, width: length, height: thickness,
-            anchor: exports.Anchor.Center, ...properties, angleRad
+            anchor: exports.Anchor.Center, ...rest, angleRad
         });
+        //Restated from the anchor asked for, rather than simply labelled with it — the midpoint is the
+        //centre, and calling it the top-left would move the rectangle off the segment.
+        return anchor === undefined ? rect : rect.withAnchor(anchor);
     }
     /**
      * @function fromDOMRect
@@ -20639,7 +21126,13 @@ class GradumRect extends DOMRect {
      * @returns {GradumRect} The converted rectangle.
      */
     static fromDOMRect(rect, properties = {}) {
-        return new GradumRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height, ...properties });
+        const { anchor, ...rest } = properties;
+        //A `DOMRect`'s x and y are its top-left, so that is what the conversion starts from whatever anchor
+        //is asked for — restating it afterwards keeps it over the same box.
+        const converted = new GradumRect({
+            x: rect.x, y: rect.y, width: rect.width, height: rect.height, ...rest, anchor: exports.Anchor.TopLeft
+        });
+        return anchor === undefined ? converted : converted.withAnchor(anchor);
     }
     /**
      * @function render
@@ -20748,6 +21241,83 @@ class GradumRect extends DOMRect {
      */
     get topLeft() {
         return this.center.sub(this.half);
+    }
+    /**
+     * @readonly
+     * @description The left edge of the rectangle's box. Resolved through the anchor, like everything else
+     * about the rectangle, rather than read off `x` as `DOMRect` would — a rectangle anchored anywhere but
+     * its top-left has an `x` that is not its left edge.
+     *
+     * *Note: the box here is the untilted one about {@link GradumRect.center}, the same one
+     * {@link GradumRect.topLeft} gives the corner of. A rotated rectangle's four edges are not axis-aligned
+     * and cannot be given as four numbers; ask for {@link GradumRect.points} for where they actually are.*
+     */
+    get left() {
+        return this.center.x - this.width / 2;
+    }
+    /**
+     * @readonly
+     * @description The top edge of the rectangle's box, resolved through the anchor. See
+     * {@link GradumRect.left}.
+     */
+    get top() {
+        return this.center.y - this.height / 2;
+    }
+    /**
+     * @readonly
+     * @description The right edge of the rectangle's box, resolved through the anchor. See
+     * {@link GradumRect.left}.
+     */
+    get right() {
+        return this.left + this.width;
+    }
+    /**
+     * @readonly
+     * @description The bottom edge of the rectangle's box, resolved through the anchor. See
+     * {@link GradumRect.left}.
+     */
+    get bottom() {
+        return this.top + this.height;
+    }
+    /**
+     * @function withAnchor
+     * @description An equivalent rectangle — the same box, in the same place, turned the same way — stated
+     * from a different anchor, so its `x` and `y` are that anchor's point.
+     *
+     * Which anchor a rectangle carries is not free: it turns about its anchor, so a thing rotated about its
+     * own middle has to be stated centre-anchored or its box parts company with it. This is how a caller
+     * that wants plain top-left numbers — to hand to something DOM-shaped, or to do arithmetic with — asks
+     * for them, rather than redoing the offset by hand or having to know which anchor it was given.
+     * @param {Anchor | Point | AnchorPoint} anchor - The anchor to state it from.
+     * @returns {GradumRect} The equivalent rectangle.
+     *
+     * @example
+     * ```ts
+     * const box = node.getBoundingClientRect().withAnchor(Anchor.TopLeft);
+     * //box.x and box.left now agree, whatever the node reported itself as.
+     * ```
+     */
+    withAnchor(anchor) {
+        const point = anchor instanceof AnchorPoint ? anchor : new AnchorPoint(anchor);
+        const origin = this.pointAt(point);
+        return new GradumRect({
+            x: origin.x, y: origin.y, width: this.width, height: this.height,
+            angleRad: this.angleRad, anchor: point
+        });
+    }
+    /**
+     * @function toJSON
+     * @description The rectangle as a plain object, with every edge resolved through the anchor.
+     * `DOMRect`'s own would report the edges from `x` and `y` alone, which is the one place the corrected
+     * readings could still be stepped over.
+     * @returns {object} The rectangle's position, size, edges, rotation and anchor.
+     */
+    toJSON() {
+        return {
+            x: this.x, y: this.y, width: this.width, height: this.height,
+            top: this.top, right: this.right, bottom: this.bottom, left: this.left,
+            angleRad: this.angleRad, anchor: this.anchor.value
+        };
     }
     /**
      * @readonly
@@ -20934,10 +21504,13 @@ let GradumDropdown = (() => {
                         if (value instanceof HTMLElement)
                             return value;
                         const text = typeof value === "string" ? value : stringify(this.select.getValue(this.entries[0]));
-                        if (this.selector instanceof GradumButton)
+                        //A button already built is relabelled rather than replaced — and handed back, since what this
+                        //returns is what gets stored. Returning nothing here would store nothing.
+                        if (this.selector instanceof GradumButton) {
                             this.selector.text = text;
-                        else
-                            return GradumButton.create({ text, elementTag: this.selectorTag });
+                            return this.selector;
+                        }
+                        return GradumButton.create({ text, elementTag: this.selectorTag });
                     }
                 })];
             _set_popup_decorators = [auto({ defaultValueCallback: () => GradumPopup.create() })];
@@ -20969,7 +21542,10 @@ let GradumDropdown = (() => {
         selectorClasses = __runInitializers(this, _selectorClasses_initializers, void 0);
         popupClasses = (__runInitializers(this, _selectorClasses_extraInitializers), __runInitializers(this, _popupClasses_initializers, void 0));
         /**
-         * The dropdown's selector element.
+         * @description The element that shows the current selection and opens the popup when clicked. Assign an
+         * element to use your own; assign a string, or leave it unset, and the dropdown builds a
+         * {@link GradumButton} carrying that text — or the selected value's — and keeps its text in step with
+         * what is selected.
          */
         set selector(value) {
             if (!(value instanceof HTMLElement))
@@ -20986,16 +21562,33 @@ let GradumDropdown = (() => {
             if (value instanceof GradumButton)
                 this.select.onSelect = () => value.text = this.stringSelectedValue;
         }
+        //Declared for the read type — `@auto` installs the accessor that actually answers, as it does for the
+        //stub getters on GradumRichElement. Without one here, reads would be typed as the setter's input.
         get selector() { return; }
         /**
-         * The dropdown's popup element.
+         * @description The popup the entries sit in, shown when the selector is clicked. One is built on first
+         * use if none is given; supplying your own replaces it, and the one it replaces is destroyed.
          */
         set popup(value) {
+            const previous = this.installedPopup;
+            this.installedPopup = value;
             if (value instanceof GradumPopup)
                 value.anchor = this.selector;
             gradum(value).addClass(this.popupClasses);
+            //Before the old one is destroyed, so the entries are carried across rather than taken down with it.
             this.select.parent = value;
+            //A popup is parked in the shared popup container rather than kept inside the dropdown, so replacing
+            //the reference is not enough to be rid of it — nothing would be left pointing at it. The one being
+            //replaced is usually the default, built on the first read of `popup`: assigning a `selector` reads
+            //it to anchor against, which happens before a supplied popup is applied.
+            if (previous && previous !== value)
+                gradum(previous).destroy();
         }
+        /**
+         * @private
+         * @description The popup currently installed, so the next one can tell what it is replacing.
+         */
+        installedPopup = __runInitializers(this, _popupClasses_extraInitializers);
         initialize() {
             super.initialize();
             this.selector;
@@ -21030,10 +21623,6 @@ let GradumDropdown = (() => {
         destroy() {
             gradum(this.popup).destroy();
             return this;
-        }
-        constructor() {
-            super(...arguments);
-            __runInitializers(this, _popupClasses_extraInitializers);
         }
     };
 })();
@@ -21242,6 +21831,17 @@ let GradumSelectWheel = (() => {
          */
         dragging = false;
         /**
+         * @private
+         * @description Follows the entries' sizes, so a change in what an entry holds re-measures the wheel.
+         * Absent where `ResizeObserver` is.
+         */
+        entrySizeObserver;
+        /**
+         * @private
+         * @description Whether a re-measure is already booked for the next frame.
+         */
+        reloadScheduled = false;
+        /**
          * @protected
          * @description The pending timer that will close the wheel once {@link GradumSelectWheel.openTimeout}
          * elapses.
@@ -21288,13 +21888,16 @@ let GradumSelectWheel = (() => {
                         this.setOpenTimer();
                     return exports.Propagation.stopImmediatePropagation;
                 });
-                requestAnimationFrame(() => this.reloadEntrySizes());
+                this.observeEntrySize(entry);
+                this.scheduleReloadEntrySizes();
             };
             this.select.onEntryAdded.add(initEntry);
             this.select.onEntryRemoved.add(entry => {
                 this.entryTransitionReifect?.detach(entry);
                 this.customReifect?.detach(entry);
-                requestAnimationFrame(() => this.reloadEntrySizes());
+                if (entry instanceof Element)
+                    this.entrySizeObserver?.unobserve(entry);
+                this.scheduleReloadEntrySizes();
             });
             super.initialize();
             gradum(this).setStyles({ display: "inline-block", position: "relative", overflow: "hidden" });
@@ -21356,7 +21959,7 @@ let GradumSelectWheel = (() => {
             // When opening, entries may have had zero layout size if the wheel was off-screen or
             // hidden when first populated. Reload now that the wheel is visible.
             if (value)
-                requestAnimationFrame(() => this.reloadEntrySizes());
+                this.scheduleReloadEntrySizes();
         }
         /**
          * @readonly
@@ -21407,10 +22010,56 @@ let GradumSelectWheel = (() => {
         // Layout
         // -------------------------------------------------------------------------
         /**
-         * @function reloadEntrySizes
+         * @function destroy
+         * @description Stop following the entries' sizes. Called when the wheel is destroyed; there is no need
+         * to call it by hand.
+         */
+        destroy() {
+            this.entrySizeObserver?.disconnect();
+            this.entrySizeObserver = undefined;
+            return this;
+        }
+        /**
+         * @function scheduleReloadEntrySizes
+         * @description Re-measure on the next animation frame, once however many times this is called before it
+         * comes round. What to use when what changed will only have been laid out by then — an entry just
+         * added, the wheel just opened, an entry's content just replaced.
+         */
+        scheduleReloadEntrySizes() {
+            if (this.reloadScheduled)
+                return;
+            this.reloadScheduled = true;
+            requestAnimationFrame(() => {
+                this.reloadScheduled = false;
+                this.reloadEntrySizes();
+            });
+        }
+        /**
+         * @description Start following an entry's size, so the wheel re-measures when what is inside the entry
+         * changes rather than only when the entries themselves do. Does nothing where `ResizeObserver` is not
+         * available, leaving {@link GradumSelectWheel.reloadEntrySizes} as the way to say so by hand.
+         * @param {EntryType} entry - The entry to follow.
          * @protected
-         * @description Re-measure every entry and rebuild the wheel's size and position tables. Call it after the
-         * entries change, or after the wheel becomes visible — entries laid out while hidden measure as zero.
+         */
+        observeEntrySize(entry) {
+            if (typeof ResizeObserver === "undefined" || !(entry instanceof Element))
+                return;
+            if (!this.entrySizeObserver)
+                this.entrySizeObserver =
+                    new ResizeObserver(() => this.scheduleReloadEntrySizes());
+            this.entrySizeObserver.observe(entry);
+        }
+        /**
+         * @function reloadEntrySizes
+         * @description Re-measure every entry and rebuild the wheel's size and position tables, now.
+         *
+         * The wheel does this itself when an entry is added or removed, when it is opened, and — where
+         * `ResizeObserver` is available — whenever an entry changes size, so an entry that is renamed or
+         * re-rendered is followed without having to say so. Call it for a change none of those catch, or
+         * {@link GradumSelectWheel.scheduleReloadEntrySizes} when the change has not been laid out yet.
+         *
+         * *Note: entries laid out while hidden measure as zero, and the wheel retries on the next frame until
+         * they do not.*
          */
         reloadEntrySizes() {
             this.sizePerEntry.length = 0;
@@ -21430,7 +22079,7 @@ let GradumSelectWheel = (() => {
             // added to the DOM after entries were created), all sizes read as 0. Retry next frame
             // so the browser has time to perform layout.
             if (this.totalSize === 0) {
-                requestAnimationFrame(() => this.reloadEntrySizes());
+                this.scheduleReloadEntrySizes();
                 return;
             }
             this._currentPosition = this.indexToPosition(this._index);
@@ -21629,13 +22278,25 @@ let GradumButtonPopup = (() => {
         popupOpen = (__runInitializers(this, _instanceExtraInitializers), false);
         popupClasses = __runInitializers(this, _popupClasses_initializers, void 0);
         /**
-         * The dropdown's popup element.
+         * @description The popup this button toggles. One is built on first use if none is given; supplying
+         * your own replaces it, and the one it replaces is destroyed — a popup is parked in the shared popup
+         * container rather than kept inside the button, so replacing the reference would otherwise leave it
+         * there with nothing pointing at it.
          */
         set popup(value) {
+            const previous = this.installedPopup;
+            this.installedPopup = value;
             if (value instanceof GradumPopup)
                 value.anchor = this;
             gradum(value).addClass(this.popupClasses);
+            if (previous && previous !== value)
+                gradum(previous).destroy();
         }
+        /**
+         * @private
+         * @description The popup currently installed, so the next one can tell what it is replacing.
+         */
+        installedPopup = __runInitializers(this, _popupClasses_extraInitializers);
         setupUIListeners() {
             super.setupUIListeners();
             gradum(document.body).on(DefaultEventName.click, e => {
@@ -21673,10 +22334,6 @@ let GradumButtonPopup = (() => {
         destroy() {
             gradum(this.popup).destroy();
             return this;
-        }
-        constructor() {
-            super(...arguments);
-            __runInitializers(this, _popupClasses_extraInitializers);
         }
     };
 })();

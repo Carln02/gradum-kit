@@ -160,6 +160,7 @@ class GradumSelect<
         for (let i = 0; i < array.length; i++) {
             this.onEntryAdded.fire(array[i], i);
             gradum(array[i]).addClass(this.entriesClasses);
+            this.placeEntry(array[i], i);
         }
 
         this.deselectAll();
@@ -250,13 +251,16 @@ class GradumSelect<
     })
     public forceSelection: boolean;
 
-    //TODO FIX
+    /**
+     * @description The CSS classes carried by a selected entry. Handed to each entry as its own
+     * {@link GradumSelector.defaultSelectedClasses}, so they are applied by the entry being selected rather
+     * than alongside it; assigning a new value moves them over on whichever entries are selected now.
+     */
     @auto({
-        callBefore: function () {
-            this.selectedEntries?.forEach(entry => gradum(entry).removeClass(this.selectedEntryClasses))
-        },
-        callAfter: function () {
-            this.selectedEntries?.forEach(entry => gradum(entry).addClass(this.selectedEntryClasses))
+        callAfter: function (value: string | string[]) {
+            this.entries?.forEach((entry: object) => {
+                if (entry instanceof HTMLElement) gradum(entry).defaultSelectedClasses = value;
+            });
         },
     }) public selectedEntriesClasses: string | string[];
 
@@ -326,7 +330,7 @@ class GradumSelect<
         gradum(entry).addClass(this.entriesClasses);
 
         if (Array.isArray(this.entries) && !this.entries.includes(entry)) this.entries.splice(index, 0, entry);
-        if (entry instanceof Node && !entry.parentElement && this.parent) gradum(this.parent).addChild(entry, index);
+        this.placeEntry(entry, index);
 
         this.enableObserver(true);
         requestAnimationFrame(() => this.select(this.selectedEntry));
@@ -344,6 +348,9 @@ class GradumSelect<
         }
 
         this.onEntryRemoved.fire(entry);
+        //Taken off the list unselected, so an entry kept hold of elsewhere does not go on answering that
+        //it is selected by a select it no longer belongs to.
+        if (entry instanceof HTMLElement && gradum(entry).selected) gradum(entry).selected = false;
         if (entry instanceof Node && entry.parentElement) entry.parentElement.removeChild(entry);
         this.clearEntryData(entry);
         this.refreshInputField();
@@ -403,7 +410,14 @@ class GradumSelect<
         if (!this.multiSelection) this.deselectAll();
 
         this.getEntryData(entry).selected = selected;
-        if (entry instanceof HTMLElement) gradum(entry).toggleClass(this.selectedEntriesClasses, selected);
+        //Set through the library's own notion of selected rather than by toggling the class beside it.
+        //That applies the class as part of its own contract, and it is what an entry reads to answer
+        //`gradum(entry).selected` and what fires `gradum(entry).onSelected` — the only way an entry that is
+        //itself a component can learn it has been selected, having no reference to the select that owns it.
+        if (entry instanceof HTMLElement) {
+            gradum(entry).defaultSelectedClasses = this.selectedEntriesClasses;
+            gradum(entry).selected = selected;
+        }
 
         this.initializeSelection();
         this.refreshInputField();
@@ -437,7 +451,7 @@ class GradumSelect<
 
     public deselectAll() {
         this.selectedEntries.forEach(entry => {
-            if (entry instanceof HTMLElement) gradum(entry).toggleClass(this.selectedEntriesClasses, false);
+            if (entry instanceof HTMLElement) gradum(entry).selected = false;
             this.getEntryData(entry).selected = false;
         });
         this.refreshInputField();
@@ -538,6 +552,22 @@ class GradumSelect<
 
     public get stringSelectedValue(): string {
         return this.selectedEntries.map(entry => stringify(this.getValue(entry))).join(", ");
+    }
+
+    /**
+     * @description Put an entry where this selection's entries go, and tell it what it wears when selected.
+     *
+     * Both ways of filling a selection end here — {@link GradumSelect.addEntry} one at a time, and
+     * {@link GradumSelect.entries} all at once. Registering an entry is not enough on its own: the list is
+     * the declarative way to fill a selection, and an entry that is only registered is invisible.
+     * @param {EntryType} entry - The entry to place.
+     * @param {number} index - Where among its siblings it goes.
+     * @protected
+     */
+    protected placeEntry(entry: EntryType, index: number) {
+        //Dressed now, so it is right even if something selects it directly rather than through this select.
+        if (entry instanceof HTMLElement) gradum(entry).defaultSelectedClasses = this.selectedEntriesClasses;
+        if (entry instanceof Node && !entry.parentElement && this.parent) gradum(this.parent).addChild(entry, index);
     }
 
     public clear(disableObserver: boolean = true): void {

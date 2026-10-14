@@ -13,7 +13,8 @@ describe("executeAction order + semantics", () => {
         gradum(node).onTool("click", "brush", hit);
 
         const consumed = gradum(node).executeAction("click", "brush", new Event("x"));
-        expect(consumed).toBe(Propagation.stopPropagation);
+        //The listener returns nothing, which means "carry on" — as it does for a tool behavior.
+        expect(consumed).toBe(Propagation.propagate);
         expect(hit).toHaveBeenCalledTimes(1);
     });
 
@@ -135,7 +136,7 @@ describe("executeAction order + semantics", () => {
 
         // "pointerdown" was not ignored, so it is unaffected.
         const consumedDown = gradum(node).executeAction("pointerdown", "brush", new Event("y"));
-        expect(consumedDown).toBe(Propagation.stopPropagation);
+        expect(consumedDown).toBe(Propagation.propagate);
         expect(customDown).toHaveBeenCalledTimes(1);
     });
 });

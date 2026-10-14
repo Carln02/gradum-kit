@@ -26,6 +26,10 @@ import {GradumInput} from "./input";
  * @property {boolean} [locked=false] - Whether the field rejects user edits.
  * @property {boolean} [dynamicVerticalResize=false] - Whether the field grows to fit its content as the
  * user types. Meant for `textarea`.
+ * @property {boolean} [fitContent=false] - Whether the field is only as wide as its value, growing and
+ * shrinking as it changes.
+ * @property {boolean} [plain=false] - Whether the field is drawn as plain text — no box, no border,
+ * inheriting colour, font and alignment.
  * @property {RegExp | string} [inputRegexCheck] - Pattern the value must match while typing. Input that
  * would break the match is rejected as it is entered.
  * @property {RegExp | string} [blurRegexCheck] - Pattern the value must match when the field loses focus.
@@ -50,6 +54,8 @@ type GradumInputProperties<
 
     locked?: boolean,
     dynamicVerticalResize?: boolean,
+    fitContent?: boolean,
+    plain?: boolean,
 
     inputRegexCheck?: RegExp | string,
     blurRegexCheck?: RegExp | string,

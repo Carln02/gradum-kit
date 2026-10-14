@@ -1,0 +1,43 @@
+/* An input dressed down to look like the text it stands in for: no box, no border, and everything it
+   draws with taken from whatever it sits in. Here rather than left to each caller, who would otherwise
+   have to find and override the inner field by a class that is not part of the documented surface.
+   Reached by descent, not as a direct child — the field sits inside a wrapper. */
+.gradum-input-plain,
+.gradum-input-plain input,
+.gradum-input-plain textarea {
+    margin: 0;
+    padding: 0;
+
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: inherit;
+    text-transform: inherit;
+
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.gradum-input-plain input:focus,
+.gradum-input-plain textarea:focus {
+    outline: none;
+}
+
+/* An input only as wide as what is in it. `field-sizing` does this outright where the browser has it;
+   where it does not, the component measures the text and writes the width itself. */
+.gradum-input-fit input,
+.gradum-input-fit textarea {
+    min-width: 0;
+    field-sizing: content;
+}
+
+/* The component and the wrapper round the field have to give way as well, or the field shrinks inside a
+   box that does not and nothing looks any narrower. */
+.gradum-input-fit,
+.gradum-input-fit > * {
+    width: fit-content;
+    min-width: 0;
+    max-width: 100%;
+}

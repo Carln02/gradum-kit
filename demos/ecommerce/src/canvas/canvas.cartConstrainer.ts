@@ -1,5 +1,5 @@
 import {
-    ConstrainerCallbackProperties, GradumConstrainer, GradumEventName, Point, solver
+    ConstrainerCallbackProperties, GradumConstrainer, GradumEventName, solver
 } from "../../../../build/gradum-kit.esm";
 import {Cart} from "../cart/cart";
 import {Item} from "../item/item";
@@ -66,8 +66,10 @@ export class CanvasCartConstrainer extends GradumConstrainer<Canvas> {
         const area = getRect(cart), rect = getRect(item);
         if (!area || !rect) return false;
 
-        const centre = new Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
-        return centre.x >= area.x && centre.x <= area.x + area.width
-            && centre.y >= area.y && centre.y <= area.y + area.height;
+        //Asked of the rect rather than worked out from its `x`: `x` is wherever the rect is anchored, and
+        //a card anchored anywhere but its top-left would have its middle reckoned half a card away.
+        const centre = rect.center;
+        return centre.x >= area.left && centre.x <= area.right
+            && centre.y >= area.top && centre.y <= area.bottom;
     }
 }

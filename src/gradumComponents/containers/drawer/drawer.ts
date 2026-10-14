@@ -65,7 +65,11 @@ class GradumDrawer<
      */
     @auto({
         setIfUndefined: true,
-        callBefore: function () {if (this.thumb) gradum(this).remChild(this.thumb)},
+        //Off whatever is holding it, not off the drawer: `remChild` goes through `childHandler`, which
+        //the drawer points at its panel once the layout is up, so removing a thumb from `this` asked the
+        //panel to remove a node that was never its child. The removal failed, and `setupUILayout` then
+        //collected the replaced thumb as loose content and moved it *into* the panel.
+        callBefore: function () {this.thumb?.remove()},
         preprocessValue: (value: GradumProperties | HTMLElement) => value instanceof HTMLElement ? value : div(value)
     }) public set thumb(value: GradumProperties | HTMLElement) {
         gradum(value).addClass("gradum-drawer-thumb");
@@ -80,7 +84,10 @@ class GradumDrawer<
      */
     @auto({
         setIfUndefined: true,
-        callBefore: function () {if (this.panel) gradum(this).remChild(this.panel)},
+        //As with the thumb: off its own parent, the panel container. Removing it through the drawer's
+        //`childHandler` — the panel itself by then — failed, leaving the replaced panel in the container
+        //beside the new one, two panels deep for the drawer to measure and clip around.
+        callBefore: function () {this.panel?.remove()},
         preprocessValue: (value: GradumProperties | HTMLElement) =>
             value instanceof HTMLElement ? value : div(value)
     }) public set panel(value: GradumProperties | HTMLElement) {
@@ -118,6 +125,10 @@ class GradumDrawer<
      */
     @auto({defaultValue: false}) public set hideOverflow(value: boolean) {
         gradum(this.panelContainer).setStyle("overflow", value ? "hidden" : "");
+        //The position is carried by a different style on either side of this flag, so the drawer is laid
+        //out again to move it there. Instantly: this is a change of how the drawer is built, not a change
+        //of where it stands, and there is nothing to animate between the two.
+        if (this.initialized) this.refresh(true);
     }
 
     /**
@@ -152,7 +163,9 @@ class GradumDrawer<
             .toggleClass("bottom-drawer", value == Side.bottom)
             .toggleClass("left-drawer", value == Side.left)
             .toggleClass("right-drawer", value == Side.right);
-        this.refresh();
+        //Instantly, as with `hideOverflow`: the drawer is moving to another edge, not travelling there,
+        //and the axis its position is written on changes with it.
+        this.refresh(true);
     }
 
     /**
@@ -188,25 +201,8 @@ class GradumDrawer<
         this.refresh();
     }
 
-    @auto() private set translation(value: number) {
-        switch (this.side) {
-            case Side.top:
-                if (this.hideOverflow) gradum(this.panelContainer).setStyle("height", value + "px");
-                else gradum(this).setStyle("transform", `translateY(${-value}px)`);
-                break;
-            case Side.bottom:
-                if (this.hideOverflow) gradum(this.panelContainer).setStyle("height", value + "px");
-                else gradum(this).setStyle("transform", `translateY(${-value}px)`);
-                break;
-            case Side.left:
-                if (this.hideOverflow) gradum(this.panelContainer).setStyle("width", value + "px");
-                else gradum(this).setStyle("transform", `translateX(${-value}px)`);
-                break;
-            case Side.right:
-                if (this.hideOverflow) gradum(this.panelContainer).setStyle("width", value + "px");
-                else gradum(this).setStyle("transform", `translateX(${-value}px)`);
-                break;
-        }
+    @auto({cancelIfUnchanged: false}) public set translation(value: number) {
+        this.applyTranslation(value);
     }
 
     @auto({
@@ -222,14 +218,20 @@ class GradumDrawer<
 
     /**
      * @description How far the drawer is currently displaced from its edge, in pixels. Set while dragging
-     * to follow the pointer; otherwise driven by {@link GradumDrawer.open}.
+     * to follow the pointer; otherwise driven by {@link GradumDrawer.open} and by
+     * {@link GradumDrawer.refresh}.
+     *
+     * Assigning it writes the position whether or not the number changed. The number alone does not say
+     * where the drawer stands: the same one means a container size under `hideOverflow` and a transform
+     * without it, and one axis or the other depending on {@link GradumDrawer.side}. Writing a style the
+     * value it already holds restarts no transition, so there is nothing to save by skipping it.
      */
     public get translation(): number {return}
 
     /**
      * @function initialize
-     * @description Set the drawer up and settle it into its closed position without animating, then enable
-     * transitions on the next frame so later changes animate normally.
+     * @description Set the drawer up and settle it into the position its state calls for without
+     * animating, then enable transitions on the next frame so later changes animate normally.
      */
     public initialize() {
         super.initialize();
@@ -237,7 +239,23 @@ class GradumDrawer<
         this.enableTransition(false);
 
         this.setupResizeObserver();
-        this.open = false;
+
+        //Laying the drawer out here, rather than waiting for something about it to change. Nothing has to
+        //change for a drawer to need a position: a closed one is `open === false` from the moment it
+        //exists, so the `open = false` that used to stand here was dropped as unchanged and `refresh`
+        //never ran — and what `side` did write while properties were being applied went to a panel
+        //container `setupUIElements` had not created yet. With `hideOverflow` on, that left the container
+        //at the panel's natural size: a drawer standing fully open while reporting itself closed, whose
+        //first click only set `open` to what it already looked like.
+        if (this.open) this.resizeObserver?.observe(this.panel, {box: "border-box"});
+        this.refresh(true);
+
+        //And again whenever it arrives somewhere, because a drawer built before it is in the document has
+        //nothing to measure: the panel's offset size is 0 while it is detached, so an open one would lay
+        //itself out collapsed and stay that way. The observer is no help there — it is held off until the
+        //drawer's first transition.
+        this.onAttach.add(() => this.refresh(true));
+
         requestAnimationFrame(() => {
             gradum(this).show(true);
             this.enableTransition(true);
@@ -364,16 +382,71 @@ class GradumDrawer<
      * @function refresh
      * @description Re-measure the panel and move the drawer to the position its current state calls for.
      * Call it after changing the panel's contents outside the drawer's own observers.
+     *
+     * Settles within the call, so it is safe to call at interactive rates: a drawer whose panel resizes
+     * continuously can be refreshed on every change without the calls treading on each other.
+     * @param {boolean} [instant=false] - Whether the position is written straight away rather than on the
+     * next animation frame. Used to lay the drawer out as it is built, where there is nothing to animate
+     * from and no frame to wait for.
      */
-    public refresh() {
-        if (this.hideOverflow) gradum(this.panel).setStyle("position", "absolute", true);
+    public refresh(instant: boolean = false) {
         if (this.icon instanceof GradumIconSwitch) this.icon.switchReifect.apply(this.open ? this.getOppositeSide() : this.side);
 
-        requestAnimationFrame(() => {
-            this.translation = (this.open ? this.offset.open : this.offset.closed)
-                + (this.open ? (this.isVertical ? this.panel.offsetHeight : this.panel.offsetWidth) : 0);
-            if (this.hideOverflow) gradum(this.panel).setStyle("position", "relative", true);
-        });
+        const translation = (this.open ? this.offset.open : this.offset.closed)
+            + (this.open ? this.measurePanel() : 0);
+        this.translation = translation;
+        if (instant) this.applyTranslation(translation, true);
+    }
+
+    /**
+     * @function applyTranslation
+     * @protected
+     * @description Write a displacement to the style that carries it — the panel container's size along
+     * the drawer's axis while the overflow is clipped, a transform on the drawer itself otherwise — and
+     * take it off the styles that do not.
+     *
+     * Which style holds the position is not fixed: it moves with `hideOverflow` and with the drawer's
+     * axis. Whichever one the position has left goes on displacing the drawer by the amount it was given
+     * last, on top of the one now in force, until it is cleared.
+     * @param {number} value - The displacement to write, in pixels.
+     * @param {boolean} [instant=false] - Whether to write it straight away rather than on the next frame.
+     */
+    protected applyTranslation(value: number, instant: boolean = false) {
+        const size = this.isVertical ? "height" : "width";
+        if (this.hideOverflow) {
+            gradum(this).setStyle("transform", "", instant);
+            gradum(this.panelContainer).setStyle(this.isVertical ? "width" : "height", "", instant)
+                .setStyle(size, value + "px", instant);
+        } else {
+            gradum(this.panelContainer).setStyle("width", "", instant).setStyle("height", "", instant);
+            gradum(this).setStyle("transform",
+                `translate${this.isVertical ? "Y" : "X"}(${-value}px)`, instant);
+        }
+    }
+
+    /**
+     * @function measurePanel
+     * @protected
+     * @description How much room the panel's contents want, along the drawer's axis.
+     *
+     * With `hideOverflow` on, the panel is a flex item in a container the drawer has given an explicit
+     * size, so it is shrunk to fit and measures as whatever room it has rather than as what it wants.
+     * Taking it out of flow for the measurement is what gets its natural size — and reading the offset
+     * forces the layout, so the whole thing happens in one pass.
+     *
+     * *It used to span two frames: out of flow now, measured and put back on the next. Overlapping calls
+     * each took it out again and booked their own restore, so a panel resizing during a gesture flickered
+     * for the whole gesture — and a backgrounded tab, whose frame never comes, left it out of flow for good.*
+     * @returns {number} The panel's size along the drawer's axis.
+     */
+    protected measurePanel(): number {
+        const axis = this.isVertical ? "offsetHeight" : "offsetWidth";
+        if (!this.hideOverflow) return this.panel[axis];
+
+        gradum(this.panel).setStyle("position", "absolute", true);
+        const size = this.panel[axis];
+        gradum(this.panel).setStyle("position", "relative", true);
+        return size;
     }
 
     /**

@@ -43,6 +43,10 @@ export function setupStyleFunctions() {
         set(this: GradumSelector<object>, value: boolean) {
             const element = this.element;
             if (!element) return;
+            //Only a change is announced. Assigning what is already the case is ordinary — a select
+            //deselecting an entry it is about to deselect again, say — and a listener should hear about it
+            //once or not at all, not once per assignment.
+            if (!!element[selectedKey] === !!value) return;
 
             if (element instanceof Element) {
                 const prevClass = element[selectedClass];

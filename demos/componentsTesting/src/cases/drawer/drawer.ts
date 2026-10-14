@@ -235,6 +235,48 @@ function drawerTest8_RaceProps() {
         );
 }
 
+//A drawer's position used to be written only by something *changing* it. Nothing changes as one is built:
+//a closed drawer is `open === false` from the start, so the `open = false` of its own setup was dropped as
+//unchanged and the position was never written. With `hideOverflow` on — where closed means the panel
+//container collapsed — the container stayed at the panel's natural size and the drawer stood fully open
+//while reporting itself closed. This case reads both out, so the two can be seen agreeing.
+function drawerTest9_ClosedOnArrival() {
+    const untouched = drawer({
+        icon: "chevron",
+        side: Side.left,
+        hideOverflow: true,
+        offset: {open: 12, closed: 0},
+        children: [p({text: "Nobody has touched me."})],
+    });
+
+    const bornOpen = drawer({
+        icon: "chevron",
+        side: Side.left,
+        hideOverflow: true,
+        offset: {open: 12, closed: 0},
+        open: true,
+        children: [p({text: "I was built open."})],
+    });
+
+    const readout = div({classes: "drawer-readout"});
+    const report = () => {
+        const lines = ([["untouched", untouched], ["born open", bornOpen]] as [string, typeof untouched][])
+            .map(([name, d]) => `${name}: open=${d.open}, translation=${d.translation}, `
+                + `container=${Math.round(d.panelContainer.getBoundingClientRect().width)}px`);
+        readout.textContent = lines.join("\n");
+    };
+    //Once the boxes below have put the drawers in the document: there is nothing to measure before that.
+    //A timer rather than a frame, so the readout still fills in a tab that is not being shown.
+    setTimeout(report);
+
+    box("GradumDrawer — position on arrival")
+        .addSubBox("Untouched", untouched,
+            GradumButton.create({text: "Toggle", onClick: () => {untouched.open = !untouched.open; setTimeout(report, 300)}}))
+        .addSubBox("Built open", bornOpen,
+            GradumButton.create({text: "Toggle", onClick: () => {bornOpen.open = !bornOpen.open; setTimeout(report, 300)}}))
+        .addSubBox("Readout", readout, GradumButton.create({text: "Re-read", onClick: report}));
+}
+
 export function setupDrawerTests() {
     drawerTest1_Basics();
     drawerTest2_OverflowVsTransform();
@@ -244,4 +286,5 @@ export function setupDrawerTests() {
     drawerTest6_ResizeObserver();
     drawerTest7_Nested();
     drawerTest8_RaceProps();
+    drawerTest9_ClosedOnArrival();
 }

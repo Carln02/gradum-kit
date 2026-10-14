@@ -32,6 +32,21 @@ class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKeyType ext
     public model?: ModelType;
 
     /**
+     * @description What each piece subscribed while the emitter was attributing to it, so
+     * {@link GradumEmitter.removeFor} can take exactly those back. Weak, so a piece that is simply
+     * dropped takes its entry with it.
+     * @protected
+     */
+    protected readonly owned: WeakMap<object, {events: [string, (...args: any[]) => void][],
+        keys: [FlatKeyType, (...args: any[]) => void][]}> = new WeakMap();
+
+    /**
+     * @description Whoever is being attributed to right now, if anyone.
+     * @protected
+     */
+    protected owner?: object;
+
+    /**
      * @constructor
      * @description Create an emitter, optionally bound to a model so key-path events can be fired against it.
      * @param {ModelType} [model] - The model whose key changes this emitter relays.
@@ -49,6 +64,7 @@ class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKeyType ext
     public add(event: string, callback: (...args: any[]) => void): void {
         if (!this.callbacks.has(event)) this.callbacks.set(event, new Delegate());
         this.callbacks.get(event)?.add(callback);
+        if (this.owner) this.record(this.owner).events.push([event, callback]);
     }
 
     /**
@@ -86,6 +102,7 @@ class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKeyType ext
         const flatKey = this.resolveFlatKey(keys);
         if (!this.dataCallbacks.has(flatKey)) this.dataCallbacks.set(flatKey, new Delegate());
         this.dataCallbacks.get(flatKey)?.add(callback);
+        if (this.owner) this.record(this.owner).keys.push([flatKey, callback as any]);
     }
 
     /**
@@ -111,6 +128,61 @@ class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKeyType ext
     public fireKey(value: any, ...keys: DataKeyType[]): void {
         const flatKey = this.resolveFlatKey(keys);
         this.dataCallbacks.get(flatKey)?.fire(value, ...keys);
+    }
+
+    /**
+     * @function attributeTo
+     * @description Run some work and remember that whatever it subscribes belongs to `owner`, so
+     * {@link GradumEmitter.removeFor} can take it back later. What the MVC wiring runs a piece's setup
+     * inside, so an operator writing `this.emitter.add(...)` in `setupChangedCallbacks` is on the record
+     * without having to say whose it is.
+     *
+     * Nests safely: the previous owner is restored afterwards, whether the work returns or throws.
+     * @template Type - What the work returns.
+     * @param {object} owner - The piece to attribute to.
+     * @param {() => Type} work - The work to run.
+     * @returns {Type} Whatever the work returned.
+     */
+    public attributeTo<Type>(owner: object, work: () => Type): Type {
+        const previous = this.owner;
+        this.owner = owner;
+        try {
+            return work();
+        } finally {
+            this.owner = previous;
+        }
+    }
+
+    /**
+     * @function removeFor
+     * @description Take back everything a piece subscribed through
+     * {@link GradumEmitter.attributeTo}. What a piece being detached calls, so it stops hearing about
+     * things — unbinding its listeners is not enough on its own, since this is the other way a piece
+     * listens, and a detached piece is one whose model and view are about to be taken away.
+     * @param {object} owner - The piece to forget.
+     */
+    public removeFor(owner: object): void {
+        const record = this.owned.get(owner);
+        if (!record) return;
+        this.owned.delete(owner);
+
+        for (const [event, callback] of record.events) this.callbacks.get(event)?.remove(callback);
+        for (const [flatKey, callback] of record.keys) this.dataCallbacks.get(flatKey)?.remove(callback as any);
+    }
+
+    /**
+     * @description The record kept for a piece, started if it has none yet.
+     * @param {object} owner - The piece to look up.
+     * @returns {object} Its record.
+     * @protected
+     */
+    protected record(owner: object) {
+        let entry = this.owned.get(owner);
+        if (!entry) {
+            entry = {events: [], keys: []};
+            this.owned.set(owner, entry);
+        }
+        return entry;
     }
 
     /**

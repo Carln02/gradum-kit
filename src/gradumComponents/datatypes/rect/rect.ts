@@ -31,9 +31,9 @@ class GradumRect extends DOMRect {
      * about. Defaults to `Anchor.TopLeft`, which is what makes an unrotated rectangle read exactly like the
      * `DOMRect` it extends.
      *
-     * *Note: the `left`, `top`, `right` and `bottom` inherited from `DOMRect` are derived from `x`, `y`,
-     * `width` and `height` alone, so they describe the box only while it is unrotated and anchored to its
-     * top-left. Use {@link GradumRect.points} or {@link GradumRect.center} otherwise.*
+     * Every other reading resolves through it — `left`, `top`, `right` and `bottom` included — so a
+     * rectangle describes the same box whichever anchor it carries. Use
+     * {@link GradumRect.withAnchor} to get an equivalent rectangle stated from a different one.
      */
     public anchor: AnchorPoint;
 
@@ -72,10 +72,14 @@ class GradumRect extends DOMRect {
         const mid = new Point((a.x + b.x) / 2, (a.y + b.y) / 2);
 
         //Anchored and turned about the segment's midpoint, which is what keeps it lying along the segment.
-        return new GradumRect({
+        const {anchor, ...rest} = properties;
+        const rect = new GradumRect({
             x: mid.x, y: mid.y, width: length, height: thickness,
-            anchor: Anchor.Center, ...properties, angleRad
+            anchor: Anchor.Center, ...rest, angleRad
         });
+        //Restated from the anchor asked for, rather than simply labelled with it — the midpoint is the
+        //centre, and calling it the top-left would move the rectangle off the segment.
+        return anchor === undefined ? rect : rect.withAnchor(anchor);
     }
 
     /**
@@ -88,7 +92,13 @@ class GradumRect extends DOMRect {
      * @returns {GradumRect} The converted rectangle.
      */
     public static fromDOMRect(rect: DOMRect, properties: GradumRectProperties = {}): GradumRect {
-        return new GradumRect({x: rect.x, y: rect.y, width: rect.width, height: rect.height, ...properties});
+        const {anchor, ...rest} = properties;
+        //A `DOMRect`'s x and y are its top-left, so that is what the conversion starts from whatever anchor
+        //is asked for — restating it afterwards keeps it over the same box.
+        const converted = new GradumRect({
+            x: rect.x, y: rect.y, width: rect.width, height: rect.height, ...rest, anchor: Anchor.TopLeft
+        });
+        return anchor === undefined ? converted : converted.withAnchor(anchor);
     }
 
     /**
@@ -208,6 +218,89 @@ class GradumRect extends DOMRect {
      */
     public get topLeft(): Point {
         return this.center.sub(this.half);
+    }
+
+    /**
+     * @readonly
+     * @description The left edge of the rectangle's box. Resolved through the anchor, like everything else
+     * about the rectangle, rather than read off `x` as `DOMRect` would — a rectangle anchored anywhere but
+     * its top-left has an `x` that is not its left edge.
+     *
+     * *Note: the box here is the untilted one about {@link GradumRect.center}, the same one
+     * {@link GradumRect.topLeft} gives the corner of. A rotated rectangle's four edges are not axis-aligned
+     * and cannot be given as four numbers; ask for {@link GradumRect.points} for where they actually are.*
+     */
+    public get left(): number {
+        return this.center.x - this.width / 2;
+    }
+
+    /**
+     * @readonly
+     * @description The top edge of the rectangle's box, resolved through the anchor. See
+     * {@link GradumRect.left}.
+     */
+    public get top(): number {
+        return this.center.y - this.height / 2;
+    }
+
+    /**
+     * @readonly
+     * @description The right edge of the rectangle's box, resolved through the anchor. See
+     * {@link GradumRect.left}.
+     */
+    public get right(): number {
+        return this.left + this.width;
+    }
+
+    /**
+     * @readonly
+     * @description The bottom edge of the rectangle's box, resolved through the anchor. See
+     * {@link GradumRect.left}.
+     */
+    public get bottom(): number {
+        return this.top + this.height;
+    }
+
+    /**
+     * @function withAnchor
+     * @description An equivalent rectangle — the same box, in the same place, turned the same way — stated
+     * from a different anchor, so its `x` and `y` are that anchor's point.
+     *
+     * Which anchor a rectangle carries is not free: it turns about its anchor, so a thing rotated about its
+     * own middle has to be stated centre-anchored or its box parts company with it. This is how a caller
+     * that wants plain top-left numbers — to hand to something DOM-shaped, or to do arithmetic with — asks
+     * for them, rather than redoing the offset by hand or having to know which anchor it was given.
+     * @param {Anchor | Point | AnchorPoint} anchor - The anchor to state it from.
+     * @returns {GradumRect} The equivalent rectangle.
+     *
+     * @example
+     * ```ts
+     * const box = node.getBoundingClientRect().withAnchor(Anchor.TopLeft);
+     * //box.x and box.left now agree, whatever the node reported itself as.
+     * ```
+     */
+    public withAnchor(anchor: Anchor | Point | AnchorPoint): GradumRect {
+        const point = anchor instanceof AnchorPoint ? anchor : new AnchorPoint(anchor);
+        const origin = this.pointAt(point);
+        return new GradumRect({
+            x: origin.x, y: origin.y, width: this.width, height: this.height,
+            angleRad: this.angleRad, anchor: point
+        });
+    }
+
+    /**
+     * @function toJSON
+     * @description The rectangle as a plain object, with every edge resolved through the anchor.
+     * `DOMRect`'s own would report the edges from `x` and `y` alone, which is the one place the corrected
+     * readings could still be stepped over.
+     * @returns {object} The rectangle's position, size, edges, rotation and anchor.
+     */
+    public toJSON(): object {
+        return {
+            x: this.x, y: this.y, width: this.width, height: this.height,
+            top: this.top, right: this.right, bottom: this.bottom, left: this.left,
+            angleRad: this.angleRad, anchor: this.anchor.value
+        };
     }
 
     /**

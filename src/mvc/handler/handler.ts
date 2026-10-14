@@ -1,4 +1,4 @@
-import {initializeEffects} from "../../decorators/reactivity/reactivity";
+import {disposeEffect, initializeEffects} from "../../decorators/reactivity/reactivity";
 import {GradumModel} from "../model/model";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 
@@ -64,6 +64,20 @@ class GradumHandler<ModelType extends GradumModel = GradumModel> {
         if (this.initialized) return;
         this.initialized = true;
         initializeEffects(this);
+    }
+
+    /**
+     * @function detach
+     * @description Stops the handler's `@effect` methods, so a handler removed from a model stops
+     * recomputing against the model it is about to lose. Called for you when the handler is removed;
+     * initializing it again starts them.
+     *
+     * A handler sees no element and no view, so there is nothing else of its to take back.
+     */
+    public detach(): void {
+        if (!this.initialized) return;
+        this.initialized = false;
+        disposeEffect(this);
     }
 }
 

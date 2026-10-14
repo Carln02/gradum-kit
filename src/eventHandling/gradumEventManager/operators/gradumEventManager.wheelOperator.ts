@@ -3,6 +3,7 @@ import {GradumEventManagerModel} from "../gradumEventManager.model";
 import {InputDevice} from "../gradumEventManager.types";
 import {GradumWheelEvent} from "../../events/gradumWheelEvent";
 import {GradumOperator} from "../../../mvc/operator/operator";
+import {gradum} from "../../../gradumFunctions/gradumFunctions";
 import {Point} from "../../../gradumComponents/datatypes/point/point";
 import {GradumEventName, GradumEventNameEntry} from "../../../types/eventNaming.types";
 
@@ -18,8 +19,9 @@ export class GradumEventManagerWheelOperator extends GradumOperator<GradumEventM
 
     public wheel = (e: WheelEvent) => {
         if (!this.element.enabled) return;
-        //Prevent default scroll behavior
-        if (this.element.preventDefaultWheel) e.preventDefault();
+        //Prevent default scroll behavior, unless what the pointer is over asked to be left alone — a scroll
+        //container that must still scroll, say.
+        if (this.element.preventDefaultWheel && gradum(e.target).shouldPreventDefaults(e.type, e)) e.preventDefault();
 
         //Most likely trackpad
         if (Math.abs(e.deltaY) <= 40 || e.deltaX != 0) this.model.inputDevice = InputDevice.trackpad;

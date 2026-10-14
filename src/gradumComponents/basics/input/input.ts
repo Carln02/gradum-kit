@@ -15,6 +15,8 @@ import {Propagation} from "../../../gradumFunctions/event/event.types";
 import {DefaultEventName} from "../../../types/eventNaming.types";
 import {markDirty, signal} from "../../../decorators/reactivity/reactivity";
 import {GradumLabelElement} from "../labelElement/labelElement";
+import {effect} from "../../../decorators/reactivity/reactivity";
+import "./input.css";
 
 /**
  * @group Components
@@ -104,6 +106,42 @@ class GradumInput<
     @signal public dynamicVerticalResize: boolean = false;
 
     /**
+     * @description Whether the input is only as wide as what is in it, growing and shrinking as the value
+     * changes — what a name wants when it stands in for a line of text rather than sitting in a form.
+     *
+     * Uses the browser's own `field-sizing` where there is one, and measures the text and writes the width
+     * where there is not. Either way the width lands on the element laying the text out rather than on the
+     * component around it, which is why setting a width from outside does not work.
+     *
+     * *Pair it with {@link GradumInput.plain} to have the field look like text as well as size like it.*
+     */
+    @signal public fitContent: boolean = false;
+
+    /**
+     * @description Whether the input is drawn as plain text: no box, no border, no outline, and colour,
+     * font and alignment taken from whatever it sits in. For a field that stands in for a line of text —
+     * a title edited in place — rather than one in a form.
+     */
+    @signal public plain: boolean = false;
+
+    /**
+     * @private
+     * @static
+     * @description The offscreen element every input measures its text in. Shared: it carries the font of
+     * whichever input is asking at the time, and only for as long as the measurement takes.
+     */
+    private static measurer: HTMLElement;
+
+    /**
+     * @readonly
+     * @static
+     * @description Whether the browser sizes a field to its content by itself.
+     */
+    private static get supportsFieldSizing(): boolean {
+        return typeof CSS !== "undefined" && CSS.supports?.("field-sizing", "content");
+    }
+
+    /**
      * @description A pattern the value must match while typing. Input that fails it is sanitized if
      * possible, and otherwise reverted to the last value that passed.
      */
@@ -180,6 +218,67 @@ class GradumInput<
     protected setupChangedCallbacks() {
         super.setupChangedCallbacks();
         this.emitter?.add("processValue", () => this.processInputValue());
+    }
+
+    /**
+     * @description Keep the field as wide as its value while {@link GradumInput.fitContent} is on. Reads
+     * the value, so it follows what is typed: every accepted change marks it dirty.
+     * @protected
+     */
+    @effect protected applyFitContent() {
+        const fit = this.fitContent;
+        const value = this.rawValue;
+        const element = this.element;
+        if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLTextAreaElement)) return;
+
+        gradum(this).toggleClass("gradum-input-fit", fit);
+        //The browser's own sizing is applied by the class, and nothing needs writing.
+        if (!fit || GradumInput.supportsFieldSizing) {
+            gradum(element).setStyle("width", "", true);
+            return;
+        }
+        gradum(element).setStyle("width", `${this.measureValueWidth(value)}px`, true);
+    }
+
+    /**
+     * @description Dress the field down to plain text while {@link GradumInput.plain} is on.
+     * @protected
+     */
+    @effect protected applyPlain() {
+        gradum(this).toggleClass("gradum-input-plain", this.plain);
+    }
+
+    /**
+     * @function measureValueWidth
+     * @protected
+     * @description How wide the field has to be to show a piece of text without scrolling: the text as
+     * this field would draw it, plus whatever the field puts around it.
+     *
+     * Measured in an offscreen element carrying this field's own font, rather than counted in `ch` — a
+     * `ch` is the width of a zero, which is the width of nothing else in a proportional font.
+     * @param {string} text - The text to measure. Falls back to the placeholder when empty, so an empty
+     * field is still wide enough to read its prompt.
+     * @returns {number} The width in pixels.
+     */
+    protected measureValueWidth(text: string): number {
+        const element = this.element as HTMLInputElement;
+        const style = getComputedStyle(element);
+
+        const measurer = GradumInput.measurer ??= document.createElement("div");
+        measurer.style.cssText = "position:absolute; top:-9999px; left:-9999px; visibility:hidden; white-space:pre";
+        //Re-attached rather than attached once: it is shared and lives as long as the page, so anything
+        //that replaces the body would otherwise leave it orphaned and every measurement at zero.
+        if (!measurer.isConnected) document.body.appendChild(measurer);
+        for (const property of ["fontStyle", "fontVariant", "fontWeight", "fontStretch", "fontSize",
+            "fontFamily", "letterSpacing", "wordSpacing", "textTransform"]) {
+            measurer.style[property] = style[property];
+        }
+        measurer.textContent = text || element.placeholder || "";
+
+        const around = ["paddingLeft", "paddingRight", "borderLeftWidth", "borderRightWidth"]
+            .reduce((total, property) => total + (parseFloat(style[property]) || 0), 0);
+        //One pixel over, so the caret at the end of the text has somewhere to sit rather than being clipped.
+        return measurer.offsetWidth + around + 1;
     }
 
     /**
@@ -308,5 +407,7 @@ class GradumInput<
     }
 }
 
-define(GradumInput);
+//Named outright rather than derived from the class name: a build that renames the class — vitest's
+//esbuild pass renames it to `_GradumInput` — would otherwise derive a tag the browser rejects.
+define(GradumInput, "gradum-input", "GradumInput");
 export {GradumInput};

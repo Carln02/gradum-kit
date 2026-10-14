@@ -1257,6 +1257,15 @@ declare class GradumHandler<ModelType extends GradumModel = GradumModel> {
      * before {@link GradumHandler.model} was bound for them to read.
      */
     initialize(): void;
+    /**
+     * @function detach
+     * @description Stops the handler's `@effect` methods, so a handler removed from a model stops
+     * recomputing against the model it is about to lose. Called for you when the handler is removed;
+     * initializing it again starts them.
+     *
+     * A handler sees no element and no view, so there is nothing else of its to take back.
+     */
+    detach(): void;
 }
 
 /**
@@ -1963,6 +1972,21 @@ declare class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKey
      */
     model?: ModelType;
     /**
+     * @description What each piece subscribed while the emitter was attributing to it, so
+     * {@link GradumEmitter.removeFor} can take exactly those back. Weak, so a piece that is simply
+     * dropped takes its entry with it.
+     * @protected
+     */
+    protected readonly owned: WeakMap<object, {
+        events: [string, (...args: any[]) => void][];
+        keys: [FlatKeyType, (...args: any[]) => void][];
+    }>;
+    /**
+     * @description Whoever is being attributed to right now, if anyone.
+     * @protected
+     */
+    protected owner?: object;
+    /**
      * @constructor
      * @description Create an emitter, optionally bound to a model so key-path events can be fired against it.
      * @param {ModelType} [model] - The model whose key changes this emitter relays.
@@ -2016,6 +2040,39 @@ declare class GradumEmitter<ModelType extends GradumModel = GradumModel, DataKey
      * @param {...DataKeyType[]} keys - Ordered path from outermost to innermost key.
      */
     fireKey(value: any, ...keys: DataKeyType[]): void;
+    /**
+     * @function attributeTo
+     * @description Run some work and remember that whatever it subscribes belongs to `owner`, so
+     * {@link GradumEmitter.removeFor} can take it back later. What the MVC wiring runs a piece's setup
+     * inside, so an operator writing `this.emitter.add(...)` in `setupChangedCallbacks` is on the record
+     * without having to say whose it is.
+     *
+     * Nests safely: the previous owner is restored afterwards, whether the work returns or throws.
+     * @template Type - What the work returns.
+     * @param {object} owner - The piece to attribute to.
+     * @param {() => Type} work - The work to run.
+     * @returns {Type} Whatever the work returned.
+     */
+    attributeTo<Type>(owner: object, work: () => Type): Type;
+    /**
+     * @function removeFor
+     * @description Take back everything a piece subscribed through
+     * {@link GradumEmitter.attributeTo}. What a piece being detached calls, so it stops hearing about
+     * things — unbinding its listeners is not enough on its own, since this is the other way a piece
+     * listens, and a detached piece is one whose model and view are about to be taken away.
+     * @param {object} owner - The piece to forget.
+     */
+    removeFor(owner: object): void;
+    /**
+     * @description The record kept for a piece, started if it has none yet.
+     * @param {object} owner - The piece to look up.
+     * @returns {object} Its record.
+     * @protected
+     */
+    protected record(owner: object): {
+        events: [string, (...args: any[]) => void][];
+        keys: [FlatKeyType, (...args: any[]) => void][];
+    };
     /**
      * @protected
      * @function resolveFlatKey
@@ -2204,12 +2261,16 @@ declare class GradumOperator<ElementType extends object = object, ViewType exten
     initialize(): void;
     /**
      * @function detach
-     * @description Undoes {@link initialize}'s listener work: every `@listener` and `@behavior` this operator
-     * bound is taken back, so a piece removed from an element stops responding to events. Called for you when
-     * the operator is removed. Initializing it again binds them afresh.
+     * @description Undoes {@link initialize}: the operator stops hearing about anything. Every `@listener`
+     * and `@behavior` it bound is taken back, everything it subscribed on the emitter while initializing is
+     * dropped, and its `@effect` methods are disposed. Called for you when the operator is removed, before
+     * its model, view and emitter are taken away — which is the point, since those are what its callbacks
+     * would go on reading.
      *
-     * Note that this covers listeners and behaviors only — anything a subclass sets up by hand in
-     * `setupChangedCallbacks` is its own to undo.
+     * Initializing it again restores all three, so an operator may be removed and added back.
+     *
+     * *Note: a subscription made outside `initialize` — later, from a method of its own — is not on the
+     * record, and is the operator's own to undo.*
      */
     detach(): void;
     /**
@@ -2389,16 +2450,17 @@ type HitResolver = (position: Point, event: Event) => object[];
  * @group GradumSelector
  * @category Events
  *
- * @description Options for {@link GradumSelector.preventDefault}, which prevents default browser behaviors for
- * selected event types and can optionally stop propagation.
+ * @description The long form of {@link GradumSelector.preventDefaults}, for naming which event types the
+ * decision should reach and what else to do with them. The short forms — a boolean or a predicate — are
+ * this with everything but `on` left at its default.
  * @property {string[]} [types] - List of event types to affect. If omitted, defaults to {@link BasicInputEvents}.
  * @property {"capture" | "bubble"} [phase] - Which phase to prevent. Defaults to `"bubble"`.
  * @property {false | "stop" | "immediate"} [stop] - Whether to stop propagation when handling the event:
  * - `false`: do not stop propagation,
  * - `"stop"`: call `stopPropagation`,
  * - `"immediate"`: call `stopImmediatePropagation`.
- * @property {(type: string, e: Event) => boolean} [preventDefaultOn] - Predicate to decide (per event) whether to
- * call `preventDefault`. Return `true` to prevent default for that event.
+ * @property {boolean | ((type: string, e: Event) => boolean)} [on=true] - The decision itself: whether to
+ * cancel, or a predicate deciding per event.
  * @property {boolean} [clearPreviousListeners] - If true, clears previously installed prevent-default listeners
  * before installing new ones.
  * @property {GradumEventManager} [manager] - Event manager to use. Defaults to {@link GradumEventManager.instance}.
@@ -2407,16 +2469,28 @@ type PreventDefaultOptions = {
     types?: string[];
     phase?: "capture" | "bubble";
     stop?: false | "stop" | "immediate";
-    preventDefaultOn?: (type: string, e: Event) => boolean;
+    on?: boolean | ((type: string, e: Event) => boolean);
     clearPreviousListeners?: boolean;
     manager?: GradumEventManager;
 };
 /**
+ * @type {PreventDefaultsSetting}
  * @group GradumSelector
  * @category Events
- * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
+ *
+ * @description What {@link GradumSelector.preventDefaults} accepts: `true` or `false` to settle it for a
+ * subtree, a predicate to decide per event, or {@link PreventDefaultOptions} to also say which event types
+ * the decision should reach.
  */
-declare const BasicInputEvents: readonly ["mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu", "dragstart", "selectstart", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "wheel"];
+type PreventDefaultsSetting = boolean | ((type: string, e: Event) => boolean) | PreventDefaultOptions;
+/**
+ * @group GradumSelector
+ * @category Events
+ * @description Default set of basic input event types reached by {@link GradumSelector.preventDefaults}.
+ * The pointer and wheel events are absent on purpose: the event manager already asks the same question
+ * before cancelling those, so a listener for them here would only cancel what is cancelled already.
+ */
+declare const BasicInputEvents: readonly ["mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu", "dragstart", "selectstart", "touchstart", "touchmove", "touchend", "touchcancel"];
 /**
  * @group GradumSelector
  * @category Events
@@ -4927,6 +5001,30 @@ declare class GradumEventManagerPointerOperator extends GradumOperator<GradumEve
     pointerUp: (e: PointerEvent) => void;
     pointerCancel: (e: PointerEvent) => void;
     lostPointerCapture: (e: PointerEvent) => void;
+    /**
+     * @description Cancel the browser's own handling of a pointer event, where the manager is set to and
+     * what the pointer is on has not asked to be left alone.
+     *
+     * The target decides, not the manager alone: cancelling the default of a press is how the platform is
+     * told not to move focus, place a caret, or extend a selection as the pointer drags, so a manager set
+     * to prevent would otherwise make every field on the page behave unlike every other field on the
+     * machine. See {@link GradumSelector.preventDefaults} for naming an exception by hand.
+     * @param {PointerEvent} e - The event to cancel.
+     * @param {boolean} isTouch - Whether it came from a touch.
+     * @returns {boolean} Whether the default was cancelled.
+     * @protected
+     */
+    protected preventDefaults(e: PointerEvent, isTouch: boolean): boolean;
+    /**
+     * @description Take focus off whatever had it, when a press lands somewhere else.
+     *
+     * The browser does this itself on a press, and cancelling the default is what stops it — so a field
+     * left focused would stay focused, and stay open, however far away the next press was. Only done where
+     * the default was actually cancelled: everywhere else the browser is still seeing to it.
+     * @param {any} target - What the press landed on.
+     * @protected
+     */
+    protected moveFocusAway(target: any): void;
     protected pointerDownFn(e: PointerEvent): void;
     protected pointerMoveFn(e: PointerEvent): void;
     protected pointerUpFn(e: PointerEvent): void;
@@ -6681,7 +6779,8 @@ declare function markDirtyPath(target: object, keys: KeyType[]): void;
  * @group Decorators
  * @category Effect
  *
- * @description Initializes and runs all the effects attached to the given `target`.
+ * @description Initializes and runs all the effects attached to the given `target`, building any that
+ * were disposed — so a target may be initialized, {@link disposeEffect}ed and initialized again.
  * @param {object} target - The target to which the effects are bound.
  */
 declare function initializeEffects(target: object): void;
@@ -6690,7 +6789,8 @@ declare function initializeEffects(target: object): void;
  * @group Decorators
  * @category Effect
  *
- * @description Disposes of all the effects attached to the given `target`.
+ * @description Disposes of all the effects attached to the given `target`, so they stop following their
+ * signals. {@link initializeEffects} starts them again.
  * @param {object} target - The target to which the effects are bound.
  */
 declare function disposeEffect(target: object): void;
@@ -8526,6 +8626,10 @@ declare class GradumIconToggle<ViewType extends GradumView = GradumView<any, any
  * @property {boolean} [locked=false] - Whether the field rejects user edits.
  * @property {boolean} [dynamicVerticalResize=false] - Whether the field grows to fit its content as the
  * user types. Meant for `textarea`.
+ * @property {boolean} [fitContent=false] - Whether the field is only as wide as its value, growing and
+ * shrinking as it changes.
+ * @property {boolean} [plain=false] - Whether the field is drawn as plain text — no box, no border,
+ * inheriting colour, font and alignment.
  * @property {RegExp | string} [inputRegexCheck] - Pattern the value must match while typing. Input that
  * would break the match is rejected as it is entered.
  * @property {RegExp | string} [blurRegexCheck] - Pattern the value must match when the field loses focus.
@@ -8542,6 +8646,8 @@ type GradumInputProperties<InputTag extends "input" | "textarea" = "input", Valu
     label?: string;
     locked?: boolean;
     dynamicVerticalResize?: boolean;
+    fitContent?: boolean;
+    plain?: boolean;
     inputRegexCheck?: RegExp | string;
     blurRegexCheck?: RegExp | string;
     selectTextOnFocus?: boolean;
@@ -8668,6 +8774,36 @@ declare class GradumInput<InputTag extends "input" | "textarea" = "input", Value
      */
     dynamicVerticalResize: boolean;
     /**
+     * @description Whether the input is only as wide as what is in it, growing and shrinking as the value
+     * changes — what a name wants when it stands in for a line of text rather than sitting in a form.
+     *
+     * Uses the browser's own `field-sizing` where there is one, and measures the text and writes the width
+     * where there is not. Either way the width lands on the element laying the text out rather than on the
+     * component around it, which is why setting a width from outside does not work.
+     *
+     * *Pair it with {@link GradumInput.plain} to have the field look like text as well as size like it.*
+     */
+    fitContent: boolean;
+    /**
+     * @description Whether the input is drawn as plain text: no box, no border, no outline, and colour,
+     * font and alignment taken from whatever it sits in. For a field that stands in for a line of text —
+     * a title edited in place — rather than one in a form.
+     */
+    plain: boolean;
+    /**
+     * @private
+     * @static
+     * @description The offscreen element every input measures its text in. Shared: it carries the font of
+     * whichever input is asking at the time, and only for as long as the measurement takes.
+     */
+    private static measurer;
+    /**
+     * @readonly
+     * @static
+     * @description Whether the browser sizes a field to its content by itself.
+     */
+    private static get supportsFieldSizing();
+    /**
      * @description A pattern the value must match while typing. Input that fails it is sanitized if
      * possible, and otherwise reverted to the last value that passed.
      */
@@ -8718,6 +8854,30 @@ declare class GradumInput<InputTag extends "input" | "textarea" = "input", Value
      * @inheritDoc
      */
     protected setupChangedCallbacks(): void;
+    /**
+     * @description Keep the field as wide as its value while {@link GradumInput.fitContent} is on. Reads
+     * the value, so it follows what is typed: every accepted change marks it dirty.
+     * @protected
+     */
+    protected applyFitContent(): void;
+    /**
+     * @description Dress the field down to plain text while {@link GradumInput.plain} is on.
+     * @protected
+     */
+    protected applyPlain(): void;
+    /**
+     * @function measureValueWidth
+     * @protected
+     * @description How wide the field has to be to show a piece of text without scrolling: the text as
+     * this field would draw it, plus whatever the field puts around it.
+     *
+     * Measured in an offscreen element carrying this field's own font, rather than counted in `ch` — a
+     * `ch` is the width of a zero, which is the width of nothing else in a proportional font.
+     * @param {string} text - The text to measure. Falls back to the placeholder when empty, so an empty
+     * field is still wide enough to read its prompt.
+     * @returns {number} The width in pixels.
+     */
+    protected measureValueWidth(text: string): number;
     /**
      * @inheritDoc
      */
@@ -8995,6 +9155,11 @@ declare class GradumSelect<ValueType = string, SecondaryValueType = string, Entr
     get inputField(): HTMLInputElement;
     set multiSelection(value: boolean);
     forceSelection: boolean;
+    /**
+     * @description The CSS classes carried by a selected entry. Handed to each entry as its own
+     * {@link GradumSelector.defaultSelectedClasses}, so they are applied by the entry being selected rather
+     * than alongside it; assigning a new value moves them over on whichever entries are selected now.
+     */
     selectedEntriesClasses: string | string[];
     entriesClasses: string | string[];
     /**
@@ -9063,6 +9228,17 @@ declare class GradumSelect<ValueType = string, SecondaryValueType = string, Entr
     get selectedSecondaryValues(): SecondaryValueType[];
     get selectedSecondaryValue(): SecondaryValueType;
     get stringSelectedValue(): string;
+    /**
+     * @description Put an entry where this selection's entries go, and tell it what it wears when selected.
+     *
+     * Both ways of filling a selection end here — {@link GradumSelect.addEntry} one at a time, and
+     * {@link GradumSelect.entries} all at once. Registering an entry is not enough on its own: the list is
+     * the declarative way to fill a selection, and an entry that is only registered is invisible.
+     * @param {EntryType} entry - The entry to place.
+     * @param {number} index - Where among its siblings it goes.
+     * @protected
+     */
+    protected placeEntry(entry: EntryType, index: number): void;
     clear(disableObserver?: boolean): void;
     refreshInputField(): void;
     destroy(): this;
@@ -9498,17 +9674,23 @@ declare class GradumDrawer<ViewType extends GradumView = GradumView<any, any>, D
      * @description Whether the drawer is open. Assigning it animates the drawer to its new position.
      */
     set open(value: boolean);
-    private set translation(value);
+    set translation(value: number);
     transition: Reifect;
     /**
      * @description How far the drawer is currently displaced from its edge, in pixels. Set while dragging
-     * to follow the pointer; otherwise driven by {@link GradumDrawer.open}.
+     * to follow the pointer; otherwise driven by {@link GradumDrawer.open} and by
+     * {@link GradumDrawer.refresh}.
+     *
+     * Assigning it writes the position whether or not the number changed. The number alone does not say
+     * where the drawer stands: the same one means a container size under `hideOverflow` and a transform
+     * without it, and one axis or the other depending on {@link GradumDrawer.side}. Writing a style the
+     * value it already holds restarts no transition, so there is nothing to save by skipping it.
      */
     get translation(): number;
     /**
      * @function initialize
-     * @description Set the drawer up and settle it into its closed position without animating, then enable
-     * transitions on the next frame so later changes animate normally.
+     * @description Set the drawer up and settle it into the position its state calls for without
+     * animating, then enable transitions on the next frame so later changes animate normally.
      */
     initialize(): void;
     /**
@@ -9541,8 +9723,44 @@ declare class GradumDrawer<ViewType extends GradumView = GradumView<any, any>, D
      * @function refresh
      * @description Re-measure the panel and move the drawer to the position its current state calls for.
      * Call it after changing the panel's contents outside the drawer's own observers.
+     *
+     * Settles within the call, so it is safe to call at interactive rates: a drawer whose panel resizes
+     * continuously can be refreshed on every change without the calls treading on each other.
+     * @param {boolean} [instant=false] - Whether the position is written straight away rather than on the
+     * next animation frame. Used to lay the drawer out as it is built, where there is nothing to animate
+     * from and no frame to wait for.
      */
-    refresh(): void;
+    refresh(instant?: boolean): void;
+    /**
+     * @function applyTranslation
+     * @protected
+     * @description Write a displacement to the style that carries it — the panel container's size along
+     * the drawer's axis while the overflow is clipped, a transform on the drawer itself otherwise — and
+     * take it off the styles that do not.
+     *
+     * Which style holds the position is not fixed: it moves with `hideOverflow` and with the drawer's
+     * axis. Whichever one the position has left goes on displacing the drawer by the amount it was given
+     * last, on top of the one now in force, until it is cleared.
+     * @param {number} value - The displacement to write, in pixels.
+     * @param {boolean} [instant=false] - Whether to write it straight away rather than on the next frame.
+     */
+    protected applyTranslation(value: number, instant?: boolean): void;
+    /**
+     * @function measurePanel
+     * @protected
+     * @description How much room the panel's contents want, along the drawer's axis.
+     *
+     * With `hideOverflow` on, the panel is a flex item in a container the drawer has given an explicit
+     * size, so it is shrunk to fit and measures as whatever room it has rather than as what it wants.
+     * Taking it out of flow for the measurement is what gets its natural size — and reading the offset
+     * forces the layout, so the whole thing happens in one pass.
+     *
+     * *It used to span two frames: out of flow now, measured and put back on the next. Overlapping calls
+     * each took it out again and booked their own restore, so a panel resizing during a gesture flickered
+     * for the whole gesture — and a backgrounded tab, whose frame never comes, left it out of flow for good.*
+     * @returns {number} The panel's size along the drawer's axis.
+     */
+    protected measurePanel(): number;
     /**
      * @function enableTransition
      * @protected
@@ -9665,7 +9883,18 @@ declare class GradumPopup<ViewType extends GradumView = GradumView<any, any>, Da
      * @inheritDoc
      */
     protected setupUIListeners(): void;
-    private recomputePosition;
+    /**
+     * @function recomputePosition
+     * @description Place the popup against its anchor, now.
+     *
+     * Runs itself whenever the anchor or the layout it depends on changes, which covers the ordinary case.
+     * Call it to place the popup without waiting — after moving the anchor, or after showing the popup by
+     * some means of your own — and it will have been placed by the time the call returns.
+     *
+     * *It used to be reachable only through {@link GradumPopup.show}, which also writes `visibility` and
+     * `display` and runs the show transition, so placing an already-shown popup meant showing it again.*
+     */
+    recomputePosition(): void;
     private computeAxis;
     /**
      * @function show
@@ -9817,9 +10046,9 @@ declare class GradumRect extends DOMRect {
      * about. Defaults to `Anchor.TopLeft`, which is what makes an unrotated rectangle read exactly like the
      * `DOMRect` it extends.
      *
-     * *Note: the `left`, `top`, `right` and `bottom` inherited from `DOMRect` are derived from `x`, `y`,
-     * `width` and `height` alone, so they describe the box only while it is unrotated and anchored to its
-     * top-left. Use {@link GradumRect.points} or {@link GradumRect.center} otherwise.*
+     * Every other reading resolves through it — `left`, `top`, `right` and `bottom` included — so a
+     * rectangle describes the same box whichever anchor it carries. Use
+     * {@link GradumRect.withAnchor} to get an equivalent rectangle stated from a different one.
      */
     anchor: AnchorPoint;
     /**
@@ -9931,6 +10160,62 @@ declare class GradumRect extends DOMRect {
      * ```
      */
     get topLeft(): Point;
+    /**
+     * @readonly
+     * @description The left edge of the rectangle's box. Resolved through the anchor, like everything else
+     * about the rectangle, rather than read off `x` as `DOMRect` would — a rectangle anchored anywhere but
+     * its top-left has an `x` that is not its left edge.
+     *
+     * *Note: the box here is the untilted one about {@link GradumRect.center}, the same one
+     * {@link GradumRect.topLeft} gives the corner of. A rotated rectangle's four edges are not axis-aligned
+     * and cannot be given as four numbers; ask for {@link GradumRect.points} for where they actually are.*
+     */
+    get left(): number;
+    /**
+     * @readonly
+     * @description The top edge of the rectangle's box, resolved through the anchor. See
+     * {@link GradumRect.left}.
+     */
+    get top(): number;
+    /**
+     * @readonly
+     * @description The right edge of the rectangle's box, resolved through the anchor. See
+     * {@link GradumRect.left}.
+     */
+    get right(): number;
+    /**
+     * @readonly
+     * @description The bottom edge of the rectangle's box, resolved through the anchor. See
+     * {@link GradumRect.left}.
+     */
+    get bottom(): number;
+    /**
+     * @function withAnchor
+     * @description An equivalent rectangle — the same box, in the same place, turned the same way — stated
+     * from a different anchor, so its `x` and `y` are that anchor's point.
+     *
+     * Which anchor a rectangle carries is not free: it turns about its anchor, so a thing rotated about its
+     * own middle has to be stated centre-anchored or its box parts company with it. This is how a caller
+     * that wants plain top-left numbers — to hand to something DOM-shaped, or to do arithmetic with — asks
+     * for them, rather than redoing the offset by hand or having to know which anchor it was given.
+     * @param {Anchor | Point | AnchorPoint} anchor - The anchor to state it from.
+     * @returns {GradumRect} The equivalent rectangle.
+     *
+     * @example
+     * ```ts
+     * const box = node.getBoundingClientRect().withAnchor(Anchor.TopLeft);
+     * //box.x and box.left now agree, whatever the node reported itself as.
+     * ```
+     */
+    withAnchor(anchor: Anchor | Point | AnchorPoint): GradumRect;
+    /**
+     * @function toJSON
+     * @description The rectangle as a plain object, with every edge resolved through the anchor.
+     * `DOMRect`'s own would report the edges from `x` and `y` alone, which is the one place the corrected
+     * readings could still be stepped over.
+     * @returns {object} The rectangle's position, size, edges, rotation and anchor.
+     */
+    toJSON(): object;
     /**
      * @readonly
      * @description The rectangle's four corners in screen coordinates, clockwise from the top-left,
@@ -10063,14 +10348,23 @@ declare class GradumDropdown<ValueType = string, SecondaryValueType = string, En
     selectorClasses: string | string[];
     popupClasses: string | string[];
     /**
-     * The dropdown's selector element.
+     * @description The element that shows the current selection and opens the popup when clicked. Assign an
+     * element to use your own; assign a string, or leave it unset, and the dropdown builds a
+     * {@link GradumButton} carrying that text — or the selected value's — and keeps its text in step with
+     * what is selected.
      */
     set selector(value: string | HTMLElement);
     get selector(): HTMLElement;
     /**
-     * The dropdown's popup element.
+     * @description The popup the entries sit in, shown when the selector is clicked. One is built on first
+     * use if none is given; supplying your own replaces it, and the one it replaces is destroyed.
      */
     set popup(value: HTMLElement);
+    /**
+     * @private
+     * @description The popup currently installed, so the next one can tell what it is replacing.
+     */
+    private installedPopup;
     initialize(): void;
     private openPopup;
     /**
@@ -10222,6 +10516,17 @@ declare class GradumSelectWheel<ValueType = string, SecondaryValueType = string,
      */
     protected dragging: boolean;
     /**
+     * @private
+     * @description Follows the entries' sizes, so a change in what an entry holds re-measures the wheel.
+     * Absent where `ResizeObserver` is.
+     */
+    private entrySizeObserver;
+    /**
+     * @private
+     * @description Whether a re-measure is already booked for the next frame.
+     */
+    private reloadScheduled;
+    /**
      * @protected
      * @description The pending timer that will close the wheel once {@link GradumSelectWheel.openTimeout}
      * elapses.
@@ -10280,12 +10585,39 @@ declare class GradumSelectWheel<ValueType = string, SecondaryValueType = string,
      */
     protected computeDragDelta(delta: Point): number;
     /**
-     * @function reloadEntrySizes
-     * @protected
-     * @description Re-measure every entry and rebuild the wheel's size and position tables. Call it after the
-     * entries change, or after the wheel becomes visible — entries laid out while hidden measure as zero.
+     * @function destroy
+     * @description Stop following the entries' sizes. Called when the wheel is destroyed; there is no need
+     * to call it by hand.
      */
-    protected reloadEntrySizes(): void;
+    destroy(): this;
+    /**
+     * @function scheduleReloadEntrySizes
+     * @description Re-measure on the next animation frame, once however many times this is called before it
+     * comes round. What to use when what changed will only have been laid out by then — an entry just
+     * added, the wheel just opened, an entry's content just replaced.
+     */
+    scheduleReloadEntrySizes(): void;
+    /**
+     * @description Start following an entry's size, so the wheel re-measures when what is inside the entry
+     * changes rather than only when the entries themselves do. Does nothing where `ResizeObserver` is not
+     * available, leaving {@link GradumSelectWheel.reloadEntrySizes} as the way to say so by hand.
+     * @param {EntryType} entry - The entry to follow.
+     * @protected
+     */
+    protected observeEntrySize(entry: EntryType): void;
+    /**
+     * @function reloadEntrySizes
+     * @description Re-measure every entry and rebuild the wheel's size and position tables, now.
+     *
+     * The wheel does this itself when an entry is added or removed, when it is opened, and — where
+     * `ResizeObserver` is available — whenever an entry changes size, so an entry that is renamed or
+     * re-rendered is followed without having to say so. Call it for a change none of those catch, or
+     * {@link GradumSelectWheel.scheduleReloadEntrySizes} when the change has not been laid out yet.
+     *
+     * *Note: entries laid out while hidden measure as zero, and the wheel retries on the next frame until
+     * they do not.*
+     */
+    reloadEntrySizes(): void;
     /**
      * @function indexToPosition
      * @protected
@@ -10389,9 +10721,17 @@ declare class GradumButtonPopup<ElementTag extends ValidTag = any, ViewType exte
     private popupOpen;
     popupClasses: string | string[];
     /**
-     * The dropdown's popup element.
+     * @description The popup this button toggles. One is built on first use if none is given; supplying
+     * your own replaces it, and the one it replaces is destroyed — a popup is parked in the shared popup
+     * container rather than kept inside the button, so replacing the reference would otherwise leave it
+     * there with nothing pointing at it.
      */
     set popup(value: HTMLElement);
+    /**
+     * @private
+     * @description The popup currently installed, so the next one can tell what it is replacing.
+     */
+    private installedPopup;
     protected setupUIListeners(): void;
     private openPopup;
     /**
@@ -11850,7 +12190,7 @@ type FontProperties = {
 declare function loadLocalFont(font: FontProperties): void;
 
 export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, GradumBaseElement, GradumButton, GradumButtonPopup, GradumClickEventName, GradumConstrainer, GradumContentSwitch, GradumDragEvent, GradumDragEventName, GradumDrawer, GradumDropdown, GradumElement, GradumEmitter, GradumEvent, GradumEventManager, GradumEventName, GradumGrid, GradumHandler, GradumHeadlessElement, GradumIcon, GradumIconSwitch, GradumIconToggle, GradumInput, GradumInteractor, GradumKeyEvent, GradumKeyEventName, GradumLabelElement, GradumMap, GradumMarkingMenu, GradumModel, GradumMovable, GradumMoveEventName, GradumNestedMap, GradumNodeList, GradumNumericalInput, GradumObserver, GradumOperator, GradumPopup, GradumProxiedElement, GradumQueue, GradumRect, GradumRichElement, GradumSelect, GradumSelectElement, GradumSelectInputEvent, GradumSelectWheel, GradumSelector, GradumTool, GradumView, GradumWeakSet, GradumWheelEvent, GradumWheelEventName, GradumYModel, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, deepObserveAll, deepObserveAny, define, detachListenersAndBehaviors, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, g, generateTagFunction, getAllRegistered, getConstructorChain, getDeclaringPrototype, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, gr, gradum, gradumify, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, modelSignal, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, reattachListenersAndBehaviors, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, textToElement, textarea, tool, trackSignal, trim, untrack, urlToBlob, video };
-export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledGradumEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, Gradum, GradumButtonPopupProperties, GradumConstrainerProperties, GradumContentSwitchProperties, GradumDragEventProperties, GradumDrawerProperties, GradumDropdownProperties, GradumElementDefaultInterface, GradumElementMvcInterface, GradumElementProperties, GradumElementPropertiesMap, GradumElementTagNameMap, GradumElementUiInterface, GradumEventManagerLockStateProperties, GradumEventManagerProperties, GradumEventManagerStateProperties, GradumEventNameEntry, GradumEventNameKey, GradumEventProperties, GradumHeadlessProperties, GradumIconProperties, GradumIconSwitchProperties, GradumIconToggleProperties, GradumInputProperties, GradumInteractorProperties, GradumKeyEventProperties, GradumLabelElementProperties, GradumMarkingMenuProperties, GradumModelProperties, GradumModelProxy, GradumNumericalInputProperties, GradumObserverProperties, GradumOperatorProperties, GradumPopupProperties, GradumProperties, GradumProxiedProperties, GradumRawEventProperties, GradumRectProperties, GradumRichElementProperties, GradumSelectElementProperties, GradumSelectInputEventProperties, GradumSelectProperties, GradumSelectWheelProperties, GradumSelectWheelStylingProperties, GradumToolProperties, GradumViewProperties, GradumWheelEventProperties, GradumifyOptions, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, HitResolver, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
+export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledGradumEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, Gradum, GradumButtonPopupProperties, GradumConstrainerProperties, GradumContentSwitchProperties, GradumDragEventProperties, GradumDrawerProperties, GradumDropdownProperties, GradumElementDefaultInterface, GradumElementMvcInterface, GradumElementProperties, GradumElementPropertiesMap, GradumElementTagNameMap, GradumElementUiInterface, GradumEventManagerLockStateProperties, GradumEventManagerProperties, GradumEventManagerStateProperties, GradumEventNameEntry, GradumEventNameKey, GradumEventProperties, GradumHeadlessProperties, GradumIconProperties, GradumIconSwitchProperties, GradumIconToggleProperties, GradumInputProperties, GradumInteractorProperties, GradumKeyEventProperties, GradumLabelElementProperties, GradumMarkingMenuProperties, GradumModelProperties, GradumModelProxy, GradumNumericalInputProperties, GradumObserverProperties, GradumOperatorProperties, GradumPopupProperties, GradumProperties, GradumProxiedProperties, GradumRawEventProperties, GradumRectProperties, GradumRichElementProperties, GradumSelectElementProperties, GradumSelectInputEventProperties, GradumSelectProperties, GradumSelectWheelProperties, GradumSelectWheelStylingProperties, GradumToolProperties, GradumViewProperties, GradumWheelEventProperties, GradumifyOptions, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, HitResolver, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PreventDefaultsSetting, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
 
 // Flattened from relative module augmentations
 interface GradumSelector {
@@ -11861,9 +12201,20 @@ interface GradumSelector {
         readonly boundListeners: ListenerSet;
         /**
          * @category Events
-         * @description If you want the element to bypass the event manager and allow native events to seep through
-         * (in case you are preventing default events), you can set this field to a predicate that
-         * defines when to bypass the manager according to the passed event.
+         * @description When to stand the event manager down for this element, so the browser's own handling
+         * of an event reaches it untouched. Assign a predicate: `true` stands the manager down entirely,
+         * `false` leaves it alone, and a {@link GradumEventManagerStateProperties} names which parts to
+         * stand down — `{preventDefaultMouse: true}` lets the mouse behave natively while the manager goes
+         * on dispatching.
+         *
+         * The decision is taken per event, as it is dispatched, and holds until a press lands outside this
+         * element.
+         *
+         * @example
+         * ```ts
+         * //Native text selection inside this element, Gradum everywhere else.
+         * gradum(field).bypassManagerOn = () => ({preventDefaultMouse: true});
+         * ```
          */
         bypassManagerOn: (e: Event) => boolean | GradumEventManagerStateProperties;
         /**
@@ -12035,7 +12386,44 @@ interface GradumSelector {
          * will be processed.
          * @param {PreventDefaultOptions} [options] - An options object to customize the behavior of the function.
          */
-        preventDefault(options?: PreventDefaultOptions): this;
+        /**
+         * @category Events
+         * @description Whether the browser's own handling may be cancelled on this node and everything
+         * inside it — moving focus, placing a caret, extending a selection, scrolling, pinching. The one
+         * decision behind every cancellation: the event manager reads it before preventing a pointer or
+         * wheel event, and so do the listeners {@link GradumSelector.preventDefault} installs.
+         *
+         * Assign a boolean to settle it for a subtree, a `(type, e) => boolean` to decide per event, or a
+         * {@link PreventDefaultOptions} to say which event types it should reach. Unset by default, and
+         * then the nearest ancestor that was set decides — failing which, text entry is left alone and
+         * everything else may be cancelled. Reading gives what was set on this node alone, not what it
+         * inherits; {@link GradumSelector.shouldPreventDefaults} gives the resolved answer.
+         *
+         * Setting it is all it takes: the event manager reads it before cancelling a pointer or wheel
+         * event, and anything else worth cancelling — selecting, dragging, the context menu — gets a
+         * listener bound here that reads the same answer.
+         *
+         * @example
+         * ```ts
+         * gradum(canvas).preventDefaults = true;            //nothing the browser would do by itself
+         * gradum(scrollContainer).preventDefaults = false;  //this part is the browser's
+         * gradum(board).preventDefaults = (type) => type !== "contextmenu";
+         * gradum(board).preventDefaults = {types: ["selectstart"], stop: "stop"};
+         * ```
+         */
+        preventDefaults: PreventDefaultsSetting;
+        /**
+         * @function shouldPreventDefaults
+         * @category Events
+         * @description Whether the browser's own handling may be cancelled for an interaction on this node:
+         * the answer {@link GradumSelector.preventDefaults} resolves to, read from the nearest ancestor
+         * with an opinion. Asked before anything is cancelled; ask it yourself to decide the same way
+         * somewhere else.
+         * @param {string} [type] - The event type being decided, for a node that answers with a function.
+         * @param {Event} [e] - The event being decided, likewise.
+         * @returns {boolean} Whether the default may be cancelled.
+         */
+        shouldPreventDefaults(type?: string, e?: Event): boolean;
     }
 interface GradumSelector {
         /**

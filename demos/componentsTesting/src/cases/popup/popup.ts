@@ -80,7 +80,7 @@ function testViewportMarginsAndMaxSize() {
         onClick: () => {
             popup.innerHTML = "";
             $(popup).addChild(bigContent(20));
-            if ($(popup).isShown) popup["recomputePosition"]?.();
+            if ($(popup).isShown) popup.recomputePosition();
         }
     }));
     b.addContent(GradumButton.create({
@@ -88,7 +88,7 @@ function testViewportMarginsAndMaxSize() {
         onClick: () => {
             popup.innerHTML = "";
             $(popup).addChild(bigContent(120));
-            if ($(popup).isShown) popup["recomputePosition"]?.();
+            if ($(popup).isShown) popup.recomputePosition();
         }
     }));
 }
@@ -111,35 +111,35 @@ function testDynamicUpdates() {
             popup.anchorPosition = {x: 50, y: isBelow ? 0 : 100};
             popup.popupPosition = {x: 50, y: isBelow ? 100 : 0};
             popup.offsetFromAnchor = {x: 0, y: isBelow ? -8 : 8};
-            if ($(popup).isShown) popup["recomputePosition"]?.();
+            if ($(popup).isShown) popup.recomputePosition();
         }
     }));
     b.addContent(GradumButton.create({
         text: "Fallback = invert",
         onClick: () => {
             popup.fallbackModes = {x: PopupFallbackMode.invert, y: PopupFallbackMode.invert};
-            if ($(popup).isShown) popup["recomputePosition"]?.();
+            if ($(popup).isShown) popup.recomputePosition();
         }
     }));
     b.addContent(GradumButton.create({
         text: "Fallback = offset",
         onClick: () => {
             popup.fallbackModes = {x: PopupFallbackMode.offset, y: PopupFallbackMode.offset};
-            if ($(popup).isShown) popup["recomputePosition"]?.();
+            if ($(popup).isShown) popup.recomputePosition();
         }
     }));
     b.addContent(GradumButton.create({
         text: "vmargin = 32",
         onClick: () => {
             popup.viewportMargin = 32;
-            if ($(popup).isShown) popup["recomputePosition"]?.();
+            if ($(popup).isShown) popup.recomputePosition();
         }
     }));
     b.addContent(GradumButton.create({
         text: "vmargin = 0",
         onClick: () => {
             popup.viewportMargin = 0;
-            if ($(popup).isShown) popup["recomputePosition"]?.();
+            if ($(popup).isShown) popup.recomputePosition();
         }
     }));
 }
@@ -174,8 +174,61 @@ function testScrollScenario() {
     b.addContent(GradumButton.create({text: "Close popup", onClick: () => popup.show(false)}));
 }
 
+function testPlacementWithoutFrames() {
+    const b = box("GradumPopup — placed without an animation frame");
+
+    const {trigger, popup} = makeTrigger("Open normally", {
+        anchorPosition: {x: 50, y: 100},
+        popupPosition: {x: 50, y: 0},
+        offsetFromAnchor: {x: 0, y: 8}
+    });
+    const readout = div({classes: "popup-readout", text: "left: —   top: —"});
+    const report = (label: string) => readout.textContent =
+        `${label} → left: ${popup.style.left || "(unset)"}   top: ${popup.style.top || "(unset)"}`;
+
+    b.addSubBox("Open it, then open it with frames paused", trigger);
+
+    /**
+     * Runs the work with no animation frames, as a backgrounded tab would. Deferred out of the click that
+     * asked for it: a popup closes itself on a click elsewhere, and opening one during that very click
+     * would have it close again straight away — which is also nearer the case this is about, a popup
+     * opened by something other than a fresh gesture.
+     */
+    const withFramesPaused = (label: string, work: () => void) => setTimeout(() => {
+        const frames = window.requestAnimationFrame;
+        window.requestAnimationFrame = (() => 0) as any;
+        try {
+            work();
+        } finally {
+            window.requestAnimationFrame = frames;
+        }
+        report(label);
+    });
+
+    b.addContent(GradumButton.create({
+        text: "Open with frames paused",
+        //The placement used to be queued for a frame, so a popup opened here was shown never positioned.
+        onClick: () => withFramesPaused("paused", () => {popup.show(false); popup.show(true);})
+    }));
+
+    b.addContent(GradumButton.create({
+        text: "Move the anchor, place with frames paused",
+        onClick: () => withFramesPaused("moved, paused", () => {
+            trigger.style.marginLeft = trigger.style.marginLeft === "180px" ? "" : "180px";
+            popup.show(true);
+            //Public now: a caller that knows the anchor has moved can say so, rather than showing an
+            //already-shown popup again purely to have it place itself.
+            popup.recomputePosition();
+        })
+    }));
+
+    b.addContent(GradumButton.create({text: "Close", onClick: () => {popup.show(false); report("closed");}}));
+    b.addContent(readout);
+}
+
 export function setupPopupTests() {
     testBasics();
+    testPlacementWithoutFrames();
     testFallbackModes();
     testViewportMarginsAndMaxSize();
     testDynamicUpdates();

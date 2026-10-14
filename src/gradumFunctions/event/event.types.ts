@@ -40,16 +40,17 @@ type HitResolver = (position: Point, event: Event) => object[];
  * @group GradumSelector
  * @category Events
  *
- * @description Options for {@link GradumSelector.preventDefault}, which prevents default browser behaviors for
- * selected event types and can optionally stop propagation.
+ * @description The long form of {@link GradumSelector.preventDefaults}, for naming which event types the
+ * decision should reach and what else to do with them. The short forms — a boolean or a predicate — are
+ * this with everything but `on` left at its default.
  * @property {string[]} [types] - List of event types to affect. If omitted, defaults to {@link BasicInputEvents}.
  * @property {"capture" | "bubble"} [phase] - Which phase to prevent. Defaults to `"bubble"`.
  * @property {false | "stop" | "immediate"} [stop] - Whether to stop propagation when handling the event:
  * - `false`: do not stop propagation,
  * - `"stop"`: call `stopPropagation`,
  * - `"immediate"`: call `stopImmediatePropagation`.
- * @property {(type: string, e: Event) => boolean} [preventDefaultOn] - Predicate to decide (per event) whether to
- * call `preventDefault`. Return `true` to prevent default for that event.
+ * @property {boolean | ((type: string, e: Event) => boolean)} [on=true] - The decision itself: whether to
+ * cancel, or a predicate deciding per event.
  * @property {boolean} [clearPreviousListeners] - If true, clears previously installed prevent-default listeners
  * before installing new ones.
  * @property {GradumEventManager} [manager] - Event manager to use. Defaults to {@link GradumEventManager.instance}.
@@ -58,22 +59,35 @@ type PreventDefaultOptions = {
     types?: string[],
     phase?: "capture" | "bubble",
     stop?: false | "stop" | "immediate",
-    preventDefaultOn?: (type: string, e: Event) => boolean,
+    on?: boolean | ((type: string, e: Event) => boolean),
     clearPreviousListeners?: boolean,
     manager?: GradumEventManager
 };
 
 /**
+ * @type {PreventDefaultsSetting}
  * @group GradumSelector
  * @category Events
- * @description Default set of basic input event types typically handled by {@link GradumSelector.preventDefault}.
+ *
+ * @description What {@link GradumSelector.preventDefaults} accepts: `true` or `false` to settle it for a
+ * subtree, a predicate to decide per event, or {@link PreventDefaultOptions} to also say which event types
+ * the decision should reach.
+ */
+type PreventDefaultsSetting = boolean
+    | ((type: string, e: Event) => boolean)
+    | PreventDefaultOptions;
+
+/**
+ * @group GradumSelector
+ * @category Events
+ * @description Default set of basic input event types reached by {@link GradumSelector.preventDefaults}.
+ * The pointer and wheel events are absent on purpose: the event manager already asks the same question
+ * before cancelling those, so a listener for them here would only cancel what is cancelled already.
  */
 const BasicInputEvents = [
     "mousedown", "mouseup", "mousemove", "click", "dblclick", "contextmenu",
     "dragstart", "selectstart",
-    "touchstart", "touchmove", "touchend", "touchcancel",
-    "pointerdown", "pointermove", "pointerup",
-    "wheel"
+    "touchstart", "touchmove", "touchend", "touchcancel"
 ] as const;
 
 /**
@@ -96,9 +110,20 @@ declare module "../gradumSelector" {
 
         /**
          * @category Events
-         * @description If you want the element to bypass the event manager and allow native events to seep through
-         * (in case you are preventing default events), you can set this field to a predicate that
-         * defines when to bypass the manager according to the passed event.
+         * @description When to stand the event manager down for this element, so the browser's own handling
+         * of an event reaches it untouched. Assign a predicate: `true` stands the manager down entirely,
+         * `false` leaves it alone, and a {@link GradumEventManagerStateProperties} names which parts to
+         * stand down — `{preventDefaultMouse: true}` lets the mouse behave natively while the manager goes
+         * on dispatching.
+         *
+         * The decision is taken per event, as it is dispatched, and holds until a press lands outside this
+         * element.
+         *
+         * @example
+         * ```ts
+         * //Native text selection inside this element, Gradum everywhere else.
+         * gradum(field).bypassManagerOn = () => ({preventDefaultMouse: true});
+         * ```
          */
         bypassManagerOn: (e: Event) => boolean | GradumEventManagerStateProperties;
 
@@ -288,8 +313,47 @@ declare module "../gradumSelector" {
          * will be processed.
          * @param {PreventDefaultOptions} [options] - An options object to customize the behavior of the function.
          */
-        preventDefault(options?: PreventDefaultOptions): this;
+
+        /**
+         * @category Events
+         * @description Whether the browser's own handling may be cancelled on this node and everything
+         * inside it — moving focus, placing a caret, extending a selection, scrolling, pinching. The one
+         * decision behind every cancellation: the event manager reads it before preventing a pointer or
+         * wheel event, and so do the listeners {@link GradumSelector.preventDefault} installs.
+         *
+         * Assign a boolean to settle it for a subtree, a `(type, e) => boolean` to decide per event, or a
+         * {@link PreventDefaultOptions} to say which event types it should reach. Unset by default, and
+         * then the nearest ancestor that was set decides — failing which, text entry is left alone and
+         * everything else may be cancelled. Reading gives what was set on this node alone, not what it
+         * inherits; {@link GradumSelector.shouldPreventDefaults} gives the resolved answer.
+         *
+         * Setting it is all it takes: the event manager reads it before cancelling a pointer or wheel
+         * event, and anything else worth cancelling — selecting, dragging, the context menu — gets a
+         * listener bound here that reads the same answer.
+         *
+         * @example
+         * ```ts
+         * gradum(canvas).preventDefaults = true;            //nothing the browser would do by itself
+         * gradum(scrollContainer).preventDefaults = false;  //this part is the browser's
+         * gradum(board).preventDefaults = (type) => type !== "contextmenu";
+         * gradum(board).preventDefaults = {types: ["selectstart"], stop: "stop"};
+         * ```
+         */
+        preventDefaults: PreventDefaultsSetting;
+
+        /**
+         * @function shouldPreventDefaults
+         * @category Events
+         * @description Whether the browser's own handling may be cancelled for an interaction on this node:
+         * the answer {@link GradumSelector.preventDefaults} resolves to, read from the nearest ancestor
+         * with an opinion. Asked before anything is cancelled; ask it yourself to decide the same way
+         * somewhere else.
+         * @param {string} [type] - The event type being decided, for a node that answers with a function.
+         * @param {Event} [e] - The event being decided, likewise.
+         * @returns {boolean} Whether the default may be cancelled.
+         */
+        shouldPreventDefaults(type?: string, e?: Event): boolean;
     }
 }
 
-export {Propagation, PreventDefaultOptions, BasicInputEvents, NonPassiveEvents, HitResolver};
+export {Propagation, PreventDefaultOptions, PreventDefaultsSetting, BasicInputEvents, NonPassiveEvents, HitResolver};

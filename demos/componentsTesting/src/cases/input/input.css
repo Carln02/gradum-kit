@@ -123,3 +123,12 @@
         transition: none !important;
     }
 }
+/* The readout for the fitContent case: the widths are the point of it. */
+.input-readout {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.85rem;
+    background: rgb(255 255 255 / 6%);
+    border-radius: 4px;
+}

@@ -1,5 +1,5 @@
 import {GradumView} from "../view/view";
-import {initializeEffects} from "../../decorators/reactivity/reactivity";
+import {disposeEffect, initializeEffects} from "../../decorators/reactivity/reactivity";
 import {attachListenersAndBehaviors, detachListenersAndBehaviors} from "../../decorators/listener/listener";
 import {GradumModel} from "../model/model";
 import {GradumEmitter} from "../emitter/emitter";
@@ -81,21 +81,33 @@ class GradumOperator<
      * @description Initializes the operator. Specifically, it will set up the change callbacks.
      */
     public initialize(): void {
-        this.setupUIListeners();
-        this.setupChangedCallbacks();
+        const setup = () => {
+            this.setupUIListeners();
+            this.setupChangedCallbacks();
+        };
+        //Run against the emitter on the record, so whatever this operator subscribes while setting itself
+        //up is known to be its own and can be taken back when it is detached.
+        if (this.emitter) this.emitter.attributeTo(this, setup);
+        else setup();
     }
 
     /**
      * @function detach
-     * @description Undoes {@link initialize}'s listener work: every `@listener` and `@behavior` this operator
-     * bound is taken back, so a piece removed from an element stops responding to events. Called for you when
-     * the operator is removed. Initializing it again binds them afresh.
+     * @description Undoes {@link initialize}: the operator stops hearing about anything. Every `@listener`
+     * and `@behavior` it bound is taken back, everything it subscribed on the emitter while initializing is
+     * dropped, and its `@effect` methods are disposed. Called for you when the operator is removed, before
+     * its model, view and emitter are taken away — which is the point, since those are what its callbacks
+     * would go on reading.
      *
-     * Note that this covers listeners and behaviors only — anything a subclass sets up by hand in
-     * `setupChangedCallbacks` is its own to undo.
+     * Initializing it again restores all three, so an operator may be removed and added back.
+     *
+     * *Note: a subscription made outside `initialize` — later, from a method of its own — is not on the
+     * record, and is the operator's own to undo.*
      */
     public detach(): void {
         detachListenersAndBehaviors(this);
+        this.emitter?.removeFor(this);
+        disposeEffect(this);
     }
 
     /**

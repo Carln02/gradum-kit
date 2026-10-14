@@ -68,15 +68,23 @@ class GradumDropdown<
     }) public popupClasses: string | string[];
 
     /**
-     * The dropdown's selector element.
+     * @description The element that shows the current selection and opens the popup when clicked. Assign an
+     * element to use your own; assign a string, or leave it unset, and the dropdown builds a
+     * {@link GradumButton} carrying that text — or the selected value's — and keeps its text in step with
+     * what is selected.
      */
     @auto({
         setIfUndefined: true,
         preprocessValue: function (value: string | HTMLElement) {
             if (value instanceof HTMLElement) return value;
             const text = typeof value === "string" ? value : stringify(this.select.getValue(this.entries[0]));
-            if (this.selector instanceof GradumButton) this.selector.text = text;
-            else return GradumButton.create({text, elementTag: this.selectorTag});
+            //A button already built is relabelled rather than replaced — and handed back, since what this
+            //returns is what gets stored. Returning nothing here would store nothing.
+            if (this.selector instanceof GradumButton) {
+                this.selector.text = text;
+                return this.selector;
+            }
+            return GradumButton.create({text, elementTag: this.selectorTag});
         }
     }) public set selector(value: string | HTMLElement) {
         if (!(value instanceof HTMLElement)) return;
@@ -91,16 +99,35 @@ class GradumDropdown<
         if (value instanceof GradumButton) this.select.onSelect = () => value.text = this.stringSelectedValue;
     }
 
+    //Declared for the read type — `@auto` installs the accessor that actually answers, as it does for the
+    //stub getters on GradumRichElement. Without one here, reads would be typed as the setter's input.
     public get selector(): HTMLElement {return}
 
     /**
-     * The dropdown's popup element.
+     * @description The popup the entries sit in, shown when the selector is clicked. One is built on first
+     * use if none is given; supplying your own replaces it, and the one it replaces is destroyed.
      */
     @auto({defaultValueCallback: () => GradumPopup.create()}) public set popup(value: HTMLElement) {
+        const previous = this.installedPopup;
+        this.installedPopup = value;
+
         if (value instanceof GradumPopup) value.anchor = this.selector;
         gradum(value).addClass(this.popupClasses);
+        //Before the old one is destroyed, so the entries are carried across rather than taken down with it.
         this.select.parent = value;
+
+        //A popup is parked in the shared popup container rather than kept inside the dropdown, so replacing
+        //the reference is not enough to be rid of it — nothing would be left pointing at it. The one being
+        //replaced is usually the default, built on the first read of `popup`: assigning a `selector` reads
+        //it to anchor against, which happens before a supplied popup is applied.
+        if (previous && previous !== value) gradum(previous).destroy();
     }
+
+    /**
+     * @private
+     * @description The popup currently installed, so the next one can tell what it is replacing.
+     */
+    private installedPopup: HTMLElement;
 
     public initialize() {
         super.initialize();

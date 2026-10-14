@@ -30,15 +30,6 @@ export class GradumInputInputInteractor extends GradumInteractor<GradumInput> {
     }
 
     /**
-     * @function initialize
-     * @description Bind the listeners that keep the input's value and size in step with what is typed.
-     */
-    public initialize() {
-        super.initialize();
-        gradum(this.target).bypassManagerOn = () => true;
-    }
-
-    /**
      * @inheritDoc
      */
     protected setupChangedCallbacks() {

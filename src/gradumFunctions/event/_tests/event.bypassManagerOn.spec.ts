@@ -1,54 +1,74 @@
-import {describe, it, expect} from "vitest";
+import {describe, it, expect, beforeEach} from "vitest";
 import {GradumEventManager} from "../../../eventHandling/gradumEventManager/gradumEventManager";
 import {$} from "../../gradumFunctions";
 import {div} from "../../../elementCreation/basicElements";
 
+const manager = () => GradumEventManager.instance;
+const fire = (node: Node) => $(node).executeAction("click", undefined, new Event("click"));
+
+//The predicate's result used to be passed through as the lock state, and a lock is a veto — so
+//`() => true` locked everything *on*, which vetoes nothing and bypassed nothing, while `() => false` was
+//what actually stood the manager down. The name, the doc and the one consumer all read `true` as "bypass".
 describe("GradumSelector.bypassManagerOn", () => {
-    it("invokes predicate and locks manager", () => {
-        const node = div({parent: document.body});
-        let callCount = 0;
-        $(node).bypassManagerOn = (e: Event) => {
-            callCount++;
-            return true
-        };
-
-        expect(GradumEventManager.instance.enabled).toBe(true);
-
-        $(node).executeAction("click", undefined, new Event("click"));
-        expect(callCount).toBe(1);
-        expect(GradumEventManager.instance.enabled).toBe(true);
+    beforeEach(() => {
+        manager().unlock();
+        manager().enabled = true;
+        manager().preventDefaultMouse = true;
     });
 
-    it("updating predicate uses new logic and does not duplicate listeners (one call per event)", () => {
+    it("stands the manager down when the predicate says to", () => {
+        const node = div({parent: document.body});
+        $(node).bypassManagerOn = () => true;
+
+        fire(node);
+
+        expect(manager().enabled).toBe(false);
+        expect(manager().preventDefaultMouse).toBe(false);
+    });
+
+    it("leaves the manager alone when it says not to", () => {
+        const node = div({parent: document.body});
+        $(node).bypassManagerOn = () => false;
+
+        fire(node);
+
+        expect(manager().enabled).toBe(true);
+        expect(manager().preventDefaultMouse).toBe(true);
+    });
+
+    it("stands down only the parts it is asked for", () => {
+        const node = div({parent: document.body});
+        $(node).bypassManagerOn = () => ({preventDefaultMouse: true});
+
+        fire(node);
+
+        //The point of the long form: the browser handles the mouse natively while the manager goes on
+        //dispatching.
+        expect(manager().preventDefaultMouse).toBe(false);
+        expect(manager().enabled).toBe(true);
+    });
+
+    it("lets the manager back up when it stops asking", () => {
+        const node = div({parent: document.body});
+        $(node).bypassManagerOn = () => true;
+        fire(node);
+        expect(manager().enabled).toBe(false);
+
+        $(node).bypassManagerOn = () => false;
+        fire(node);
+
+        expect(manager().enabled).toBe(true);
+    });
+
+    it("asks once per event, and asks the predicate it was last given", () => {
         const node = div({parent: document.body});
         let calls = 0;
 
-        $(node).bypassManagerOn = (e: Event) => {
-            calls++;
-            return false
-        };
-        $(node).bypassManagerOn = (e: Event) => {
-            calls++;
-            return true
-        };
-        $(node).executeAction("click", undefined, new Event("click"));
+        $(node).bypassManagerOn = () => {calls++; return false;};
+        $(node).bypassManagerOn = () => {calls++; return true;};
+        fire(node);
 
         expect(calls).toBe(1);
-        expect(GradumEventManager.instance.enabled).toBe(true);
-    });
-
-    it("works for 'touchstart'-like event as well (no TouchEvent mock needed)", () => {
-        const node = div({parent: document.body});
-
-        let touched = 0;
-        $(node).bypassManagerOn = (e: Event) => {
-            touched++;
-            return false;
-        };
-
-        $(node).executeAction("click", undefined, new Event("click"));
-
-        expect(touched).toBe(1);
-        expect(GradumEventManager.instance.enabled).toBe(false);
+        expect(manager().enabled).toBe(false);
     });
 });

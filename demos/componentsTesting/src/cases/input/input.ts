@@ -283,7 +283,49 @@ function numTest3() {
         }));
 }
 
+function fitContentTest() {
+    const b = box("GradumInput — fitContent & plain");
+
+    const readout = div({classes: "input-readout", text: "—"});
+    const report = () => {
+        const widths = [fitting, fixed].map(i => Math.round(i.element.getBoundingClientRect().width));
+        readout.textContent = `fitContent: ${widths[0]}px    plain default: ${widths[1]}px`;
+    };
+
+    const fitting = GradumInput.create({value: "Ada", fitContent: true, plain: true});
+    const fixed = GradumInput.create({value: "Ada"});
+
+    b.addSubBox("fitContent + plain", fitting);
+    b.addSubBox("neither (for comparison)", fixed);
+
+    //Typing into either should move the first one's width and leave the second's alone.
+    $(fitting).on(DefaultEventName.input, () => setTimeout(report));
+    $(fixed).on(DefaultEventName.input, () => setTimeout(report));
+
+    for (const value of ["A", "Ada", "Ada Lovelace", "Ada Lovelace writes a long title"]) {
+        b.addContent(GradumButton.create({
+            text: `"${value}"`,
+            onClick: () => {
+                fitting.value = value;
+                fixed.value = value;
+                setTimeout(report);
+            }
+        }));
+    }
+    b.addContent(GradumButton.create({
+        text: "Toggle fitContent",
+        onClick: () => {fitting.fitContent = !fitting.fitContent; setTimeout(report);}
+    }));
+    b.addContent(GradumButton.create({
+        text: "Toggle plain",
+        onClick: () => {fitting.plain = !fitting.plain; setTimeout(report);}
+    }));
+    b.addContent(readout);
+    setTimeout(report);
+}
+
 export function setupInputTests() {
+    fitContentTest();
     inputTest1();
     inputTest2();
     inputTest3();

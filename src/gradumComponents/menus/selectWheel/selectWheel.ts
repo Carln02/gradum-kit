@@ -100,6 +100,19 @@ class GradumSelectWheel<
      * @description Whether the wheel is currently being dragged.
      */
     protected dragging: boolean = false;
+
+    /**
+     * @private
+     * @description Follows the entries' sizes, so a change in what an entry holds re-measures the wheel.
+     * Absent where `ResizeObserver` is.
+     */
+    private entrySizeObserver: ResizeObserver;
+
+    /**
+     * @private
+     * @description Whether a re-measure is already booked for the next frame.
+     */
+    private reloadScheduled: boolean = false;
     /**
      * @protected
      * @description The pending timer that will close the wheel once {@link GradumSelectWheel.openTimeout}
@@ -145,7 +158,8 @@ class GradumSelectWheel<
                     return Propagation.stopImmediatePropagation;
                 });
 
-            requestAnimationFrame(() => this.reloadEntrySizes());
+            this.observeEntrySize(entry);
+            this.scheduleReloadEntrySizes();
         };
 
         this.select.onEntryAdded.add(initEntry);
@@ -153,7 +167,8 @@ class GradumSelectWheel<
         this.select.onEntryRemoved.add(entry => {
             this.entryTransitionReifect?.detach(entry);
             this.customReifect?.detach(entry);
-            requestAnimationFrame(() => this.reloadEntrySizes());
+            if (entry instanceof Element) this.entrySizeObserver?.unobserve(entry);
+            this.scheduleReloadEntrySizes();
         });
 
         super.initialize();
@@ -243,7 +258,7 @@ class GradumSelectWheel<
         gradum(this).setStyle("overflow", value ? "visible" : "hidden");
         // When opening, entries may have had zero layout size if the wheel was off-screen or
         // hidden when first populated. Reload now that the wheel is visible.
-        if (value) requestAnimationFrame(() => this.reloadEntrySizes());
+        if (value) this.scheduleReloadEntrySizes();
     }
 
     /**
@@ -302,12 +317,58 @@ class GradumSelectWheel<
     // -------------------------------------------------------------------------
 
     /**
-     * @function reloadEntrySizes
-     * @protected
-     * @description Re-measure every entry and rebuild the wheel's size and position tables. Call it after the
-     * entries change, or after the wheel becomes visible — entries laid out while hidden measure as zero.
+     * @function destroy
+     * @description Stop following the entries' sizes. Called when the wheel is destroyed; there is no need
+     * to call it by hand.
      */
-    protected reloadEntrySizes() {
+    public destroy(): this {
+        this.entrySizeObserver?.disconnect();
+        this.entrySizeObserver = undefined;
+        return this;
+    }
+
+    /**
+     * @function scheduleReloadEntrySizes
+     * @description Re-measure on the next animation frame, once however many times this is called before it
+     * comes round. What to use when what changed will only have been laid out by then — an entry just
+     * added, the wheel just opened, an entry's content just replaced.
+     */
+    public scheduleReloadEntrySizes() {
+        if (this.reloadScheduled) return;
+        this.reloadScheduled = true;
+        requestAnimationFrame(() => {
+            this.reloadScheduled = false;
+            this.reloadEntrySizes();
+        });
+    }
+
+    /**
+     * @description Start following an entry's size, so the wheel re-measures when what is inside the entry
+     * changes rather than only when the entries themselves do. Does nothing where `ResizeObserver` is not
+     * available, leaving {@link GradumSelectWheel.reloadEntrySizes} as the way to say so by hand.
+     * @param {EntryType} entry - The entry to follow.
+     * @protected
+     */
+    protected observeEntrySize(entry: EntryType) {
+        if (typeof ResizeObserver === "undefined" || !(entry instanceof Element)) return;
+        if (!this.entrySizeObserver) this.entrySizeObserver =
+            new ResizeObserver(() => this.scheduleReloadEntrySizes());
+        this.entrySizeObserver.observe(entry);
+    }
+
+    /**
+     * @function reloadEntrySizes
+     * @description Re-measure every entry and rebuild the wheel's size and position tables, now.
+     *
+     * The wheel does this itself when an entry is added or removed, when it is opened, and — where
+     * `ResizeObserver` is available — whenever an entry changes size, so an entry that is renamed or
+     * re-rendered is followed without having to say so. Call it for a change none of those catch, or
+     * {@link GradumSelectWheel.scheduleReloadEntrySizes} when the change has not been laid out yet.
+     *
+     * *Note: entries laid out while hidden measure as zero, and the wheel retries on the next frame until
+     * they do not.*
+     */
+    public reloadEntrySizes() {
         this.sizePerEntry.length = 0;
         this.positionPerEntry.length = 0;
         this.totalSize = 0;
@@ -327,7 +388,7 @@ class GradumSelectWheel<
         // added to the DOM after entries were created), all sizes read as 0. Retry next frame
         // so the browser has time to perform layout.
         if (this.totalSize === 0) {
-            requestAnimationFrame(() => this.reloadEntrySizes());
+            this.scheduleReloadEntrySizes();
             return;
         }
         this._currentPosition = this.indexToPosition(this._index);

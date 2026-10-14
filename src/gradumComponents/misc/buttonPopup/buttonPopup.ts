@@ -41,12 +41,26 @@ class GradumButtonPopup<
     }) public popupClasses: string | string[];
 
     /**
-     * The dropdown's popup element.
+     * @description The popup this button toggles. One is built on first use if none is given; supplying
+     * your own replaces it, and the one it replaces is destroyed — a popup is parked in the shared popup
+     * container rather than kept inside the button, so replacing the reference would otherwise leave it
+     * there with nothing pointing at it.
      */
     @auto({defaultValueCallback: () => GradumPopup.create()}) public set popup(value: HTMLElement) {
+        const previous = this.installedPopup;
+        this.installedPopup = value;
+
         if (value instanceof GradumPopup) value.anchor = this;
         gradum(value).addClass(this.popupClasses);
+
+        if (previous && previous !== value) gradum(previous).destroy();
     }
+
+    /**
+     * @private
+     * @description The popup currently installed, so the next one can tell what it is replacing.
+     */
+    private installedPopup: HTMLElement;
 
     protected setupUIListeners() {
         super.setupUIListeners();

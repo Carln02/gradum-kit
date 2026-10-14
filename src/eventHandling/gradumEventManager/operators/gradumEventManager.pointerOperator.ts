@@ -29,6 +29,46 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
     public pointerCancel = (e: PointerEvent) => this.pointerCancelFn(e);
     public lostPointerCapture = (e: PointerEvent) => this.lostPointerCaptureFn(e);
 
+    /**
+     * @description Cancel the browser's own handling of a pointer event, where the manager is set to and
+     * what the pointer is on has not asked to be left alone.
+     *
+     * The target decides, not the manager alone: cancelling the default of a press is how the platform is
+     * told not to move focus, place a caret, or extend a selection as the pointer drags, so a manager set
+     * to prevent would otherwise make every field on the page behave unlike every other field on the
+     * machine. See {@link GradumSelector.preventDefaults} for naming an exception by hand.
+     * @param {PointerEvent} e - The event to cancel.
+     * @param {boolean} isTouch - Whether it came from a touch.
+     * @returns {boolean} Whether the default was cancelled.
+     * @protected
+     */
+    protected preventDefaults(e: PointerEvent, isTouch: boolean): boolean {
+        const wanted = isTouch
+            ? (this.element.preventDefaultTouch || this.element.wheelEventsEnabled)
+            : this.element.preventDefaultMouse;
+        if (!wanted) return false;
+        if (!gradum(e.target).shouldPreventDefaults(e.type, e)) return false;
+        e.preventDefault();
+        return true;
+    }
+
+    /**
+     * @description Take focus off whatever had it, when a press lands somewhere else.
+     *
+     * The browser does this itself on a press, and cancelling the default is what stops it — so a field
+     * left focused would stay focused, and stay open, however far away the next press was. Only done where
+     * the default was actually cancelled: everywhere else the browser is still seeing to it.
+     * @param {any} target - What the press landed on.
+     * @protected
+     */
+    protected moveFocusAway(target: any) {
+        const active = document.activeElement as HTMLElement;
+        if (!active || active === document.body) return;
+        //A press inside whatever is focused is not a press somewhere else.
+        if (target instanceof Node && active.contains(target)) return;
+        active.blur?.();
+    }
+
     protected pointerDownFn(e: PointerEvent) {
         if (!e.composedPath().includes(this.model.lockState.lockOrigin)) {
             (document.activeElement as HTMLElement)?.blur?.();
@@ -39,9 +79,9 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
         //Check if it's touch
         const isTouch = e.pointerType === "touch";
 
-        //Prevent default actions (especially useful for touch events on iOS and iPadOS)
-        if (this.element.preventDefaultMouse && !isTouch) e.preventDefault();
-        if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled)) e.preventDefault();
+        //Prevent default actions (especially useful for touch events on iOS and iPadOS), unless what was
+        //pressed asked to be left alone — and stand in for the focus handling that cancelling takes away.
+        if (this.preventDefaults(e, isTouch)) this.moveFocusAway(e.target);
 
         //Update input device
         if (isTouch) this.model.inputDevice = InputDevice.touch;
@@ -87,8 +127,7 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
             && !(isTouch && this.element.wheelEventsEnabled)) return;
 
         //Prevent default actions
-        if (this.element.preventDefaultMouse && !isTouch) e.preventDefault();
-        if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled)) e.preventDefault();
+        this.preventDefaults(e, isTouch);
 
         //New positions map
         this.model.positions = new GradumMap<number, Point>();
@@ -162,8 +201,7 @@ export class GradumEventManagerPointerOperator extends GradumOperator<GradumEven
         const isTouch = e.pointerType === "touch";
 
         //Prevent default actions
-        if (this.element.preventDefaultMouse && !isTouch) e.preventDefault();
-        if (isTouch && (this.element.preventDefaultTouch || this.element.wheelEventsEnabled)) e.preventDefault();
+        this.preventDefaults(e, isTouch);
 
         //Clear any timer set
         this.model.utils.clearTimer(GradumEventName.longPress);

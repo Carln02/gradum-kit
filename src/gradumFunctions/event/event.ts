@@ -3,6 +3,7 @@ import {
     HitResolver,
     NonPassiveEvents,
     PreventDefaultOptions,
+    PreventDefaultsSetting,
     Propagation
 } from "./event.types";
 import {gradum} from "../gradumFunctions";
@@ -239,7 +240,11 @@ export function setupEventFunctions() {
             for (const entry of entries) {
                 if (firedListeners.has(entry)) continue;
                 try {
-                    propagation = utils.processPropagation(entry.executeOn(event, ts), propagation);
+                    //A listener that returns nothing means "carry on", as a tool behavior already does and
+                    //as a DOM listener does. Taking silence for `stopPropagation` made every handler that
+                    //ended without a return halt the event without saying so.
+                    propagation = utils.processPropagation(entry.executeOn(event, ts), propagation,
+                        Propagation.propagate);
                 } finally {
                     firedListeners.add(entry);
                     if (entry.options?.once) boundSet.removeListener(entry);
@@ -440,45 +445,30 @@ export function setupEventFunctions() {
         return this;
     };
 
-    /**
-     * @description Prevent default browser behavior on the provided event types. By default, all basic input events
-     * will be processed.
-     * @param {PreventDefaultOptions} options - An options object to customize the behavior of the function.
-     */
-    GradumSelector.prototype.preventDefault = function _preventDefault(this: Gradum, options?: PreventDefaultOptions): GradumSelector {
-        if (!options) options = {};
-        const manager = options.manager ?? GradumEventManager.instance;
-        const types = options.types ?? BasicInputEvents;
-        const phase = options.phase ?? "capture";
-        const stop = options.stop ?? false;
+    GradumSelector.prototype.shouldPreventDefaults = function _shouldPreventDefaults(
+        this: GradumSelector, type?: string, e?: Event
+    ): boolean {
+        return utils.shouldPreventDefaults(this.element, type, e);
+    };
 
-        utils.data(this.element).preventDefaultOn = options.preventDefaultOn
-            ?? utils.data(this.element).preventDefaultOn ?? (() => true);
-        const preventDefaultListeners = utils.getPreventDefaultListeners(this);
+    Object.defineProperty(GradumSelector.prototype, "preventDefaults", {
+        get(this: GradumSelector) {
+            return utils.peek(this.element)?.preventDefaults;
+        },
+        set(this: GradumSelector, value: PreventDefaultsSetting) {
+            if (!this.element) return;
+            const options: PreventDefaultOptions = typeof value === "object" && value !== null
+                ? value : {on: value as boolean | ((type: string, e: Event) => boolean)};
 
-        if (options.clearPreviousListeners)
-            for (const [type, listener] of Object.entries(preventDefaultListeners)) {
-                this.removeListener(type, listener);
-                delete preventDefaultListeners[type];
-            }
+            //Cleared rather than stored as undefined, so the node goes back to having no opinion and the
+            //nearest ancestor with one decides again.
+            const decision = options.on ?? true;
+            if (value === undefined || value === null) delete utils.data(this.element).preventDefaults;
+            else utils.data(this.element).preventDefaults = typeof decision === "function" ? decision : !!decision;
 
-        const shouldNotBePassive = new Set<string>(NonPassiveEvents);
+            utils.reachPreventDefaults(this, options);
+        },
+        configurable: true, enumerable: true,
+    });
 
-        for (const type of new Set(types)) {
-            const handler = (event: Event) => {
-                if (!utils.data(this.element).preventDefaultOn(type, event)) return false;
-                event.preventDefault?.();
-                if (stop === "immediate") event.stopImmediatePropagation?.();
-                else if (stop === "stop") event.stopPropagation?.();
-                return true;
-            }
-            preventDefaultListeners[type] = handler;
-            const options: Record<string, boolean> = {};
-            if (phase === "capture") options.capture = true;
-            if (shouldNotBePassive.has(type)) options.passive = false;
-            this.on(type, handler, options, manager);
-        }
-
-        return this;
-    }
 }

@@ -153,15 +153,19 @@ export class GradumEventManagerDispatchOperator extends GradumOperator<GradumEve
         this.recordHits(e, expanded);
         const path = expanded.path;
 
+        //Root to target. A refusal here ends the dispatch outright — the capture phase is for taking an
+        //event away from everything below and after it, and a `break` that only left this loop would hand
+        //the event straight to the bubble pass, which is everything it was being taken from.
         for (let i = path.length - 1; i >= 0; i--) {
             if (!this.isDispatchable(path[i], expanded)) continue;
             const propagate = gradum(path[i] as Node).executeAction(type, toolName, e, {capture: true}, this.element);
             if (propagate !== Propagation.propagate) {
                 e.stopPropagation();
-                break;
+                return;
             }
         }
 
+        //Target to root.
         for (let i = 0; i < path.length; i++) {
             if (!this.isDispatchable(path[i], expanded)) continue;
             const propagate = gradum(path[i] as Node).executeAction(type, toolName, e, undefined, this.element);

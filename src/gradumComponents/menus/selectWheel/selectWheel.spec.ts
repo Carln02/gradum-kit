@@ -67,6 +67,12 @@ describe("GradumSelectWheel — reloadEntrySizes zero-size retry (Bug 2)", () =>
         rafSpy.mockRestore();
     });
 
+    function flushOnce() {
+        const callbacks = [...pendingCallbacks];
+        pendingCallbacks.length = 0;
+        callbacks.forEach(cb => cb(0));
+    }
+
     function flushAll() {
         while (pendingCallbacks.length) {
             const cbs = [...pendingCallbacks];
@@ -75,23 +81,31 @@ describe("GradumSelectWheel — reloadEntrySizes zero-size retry (Bug 2)", () =>
         }
     }
 
-    it("schedules a retry rAF when all entry sizes are 0 (jsdom layout always 0)", () => {
+    it("keeps retrying while all entry sizes are 0 (jsdom layout always 0)", () => {
         const wheel = makeWheel(["P", "Q", "R"]);
-        // The rAF from onEntryAdded fires reloadEntrySizes, which then queues another rAF because
-        // jsdom always returns 0 for offsetWidth/offsetHeight.
-        const countAfterCreate = pendingCallbacks.length;
-        expect(countAfterCreate).toBeGreaterThan(0);
+        expect(pendingCallbacks.length).toBeGreaterThan(0);
+        const reload = vi.spyOn(wheel, "reloadEntrySizes");
 
-        // Flush the rAFs — each reloadEntrySizes with 0 sizes queues another retry
-        const beforeFlush = pendingCallbacks.length;
-        pendingCallbacks.length = 0;
-        const [firstCb] = [pendingCallbacks[0]];
-        // Run original rAFs from onEntryAdded
-        const original = [...Array(beforeFlush)].map((_, i) => pendingCallbacks[i]).filter(Boolean);
-        // After flush: the retry should appear
-        pendingCallbacks.length = 0;
-        (wheel as any).reloadEntrySizes(); // all sizes 0 → schedules retry
-        expect(pendingCallbacks.length).toBe(1);
+        //Each pass finds the sizes still zero and books another, so the wheel catches up whenever the
+        //layout it is waiting for finally happens.
+        flushOnce();
+        expect(reload).toHaveBeenCalledTimes(1);
+        flushOnce();
+        expect(reload).toHaveBeenCalledTimes(2);
+    });
+
+    it("books one re-measure per frame rather than one per caller", () => {
+        const wheel = makeWheel(["P", "Q"]);
+        flushOnce();
+        const reload = vi.spyOn(wheel, "reloadEntrySizes");
+
+        wheel.scheduleReloadEntrySizes();
+        wheel.scheduleReloadEntrySizes();
+        wheel.scheduleReloadEntrySizes();
+        flushOnce();
+
+        //Four call sites used to queue four, each of which queued another on finding the sizes still zero.
+        expect(reload).toHaveBeenCalledTimes(1);
     });
 
     it("does not retry when there are no entries", () => {

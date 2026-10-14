@@ -4,7 +4,7 @@ import {define} from "../../../decorators/define/define";
 import {GradumView} from "../../../mvc/view/view";
 import {GradumModel} from "../../../mvc/model/model";
 import {GradumElement} from "../../../gradumElement/gradumElement";
-import {cache} from "../../../decorators/cache/cache";
+import {cache, clearCache} from "../../../decorators/cache/cache";
 import {auto} from "../../../decorators/auto/auto";
 import {GradumEmitter} from "../../../mvc/emitter/emitter";
 import {div} from "../../../elementCreation/basicElements";
@@ -145,13 +145,30 @@ class GradumPopup<
         }, {capture: true});
     }
 
-    @effect private recomputePosition() {
+    /**
+     * @function recomputePosition
+     * @description Place the popup against its anchor, now.
+     *
+     * Runs itself whenever the anchor or the layout it depends on changes, which covers the ordinary case.
+     * Call it to place the popup without waiting — after moving the anchor, or after showing the popup by
+     * some means of your own — and it will have been placed by the time the call returns.
+     *
+     * *It used to be reachable only through {@link GradumPopup.show}, which also writes `visibility` and
+     * `display` and runs the show transition, so placing an already-shown popup meant showing it again.*
+     */
+    @effect public recomputePosition() {
         if (!this.anchor) return;
+        //Measured fresh. The getters below cache for the rest of this pass and clear on the next frame,
+        //which is the right trade while frames are coming — but a tab in the background is given none, and
+        //a placement computed from a rect measured before it was last moved is simply wrong.
+        clearCache(this);
         gradum(this).setStyles({maxHeight: "", maxWidth: ""}, true);
 
         const left = this.computeAxis(Direction.horizontal);
         const top = this.computeAxis(Direction.vertical);
-        gradum(this).setStyles({left: `${left}px`, top: `${top}px`});
+        //Written instantly, so this method means "placed" rather than "placed once a frame comes round".
+        //A popup opened in a background tab used to be shown unplaced and stay that way.
+        gradum(this).setStyles({left: `${left}px`, top: `${top}px`}, true);
 
         const maxWidth = Math.max(0, Math.min(
             window.innerWidth - 2 * this.viewportMargin.x,
@@ -162,8 +179,8 @@ class GradumPopup<
             window.innerHeight - 2 * this.viewportMargin.y - this.computedMargins.y
         ));
 
-        gradum(this).setStyle("maxWidth", `${maxWidth}px`);
-        gradum(this).setStyle("maxHeight", `${maxHeight}px`);
+        gradum(this).setStyle("maxWidth", `${maxWidth}px`, true);
+        gradum(this).setStyle("maxHeight", `${maxHeight}px`, true);
     }
 
     private computeAxis(direction: Direction): number {
