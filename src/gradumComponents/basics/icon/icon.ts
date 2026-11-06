@@ -119,6 +119,18 @@ class GradumIcon<
         return this._element;
     }
 
+    /**
+     * @function initialize
+     * @description Load the icon, now that every property it was created with is set. Loading waits for this
+     * because `create()` sets the given properties before the class defaults — loading as soon as `icon` was
+     * set would fetch it from before a default `directory` arrived, then fetch it again.
+     */
+    public initialize() {
+        const first = !this.initialized;
+        super.initialize();
+        if (first && !this.element) this.generateIcon();
+    }
+
     //Utilities
 
     /**
@@ -160,9 +172,12 @@ class GradumIcon<
      * @function generateIcon
      * @protected
      * @description Load the icon for the current name and type, and swap it in as this element's content.
-     * Reuses the existing element when only the source changed.
+     * Reuses the existing element when only the source changed. Does nothing while the icon is still being
+     * built — see {@link GradumIcon.initialize} — unless it is already on the page, as one written in markup
+     * is before it is ever initialized.
      */
     protected generateIcon() {
+        if (!this.initialized && !this.isConnected) return;
         const path = this.path;
         const type = getFileExtension(path)?.substring(1);
 

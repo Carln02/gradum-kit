@@ -11815,6 +11815,26 @@
                         delete self[key];
                     return entry;
                 };
+                //A field a superclass already made a signal, declared again further down. By the time this runs the
+                //redeclaration has defined a plain value over the superclass's accessor, and the signal is already
+                //there — so carry on with that one rather than building a second: hand it the new initial value
+                //and put the accessor back. Building another would find the first and keep it, leaving the new
+                //accessor reading a slot nothing ever writes.
+                if (kind === "field") {
+                    const inherited = utils.getSignal(this, key);
+                    const own = Object.getOwnPropertyDescriptor(this, key);
+                    if (inherited && own && "value" in own) {
+                        delete this[key];
+                        Object.defineProperty(this, key, {
+                            configurable: true,
+                            enumerable: own.enumerable ?? true,
+                            get: () => inherited.get(),
+                            set: (v) => inherited.set(v),
+                        });
+                        inherited.set(own.value);
+                        return;
+                    }
+                }
                 if (kind === "field" || kind === "accessor") {
                     const descriptor = getFirstDescriptorInChain(this, key);
                     const acc = value;
@@ -11897,7 +11917,12 @@
                 dependencies: new Set(),
                 cleanups: [],
                 scheduled: false,
+                disposed: false,
                 run() {
+                    //A run queued before the effect was disposed — by the same write that led to the disposal —
+                    //still reaches here. It is skipped, so a disposed effect never writes again.
+                    if (this.disposed)
+                        return;
                     for (const c of this.cleanups)
                         c();
                     this.cleanups = [];
@@ -11909,12 +11934,16 @@
                     finally {
                         utils.activeEffect = null;
                     }
+                    //Disposed by its own callback: following its signals again would bring it back.
+                    if (this.disposed)
+                        return;
                     for (const dep of this.dependencies) {
                         const unsub = dep.sub(() => utils.schedule(this));
                         this.cleanups.push(unsub);
                     }
                 },
                 dispose() {
+                    this.disposed = true;
                     for (const c of this.cleanups)
                         c();
                     this.cleanups = [];
@@ -25225,6 +25254,18 @@
             get element() {
                 return this._element;
             }
+            /**
+             * @function initialize
+             * @description Load the icon, now that every property it was created with is set. Loading waits for this
+             * because `create()` sets the given properties before the class defaults — loading as soon as `icon` was
+             * set would fetch it from before a default `directory` arrived, then fetch it again.
+             */
+            initialize() {
+                const first = !this.initialized;
+                super.initialize();
+                if (first && !this.element)
+                    this.generateIcon();
+            }
             //Utilities
             /**
              * @function loadSvg
@@ -25262,9 +25303,13 @@
              * @function generateIcon
              * @protected
              * @description Load the icon for the current name and type, and swap it in as this element's content.
-             * Reuses the existing element when only the source changed.
+             * Reuses the existing element when only the source changed. Does nothing while the icon is still being
+             * built — see {@link GradumIcon.initialize} — unless it is already on the page, as one written in markup
+             * is before it is ever initialized.
              */
             generateIcon() {
+                if (!this.initialized && !this.isConnected)
+                    return;
                 const path = this.path;
                 const type = getFileExtension(path)?.substring(1);
                 if (this.element instanceof HTMLImageElement
@@ -29131,8 +29176,8 @@
         }
     }
 
-    var css_248z$7 = "gradum-dropdown{display:inline-block;position:relative}gradum-dropdown>.gradum-popup{background-color:#fff;border:.1em solid #5e5e5e;border-radius:.4em;display:flex;flex-direction:column;overflow:hidden}gradum-dropdown>.gradum-popup>gradum-select-entry{padding:.5em}gradum-dropdown>.gradum-popup>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}gradum-dropdown>gradum-select-entry{padding:.5em .7em;width:100%}gradum-dropdown>gradum-select-entry:hover{background-color:#d7d7d7}gradum-dropdown>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}";
-    styleInject$1(css_248z$7);
+    var css_248z$a = "gradum-dropdown{display:inline-block;position:relative}gradum-dropdown>.gradum-popup{background-color:#fff;border:.1em solid #5e5e5e;border-radius:.4em;display:flex;flex-direction:column;overflow:hidden}gradum-dropdown>.gradum-popup>gradum-select-entry{padding:.5em}gradum-dropdown>.gradum-popup>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}gradum-dropdown>gradum-select-entry{padding:.5em .7em;width:100%}gradum-dropdown>gradum-select-entry:hover{background-color:#d7d7d7}gradum-dropdown>gradum-select-entry:not(:last-child){border-bottom:.1em solid #bdbdbd}";
+    styleInject$1(css_248z$a);
 
     /**
      * @class GradumDropdown
@@ -30578,8 +30623,8 @@
       }
     }
 
-    var css_248z$6 = "demo-toolbar{background-color:var(--surface);border:1px solid var(--line);border-radius:var(--radius);bottom:20px;box-shadow:0 8px 24px rgb(0 0 0/8%),0 1px 2px rgb(0 0 0/5%);display:flex;flex-direction:row;gap:6px;left:50%;padding:8px;position:absolute;transform:translateX(-50%);z-index:2}demo-toolbar .gradum-icon{display:block;height:1.4em;width:1.4em}demo-toolbar>.gradum-button{background-color:transparent;border:1px solid transparent;border-radius:calc(var(--radius) - 4px);color:var(--muted);cursor:pointer;fill:var(--muted);font-size:13px;line-height:1;padding:7px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;-moz-user-select:none;user-select:none;white-space:nowrap}demo-toolbar svg{fill:var(--muted)}demo-toolbar>.gradum-button:hover{background-color:var(--hover);color:var(--text)}demo-toolbar>.gradum-button.selected{background-color:var(--active);color:var(--text)}demo-toolbar>.gradum-button.selected svg,demo-toolbar>.gradum-button:hover svg{fill:var(--text)}demo-toolbar>.gradum-button>*{margin:0;padding:0}.divider{background-color:var(--line);border-radius:100px;margin:8px;width:2px}";
-    styleInject(css_248z$6);
+    var css_248z$9 = "demo-toolbar{align-items:center;backdrop-filter:var(--blur);border:1px solid var(--line-soft);border-radius:var(--radius-pill);bottom:20px;box-shadow:var(--shadow-small);display:flex;flex-direction:row;gap:8px;left:50%;padding:8px;position:absolute;transform:translateX(-50%);z-index:2}demo-toolbar .gradum-icon{display:block;height:20px;width:20px}demo-toolbar>.gradum-button{align-items:center;background-color:transparent;border:1px solid transparent;border-radius:var(--radius-pill);box-sizing:border-box;color:var(--muted);cursor:pointer;display:flex;fill:var(--muted);font-size:13px;height:32px;justify-content:center;line-height:1;padding:0;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;-moz-user-select:none;user-select:none;white-space:nowrap;width:32px}demo-toolbar svg{fill:var(--muted)}demo-toolbar>.gradum-button:hover{background-color:var(--fill);color:var(--text)}demo-toolbar>.gradum-button.selected{background-color:var(--color-primary);color:var(--text)}demo-toolbar>.gradum-button.selected svg,demo-toolbar>.gradum-button:hover svg{fill:var(--text)}demo-toolbar>.gradum-button>*{margin:0;padding:0}.divider{align-self:center;background-color:var(--line);height:28px;width:1px}";
+    styleInject(css_248z$9);
 
     let Toolbar = (() => {
         let _classSuper = GradumElement;
@@ -30597,7 +30642,7 @@
                 __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
-            color = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _color_initializers, "white"));
+            color = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _color_initializers, "var(--color-white-transparent)"));
             set entries(value) {
                 value.forEach(entry => this.addTool(entry));
             }
@@ -30616,226 +30661,123 @@
     })();
     define(Toolbar, "demo-toolbar");
 
-    /**
-     * @description The tab standing for no category at all, always first and always there.
-     */
-    const AllCategories = "All";
-    /**
-     * @class ShelfModel
-     *
-     * @extends GradumModel
-     * @description What the shelf is showing and what it is filtering by: the items it knows about, the text
-     * typed into its search, and the category tab it is on.
-     */
-    let ShelfModel = (() => {
-        let _classSuper = GradumModel;
-        let _items_decorators;
-        let _items_initializers = [];
-        let _items_extraInitializers = [];
-        let _source_decorators;
-        let _source_initializers = [];
-        let _source_extraInitializers = [];
-        let _search_decorators;
-        let _search_initializers = [];
-        let _search_extraInitializers = [];
-        let _category_decorators;
-        let _category_initializers = [];
-        let _category_extraInitializers = [];
-        let _showRecipe_decorators;
-        let _showRecipe_initializers = [];
-        let _showRecipe_extraInitializers = [];
-        let _sourceHandler_decorators;
-        let _sourceHandler_initializers = [];
-        let _sourceHandler_extraInitializers = [];
-        return class ShelfModel extends _classSuper {
+    var css_248z$8 = ".demo-square{align-items:center;box-sizing:border-box;display:flex;height:100px;justify-content:center;position:absolute;width:100px}";
+    styleInject(css_248z$8);
+
+    //Custom square element, defined as a custom element
+    let Square = (() => {
+        let _classSuper = GradumElement;
+        let _instanceExtraInitializers = [];
+        let _color_decorators;
+        let _color_initializers = [];
+        let _color_extraInitializers = [];
+        let _position_decorators;
+        let _position_initializers = [];
+        let _position_extraInitializers = [];
+        let _rotation_decorators;
+        let _rotation_initializers = [];
+        let _rotation_extraInitializers = [];
+        let _anchor_decorators;
+        let _anchor_initializers = [];
+        let _anchor_extraInitializers = [];
+        let _size_decorators;
+        let _size_initializers = [];
+        let _size_extraInitializers = [];
+        let _updatePosition_decorators;
+        let _updateColor_decorators;
+        let _updateSize_decorators;
+        return class Square extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _items_decorators = [signal];
-                _source_decorators = [signal];
-                _search_decorators = [signal];
-                _category_decorators = [signal];
-                _showRecipe_decorators = [signal];
-                _sourceHandler_decorators = [handler()];
-                __esDecorate$1(null, null, _items_decorators, { kind: "field", name: "items", static: false, private: false, access: { has: obj => "items" in obj, get: obj => obj.items, set: (obj, value) => { obj.items = value; } }, metadata: _metadata }, _items_initializers, _items_extraInitializers);
-                __esDecorate$1(null, null, _source_decorators, { kind: "field", name: "source", static: false, private: false, access: { has: obj => "source" in obj, get: obj => obj.source, set: (obj, value) => { obj.source = value; } }, metadata: _metadata }, _source_initializers, _source_extraInitializers);
-                __esDecorate$1(null, null, _search_decorators, { kind: "field", name: "search", static: false, private: false, access: { has: obj => "search" in obj, get: obj => obj.search, set: (obj, value) => { obj.search = value; } }, metadata: _metadata }, _search_initializers, _search_extraInitializers);
-                __esDecorate$1(null, null, _category_decorators, { kind: "field", name: "category", static: false, private: false, access: { has: obj => "category" in obj, get: obj => obj.category, set: (obj, value) => { obj.category = value; } }, metadata: _metadata }, _category_initializers, _category_extraInitializers);
-                __esDecorate$1(null, null, _showRecipe_decorators, { kind: "field", name: "showRecipe", static: false, private: false, access: { has: obj => "showRecipe" in obj, get: obj => obj.showRecipe, set: (obj, value) => { obj.showRecipe = value; } }, metadata: _metadata }, _showRecipe_initializers, _showRecipe_extraInitializers);
-                __esDecorate$1(null, null, _sourceHandler_decorators, { kind: "field", name: "sourceHandler", static: false, private: false, access: { has: obj => "sourceHandler" in obj, get: obj => obj.sourceHandler, set: (obj, value) => { obj.sourceHandler = value; } }, metadata: _metadata }, _sourceHandler_initializers, _sourceHandler_extraInitializers);
+                _color_decorators = [signal];
+                _position_decorators = [signal];
+                _rotation_decorators = [signal];
+                _anchor_decorators = [signal];
+                _size_decorators = [signal, auto({
+                        preprocessValue: (value) => (Point.from(value) ?? new Point(100, 100)).bound(5, Infinity, 5, Infinity)
+                    })];
+                _updatePosition_decorators = [effect];
+                _updateColor_decorators = [effect];
+                _updateSize_decorators = [effect];
+                __esDecorate$1(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
+                __esDecorate$1(this, null, _updatePosition_decorators, { kind: "method", name: "updatePosition", static: false, private: false, access: { has: obj => "updatePosition" in obj, get: obj => obj.updatePosition }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateColor_decorators, { kind: "method", name: "updateColor", static: false, private: false, access: { has: obj => "updateColor" in obj, get: obj => obj.updateColor }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateSize_decorators, { kind: "method", name: "updateSize", static: false, private: false, access: { has: obj => "updateSize" in obj, get: obj => obj.updateSize }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
+                __esDecorate$1(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
+                __esDecorate$1(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
+                __esDecorate$1(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
-            /**
-             * @description Every item the shelf knows about, filtered or not — what was read from its source.
-             */
-            items = __runInitializers$1(this, _items_initializers, []);
-            /**
-             * @description Where the items are read from. Naming a source is all it takes; the shelf's source
-             * handler watches this and goes and reads it.
-             */
-            source = (__runInitializers$1(this, _items_extraInitializers), __runInitializers$1(this, _source_initializers, ""));
-            /**
-             * @description Text the listed items must contain in their name. Empty shows them all.
-             */
-            search = (__runInitializers$1(this, _source_extraInitializers), __runInitializers$1(this, _search_initializers, ""));
-            /**
-             * @description The category tab the shelf is on. {@link AllCategories} shows every category.
-             */
-            category = (__runInitializers$1(this, _search_extraInitializers), __runInitializers$1(this, _category_initializers, AllCategories));
-            /**
-             * @description Whether the listed items show their recipe amounts.
-             */
-            showRecipe = (__runInitializers$1(this, _category_extraInitializers), __runInitializers$1(this, _showRecipe_initializers, false));
-            /**
-             * @description The tabs to offer: `"All"`, then each category in the order it first appears among the
-             * items. Taken from the items themselves, so a source file that grows a new category grows a tab.
-             */
-            get categories() {
-                const categories = [AllCategories];
-                for (const entry of this.items ?? []) {
-                    if (entry?.category && !categories.includes(entry.category))
-                        categories.push(entry.category);
-                }
-                return categories;
+            //Data as signals
+            color = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _color_initializers, Color.random([60, 90], [40, 70])));
+            position = (__runInitializers$1(this, _color_extraInitializers), __runInitializers$1(this, _position_initializers, new Point()));
+            rotation = (__runInitializers$1(this, _position_extraInitializers), __runInitializers$1(this, _rotation_initializers, 0));
+            anchor = (__runInitializers$1(this, _rotation_extraInitializers), __runInitializers$1(this, _anchor_initializers, Anchor.Center));
+            #size_accessor_storage = (__runInitializers$1(this, _anchor_extraInitializers), __runInitializers$1(this, _size_initializers, new Point(100, 100)));
+            get size() { return this.#size_accessor_storage; }
+            set size(value) { this.#size_accessor_storage = value; }
+            initialize() {
+                if (this.initialized)
+                    return;
+                gradum(this).metadata.set(true, "modifiable");
+                super.initialize();
             }
-            /**
-             * @description Reading the shelf's items from the file it was pointed at.
-             */
-            sourceHandler = (__runInitializers$1(this, _showRecipe_extraInitializers), __runInitializers$1(this, _sourceHandler_initializers, void 0));
+            move(delta) {
+                this.position = delta.add(this.position);
+            }
+            rotate(from, to, anchor = this.anchor) {
+                const pivot = this.getBoundingClientRect().pointAt(anchor);
+                const swept = pivot.angleBetween(from, to);
+                if (!swept)
+                    return;
+                const offset = this.position.sub(pivot);
+                this.rotation += swept;
+                this.position = pivot.add(offset.rotate(swept));
+            }
+            resize(delta, anchor = this.anchor, uniform = false) {
+                const fraction = new AnchorPoint(anchor).fraction;
+                const local = delta.rotate(-(this.rotation ?? 0));
+                let sizeDelta = local.mul(new Point(fraction.x === 0 ? 2 : -2 * fraction.x, fraction.y === 0 ? 2 : -2 * fraction.y));
+                if (uniform)
+                    sizeDelta = new Point(sizeDelta.min, sizeDelta.min);
+                const pinned = this.getBoundingClientRect().pointAt(anchor);
+                this.size = this.size.add(sizeDelta);
+                this.position = this.position.add(pinned.sub(this.getBoundingClientRect().pointAt(anchor)));
+            }
+            delete() {
+                this.remove();
+            }
+            getBoundingClientRect() {
+                return new GradumRect({
+                    x: this.position.x,
+                    y: this.position.y,
+                    width: this.size.x,
+                    height: this.size.y,
+                    anchor: this.anchor,
+                    angleRad: this.rotation
+                });
+            }
+            updatePosition() {
+                const rect = this.getBoundingClientRect();
+                gradum(this).setStyle("transform", `
+            translate(${rect.topLeft.x}px, ${rect.topLeft.y}px)
+            rotate(${this.rotation}rad)
+        `);
+            }
+            updateColor() {
+                gradum(this).setStyle("backgroundColor", this.color.toString());
+            }
+            updateSize() {
+                gradum(this).setStyles({ width: this.size.x + "px", height: this.size.y + "px" });
+            }
             constructor() {
                 super(...arguments);
-                __runInitializers$1(this, _sourceHandler_extraInitializers);
+                __runInitializers$1(this, _size_extraInitializers);
             }
         };
     })();
-
-    /**
-     * @class ShelfFilterOperator
-     *
-     * @extends GradumOperator
-     * @description Works out which of the shelf's items the search and the current tab call for.
-     *
-     * The tab is the same test however the search is read, so it is done here; what the typed text means is
-     * what the subclass decides. Every pass fires `filtered` on the shelf's emitter with the items that match,
-     * and {@link ShelfFilterOperator.matches} answers the same question on demand, for the view to ask after it
-     * has rebuilt its cards and cannot wait for the next pass.
-     *
-     * Swap the subclass to change what searching means — see {@link ShelfSubstringFilterOperator},
-     * {@link ShelfTokenFilterOperator} and {@link ShelfFuzzyFilterOperator}. All three answer to the key
-     * `"filter"`, so one can be taken out and another put in:
-     *
-     * ```ts
-     * gradum(shelf).removeOperator("filter").addOperator(new ShelfFuzzyFilterOperator());
-     * ```
-     */
-    let ShelfFilterOperator = (() => {
-        let _classSuper = GradumOperator;
-        let _instanceExtraInitializers = [];
-        let _filter_decorators;
-        return class ShelfFilterOperator extends _classSuper {
-            static {
-                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _filter_decorators = [effect];
-                __esDecorate$1(this, null, _filter_decorators, { kind: "method", name: "filter", static: false, private: false, access: { has: obj => "filter" in obj, get: obj => obj.filter }, metadata: _metadata }, null, _instanceExtraInitializers);
-                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-            }
-            keyName = (__runInitializers$1(this, _instanceExtraInitializers), "filter");
-            filter() {
-                //What is on offer and what is being asked of it. Read outright: these are the signals this pass
-                //follows, and `matches` below reads them again rather than being handed them.
-                this.model.items;
-                this.model.search;
-                this.model.category;
-                this.emitter.fire("filtered", this.matches());
-            }
-            /**
-             * @function matches
-             * @description The items the shelf should be showing: the ones on the tab it is on that the search
-             * would find. Ask it when you need the answer now; listen for `filtered` to be told when it changes.
-             * @returns {Set<ShelfEntry>} The items to show.
-             */
-            matches() {
-                const category = this.model.category;
-                const search = this.model.search?.trim().toLowerCase() ?? "";
-                return new Set((this.model.items ?? []).filter(entry => {
-                    if (category !== AllCategories && entry?.category !== category)
-                        return false;
-                    //An empty search asks for nothing in particular, so everything on the tab answers it. Left to
-                    //the subclasses, each would have to say so itself.
-                    return !search || this.matchesSearch(entry, search);
-                }));
-            }
-        };
-    })();
-    /**
-     * @class ShelfSubstringFilterOperator
-     *
-     * @extends ShelfFilterOperator
-     * @description Finds items whose name contains what was typed, as typed.
-     *
-     * The plain reading, and the strictest of the three: `"sour d"` finds nothing, because no name contains it.
-     */
-    class ShelfSubstringFilterOperator extends ShelfFilterOperator {
-        matchesSearch(entry, search) {
-            return (entry?.name ?? "").toLowerCase().includes(search);
-        }
-    }
-
-    /**
-     * @class ShelfSourceHandler
-     *
-     * @extends GradumHandler
-     * @description Reads the shelf's items from wherever it was pointed.
-     *
-     * Fetching and making sense of a file is neither what the shelf is nor how it is drawn, and it touches
-     * nothing but the model — a source to read, a list to fill — so it is a handler rather than an operator.
-     * Naming a source is all a shelf has to do: this watches the name and goes and reads it.
-     */
-    let ShelfSourceHandler = (() => {
-        let _classSuper = GradumHandler;
-        let _instanceExtraInitializers = [];
-        let _followSource_decorators;
-        return class ShelfSourceHandler extends _classSuper {
-            static {
-                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _followSource_decorators = [effect];
-                __esDecorate$1(this, null, _followSource_decorators, { kind: "method", name: "followSource", static: false, private: false, access: { has: obj => "followSource" in obj, get: obj => obj.followSource }, metadata: _metadata }, null, _instanceExtraInitializers);
-                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-            }
-            keyName = (__runInitializers$1(this, _instanceExtraInitializers), "source");
-            followSource() {
-                const source = this.model.source;
-                if (source)
-                    void this.read(source);
-            }
-            /**
-             * @function read
-             * @description Read a file of items and list them. The file may be either a bare array of items or an
-             * object with them under `items`.
-             *
-             * A file that cannot be read leaves the shelf empty and says so in the console rather than throwing: a
-             * shop with nothing on the shelves is a better failure than a page that never finishes loading.
-             * @param {string} source - URL to read from.
-             * @returns {Promise<ShelfEntry[]>} What ended up listed.
-             */
-            async read(source) {
-                if (!source)
-                    return [];
-                try {
-                    const response = await fetch(source);
-                    if (!response.ok)
-                        throw new Error(`${response.status} ${response.statusText}`);
-                    const read = await response.json();
-                    const items = Array.isArray(read) ? read : read?.items;
-                    this.model.items = Array.isArray(items) ? items : [];
-                }
-                catch (error) {
-                    console.warn(`Shelf could not read its items from "${source}":`, error);
-                    this.model.items = [];
-                }
-                return this.model.items;
-            }
-        };
-    })();
+    define(Square, "demo-square");
 
     /**
      * @description Where an object is and which way it faces, as an oriented rect.
@@ -30899,178 +30841,1279 @@
      * @class ItemModel
      *
      * @extends GradumModel
-     * @description State of one grocery item, split by what it belongs to. What the item *is* — its name,
-     * picture, price and unit — is held in the model's data, since that is the item's own description and the
-     * part a catalogue would supply. What you are currently doing with it — which cart, how much of it to buy,
-     * how much of it a recipe uses — is held on the model itself, since none of it belongs to the item.
+     * @description State of one item, split by what it belongs to. What the item *is* — the product it stands
+     * for — is held in the model's data, since that is the item's own description and the part a catalogue
+     * supplies. What you are currently doing with it — which cart it goes in — is held on the model itself,
+     * since none of it belongs to the item. Where the card is, and how it is shown, belong to the card.
      */
     let ItemModel = (() => {
         let _classSuper = GradumModel;
         let _name_decorators;
         let _name_initializers = [];
         let _name_extraInitializers = [];
-        let _image_decorators;
-        let _image_initializers = [];
-        let _image_extraInitializers = [];
-        let _unit_decorators;
-        let _unit_initializers = [];
-        let _unit_extraInitializers = [];
         let _price_decorators;
         let _price_initializers = [];
         let _price_extraInitializers = [];
-        let _cartAmount_decorators;
-        let _cartAmount_initializers = [];
-        let _cartAmount_extraInitializers = [];
-        let _recipeAmount_decorators;
-        let _recipeAmount_initializers = [];
-        let _recipeAmount_extraInitializers = [];
+        let _images_decorators;
+        let _images_initializers = [];
+        let _images_extraInitializers = [];
+        let _categories_decorators;
+        let _categories_initializers = [];
+        let _categories_extraInitializers = [];
+        let _description_decorators;
+        let _description_initializers = [];
+        let _description_extraInitializers = [];
+        let _properties_decorators;
+        let _properties_initializers = [];
+        let _properties_extraInitializers = [];
         let _cart_decorators;
         let _cart_initializers = [];
         let _cart_extraInitializers = [];
-        let _position_decorators;
-        let _position_initializers = [];
-        let _position_extraInitializers = [];
         return class ItemModel extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
                 _name_decorators = [modelSignal(), auto({ defaultValue: "Unnamed item" })];
-                _image_decorators = [modelSignal(), auto({ defaultValue: "" })];
-                _unit_decorators = [modelSignal(), auto({ defaultValue: "each" })];
                 _price_decorators = [modelSignal(), auto({ preprocessValue: atLeastZero, defaultValue: 0 })];
-                _cartAmount_decorators = [signal, auto({ preprocessValue: atLeastZero })];
-                _recipeAmount_decorators = [signal, auto({ preprocessValue: atLeastZero })];
+                _images_decorators = [modelSignal()];
+                _categories_decorators = [modelSignal()];
+                _description_decorators = [modelSignal()];
+                _properties_decorators = [modelSignal()];
                 _cart_decorators = [signal];
-                _position_decorators = [signal];
-                __esDecorate$1(this, null, _cartAmount_decorators, { kind: "accessor", name: "cartAmount", static: false, private: false, access: { has: obj => "cartAmount" in obj, get: obj => obj.cartAmount, set: (obj, value) => { obj.cartAmount = value; } }, metadata: _metadata }, _cartAmount_initializers, _cartAmount_extraInitializers);
-                __esDecorate$1(this, null, _recipeAmount_decorators, { kind: "accessor", name: "recipeAmount", static: false, private: false, access: { has: obj => "recipeAmount" in obj, get: obj => obj.recipeAmount, set: (obj, value) => { obj.recipeAmount = value; } }, metadata: _metadata }, _recipeAmount_initializers, _recipeAmount_extraInitializers);
                 __esDecorate$1(null, null, _name_decorators, { kind: "field", name: "name", static: false, private: false, access: { has: obj => "name" in obj, get: obj => obj.name, set: (obj, value) => { obj.name = value; } }, metadata: _metadata }, _name_initializers, _name_extraInitializers);
-                __esDecorate$1(null, null, _image_decorators, { kind: "field", name: "image", static: false, private: false, access: { has: obj => "image" in obj, get: obj => obj.image, set: (obj, value) => { obj.image = value; } }, metadata: _metadata }, _image_initializers, _image_extraInitializers);
-                __esDecorate$1(null, null, _unit_decorators, { kind: "field", name: "unit", static: false, private: false, access: { has: obj => "unit" in obj, get: obj => obj.unit, set: (obj, value) => { obj.unit = value; } }, metadata: _metadata }, _unit_initializers, _unit_extraInitializers);
                 __esDecorate$1(null, null, _price_decorators, { kind: "field", name: "price", static: false, private: false, access: { has: obj => "price" in obj, get: obj => obj.price, set: (obj, value) => { obj.price = value; } }, metadata: _metadata }, _price_initializers, _price_extraInitializers);
+                __esDecorate$1(null, null, _images_decorators, { kind: "field", name: "images", static: false, private: false, access: { has: obj => "images" in obj, get: obj => obj.images, set: (obj, value) => { obj.images = value; } }, metadata: _metadata }, _images_initializers, _images_extraInitializers);
+                __esDecorate$1(null, null, _categories_decorators, { kind: "field", name: "categories", static: false, private: false, access: { has: obj => "categories" in obj, get: obj => obj.categories, set: (obj, value) => { obj.categories = value; } }, metadata: _metadata }, _categories_initializers, _categories_extraInitializers);
+                __esDecorate$1(null, null, _description_decorators, { kind: "field", name: "description", static: false, private: false, access: { has: obj => "description" in obj, get: obj => obj.description, set: (obj, value) => { obj.description = value; } }, metadata: _metadata }, _description_initializers, _description_extraInitializers);
+                __esDecorate$1(null, null, _properties_decorators, { kind: "field", name: "properties", static: false, private: false, access: { has: obj => "properties" in obj, get: obj => obj.properties, set: (obj, value) => { obj.properties = value; } }, metadata: _metadata }, _properties_initializers, _properties_extraInitializers);
                 __esDecorate$1(null, null, _cart_decorators, { kind: "field", name: "cart", static: false, private: false, access: { has: obj => "cart" in obj, get: obj => obj.cart, set: (obj, value) => { obj.cart = value; } }, metadata: _metadata }, _cart_initializers, _cart_extraInitializers);
-                __esDecorate$1(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
             name = __runInitializers$1(this, _name_initializers, void 0);
-            image = (__runInitializers$1(this, _name_extraInitializers), __runInitializers$1(this, _image_initializers, void 0));
-            unit = (__runInitializers$1(this, _image_extraInitializers), __runInitializers$1(this, _unit_initializers, void 0));
-            price = (__runInitializers$1(this, _unit_extraInitializers), __runInitializers$1(this, _price_initializers, void 0));
-            #cartAmount_accessor_storage = (__runInitializers$1(this, _price_extraInitializers), __runInitializers$1(this, _cartAmount_initializers, 1));
-            get cartAmount() { return this.#cartAmount_accessor_storage; }
-            set cartAmount(value) { this.#cartAmount_accessor_storage = value; }
-            #recipeAmount_accessor_storage = (__runInitializers$1(this, _cartAmount_extraInitializers), __runInitializers$1(this, _recipeAmount_initializers, 1));
-            get recipeAmount() { return this.#recipeAmount_accessor_storage; }
-            set recipeAmount(value) { this.#recipeAmount_accessor_storage = value; }
-            cart = (__runInitializers$1(this, _recipeAmount_extraInitializers), __runInitializers$1(this, _cart_initializers, undefined));
-            position = (__runInitializers$1(this, _cart_extraInitializers), __runInitializers$1(this, _position_initializers, undefined));
-            get cartCost() {
-                return this.price * this.cartAmount;
+            price = (__runInitializers$1(this, _name_extraInitializers), __runInitializers$1(this, _price_initializers, void 0));
+            images = (__runInitializers$1(this, _price_extraInitializers), __runInitializers$1(this, _images_initializers, void 0));
+            categories = (__runInitializers$1(this, _images_extraInitializers), __runInitializers$1(this, _categories_initializers, void 0));
+            description = (__runInitializers$1(this, _categories_extraInitializers), __runInitializers$1(this, _description_initializers, void 0));
+            properties = (__runInitializers$1(this, _description_extraInitializers), __runInitializers$1(this, _properties_initializers, void 0));
+            cart = (__runInitializers$1(this, _properties_extraInitializers), __runInitializers$1(this, _cart_initializers, undefined));
+            /**
+             * @readonly
+             * @description Source of the item's main picture, or an empty string when it has none.
+             */
+            get image() {
+                return this.images?.[0] ?? "";
             }
             constructor() {
                 super(...arguments);
-                __runInitializers$1(this, _position_extraInitializers);
+                __runInitializers$1(this, _cart_extraInitializers);
             }
         };
     })();
 
     /**
-     * @class CartAmountsHandler
+     * @class CarouselView
      *
-     * @extends GradumHandler
-     * @description What has been asked for from the cart, and how much of it.
-     *
-     * Kept apart from the items lying on the cart's area: that is where a card happens to be, this is a quantity
-     * somebody pressed a button for. Nothing here touches the page, so it is the model's business rather than
-     * the cart element's.
+     * @extends GradumView
+     * @description One picture at a time, with an arrow either side to go to the one before or after, and a
+     * dot per picture along the bottom saying which one this is. Going past either end comes round to the
+     * other. With a single picture there is nowhere to go, so neither the arrows nor the dots are shown.
      */
-    class CartAmountsHandler extends GradumHandler {
-        keyName = "amounts";
-        /**
-         * @function add
-         * @description Add an amount of an item to what the cart has been asked for, on top of whatever it was
-         * already asked for.
-         * @param {Item} item - The item being added.
-         * @param {number} amount - How many units of it. Anything that is not a positive number is ignored.
-         * @returns {number} How much of that item the cart now holds.
-         */
-        add(item, amount) {
-            if (!item || !(amount > 0))
-                return this.of(item);
-            const total = this.of(item) + amount;
-            this.model.amounts.set(item, total);
-            return total;
+    let CarouselView = (() => {
+        let _classSuper = GradumView;
+        let _instanceExtraInitializers = [];
+        let _images_decorators;
+        let _images_initializers = [];
+        let _images_extraInitializers = [];
+        let _index_decorators;
+        let _index_initializers = [];
+        let _index_extraInitializers = [];
+        let _alt_decorators;
+        let _alt_initializers = [];
+        let _alt_extraInitializers = [];
+        let _updatePicture_decorators;
+        let _updateDots_decorators;
+        let _markDot_decorators;
+        return class CarouselView extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _images_decorators = [signal];
+                _index_decorators = [signal];
+                _alt_decorators = [signal];
+                _updatePicture_decorators = [effect];
+                _updateDots_decorators = [effect];
+                _markDot_decorators = [effect];
+                __esDecorate$1(this, null, _updatePicture_decorators, { kind: "method", name: "updatePicture", static: false, private: false, access: { has: obj => "updatePicture" in obj, get: obj => obj.updatePicture }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateDots_decorators, { kind: "method", name: "updateDots", static: false, private: false, access: { has: obj => "updateDots" in obj, get: obj => obj.updateDots }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _markDot_decorators, { kind: "method", name: "markDot", static: false, private: false, access: { has: obj => "markDot" in obj, get: obj => obj.markDot }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(null, null, _images_decorators, { kind: "field", name: "images", static: false, private: false, access: { has: obj => "images" in obj, get: obj => obj.images, set: (obj, value) => { obj.images = value; } }, metadata: _metadata }, _images_initializers, _images_extraInitializers);
+                __esDecorate$1(null, null, _index_decorators, { kind: "field", name: "index", static: false, private: false, access: { has: obj => "index" in obj, get: obj => obj.index, set: (obj, value) => { obj.index = value; } }, metadata: _metadata }, _index_initializers, _index_extraInitializers);
+                __esDecorate$1(null, null, _alt_decorators, { kind: "field", name: "alt", static: false, private: false, access: { has: obj => "alt" in obj, get: obj => obj.alt, set: (obj, value) => { obj.alt = value; } }, metadata: _metadata }, _alt_initializers, _alt_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            images = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _images_initializers, []));
+            index = (__runInitializers$1(this, _images_extraInitializers), __runInitializers$1(this, _index_initializers, 0));
+            alt = (__runInitializers$1(this, _index_extraInitializers), __runInitializers$1(this, _alt_initializers, ""));
+            picture = __runInitializers$1(this, _alt_extraInitializers);
+            previousButton;
+            nextButton;
+            dots;
+            setupUIElements() {
+                super.setupUIElements();
+                this.picture = img({ classes: "carousel-picture" });
+                this.previousButton = element({
+                    tag: "button", classes: ["carousel-arrow", "carousel-previous"], title: "Previous picture",
+                    children: GradumIcon.create({ icon: "chevron-left" })
+                });
+                this.nextButton = element({
+                    tag: "button", classes: ["carousel-arrow", "carousel-next"], title: "Next picture",
+                    children: GradumIcon.create({ icon: "chevron-right" })
+                });
+                this.dots = div({ classes: "carousel-dots" });
+            }
+            setupUILayout() {
+                super.setupUILayout();
+                gradum(this).addChild([this.picture, this.previousButton, this.nextButton, this.dots]);
+            }
+            setupUIListeners() {
+                super.setupUIListeners();
+                gradum(this.previousButton).on(DefaultEventName.click, () => this.element.turn(-1));
+                gradum(this.nextButton).on(DefaultEventName.click, () => this.element.turn(1));
+            }
+            updatePicture() {
+                const source = this.images[this.element.current];
+                gradum(this).toggleClass("empty", !source);
+                if (source)
+                    this.picture.src = source;
+                else
+                    this.picture.removeAttribute("src");
+                this.picture.alt = this.alt;
+            }
+            /**
+             * @description Rebuild the dots when the pictures change. Which one is lit is marked by
+             * {@link CarouselView.markDot}, so turning does not rebuild them.
+             * @protected
+             */
+            updateDots() {
+                const count = this.images.length;
+                this.dots.replaceChildren(...Array.from({ length: count }, () => div({ classes: "carousel-dot" })));
+                gradum(this).toggleClass("single", count <= 1);
+            }
+            markDot() {
+                this.images;
+                const current = this.element.current;
+                Array.from(this.dots.children).forEach((dot, index) => gradum(dot).toggleClass("current", index === current));
+            }
+        };
+    })();
+
+    var css_248z$7 = "demo-carousel{background:var(--fill);border-radius:var(--radius);box-sizing:border-box;display:block;height:7.5em;overflow:hidden;position:relative;width:100%}demo-carousel .carousel-picture{display:block;height:100%;-o-object-fit:contain;object-fit:contain;width:100%}demo-carousel.empty .carousel-picture{visibility:hidden}demo-carousel .carousel-arrow{align-items:center;backdrop-filter:var(--blur-small);background:var(--color-02-transparent);border:none;border-radius:var(--radius-pill);cursor:pointer;display:flex;height:1.5em;justify-content:center;padding:0;position:absolute;top:50%;translate:0 -50%;width:1.5em}demo-carousel .carousel-arrow:hover{background:var(--line)}demo-carousel .carousel-arrow .gradum-icon{fill:var(--text-soft);height:100%;width:100%}demo-carousel .carousel-previous{left:var(--space-2)}demo-carousel .carousel-next{right:var(--space-2)}demo-carousel .carousel-dots{align-items:center;backdrop-filter:var(--blur-small);background:var(--color-02-transparent);border-radius:var(--radius-pill);bottom:var(--space-2);display:flex;gap:.3em;left:50%;padding:.25em .45em;position:absolute;translate:-50% 0}demo-carousel .carousel-dot{background:var(--line);border-radius:var(--radius-pill);height:.4em;width:.4em}demo-carousel .carousel-dot.current{background:var(--color-primary);height:.5em;width:.5em}demo-carousel.single .carousel-arrow,demo-carousel.single .carousel-dots{display:none}";
+    styleInject(css_248z$7);
+
+    /**
+     * @class Carousel
+     *
+     * @extends GradumElement
+     * @description A set of pictures shown one at a time, turned through with an arrow either side.
+     *
+     * @example
+     * ```ts
+     * const carousel = Carousel.create({images: product.images, alt: product.name});
+     * carousel.turn(1);
+     * ```
+     */
+    let Carousel = (() => {
+        let _classSuper = GradumElement;
+        let _images_decorators;
+        let _images_initializers = [];
+        let _images_extraInitializers = [];
+        let _index_decorators;
+        let _index_initializers = [];
+        let _index_extraInitializers = [];
+        let _alt_decorators;
+        let _alt_initializers = [];
+        let _alt_extraInitializers = [];
+        return class Carousel extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _images_decorators = [expose("view")];
+                _index_decorators = [expose("view")];
+                _alt_decorators = [expose("view")];
+                __esDecorate$1(null, null, _images_decorators, { kind: "field", name: "images", static: false, private: false, access: { has: obj => "images" in obj, get: obj => obj.images, set: (obj, value) => { obj.images = value; } }, metadata: _metadata }, _images_initializers, _images_extraInitializers);
+                __esDecorate$1(null, null, _index_decorators, { kind: "field", name: "index", static: false, private: false, access: { has: obj => "index" in obj, get: obj => obj.index, set: (obj, value) => { obj.index = value; } }, metadata: _metadata }, _index_initializers, _index_extraInitializers);
+                __esDecorate$1(null, null, _alt_decorators, { kind: "field", name: "alt", static: false, private: false, access: { has: obj => "alt" in obj, get: obj => obj.alt, set: (obj, value) => { obj.alt = value; } }, metadata: _metadata }, _alt_initializers, _alt_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                view: CarouselView,
+            };
+            images = __runInitializers$1(this, _images_initializers, void 0);
+            index = (__runInitializers$1(this, _images_extraInitializers), __runInitializers$1(this, _index_initializers, void 0));
+            alt = (__runInitializers$1(this, _index_extraInitializers), __runInitializers$1(this, _alt_initializers, void 0));
+            /**
+             * @readonly
+             * @description The picture being shown, as an index that is always among the pictures — `index` brought
+             * round into range. `0` when there are none.
+             */
+            get current() {
+                const count = this.images?.length ?? 0;
+                if (!count)
+                    return 0;
+                return ((Math.trunc(this.index ?? 0) % count) + count) % count;
+            }
+            /**
+             * @function turn
+             * @description Go forward or back through the pictures, coming round at either end.
+             * @param {number} by - How many to go by: `1` for the next, `-1` for the one before.
+             */
+            turn(by) {
+                this.index = this.current + by;
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _alt_extraInitializers);
+            }
+        };
+    })();
+    define(Carousel, "demo-carousel");
+
+    /**
+     * @class CartButtonView
+     *
+     * @extends GradumView
+     * @description The button's two faces. With nothing in yet, a pill saying "+ Cart"; with something in, a
+     * stepper — a button to take one out, the count, and a button to put one more in. The take-out button is a
+     * bin while there is only one left, since taking that one out empties it.
+     *
+     * Where there is more than one place to add to, the add face asks which first, from a popup hung off it.
+     */
+    let CartButtonView = (() => {
+        let _classSuper = GradumView;
+        let _instanceExtraInitializers = [];
+        let _count_decorators;
+        let _count_initializers = [];
+        let _count_extraInitializers = [];
+        let _label_decorators;
+        let _label_initializers = [];
+        let _label_extraInitializers = [];
+        let _choices_decorators;
+        let _choices_initializers = [];
+        let _choices_extraInitializers = [];
+        let _disabled_decorators;
+        let _disabled_initializers = [];
+        let _disabled_extraInitializers = [];
+        let _updateLabel_decorators;
+        let _updateCount_decorators;
+        let _updateChoices_decorators;
+        let _updateDisabled_decorators;
+        return class CartButtonView extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _count_decorators = [signal];
+                _label_decorators = [signal];
+                _choices_decorators = [signal];
+                _disabled_decorators = [signal];
+                _updateLabel_decorators = [effect];
+                _updateCount_decorators = [effect];
+                _updateChoices_decorators = [effect];
+                _updateDisabled_decorators = [effect];
+                __esDecorate$1(this, null, _updateLabel_decorators, { kind: "method", name: "updateLabel", static: false, private: false, access: { has: obj => "updateLabel" in obj, get: obj => obj.updateLabel }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateCount_decorators, { kind: "method", name: "updateCount", static: false, private: false, access: { has: obj => "updateCount" in obj, get: obj => obj.updateCount }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateChoices_decorators, { kind: "method", name: "updateChoices", static: false, private: false, access: { has: obj => "updateChoices" in obj, get: obj => obj.updateChoices }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateDisabled_decorators, { kind: "method", name: "updateDisabled", static: false, private: false, access: { has: obj => "updateDisabled" in obj, get: obj => obj.updateDisabled }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(null, null, _count_decorators, { kind: "field", name: "count", static: false, private: false, access: { has: obj => "count" in obj, get: obj => obj.count, set: (obj, value) => { obj.count = value; } }, metadata: _metadata }, _count_initializers, _count_extraInitializers);
+                __esDecorate$1(null, null, _label_decorators, { kind: "field", name: "label", static: false, private: false, access: { has: obj => "label" in obj, get: obj => obj.label, set: (obj, value) => { obj.label = value; } }, metadata: _metadata }, _label_initializers, _label_extraInitializers);
+                __esDecorate$1(null, null, _choices_decorators, { kind: "field", name: "choices", static: false, private: false, access: { has: obj => "choices" in obj, get: obj => obj.choices, set: (obj, value) => { obj.choices = value; } }, metadata: _metadata }, _choices_initializers, _choices_extraInitializers);
+                __esDecorate$1(null, null, _disabled_decorators, { kind: "field", name: "disabled", static: false, private: false, access: { has: obj => "disabled" in obj, get: obj => obj.disabled, set: (obj, value) => { obj.disabled = value; } }, metadata: _metadata }, _disabled_initializers, _disabled_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            count = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _count_initializers, 0));
+            label = (__runInitializers$1(this, _count_extraInitializers), __runInitializers$1(this, _label_initializers, "Cart"));
+            choices = (__runInitializers$1(this, _label_extraInitializers), __runInitializers$1(this, _choices_initializers, []));
+            disabled = (__runInitializers$1(this, _choices_extraInitializers), __runInitializers$1(this, _disabled_initializers, false));
+            addFace = __runInitializers$1(this, _disabled_extraInitializers);
+            addLabel;
+            stepper;
+            decrementButton;
+            decrementIcon;
+            countLabel;
+            incrementButton;
+            /**
+             * @description Where the choices are offered. Parked in the shared popup container rather than kept in
+             * the button, so the button takes it away itself when it goes — see {@link CartButton.destroy}.
+             */
+            popup;
+            popupOpen = false;
+            setupUIElements() {
+                super.setupUIElements();
+                this.addLabel = span({ classes: "cart-button-label" });
+                this.addFace = element({
+                    tag: "button", classes: "cart-button-add",
+                    children: [GradumIcon.create({ icon: "plus", classes: "cart-button-icon" }), this.addLabel]
+                });
+                this.decrementIcon = GradumIcon.create({ icon: "minus" });
+                this.decrementButton = element({
+                    tag: "button", classes: "cart-button-step", children: this.decrementIcon
+                });
+                this.countLabel = span({ classes: "cart-button-count" });
+                this.incrementButton = element({
+                    tag: "button", classes: "cart-button-step", title: "One more",
+                    children: GradumIcon.create({ icon: "plus" })
+                });
+                this.stepper = div({
+                    classes: "cart-button-stepper",
+                    children: [this.decrementButton, this.countLabel, this.incrementButton]
+                });
+                this.popup = GradumPopup.create({ anchor: this.addFace, classes: "cart-button-popup" });
+                this.popup.show(false);
+            }
+            setupUILayout() {
+                super.setupUILayout();
+                gradum(this).addChild([this.addFace, this.stepper]);
+            }
+            setupUIListeners() {
+                super.setupUIListeners();
+                gradum(this.addFace).on(DefaultEventName.click, () => {
+                    if (this.choices.length > 1)
+                        return this.openPopup(!this.popupOpen);
+                    this.element.onAdd.fire(this.choices[0]?.value);
+                });
+                gradum(this.incrementButton).on(DefaultEventName.click, () => this.element.onIncrement.fire());
+                gradum(this.decrementButton).on(DefaultEventName.click, () => this.element.onDecrement.fire());
+                //Anywhere else closes it, as a dropdown's would.
+                gradum(document.body).on(DefaultEventName.click, event => {
+                    const target = event.target;
+                    if (this.popupOpen && !this.popup.contains(target) && !this.addFace.contains(target))
+                        this.openPopup(false);
+                }, { capture: true });
+            }
+            openPopup(open) {
+                this.popupOpen = open;
+                this.popup.show(open);
+            }
+            updateLabel() {
+                this.addLabel.textContent = this.label;
+            }
+            updateCount() {
+                const count = this.count;
+                const empty = !(count > 0);
+                gradum(this).toggleClass("filled", !empty);
+                this.countLabel.textContent = String(count);
+                //The last one out empties it, so it says so.
+                this.decrementIcon.icon = count === 1 ? "trash" : "minus";
+                this.decrementButton.title = count === 1 ? "Remove" : "One less";
+                if (!empty)
+                    this.openPopup(false);
+            }
+            updateChoices() {
+                this.popup.replaceChildren(...this.choices.map(choice => {
+                    const option = element({ tag: "button", classes: "cart-button-choice", text: choice.label });
+                    gradum(option).on(DefaultEventName.click, () => {
+                        this.openPopup(false);
+                        this.element.onAdd.fire(choice.value);
+                    });
+                    return option;
+                }));
+            }
+            updateDisabled() {
+                gradum(this).toggleClass("disabled", this.disabled);
+            }
+        };
+    })();
+
+    var css_248z$6 = "demo-cart-button{display:inline-flex;flex:none;font-size:var(--text-xs);font-weight:700}demo-cart-button button{align-items:center;background:none;border:none;color:inherit;cursor:pointer;display:inline-flex;font:inherit;justify-content:center;padding:0}demo-cart-button .cart-button-add{background:var(--color-primary);border-radius:var(--radius-pill);box-shadow:var(--shadow-small);color:var(--text);gap:.15em;padding:.5em .85em .5em .65em}demo-cart-button .cart-button-add:hover{filter:brightness(1.05)}demo-cart-button .cart-button-add .gradum-icon{fill:var(--text);height:1.35em;width:1.35em}demo-cart-button .cart-button-stepper{align-items:center;background:var(--fill);border-radius:var(--radius-pill);box-shadow:var(--shadow-small);color:var(--text-soft);display:inline-flex;gap:.5em;padding:.33em}demo-cart-button .cart-button-step{border-radius:var(--radius-pill);height:1.5em;width:1.5em}demo-cart-button .cart-button-step:hover{background:var(--line)}demo-cart-button .cart-button-step .gradum-icon{fill:var(--text-soft);height:1.1em;width:1.1em}demo-cart-button .cart-button-count{font-variant-numeric:tabular-nums;min-width:1ch;text-align:center}demo-cart-button.filled .cart-button-add,demo-cart-button:not(.filled) .cart-button-stepper{display:none}demo-cart-button.disabled{pointer-events:none}demo-cart-button.disabled .cart-button-add,demo-cart-button.disabled .cart-button-stepper{background:var(--line);color:var(--muted)}demo-cart-button.disabled .gradum-icon{fill:var(--muted)}.cart-button-popup{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--radius);box-shadow:var(--shadow-float);display:flex;flex-direction:column;font-size:.8125rem;min-width:8rem;padding:.25rem}.cart-button-choice{background:none;border:none;border-radius:var(--radius-sm);color:inherit;cursor:pointer;font:inherit;padding:.35rem .6rem;text-align:left}.cart-button-choice:hover{background:var(--fill)}";
+    styleInject(css_248z$6);
+
+    /**
+     * @class CartButton
+     *
+     * @extends GradumElement
+     * @description A button for putting something in a cart and seeing how much of it is in there. It only
+     * shows a count and says what was pressed — what adding and taking out mean is up to whoever listens.
+     *
+     * @example
+     * ```ts
+     * const button = CartButton.create({choices: [{label: "Groceries", value: "cart-1"}]});
+     * button.onAdd.add(value => button.count++);
+     * button.onDecrement.add(() => button.count--);
+     * ```
+     */
+    let CartButton = (() => {
+        let _classSuper = GradumElement;
+        let _count_decorators;
+        let _count_initializers = [];
+        let _count_extraInitializers = [];
+        let _label_decorators;
+        let _label_initializers = [];
+        let _label_extraInitializers = [];
+        let _choices_decorators;
+        let _choices_initializers = [];
+        let _choices_extraInitializers = [];
+        let _disabled_decorators;
+        let _disabled_initializers = [];
+        let _disabled_extraInitializers = [];
+        return class CartButton extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _count_decorators = [expose("view")];
+                _label_decorators = [expose("view")];
+                _choices_decorators = [expose("view")];
+                _disabled_decorators = [expose("view")];
+                __esDecorate$1(null, null, _count_decorators, { kind: "field", name: "count", static: false, private: false, access: { has: obj => "count" in obj, get: obj => obj.count, set: (obj, value) => { obj.count = value; } }, metadata: _metadata }, _count_initializers, _count_extraInitializers);
+                __esDecorate$1(null, null, _label_decorators, { kind: "field", name: "label", static: false, private: false, access: { has: obj => "label" in obj, get: obj => obj.label, set: (obj, value) => { obj.label = value; } }, metadata: _metadata }, _label_initializers, _label_extraInitializers);
+                __esDecorate$1(null, null, _choices_decorators, { kind: "field", name: "choices", static: false, private: false, access: { has: obj => "choices" in obj, get: obj => obj.choices, set: (obj, value) => { obj.choices = value; } }, metadata: _metadata }, _choices_initializers, _choices_extraInitializers);
+                __esDecorate$1(null, null, _disabled_decorators, { kind: "field", name: "disabled", static: false, private: false, access: { has: obj => "disabled" in obj, get: obj => obj.disabled, set: (obj, value) => { obj.disabled = value; } }, metadata: _metadata }, _disabled_initializers, _disabled_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                view: CartButtonView,
+            };
+            count = __runInitializers$1(this, _count_initializers, void 0);
+            label = (__runInitializers$1(this, _count_extraInitializers), __runInitializers$1(this, _label_initializers, void 0));
+            choices = (__runInitializers$1(this, _label_extraInitializers), __runInitializers$1(this, _choices_initializers, void 0));
+            disabled = (__runInitializers$1(this, _choices_extraInitializers), __runInitializers$1(this, _disabled_initializers, void 0));
+            /**
+             * @readonly
+             * @description Fired when the add face is pressed — or, when there is more than one choice, when one is
+             * picked from its popup. Handed the choice's value, if there is one.
+             */
+            onAdd = (__runInitializers$1(this, _disabled_extraInitializers), new Delegate());
+            /**
+             * @readonly
+             * @description Fired when the stepper's plus is pressed.
+             */
+            onIncrement = new Delegate();
+            /**
+             * @readonly
+             * @description Fired when the stepper's minus — or bin, with one left — is pressed.
+             */
+            onDecrement = new Delegate();
+            /**
+             * @function destroy
+             * @description Take the popup away with the button. What `gradum(...).destroy()` calls on a subtree
+             * holding one, since the popup lives outside it.
+             */
+            destroy() {
+                gradum(this.view.popup).destroy();
+                return this;
+            }
+        };
+    })();
+    define(CartButton, "demo-cart-button");
+
+    //How many words of the description show before "Read more".
+    const PreviewWords = 50;
+    /**
+     * @class ItemView
+     *
+     * @extends GradumView
+     * @description The card itself. Collapsed, the product's picture beside its name, price, and the buttons to
+     * put it in a cart and to open it. Expanded, the card reads down instead: the name in full, where it is
+     * filed, the price, its pictures in a carousel, its description and a table of its measurements, with the
+     * same buttons at the end.
+     *
+     * Every part is a child of the card and the stylesheet lays them out for either state, so expanding moves
+     * nothing between parents. What only the expanded card shows is only drawn while it is expanded — a
+     * catalogue holds a hundred cards, and most are never opened.
+     */
+    let ItemView = (() => {
+        let _classSuper = GradumView;
+        let _instanceExtraInitializers = [];
+        let _showAddButton_decorators;
+        let _showAddButton_initializers = [];
+        let _showAddButton_extraInitializers = [];
+        let _expanded_decorators;
+        let _expanded_initializers = [];
+        let _expanded_extraInitializers = [];
+        let _fullText_decorators;
+        let _fullText_initializers = [];
+        let _fullText_extraInitializers = [];
+        let _updateExpanded_decorators;
+        let _updatePicture_decorators;
+        let _updateTitle_decorators;
+        let _updatePrice_decorators;
+        let _updateCartButton_decorators;
+        let _updateBreadcrumb_decorators;
+        let _updateCarousel_decorators;
+        let _updateDescription_decorators;
+        let _updateProperties_decorators;
+        return class ItemView extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _showAddButton_decorators = [signal];
+                _expanded_decorators = [signal];
+                _fullText_decorators = [signal];
+                _updateExpanded_decorators = [effect];
+                _updatePicture_decorators = [effect];
+                _updateTitle_decorators = [effect];
+                _updatePrice_decorators = [effect];
+                _updateCartButton_decorators = [effect];
+                _updateBreadcrumb_decorators = [effect];
+                _updateCarousel_decorators = [effect];
+                _updateDescription_decorators = [effect];
+                _updateProperties_decorators = [effect];
+                __esDecorate$1(this, null, _updateExpanded_decorators, { kind: "method", name: "updateExpanded", static: false, private: false, access: { has: obj => "updateExpanded" in obj, get: obj => obj.updateExpanded }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updatePicture_decorators, { kind: "method", name: "updatePicture", static: false, private: false, access: { has: obj => "updatePicture" in obj, get: obj => obj.updatePicture }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateTitle_decorators, { kind: "method", name: "updateTitle", static: false, private: false, access: { has: obj => "updateTitle" in obj, get: obj => obj.updateTitle }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updatePrice_decorators, { kind: "method", name: "updatePrice", static: false, private: false, access: { has: obj => "updatePrice" in obj, get: obj => obj.updatePrice }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateCartButton_decorators, { kind: "method", name: "updateCartButton", static: false, private: false, access: { has: obj => "updateCartButton" in obj, get: obj => obj.updateCartButton }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateBreadcrumb_decorators, { kind: "method", name: "updateBreadcrumb", static: false, private: false, access: { has: obj => "updateBreadcrumb" in obj, get: obj => obj.updateBreadcrumb }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateCarousel_decorators, { kind: "method", name: "updateCarousel", static: false, private: false, access: { has: obj => "updateCarousel" in obj, get: obj => obj.updateCarousel }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateDescription_decorators, { kind: "method", name: "updateDescription", static: false, private: false, access: { has: obj => "updateDescription" in obj, get: obj => obj.updateDescription }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateProperties_decorators, { kind: "method", name: "updateProperties", static: false, private: false, access: { has: obj => "updateProperties" in obj, get: obj => obj.updateProperties }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(null, null, _showAddButton_decorators, { kind: "field", name: "showAddButton", static: false, private: false, access: { has: obj => "showAddButton" in obj, get: obj => obj.showAddButton, set: (obj, value) => { obj.showAddButton = value; } }, metadata: _metadata }, _showAddButton_initializers, _showAddButton_extraInitializers);
+                __esDecorate$1(null, null, _expanded_decorators, { kind: "field", name: "expanded", static: false, private: false, access: { has: obj => "expanded" in obj, get: obj => obj.expanded, set: (obj, value) => { obj.expanded = value; } }, metadata: _metadata }, _expanded_initializers, _expanded_extraInitializers);
+                __esDecorate$1(null, null, _fullText_decorators, { kind: "field", name: "fullText", static: false, private: false, access: { has: obj => "fullText" in obj, get: obj => obj.fullText, set: (obj, value) => { obj.fullText = value; } }, metadata: _metadata }, _fullText_initializers, _fullText_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            showAddButton = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _showAddButton_initializers, true));
+            /**
+             * @description Whether the card shows everything about the product rather than only its name and price.
+             */
+            expanded = (__runInitializers$1(this, _showAddButton_extraInitializers), __runInitializers$1(this, _expanded_initializers, false));
+            /**
+             * @description Whether the description is shown in full rather than cut short.
+             */
+            fullText = (__runInitializers$1(this, _expanded_extraInitializers), __runInitializers$1(this, _fullText_initializers, false));
+            picture = __runInitializers$1(this, _fullText_extraInitializers);
+            title;
+            price;
+            breadcrumb;
+            carousel;
+            description;
+            textBody;
+            text;
+            highlights;
+            moreButton;
+            propertiesTable;
+            actions;
+            cartButton;
+            infoButton;
+            setupUIElements() {
+                super.setupUIElements();
+                this.picture = img({ classes: "item-picture" });
+                this.title = span({ classes: "item-title" });
+                this.price = span({ classes: "item-price" });
+                this.breadcrumb = div({ classes: ["item-breadcrumb", "item-detail"] });
+                this.carousel = Carousel.create({ classes: ["item-carousel", "item-detail"] });
+                this.textBody = span();
+                this.text = element({ tag: "p", classes: "item-text", children: this.textBody });
+                this.highlights = element({ tag: "ul", classes: "item-highlights" });
+                this.moreButton = element({ tag: "button", classes: "item-more" });
+                this.description = div({
+                    classes: ["item-description", "item-detail"],
+                    children: [this.text, this.highlights, this.moreButton]
+                });
+                this.propertiesTable = div({ classes: ["item-properties", "item-detail"] });
+                this.cartButton = CartButton.create();
+                this.infoButton = element({
+                    tag: "button", classes: ["item-info", "pill-button"],
+                    children: [GradumIcon.create({ icon: "chevron-bottom" }), span({ text: "Info" })]
+                });
+                this.actions = div({ classes: "item-actions", children: [this.cartButton, this.infoButton] });
+            }
+            setupUILayout() {
+                super.setupUILayout();
+                gradum(this).addChild([
+                    this.picture, this.title, this.breadcrumb, this.price, this.carousel,
+                    this.description, this.propertiesTable, this.actions
+                ]);
+            }
+            setupUIListeners() {
+                super.setupUIListeners();
+                gradum(this.infoButton).on(DefaultEventName.click, () => this.expanded = !this.expanded);
+                gradum(this.moreButton).on(DefaultEventName.click, () => this.fullText = !this.fullText);
+                this.cartButton.onAdd.add(value => {
+                    const cart = this.canvas?.getCart(value) ?? this.cart;
+                    if (!cart)
+                        return;
+                    //Picking a cart is also what the card goes on adding to.
+                    this.model.cart = cart;
+                    cart.addItem(this.element, 1);
+                });
+                this.cartButton.onIncrement.add(() => this.cart?.addItem(this.element, 1));
+                this.cartButton.onDecrement.add(() => {
+                    const cart = this.cart;
+                    cart?.setAmount(this.element, cart.howMuchOf(this.element) - 1);
+                });
+            }
+            /**
+             * @readonly
+             * @description The canvas the card is on, which is what knows the carts. Looked up by its tag rather than
+             * its class, so the card does not have to import the canvas — which imports the card.
+             * @protected
+             */
+            get canvas() {
+                return gradum(this).closest("my-canvas");
+            }
+            /**
+             * @readonly
+             * @description The cart the card's button adds to: the one last picked, while it is still on the canvas,
+             * or the only one there is. With several and none picked yet, there is none until one is.
+             * @protected
+             */
+            get cart() {
+                const carts = this.canvas?.carts ?? [];
+                const picked = this.model.cart;
+                if (picked && carts.includes(picked))
+                    return picked;
+                return carts.length === 1 ? carts[0] : undefined;
+            }
+            updateExpanded() {
+                //The parts are laid out and hidden by the stylesheet rather than here, so a collapsed card takes no
+                //room for what it does not show.
+                gradum(this).toggleClass("expanded", this.expanded);
+            }
+            updatePicture() {
+                const image = this.model.image;
+                gradum(this.picture).toggleClass("item-hidden", !image);
+                if (image)
+                    this.picture.src = image;
+                this.picture.alt = this.model.name;
+            }
+            updateTitle() {
+                this.title.textContent = this.model.name;
+                this.title.title = this.model.name;
+            }
+            updatePrice() {
+                this.price.textContent = formatPrice(this.model.price);
+            }
+            /**
+             * @description Point the cart button at the cart the card adds to, and show how much of the product is
+             * in it. With no cart picked yet, adding asks which of them.
+             * @protected
+             */
+            updateCartButton() {
+                const carts = this.canvas?.carts ?? [];
+                const cart = this.cart;
+                this.cartButton.count = cart?.howMuchOf(this.element) ?? 0;
+                this.cartButton.choices = (cart ? [cart] : carts).map(entry => ({ label: entry.name, value: entry.dataId }));
+                this.cartButton.disabled = carts.length === 0 || !!cart?.locked;
+                gradum(this.cartButton).toggleClass("item-hidden", !this.showAddButton);
+            }
+            updateBreadcrumb() {
+                if (!this.expanded)
+                    return;
+                const categories = this.model.categories ?? [];
+                this.breadcrumb.replaceChildren(...categories.map(category => span({ classes: "item-chip", text: category })));
+                gradum(this.breadcrumb).toggleClass("item-hidden", categories.length === 0);
+            }
+            updateCarousel() {
+                if (!this.expanded)
+                    return;
+                const images = this.model.images ?? [];
+                this.carousel.images = images;
+                this.carousel.alt = this.model.name;
+                gradum(this.carousel).toggleClass("item-hidden", images.length === 0);
+            }
+            /**
+             * @description The description's text in full: the product's own, or its selling points run together
+             * when it has none — in which case, in full, the list says it all and the text is left empty.
+             */
+            get descriptionText() {
+                const description = this.model.description;
+                if (description?.text)
+                    return description.text;
+                return this.fullText ? "" : (description?.highlights ?? []).join(" ");
+            }
+            /**
+             * @description Fill in the description. Cut short, it is the first {@link PreviewWords} words with
+             * "Read more" straight after the last one. In full, the text, the selling points as a list, and
+             * "Read less" under them. With nothing more to show, there is no button.
+             * @protected
+             */
+            updateDescription() {
+                if (!this.expanded)
+                    return;
+                const highlights = this.model.description?.highlights ?? [];
+                this.highlights.replaceChildren(...highlights.map(highlight => element({ tag: "li", text: highlight })));
+                gradum(this.description).toggleClass("item-hidden", !this.model.description?.text && highlights.length === 0);
+                const fullText = this.fullText;
+                const text = this.descriptionText;
+                const words = text.split(/\s+/).filter(Boolean);
+                const cut = !fullText && words.length > PreviewWords;
+                gradum(this.description).toggleClass("full", fullText);
+                this.moreButton.textContent = fullText ? "Read less" : "Read more";
+                gradum(this.moreButton).toggleClass("item-hidden", !cut && !fullText && highlights.length === 0);
+                //Inline at the end of the text while it is cut, under the list once it is not.
+                if (fullText)
+                    this.description.appendChild(this.moreButton);
+                else
+                    this.text.appendChild(this.moreButton);
+                this.textBody.textContent = cut ? words.slice(0, PreviewWords).join(" ") + "… " : text + " ";
+            }
+            /**
+             * @description Rebuild the table of measurements, each under its label and with its unit. Reads the
+             * units through the catalogue, so the table is drawn again once the units file has been read. A card off
+             * any canvas has no catalogue, and shows the numbers bare.
+             * @protected
+             */
+            updateProperties() {
+                if (!this.expanded)
+                    return;
+                const properties = this.model.properties ?? {};
+                const catalogue = this.canvas?.catalogue;
+                const keys = catalogue?.model.unitsHandler.order(properties) ?? Object.keys(properties);
+                this.propertiesTable.replaceChildren(...keys.map(key => div({
+                    classes: "item-property",
+                    children: [
+                        span({ classes: "item-property-name", text: catalogue?.label(key) ?? key }),
+                        span({
+                            classes: "item-property-value",
+                            text: catalogue?.format(key, properties[key]) ?? String(properties[key])
+                        }),
+                    ]
+                })));
+                gradum(this.propertiesTable).toggleClass("item-hidden", keys.length === 0);
+            }
+        };
+    })();
+
+    var css_248z$5 = ".demo-square.demo-item{align-content:center;align-items:center;background-color:var(--surface);border:1px solid var(--surface);border-radius:var(--radius);box-sizing:border-box;display:grid;font-size:1rem;gap:var(--space-2) var(--space-3);grid-template-areas:\"picture title title\" \"picture price actions\";grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto auto;height:auto;padding:.875em;width:22rem}.demo-square.demo-item.expanded,.demo-square.demo-item:hover{border-color:var(--color-primary-light)}.demo-square.demo-item.expanded{align-items:start;grid-template-areas:\"title\" \"breadcrumb\" \"price\" \"carousel\" \"description\" \"properties\" \"actions\";grid-template-columns:minmax(0,1fr);grid-template-rows:none;row-gap:var(--space-4)}demo-item{-webkit-user-select:none;-moz-user-select:none;user-select:none}demo-item.placed{left:0;position:absolute;top:0;z-index:1}.demo-square.demo-item.placed.expanded{box-shadow:var(--shadow-float);z-index:4}demo-item .item-picture{align-self:stretch;background:var(--fill);border-radius:var(--radius);box-sizing:border-box;contain:size;grid-area:picture;height:100%;-o-object-fit:cover;object-fit:cover;width:4.5em}demo-item .item-title{color:var(--text);display:-webkit-box;font-size:var(--text-md);font-weight:600;grid-area:title;-webkit-line-clamp:2;line-height:1.2;-webkit-box-orient:vertical;overflow:hidden}demo-item.expanded .item-title{display:block}demo-item .item-price{color:var(--price);font-size:1em;font-weight:700;grid-area:price}demo-item.expanded .item-breadcrumb,demo-item.expanded .item-price{margin-top:calc(var(--space-2)*-1)}demo-item .item-actions{align-items:center;display:flex;gap:var(--space-2);grid-area:actions;justify-content:flex-end;transition:opacity .12s}demo-item:not(.expanded):not(:hover) .item-actions:not(:has(demo-cart-button.filled)){opacity:0}demo-item .item-info .gradum-icon{transition:rotate .15s}demo-item.expanded .item-info .gradum-icon{rotate:180deg}demo-item.expanded .item-picture,demo-item:not(.expanded) .item-detail{display:none}demo-item .item-breadcrumb{align-items:center;display:flex;flex-wrap:wrap;gap:.375em;grid-area:breadcrumb}demo-item .item-chip{background:var(--fill);border-radius:var(--radius-pill);color:var(--text-soft);font-size:var(--text-xs);font-weight:700;padding:.33em .67em}demo-item .item-carousel{grid-area:carousel}demo-item .item-description{font-size:var(--text-xxs);grid-area:description;line-height:1.3}demo-item .item-text{margin:0}demo-item .item-description:not(.full) .item-highlights,demo-item .item-text:has(>span:empty):not(:has(>.item-more)){display:none}demo-item .item-highlights{margin:var(--space-3) 0 0;padding-left:1.5em}demo-item .item-more{background:none;border:none;color:var(--price);cursor:pointer;display:inline;font:inherit;font-weight:600;padding:0;white-space:nowrap}demo-item .item-description.full .item-more{display:block;margin-top:var(--space-1)}demo-item .item-more:hover{text-decoration:underline}demo-item .item-properties{border:1px solid var(--line-soft);border-radius:var(--radius-sm);color:var(--text-soft);display:flex;flex-direction:column;font-size:var(--text-xxs);gap:.5em;grid-area:properties;padding:.5em}demo-item .item-property{display:grid;gap:var(--space-2);grid-template-columns:1fr 2fr}demo-item .item-property+.item-property{border-top:1px solid var(--line-soft);padding-top:.5em}demo-item .item-property-name{font-weight:600}demo-item .item-property-value{font-variant-numeric:tabular-nums}demo-item .item-hidden{display:none}.drag-ghost{opacity:.55;pointer-events:none;z-index:10}";
+    styleInject(css_248z$5);
+
+    /**
+     * @class Item
+     *
+     * @extends Square
+     * @description A product, as a card: its picture, name and price, and a button to put it in a cart and see
+     * how much of it is in there. The button adds to whichever cart was last picked. Expanded, the same card
+     * shows everything else about the product as well — see {@link expanded}.
+     */
+    let Item = (() => {
+        let _classSuper = Square;
+        let _instanceExtraInitializers = [];
+        let _color_decorators;
+        let _color_initializers = [];
+        let _color_extraInitializers = [];
+        let _anchor_decorators;
+        let _anchor_initializers = [];
+        let _anchor_extraInitializers = [];
+        let _name_decorators;
+        let _name_initializers = [];
+        let _name_extraInitializers = [];
+        let _price_decorators;
+        let _price_initializers = [];
+        let _price_extraInitializers = [];
+        let _images_decorators;
+        let _images_initializers = [];
+        let _images_extraInitializers = [];
+        let _categories_decorators;
+        let _categories_initializers = [];
+        let _categories_extraInitializers = [];
+        let _description_decorators;
+        let _description_initializers = [];
+        let _description_extraInitializers = [];
+        let _cart_decorators;
+        let _cart_initializers = [];
+        let _cart_extraInitializers = [];
+        let _fixed_decorators;
+        let _fixed_initializers = [];
+        let _fixed_extraInitializers = [];
+        let _showAddButton_decorators;
+        let _showAddButton_initializers = [];
+        let _showAddButton_extraInitializers = [];
+        let _expanded_decorators;
+        let _expanded_initializers = [];
+        let _expanded_extraInitializers = [];
+        let _image_decorators;
+        let _image_initializers = [];
+        let _image_extraInitializers = [];
+        let _isModifiable_decorators;
+        let _updatePosition_decorators;
+        let _updateSize_decorators;
+        return class Item extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _color_decorators = [signal];
+                _anchor_decorators = [signal];
+                _name_decorators = [expose("model")];
+                _price_decorators = [expose("model")];
+                _images_decorators = [expose("model")];
+                _categories_decorators = [expose("model")];
+                _description_decorators = [expose("model")];
+                _cart_decorators = [expose("model")];
+                _fixed_decorators = [signal];
+                _showAddButton_decorators = [expose("view")];
+                _expanded_decorators = [expose("view")];
+                _image_decorators = [expose("model", false)];
+                _isModifiable_decorators = [effect];
+                _updatePosition_decorators = [effect];
+                _updateSize_decorators = [effect];
+                __esDecorate$1(this, null, _isModifiable_decorators, { kind: "method", name: "isModifiable", static: false, private: false, access: { has: obj => "isModifiable" in obj, get: obj => obj.isModifiable }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updatePosition_decorators, { kind: "method", name: "updatePosition", static: false, private: false, access: { has: obj => "updatePosition" in obj, get: obj => obj.updatePosition }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateSize_decorators, { kind: "method", name: "updateSize", static: false, private: false, access: { has: obj => "updateSize" in obj, get: obj => obj.updateSize }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
+                __esDecorate$1(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
+                __esDecorate$1(null, null, _name_decorators, { kind: "field", name: "name", static: false, private: false, access: { has: obj => "name" in obj, get: obj => obj.name, set: (obj, value) => { obj.name = value; } }, metadata: _metadata }, _name_initializers, _name_extraInitializers);
+                __esDecorate$1(null, null, _price_decorators, { kind: "field", name: "price", static: false, private: false, access: { has: obj => "price" in obj, get: obj => obj.price, set: (obj, value) => { obj.price = value; } }, metadata: _metadata }, _price_initializers, _price_extraInitializers);
+                __esDecorate$1(null, null, _images_decorators, { kind: "field", name: "images", static: false, private: false, access: { has: obj => "images" in obj, get: obj => obj.images, set: (obj, value) => { obj.images = value; } }, metadata: _metadata }, _images_initializers, _images_extraInitializers);
+                __esDecorate$1(null, null, _categories_decorators, { kind: "field", name: "categories", static: false, private: false, access: { has: obj => "categories" in obj, get: obj => obj.categories, set: (obj, value) => { obj.categories = value; } }, metadata: _metadata }, _categories_initializers, _categories_extraInitializers);
+                __esDecorate$1(null, null, _description_decorators, { kind: "field", name: "description", static: false, private: false, access: { has: obj => "description" in obj, get: obj => obj.description, set: (obj, value) => { obj.description = value; } }, metadata: _metadata }, _description_initializers, _description_extraInitializers);
+                __esDecorate$1(null, null, _cart_decorators, { kind: "field", name: "cart", static: false, private: false, access: { has: obj => "cart" in obj, get: obj => obj.cart, set: (obj, value) => { obj.cart = value; } }, metadata: _metadata }, _cart_initializers, _cart_extraInitializers);
+                __esDecorate$1(null, null, _fixed_decorators, { kind: "field", name: "fixed", static: false, private: false, access: { has: obj => "fixed" in obj, get: obj => obj.fixed, set: (obj, value) => { obj.fixed = value; } }, metadata: _metadata }, _fixed_initializers, _fixed_extraInitializers);
+                __esDecorate$1(null, null, _showAddButton_decorators, { kind: "field", name: "showAddButton", static: false, private: false, access: { has: obj => "showAddButton" in obj, get: obj => obj.showAddButton, set: (obj, value) => { obj.showAddButton = value; } }, metadata: _metadata }, _showAddButton_initializers, _showAddButton_extraInitializers);
+                __esDecorate$1(null, null, _expanded_decorators, { kind: "field", name: "expanded", static: false, private: false, access: { has: obj => "expanded" in obj, get: obj => obj.expanded, set: (obj, value) => { obj.expanded = value; } }, metadata: _metadata }, _expanded_initializers, _expanded_extraInitializers);
+                __esDecorate$1(null, null, _image_decorators, { kind: "field", name: "image", static: false, private: false, access: { has: obj => "image" in obj, get: obj => obj.image, set: (obj, value) => { obj.image = value; } }, metadata: _metadata }, _image_initializers, _image_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                view: ItemView,
+                model: ItemModel,
+            };
+            color = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _color_initializers, Color.from("#FFFFFF")));
+            //Held by its top-left, so a card that grows — expanded — grows down the canvas rather than both ways.
+            anchor = (__runInitializers$1(this, _color_extraInitializers), __runInitializers$1(this, _anchor_initializers, Anchor.TopLeft));
+            name = (__runInitializers$1(this, _anchor_extraInitializers), __runInitializers$1(this, _name_initializers, void 0));
+            price = (__runInitializers$1(this, _name_extraInitializers), __runInitializers$1(this, _price_initializers, void 0));
+            images = (__runInitializers$1(this, _price_extraInitializers), __runInitializers$1(this, _images_initializers, void 0));
+            categories = (__runInitializers$1(this, _images_extraInitializers), __runInitializers$1(this, _categories_initializers, void 0));
+            description = (__runInitializers$1(this, _categories_extraInitializers), __runInitializers$1(this, _description_initializers, void 0));
+            cart = (__runInitializers$1(this, _description_extraInitializers), __runInitializers$1(this, _cart_initializers, void 0));
+            /**
+             * @description Whether the item is laid out by whatever it is in — a list — rather than placing itself.
+             */
+            fixed = (__runInitializers$1(this, _cart_extraInitializers), __runInitializers$1(this, _fixed_initializers, false));
+            showAddButton = (__runInitializers$1(this, _fixed_extraInitializers), __runInitializers$1(this, _showAddButton_initializers, void 0));
+            /**
+             * @description Whether the card shows everything about the product — its pictures, where it is filed,
+             * its description and measurements — rather than only its name and price. What the card's Info button
+             * toggles.
+             */
+            expanded = (__runInitializers$1(this, _showAddButton_extraInitializers), __runInitializers$1(this, _expanded_initializers, void 0));
+            image = (__runInitializers$1(this, _expanded_extraInitializers), __runInitializers$1(this, _image_initializers, void 0));
+            /**
+             * @description Keeps the card's size in step with its contents. A card is as big as what it shows — its
+             * width is the stylesheet's and its height its contents' — so a card placing itself measures itself
+             * rather than being sized, and expanding it grows its box with it.
+             * @protected
+             */
+            contentObserver = __runInitializers$1(this, _image_extraInitializers);
+            initialize() {
+                if (this.initialized)
+                    return;
+                super.initialize();
+                this.contentObserver = new ResizeObserver(() => {
+                    if (this.fixed)
+                        return;
+                    this.size = new Point(this.offsetWidth, this.offsetHeight);
+                });
+                this.contentObserver.observe(this);
+            }
+            /**
+             * @description How the card is taken hold of, which follows from whether it places itself. A card with a
+             * position of its own is dragged where it stands; one laid out by whatever it is in — a list — is
+             * dragged and dropped instead, since moving it in place would mean nothing.
+             */
+            isModifiable() {
+                gradum(this).metadata.set(!this.fixed, "modifiable");
+                gradum(this).metadata.set(!!this.fixed, "dragAndDroppable");
+            }
+            /**
+             * @function clone
+             * @description A second card for the same item. What a catalogue hands over when one of its cards is
+             * dragged out: the catalogue's own card is a template and stays where it is.
+             *
+             * Give it the parent it is going to rather than adding it afterwards — a card works out what it can be
+             * added to from where it is, and it works that out as it is built.
+             * @param {CloneElementOptions} [options] - Where the new card goes, under `parent`.
+             * @returns {Item} The new card.
+             */
+            clone(options = {}) {
+                return Item.create({
+                    parent: options.parent,
+                    data: { ...this.data },
+                    cart: this.cart,
+                });
+            }
+            /**
+             * @function delete
+             * @description Get rid of the card, and the add dropdown's popup with it. What the delete tool calls. Use
+             * it over `remove()`: the popup is parked outside the card, so removing the card alone would leave it
+             * behind.
+             */
+            delete() {
+                gradum(this).destroy();
+            }
+            /**
+             * @description Where the card is. A card in a list is wherever the list put it, which only the page
+             * knows; a card placing itself is where its position says.
+             * @returns {GradumRect} The card's box.
+             */
+            getBoundingClientRect() {
+                if (!this.fixed)
+                    return super.getBoundingClientRect();
+                const rect = HTMLElement.prototype.getBoundingClientRect.call(this);
+                return new GradumRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+            }
+            updatePosition() {
+                gradum(this).toggleClass("placed", !this.fixed);
+                gradum(this).setStyle("position", this.fixed ? "relative" : "absolute");
+                //Through the same queue as the square's own writes rather than instantly, so a transform the square
+                //queued while the card was still placing itself cannot land after this and put it back.
+                if (this.fixed)
+                    gradum(this).setStyle("transform", "");
+                else
+                    return super.updatePosition();
+            }
+            /**
+             * @description Leave the card at the size of its contents rather than of {@link Square.size} — see
+             * {@link Item.contentObserver}, which goes the other way.
+             * @protected
+             */
+            updateSize() {
+                gradum(this).setStyles({ width: this.fixed ? "auto" : "", height: "" });
+            }
+        };
+    })();
+    define(Item, "demo-item");
+
+    /**
+     * @class CollectionModel
+     *
+     * @extends GradumModel
+     * @description What a collection is and what is in it: what it is called, whether it is closed to changes,
+     * whether it is a catalogue, and the items it holds. Where it is and how big it is belong to the collection
+     * itself, as they do to any square on the canvas.
+     */
+    let CollectionModel = (() => {
+        let _classSuper = GradumModel;
+        let _name_decorators;
+        let _name_initializers = [];
+        let _name_extraInitializers = [];
+        let _locked_decorators;
+        let _locked_initializers = [];
+        let _locked_extraInitializers = [];
+        let _catalogue_decorators;
+        let _catalogue_initializers = [];
+        let _catalogue_extraInitializers = [];
+        let _items_decorators;
+        let _items_initializers = [];
+        let _items_extraInitializers = [];
+        let _page_decorators;
+        let _page_initializers = [];
+        let _page_extraInitializers = [];
+        let _pageSize_decorators;
+        let _pageSize_initializers = [];
+        let _pageSize_extraInitializers = [];
+        let _total_decorators;
+        let _total_initializers = [];
+        let _total_extraInitializers = [];
+        let _filters_decorators;
+        let _filters_initializers = [];
+        let _filters_extraInitializers = [];
+        return class CollectionModel extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _name_decorators = [signal];
+                _locked_decorators = [signal];
+                _catalogue_decorators = [signal];
+                _items_decorators = [signal];
+                _page_decorators = [signal];
+                _pageSize_decorators = [signal];
+                _total_decorators = [signal];
+                _filters_decorators = [signal];
+                __esDecorate$1(null, null, _name_decorators, { kind: "field", name: "name", static: false, private: false, access: { has: obj => "name" in obj, get: obj => obj.name, set: (obj, value) => { obj.name = value; } }, metadata: _metadata }, _name_initializers, _name_extraInitializers);
+                __esDecorate$1(null, null, _locked_decorators, { kind: "field", name: "locked", static: false, private: false, access: { has: obj => "locked" in obj, get: obj => obj.locked, set: (obj, value) => { obj.locked = value; } }, metadata: _metadata }, _locked_initializers, _locked_extraInitializers);
+                __esDecorate$1(null, null, _catalogue_decorators, { kind: "field", name: "catalogue", static: false, private: false, access: { has: obj => "catalogue" in obj, get: obj => obj.catalogue, set: (obj, value) => { obj.catalogue = value; } }, metadata: _metadata }, _catalogue_initializers, _catalogue_extraInitializers);
+                __esDecorate$1(null, null, _items_decorators, { kind: "field", name: "items", static: false, private: false, access: { has: obj => "items" in obj, get: obj => obj.items, set: (obj, value) => { obj.items = value; } }, metadata: _metadata }, _items_initializers, _items_extraInitializers);
+                __esDecorate$1(null, null, _page_decorators, { kind: "field", name: "page", static: false, private: false, access: { has: obj => "page" in obj, get: obj => obj.page, set: (obj, value) => { obj.page = value; } }, metadata: _metadata }, _page_initializers, _page_extraInitializers);
+                __esDecorate$1(null, null, _pageSize_decorators, { kind: "field", name: "pageSize", static: false, private: false, access: { has: obj => "pageSize" in obj, get: obj => obj.pageSize, set: (obj, value) => { obj.pageSize = value; } }, metadata: _metadata }, _pageSize_initializers, _pageSize_extraInitializers);
+                __esDecorate$1(null, null, _total_decorators, { kind: "field", name: "total", static: false, private: false, access: { has: obj => "total" in obj, get: obj => obj.total, set: (obj, value) => { obj.total = value; } }, metadata: _metadata }, _total_initializers, _total_extraInitializers);
+                __esDecorate$1(null, null, _filters_decorators, { kind: "field", name: "filters", static: false, private: false, access: { has: obj => "filters" in obj, get: obj => obj.filters, set: (obj, value) => { obj.filters = value; } }, metadata: _metadata }, _filters_initializers, _filters_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            /**
+             * @description What the collection is called. Shown on it, and — for a cart — what an item's add
+             * dropdown lists it as.
+             */
+            name = __runInitializers$1(this, _name_initializers, "");
+            /**
+             * @description Whether the collection is closed to changes. A locked collection cannot be moved and takes
+             * nothing in — what it holds is what it held when it was locked.
+             */
+            locked = (__runInitializers$1(this, _name_extraInitializers), __runInitializers$1(this, _locked_initializers, false));
+            /**
+             * @description Whether the collection is a catalogue: stocked with every product on offer, its cards
+             * templates that are copied rather than moved when dragged out, and taking nothing in.
+             */
+            catalogue = (__runInitializers$1(this, _locked_extraInitializers), __runInitializers$1(this, _catalogue_initializers, false));
+            /**
+             * @description The items in the collection, in its own order. Read back off the collection's children by
+             * {@link Collection.syncItems} rather than set directly, so the list and the page cannot differ.
+             */
+            items = (__runInitializers$1(this, _catalogue_extraInitializers), __runInitializers$1(this, _items_initializers, []));
+            /**
+             * @description Which page of a catalogue is shown, counting from 0. A catalogue builds cards for one
+             * page of products at a time rather than for all of them, so the page holds at most
+             * {@link CollectionModel.pageSize} cards however much is on offer.
+             */
+            page = (__runInitializers$1(this, _items_extraInitializers), __runInitializers$1(this, _page_initializers, 0));
+            /**
+             * @description How many cards a catalogue shows per page.
+             */
+            pageSize = (__runInitializers$1(this, _page_extraInitializers), __runInitializers$1(this, _pageSize_initializers, 20));
+            /**
+             * @description How many products the collection has to show once its filters have had their say. For a
+             * catalogue, across all its pages — what the pager counts against — and set by the catalogue operator;
+             * for anything else, how many of its cards are not hidden, set by the query operator.
+             */
+            total = (__runInitializers$1(this, _pageSize_extraInitializers), __runInitializers$1(this, _total_initializers, 0));
+            /**
+             * @description The filters applying to the collection, in the order they were connected. Only written by
+             * the canvas's links handler.
+             */
+            filters = (__runInitializers$1(this, _total_extraInitializers), __runInitializers$1(this, _filters_initializers, []));
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _filters_extraInitializers);
+            }
+        };
+    })();
+
+    //Lock tool: clicking something with a `locked` flag locks or unlocks it. A locked object is no longer
+    //modifiable, so the other tools leave it alone.
+    let LockTool = (() => {
+        let _classSuper = GradumTool;
+        let _instanceExtraInitializers = [];
+        let _click_decorators;
+        return class LockTool extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _click_decorators = [behavior()];
+                __esDecorate$1(this, null, _click_decorators, { kind: "method", name: "click", static: false, private: false, access: { has: obj => "click" in obj, get: obj => obj.click }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            toolName = (__runInitializers$1(this, _instanceExtraInitializers), "lock"); //Define the tool name
+            //Equivalent to gradum(tool).addToolBehavior("click", "lock", (e, el) => {...});
+            click(e, el) {
+                if (!("locked" in el) || typeof el.locked !== "boolean")
+                    return Propagation.propagate;
+                el.locked = !el.locked;
+                gradum(el).metadata.set(!el.locked, "modifiable");
+                return Propagation.stopPropagation;
+            }
+        };
+    })();
+
+    /**
+     * @class CollectionView
+     *
+     * @extends GradumView
+     * @description The area itself: a panel on the canvas with a strip along the top carrying the collection's
+     * name, how much it holds, and its lock — and, for a catalogue, a pager floating at the bottom. The items it holds are its own children, after the
+     * strip, laid out by whichever layout operator it has.
+     *
+     * Where the area is and how big it is are drawn by the square it is, not here.
+     */
+    let CollectionView = (() => {
+        let _classSuper = GradumView;
+        let _instanceExtraInitializers = [];
+        let _updateName_decorators;
+        let _updateCount_decorators;
+        let _updatePager_decorators;
+        let _updateLocked_decorators;
+        let _updateCatalogue_decorators;
+        return class CollectionView extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _updateName_decorators = [effect];
+                _updateCount_decorators = [effect];
+                _updatePager_decorators = [effect];
+                _updateLocked_decorators = [effect];
+                _updateCatalogue_decorators = [effect];
+                __esDecorate$1(this, null, _updateName_decorators, { kind: "method", name: "updateName", static: false, private: false, access: { has: obj => "updateName" in obj, get: obj => obj.updateName }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateCount_decorators, { kind: "method", name: "updateCount", static: false, private: false, access: { has: obj => "updateCount" in obj, get: obj => obj.updateCount }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updatePager_decorators, { kind: "method", name: "updatePager", static: false, private: false, access: { has: obj => "updatePager" in obj, get: obj => obj.updatePager }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateLocked_decorators, { kind: "method", name: "updateLocked", static: false, private: false, access: { has: obj => "updateLocked" in obj, get: obj => obj.updateLocked }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateCatalogue_decorators, { kind: "method", name: "updateCatalogue", static: false, private: false, access: { has: obj => "updateCatalogue" in obj, get: obj => obj.updateCatalogue }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            /**
+             * @description The strip along the top. Public because the fit operators measure around it to work out
+             * how much room the items have.
+             */
+            header = __runInitializers$1(this, _instanceExtraInitializers);
+            /**
+             * @description The strip along the bottom, with the pager. Public for the same reason as the header.
+             */
+            footer;
+            title;
+            count;
+            lockButton;
+            lockIcon;
+            previousButton;
+            nextButton;
+            pageLabel;
+            setupUIElements() {
+                super.setupUIElements();
+                this.title = span({ classes: "collection-name" });
+                this.count = span({ classes: "collection-count" });
+                this.lockIcon = GradumIcon.create({ icon: "unlock" });
+                this.lockButton = element({
+                    tag: "button", classes: ["collection-button", "collection-lock"], children: this.lockIcon
+                });
+                this.header = div({
+                    classes: ["collection-header", "floating-bar"],
+                    children: [this.title, this.count, this.lockButton]
+                });
+                this.previousButton = element({
+                    tag: "button", classes: ["collection-page-button", "pill-button"],
+                    children: [GradumIcon.create({ icon: "chevron-left" }), span({ text: "Previous" })]
+                });
+                this.nextButton = element({
+                    tag: "button", classes: ["collection-page-button", "pill-button"],
+                    children: [span({ text: "Next" }), GradumIcon.create({ icon: "chevron-right" })]
+                });
+                this.pageLabel = span({ classes: "collection-page" });
+                this.footer = div({
+                    classes: ["collection-footer", "floating-bar"],
+                    children: [this.previousButton, this.pageLabel, this.nextButton]
+                });
+            }
+            setupUILayout() {
+                super.setupUILayout();
+                gradum(this).addChild([this.header, this.footer]);
+            }
+            setupUIListeners() {
+                super.setupUIListeners();
+                //The lock button is the lock tool, embedded: clicking it uses the tool on this collection. It never
+                //becomes the tool in hand, so clicking it leaves the toolbar's choice alone.
+                new LockTool({ element: this.lockButton, embeddedTarget: this.element, customActivation: () => { } })
+                    .initialize();
+                gradum(this.previousButton).on(DefaultEventName.click, () => this.element.turnPage(-1));
+                gradum(this.nextButton).on(DefaultEventName.click, () => this.element.turnPage(1));
+            }
+            setupChangedCallbacks() {
+                super.setupChangedCallbacks();
+                //Whether the contents fit is the fit operator's to work out and the view's to show. Told rather
+                //than measured, so the view never has to know which operator is in and how it decided.
+                this.emitter.add("overflowed", () => gradum(this).toggleClass("collection-full", true));
+                this.emitter.add("fits", () => gradum(this).toggleClass("collection-full", false));
+            }
+            updateName() {
+                this.title.textContent = this.model.name;
+            }
+            /**
+             * @description Say how much the collection holds. A catalogue only holds a page of cards at a time, so it
+             * counts what it has to show across all its pages instead; anything else says how many of its cards its
+             * filters are hiding, if any.
+             * @protected
+             */
+            updateCount() {
+                const held = this.model.items?.length ?? 0, shown = this.model.total;
+                const count = this.model.catalogue ? shown : held;
+                const text = count === 1 ? "1 item" : `${count} items`;
+                this.count.textContent = !this.model.catalogue && shown < held ? `${shown} of ${text}` : text;
+            }
+            /**
+             * @description Show which of a catalogue's products are on the page — "21–40 of 100" — and let the pager
+             * go only where there is somewhere to go. Only a catalogue has pages, and one that fits on a single page
+             * has no need of a pager.
+             * @protected
+             */
+            updatePager() {
+                const total = this.model.total, size = this.model.pageSize, page = this.model.page;
+                const pages = Math.max(1, Math.ceil(total / size));
+                gradum(this.footer).toggleClass("hidden", !this.model.catalogue || pages <= 1);
+                const first = total === 0 ? 0 : page * size + 1;
+                this.pageLabel.textContent = `${first} – ${Math.min(total, (page + 1) * size)} of ${total}`;
+                gradum(this.previousButton).toggleClass("disabled", page <= 0);
+                gradum(this.nextButton).toggleClass("disabled", page >= pages - 1);
+            }
+            updateLocked() {
+                const locked = this.model.locked;
+                this.lockIcon.icon = locked ? "lock" : "unlock";
+                this.lockButton.title = locked ? "Unlock" : "Lock";
+                gradum(this).toggleClass("locked", locked);
+            }
+            updateCatalogue() {
+                gradum(this).toggleClass("catalogue", this.model.catalogue);
+            }
+        };
+    })();
+
+    /**
+     * @class CollectionLayoutOperator
+     *
+     * @extends GradumOperator
+     * @description Decides how a collection lays out what it holds — and so what putting an item in it means.
+     *
+     * An item in a collection is the collection's child, whatever the layout: moving the collection moves it,
+     * with nothing to do. What differs is how a child is placed. A list puts it at a place in its order and lays
+     * it out itself; a freeform area lets it keep a position of its own, inside the area.
+     *
+     * Swap the subclass to change the layout. Every layout answers to the key `"layout"`, so one can be taken out
+     * and another put in:
+     *
+     * ```ts
+     * gradum(collection).removeOperator("layout").addOperator(new CollectionListLayoutOperator());
+     * ```
+     */
+    class CollectionLayoutOperator extends GradumOperator {
+        keyName = "layout";
+    }
+    /**
+     * @class CollectionListLayoutOperator
+     *
+     * @extends CollectionLayoutOperator
+     * @description Lays the collection out as a list, down its length, in its order.
+     *
+     * An item in a list gives up its own position: it is laid out by the list, and is dragged and dropped rather
+     * than moved in place. Where down the list it is dropped is where in the order it goes.
+     */
+    class CollectionListLayoutOperator extends CollectionLayoutOperator {
+        place(item, index, position) {
+            if (!item)
+                return;
+            item.fixed = true;
+            const others = this.element.itemElements.filter(entry => entry !== item);
+            const before = index === undefined ? undefined : others[index];
+            if (before)
+                this.element.insertBefore(item, before);
+            else
+                this.element.appendChild(item);
+            this.element.syncItems();
         }
         /**
-         * @function of
-         * @description How much of an item the cart has been asked for.
-         * @param {Item} item - The item to ask about.
-         * @returns {number} The amount, or `0` if none has been added.
+         * @description Before the first item whose middle is below the point, or last when it is below them all.
          */
-        of(item) {
-            return this.model.amounts.get(item) ?? 0;
-        }
-        /**
-         * @function clear
-         * @description Forget everything the cart was asked for. What is lying on its area is untouched.
-         */
-        clear() {
-            this.model.amounts.clear();
+        indexAt(position, moved) {
+            if (!position)
+                return undefined;
+            const items = this.element.itemElements.filter(item => item !== moved);
+            for (let index = 0; index < items.length; index++) {
+                const rect = items[index].getBoundingClientRect();
+                if (position.y < rect.y + rect.height / 2)
+                    return index;
+            }
+            return items.length;
         }
     }
 
     /**
-     * @class CartLockOperator
+     * @class CollectionFitOperator
      *
      * @extends GradumOperator
-     * @description Makes the cart's lock mean something to the rest of the page.
-     *
-     * Locking is one idea with consequences in several places — what the tools may take hold of, what the
-     * canvas's constrainer may move in or out — and none of them are the cart's own drawing or state. This is
-     * the half the tools care about: a locked cart stops being something they will pick up.
-     */
-    let CartLockOperator = (() => {
-        let _classSuper = GradumOperator;
-        let _instanceExtraInitializers = [];
-        let _applyLock_decorators;
-        return class CartLockOperator extends _classSuper {
-            static {
-                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _applyLock_decorators = [effect];
-                __esDecorate$1(this, null, _applyLock_decorators, { kind: "method", name: "applyLock", static: false, private: false, access: { has: obj => "applyLock" in obj, get: obj => obj.applyLock }, metadata: _metadata }, null, _instanceExtraInitializers);
-                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-            }
-            keyName = (__runInitializers$1(this, _instanceExtraInitializers), "lock");
-            applyLock() {
-                gradum(this.element).metadata.set(!this.model.locked, "modifiable");
-            }
-        };
-    })();
-
-    /**
-     * @class CartFitOperator
-     *
-     * @extends GradumOperator
-     * @description Works out whether what a cart holds fits in the area it was drawn, and says so.
+     * @description Works out whether what a collection holds fits in the area it was drawn, and says so.
      *
      * Measuring is the same job however the answer is acted on, so it is done here once: the contents are let
-     * go of, measured at their natural size, and the shortfall handed to {@link CartFitOperator.fit}. Every
-     * pass then fires `fits` or `overflowed` on the cart's emitter — the outcome rather than the measurement,
-     * so a cart that overflowed and was made to fit reports that it fits — and the view can show the state
+     * go of, measured at their natural size, and the shortfall handed to {@link CollectionFitOperator.fit}. Every
+     * pass then fires `fits` or `overflowed` on the collection's emitter — the outcome rather than the measurement,
+     * so a collection that overflowed and was made to fit reports that it fits — and the view can show the state
      * without measuring anything itself.
      *
-     * Swap the subclass to change what happens when the contents do not fit — see {@link CartScrollFitOperator},
-     * {@link CartShrinkFitOperator} and {@link CartGrowFitOperator}. All three answer to the key `"fit"`, so one
-     * can be taken out and another put in:
+     * Swap the subclass to change what happens when the contents do not fit — see
+     * {@link CollectionScrollFitOperator}, {@link CollectionShrinkFitOperator} and {@link CollectionGrowFitOperator}.
+     * All three answer to the key `"fit"`, so one can be taken out and another put in:
      *
      * ```ts
-     * gradum(cart).removeOperator("fit").addOperator(new CartShrinkFitOperator());
+     * gradum(collection).removeOperator("fit").addOperator(new CollectionShrinkFitOperator());
      * ```
      */
-    let CartFitOperator = (() => {
+    let CollectionFitOperator = (() => {
         let _classSuper = GradumOperator;
         let _instanceExtraInitializers = [];
         let _checkFit_decorators;
-        return class CartFitOperator extends _classSuper {
+        return class CollectionFitOperator extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
                 _checkFit_decorators = [effect];
@@ -31081,10 +32124,12 @@
             checkFit() {
                 //What has to fit, and what it has to fit in. Read outright: these are the signals this pass follows.
                 this.model.items;
-                this.model.size;
+                this.element.size;
+                //A card expanding or collapsing changes how much room the contents take as well.
+                this.element.itemElements.forEach(item => item.expanded);
                 //Whatever the last pass did is undone before measuring, so what is measured is the contents at
                 //their natural size rather than the last answer. Reading the page is not reading a signal, so
-                //nothing measured here brings this effect round again — only the two above do.
+                //nothing measured here brings this effect round again — only the reads above do.
                 this.release();
                 const available = this.availableHeight();
                 const needed = this.neededHeight();
@@ -31099,10 +32144,10 @@
              */
             release() { }
             /**
-             * @description Let go of the cart, putting back whatever was changed on the way.
+             * @description Let go of the collection, putting back whatever was changed on the way.
              *
              * A fit operator writes to the page, and taking one out does not unwrite it: the one put in its place
-             * only knows how to undo its own kind of change, so a cart swapped from shrinking to growing would keep
+             * only knows how to undo its own kind of change, so a collection swapped from shrinking to growing would keep
              * the shrunken cards forever. Cleaning up here is what makes the swap a swap.
              */
             detach() {
@@ -31110,8 +32155,8 @@
                 super.detach();
             }
             /**
-             * @description The height there is for the contents: the area the cart was drawn, less its header and
-             * the padding under the cards.
+             * @description The height there is for the contents: the area the collection was drawn, less its header,
+             * its footer when it shows one, and the padding under the cards.
              *
              * Taken from the model rather than the page, so it does not depend on the view having already written
              * the new size out.
@@ -31123,7 +32168,8 @@
                 const padding = Number.parseFloat(style.paddingBottom) || 0;
                 const borders = (Number.parseFloat(style.borderTopWidth) || 0)
                     + (Number.parseFloat(style.borderBottomWidth) || 0);
-                return this.model.size.y - this.view.header.offsetHeight - padding - borders;
+                return this.element.size.y - this.view.header.offsetHeight - this.view.footer.offsetHeight
+                    - padding - borders;
             }
             /**
              * @description The height the cards come to, gaps included — the one that has to be measured off the
@@ -31136,121 +32182,655 @@
                 if (items.length === 0)
                     return 0;
                 const gap = Number.parseFloat(getComputedStyle(this.element).rowGap) || 0;
-                //One gap per card: the cart's flex gap sits between the header and the first card as well as
+                //One gap per card: the collection's flex gap sits between the header and the first card as well as
                 //between the cards.
                 return items.reduce((sum, item) => sum + item.offsetHeight, 0) + gap * items.length;
             }
         };
     })();
     /**
-     * @class CartScrollFitOperator
+     * @class CollectionScrollFitOperator
      *
-     * @extends CartFitOperator
+     * @extends CollectionFitOperator
      * @description Lets the contents run past the area and scrolls to what was just put in.
      *
-     * The cards keep their size and the cart keeps the area it was drawn; what does not fit is simply below the
+     * The cards keep their size and the collection keeps the area it was drawn; what does not fit is simply below the
      * fold. Scrolling the last card into view is what keeps a drop from disappearing. The only one of the three
      * that leaves the contents overflowing, and says so.
      */
-    class CartScrollFitOperator extends CartFitOperator {
+    class CollectionScrollFitOperator extends CollectionFitOperator {
+        /**
+         * @description How many cards there were at the last pass. A pass also runs when a card is expanded or
+         * the collection resized, and jumping to the last card then would only lose your place.
+         * @protected
+         */
+        lastCount = 0;
         fit() {
-            this.element.itemElements.at(-1)?.scrollIntoView({ block: "nearest" });
+            const items = this.element.itemElements;
+            //A catalogue's cards were stocked, not dropped, and a new page starts from the top.
+            if (items.length > this.lastCount && !this.model.catalogue)
+                items.at(-1)?.scrollIntoView({ block: "nearest" });
+            this.lastCount = items.length;
             return false;
         }
     }
 
     /**
-     * @class CartModel
+     * @class CollectionCatalogueOperator
      *
-     * @extends GradumModel
-     * @description What a cart is and what is in it: the area it covers on the canvas, what it is called,
-     * whether it is closed to changes, and the items currently lying on it.
+     * @extends GradumOperator
+     * @description Stocks a catalogue collection with the products on offer, a page at a time.
+     *
+     * What is on offer is the canvas's catalogue, narrowed and ordered by whatever filters the collection is
+     * linked to — see {@link Collection.query}. Of that, only the page the collection is on is built as cards:
+     * {@link CollectionModel.pageSize} of them, never the whole catalogue, so a long catalogue costs no more to
+     * show than a short one. Turning the page, or a filter changing, builds the page again.
+     *
+     * Each card is marked as a template, so dragging it out leaves it here and puts a copy down instead of
+     * emptying the catalogue a card at a time. Does nothing for a collection that is not a catalogue, and takes
+     * its cards away again if one stops being one.
      */
-    let CartModel = (() => {
-        let _classSuper = GradumModel;
-        let _name_decorators;
-        let _name_initializers = [];
-        let _name_extraInitializers = [];
-        let _id_decorators;
-        let _id_initializers = [];
-        let _id_extraInitializers = [];
+    let CollectionCatalogueOperator = (() => {
+        let _classSuper = GradumOperator;
+        let _instanceExtraInitializers = [];
+        let _stock_decorators;
+        return class CollectionCatalogueOperator extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _stock_decorators = [effect];
+                __esDecorate$1(this, null, _stock_decorators, { kind: "method", name: "stock", static: false, private: false, access: { has: obj => "stock" in obj, get: obj => obj.stock }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            keyName = (__runInitializers$1(this, _instanceExtraInitializers), "catalogue");
+            /**
+             * @description The cards this operator put in, so they can be taken out again without touching anything
+             * else the collection holds.
+             */
+            stocked = [];
+            /**
+             * @description What the last pass had to show, by id, so a pass can tell a new set of products — a
+             * filter changed — from the same set on another page.
+             */
+            shown = undefined;
+            stock() {
+                const all = this.model.catalogue ? this.element.canvas?.catalogue?.products : undefined;
+                if (!all) {
+                    untrack(() => this.clear());
+                    this.model.total = 0;
+                    this.shown = undefined;
+                    return;
+                }
+                //Narrowed and ordered before paging, so a page is a page of what was asked for.
+                const products = this.element.query(all);
+                const size = Math.max(1, this.model.pageSize);
+                const pages = Math.max(1, Math.ceil(products.length / size));
+                //A new set of products starts again from the first page, as a new search does; the same set on
+                //another page is only a page turned. Either way the page has to be one there is.
+                const shown = products.map(product => product.id).join(",");
+                const changed = this.shown !== undefined && shown !== this.shown;
+                this.shown = shown;
+                const page = untrack(() => this.model.page);
+                const wanted = changed ? 0 : Math.min(page, pages - 1);
+                if (wanted !== page)
+                    this.model.page = wanted;
+                //Read after it has been settled, so this pass follows the page from here on.
+                const first = this.model.page * size;
+                this.model.total = products.length;
+                //Building cards reads all sorts of signals on the way. None of them are what this follows — only the
+                //ones above are — so the building is done without listening.
+                untrack(() => {
+                    this.clear();
+                    for (const product of products.slice(first, first + size)) {
+                        const card = Item.create({ parent: this.element, data: product, fixed: true });
+                        gradum(card).metadata.set(true, "catalogue");
+                        this.stocked.push(card);
+                    }
+                    this.element.syncItems();
+                    this.element.scrollTop = 0;
+                });
+            }
+            /**
+             * @description Take out the cards this operator put in. Deleted rather than removed: a card's add
+             * dropdown keeps its popup outside the card, and `remove()` would strand it.
+             * @protected
+             */
+            clear() {
+                if (this.stocked.length === 0)
+                    return;
+                this.stocked.forEach(card => card.delete());
+                this.stocked = [];
+                this.element.syncItems();
+            }
+            detach() {
+                this.clear();
+                super.detach();
+            }
+        };
+    })();
+
+    /**
+     * @class CollectionQueryOperator
+     *
+     * @extends GradumOperator
+     * @description Applies the collection's filters to the cards it holds: those the filters leave out are
+     * hidden, and those left are ordered the way the filters ask.
+     *
+     * Only shows and orders — nothing is moved or taken out — so the collection's own order comes back as soon as
+     * the filters stop asking for another. A catalogue is filtered before its cards are built instead, by its
+     * catalogue operator, so this leaves catalogues alone.
+     */
+    let CollectionQueryOperator = (() => {
+        let _classSuper = GradumOperator;
+        let _instanceExtraInitializers = [];
+        let _apply_decorators;
+        return class CollectionQueryOperator extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _apply_decorators = [effect];
+                __esDecorate$1(this, null, _apply_decorators, { kind: "method", name: "apply", static: false, private: false, access: { has: obj => "apply" in obj, get: obj => obj.apply }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            keyName = (__runInitializers$1(this, _instanceExtraInitializers), "query");
+            apply() {
+                const items = this.model.items ?? [];
+                if (this.model.catalogue)
+                    return this.clear(items);
+                //By the item's data rather than the item, since that is what the filters read.
+                const byData = new Map(items.map(item => [item.data, item]));
+                const shown = this.element.query([...byData.keys()]);
+                const sorted = this.model.filters.some(filter => filter.comparator());
+                const rank = new Map(shown.map((data, index) => [byData.get(data), index]));
+                this.model.total = shown.length;
+                for (const item of items) {
+                    gradum(item).toggleClass("filtered-out", !rank.has(item));
+                    gradum(item).setStyle("order", sorted && rank.has(item) ? String(rank.get(item)) : "");
+                }
+            }
+            /**
+             * @description Show every card in its own order again.
+             * @param {Item[]} items - The cards.
+             * @protected
+             */
+            clear(items = this.model.items ?? []) {
+                if (!this.model.catalogue)
+                    this.model.total = items.length;
+                for (const item of items) {
+                    gradum(item).toggleClass("filtered-out", false);
+                    gradum(item).setStyle("order", "");
+                }
+            }
+            detach() {
+                this.clear();
+                super.detach();
+            }
+        };
+    })();
+
+    var css_248z$4 = ".item-shelf{display:flex;flex-wrap:wrap;gap:1rem;padding:1.5rem}.demo-square.demo-collection{--collection-fit-scale:1;--collection-inset:1rem;align-items:stretch;border:1px dashed var(--line);border-radius:var(--radius);box-sizing:border-box;display:flex;flex-direction:column;gap:.375rem;justify-content:flex-start;overflow-y:auto;padding:var(--collection-inset) 0 var(--collection-inset) var(--collection-inset);scrollbar-gutter:stable}.demo-square.demo-collection::-webkit-scrollbar{width:18px}.demo-square.demo-collection::-webkit-scrollbar-track{background:transparent;margin:4rem 0}.demo-square.demo-collection::-webkit-scrollbar-thumb{background:var(--line);background-clip:padding-box;border:solid transparent;border-radius:var(--radius-pill);border-width:0 9px 0 5px}.demo-collection>.demo-square.demo-item{flex:none;font-size:calc(1rem*var(--collection-fit-scale));margin:0;width:auto}.demo-collection.collection-full .collection-count{color:var(--price);font-weight:600}.demo-square.demo-collection.locked{border-style:solid}.demo-square.demo-collection.catalogue,demo-cart.demo-square.demo-collection{backdrop-filter:var(--blur);border-style:solid;box-shadow:var(--shadow-float)}.demo-collection .collection-header{align-items:center;display:flex;flex:none;gap:.375rem;order:-1;padding:.5rem .5rem .5rem .875rem;position:sticky;top:0;z-index:2}.demo-collection .collection-name{font-size:1rem;font-weight:700}.demo-collection .collection-count{color:var(--muted);font-size:.8rem}.demo-collection.catalogue .collection-count{display:none}.demo-collection .collection-lock{margin-left:auto}.demo-collection .collection-button{align-items:center;background:none;border:none;border-radius:var(--radius-pill);cursor:pointer;display:flex;height:1.75rem;justify-content:center;padding:0;width:1.75rem}.demo-collection .collection-button .gradum-icon{fill:var(--muted);height:65%;width:65%}.demo-collection .collection-button:hover .gradum-icon{fill:var(--text-soft)}.demo-collection .collection-footer{align-items:center;align-self:center;bottom:var(--collection-inset);display:flex;flex:none;gap:.75rem;margin-top:auto;order:1000000;padding:.5rem;position:sticky;z-index:2}.demo-collection .collection-footer.hidden{display:none}.demo-square.demo-collection:has(>.collection-footer:not(.hidden)){padding-bottom:0}.demo-square.demo-collection:has(>.collection-footer:not(.hidden))>.collection-footer{margin-bottom:var(--collection-inset)}.demo-collection .collection-page{color:var(--text-soft);font-size:1rem;font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}.demo-collection .collection-page-button{font-size:.75rem}.demo-collection>.demo-item.filtered-out{display:none}";
+    styleInject(css_248z$4);
+
+    /**
+     * @class Collection
+     *
+     * @extends Square
+     * @description A group of items, as an area of the canvas: a tinted rectangle that whatever is in it belongs
+     * to.
+     *
+     * What a collection holds, it holds: an item put in one becomes its child, so moving the collection moves
+     * the items with nothing else to do. How they are laid out inside it is its layout operator's business — see
+     * {@link CollectionLayoutOperator}. Dropping a card on a collection is what puts it in; dropping one back on
+     * the canvas takes it out again. A collection moved over loose cards on the canvas picks them up, which is the
+     * canvas's constrainer's doing.
+     *
+     * A locked collection is closed: it cannot be dragged, and it takes nothing in. A catalogue is stocked with
+     * every product on offer, and takes nothing in either — its cards are templates, copied when dragged out.
+     */
+    let Collection = (() => {
+        let _classSuper = Square;
+        let _layoutOperator_decorators;
+        let _layoutOperator_initializers = [];
+        let _layoutOperator_extraInitializers = [];
         let _color_decorators;
         let _color_initializers = [];
         let _color_extraInitializers = [];
-        let _position_decorators;
-        let _position_initializers = [];
-        let _position_extraInitializers = [];
-        let _size_decorators;
-        let _size_initializers = [];
-        let _size_extraInitializers = [];
+        let _anchor_decorators;
+        let _anchor_initializers = [];
+        let _anchor_extraInitializers = [];
+        let _name_decorators;
+        let _name_initializers = [];
+        let _name_extraInitializers = [];
         let _locked_decorators;
         let _locked_initializers = [];
         let _locked_extraInitializers = [];
+        let _catalogue_decorators;
+        let _catalogue_initializers = [];
+        let _catalogue_extraInitializers = [];
         let _items_decorators;
         let _items_initializers = [];
         let _items_extraInitializers = [];
+        let _filters_decorators;
+        let _filters_initializers = [];
+        let _filters_extraInitializers = [];
+        return class Collection extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _layoutOperator_decorators = [operator()];
+                _color_decorators = [signal];
+                _anchor_decorators = [signal];
+                _name_decorators = [expose("model")];
+                _locked_decorators = [expose("model")];
+                _catalogue_decorators = [expose("model")];
+                _items_decorators = [expose("model", false)];
+                _filters_decorators = [expose("model", false)];
+                __esDecorate$1(null, null, _layoutOperator_decorators, { kind: "field", name: "layoutOperator", static: false, private: false, access: { has: obj => "layoutOperator" in obj, get: obj => obj.layoutOperator, set: (obj, value) => { obj.layoutOperator = value; } }, metadata: _metadata }, _layoutOperator_initializers, _layoutOperator_extraInitializers);
+                __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
+                __esDecorate$1(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
+                __esDecorate$1(null, null, _name_decorators, { kind: "field", name: "name", static: false, private: false, access: { has: obj => "name" in obj, get: obj => obj.name, set: (obj, value) => { obj.name = value; } }, metadata: _metadata }, _name_initializers, _name_extraInitializers);
+                __esDecorate$1(null, null, _locked_decorators, { kind: "field", name: "locked", static: false, private: false, access: { has: obj => "locked" in obj, get: obj => obj.locked, set: (obj, value) => { obj.locked = value; } }, metadata: _metadata }, _locked_initializers, _locked_extraInitializers);
+                __esDecorate$1(null, null, _catalogue_decorators, { kind: "field", name: "catalogue", static: false, private: false, access: { has: obj => "catalogue" in obj, get: obj => obj.catalogue, set: (obj, value) => { obj.catalogue = value; } }, metadata: _metadata }, _catalogue_initializers, _catalogue_extraInitializers);
+                __esDecorate$1(null, null, _items_decorators, { kind: "field", name: "items", static: false, private: false, access: { has: obj => "items" in obj, get: obj => obj.items, set: (obj, value) => { obj.items = value; } }, metadata: _metadata }, _items_initializers, _items_extraInitializers);
+                __esDecorate$1(null, null, _filters_decorators, { kind: "field", name: "filters", static: false, private: false, access: { has: obj => "filters" in obj, get: obj => obj.filters, set: (obj, value) => { obj.filters = value; } }, metadata: _metadata }, _filters_initializers, _filters_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                view: CollectionView,
+                model: CollectionModel,
+                operators: [
+                    CollectionListLayoutOperator,
+                    CollectionScrollFitOperator,
+                    CollectionCatalogueOperator,
+                    CollectionQueryOperator
+                ],
+            };
+            /**
+             * @description What a collection of this kind is called when it is not given a name — numbered after it,
+             * as in "Collection 2".
+             */
+            static namePrefix = "Collection";
+            /**
+             * @description How the collection lays out what it holds. Swap it to change the layout.
+             */
+            layoutOperator = __runInitializers$1(this, _layoutOperator_initializers, void 0);
+            //Pale by default, since items sit on top of it and have to stay readable.
+            color = (__runInitializers$1(this, _layoutOperator_extraInitializers), __runInitializers$1(this, _color_initializers, Color.random([70, 95], [80, 92])));
+            //Placed by its corner rather than its middle, so drawing one is a matter of where the drag started.
+            anchor = (__runInitializers$1(this, _color_extraInitializers), __runInitializers$1(this, _anchor_initializers, Anchor.TopLeft));
+            name = (__runInitializers$1(this, _anchor_extraInitializers), __runInitializers$1(this, _name_initializers, void 0));
+            locked = (__runInitializers$1(this, _name_extraInitializers), __runInitializers$1(this, _locked_initializers, void 0));
+            catalogue = (__runInitializers$1(this, _locked_extraInitializers), __runInitializers$1(this, _catalogue_initializers, void 0));
+            /**
+             * @readonly
+             * @description The items in the collection, in its own order.
+             */
+            items = (__runInitializers$1(this, _catalogue_extraInitializers), __runInitializers$1(this, _items_initializers, void 0));
+            /**
+             * @readonly
+             * @description The filters applying to the collection, in the order they were connected.
+             */
+            filters = (__runInitializers$1(this, _items_extraInitializers), __runInitializers$1(this, _filters_initializers, void 0));
+            initialize() {
+                //Only the first time, so a second call does not give the collection a new id under everything that
+                //already points at it by the old one.
+                if (this.initialized)
+                    return;
+                super.initialize();
+                this.dataId = randomId();
+                gradum(this).metadata.set(true, "dropTarget");
+                this.canvas?.addCollection(this);
+            }
+            /**
+             * @readonly
+             * @description The canvas the collection is on.
+             */
+            get canvas() {
+                return gradum(this).closest("my-canvas");
+            }
+            /**
+             * @readonly
+             * @description The items in the collection, in the order they are laid out. Read from the collection's
+             * own children, so the order on the page and the order in the list are the same thing rather than two
+             * things kept in step.
+             */
+            get itemElements() {
+                return Array.from(this.children).filter(child => child instanceof Item);
+            }
+            /**
+             * @function acceptDrop
+             * @description Take a card dropped on the collection, and put it where it was dropped — whatever that
+             * means for the layout. A card dragged from a catalogue is a template, so a copy of it goes in and the
+             * catalogue keeps its own.
+             *
+             * A locked collection or a catalogue takes nothing, and the card goes back to wherever it came from.
+             * @param {Item} item - The card that was dropped.
+             * @param {Point} position - Where it was let go of.
+             */
+            acceptDrop(item, position) {
+                if (this.locked || this.catalogue || !(item instanceof Item))
+                    return;
+                const placed = gradum(item).metadata?.get("catalogue") ? item.clone({ parent: this }) : item;
+                this.insertItem(placed, this.layoutOperator.indexAt(position, placed), position);
+                this.canvas?.syncCollections();
+            }
+            /**
+             * @function query
+             * @description Narrow and order products the way the filters linked to this collection ask. What a
+             * catalogue shows is what this returns, a page at a time.
+             *
+             * Reads the filters' settings as it goes, so an effect asking this follows every filter linked here.
+             * @param {Product[]} products - The products to narrow down. Left as they are.
+             * @returns {Product[]} Those that every linked filter lets through, in the order they ask for.
+             */
+            query(products) {
+                const filters = this.model.filters ?? [];
+                if (filters.length === 0)
+                    return products;
+                const shown = products.filter(product => filters.every(filter => filter.test(product)));
+                const comparators = filters.map(filter => filter.comparator()).filter(Boolean);
+                if (comparators.length === 0)
+                    return shown;
+                //Each filter's order in turn, then the name for whatever is still tied.
+                return shown.sort((a, b) => {
+                    for (const compare of comparators) {
+                        const order = compare(a, b);
+                        if (order)
+                            return order;
+                    }
+                    return (a?.name ?? "").localeCompare(b?.name ?? "");
+                });
+            }
+            /**
+             * @function turnPage
+             * @description Go forward or back through a catalogue's pages, stopping at either end.
+             * @param {number} by - How many pages to go: 1 for the next, -1 for the one before.
+             */
+            turnPage(by) {
+                const pages = Math.max(1, Math.ceil(this.model.total / this.model.pageSize));
+                this.model.page = Math.min(pages - 1, Math.max(0, this.model.page + by));
+            }
+            /**
+             * @function insertItem
+             * @description Put a card in the collection, taking it out of wherever it was. See
+             * {@link CollectionLayoutOperator.place}.
+             * @param {Item} item - The card to put in.
+             * @param {number} [index] - Where in the order it goes. Left out, it goes last.
+             * @param {Point} [position] - Where on the canvas it was put down.
+             */
+            insertItem(item, index, position) {
+                this.layoutOperator.place(item, index, position);
+            }
+            /**
+             * @function syncItems
+             * @description Read the collection's contents back off its children, so the list matches what is on the
+             * page after anything has moved.
+             */
+            syncItems() {
+                const items = this.itemElements;
+                const current = this.model.items;
+                if (items.length === current.length && items.every((item, at) => current[at] === item))
+                    return;
+                this.model.items = items;
+            }
+            /**
+             * @description Take the collection off the canvas, and the cards in it with it. A card to be kept has to
+             * be dragged back out onto the canvas first.
+             */
+            delete() {
+                this.canvas?.removeCollection(this);
+                //Destroyed rather than removed, so that the add dropdown of every card in it takes its popup with it
+                //instead of stranding it in the shared popup container.
+                gradum(this).destroy();
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _filters_extraInitializers);
+            }
+        };
+    })();
+    define(Collection, "demo-collection");
+
+    /**
+     * @class CartAmountsHandler
+     *
+     * @extends GradumHandler
+     * @description What has been asked for from the cart, and how much of it.
+     *
+     * Kept apart from the items lying on the cart's area: that is where a card happens to be, this is a quantity
+     * somebody pressed a button for. Nothing here touches the page, so it is the model's business rather than
+     * the cart element's.
+     *
+     * Counted by product rather than by card, so every card for the same product — on another page of a
+     * catalogue, or dragged out of it — reads the same amount.
+     */
+    class CartAmountsHandler extends GradumHandler {
+        keyName = "amounts";
+        /**
+         * @description What an item is counted under: its product's id, or its name for an item made by hand.
+         * @param {Item} item - The item.
+         * @returns {string} Its key.
+         */
+        static keyOf(item) {
+            return item?.data?.id ?? item?.name;
+        }
+        /**
+         * @function add
+         * @description Add an amount of an item to what the cart has been asked for, on top of whatever it was
+         * already asked for.
+         * @param {Item} item - The item being added.
+         * @param {number} amount - How many units of it. Anything that is not a positive number is ignored.
+         * @returns {number} How much of that item the cart now holds.
+         */
+        add(item, amount) {
+            if (!item || !(amount > 0))
+                return this.of(item);
+            return this.set(item, this.of(item) + amount);
+        }
+        /**
+         * @function set
+         * @description Say outright how much of an item the cart has been asked for. Zero or less takes it out.
+         * @param {Item} item - The item.
+         * @param {number} amount - How many units of it.
+         * @returns {number} How much of that item the cart now holds.
+         */
+        set(item, amount) {
+            const key = CartAmountsHandler.keyOf(item);
+            //Kept, so the cart can show a card for it without the card it was added from.
+            if (key && amount > 0 && item.data)
+                this.model.products[key] = { ...item.data };
+            return this.setKey(key, amount);
+        }
+        /**
+         * @function setKey
+         * @description {@link CartAmountsHandler.set}, for a product known only by its key.
+         * @param {string} key - The product's key — see {@link CartAmountsHandler.keyOf}.
+         * @param {number} amount - How many units of it.
+         * @returns {number} How much of that product the cart now holds.
+         */
+        setKey(key, amount) {
+            if (!key)
+                return 0;
+            //Replaced rather than changed in place, so whatever reads the amounts hears about it.
+            const amounts = { ...this.model.amounts };
+            if (amount > 0)
+                amounts[key] = amount;
+            else
+                delete amounts[key];
+            this.model.amounts = amounts;
+            return amounts[key] ?? 0;
+        }
+        /**
+         * @function of
+         * @description How much of an item the cart has been asked for.
+         * @param {Item} item - The item to ask about.
+         * @returns {number} The amount, or `0` if none has been added.
+         */
+        of(item) {
+            return this.ofKey(CartAmountsHandler.keyOf(item));
+        }
+        /**
+         * @function ofKey
+         * @description {@link CartAmountsHandler.of}, for a product known only by its key.
+         * @param {string} key - The product's key.
+         * @returns {number} The amount, or `0` if none has been added.
+         */
+        ofKey(key) {
+            return this.model.amounts[key] ?? 0;
+        }
+        /**
+         * @function productOf
+         * @description What was added under a key, as it was when it was added.
+         * @param {string} key - The product's key.
+         * @returns {ItemData} The product, or `undefined` if nothing was added under it.
+         */
+        productOf(key) {
+            return this.model.products[key];
+        }
+        /**
+         * @function clear
+         * @description Forget everything the cart was asked for. What is lying on its area is untouched.
+         */
+        clear() {
+            this.model.amounts = {};
+        }
+    }
+
+    /**
+     * @class CartContentsOperator
+     *
+     * @extends GradumOperator
+     * @description Keeps what is lying in the cart and what it has been asked for the same thing: a card for
+     * every product with an amount, and an amount for every card.
+     *
+     * Either side can move first. Adding from a card's button puts a card for it in the cart, and taking the last
+     * one out takes the card away. A card dropped in counts as one; one dragged out or deleted takes the product
+     * out.
+     */
+    let CartContentsOperator = (() => {
+        let _classSuper = GradumOperator;
+        let _instanceExtraInitializers = [];
+        let _sync_decorators;
+        return class CartContentsOperator extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _sync_decorators = [effect];
+                __esDecorate$1(this, null, _sync_decorators, { kind: "method", name: "sync", static: false, private: false, access: { has: obj => "sync" in obj, get: obj => obj.sync }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            keyName = (__runInitializers$1(this, _instanceExtraInitializers), "contents");
+            /**
+             * @description The products the cart held a card for, and the amounts, as they were the last time the
+             * two were put in step — so a card that has gone can be told from an amount that has.
+             * @protected
+             */
+            previousKeys = new Set();
+            previousAmounts = {};
+            sync() {
+                const amounts = this.model.amounts;
+                const items = this.model.items ?? [];
+                untrack(() => {
+                    this.reconcile(amounts, items);
+                    //Taken after, not before: what this changed itself does not run it again, so the next run has
+                    //to start from where this one left things.
+                    this.previousKeys = new Set(this.element.itemElements.map(item => CartAmountsHandler.keyOf(item)));
+                    this.previousAmounts = this.model.amounts;
+                });
+            }
+            /**
+             * @description Put the cards and the amounts in step, going by which of them changed.
+             * @param {Record<string, number>} amounts - What the cart has been asked for.
+             * @param {Item[]} items - The cards lying in it.
+             * @protected
+             */
+            reconcile(amounts, items) {
+                const handler = this.model.amountsHandler;
+                const previousKeys = this.previousKeys, previousAmounts = this.previousAmounts;
+                //One card per product: a second one dropped in counts as one more of the first.
+                const cards = new Map();
+                const duplicates = [];
+                for (const item of items) {
+                    const key = CartAmountsHandler.keyOf(item);
+                    if (cards.has(key))
+                        duplicates.push(item);
+                    else
+                        cards.set(key, item);
+                }
+                if (duplicates.length && !this.element.locked) {
+                    for (const item of duplicates) {
+                        handler.add(cards.get(CartAmountsHandler.keyOf(item)), 1);
+                        gradum(item).destroy();
+                    }
+                    return this.element.syncItems();
+                }
+                if (this.element.locked)
+                    return;
+                //A card that went while its amount stayed put was taken out by hand.
+                for (const key of previousKeys) {
+                    if (!cards.has(key) && amounts[key] > 0 && previousAmounts[key] === amounts[key])
+                        handler.setKey(key, 0);
+                }
+                //A card with no amount was dropped in.
+                for (const [key, item] of cards)
+                    if (!(amounts[key] > 0) && !(previousAmounts[key] > 0)) {
+                        item.cart = this.element;
+                        handler.set(item, 1);
+                    }
+                //An amount that came to nothing takes its card away.
+                let changed = false;
+                for (const [key, item] of cards)
+                    if (previousAmounts[key] > 0 && !(amounts[key] > 0)) {
+                        gradum(item).destroy();
+                        changed = true;
+                    }
+                //An amount with no card gets one.
+                for (const key of Object.keys(amounts)) {
+                    if (cards.has(key) || previousKeys.has(key) && previousAmounts[key] === amounts[key])
+                        continue;
+                    const data = handler.productOf(key);
+                    if (!data)
+                        continue;
+                    this.element.insertItem(Item.create({ parent: this.element, data: { ...data }, cart: this.element }));
+                    changed = true;
+                }
+                if (changed)
+                    this.element.syncItems();
+            }
+        };
+    })();
+
+    /**
+     * @class CartModel
+     *
+     * @extends CollectionModel
+     * @description A collection that is also somewhere to buy from: on top of what is lying in it, how much of
+     * each item it has been asked for.
+     */
+    let CartModel = (() => {
+        let _classSuper = CollectionModel;
+        let _amounts_decorators;
+        let _amounts_initializers = [];
+        let _amounts_extraInitializers = [];
         let _amountsHandler_decorators;
         let _amountsHandler_initializers = [];
         let _amountsHandler_extraInitializers = [];
         return class CartModel extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _name_decorators = [signal];
-                _id_decorators = [signal];
-                _color_decorators = [signal];
-                _position_decorators = [signal];
-                _size_decorators = [signal, auto({
-                        preprocessValue: (value) => (Point.from(value) ?? new Point()).bound(0, Infinity, 0, Infinity)
-                    })];
-                _locked_decorators = [signal];
-                _items_decorators = [signal];
+                _amounts_decorators = [signal];
                 _amountsHandler_decorators = [handler()];
-                __esDecorate$1(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
-                __esDecorate$1(null, null, _name_decorators, { kind: "field", name: "name", static: false, private: false, access: { has: obj => "name" in obj, get: obj => obj.name, set: (obj, value) => { obj.name = value; } }, metadata: _metadata }, _name_initializers, _name_extraInitializers);
-                __esDecorate$1(null, null, _id_decorators, { kind: "field", name: "id", static: false, private: false, access: { has: obj => "id" in obj, get: obj => obj.id, set: (obj, value) => { obj.id = value; } }, metadata: _metadata }, _id_initializers, _id_extraInitializers);
-                __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
-                __esDecorate$1(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
-                __esDecorate$1(null, null, _locked_decorators, { kind: "field", name: "locked", static: false, private: false, access: { has: obj => "locked" in obj, get: obj => obj.locked, set: (obj, value) => { obj.locked = value; } }, metadata: _metadata }, _locked_initializers, _locked_extraInitializers);
-                __esDecorate$1(null, null, _items_decorators, { kind: "field", name: "items", static: false, private: false, access: { has: obj => "items" in obj, get: obj => obj.items, set: (obj, value) => { obj.items = value; } }, metadata: _metadata }, _items_initializers, _items_extraInitializers);
+                __esDecorate$1(null, null, _amounts_decorators, { kind: "field", name: "amounts", static: false, private: false, access: { has: obj => "amounts" in obj, get: obj => obj.amounts, set: (obj, value) => { obj.amounts = value; } }, metadata: _metadata }, _amounts_initializers, _amounts_extraInitializers);
                 __esDecorate$1(null, null, _amountsHandler_decorators, { kind: "field", name: "amountsHandler", static: false, private: false, access: { has: obj => "amountsHandler" in obj, get: obj => obj.amountsHandler, set: (obj, value) => { obj.amountsHandler = value; } }, metadata: _metadata }, _amountsHandler_initializers, _amountsHandler_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
             /**
-             * @description What the cart is called. Shown on the area, and what an item's add dropdown lists it as.
-             */
-            name = __runInitializers$1(this, _name_initializers, "");
-            id = (__runInitializers$1(this, _name_extraInitializers), __runInitializers$1(this, _id_initializers, ""));
-            /**
-             * @description The colour of the area. Pale by default, since items sit on top of it and have to stay
-             * readable.
-             */
-            color = (__runInitializers$1(this, _id_extraInitializers), __runInitializers$1(this, _color_initializers, Color.random([70, 95], [80, 92]).toString()));
-            /**
-             * @description The top-left corner of the area, in page coordinates.
-             */
-            position = (__runInitializers$1(this, _color_extraInitializers), __runInitializers$1(this, _position_initializers, new Point()));
-            #size_accessor_storage = (__runInitializers$1(this, _position_extraInitializers), __runInitializers$1(this, _size_initializers, new Point(240, 180)));
-            /**
-             * @description How big the area is. Never smaller than nothing, so a drag that goes backwards still
-             * describes a rectangle.
-             */
-            get size() { return this.#size_accessor_storage; }
-            set size(value) { this.#size_accessor_storage = value; }
-            /**
-             * @description Whether the cart is closed to changes. A locked cart cannot be moved and takes nothing
-             * in — what it holds is what it held when it was locked.
-             */
-            locked = (__runInitializers$1(this, _size_extraInitializers), __runInitializers$1(this, _locked_initializers, false));
-            /**
-             * @description The cards in the cart, in the order they are laid out. Read back off the cart's own
-             * children by {@link Cart.syncItems} rather than set directly, so the list and the screen cannot differ.
-             */
-            items = (__runInitializers$1(this, _locked_extraInitializers), __runInitializers$1(this, _items_initializers, []));
-            /**
              * @description How much of each item has been added to this cart through an item's add button, as
-             * opposed to merely lying on its area. Read and written through {@link CartModel.amountsHandler}.
+             * opposed to merely lying in it, keyed by product. Read and written through
+             * {@link CartModel.amountsHandler}.
              */
-            amounts = (__runInitializers$1(this, _items_extraInitializers), new Map());
+            amounts = __runInitializers$1(this, _amounts_initializers, {});
+            /**
+             * @description What was added under each key of {@link CartModel.amounts}, so the cart can show a card
+             * for it.
+             */
+            products = (__runInitializers$1(this, _amounts_extraInitializers), {});
             /**
              * @description What the cart has been asked for, and the sums over it.
              */
@@ -31265,261 +32845,105 @@
     /**
      * @class CartView
      *
-     * @extends GradumView
-     * @description The area itself: a tinted rectangle on the canvas with a strip along the top carrying the
-     * cart's name, its lock, and the button for adding to it, and the cards it is holding laid out down the
-     * rest of it.
+     * @extends CollectionView
+     * @description A collection's panel, with a round button for adding to the cart at the end of its strip.
      */
     let CartView = (() => {
-        let _classSuper = GradumView;
+        let _classSuper = CollectionView;
         let _instanceExtraInitializers = [];
-        let _updateArea_decorators;
-        let _updateName_decorators;
-        let _updateCount_decorators;
-        let _updateLocked_decorators;
+        let _updateAddButton_decorators;
         return class CartView extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _updateArea_decorators = [effect];
-                _updateName_decorators = [effect];
-                _updateCount_decorators = [effect];
-                _updateLocked_decorators = [effect];
-                __esDecorate$1(this, null, _updateArea_decorators, { kind: "method", name: "updateArea", static: false, private: false, access: { has: obj => "updateArea" in obj, get: obj => obj.updateArea }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateName_decorators, { kind: "method", name: "updateName", static: false, private: false, access: { has: obj => "updateName" in obj, get: obj => obj.updateName }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateCount_decorators, { kind: "method", name: "updateCount", static: false, private: false, access: { has: obj => "updateCount" in obj, get: obj => obj.updateCount }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateLocked_decorators, { kind: "method", name: "updateLocked", static: false, private: false, access: { has: obj => "updateLocked" in obj, get: obj => obj.updateLocked }, metadata: _metadata }, null, _instanceExtraInitializers);
+                _updateAddButton_decorators = [effect];
+                __esDecorate$1(this, null, _updateAddButton_decorators, { kind: "method", name: "updateAddButton", static: false, private: false, access: { has: obj => "updateAddButton" in obj, get: obj => obj.updateAddButton }, metadata: _metadata }, null, _instanceExtraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
-            /**
-             * @description The strip along the top. Public because the cart's fit operator measures around it to
-             * work out how much room the cards have.
-             */
-            header = __runInitializers$1(this, _instanceExtraInitializers);
-            title;
-            count;
-            lockButton;
-            addButton;
+            addButton = __runInitializers$1(this, _instanceExtraInitializers);
             setupUIElements() {
                 super.setupUIElements();
-                this.title = span({ classes: "cart-name" });
-                this.count = span({ classes: "cart-count" });
-                this.lockButton = element({ tag: "button", classes: "cart-lock" });
-                this.addButton = element({ tag: "button", classes: "cart-add", text: "+" });
-                this.header = div({
-                    classes: "cart-header",
-                    children: [this.title, this.count, this.lockButton, this.addButton]
+                this.addButton = element({
+                    tag: "button", classes: ["collection-button", "cart-add"], title: "Add",
+                    children: GradumIcon.create({ icon: "plus" })
                 });
-            }
-            setupUILayout() {
-                super.setupUILayout();
-                gradum(this).addChild(this.header);
+                this.header.appendChild(this.addButton);
             }
             setupUIListeners() {
                 super.setupUIListeners();
-                gradum(this.lockButton).on(DefaultEventName.click, () => this.element.locked = !this.element.locked);
                 //What it does is for later; it says so rather than doing nothing silently.
                 gradum(this.addButton).on(DefaultEventName.click, () => this.element.onAddClicked.fire(this.element));
             }
-            setupChangedCallbacks() {
-                super.setupChangedCallbacks();
-                //Whether the contents fit is the fit operator's to work out and the view's to show. Told rather
-                //than measured, so the view never has to know which operator is in and how it decided.
-                this.emitter.add("overflowed", () => gradum(this).toggleClass("cart-full", true));
-                this.emitter.add("fits", () => gradum(this).toggleClass("cart-full", false));
-            }
-            updateArea() {
-                const position = this.model.position, size = this.model.size;
-                //Applied instantly rather than queued for the next frame, so the rectangle keeps up with the drag
-                //that is drawing it.
-                gradum(this).setStyles({
-                    transform: `translate(${position.x}px, ${position.y}px)`,
-                    width: `${size.x}px`,
-                    height: `${size.y}px`,
-                    backgroundColor: this.model.color
-                }, true);
-            }
-            updateName() {
-                this.title.textContent = this.model.name;
-            }
-            updateCount() {
-                const count = this.model.items?.length ?? 0;
-                this.count.textContent = count === 1 ? "1 item" : `${count} items`;
-            }
-            updateLocked() {
-                const locked = this.model.locked;
-                this.lockButton.textContent = locked ? "🔒" : "🔓";
-                gradum(this).toggleClass("locked", locked);
+            updateAddButton() {
+                gradum(this.addButton).toggleClass("disabled", this.model.locked);
             }
         };
     })();
 
-    var css_248z$5 = "demo-cart{left:0;position:absolute;top:0;--cart-fit-scale:1;border:1px dashed var(--line);border-radius:var(--radius);box-sizing:border-box;display:flex;flex-direction:column;gap:.4rem;overflow-y:auto;padding-bottom:.4rem}demo-cart>demo-item{flex:none;font-size:calc(1rem*var(--cart-fit-scale));margin:0 .4rem;padding:calc(.8rem*var(--cart-fit-scale));position:static;width:auto}demo-cart>demo-item,demo-cart>demo-item .item-header{gap:calc(.6rem*var(--cart-fit-scale))}demo-cart>demo-item .item-picture{height:calc(3.25rem*var(--cart-fit-scale));width:calc(3.25rem*var(--cart-fit-scale))}demo-cart.cart-full .cart-count{color:#b26a00;font-weight:600}demo-cart.locked{border-style:solid}demo-cart .cart-header{align-items:center;background:inherit;display:flex;flex:none;font-size:.85rem;gap:.4rem;padding:.35rem .5rem;position:sticky;top:0;z-index:2}demo-cart .cart-name{font-weight:600}demo-cart .cart-count{color:var(--muted);font-size:.8rem}demo-cart .cart-lock{margin-left:auto}demo-cart .cart-add,demo-cart .cart-lock{align-items:center;background:hsla(0,0%,100%,.55);border:1px solid var(--line);border-radius:calc(var(--radius) - 5px);color:inherit;cursor:pointer;display:flex;font:inherit;font-size:.85rem;height:1.4rem;justify-content:center;padding:0;width:1.4rem}demo-cart .cart-add:hover,demo-cart .cart-lock:hover{background:hsla(0,0%,100%,.9)}demo-cart.locked .cart-add{opacity:.4;pointer-events:none}";
-    styleInject(css_248z$5);
+    var css_248z$3 = "demo-cart .collection-button.cart-add{background:var(--color-primary);box-shadow:var(--shadow-small)}demo-cart.demo-collection .collection-button.cart-add .gradum-icon{fill:var(--text);height:90%;width:90%}demo-cart .collection-button.cart-add:hover{filter:brightness(1.05)}demo-cart .cart-add.disabled{background:var(--line);pointer-events:none}demo-cart.demo-collection .cart-add.disabled .gradum-icon{fill:var(--muted)}";
+    styleInject(css_248z$3);
 
     /**
      * @class Cart
      *
-     * @extends GradumElement
-     * @description A cart, as an area of the canvas: a tinted rectangle that whatever is lying on it belongs to.
-     *
-     * What a cart holds, it holds: an item put in one becomes the cart's own child and is laid out down the
-     * cart in the order it is in, rather than placing itself. Dropping a card on a cart is what puts it in, and
-     * where down the cart it was dropped is where in the order it goes; dropping one back on the canvas takes it
-     * out again. A cart moved over loose cards on the canvas picks them up, which is the constrainer's doing.
-     *
-     * A locked cart is closed: it cannot be dragged, and it takes nothing in — what it holds is what it held
-     * when it was locked.
+     * @extends Collection
+     * @description A collection you buy from. On top of holding cards like any collection, a cart keeps count of
+     * how much of each product has been added to it, and holds a card for each — see
+     * {@link CartContentsOperator}.
      */
     let Cart = (() => {
-        let _classSuper = GradumElement;
-        let _name_decorators;
-        let _name_initializers = [];
-        let _name_extraInitializers = [];
+        let _classSuper = Collection;
         let _color_decorators;
         let _color_initializers = [];
         let _color_extraInitializers = [];
-        let _position_decorators;
-        let _position_initializers = [];
-        let _position_extraInitializers = [];
-        let _size_decorators;
-        let _size_initializers = [];
-        let _size_extraInitializers = [];
-        let _locked_decorators;
-        let _locked_initializers = [];
-        let _locked_extraInitializers = [];
-        let _items_decorators;
-        let _items_initializers = [];
-        let _items_extraInitializers = [];
         return class Cart extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _name_decorators = [expose("model")];
-                _color_decorators = [expose("model")];
-                _position_decorators = [expose("model")];
-                _size_decorators = [expose("model")];
-                _locked_decorators = [expose("model")];
-                _items_decorators = [expose("model")];
-                __esDecorate$1(null, null, _name_decorators, { kind: "field", name: "name", static: false, private: false, access: { has: obj => "name" in obj, get: obj => obj.name, set: (obj, value) => { obj.name = value; } }, metadata: _metadata }, _name_initializers, _name_extraInitializers);
+                _color_decorators = [signal];
                 __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
-                __esDecorate$1(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
-                __esDecorate$1(null, null, _size_decorators, { kind: "field", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
-                __esDecorate$1(null, null, _locked_decorators, { kind: "field", name: "locked", static: false, private: false, access: { has: obj => "locked" in obj, get: obj => obj.locked, set: (obj, value) => { obj.locked = value; } }, metadata: _metadata }, _locked_initializers, _locked_extraInitializers);
-                __esDecorate$1(null, null, _items_decorators, { kind: "field", name: "items", static: false, private: false, access: { has: obj => "items" in obj, get: obj => obj.items, set: (obj, value) => { obj.items = value; } }, metadata: _metadata }, _items_initializers, _items_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
             static defaultProperties = {
                 view: CartView,
                 model: CartModel,
                 handlers: CartAmountsHandler,
-                operators: [CartLockOperator, CartScrollFitOperator],
+                //Its own list replaces the collection's rather than adding to it, so the collection's are listed too.
+                operators: [...[Collection.defaultProperties.operators].flat(), CartContentsOperator],
             };
-            name = __runInitializers$1(this, _name_initializers, void 0);
-            color = (__runInitializers$1(this, _name_extraInitializers), __runInitializers$1(this, _color_initializers, void 0));
-            position = (__runInitializers$1(this, _color_extraInitializers), __runInitializers$1(this, _position_initializers, void 0));
-            size = (__runInitializers$1(this, _position_extraInitializers), __runInitializers$1(this, _size_initializers, void 0));
-            locked = (__runInitializers$1(this, _size_extraInitializers), __runInitializers$1(this, _locked_initializers, void 0));
-            items = (__runInitializers$1(this, _locked_extraInitializers), __runInitializers$1(this, _items_initializers, void 0));
+            static namePrefix = "Cart";
+            //A panel to shop from, as a catalogue is, rather than a tinted area.
+            color = __runInitializers$1(this, _color_initializers, Color.from("#FFFFFFB3"));
             /**
              * @readonly
              * @description Fired when the cart's add button is pressed. What that should do is still to be decided,
              * so the cart says it happened and leaves it there.
              */
-            onAddClicked = (__runInitializers$1(this, _items_extraInitializers), new Delegate());
-            initialize() {
-                super.initialize();
-                this.dataId = randomId();
-                gradum(this).metadata.set(true, "dropTarget");
-                this.canvas?.addCart(this);
-            }
-            get canvas() {
-                return gradum(this).closest("my-canvas");
-            }
-            /**
-             * @readonly
-             * @description The cards in the cart, in the order they are laid out. Read from the cart's own children,
-             * so the order on screen and the order in the list are the same thing rather than two things kept in step.
-             */
-            get itemElements() {
-                return Array.from(this.children).filter(child => child instanceof Item);
-            }
-            /**
-             * @function acceptDrop
-             * @description Take a card dropped on the cart, and put it where down the cart it was dropped. A card
-             * dragged from the shelf is a catalogue entry, so a copy of it goes in and the shelf keeps its own.
-             *
-             * A locked cart takes nothing, and the card goes back to wherever it came from.
-             * @param {Item} item - The card that was dropped.
-             * @param {Point} position - Where it was let go of.
-             */
-            acceptDrop(item, position) {
-                if (this.locked || !(item instanceof Item))
-                    return;
-                const placed = gradum(item).metadata?.get("catalogue") ? item.clone({ parent: this }) : item;
-                this.insertItem(placed, this.indexAt(position.y, placed));
-                this.canvas?.syncCarts();
-            }
-            /**
-             * @function insertItem
-             * @description Put a card in the cart at a given place in the order, taking it out of wherever it was.
-             * The card gives up its own position: inside a cart it is laid out by the cart.
-             * @param {Item} item - The card to put in.
-             * @param {number} [index=the end] - Where in the order it goes.
-             */
-            insertItem(item, index = this.itemElements.length) {
-                if (!item)
-                    return;
-                item.position = undefined;
-                const before = this.itemElements.filter(entry => entry !== item)[index];
-                if (before)
-                    this.insertBefore(item, before);
-                else
-                    this.appendChild(item);
-                this.syncItems();
-            }
-            /**
-             * @function syncItems
-             * @description Read the cart's contents back off its children, so the list matches what is on screen
-             * after anything has moved.
-             */
-            syncItems() {
-                const items = this.itemElements;
-                const current = this.model.items;
-                if (items.length === current.length && items.every((item, at) => current[at] === item))
-                    return;
-                this.model.items = items;
-            }
-            /**
-             * @description Where in the order a card dropped at this height belongs: before the first card whose
-             * middle is below it, or last when it is below them all.
-             * @param {number} y - The height the card was dropped at.
-             * @param {Item} [moved] - The card being placed, left out of the reckoning so that a card already in the
-             * cart is not counted against its own new place.
-             * @returns {number} The place in the order.
-             * @protected
-             */
-            indexAt(y, moved) {
-                const items = this.itemElements.filter(item => item !== moved);
-                for (let index = 0; index < items.length; index++) {
-                    const rect = items[index].getBoundingClientRect();
-                    if (y < rect.y + rect.height / 2)
-                        return index;
-                }
-                return items.length;
-            }
+            onAddClicked = (__runInitializers$1(this, _color_extraInitializers), new Delegate());
             /**
              * @function addItem
-             * @description Take an amount of an item, as an item's add button asks it to. Separate from lying on the
-             * cart's area: this is a quantity somebody asked for, that one is where the card happens to be.
+             * @description Take an amount of an item, as an item's add button asks it to. Separate from lying in the
+             * cart: this is a quantity somebody asked for, that one is where the card happens to be.
              *
              * A locked cart takes nothing.
              * @param {Item} item - The item being added.
-             * @param {number} amount - How many units of it.
+             * @param {number} amount - How many of it.
              */
             addItem(item, amount) {
                 //Refusing is the cart's own decision; the sum once it has agreed is the model's.
                 if (this.locked)
                     return;
                 this.model.amountsHandler.add(item, amount);
+            }
+            /**
+             * @function setAmount
+             * @description Say outright how much of an item the cart holds, as an item's stepper does. Zero takes it
+             * out. A locked cart is left as it is.
+             * @param {Item} item - The item.
+             * @param {number} amount - How many of it.
+             */
+            setAmount(item, amount) {
+                if (this.locked)
+                    return;
+                this.model.amountsHandler.set(item, amount);
             }
             /**
              * @function howMuchOf
@@ -31530,962 +32954,1034 @@
             howMuchOf(item) {
                 return this.model.amountsHandler.of(item);
             }
-            /**
-             * @description Take the cart off the canvas, and the cards in it with it. A card to be kept has to be
-             * dragged back out onto the canvas first.
-             */
-            delete() {
-                this.canvas?.removeCart(this);
-                //Destroyed rather than removed, so that the add dropdown of every card in the cart takes its popup
-                //with it instead of stranding it in the shared popup container.
-                gradum(this).destroy();
-            }
-            getBoundingClientRect() {
-                return new GradumRect({
-                    x: this.model.position.x,
-                    y: this.model.position.y,
-                    width: this.model.size.x,
-                    height: this.model.size.y
-                });
-            }
         };
     })();
     define(Cart, "demo-cart");
 
     /**
-     * @class CanvasCartConstrainer
-     *
-     * @extends GradumConstrainer
-     * @description Picks loose cards up into the carts they come to rest on.
-     *
-     * A card dropped straight onto a cart is the cart's own business — the select tool hands it over and the
-     * cart puts it in its order. This is the other way in: a card lying on the canvas that is dragged where it
-     * stands and left over a cart, or one a cart is moved on top of, is taken in. Being taken in is a real move
-     * — the card becomes the cart's child and gives up placing itself.
-     *
-     * Which cart a card is over is decided by its centre rather than by any overlap, so a card straddling two
-     * carts goes to the one its middle is over, and to exactly one cart.
+     * @description The sort keys that are not properties.
      */
-    let CanvasCartConstrainer = (() => {
-        let _classSuper = GradumConstrainer;
-        let _instanceExtraInitializers = [];
-        let _collectLooseItems_decorators;
-        return class CanvasCartConstrainer extends _classSuper {
+    const SortKey = {
+        /** Leave the order alone. */
+        none: "none",
+        /** Best match for the keywords first. */
+        relevance: "relevance",
+        name: "name",
+        price: "price",
+    };
+
+    /**
+     * @class FilterModel
+     *
+     * @extends GradumModel
+     * @description What a filter asks of products — keywords, categories, ranges on numeric properties, and an
+     * order — and the collections it asks it on behalf of.
+     *
+     * The asking itself is done by its handlers, one per part. Each reads the settings it needs as it goes, so a
+     * collection that asks a filter about a product from inside an effect follows exactly those settings.
+     */
+    let FilterModel = (() => {
+        let _classSuper = GradumModel;
+        let _keywords_decorators;
+        let _keywords_initializers = [];
+        let _keywords_extraInitializers = [];
+        let _categories_decorators;
+        let _categories_initializers = [];
+        let _categories_extraInitializers = [];
+        let _facets_decorators;
+        let _facets_initializers = [];
+        let _facets_extraInitializers = [];
+        let _sort_decorators;
+        let _sort_initializers = [];
+        let _sort_extraInitializers = [];
+        let _enabled_decorators;
+        let _enabled_initializers = [];
+        let _enabled_extraInitializers = [];
+        let _targets_decorators;
+        let _targets_initializers = [];
+        let _targets_extraInitializers = [];
+        let _searchHandler_decorators;
+        let _searchHandler_initializers = [];
+        let _searchHandler_extraInitializers = [];
+        let _categoriesHandler_decorators;
+        let _categoriesHandler_initializers = [];
+        let _categoriesHandler_extraInitializers = [];
+        let _facetsHandler_decorators;
+        let _facetsHandler_initializers = [];
+        let _facetsHandler_extraInitializers = [];
+        let _sortHandler_decorators;
+        let _sortHandler_initializers = [];
+        let _sortHandler_extraInitializers = [];
+        let _queryHandler_decorators;
+        let _queryHandler_initializers = [];
+        let _queryHandler_extraInitializers = [];
+        return class FilterModel extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _collectLooseItems_decorators = [solver()];
-                __esDecorate$1(this, null, _collectLooseItems_decorators, { kind: "method", name: "collectLooseItems", static: false, private: false, access: { has: obj => "collectLooseItems" in obj, get: obj => obj.collectLooseItems }, metadata: _metadata }, null, _instanceExtraInitializers);
+                _keywords_decorators = [signal];
+                _categories_decorators = [signal];
+                _facets_decorators = [signal];
+                _sort_decorators = [signal];
+                _enabled_decorators = [signal];
+                _targets_decorators = [signal];
+                _searchHandler_decorators = [handler()];
+                _categoriesHandler_decorators = [handler()];
+                _facetsHandler_decorators = [handler()];
+                _sortHandler_decorators = [handler()];
+                _queryHandler_decorators = [handler()];
+                __esDecorate$1(null, null, _keywords_decorators, { kind: "field", name: "keywords", static: false, private: false, access: { has: obj => "keywords" in obj, get: obj => obj.keywords, set: (obj, value) => { obj.keywords = value; } }, metadata: _metadata }, _keywords_initializers, _keywords_extraInitializers);
+                __esDecorate$1(null, null, _categories_decorators, { kind: "field", name: "categories", static: false, private: false, access: { has: obj => "categories" in obj, get: obj => obj.categories, set: (obj, value) => { obj.categories = value; } }, metadata: _metadata }, _categories_initializers, _categories_extraInitializers);
+                __esDecorate$1(null, null, _facets_decorators, { kind: "field", name: "facets", static: false, private: false, access: { has: obj => "facets" in obj, get: obj => obj.facets, set: (obj, value) => { obj.facets = value; } }, metadata: _metadata }, _facets_initializers, _facets_extraInitializers);
+                __esDecorate$1(null, null, _sort_decorators, { kind: "field", name: "sort", static: false, private: false, access: { has: obj => "sort" in obj, get: obj => obj.sort, set: (obj, value) => { obj.sort = value; } }, metadata: _metadata }, _sort_initializers, _sort_extraInitializers);
+                __esDecorate$1(null, null, _enabled_decorators, { kind: "field", name: "enabled", static: false, private: false, access: { has: obj => "enabled" in obj, get: obj => obj.enabled, set: (obj, value) => { obj.enabled = value; } }, metadata: _metadata }, _enabled_initializers, _enabled_extraInitializers);
+                __esDecorate$1(null, null, _targets_decorators, { kind: "field", name: "targets", static: false, private: false, access: { has: obj => "targets" in obj, get: obj => obj.targets, set: (obj, value) => { obj.targets = value; } }, metadata: _metadata }, _targets_initializers, _targets_extraInitializers);
+                __esDecorate$1(null, null, _searchHandler_decorators, { kind: "field", name: "searchHandler", static: false, private: false, access: { has: obj => "searchHandler" in obj, get: obj => obj.searchHandler, set: (obj, value) => { obj.searchHandler = value; } }, metadata: _metadata }, _searchHandler_initializers, _searchHandler_extraInitializers);
+                __esDecorate$1(null, null, _categoriesHandler_decorators, { kind: "field", name: "categoriesHandler", static: false, private: false, access: { has: obj => "categoriesHandler" in obj, get: obj => obj.categoriesHandler, set: (obj, value) => { obj.categoriesHandler = value; } }, metadata: _metadata }, _categoriesHandler_initializers, _categoriesHandler_extraInitializers);
+                __esDecorate$1(null, null, _facetsHandler_decorators, { kind: "field", name: "facetsHandler", static: false, private: false, access: { has: obj => "facetsHandler" in obj, get: obj => obj.facetsHandler, set: (obj, value) => { obj.facetsHandler = value; } }, metadata: _metadata }, _facetsHandler_initializers, _facetsHandler_extraInitializers);
+                __esDecorate$1(null, null, _sortHandler_decorators, { kind: "field", name: "sortHandler", static: false, private: false, access: { has: obj => "sortHandler" in obj, get: obj => obj.sortHandler, set: (obj, value) => { obj.sortHandler = value; } }, metadata: _metadata }, _sortHandler_initializers, _sortHandler_extraInitializers);
+                __esDecorate$1(null, null, _queryHandler_decorators, { kind: "field", name: "queryHandler", static: false, private: false, access: { has: obj => "queryHandler" in obj, get: obj => obj.queryHandler, set: (obj, value) => { obj.queryHandler = value; } }, metadata: _metadata }, _queryHandler_initializers, _queryHandler_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
-            constrainerName = (__runInitializers$1(this, _instanceExtraInitializers), "carts");
-            //Solve only what the user just manipulated, rather than sweeping the whole canvas.
-            defaultQueue = [];
-            collectLooseItems(properties) {
-                //Only once the card has been let go of: moving one across a cart on the way somewhere else should
-                //not drop it in, and taking it in mid-drag would pull it out from under the pointer.
-                if (properties.eventType !== GradumEventName.dragEnd)
-                    return;
-                const moved = properties.eventTarget;
-                //A cart that moved has to be asked the other way round — which cards does it now cover? — since
-                //asking only which cart covers one card would leave a cart swept across the canvas picking up none.
-                if (moved instanceof Cart) {
-                    if (!moved.locked)
-                        this.looseItems.filter(item => this.holds(moved, item))
-                            .forEach(item => moved.insertItem(item));
-                    return;
-                }
-                if (!(moved instanceof Item) || !this.looseItems.includes(moved))
-                    return;
-                const holder = this.element.carts.find(cart => !cart.locked && this.holds(cart, moved));
-                holder?.insertItem(moved);
-            }
             /**
-             * @readonly
-             * @description The cards lying on the canvas itself. A card already in a cart is that cart's child, so
-             * it is not among them.
-             * @protected
+             * @description What to search for. Empty for anything.
              */
-            get looseItems() {
-                return Array.from(this.element.children).filter(child => child instanceof Item);
-            }
+            keywords = __runInitializers$1(this, _keywords_initializers, "");
             /**
-             * @description Whether a cart covers the middle of an item.
-             * @param {Cart} cart - The cart to test.
-             * @param {Item} item - The item to test.
-             * @returns {boolean} Whether the item's centre lies within the cart's area.
-             * @protected
+             * @description The category paths let through, as {@link CatalogueCategoriesHandler.pathsOf} writes them.
+             * A product filed under any one of them, at any depth, is let through. Empty for every category.
              */
-            holds(cart, item) {
-                const area = getRect(cart), rect = getRect(item);
-                if (!area || !rect)
-                    return false;
-                //Asked of the rect rather than worked out from its `x`: `x` is wherever the rect is anchored, and
-                //a card anchored anywhere but its top-left would have its middle reckoned half a card away.
-                const centre = rect.center;
-                return centre.x >= area.left && centre.x <= area.right
-                    && centre.y >= area.top && centre.y <= area.bottom;
+            categories = (__runInitializers$1(this, _keywords_extraInitializers), __runInitializers$1(this, _categories_initializers, []));
+            /**
+             * @description The ranges numeric properties have to fall in, by key. `"price"` is the product's price
+             * rather than one of its properties.
+             */
+            facets = (__runInitializers$1(this, _categories_extraInitializers), __runInitializers$1(this, _facets_initializers, {}));
+            /**
+             * @description What to order products by.
+             */
+            sort = (__runInitializers$1(this, _facets_extraInitializers), __runInitializers$1(this, _sort_initializers, { key: SortKey.none, direction: "ascending" }));
+            /**
+             * @description Whether the filter applies at all. A paused filter lets everything through in the order it
+             * came.
+             */
+            enabled = (__runInitializers$1(this, _sort_extraInitializers), __runInitializers$1(this, _enabled_initializers, true));
+            /**
+             * @description The collections the filter applies to. Only written by the canvas's links handler, which
+             * keeps it in step with each collection's own list of filters.
+             */
+            targets = (__runInitializers$1(this, _enabled_extraInitializers), __runInitializers$1(this, _targets_initializers, []));
+            searchHandler = (__runInitializers$1(this, _targets_extraInitializers), __runInitializers$1(this, _searchHandler_initializers, void 0));
+            categoriesHandler = (__runInitializers$1(this, _searchHandler_extraInitializers), __runInitializers$1(this, _categoriesHandler_initializers, void 0));
+            facetsHandler = (__runInitializers$1(this, _categoriesHandler_extraInitializers), __runInitializers$1(this, _facetsHandler_initializers, void 0));
+            sortHandler = (__runInitializers$1(this, _facetsHandler_extraInitializers), __runInitializers$1(this, _sortHandler_initializers, void 0));
+            queryHandler = (__runInitializers$1(this, _sortHandler_extraInitializers), __runInitializers$1(this, _queryHandler_initializers, void 0));
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _queryHandler_extraInitializers);
             }
         };
     })();
 
     /**
-     * @class CanvasCartsHandler
+     * @description What goes between the levels of a category path written out as one string, as in
+     * `"Toys & Games › Puzzles"`.
+     */
+    const CategorySeparator = " › ";
+    /**
+     * @class CatalogueCategoriesHandler
      *
      * @extends GradumHandler
-     * @description Keeps the canvas's list of carts straight. Pure bookkeeping over the list — nothing here
-     * touches the page, which is why it is a handler rather than part of the canvas element.
+     * @description Reads the catalogue's categories as a tree. A product is filed under one path of categories,
+     * broadest first; filed under a category means filed under it or anywhere beneath it, so a product in
+     * "Toys & Games › Puzzles" is in "Toys & Games" as well.
+     *
+     * The working is static, since none of it depends on the catalogue: a filter asks it of whichever products
+     * it is looking at.
      */
-    class CanvasCartsHandler extends GradumHandler {
-        keyName = "carts";
+    class CatalogueCategoriesHandler extends GradumHandler {
+        keyName = "categories";
         /**
-         * @function add
-         * @description Put a cart on the list, unless it is already there.
-         * @param {Cart} cart - The cart to add.
-         * @param index
-         * @returns {boolean} Whether the list changed.
+         * @function pathsOf
+         * @static
+         * @description Every category a product is filed under: its path, and each path above it.
+         * @param {Partial<Product>} product - The product.
+         * @returns {string[]} The paths, broadest first.
          */
-        add(cart, index = this.model.carts.length) {
-            if (!cart || this.model.carts.includes(cart))
-                return false;
-            const arr = [...this.model.carts];
-            if (typeof index !== "number" || index >= arr.length)
-                arr.push(cart);
-            else {
-                if (index < 0)
-                    index = 0;
-                arr.splice(index, 0, cart);
+        static pathsOf(product) {
+            const levels = product?.categories ?? [];
+            return levels.map((_, index) => levels.slice(0, index + 1).join(CategorySeparator));
+        }
+        /**
+         * @function treeOf
+         * @static
+         * @description The categories some products are filed under, as a tree.
+         * @param {Partial<Product>[]} products - The products to file.
+         * @returns {CategoryNode} The root — every category, with no name of its own — counting all the products.
+         */
+        static treeOf(products) {
+            const root = { name: "", path: "", count: 0, children: [] };
+            for (const product of products) {
+                root.count++;
+                let node = root;
+                for (const name of product?.categories ?? []) {
+                    const path = node.path ? node.path + CategorySeparator + name : name;
+                    let child = node.children.find(entry => entry.path === path);
+                    if (!child)
+                        node.children.push(child = { name, path, count: 0, children: [] });
+                    child.count++;
+                    node = child;
+                }
             }
-            this.model.carts = arr;
-            return true;
+            const sort = (node) => {
+                node.children.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+                node.children.forEach(sort);
+            };
+            sort(root);
+            return root;
         }
         /**
-         * @function remove
-         * @description Take a cart off the list.
-         * @param {Cart} cart - The cart to remove.
-         * @returns {boolean} Whether the list changed.
+         * @function find
+         * @static
+         * @description The category at a path in a tree.
+         * @param {CategoryNode} tree - The tree to look in.
+         * @param {string} path - The path. Empty for the root.
+         * @returns {CategoryNode} The category, or `undefined` when nothing in the tree is filed there.
          */
-        remove(cart) {
-            if (!cart || !this.model.carts.includes(cart))
-                return false;
-            this.model.carts = this.model.carts.filter(entry => entry !== cart);
-            return true;
-        }
-        /**
-         * @function removeAt
-         * @description Take the cart at a given place off the list.
-         * @param {number} index - Where in the list it is.
-         * @returns {boolean} Whether the list changed.
-         */
-        removeAt(index) {
-            if (typeof index !== "number" || index >= this.model.carts.length || index < 0)
-                return false;
-            //A new array rather than splicing in place: the list is a signal, and what it is set to is what is
-            //noticed. `splice` also hands back what it took out, not what is left.
-            const arr = [...this.model.carts];
-            arr.splice(index, 1);
-            this.model.carts = arr;
-            return true;
-        }
-        /**
-         * @function nextFreeName
-         * @description A name for a cart that has not been given one: `"Cart 1"`, then `"Cart 2"`, and so on
-         * past whatever names are already taken, so drawing and deleting carts never produces two of the same.
-         * @returns {string} The name to use.
-         */
-        nextFreeName() {
-            const taken = new Set(this.model.carts.map(cart => cart.name));
-            for (let index = 1;; index++) {
-                const name = `Cart ${index}`;
-                if (!taken.has(name))
-                    return name;
+        static find(tree, path) {
+            if (!path)
+                return tree;
+            let node = tree;
+            for (const name of path.split(CategorySeparator)) {
+                node = node?.children.find(child => child.name === name);
+                if (!node)
+                    return undefined;
             }
+            return node;
         }
         /**
-         * @function getCart
-         * @description The cart whose {@link Cart.dataId} is the given one.
-         * @param {string} id - The id to look for.
-         * @returns {Cart} The cart, or `undefined` if no cart on the list has that id.
+         * @function tree
+         * @description The categories of everything in the catalogue, as a tree. Reads the products, so an
+         * effect asking this follows the catalogue.
+         * @returns {CategoryNode} The root.
          */
-        getCart(id) {
-            return this.model.carts.find(cart => cart.dataId === id);
+        tree() {
+            return CatalogueCategoriesHandler.treeOf(this.model.products);
         }
     }
 
     /**
-     * @class CanvasModel
-     *
-     * @extends GradumModel
-     * @description What the canvas is holding. For now that is the carts drawn on it — the items are ordinary
-     * children and need no listing, but the carts are what everything else asks the canvas about.
+     * @description What the sort keys that are not properties are called in the sort dropdown.
      */
-    let CanvasModel = (() => {
-        let _classSuper = GradumModel;
-        let _carts_decorators;
-        let _carts_initializers = [];
-        let _carts_extraInitializers = [];
-        let _cartsHandler_decorators;
-        let _cartsHandler_initializers = [];
-        let _cartsHandler_extraInitializers = [];
-        return class CanvasModel extends _classSuper {
-            static {
-                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _carts_decorators = [signal];
-                _cartsHandler_decorators = [handler()];
-                __esDecorate$1(null, null, _carts_decorators, { kind: "field", name: "carts", static: false, private: false, access: { has: obj => "carts" in obj, get: obj => obj.carts, set: (obj, value) => { obj.carts = value; } }, metadata: _metadata }, _carts_initializers, _carts_extraInitializers);
-                __esDecorate$1(null, null, _cartsHandler_decorators, { kind: "field", name: "cartsHandler", static: false, private: false, access: { has: obj => "cartsHandler" in obj, get: obj => obj.cartsHandler, set: (obj, value) => { obj.cartsHandler = value; } }, metadata: _metadata }, _cartsHandler_initializers, _cartsHandler_extraInitializers);
-                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-            }
-            /**
-             * @description The carts drawn on the canvas, in the order they were drawn. A plain signal rather than a
-             * nested model: what reads this is an effect that wants the whole list — an item's add dropdown, rebuilt
-             * whenever the carts change — and a model tracks reads key by key, so `cartModel.data` would hand back
-             * an array that no effect ever hears about again.
-             */
-            carts = __runInitializers$1(this, _carts_initializers, []);
-            /**
-             * @description Keeping that list straight: adding, removing, and naming.
-             */
-            cartsHandler = (__runInitializers$1(this, _carts_extraInitializers), __runInitializers$1(this, _cartsHandler_initializers, void 0));
-            constructor() {
-                super(...arguments);
-                __runInitializers$1(this, _cartsHandler_extraInitializers);
-            }
-        };
-    })();
-
-    var css_248z$4 = "my-canvas{display:block;height:100vh;width:100vw}";
-    styleInject(css_248z$4);
-
+    const SortLabels = {
+        [SortKey.none]: "Featured",
+        [SortKey.relevance]: "Relevance",
+        [SortKey.name]: "Name",
+        [SortKey.price]: "Price",
+    };
     /**
-     * @class Canvas
-     *
-     * @extends GradumElement
-     * @description The surface everything is arranged on, and the one place that knows which carts exist.
-     *
-     * A card dropped on the canvas is laid down where it was dropped and is the canvas's own; a card dropped on
-     * a cart becomes that cart's, and one left lying on a cart is taken in by {@link CanvasCartConstrainer}. A
-     * cart puts itself on the canvas's list as it is drawn, so anything wanting to offer the carts — an item's
-     * add button, say — can ask the canvas rather than having to watch for them.
-     */
-    let Canvas = (() => {
-        let _classSuper = GradumElement;
-        let _carts_decorators;
-        let _carts_initializers = [];
-        let _carts_extraInitializers = [];
-        return class Canvas extends _classSuper {
-            static {
-                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _carts_decorators = [expose("model", false)];
-                __esDecorate$1(null, null, _carts_decorators, { kind: "field", name: "carts", static: false, private: false, access: { has: obj => "carts" in obj, get: obj => obj.carts, set: (obj, value) => { obj.carts = value; } }, metadata: _metadata }, _carts_initializers, _carts_extraInitializers);
-                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-            }
-            static defaultProperties = {
-                model: CanvasModel,
-                handlers: CanvasCartsHandler,
-                constrainers: [CanvasCartConstrainer],
-            };
-            /**
-             * @readonly
-             * @description The carts drawn on the canvas, in the order they were drawn.
-             */
-            carts = __runInitializers$1(this, _carts_initializers, void 0);
-            initialize() {
-                super.initialize();
-                gradum(this).metadata.set(true, "substrate");
-                gradum(this).metadata.set(true, "dropTarget");
-            }
-            /**
-             * @function acceptDrop
-             * @description Lay a card down on the canvas where it was dropped. A card dragged from the shelf is a
-             * catalogue entry, so the canvas takes a copy of it and leaves the shelf's own card where it is;
-             * anything else is the card itself, moved here from wherever it was.
-             * @param {Item} item - The card that was dropped.
-             * @param {Point} position - Where it was let go of.
-             */
-            acceptDrop(item, position) {
-                if (!(item instanceof Item))
-                    return;
-                //A catalogue card is cloned straight onto the canvas rather than cloned and then added: the copy
-                //works out what it can be added to as it is built, and it can only do that once it is here.
-                const placed = gradum(item).metadata?.get("catalogue") ? item.clone({ parent: this }) : item;
-                gradum(placed).addToParent(this);
-                //Centred on the pointer, so the card lands where the ghost was rather than below and right of it.
-                const rect = placed.getBoundingClientRect();
-                placed.position = new Point(position.x - rect.width / 2, position.y - rect.height / 2);
-                this.syncCarts();
-            }
-            /**
-             * @function syncCarts
-             * @description Have every cart look again at what it is holding. Called after a card has been moved
-             * between a cart and the canvas, since only the two ends of that move know it happened.
-             */
-            syncCarts() {
-                this.carts.forEach(cart => cart.syncItems());
-            }
-            /**
-             * @function addCart
-             * @description Take note of a cart drawn on the canvas. Called by the cart itself as it appears; there is
-             * no need to call it by hand.
-             * @param {Cart} cart - The cart to take note of.
-             */
-            addCart(cart) {
-                if (!cart.name)
-                    cart.name = this.model.cartsHandler.nextFreeName();
-                //An id as well as a name, so that anything offering the carts can point at one by a value in the
-                //DOM rather than by holding the cart itself.
-                this.model.cartsHandler.add(cart);
-            }
-            /**
-             * @function getCart
-             * @description The cart whose {@link Cart.dataId} is the given one, as named in an add button's
-             * `data-cart`.
-             * @param {string} id - The id to look for.
-             * @returns {Cart} The cart, or `undefined` if no cart on the canvas answers to that id.
-             */
-            getCart(id) {
-                if (!id)
-                    return undefined;
-                return this.model.cartsHandler.getCart(id);
-            }
-            /**
-             * @function removeCart
-             * @description Forget a cart that has been taken off the canvas.
-             * @param {Cart} cart - The cart to forget.
-             */
-            removeCart(cart) {
-                this.model.cartsHandler.remove(cart);
-            }
-            constructor() {
-                super(...arguments);
-                __runInitializers$1(this, _carts_extraInitializers);
-            }
-        };
-    })();
-    define(Canvas, "my-canvas");
-
-    /**
-     * @class ItemView
+     * @class FilterView
      *
      * @extends GradumView
-     * @description The card itself: the item's picture beside its name and unit price, then the row that puts an
-     * amount of it in a cart, and the row that says how much of it a recipe uses. Which cart is chosen from a
-     * popup hung off the add button, so the card stays the size of what the item is rather than of what can be
-     * done with it.
+     * @description The panel itself, top to bottom, like the side of a shop's results page: a header with the
+     * filter's switch and a reset, a search field, the sort, a category browser, ranges on numeric properties, and
+     * the collections it can apply to.
+     *
+     * The category browser goes down a level at a time: the categories one level under the one being browsed,
+     * each with how many products are filed under it, and a breadcrumb back up. Ticking a category picks it;
+     * clicking its name goes into it. What is offered — categories, counts, ranges — is worked out from the
+     * products the filter's collections hold, so it only offers what could be found.
      */
-    let ItemView = (() => {
+    let FilterView = (() => {
         let _classSuper = GradumView;
         let _instanceExtraInitializers = [];
-        let _showAddButton_decorators;
-        let _showAddButton_initializers = [];
-        let _showAddButton_extraInitializers = [];
-        let _showRecipe_decorators;
-        let _showRecipe_initializers = [];
-        let _showRecipe_extraInitializers = [];
-        let _updatePlacement_decorators;
-        let _updatePicture_decorators;
-        let _updateTitle_decorators;
-        let _updatePrice_decorators;
-        let _updateCarts_decorators;
-        let _showDropdown_decorators;
-        let _showRecipeStuff_decorators;
-        let _updateCartAmount_decorators;
-        let _updateRecipeAmount_decorators;
-        let _updateSubtotal_decorators;
-        return class ItemView extends _classSuper {
+        let _browsing_decorators;
+        let _browsing_initializers = [];
+        let _browsing_extraInitializers = [];
+        let _updateEnabled_decorators;
+        let _updateSearch_decorators;
+        let _updateSort_decorators;
+        let _updatePicked_decorators;
+        let _updateCategories_decorators;
+        let _updateFacets_decorators;
+        let _updateTargets_decorators;
+        return class FilterView extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _showAddButton_decorators = [signal];
-                _showRecipe_decorators = [signal];
-                _updatePlacement_decorators = [effect];
-                _updatePicture_decorators = [effect];
-                _updateTitle_decorators = [effect];
-                _updatePrice_decorators = [effect];
-                _updateCarts_decorators = [effect];
-                _showDropdown_decorators = [effect];
-                _showRecipeStuff_decorators = [effect];
-                _updateCartAmount_decorators = [effect];
-                _updateRecipeAmount_decorators = [effect];
-                _updateSubtotal_decorators = [effect];
-                __esDecorate$1(this, null, _updatePlacement_decorators, { kind: "method", name: "updatePlacement", static: false, private: false, access: { has: obj => "updatePlacement" in obj, get: obj => obj.updatePlacement }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updatePicture_decorators, { kind: "method", name: "updatePicture", static: false, private: false, access: { has: obj => "updatePicture" in obj, get: obj => obj.updatePicture }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateTitle_decorators, { kind: "method", name: "updateTitle", static: false, private: false, access: { has: obj => "updateTitle" in obj, get: obj => obj.updateTitle }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updatePrice_decorators, { kind: "method", name: "updatePrice", static: false, private: false, access: { has: obj => "updatePrice" in obj, get: obj => obj.updatePrice }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateCarts_decorators, { kind: "method", name: "updateCarts", static: false, private: false, access: { has: obj => "updateCarts" in obj, get: obj => obj.updateCarts }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _showDropdown_decorators, { kind: "method", name: "showDropdown", static: false, private: false, access: { has: obj => "showDropdown" in obj, get: obj => obj.showDropdown }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _showRecipeStuff_decorators, { kind: "method", name: "showRecipeStuff", static: false, private: false, access: { has: obj => "showRecipeStuff" in obj, get: obj => obj.showRecipeStuff }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateCartAmount_decorators, { kind: "method", name: "updateCartAmount", static: false, private: false, access: { has: obj => "updateCartAmount" in obj, get: obj => obj.updateCartAmount }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateRecipeAmount_decorators, { kind: "method", name: "updateRecipeAmount", static: false, private: false, access: { has: obj => "updateRecipeAmount" in obj, get: obj => obj.updateRecipeAmount }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateSubtotal_decorators, { kind: "method", name: "updateSubtotal", static: false, private: false, access: { has: obj => "updateSubtotal" in obj, get: obj => obj.updateSubtotal }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(null, null, _showAddButton_decorators, { kind: "field", name: "showAddButton", static: false, private: false, access: { has: obj => "showAddButton" in obj, get: obj => obj.showAddButton, set: (obj, value) => { obj.showAddButton = value; } }, metadata: _metadata }, _showAddButton_initializers, _showAddButton_extraInitializers);
-                __esDecorate$1(null, null, _showRecipe_decorators, { kind: "field", name: "showRecipe", static: false, private: false, access: { has: obj => "showRecipe" in obj, get: obj => obj.showRecipe, set: (obj, value) => { obj.showRecipe = value; } }, metadata: _metadata }, _showRecipe_initializers, _showRecipe_extraInitializers);
+                _browsing_decorators = [signal];
+                _updateEnabled_decorators = [effect];
+                _updateSearch_decorators = [effect];
+                _updateSort_decorators = [effect];
+                _updatePicked_decorators = [effect];
+                _updateCategories_decorators = [effect];
+                _updateFacets_decorators = [effect];
+                _updateTargets_decorators = [effect];
+                __esDecorate$1(this, null, _updateEnabled_decorators, { kind: "method", name: "updateEnabled", static: false, private: false, access: { has: obj => "updateEnabled" in obj, get: obj => obj.updateEnabled }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateSearch_decorators, { kind: "method", name: "updateSearch", static: false, private: false, access: { has: obj => "updateSearch" in obj, get: obj => obj.updateSearch }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateSort_decorators, { kind: "method", name: "updateSort", static: false, private: false, access: { has: obj => "updateSort" in obj, get: obj => obj.updateSort }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updatePicked_decorators, { kind: "method", name: "updatePicked", static: false, private: false, access: { has: obj => "updatePicked" in obj, get: obj => obj.updatePicked }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateCategories_decorators, { kind: "method", name: "updateCategories", static: false, private: false, access: { has: obj => "updateCategories" in obj, get: obj => obj.updateCategories }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateFacets_decorators, { kind: "method", name: "updateFacets", static: false, private: false, access: { has: obj => "updateFacets" in obj, get: obj => obj.updateFacets }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _updateTargets_decorators, { kind: "method", name: "updateTargets", static: false, private: false, access: { has: obj => "updateTargets" in obj, get: obj => obj.updateTargets }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(null, null, _browsing_decorators, { kind: "field", name: "browsing", static: false, private: false, access: { has: obj => "browsing" in obj, get: obj => obj.browsing, set: (obj, value) => { obj.browsing = value; } }, metadata: _metadata }, _browsing_initializers, _browsing_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
-            showAddButton = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _showAddButton_initializers, true));
-            showRecipe = (__runInitializers$1(this, _showAddButton_extraInitializers), __runInitializers$1(this, _showRecipe_initializers, true));
-            picture = __runInitializers$1(this, _showRecipe_extraInitializers);
-            title;
-            price;
-            cartAmountInput;
-            addDropdown;
-            subtotal;
-            recipeAmountInput;
-            recipeUnit;
-            cartRow;
-            recipeRow;
+            /**
+             * @description The category path being browsed. Empty for the top level.
+             */
+            browsing = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _browsing_initializers, ""));
+            enabledButton = __runInitializers$1(this, _browsing_extraInitializers);
+            resetButton;
+            searchInput;
+            sortSelect;
+            directionButton;
+            picked;
+            breadcrumb;
+            categoryList;
+            facetList;
+            facetSelect;
+            targetList;
             setupUIElements() {
                 super.setupUIElements();
-                this.picture = img({ classes: "item-picture" });
-                this.title = span({ classes: "item-title" });
-                this.price = span({ classes: "item-price" });
-                this.cartAmountInput = GradumNumericalInput.create({ classes: "item-amount", min: 0, decimalPlaces: 2 });
-                this.subtotal = span({ classes: "item-subtotal" });
-                //A dropdown is the add button and its list of carts in one: a selector to click and a popup hung off
-                //it. The selector is a plain button rather than a GradumButton on purpose — a dropdown rewrites a
-                //GradumButton selector to show what was picked, and this one is an action, not a choice. It should
-                //go on saying "Add".
-                this.addDropdown = GradumDropdown.create({
-                    classes: "item-add-dropdown",
-                    selector: element({ tag: "button", classes: "item-add", text: "Add" }),
-                    popupClasses: "item-cart-popup"
-                });
-                gradum(this.addDropdown).showTransition = gradum().displayTransition;
-                this.recipeAmountInput = GradumNumericalInput.create({ classes: "item-amount", min: 0, decimalPlaces: 2 });
-                this.recipeUnit = span({ classes: "item-unit" });
+                this.enabledButton = element({ tag: "button", classes: "filter-switch" });
+                this.resetButton = element({ tag: "button", classes: "filter-reset", text: "Reset" });
+                this.searchInput = element({ tag: "input", classes: "filter-search" });
+                this.searchInput.type = "search";
+                this.searchInput.placeholder = "Search...";
+                this.sortSelect = element({ tag: "select", classes: "filter-select" });
+                this.directionButton = element({ tag: "button", classes: "filter-direction" });
+                this.picked = div({ classes: "filter-picked" });
+                this.breadcrumb = div({ classes: "filter-breadcrumb" });
+                this.categoryList = div({ classes: "filter-categories" });
+                this.facetList = div({ classes: "filter-facets" });
+                this.facetSelect = element({ tag: "select", classes: "filter-select" });
+                this.targetList = div({ classes: "filter-targets" });
             }
             setupUILayout() {
                 super.setupUILayout();
+                const section = (title, ...children) => div({
+                    classes: "filter-section",
+                    children: [span({ classes: "filter-heading", text: title }), ...children]
+                });
                 gradum(this).addChild([
                     div({
-                        classes: "item-header",
-                        children: [
-                            this.picture,
-                            div({ classes: "item-heading", children: [this.title, this.price] })
-                        ]
+                        classes: "filter-header",
+                        children: [span({ classes: "filter-title", text: "Filter" }), this.enabledButton, this.resetButton]
                     }),
-                    this.cartRow = div({
-                        classes: ["item-row", "item-cart-row"],
-                        children: [
-                            span({ classes: "item-label", text: "Cart" }),
-                            this.cartAmountInput, this.addDropdown, this.subtotal
-                        ]
-                    }),
-                    this.recipeRow = div({
-                        classes: ["item-row", "item-recipe-row"],
-                        children: [
-                            span({ classes: "item-label", text: "Recipe" }),
-                            this.recipeAmountInput, this.recipeUnit
-                        ]
-                    })
+                    div({ classes: "filter-search-box", children: [this.searchInput, GradumIcon.create({ icon: "search" })] }),
+                    section("Sort by", div({ classes: "filter-row", children: [this.sortSelect, this.directionButton] })),
+                    section("Category", this.picked, this.breadcrumb, this.categoryList),
+                    section("Ranges", this.facetList, this.facetSelect),
+                    section("Applies to", this.targetList),
                 ]);
-                gradum(this.recipeRow).showTransition = gradum().displayTransition;
             }
             setupUIListeners() {
                 super.setupUIListeners();
-                this.cartAmountInput.onInput.add(() => this.model.cartAmount = this.cartAmountInput.value);
-                this.recipeAmountInput.onInput.add(() => this.model.recipeAmount = this.recipeAmountInput.value);
-                this.addDropdown.select.onEntryClicked = entry => this.addTo(gradum(this).closest(Canvas)?.getCart(entry.dataset?.cart));
-            }
-            updatePlacement() {
-                const position = this.model.position;
-                gradum(this).toggleClass("placed", !!position);
-                gradum(this).setStyle("transform", position ? `translate(${position.x}px, ${position.y}px)` : "", true);
-            }
-            updatePicture() {
-                const image = this.model.image;
-                gradum(this.picture).show(!!image);
-                if (image)
-                    this.picture.src = image;
-                this.picture.alt = this.model.name;
-            }
-            updateTitle() {
-                this.title.textContent = this.model.name;
-            }
-            updatePrice() {
-                this.price.textContent = `${formatPrice(this.model.price)} / ${this.model.unit}`;
-            }
-            /**
-             * @description Rebuild the list of carts the popup offers. An item with no carts has nothing to be added
-             * to, so its add button says as much rather than opening on an empty list.
-             * @protected
-             */
-            updateCarts() {
-                const carts = gradum(this).closest(Canvas)?.carts ?? [];
-                this.addDropdown.select.clear();
-                for (const cart of carts)
-                    this.addDropdown.select.addEntry(element({
-                        tag: "button", classes: "item-cart-option", text: cart.name, "data-cart": cart.dataId
-                    }));
-                gradum(this.addDropdown).toggleClass("disabled", carts.length === 0);
-            }
-            showDropdown() {
-                gradum(this.addDropdown).show(this.showAddButton);
-            }
-            showRecipeStuff() {
-                gradum(this.recipeRow).show(this.showRecipe);
-            }
-            updateCartAmount() {
-                this.showAmount(this.cartAmountInput, this.model.cartAmount);
-            }
-            updateRecipeAmount() {
-                this.showAmount(this.recipeAmountInput, this.model.recipeAmount);
-                this.recipeUnit.textContent = this.model.unit;
-            }
-            updateSubtotal() {
-                this.subtotal.textContent = formatPrice(this.model.cartCost);
-            }
-            /**
-             * @description Hand the amount on the card to the cart that was chosen. Choosing is also what picks the
-             * cart, so the card goes on pointing at the one it was last added to.
-             * @param {Cart} cart - The cart chosen from the dropdown.
-             * @protected
-             */
-            addTo(cart) {
-                if (!cart)
-                    return;
-                this.model.cart = cart;
-                //Asked of the cart rather than of the card: taking something in is the cart's own business, and
-                //whether it will is the cart's own decision.
-                cart.addItem(this.element, this.model.cartAmount);
-            }
-            /**
-             * @description Show an amount in one of the fields, unless it is already showing it.
-             *
-             * The field is read without subscribing to it, so that a card only ever writes into a field because the
-             * model changed — never because the field did. A field someone has just cleared is left cleared: it
-             * reads as zero, and writing that zero back mid-keystroke is what makes a field impossible to type in.
-             * @param {GradumNumericalInput} input - The field to write into.
-             * @param {number} amount - The amount it should be showing.
-             * @protected
-             */
-            showAmount(input, amount) {
-                untrack(() => {
-                    const shown = input.value;
-                    if (Number.isNaN(shown) && amount === 0)
-                        return;
-                    if (shown === amount)
-                        return;
-                    input.value = amount;
+                gradum(this.enabledButton).on(DefaultEventName.click, () => this.model.enabled = !this.model.enabled);
+                gradum(this.resetButton).on(DefaultEventName.click, () => {
+                    this.element.reset();
+                    this.browsing = "";
                 });
+                gradum(this.searchInput).on(DefaultEventName.input, () => this.model.keywords = this.searchInput.value);
+                gradum(this.sortSelect).on(DefaultEventName.change, () => this.model.sortHandler.sortBy(this.sortSelect.value));
+                gradum(this.directionButton).on(DefaultEventName.click, () => this.model.sortHandler.reverse());
+                gradum(this.facetSelect).on(DefaultEventName.change, () => {
+                    const key = this.facetSelect.value;
+                    if (key)
+                        this.model.facetsHandler.set(key, {});
+                    this.facetSelect.value = "";
+                });
+            }
+            /**
+             * @description What a sort key or a property is called: the dropdown's own name for the keys that are not
+             * properties, the catalogue's label for the rest.
+             * @param {string} key - The key.
+             * @returns {string} Its label.
+             * @protected
+             */
+            label(key) {
+                return SortLabels[key] ?? this.element.canvas?.catalogue?.label(key) ?? key;
+            }
+            /**
+             * @description The unit a property is measured in, as the catalogue's units file has it.
+             * @param {string} key - The property's key.
+             * @returns {string} The unit, or an empty string when it has none.
+             * @protected
+             */
+            unit(key) {
+                const units = this.element.canvas?.catalogue?.units;
+                return (key === SortKey.price ? units?.price : units?.properties?.[key]) ?? "";
+            }
+            updateEnabled() {
+                const enabled = this.model.enabled;
+                this.enabledButton.textContent = enabled ? "On" : "Paused";
+                gradum(this.enabledButton).toggleClass("off", !enabled);
+                gradum(this).toggleClass("paused", !enabled);
+            }
+            updateSearch() {
+                //Only written when it says something else, so the field is never rewritten under the caret.
+                const keywords = this.model.keywords ?? "";
+                if (this.searchInput.value !== keywords)
+                    this.searchInput.value = keywords;
+            }
+            updateSort() {
+                const { key, direction } = this.model.sort;
+                const keys = this.model.sortHandler.keys(this.element.scope);
+                if (!keys.includes(key))
+                    keys.push(key);
+                this.sortSelect.replaceChildren(...keys.map(entry => {
+                    const option = element({ tag: "option", text: this.label(entry) });
+                    option.value = entry;
+                    return option;
+                }));
+                this.sortSelect.value = key;
+                //Neither has a direction worth choosing: no order at all, and best match first.
+                const directed = key !== SortKey.none && key !== SortKey.relevance;
+                gradum(this.directionButton).toggleClass("hidden", !directed);
+                this.directionButton.textContent = direction === "descending" ? "↓ High to low" : "↑ Low to high";
+                if (key === SortKey.name)
+                    this.directionButton.textContent = direction === "descending" ? "↓ Z–A" : "↑ A–Z";
+            }
+            /**
+             * @description Show the picked categories as chips, each with a cross to put it back.
+             * @protected
+             */
+            updatePicked() {
+                const picked = this.model.categories ?? [];
+                this.picked.replaceChildren(...picked.map(path => {
+                    const chip = element({ tag: "button", classes: "filter-chip", text: path.split(CategorySeparator).at(-1) + " ✕" });
+                    chip.title = path;
+                    gradum(chip).on(DefaultEventName.click, () => this.model.categoriesHandler.toggle(path));
+                    return chip;
+                }));
+                gradum(this.picked).toggleClass("hidden", picked.length === 0);
+            }
+            /**
+             * @description Draw the level of categories being browsed, and the breadcrumb back up to the top.
+             * @protected
+             */
+            updateCategories() {
+                const tree = CatalogueCategoriesHandler.treeOf(this.element.scope);
+                //A category that is no longer filed under anything browsed back to the top rather than shown empty.
+                const node = CatalogueCategoriesHandler.find(tree, this.browsing) ?? tree;
+                const picked = this.model.categories;
+                const crumbs = [{ name: "All", path: "" }];
+                if (node.path)
+                    node.path.split(CategorySeparator).forEach((name, index, names) => crumbs.push({ name, path: names.slice(0, index + 1).join(CategorySeparator) }));
+                this.breadcrumb.replaceChildren(...crumbs.map(crumb => {
+                    const link = element({ tag: "button", classes: "filter-crumb", text: crumb.name });
+                    gradum(link).toggleClass("current", crumb.path === node.path);
+                    gradum(link).on(DefaultEventName.click, () => this.browsing = crumb.path);
+                    return link;
+                }));
+                this.categoryList.replaceChildren(...node.children.map(child => {
+                    const box = element({ tag: "input", classes: "filter-check" });
+                    box.type = "checkbox";
+                    box.checked = picked.includes(child.path);
+                    gradum(box).on(DefaultEventName.change, () => this.model.categoriesHandler.toggle(child.path));
+                    const name = element({ tag: "button", classes: "filter-category-name", text: child.name });
+                    //Into it, when there is anywhere to go; a category with nothing under it can only be picked.
+                    gradum(name).on(DefaultEventName.click, () => child.children.length
+                        ? this.browsing = child.path
+                        : this.model.categoriesHandler.toggle(child.path));
+                    return div({
+                        classes: "filter-category",
+                        children: [
+                            box, name,
+                            span({ classes: "filter-count", text: String(child.count) }),
+                            span({ classes: "filter-more", text: child.children.length ? "›" : "" })
+                        ]
+                    });
+                }));
+                if (node.children.length === 0)
+                    this.categoryList.replaceChildren(span({ classes: "filter-empty", text: "Nothing filed deeper" }));
+            }
+            /**
+             * @description Draw a row per range set — its label, the two ends, and a cross to stop filtering on it —
+             * and offer the properties not yet ranged in the dropdown under them. Each end shows the lowest or highest
+             * value there is while it is left open, so there is something to go by.
+             * @protected
+             */
+            updateFacets() {
+                const facets = this.model.facets ?? {};
+                const scope = this.element.scope;
+                const handler = this.model.facetsHandler;
+                this.facetList.replaceChildren(...Object.keys(facets).map(key => {
+                    const range = facets[key] ?? {}, bounds = handler.bounds(scope, key);
+                    const end = (side) => {
+                        const input = element({ tag: "input", classes: "filter-number" });
+                        input.type = "number";
+                        input.step = "any";
+                        input.placeholder = bounds[side] === undefined ? "" : String(Math.round(bounds[side] * 100) / 100);
+                        if (range[side] !== undefined)
+                            input.value = String(range[side]);
+                        gradum(input).on(DefaultEventName.change, () => handler.set(key, {
+                            [side]: input.value === "" ? undefined : Number(input.value)
+                        }));
+                        return input;
+                    };
+                    const remove = element({ tag: "button", classes: "filter-remove", text: "✕" });
+                    gradum(remove).on(DefaultEventName.click, () => handler.remove(key));
+                    const unit = this.unit(key);
+                    return div({
+                        classes: "filter-facet",
+                        children: [
+                            span({ classes: "filter-facet-name", text: this.label(key) + (unit ? ` (${unit})` : "") }),
+                            div({ classes: "filter-row", children: [end("min"), span({ text: "–" }), end("max"), remove] })
+                        ]
+                    });
+                }));
+                const offered = handler.keys(scope).filter(key => !(key in facets));
+                const prompt = element({ tag: "option", text: "+ Add a range" });
+                prompt.value = "";
+                this.facetSelect.replaceChildren(prompt, ...offered.map(key => {
+                    const option = element({ tag: "option", text: this.label(key) });
+                    option.value = key;
+                    return option;
+                }));
+                this.facetSelect.value = "";
+                gradum(this.facetSelect).toggleClass("hidden", offered.length === 0);
+            }
+            /**
+             * @description Offer every collection on the canvas as a chip, lit while the filter applies to it.
+             * Clicking one links or unlinks it.
+             * @protected
+             */
+            updateTargets() {
+                const canvas = this.element.canvas;
+                const collections = canvas?.collections ?? [];
+                const targets = this.model.targets;
+                this.targetList.replaceChildren(...collections.map(collection => {
+                    const chip = element({ tag: "button", classes: "filter-chip", text: collection.name });
+                    gradum(chip).toggleClass("selected", targets.includes(collection));
+                    gradum(chip).on(DefaultEventName.click, () => canvas.toggleLink(this.element, collection));
+                    return chip;
+                }));
+                if (collections.length === 0)
+                    this.targetList.replaceChildren(span({ classes: "filter-empty", text: "No collections on the canvas yet" }));
             }
         };
     })();
 
-    var css_248z$3 = "demo-item{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;display:flex;flex-direction:column;gap:.6rem;padding:.8rem;-webkit-user-select:none;-moz-user-select:none;user-select:none;width:15rem}demo-item input{-webkit-user-select:text;-moz-user-select:text;user-select:text}demo-item.placed{left:0;position:absolute;top:0;width:15rem;z-index:1}demo-item .item-header{align-items:center;display:flex;gap:.6rem}demo-item .item-picture{background:var(--hover);border-radius:calc(var(--radius) - 4px);flex:none;height:3.25rem;-o-object-fit:cover;object-fit:cover;width:3.25rem}demo-item .item-heading{display:flex;flex-direction:column;gap:.15rem;min-width:0}demo-item .item-title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}demo-item .item-price{color:var(--muted);font-size:.85rem}demo-item .item-row{align-items:center;display:flex;flex-wrap:wrap;font-size:.85rem;gap:.4rem}demo-item .item-label{color:var(--muted);flex:none;width:2.75rem}demo-item .item-amount input{background:var(--surface);border:1px solid var(--line);border-radius:calc(var(--radius) - 5px);color:inherit;font:inherit;font-size:.85rem;padding:.25rem;text-align:right;width:3.25rem}demo-item .item-add-dropdown{display:flex;flex:none}demo-item .item-add{align-items:center;background:var(--hover);border:1px solid var(--line);border-radius:calc(var(--radius) - 5px);cursor:pointer;display:flex;font-size:.85rem;padding:.25rem .6rem}demo-item .item-add>*{font-size:inherit;margin:0}demo-item .item-add:hover{background:var(--active)}demo-item .item-add-dropdown.disabled{opacity:.4;pointer-events:none}demo-item .item-subtotal{color:var(--muted);flex:none;font-variant-numeric:tabular-nums;margin-left:auto}demo-item .item-unit{color:var(--muted)}.item-cart-popup>*{display:flex;flex-direction:column;min-width:8rem}.item-cart-option{background:none;border:none;border-radius:calc(var(--radius) - 5px);color:inherit;cursor:pointer;font:inherit;font-size:.85rem;padding:.35rem .6rem;text-align:left}.item-cart-option:hover{background:var(--hover)}.item-cart-popup{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 6px 20px rgba(2,12,34,.12);padding:.3rem}.drag-ghost{opacity:.55;pointer-events:none;z-index:10}";
-    styleInject(css_248z$3);
+    /**
+     * @class FilterSearchHandler
+     *
+     * @extends GradumHandler
+     * @description Works out whether a product answers the filter's keywords, and how well.
+     *
+     * An empty search asks for nothing in particular, so everything answers it; past that, what the keywords mean
+     * is the subclass's to say — see {@link FilterSubstringSearchHandler}, {@link FilterTokenSearchHandler} and
+     * {@link FilterFuzzySearchHandler}. All three answer to the key `"search"`, so one can be swapped for another.
+     */
+    class FilterSearchHandler extends GradumHandler {
+        keyName = "search";
+        /**
+         * @readonly
+         * @description The keywords, trimmed and lower-cased. Reads them, so asking this from an effect follows
+         * them.
+         */
+        get search() {
+            return this.model.keywords?.trim().toLowerCase() ?? "";
+        }
+        /**
+         * @function matches
+         * @description Whether a product answers the keywords.
+         * @param {Partial<Product>} product - The product.
+         * @returns {boolean} Whether it does. Always, while there are no keywords.
+         */
+        matches(product) {
+            const search = this.search;
+            return !search || this.matchesSearch(product, search);
+        }
+        /**
+         * @function score
+         * @description How well a product answers the keywords, for ordering by relevance: higher is better.
+         * Words found in the name count most, then in the categories, then in the selling points.
+         * @param {Partial<Product>} product - The product.
+         * @returns {number} Its score. 0 while there are no keywords.
+         */
+        score(product) {
+            const search = this.search;
+            if (!search)
+                return 0;
+            const name = (product?.name ?? "").toLowerCase();
+            const categories = (product?.categories ?? []).join(" ").toLowerCase();
+            const highlights = (product?.description?.highlights ?? []).join(" ").toLowerCase();
+            let score = name.includes(search) ? 10 : 0;
+            for (const token of search.split(/\s+/)) {
+                if (name.includes(token))
+                    score += 3;
+                if (categories.includes(token))
+                    score += 2;
+                if (highlights.includes(token))
+                    score += 1;
+            }
+            return score;
+        }
+    }
+    /**
+     * @class FilterTokenSearchHandler
+     *
+     * @extends FilterSearchHandler
+     * @description Finds products answering every word typed, in any order, anywhere in their name, categories or
+     * selling points. What a search box is usually taken to mean, and the default.
+     */
+    class FilterTokenSearchHandler extends FilterSearchHandler {
+        matchesSearch(product, search) {
+            const haystack = [
+                product?.name,
+                ...(product?.categories ?? []),
+                ...(product?.description?.highlights ?? []),
+            ].join(" ").toLowerCase();
+            return search.split(/\s+/).every(token => haystack.includes(token));
+        }
+    }
 
     /**
-     * @class Item
+     * @class FilterCategoriesHandler
      *
-     * @extends GradumElement
-     * @description A grocery item, as a card: its picture, name and price per unit, and the two amounts you can
-     * set on it — how much of it to add to a cart, and how much of it a recipe uses. The card can be pointed at
-     * any number of carts and adds to whichever one is picked.
+     * @extends GradumHandler
+     * @description Works out whether a product is filed under one of the filter's categories, and picks
+     * categories in and out.
      */
-    let Item = (() => {
-        let _classSuper = GradumElement;
-        let _instanceExtraInitializers = [];
-        let _name_decorators;
-        let _name_initializers = [];
-        let _name_extraInitializers = [];
-        let _image_decorators;
-        let _image_initializers = [];
-        let _image_extraInitializers = [];
-        let _price_decorators;
-        let _price_initializers = [];
-        let _price_extraInitializers = [];
-        let _unit_decorators;
-        let _unit_initializers = [];
-        let _unit_extraInitializers = [];
-        let _cart_decorators;
-        let _cart_initializers = [];
-        let _cart_extraInitializers = [];
-        let _cartAmount_decorators;
-        let _cartAmount_initializers = [];
-        let _cartAmount_extraInitializers = [];
-        let _position_decorators;
-        let _position_initializers = [];
-        let _position_extraInitializers = [];
-        let _recipeAmount_decorators;
-        let _recipeAmount_initializers = [];
-        let _recipeAmount_extraInitializers = [];
-        let _showAddButton_decorators;
-        let _showAddButton_initializers = [];
-        let _showAddButton_extraInitializers = [];
-        let _showRecipe_decorators;
-        let _showRecipe_initializers = [];
-        let _showRecipe_extraInitializers = [];
-        let _cartCost_decorators;
-        let _cartCost_initializers = [];
-        let _cartCost_extraInitializers = [];
-        let _isModifiable_decorators;
-        return class Item extends _classSuper {
+    class FilterCategoriesHandler extends GradumHandler {
+        keyName = "categories";
+        /**
+         * @function matches
+         * @description Whether a product is filed under any of the filter's categories, at any depth.
+         * @param {Partial<Product>} product - The product.
+         * @returns {boolean} Whether it is. Always, while no category is picked.
+         */
+        matches(product) {
+            const picked = this.model.categories;
+            if (!picked?.length)
+                return true;
+            const paths = CatalogueCategoriesHandler.pathsOf(product);
+            return picked.some(path => paths.includes(path));
+        }
+        /**
+         * @function has
+         * @param {string} path - A category path.
+         * @returns {boolean} Whether the filter lets that category through.
+         */
+        has(path) {
+            return this.model.categories.includes(path);
+        }
+        /**
+         * @function toggle
+         * @description Pick a category in, or out again if it already was.
+         * @param {string} path - The category's path.
+         */
+        toggle(path) {
+            const picked = this.model.categories;
+            this.model.categories = picked.includes(path)
+                ? picked.filter(entry => entry !== path)
+                : [...picked, path];
+        }
+        /**
+         * @function clear
+         * @description Let every category through again.
+         */
+        clear() {
+            if (this.model.categories.length)
+                this.model.categories = [];
+        }
+    }
+
+    /**
+     * @class FilterFacetsHandler
+     *
+     * @extends GradumHandler
+     * @description Works out whether a product's numbers fall in the filter's ranges, and finds what ranges there
+     * are to set.
+     *
+     * A facet is a range on one numeric property — or on the price, under the key `"price"`. A product with no
+     * value for a property a range is set on is left out, since nothing says it is in range. A property that is
+     * itself a range — a recommended age of 3 to 10 — is in when the two ranges overlap.
+     */
+    class FilterFacetsHandler extends GradumHandler {
+        keyName = "facets";
+        /**
+         * @function valueOf
+         * @static
+         * @description A product's value for a facet, as a range: a single number is a range of one.
+         * @param {Partial<Product>} product - The product.
+         * @param {string} key - The facet's key.
+         * @returns {FacetRange} The value, or `undefined` when the product has no number for it.
+         */
+        static valueOf(product, key) {
+            const value = key === "price" ? product?.price : product?.properties?.[key];
+            if (typeof value === "number")
+                return { min: value, max: value };
+            if (value && typeof value === "object") {
+                const min = typeof value.min === "number" ? value.min : undefined;
+                const max = typeof value.max === "number" ? value.max : undefined;
+                if (min !== undefined || max !== undefined)
+                    return { min, max };
+            }
+            return undefined;
+        }
+        /**
+         * @function matches
+         * @description Whether a product falls in every range the filter sets.
+         * @param {Partial<Product>} product - The product.
+         * @returns {boolean} Whether it does.
+         */
+        matches(product) {
+            for (const [key, range] of Object.entries(this.model.facets ?? {})) {
+                if (range?.min === undefined && range?.max === undefined)
+                    continue;
+                const value = FilterFacetsHandler.valueOf(product, key);
+                if (!value)
+                    return false;
+                //Overlap: the value does not end before the range starts, nor start after it ends.
+                if (range.min !== undefined && (value.max ?? Infinity) < range.min)
+                    return false;
+                if (range.max !== undefined && (value.min ?? -Infinity) > range.max)
+                    return false;
+            }
+            return true;
+        }
+        /**
+         * @function keys
+         * @description The facets there are to set on some products: the price, then every property any of them
+         * has a number for.
+         * @param {Partial<Product>[]} products - The products.
+         * @returns {string[]} Their keys.
+         */
+        keys(products) {
+            const keys = new Set(["price"]);
+            for (const product of products) {
+                for (const key of Object.keys(product?.properties ?? {})) {
+                    if (FilterFacetsHandler.valueOf(product, key))
+                        keys.add(key);
+                }
+            }
+            return [...keys];
+        }
+        /**
+         * @function bounds
+         * @description The lowest and highest values some products have for a facet, to suggest where a range
+         * could go.
+         * @param {Partial<Product>[]} products - The products.
+         * @param {string} key - The facet's key.
+         * @returns {FacetRange} The bounds, or an empty range when none of them has a value.
+         */
+        bounds(products, key) {
+            let min = Infinity, max = -Infinity;
+            for (const product of products) {
+                const value = FilterFacetsHandler.valueOf(product, key);
+                if (!value)
+                    continue;
+                min = Math.min(min, value.min ?? value.max);
+                max = Math.max(max, value.max ?? value.min);
+            }
+            return min <= max ? { min, max } : {};
+        }
+        /**
+         * @function set
+         * @description Set a facet's range, or one end of it.
+         * @param {string} key - The facet's key.
+         * @param {FacetRange} range - The ends to set. An end given as `undefined` is opened.
+         */
+        set(key, range) {
+            this.model.facets = { ...this.model.facets, [key]: { ...this.model.facets[key], ...range } };
+        }
+        /**
+         * @function remove
+         * @description Stop filtering on a facet.
+         * @param {string} key - The facet's key.
+         */
+        remove(key) {
+            if (!(key in this.model.facets))
+                return;
+            const { [key]: _, ...rest } = this.model.facets;
+            this.model.facets = rest;
+        }
+    }
+
+    /**
+     * @class FilterSortHandler
+     *
+     * @extends GradumHandler
+     * @description Orders products the way the filter's sort asks.
+     */
+    class FilterSortHandler extends GradumHandler {
+        keyName = "sort";
+        /**
+         * @function comparator
+         * @description What to sort products with. Reads the sort, so an effect asking this follows it.
+         *
+         * Products that compare the same are left as equal rather than broken by name, so a collection with
+         * several filters can chain their comparators and break the last tie itself. Products with no value for
+         * a property go last whichever way it runs.
+         * @returns {(a: Partial<Product>, b: Partial<Product>) => number} The comparator, or `undefined` while
+         * there is nothing to sort by.
+         */
+        comparator() {
+            const { key, direction } = this.model.sort ?? { key: SortKey.none, direction: "ascending" };
+            const sign = direction === "descending" ? -1 : 1;
+            switch (key) {
+                case SortKey.none:
+                    return undefined;
+                case SortKey.relevance: {
+                    //Read here, so the comparator follows the keywords; best first whichever way it runs.
+                    if (!this.model.searchHandler.search)
+                        return undefined;
+                    const search = this.model.searchHandler;
+                    return (a, b) => search.score(b) - search.score(a);
+                }
+                case SortKey.name:
+                    return (a, b) => sign * (a?.name ?? "").localeCompare(b?.name ?? "");
+                default:
+                    return (a, b) => {
+                        const first = FilterFacetsHandler.valueOf(a, key), second = FilterFacetsHandler.valueOf(b, key);
+                        if (!first || !second)
+                            return (first ? 0 : 1) - (second ? 0 : 1);
+                        return sign * ((first.min ?? first.max) - (second.min ?? second.max));
+                    };
+            }
+        }
+        /**
+         * @function keys
+         * @description What products can be sorted by: the keys that are not properties, then every property the
+         * products have a number for.
+         * @param {Partial<Product>[]} products - The products.
+         * @returns {string[]} The keys.
+         */
+        keys(products) {
+            const properties = this.model.facetsHandler.keys(products).filter(key => key !== SortKey.price);
+            return [SortKey.none, SortKey.relevance, SortKey.name, SortKey.price, ...properties];
+        }
+        /**
+         * @function sortBy
+         * @description Sort by a key, keeping the direction.
+         * @param {string} key - The key.
+         */
+        sortBy(key) {
+            this.model.sort = { ...this.model.sort, key };
+        }
+        /**
+         * @function reverse
+         * @description Run the sort the other way.
+         */
+        reverse() {
+            const direction = this.model.sort.direction === "ascending" ? "descending" : "ascending";
+            this.model.sort = { ...this.model.sort, direction };
+        }
+    }
+
+    /**
+     * @class FilterQueryHandler
+     *
+     * @extends GradumHandler
+     * @description The filter as a whole, for whatever applies it: whether a product gets through every part of
+     * it, and how to order what does. A paused filter lets everything through and orders nothing.
+     */
+    class FilterQueryHandler extends GradumHandler {
+        keyName = "query";
+        /**
+         * @function test
+         * @param {Partial<Product>} product - The product.
+         * @returns {boolean} Whether it gets through the keywords, the categories and every range.
+         */
+        test(product) {
+            if (!this.model.enabled)
+                return true;
+            return this.model.searchHandler.matches(product)
+                && this.model.categoriesHandler.matches(product)
+                && this.model.facetsHandler.matches(product);
+        }
+        /**
+         * @function comparator
+         * @returns {(a: Partial<Product>, b: Partial<Product>) => number} What to order products with, or
+         * `undefined` when the filter orders nothing.
+         */
+        comparator() {
+            if (!this.model.enabled)
+                return undefined;
+            return this.model.sortHandler.comparator();
+        }
+    }
+
+    var css_248z$2 = ".demo-square.demo-filter{align-items:stretch;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-float);box-sizing:border-box;color:var(--text-soft);display:flex;flex-direction:column;font-size:.75rem;gap:.75rem;justify-content:flex-start;overflow-y:auto;padding:1rem;z-index:3}demo-filter{-webkit-user-select:none;-moz-user-select:none;user-select:none}demo-filter input,demo-filter select{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-pill);box-sizing:border-box;color:inherit;font:inherit;min-width:0;padding:.3rem .6rem;-webkit-user-select:text;-moz-user-select:text;user-select:text}demo-filter button{color:inherit;cursor:pointer;font:inherit}demo-filter.paused>:not(.filter-header){opacity:.5}demo-filter .hidden{display:none!important}demo-filter .filter-header{align-items:center;display:flex;gap:.4rem}demo-filter .filter-title{color:var(--text);font-size:1rem;font-weight:700;margin-right:auto}demo-filter .filter-direction,demo-filter .filter-reset,demo-filter .filter-switch{background:var(--color-primary-light);border:none;border-radius:var(--radius-pill);box-shadow:var(--shadow-small);font-weight:700;padding:.35rem .7rem}demo-filter .filter-switch.off{background:var(--line);color:var(--muted)}demo-filter .filter-direction:hover,demo-filter .filter-reset:hover,demo-filter .filter-switch:hover{filter:brightness(.97)}demo-filter .filter-search-box{align-items:center;border:1px solid var(--line);border-radius:var(--radius-pill);display:flex;gap:.5rem;padding:.375rem .75rem}demo-filter .filter-search-box:focus-within{border-color:var(--color-primary)}demo-filter .filter-search-box .gradum-icon{fill:var(--text-soft);flex:none;height:1rem;width:1rem}demo-filter .filter-search{background:none;border:none;color:var(--text);flex:1;font-size:1rem;font-weight:700;outline:none;padding:0;width:100%}demo-filter .filter-search::-moz-placeholder{color:var(--muted)}demo-filter .filter-search::placeholder{color:var(--muted)}demo-filter .filter-section{display:flex;flex-direction:column;gap:.35rem}demo-filter .filter-heading{font-weight:700}demo-filter .filter-row{align-items:center;display:flex;gap:.35rem}demo-filter .filter-row>select{flex:1}demo-filter .filter-breadcrumb{display:flex;flex-wrap:wrap;gap:.15rem}demo-filter .filter-crumb{background:none;border:none;color:var(--muted);padding:0}demo-filter .filter-crumb:hover{text-decoration:underline}demo-filter .filter-crumb.current{color:inherit;font-weight:600}demo-filter .filter-crumb+.filter-crumb:before{color:var(--muted);content:\"›\";margin-right:.15rem}demo-filter .filter-categories{display:flex;flex-direction:column}demo-filter .filter-category{align-items:center;display:flex;gap:.35rem;padding:.1rem 0}demo-filter .filter-check{margin:0;padding:0}demo-filter .filter-category-name{background:none;border:none;flex:1;min-width:0;overflow:hidden;padding:0;text-align:left;text-overflow:ellipsis;white-space:nowrap}demo-filter .filter-category-name:hover{text-decoration:underline}demo-filter .filter-count{color:var(--muted);font-variant-numeric:tabular-nums}demo-filter .filter-more{color:var(--muted);width:.6rem}demo-filter .filter-picked,demo-filter .filter-targets{display:flex;flex-wrap:wrap;gap:.3rem}demo-filter .filter-chip{background:var(--fill);border:1px solid var(--fill);border-radius:var(--radius-pill);font-weight:700;padding:.25rem .5rem}demo-filter .filter-chip.selected,demo-filter .filter-picked .filter-chip{background:var(--color-primary-light);border-color:var(--color-primary);color:var(--text)}demo-filter .filter-facets{display:flex;flex-direction:column;gap:.5rem}demo-filter .filter-facet{display:flex;flex-direction:column;gap:.2rem}demo-filter .filter-number{flex:1;width:0}demo-filter .filter-remove{background:none;border:none;color:var(--muted);padding:0 .3rem}demo-filter .filter-empty{color:var(--muted);font-style:italic}";
+    styleInject(css_248z$2);
+
+    /**
+     * @class Filter
+     *
+     * @extends Square
+     * @description A panel on the canvas that narrows down and orders what collections show: keywords,
+     * categories, ranges on numeric properties — the price, the weight, the recommended age — and a sort.
+     *
+     * A filter does nothing on its own. It applies to the collections it is linked to, each of which asks it, as
+     * it lays out its cards, which products get through and in what order — see {@link Collection.query}. A
+     * collection can be linked to several filters, which then all have to let a product through.
+     *
+     * ```ts
+     * const filter = Filter.create({parent: canvas, keywords: "puzzle", sort: {key: "price", direction: "ascending"}});
+     * canvas.toggleLink(filter, catalogue);
+     * ```
+     */
+    let Filter = (() => {
+        let _classSuper = Square;
+        let _color_decorators;
+        let _color_initializers = [];
+        let _color_extraInitializers = [];
+        let _anchor_decorators;
+        let _anchor_initializers = [];
+        let _anchor_extraInitializers = [];
+        let _keywords_decorators;
+        let _keywords_initializers = [];
+        let _keywords_extraInitializers = [];
+        let _categories_decorators;
+        let _categories_initializers = [];
+        let _categories_extraInitializers = [];
+        let _facets_decorators;
+        let _facets_initializers = [];
+        let _facets_extraInitializers = [];
+        let _sort_decorators;
+        let _sort_initializers = [];
+        let _sort_extraInitializers = [];
+        let _enabled_decorators;
+        let _enabled_initializers = [];
+        let _enabled_extraInitializers = [];
+        let _targets_decorators;
+        let _targets_initializers = [];
+        let _targets_extraInitializers = [];
+        return class Filter extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _name_decorators = [expose("model")];
-                _image_decorators = [expose("model")];
-                _price_decorators = [expose("model")];
-                _unit_decorators = [expose("model")];
-                _cart_decorators = [expose("model")];
-                _cartAmount_decorators = [expose("model")];
-                _position_decorators = [expose("model")];
-                _recipeAmount_decorators = [expose("model")];
-                _showAddButton_decorators = [expose("view")];
-                _showRecipe_decorators = [expose("view")];
-                _cartCost_decorators = [expose("model", false)];
-                _isModifiable_decorators = [effect];
-                __esDecorate$1(this, null, _isModifiable_decorators, { kind: "method", name: "isModifiable", static: false, private: false, access: { has: obj => "isModifiable" in obj, get: obj => obj.isModifiable }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(null, null, _name_decorators, { kind: "field", name: "name", static: false, private: false, access: { has: obj => "name" in obj, get: obj => obj.name, set: (obj, value) => { obj.name = value; } }, metadata: _metadata }, _name_initializers, _name_extraInitializers);
-                __esDecorate$1(null, null, _image_decorators, { kind: "field", name: "image", static: false, private: false, access: { has: obj => "image" in obj, get: obj => obj.image, set: (obj, value) => { obj.image = value; } }, metadata: _metadata }, _image_initializers, _image_extraInitializers);
-                __esDecorate$1(null, null, _price_decorators, { kind: "field", name: "price", static: false, private: false, access: { has: obj => "price" in obj, get: obj => obj.price, set: (obj, value) => { obj.price = value; } }, metadata: _metadata }, _price_initializers, _price_extraInitializers);
-                __esDecorate$1(null, null, _unit_decorators, { kind: "field", name: "unit", static: false, private: false, access: { has: obj => "unit" in obj, get: obj => obj.unit, set: (obj, value) => { obj.unit = value; } }, metadata: _metadata }, _unit_initializers, _unit_extraInitializers);
-                __esDecorate$1(null, null, _cart_decorators, { kind: "field", name: "cart", static: false, private: false, access: { has: obj => "cart" in obj, get: obj => obj.cart, set: (obj, value) => { obj.cart = value; } }, metadata: _metadata }, _cart_initializers, _cart_extraInitializers);
-                __esDecorate$1(null, null, _cartAmount_decorators, { kind: "field", name: "cartAmount", static: false, private: false, access: { has: obj => "cartAmount" in obj, get: obj => obj.cartAmount, set: (obj, value) => { obj.cartAmount = value; } }, metadata: _metadata }, _cartAmount_initializers, _cartAmount_extraInitializers);
-                __esDecorate$1(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
-                __esDecorate$1(null, null, _recipeAmount_decorators, { kind: "field", name: "recipeAmount", static: false, private: false, access: { has: obj => "recipeAmount" in obj, get: obj => obj.recipeAmount, set: (obj, value) => { obj.recipeAmount = value; } }, metadata: _metadata }, _recipeAmount_initializers, _recipeAmount_extraInitializers);
-                __esDecorate$1(null, null, _showAddButton_decorators, { kind: "field", name: "showAddButton", static: false, private: false, access: { has: obj => "showAddButton" in obj, get: obj => obj.showAddButton, set: (obj, value) => { obj.showAddButton = value; } }, metadata: _metadata }, _showAddButton_initializers, _showAddButton_extraInitializers);
-                __esDecorate$1(null, null, _showRecipe_decorators, { kind: "field", name: "showRecipe", static: false, private: false, access: { has: obj => "showRecipe" in obj, get: obj => obj.showRecipe, set: (obj, value) => { obj.showRecipe = value; } }, metadata: _metadata }, _showRecipe_initializers, _showRecipe_extraInitializers);
-                __esDecorate$1(null, null, _cartCost_decorators, { kind: "field", name: "cartCost", static: false, private: false, access: { has: obj => "cartCost" in obj, get: obj => obj.cartCost, set: (obj, value) => { obj.cartCost = value; } }, metadata: _metadata }, _cartCost_initializers, _cartCost_extraInitializers);
+                _color_decorators = [signal];
+                _anchor_decorators = [signal];
+                _keywords_decorators = [expose("model")];
+                _categories_decorators = [expose("model")];
+                _facets_decorators = [expose("model")];
+                _sort_decorators = [expose("model")];
+                _enabled_decorators = [expose("model")];
+                _targets_decorators = [expose("model", false)];
+                __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
+                __esDecorate$1(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
+                __esDecorate$1(null, null, _keywords_decorators, { kind: "field", name: "keywords", static: false, private: false, access: { has: obj => "keywords" in obj, get: obj => obj.keywords, set: (obj, value) => { obj.keywords = value; } }, metadata: _metadata }, _keywords_initializers, _keywords_extraInitializers);
+                __esDecorate$1(null, null, _categories_decorators, { kind: "field", name: "categories", static: false, private: false, access: { has: obj => "categories" in obj, get: obj => obj.categories, set: (obj, value) => { obj.categories = value; } }, metadata: _metadata }, _categories_initializers, _categories_extraInitializers);
+                __esDecorate$1(null, null, _facets_decorators, { kind: "field", name: "facets", static: false, private: false, access: { has: obj => "facets" in obj, get: obj => obj.facets, set: (obj, value) => { obj.facets = value; } }, metadata: _metadata }, _facets_initializers, _facets_extraInitializers);
+                __esDecorate$1(null, null, _sort_decorators, { kind: "field", name: "sort", static: false, private: false, access: { has: obj => "sort" in obj, get: obj => obj.sort, set: (obj, value) => { obj.sort = value; } }, metadata: _metadata }, _sort_initializers, _sort_extraInitializers);
+                __esDecorate$1(null, null, _enabled_decorators, { kind: "field", name: "enabled", static: false, private: false, access: { has: obj => "enabled" in obj, get: obj => obj.enabled, set: (obj, value) => { obj.enabled = value; } }, metadata: _metadata }, _enabled_initializers, _enabled_extraInitializers);
+                __esDecorate$1(null, null, _targets_decorators, { kind: "field", name: "targets", static: false, private: false, access: { has: obj => "targets" in obj, get: obj => obj.targets, set: (obj, value) => { obj.targets = value; } }, metadata: _metadata }, _targets_initializers, _targets_extraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
             static defaultProperties = {
-                view: ItemView,
-                model: ItemModel,
+                view: FilterView,
+                model: FilterModel,
+                handlers: [
+                    FilterTokenSearchHandler,
+                    FilterCategoriesHandler,
+                    FilterFacetsHandler,
+                    FilterSortHandler,
+                    FilterQueryHandler
+                ],
             };
-            //Exposed from the model, so a card reads and writes as one object. The first four reach through to the
-            //model's data; the rest are the model's own.
-            name = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _name_initializers, void 0));
-            image = (__runInitializers$1(this, _name_extraInitializers), __runInitializers$1(this, _image_initializers, void 0));
-            price = (__runInitializers$1(this, _image_extraInitializers), __runInitializers$1(this, _price_initializers, void 0));
-            unit = (__runInitializers$1(this, _price_extraInitializers), __runInitializers$1(this, _unit_initializers, void 0));
-            cart = (__runInitializers$1(this, _unit_extraInitializers), __runInitializers$1(this, _cart_initializers, void 0));
-            cartAmount = (__runInitializers$1(this, _cart_extraInitializers), __runInitializers$1(this, _cartAmount_initializers, void 0));
-            /**
-             * @description Where the card sits on the canvas. Unset while it is in a list.
-             */
-            position = (__runInitializers$1(this, _cartAmount_extraInitializers), __runInitializers$1(this, _position_initializers, void 0));
-            recipeAmount = (__runInitializers$1(this, _position_extraInitializers), __runInitializers$1(this, _recipeAmount_initializers, void 0));
-            showAddButton = (__runInitializers$1(this, _recipeAmount_extraInitializers), __runInitializers$1(this, _showAddButton_initializers, void 0));
-            showRecipe = (__runInitializers$1(this, _showAddButton_extraInitializers), __runInitializers$1(this, _showRecipe_initializers, void 0));
+            color = __runInitializers$1(this, _color_initializers, Color.from("#FFFFFF"));
+            //Placed by its corner, like a collection, so drawing one is a matter of where the drag started.
+            anchor = (__runInitializers$1(this, _color_extraInitializers), __runInitializers$1(this, _anchor_initializers, Anchor.TopLeft));
+            keywords = (__runInitializers$1(this, _anchor_extraInitializers), __runInitializers$1(this, _keywords_initializers, void 0));
+            categories = (__runInitializers$1(this, _keywords_extraInitializers), __runInitializers$1(this, _categories_initializers, void 0));
+            facets = (__runInitializers$1(this, _categories_extraInitializers), __runInitializers$1(this, _facets_initializers, void 0));
+            sort = (__runInitializers$1(this, _facets_extraInitializers), __runInitializers$1(this, _sort_initializers, void 0));
+            enabled = (__runInitializers$1(this, _sort_extraInitializers), __runInitializers$1(this, _enabled_initializers, void 0));
             /**
              * @readonly
-             * @description What the amount currently set for the cart comes to at this item's price.
+             * @description The collections the filter applies to. Linked and unlinked through the canvas — see
+             * {@link Canvas.toggleLink}.
              */
-            cartCost = (__runInitializers$1(this, _showRecipe_extraInitializers), __runInitializers$1(this, _cartCost_initializers, void 0));
+            targets = (__runInitializers$1(this, _enabled_extraInitializers), __runInitializers$1(this, _targets_initializers, void 0));
             /**
-             * @description How the card is taken hold of, which follows from whether it places itself. A card with a
-             * position of its own is dragged where it stands; one laid out by whatever it is in — the shelf, a cart —
-             * is dragged and dropped instead, since moving it in place would mean nothing.
+             * @readonly
+             * @description The canvas the filter is on.
              */
-            isModifiable() {
-                const placed = !!this.model.position;
-                gradum(this).metadata.set(placed, "modifiable");
-                gradum(this).metadata.set(!placed, "dragAndDroppable");
+            get canvas() {
+                return gradum(this).closest("my-canvas");
             }
             /**
-             * @function clone
-             * @description A second card for the same item. What the shelf hands over when one of its cards is
-             * dragged onto the canvas: the shelf's own card is a catalogue entry and stays where it is.
-             *
-             * Give it the parent it is going to rather than adding it afterwards — a card works out what it can be
-             * added to from where it is, and it works that out as it is built.
-             * @param {CloneElementOptions} [options] - Where the new card goes, under `parent`.
-             * @returns {Item} The new card.
+             * @readonly
+             * @description The products the filter is choosing among: everything its collections hold — the whole
+             * catalogue, for a catalogue — or the whole catalogue while it applies to nothing. What its categories and
+             * ranges are offered from.
              */
-            clone(options = {}) {
-                return Item.create({
-                    parent: options.parent,
-                    data: { name: this.name, image: this.image, price: this.price, unit: this.unit },
-                    cartAmount: this.cartAmount,
-                    recipeAmount: this.recipeAmount
-                });
+            get scope() {
+                const all = this.canvas?.catalogue?.products ?? [];
+                const targets = this.targets ?? [];
+                if (targets.length === 0)
+                    return all;
+                const products = new Map();
+                for (const target of targets) {
+                    const held = target.catalogue ? all : target.items.map(item => item.data);
+                    held.forEach(product => products.set(product?.id ?? product?.name, product));
+                }
+                return [...products.values()];
+            }
+            /**
+             * @function test
+             * @description Whether a product gets through the filter.
+             * @param {Partial<Product>} product - The product.
+             * @returns {boolean} Whether it does. Always, while the filter is paused.
+             */
+            test(product) {
+                return this.model.queryHandler.test(product);
+            }
+            /**
+             * @function comparator
+             * @description What the filter orders products with.
+             * @returns {(a: Partial<Product>, b: Partial<Product>) => number} The comparator, or `undefined` when the
+             * filter orders nothing.
+             */
+            comparator() {
+                return this.model.queryHandler.comparator();
+            }
+            /**
+             * @function reset
+             * @description Clear every setting, so the filter lets everything through in the order it came.
+             */
+            reset() {
+                this.keywords = "";
+                this.categories = [];
+                this.facets = {};
+                this.sort = { key: SortKey.none, direction: "ascending" };
             }
             /**
              * @function delete
-             * @description Get rid of the card, and the add dropdown's popup with it. What the delete tool calls.
-             * Use it over `remove()`: the popup is parked outside the card, so removing the card alone would leave
-             * it behind.
+             * @description Get rid of the filter. Whatever it applied to goes back to showing everything.
              */
             delete() {
+                this.canvas?.removeFilter(this);
                 gradum(this).destroy();
             }
             constructor() {
                 super(...arguments);
-                __runInitializers$1(this, _cartCost_extraInitializers);
+                __runInitializers$1(this, _targets_extraInitializers);
             }
         };
     })();
-    define(Item, "demo-item");
+    define(Filter, "demo-filter");
 
+    //A drag that ends up smaller than this is taken as a misclick rather than as a collection nobody could use.
+    const SmallestCollection = 40;
     /**
-     * @description Draw an item's picture from an emoji on a tinted square, so the shelf needs no image files.
-     * @param {string} emoji - The emoji to draw.
-     * @param {string} [tint="#eef2f7"] - The colour behind it.
-     * @returns {string} A data URI to use as a picture source.
-     */
-    const drawPicture = (emoji, tint = "#eef2f7") => "data:image/svg+xml;utf8,"
-        + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">`
-            + `<rect width="120" height="120" fill="${tint}"/>`
-            + `<text x="60" y="84" font-size="58" text-anchor="middle">${emoji}</text></svg>`);
-    /**
-     * @class ShelfView
-     *
-     * @extends GradumView
-     * @description The panel itself: a search field and a row of category tabs above a scrolling list of items.
-     *
-     * The items are built once from what the shelf was given and then only shown or hidden as the search and
-     * tabs change, so typing filters a list that is already there rather than building a new one per keystroke.
-     */
-    let ShelfView = (() => {
-        let _classSuper = GradumView;
-        let _instanceExtraInitializers = [];
-        let _updateTabs_decorators;
-        let _updateCards_decorators;
-        let _updateCardSettings_decorators;
-        return class ShelfView extends _classSuper {
-            static {
-                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _updateTabs_decorators = [effect];
-                _updateCards_decorators = [effect];
-                _updateCardSettings_decorators = [effect];
-                __esDecorate$1(this, null, _updateTabs_decorators, { kind: "method", name: "updateTabs", static: false, private: false, access: { has: obj => "updateTabs" in obj, get: obj => obj.updateTabs }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateCards_decorators, { kind: "method", name: "updateCards", static: false, private: false, access: { has: obj => "updateCards" in obj, get: obj => obj.updateCards }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateCardSettings_decorators, { kind: "method", name: "updateCardSettings", static: false, private: false, access: { has: obj => "updateCardSettings" in obj, get: obj => obj.updateCardSettings }, metadata: _metadata }, null, _instanceExtraInitializers);
-                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-            }
-            searchInput = __runInitializers$1(this, _instanceExtraInitializers);
-            tabs;
-            list;
-            empty;
-            /**
-             * @description The card built for each item, so an item can be shown or hidden without rebuilding it.
-             */
-            cards = new Map();
-            setupUIElements() {
-                super.setupUIElements();
-                this.searchInput = GradumInput.create({
-                    classes: "shelf-search",
-                    input: { type: "search", placeholder: "Search products" }
-                });
-                this.tabs = div({ classes: "shelf-tabs" });
-                this.list = div({ classes: "shelf-list" });
-                this.empty = span({ classes: "shelf-empty", text: "Nothing matches" });
-            }
-            setupUILayout() {
-                super.setupUILayout();
-                gradum(this).addChild([
-                    div({ classes: "shelf-header", children: [this.searchInput, this.tabs] }),
-                    this.list,
-                    this.empty
-                ]);
-            }
-            setupUIListeners() {
-                super.setupUIListeners();
-                this.searchInput.onInput.add(() => this.model.search = String(this.searchInput.value ?? ""));
-            }
-            setupChangedCallbacks() {
-                super.setupChangedCallbacks();
-                //Which items answer the search is the filter operator's to work out and the view's to show. Told
-                //rather than asked, so the view never has to know which operator is in and how it decided.
-                this.emitter.add("filtered", (matches) => this.showOnly(matches));
-            }
-            /**
-             * @description Rebuild the category tabs and mark the one the shelf is on. Both together rather than in
-             * an effect each: rebuilding the tabs drops the mark, so the two have to happen in that order.
-             * @protected
-             */
-            updateTabs() {
-                const current = this.model.category;
-                this.tabs.replaceChildren(...this.model.categories.map(category => {
-                    const tab = element({ tag: "button", classes: "shelf-tab", text: category });
-                    gradum(tab).toggleClass("selected", category === current);
-                    gradum(tab).on(DefaultEventName.click, () => this.model.category = category);
-                    return tab;
-                }));
-            }
-            /**
-             * @description Build a card for each item the shelf knows about, replacing whatever was there before.
-             * Only runs when the items themselves change, not when the search does.
-             * @protected
-             */
-            updateCards() {
-                const items = this.model.items ?? [];
-                //Deleted rather than removed: a card's add dropdown keeps its popup outside the card. Left to
-                //`remove()`, every rebuild would strand another popup in the shared container.
-                this.cards.forEach(card => card.delete());
-                this.cards.clear();
-                for (const entry of items) {
-                    const { category, emoji, tint, ...data } = entry;
-                    const card = Item.create({
-                        parent: this.list,
-                        data: { ...data, image: entry.image ?? (emoji ? drawPicture(emoji, tint) : "") }
-                    });
-                    //Marked as the shelf's own, so dragging one onto the canvas leaves it on the shelf and puts a
-                    //copy down instead of emptying the shelf a card at a time.
-                    gradum(card).metadata.set(true, "catalogue");
-                    this.cards.set(entry, card);
-                }
-                //The settings and the filter still apply to the cards just built, but reading either here would
-                //have this effect rebuild every card whenever one changed — the one thing it exists to avoid. The
-                //operator is asked outright rather than waited on: it has its own pass coming, but these cards are
-                //on the page now and would show through unfiltered until it arrived.
-                untrack(() => {
-                    this.applyCardSettings();
-                    this.showOnly(this.element.filterOperator.matches());
-                });
-            }
-            updateCardSettings() {
-                //Read outright, so that this effect is the one that follows it rather than the rebuild.
-                this.model.showRecipe;
-                this.applyCardSettings();
-            }
-            /**
-             * @description Tell every card whether it shows recipe amounts. Set on the cards that are there rather
-             * than by building new ones.
-             * @protected
-             */
-            applyCardSettings() {
-                this.cards.forEach(card => card.showRecipe = this.model.showRecipe);
-            }
-            /**
-             * @description Show these items and hide the rest. Says as much when that leaves nothing, rather than
-             * showing an empty panel.
-             * @param {Set<ShelfEntry>} matches - The items to show.
-             * @protected
-             */
-            showOnly(matches) {
-                this.cards.forEach((card, entry) => gradum(card).toggleClass("shelf-hidden", !matches.has(entry)));
-                gradum(this.empty).toggleClass("shelf-hidden", matches.size > 0);
-            }
-        };
-    })();
-
-    var css_248z$2 = "demo-shelf{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);bottom:1rem;box-shadow:0 8px 28px rgba(2,12,34,.1);box-sizing:border-box;display:flex;flex-direction:column;left:1rem;overflow:hidden;position:fixed;top:1rem;width:18rem;z-index:3}demo-shelf .shelf-header{border-bottom:1px solid var(--line);display:flex;flex:none;flex-direction:column;gap:.6rem;padding:.8rem}demo-shelf .shelf-search input{background:var(--surface);border:1px solid var(--line);border-radius:calc(var(--radius) - 4px);box-sizing:border-box;color:inherit;font:inherit;font-size:.9rem;padding:.4rem .6rem;width:100%}demo-shelf .shelf-tabs{display:flex;flex-wrap:nowrap;gap:.3rem;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}demo-shelf .shelf-tabs::-webkit-scrollbar{display:none}demo-shelf .shelf-tab{background:none;border:1px solid transparent;border-radius:999px;color:var(--muted);cursor:pointer;flex:none;font:inherit;font-size:.8rem;padding:.2rem .55rem;white-space:nowrap}demo-shelf .shelf-tab:hover{background:var(--hover)}demo-shelf .shelf-tab.selected{background:var(--active);border-color:var(--line);color:var(--text)}demo-shelf .shelf-list{display:flex;flex-direction:column;gap:.6rem;overflow-y:auto;padding:.8rem}demo-shelf .shelf-list demo-item{width:100%}demo-shelf .shelf-empty{color:var(--muted);font-size:.85rem;padding:0 .8rem .8rem}demo-shelf .shelf-hidden{display:none}";
-    styleInject(css_248z$2);
-
-    /**
-     * @class Shelf
-     *
-     * @extends GradumElement
-     * @description The side panel you shop from: every grocery item that can be put in a cart, with a search
-     * field and a tab per category above them. What it lists is read from a JSON file, so the range on offer is
-     * data rather than code.
-     *
-     * It sits on the canvas rather than beside it, so that a card anywhere on the page — on the shelf, on the
-     * canvas, in a cart — finds the canvas above it and can ask which carts there are.
-     */
-    let Shelf = (() => {
-        let _classSuper = GradumElement;
-        let _filterOperator_decorators;
-        let _filterOperator_initializers = [];
-        let _filterOperator_extraInitializers = [];
-        let _items_decorators;
-        let _items_initializers = [];
-        let _items_extraInitializers = [];
-        let _search_decorators;
-        let _search_initializers = [];
-        let _search_extraInitializers = [];
-        let _category_decorators;
-        let _category_initializers = [];
-        let _category_extraInitializers = [];
-        let _showRecipe_decorators;
-        let _showRecipe_initializers = [];
-        let _showRecipe_extraInitializers = [];
-        let _categories_decorators;
-        let _categories_initializers = [];
-        let _categories_extraInitializers = [];
-        let _source_decorators;
-        let _source_initializers = [];
-        let _source_extraInitializers = [];
-        return class Shelf extends _classSuper {
-            static {
-                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _filterOperator_decorators = [operator()];
-                _items_decorators = [expose("model")];
-                _search_decorators = [expose("model")];
-                _category_decorators = [expose("model")];
-                _showRecipe_decorators = [expose("model")];
-                _categories_decorators = [expose("model", false)];
-                _source_decorators = [expose("model")];
-                __esDecorate$1(null, null, _filterOperator_decorators, { kind: "field", name: "filterOperator", static: false, private: false, access: { has: obj => "filterOperator" in obj, get: obj => obj.filterOperator, set: (obj, value) => { obj.filterOperator = value; } }, metadata: _metadata }, _filterOperator_initializers, _filterOperator_extraInitializers);
-                __esDecorate$1(null, null, _items_decorators, { kind: "field", name: "items", static: false, private: false, access: { has: obj => "items" in obj, get: obj => obj.items, set: (obj, value) => { obj.items = value; } }, metadata: _metadata }, _items_initializers, _items_extraInitializers);
-                __esDecorate$1(null, null, _search_decorators, { kind: "field", name: "search", static: false, private: false, access: { has: obj => "search" in obj, get: obj => obj.search, set: (obj, value) => { obj.search = value; } }, metadata: _metadata }, _search_initializers, _search_extraInitializers);
-                __esDecorate$1(null, null, _category_decorators, { kind: "field", name: "category", static: false, private: false, access: { has: obj => "category" in obj, get: obj => obj.category, set: (obj, value) => { obj.category = value; } }, metadata: _metadata }, _category_initializers, _category_extraInitializers);
-                __esDecorate$1(null, null, _showRecipe_decorators, { kind: "field", name: "showRecipe", static: false, private: false, access: { has: obj => "showRecipe" in obj, get: obj => obj.showRecipe, set: (obj, value) => { obj.showRecipe = value; } }, metadata: _metadata }, _showRecipe_initializers, _showRecipe_extraInitializers);
-                __esDecorate$1(null, null, _categories_decorators, { kind: "field", name: "categories", static: false, private: false, access: { has: obj => "categories" in obj, get: obj => obj.categories, set: (obj, value) => { obj.categories = value; } }, metadata: _metadata }, _categories_initializers, _categories_extraInitializers);
-                __esDecorate$1(null, null, _source_decorators, { kind: "field", name: "source", static: false, private: false, access: { has: obj => "source" in obj, get: obj => obj.source, set: (obj, value) => { obj.source = value; } }, metadata: _metadata }, _source_initializers, _source_extraInitializers);
-                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-            }
-            static defaultProperties = {
-                view: ShelfView,
-                model: ShelfModel,
-                handlers: ShelfSourceHandler,
-                operators: [ShelfSubstringFilterOperator],
-            };
-            /**
-             * @readonly
-             * @description Which items the search and the current tab call for. Swap it to change what searching
-             * means; see {@link ShelfFilterOperator}.
-             */
-            filterOperator = __runInitializers$1(this, _filterOperator_initializers, void 0);
-            items = (__runInitializers$1(this, _filterOperator_extraInitializers), __runInitializers$1(this, _items_initializers, void 0));
-            search = (__runInitializers$1(this, _items_extraInitializers), __runInitializers$1(this, _search_initializers, void 0));
-            category = (__runInitializers$1(this, _search_extraInitializers), __runInitializers$1(this, _category_initializers, void 0));
-            showRecipe = (__runInitializers$1(this, _category_extraInitializers), __runInitializers$1(this, _showRecipe_initializers, void 0));
-            /**
-             * @readonly
-             * @description The tabs on offer: `"All"`, then one per category found among the items.
-             */
-            categories = (__runInitializers$1(this, _showRecipe_extraInitializers), __runInitializers$1(this, _categories_initializers, void 0));
-            /**
-             * @description Where the shelf reads its items from. Assigning it loads them, replacing whatever the
-             * shelf was listing.
-             */
-            source = (__runInitializers$1(this, _categories_extraInitializers), __runInitializers$1(this, _source_initializers, void 0));
-            initialize() {
-                super.initialize();
-                gradum(this).metadata.set(true, "dropTarget");
-            }
-            /**
-             * @function acceptDrop
-             * @description Take nothing. The shelf is what you shop from, not somewhere to put things — but it does
-             * cover part of the canvas, and without this a card let go of over the panel would be laid down on the
-             * canvas behind it, out of sight. A card dropped here stays where it came from.
-             */
-            acceptDrop() { }
-            /**
-             * @function load
-             * @description Read the shelf's items from a file, now, rather than waiting for its source to change.
-             * Use it to pick up a file that has been edited since it was last read.
-             * @param {string} [source=this.source] - URL to read from.
-             * @returns {Promise<ShelfEntry[]>} What ended up listed.
-             */
-            async load(source = this.source) {
-                return this.model.sourceHandler.read(source);
-            }
-            constructor() {
-                super(...arguments);
-                __runInitializers$1(this, _source_extraInitializers);
-            }
-        };
-    })();
-    define(Shelf, "demo-shelf");
-
-    //A drag that ends up smaller than this is taken as a misclick rather than as a cart nobody could use.
-    const SmallestCart = 40;
-    /**
-     * @class AddCartTool
+     * @class AddCollectionTool
      *
      * @extends GradumTool
-     * @description Drag on the canvas to mark out a cart. The rectangle follows the pointer while the drag is
+     * @description Drag on the canvas to mark out an area. The rectangle follows the pointer while the drag is
      * under way, so the area is drawn rather than typed in, and a drag too small to be meant is thrown away.
+     *
+     * Not a tool of its own: what kind of area is drawn, and how it starts out, is up to the subclass — see
+     * {@link AddCartTool}, {@link AddCatalogueTool} and {@link AddFilterTool}.
      */
-    let AddCartTool = (() => {
+    let AddCollectionTool = (() => {
         let _classSuper = GradumTool;
         let _instanceExtraInitializers = [];
         let _dragStart_decorators;
         let _drag_decorators;
         let _dragEnd_decorators;
-        return class AddCartTool extends _classSuper {
+        return class AddCollectionTool extends _classSuper {
             static {
                 const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
                 _dragStart_decorators = [behavior()];
@@ -32496,18 +33992,29 @@
                 __esDecorate$1(this, null, _dragEnd_decorators, { kind: "method", name: "dragEnd", static: false, private: false, access: { has: obj => "dragEnd" in obj, get: obj => obj.dragEnd }, metadata: _metadata }, null, _instanceExtraInitializers);
                 if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
             }
-            toolName = (__runInitializers$1(this, _instanceExtraInitializers), "addCart");
             /**
-             * @description The cart being drawn, and the corner the drag started from. A drag draws one cart, so
-             * there is never more than one of either.
+             * @description What every collection drawn starts out with, on top of where it is and how big.
+             * @protected
              */
-            drawn;
+            get properties() {
+                return {};
+            }
+            /**
+             * @description The collection being drawn, and the corner the drag started from. A drag draws one
+             * collection, so there is never more than one of either.
+             */
+            drawn = __runInitializers$1(this, _instanceExtraInitializers);
             origin;
             dragStart(e, target) {
                 if (!gradum(target).metadata?.get("substrate"))
                     return Propagation.propagate;
                 this.origin = e.position;
-                this.drawn = Cart.create({ parent: target, position: e.position, size: new Point() });
+                this.drawn = this.kind.create({
+                    ...this.properties,
+                    parent: target,
+                    position: e.position,
+                    size: new Point()
+                });
                 return Propagation.stopPropagation;
             }
             drag(e) {
@@ -32522,15 +34029,15 @@
                 this.resize(e.position);
                 //Too small to have been meant: take it away again rather than leave a sliver on the canvas.
                 const size = this.drawn.size;
-                if (size.x < SmallestCart || size.y < SmallestCart)
+                if (size.x < SmallestCollection || size.y < SmallestCollection)
                     this.drawn.delete();
                 this.drawn = undefined;
                 this.origin = undefined;
                 return Propagation.stopPropagation;
             }
             /**
-             * @description Lay the cart between the corner the drag started from and where the pointer is now, so
-             * dragging in any direction draws the same rectangle.
+             * @description Lay the collection between the corner the drag started from and where the pointer is now,
+             * so dragging in any direction draws the same rectangle.
              * @param {Point} corner - Where the pointer is.
              * @protected
              */
@@ -32540,6 +34047,40 @@
             }
         };
     })();
+    /**
+     * @class AddCartTool
+     *
+     * @extends AddCollectionTool
+     * @description Drag on the canvas to mark out a cart.
+     */
+    class AddCartTool extends AddCollectionTool {
+        toolName = "addCart";
+        kind = Cart;
+    }
+    /**
+     * @class AddCatalogueTool
+     *
+     * @extends AddCollectionTool
+     * @description Drag on the canvas to mark out a catalogue: a collection stocked with every product on offer,
+     * to shop from.
+     */
+    class AddCatalogueTool extends AddCollectionTool {
+        toolName = "addCatalogue";
+        kind = Collection;
+        get properties() {
+            return { name: "Catalogue", catalogue: true, color: Color.from("#FFFFFFB3") };
+        }
+    }
+    /**
+     * @class AddFilterTool
+     *
+     * @extends AddCollectionTool
+     * @description Drag on the canvas to mark out a filter, then pick the collections it applies to from it.
+     */
+    class AddFilterTool extends AddCollectionTool {
+        toolName = "addFilter";
+        kind = Filter;
+    }
 
     //Resize tool
     let ResizeTool = (() => {
@@ -32842,7 +34383,7 @@
             }
             /**
              * @description Pick a card up. Something that positions itself is dragged where it stands; something laid
-             * out by whatever it is in — a card in the shelf, a card in a cart — cannot be, so it stays put at low
+             * out by whatever it is in — a card in a list — cannot be, so it stays put at low
              * opacity and a ghost of it follows the pointer instead, to be dropped somewhere at the end.
              */
             dragStart(e, el) {
@@ -32984,124 +34525,6 @@
     //Custom element for the bucket tool
     define(Bucket, "demo-bucket");
 
-    var css_248z = ".demo-square{align-items:center;box-sizing:border-box;display:flex;height:100px;justify-content:center;position:absolute;width:100px}";
-    styleInject(css_248z);
-
-    //Custom square element, defined as a custom element
-    let Square = (() => {
-        let _classSuper = GradumElement;
-        let _instanceExtraInitializers = [];
-        let _color_decorators;
-        let _color_initializers = [];
-        let _color_extraInitializers = [];
-        let _position_decorators;
-        let _position_initializers = [];
-        let _position_extraInitializers = [];
-        let _rotation_decorators;
-        let _rotation_initializers = [];
-        let _rotation_extraInitializers = [];
-        let _anchor_decorators;
-        let _anchor_initializers = [];
-        let _anchor_extraInitializers = [];
-        let _size_decorators;
-        let _size_initializers = [];
-        let _size_extraInitializers = [];
-        let _updatePosition_decorators;
-        let _updateColor_decorators;
-        let _updateSize_decorators;
-        return class Square extends _classSuper {
-            static {
-                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
-                _color_decorators = [signal];
-                _position_decorators = [signal];
-                _rotation_decorators = [signal];
-                _anchor_decorators = [signal];
-                _size_decorators = [signal, auto({
-                        preprocessValue: (value) => (Point.from(value) ?? new Point(100, 100)).bound(5, Infinity, 5, Infinity)
-                    })];
-                _updatePosition_decorators = [effect];
-                _updateColor_decorators = [effect];
-                _updateSize_decorators = [effect];
-                __esDecorate$1(this, null, _size_decorators, { kind: "accessor", name: "size", static: false, private: false, access: { has: obj => "size" in obj, get: obj => obj.size, set: (obj, value) => { obj.size = value; } }, metadata: _metadata }, _size_initializers, _size_extraInitializers);
-                __esDecorate$1(this, null, _updatePosition_decorators, { kind: "method", name: "updatePosition", static: false, private: false, access: { has: obj => "updatePosition" in obj, get: obj => obj.updatePosition }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateColor_decorators, { kind: "method", name: "updateColor", static: false, private: false, access: { has: obj => "updateColor" in obj, get: obj => obj.updateColor }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(this, null, _updateSize_decorators, { kind: "method", name: "updateSize", static: false, private: false, access: { has: obj => "updateSize" in obj, get: obj => obj.updateSize }, metadata: _metadata }, null, _instanceExtraInitializers);
-                __esDecorate$1(null, null, _color_decorators, { kind: "field", name: "color", static: false, private: false, access: { has: obj => "color" in obj, get: obj => obj.color, set: (obj, value) => { obj.color = value; } }, metadata: _metadata }, _color_initializers, _color_extraInitializers);
-                __esDecorate$1(null, null, _position_decorators, { kind: "field", name: "position", static: false, private: false, access: { has: obj => "position" in obj, get: obj => obj.position, set: (obj, value) => { obj.position = value; } }, metadata: _metadata }, _position_initializers, _position_extraInitializers);
-                __esDecorate$1(null, null, _rotation_decorators, { kind: "field", name: "rotation", static: false, private: false, access: { has: obj => "rotation" in obj, get: obj => obj.rotation, set: (obj, value) => { obj.rotation = value; } }, metadata: _metadata }, _rotation_initializers, _rotation_extraInitializers);
-                __esDecorate$1(null, null, _anchor_decorators, { kind: "field", name: "anchor", static: false, private: false, access: { has: obj => "anchor" in obj, get: obj => obj.anchor, set: (obj, value) => { obj.anchor = value; } }, metadata: _metadata }, _anchor_initializers, _anchor_extraInitializers);
-                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-            }
-            //Data as signals
-            color = (__runInitializers$1(this, _instanceExtraInitializers), __runInitializers$1(this, _color_initializers, Color.random([60, 90], [40, 70])));
-            position = (__runInitializers$1(this, _color_extraInitializers), __runInitializers$1(this, _position_initializers, new Point()));
-            rotation = (__runInitializers$1(this, _position_extraInitializers), __runInitializers$1(this, _rotation_initializers, 0));
-            anchor = (__runInitializers$1(this, _rotation_extraInitializers), __runInitializers$1(this, _anchor_initializers, Anchor.Center));
-            #size_accessor_storage = (__runInitializers$1(this, _anchor_extraInitializers), __runInitializers$1(this, _size_initializers, new Point(100, 100)));
-            get size() { return this.#size_accessor_storage; }
-            set size(value) { this.#size_accessor_storage = value; }
-            initialize() {
-                gradum(this).metadata.set(true, "modifiable");
-                super.initialize();
-            }
-            move(delta) {
-                this.position = delta.add(this.position);
-            }
-            rotate(from, to, anchor = this.anchor) {
-                const pivot = this.getBoundingClientRect().pointAt(anchor);
-                const swept = pivot.angleBetween(from, to);
-                if (!swept)
-                    return;
-                const offset = this.position.sub(pivot);
-                this.rotation += swept;
-                this.position = pivot.add(offset.rotate(swept));
-            }
-            resize(delta, anchor = this.anchor, uniform = false) {
-                const fraction = new AnchorPoint(anchor).fraction;
-                const local = delta.rotate(-(this.rotation ?? 0));
-                let sizeDelta = local.mul(new Point(fraction.x === 0 ? 2 : -2 * fraction.x, fraction.y === 0 ? 2 : -2 * fraction.y));
-                if (uniform)
-                    sizeDelta = new Point(sizeDelta.min, sizeDelta.min);
-                const pinned = this.getBoundingClientRect().pointAt(anchor);
-                this.size = this.size.add(sizeDelta);
-                this.position = this.position.add(pinned.sub(this.getBoundingClientRect().pointAt(anchor)));
-            }
-            delete() {
-                this.remove();
-            }
-            getBoundingClientRect() {
-                return new GradumRect({
-                    x: this.position.x,
-                    y: this.position.y,
-                    width: this.size.x,
-                    height: this.size.y,
-                    anchor: this.anchor,
-                    angleRad: this.rotation
-                });
-            }
-            //Updating the representation of the square
-            //@effect methods will be called when the values of the signals they use change
-            updatePosition() {
-                const rect = this.getBoundingClientRect();
-                gradum(this).setStyle("transform", `
-            translate(${rect.topLeft.x}px, ${rect.topLeft.y}px)
-            rotate(${this.rotation}rad)
-        `);
-            }
-            updateColor() {
-                gradum(this).setStyle("backgroundColor", this.color.toString());
-            }
-            updateSize() {
-                gradum(this).setStyles({ width: this.size.x + "px", height: this.size.y + "px" });
-            }
-            constructor() {
-                super(...arguments);
-                __runInitializers$1(this, _size_extraInitializers);
-            }
-        };
-    })();
-    define(Square, "demo-square");
-
     //Add square tool
     let AddSquareTool = (() => {
         let _classSuper = GradumTool;
@@ -33124,6 +34547,502 @@
             }
         };
     })();
+
+    /**
+     * @class CanvasCollectionConstrainer
+     *
+     * @extends GradumConstrainer
+     * @description Picks loose cards up into the collections they come to rest on.
+     *
+     * A card dropped straight onto a collection is the collection's own business — the select tool hands it over
+     * and the collection puts it where it was dropped. This is the other way in: a card lying on the canvas that
+     * is dragged where it stands and left over a collection, or one a collection is moved on top of, is taken in.
+     * Being taken in is a real move — the card becomes the collection's child.
+     *
+     * Which collection a card is over is decided by its centre rather than by any overlap, so a card straddling
+     * two collections goes to the one its middle is over, and to exactly one. A locked collection or a catalogue
+     * takes nothing in.
+     */
+    let CanvasCollectionConstrainer = (() => {
+        let _classSuper = GradumConstrainer;
+        let _instanceExtraInitializers = [];
+        let _collectLooseItems_decorators;
+        return class CanvasCollectionConstrainer extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _collectLooseItems_decorators = [solver()];
+                __esDecorate$1(this, null, _collectLooseItems_decorators, { kind: "method", name: "collectLooseItems", static: false, private: false, access: { has: obj => "collectLooseItems" in obj, get: obj => obj.collectLooseItems }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            constrainerName = (__runInitializers$1(this, _instanceExtraInitializers), "collections");
+            //Solve only what the user just manipulated, rather than sweeping the whole canvas.
+            defaultQueue = [];
+            collectLooseItems(properties) {
+                //Only once the card has been let go of: moving one across a collection on the way somewhere else
+                //should not drop it in, and taking it in mid-drag would pull it out from under the pointer.
+                if (properties.eventType !== GradumEventName.dragEnd)
+                    return;
+                const moved = properties.eventTarget;
+                //A collection that moved has to be asked the other way round — which cards does it now cover? — since
+                //asking only which collection covers one card would leave a collection swept across the canvas
+                //picking up none.
+                if (moved instanceof Collection) {
+                    if (this.takesIn(moved))
+                        this.looseItems.filter(item => this.holds(moved, item))
+                            .forEach(item => this.insert(moved, item));
+                    return;
+                }
+                if (!(moved instanceof Item) || !this.looseItems.includes(moved))
+                    return;
+                const holder = this.element.collections.find(collection => this.takesIn(collection) && this.holds(collection, moved));
+                if (holder)
+                    this.insert(holder, moved);
+            }
+            /**
+             * @readonly
+             * @description The cards lying on the canvas itself. A card already in a collection is that collection's
+             * child, so it is not among them.
+             * @protected
+             */
+            get looseItems() {
+                return Array.from(this.element.children).filter(child => child instanceof Item);
+            }
+            /**
+             * @description Whether a collection takes anything in at all.
+             * @param {Collection} collection - The collection to ask.
+             * @returns {boolean} Whether it does.
+             * @protected
+             */
+            takesIn(collection) {
+                return !collection.locked && !collection.catalogue;
+            }
+            /**
+             * @description Put a card in a collection where its middle came to rest.
+             * @param {Collection} collection - The collection taking it in.
+             * @param {Item} item - The card.
+             * @protected
+             */
+            insert(collection, item) {
+                const centre = getRect(item)?.center;
+                collection.insertItem(item, centre ? collection.layoutOperator.indexAt(centre, item) : undefined, centre);
+            }
+            /**
+             * @description Whether a collection covers the middle of an item.
+             * @param {Collection} collection - The collection to test.
+             * @param {Item} item - The item to test.
+             * @returns {boolean} Whether the item's centre lies within the collection's area.
+             * @protected
+             */
+            holds(collection, item) {
+                const area = getRect(collection), rect = getRect(item);
+                if (!area || !rect)
+                    return false;
+                //Asked of the rect rather than worked out from its `x`: `x` is wherever the rect is anchored, and
+                //a card anchored anywhere but its top-left would have its middle reckoned half a card away.
+                const centre = rect.center;
+                return centre.x >= area.left && centre.x <= area.right
+                    && centre.y >= area.top && centre.y <= area.bottom;
+            }
+        };
+    })();
+
+    /**
+     * @class CanvasCollectionsHandler
+     *
+     * @extends GradumHandler
+     * @description Keeps the canvas's list of collections straight. Pure bookkeeping over the list — nothing
+     * here touches the page, which is why it is a handler rather than part of the canvas element.
+     */
+    class CanvasCollectionsHandler extends GradumHandler {
+        keyName = "collections";
+        /**
+         * @function add
+         * @description Put a collection on the list, unless it is already there.
+         * @param {Collection} collection - The collection to add.
+         * @param {number} [index=the end] - Where in the list it goes.
+         * @returns {boolean} Whether the list changed.
+         */
+        add(collection, index = this.model.collections.length) {
+            if (!collection || this.model.collections.includes(collection))
+                return false;
+            const arr = [...this.model.collections];
+            if (typeof index !== "number" || index >= arr.length)
+                arr.push(collection);
+            else {
+                if (index < 0)
+                    index = 0;
+                arr.splice(index, 0, collection);
+            }
+            this.model.collections = arr;
+            return true;
+        }
+        /**
+         * @function remove
+         * @description Take a collection off the list.
+         * @param {Collection} collection - The collection to remove.
+         * @returns {boolean} Whether the list changed.
+         */
+        remove(collection) {
+            if (!collection || !this.model.collections.includes(collection))
+                return false;
+            this.model.collections = this.model.collections.filter(entry => entry !== collection);
+            return true;
+        }
+        /**
+         * @function removeAt
+         * @description Take the collection at a given place off the list.
+         * @param {number} index - Where in the list it is.
+         * @returns {boolean} Whether the list changed.
+         */
+        removeAt(index) {
+            if (typeof index !== "number" || index >= this.model.collections.length || index < 0)
+                return false;
+            //A new array rather than splicing in place: the list is a signal, and what it is set to is what is
+            //noticed. `splice` also hands back what it took out, not what is left.
+            const arr = [...this.model.collections];
+            arr.splice(index, 1);
+            this.model.collections = arr;
+            return true;
+        }
+        /**
+         * @function nextFreeName
+         * @description A name for a collection that has not been given one: `"Cart 1"`, then `"Cart 2"`, and so
+         * on past whatever names are already taken, so drawing and deleting collections never produces two of the
+         * same.
+         * @param {string} prefix - What collections of this kind are called, before the number.
+         * @returns {string} The name to use.
+         */
+        nextFreeName(prefix) {
+            const taken = new Set(this.model.collections.map(collection => collection.name));
+            for (let index = 1;; index++) {
+                const name = `${prefix} ${index}`;
+                if (!taken.has(name))
+                    return name;
+            }
+        }
+        /**
+         * @function get
+         * @description The collection whose {@link Collection.dataId} is the given one.
+         * @param {string} id - The id to look for.
+         * @returns {Collection} The collection, or `undefined` if none on the list has that id.
+         */
+        get(id) {
+            return this.model.collections.find(collection => collection.dataId === id);
+        }
+    }
+
+    /**
+     * @class CanvasLinksHandler
+     *
+     * @extends GradumHandler
+     * @description Keeps track of which filters apply to which collections.
+     *
+     * The only thing that writes a filter's `targets` or a collection's `filters`, so the two sides of a link
+     * cannot disagree: every link is written to both, and to the canvas's own list, in one go.
+     */
+    class CanvasLinksHandler extends GradumHandler {
+        keyName = "links";
+        /**
+         * @function has
+         * @param {Filter} filter - The filter.
+         * @param {Collection} collection - The collection.
+         * @returns {boolean} Whether the filter applies to the collection.
+         */
+        has(filter, collection) {
+            return this.model.links.some(link => link.filter === filter && link.collection === collection);
+        }
+        /**
+         * @function connect
+         * @description Have a filter apply to a collection. Filters apply in the order they were connected.
+         * @param {Filter} filter - The filter.
+         * @param {Collection} collection - The collection.
+         * @returns {boolean} Whether anything changed — `false` if it already applied.
+         */
+        connect(filter, collection) {
+            if (!filter || !collection || this.has(filter, collection))
+                return false;
+            this.model.links = [...this.model.links, { filter, collection }];
+            this.sync(filter, collection);
+            return true;
+        }
+        /**
+         * @function disconnect
+         * @description Stop a filter applying to a collection.
+         * @param {Filter} filter - The filter.
+         * @param {Collection} collection - The collection.
+         * @returns {boolean} Whether anything changed.
+         */
+        disconnect(filter, collection) {
+            if (!this.has(filter, collection))
+                return false;
+            this.model.links = this.model.links
+                .filter(link => link.filter !== filter || link.collection !== collection);
+            this.sync(filter, collection);
+            return true;
+        }
+        /**
+         * @function toggle
+         * @description Connect a filter to a collection, or disconnect it if it was.
+         * @param {Filter} filter - The filter.
+         * @param {Collection} collection - The collection.
+         */
+        toggle(filter, collection) {
+            if (!this.disconnect(filter, collection))
+                this.connect(filter, collection);
+        }
+        /**
+         * @function disconnectAll
+         * @description Undo every link a filter or a collection is part of — what deleting one calls.
+         * @param {Filter | Collection} end - The filter or collection.
+         */
+        disconnectAll(end) {
+            this.model.links.filter(link => link.filter === end || link.collection === end)
+                .forEach(link => this.disconnect(link.filter, link.collection));
+        }
+        /**
+         * @description Write a filter's targets and a collection's filters back from the canvas's list.
+         * @param {Filter} filter - The filter.
+         * @param {Collection} collection - The collection.
+         * @protected
+         */
+        sync(filter, collection) {
+            const links = this.model.links;
+            filter.model.targets = links.filter(link => link.filter === filter).map(link => link.collection);
+            collection.model.filters = links.filter(link => link.collection === collection).map(link => link.filter);
+        }
+    }
+
+    /**
+     * @class CanvasModel
+     *
+     * @extends GradumModel
+     * @description What the canvas is holding: the collections drawn on it, and the catalogue everything on it is
+     * stocked from. The items are ordinary children and need no listing, but the collections are what everything
+     * else asks the canvas about.
+     */
+    let CanvasModel = (() => {
+        let _classSuper = GradumModel;
+        let _collections_decorators;
+        let _collections_initializers = [];
+        let _collections_extraInitializers = [];
+        let _catalogue_decorators;
+        let _catalogue_initializers = [];
+        let _catalogue_extraInitializers = [];
+        let _collectionsHandler_decorators;
+        let _collectionsHandler_initializers = [];
+        let _collectionsHandler_extraInitializers = [];
+        let _links_decorators;
+        let _links_initializers = [];
+        let _links_extraInitializers = [];
+        let _linksHandler_decorators;
+        let _linksHandler_initializers = [];
+        let _linksHandler_extraInitializers = [];
+        return class CanvasModel extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _collections_decorators = [signal];
+                _catalogue_decorators = [signal];
+                _collectionsHandler_decorators = [handler()];
+                _links_decorators = [signal];
+                _linksHandler_decorators = [handler()];
+                __esDecorate$1(null, null, _collections_decorators, { kind: "field", name: "collections", static: false, private: false, access: { has: obj => "collections" in obj, get: obj => obj.collections, set: (obj, value) => { obj.collections = value; } }, metadata: _metadata }, _collections_initializers, _collections_extraInitializers);
+                __esDecorate$1(null, null, _catalogue_decorators, { kind: "field", name: "catalogue", static: false, private: false, access: { has: obj => "catalogue" in obj, get: obj => obj.catalogue, set: (obj, value) => { obj.catalogue = value; } }, metadata: _metadata }, _catalogue_initializers, _catalogue_extraInitializers);
+                __esDecorate$1(null, null, _collectionsHandler_decorators, { kind: "field", name: "collectionsHandler", static: false, private: false, access: { has: obj => "collectionsHandler" in obj, get: obj => obj.collectionsHandler, set: (obj, value) => { obj.collectionsHandler = value; } }, metadata: _metadata }, _collectionsHandler_initializers, _collectionsHandler_extraInitializers);
+                __esDecorate$1(null, null, _links_decorators, { kind: "field", name: "links", static: false, private: false, access: { has: obj => "links" in obj, get: obj => obj.links, set: (obj, value) => { obj.links = value; } }, metadata: _metadata }, _links_initializers, _links_extraInitializers);
+                __esDecorate$1(null, null, _linksHandler_decorators, { kind: "field", name: "linksHandler", static: false, private: false, access: { has: obj => "linksHandler" in obj, get: obj => obj.linksHandler, set: (obj, value) => { obj.linksHandler = value; } }, metadata: _metadata }, _linksHandler_initializers, _linksHandler_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            /**
+             * @description The collections drawn on the canvas, in the order they were drawn. A plain signal rather
+             * than a nested model: what reads this is an effect that wants the whole list — an item's add dropdown,
+             * rebuilt whenever the carts change — and a model tracks reads key by key, so a nested model's `data`
+             * would hand back an array that no effect ever hears about again.
+             */
+            collections = __runInitializers$1(this, _collections_initializers, []);
+            /**
+             * @description Everything on offer. A catalogue collection on this canvas is stocked from it.
+             */
+            catalogue = (__runInitializers$1(this, _collections_extraInitializers), __runInitializers$1(this, _catalogue_initializers, undefined));
+            /**
+             * @description Keeping the list of collections straight: adding, removing, and naming.
+             */
+            collectionsHandler = (__runInitializers$1(this, _catalogue_extraInitializers), __runInitializers$1(this, _collectionsHandler_initializers, void 0));
+            /**
+             * @description Which filters apply to which collections. Only written by the links handler.
+             */
+            links = (__runInitializers$1(this, _collectionsHandler_extraInitializers), __runInitializers$1(this, _links_initializers, []));
+            linksHandler = (__runInitializers$1(this, _links_extraInitializers), __runInitializers$1(this, _linksHandler_initializers, void 0));
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _linksHandler_extraInitializers);
+            }
+        };
+    })();
+
+    var css_248z = "my-canvas{display:block;height:100vh;width:100vw}";
+    styleInject(css_248z);
+
+    /**
+     * @class Canvas
+     *
+     * @extends GradumElement
+     * @description The surface everything is arranged on, and the one place that knows which collections exist
+     * and what is on offer.
+     *
+     * A card dropped on the canvas is laid down where it was dropped and is the canvas's own; a card dropped on a
+     * collection becomes that collection's, and one left lying on a collection is taken in by
+     * {@link CanvasCollectionConstrainer}. A collection puts itself on the canvas's list as it is drawn, so
+     * anything wanting to offer the carts — an item's add button, say — can ask the canvas rather than having to
+     * watch for them.
+     */
+    let Canvas = (() => {
+        let _classSuper = GradumElement;
+        let _collections_decorators;
+        let _collections_initializers = [];
+        let _collections_extraInitializers = [];
+        let _catalogue_decorators;
+        let _catalogue_initializers = [];
+        let _catalogue_extraInitializers = [];
+        return class Canvas extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _collections_decorators = [expose("model", false)];
+                _catalogue_decorators = [expose("model")];
+                __esDecorate$1(null, null, _collections_decorators, { kind: "field", name: "collections", static: false, private: false, access: { has: obj => "collections" in obj, get: obj => obj.collections, set: (obj, value) => { obj.collections = value; } }, metadata: _metadata }, _collections_initializers, _collections_extraInitializers);
+                __esDecorate$1(null, null, _catalogue_decorators, { kind: "field", name: "catalogue", static: false, private: false, access: { has: obj => "catalogue" in obj, get: obj => obj.catalogue, set: (obj, value) => { obj.catalogue = value; } }, metadata: _metadata }, _catalogue_initializers, _catalogue_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                model: CanvasModel,
+                handlers: [CanvasCollectionsHandler, CanvasLinksHandler],
+                constrainers: [CanvasCollectionConstrainer],
+            };
+            /**
+             * @readonly
+             * @description The collections drawn on the canvas, in the order they were drawn.
+             */
+            collections = __runInitializers$1(this, _collections_initializers, void 0);
+            /**
+             * @description Everything on offer. A catalogue collection on this canvas is stocked from it.
+             */
+            catalogue = (__runInitializers$1(this, _collections_extraInitializers), __runInitializers$1(this, _catalogue_initializers, void 0));
+            /**
+             * @readonly
+             * @description The carts among the collections, in the order they were drawn — what an item's add
+             * dropdown offers.
+             */
+            get carts() {
+                return this.collections.filter(collection => collection instanceof Cart);
+            }
+            initialize() {
+                super.initialize();
+                gradum(this).metadata.set(true, "substrate");
+                gradum(this).metadata.set(true, "dropTarget");
+            }
+            /**
+             * @function acceptDrop
+             * @description Lay a card down on the canvas where it was dropped. A card dragged from a catalogue is a
+             * template, so the canvas takes a copy of it and leaves the catalogue's own card where it is; anything
+             * else is the card itself, moved here from wherever it was, and placing itself again from now on.
+             * @param {Item} item - The card that was dropped.
+             * @param {Point} position - Where it was let go of.
+             */
+            acceptDrop(item, position) {
+                if (!(item instanceof Item))
+                    return;
+                //A catalogue card is cloned straight onto the canvas rather than cloned and then added: the copy
+                //works out what it can be added to as it is built, and it can only do that once it is here.
+                const placed = gradum(item).metadata?.get("catalogue") ? item.clone({ parent: this }) : item;
+                gradum(placed).addToParent(this);
+                placed.fixed = false;
+                //A card is placed by its middle, so this lands it where the ghost was.
+                placed.position = position;
+                this.syncCollections();
+            }
+            /**
+             * @function syncCollections
+             * @description Have every collection look again at what it is holding. Called after a card has been
+             * moved between collections or onto the canvas, since only the two ends of that move know it happened.
+             */
+            syncCollections() {
+                this.collections.forEach(collection => collection.syncItems());
+            }
+            /**
+             * @function addCollection
+             * @description Take note of a collection drawn on the canvas, naming it if it has no name. Called by the
+             * collection itself as it appears; there is no need to call it by hand.
+             * @param {Collection} collection - The collection to take note of.
+             */
+            addCollection(collection) {
+                if (!collection.name)
+                    collection.name = this.model.collectionsHandler
+                        .nextFreeName(collection.constructor.namePrefix);
+                this.model.collectionsHandler.add(collection);
+            }
+            /**
+             * @function getCollection
+             * @description The collection whose {@link Collection.dataId} is the given one.
+             * @param {string} id - The id to look for.
+             * @returns {Collection} The collection, or `undefined` if none on the canvas answers to that id.
+             */
+            getCollection(id) {
+                if (!id)
+                    return undefined;
+                return this.model.collectionsHandler.get(id);
+            }
+            /**
+             * @function getCart
+             * @description The cart whose {@link Cart.dataId} is the given one, as named in an add button's
+             * `data-cart`.
+             * @param {string} id - The id to look for.
+             * @returns {Cart} The cart, or `undefined` if no cart on the canvas answers to that id.
+             */
+            getCart(id) {
+                const collection = this.getCollection(id);
+                return collection instanceof Cart ? collection : undefined;
+            }
+            /**
+             * @function removeCollection
+             * @description Forget a collection that has been taken off the canvas.
+             * @param {Collection} collection - The collection to forget.
+             */
+            removeCollection(collection) {
+                this.model.linksHandler.disconnectAll(collection);
+                this.model.collectionsHandler.remove(collection);
+            }
+            /**
+             * @function isLinked
+             * @param {Filter} filter - A filter.
+             * @param {Collection} collection - A collection.
+             * @returns {boolean} Whether the filter applies to the collection.
+             */
+            isLinked(filter, collection) {
+                return this.model.linksHandler.has(filter, collection);
+            }
+            /**
+             * @function toggleLink
+             * @description Have a filter apply to a collection, or stop it applying if it did.
+             * @param {Filter} filter - The filter.
+             * @param {Collection} collection - The collection.
+             */
+            toggleLink(filter, collection) {
+                this.model.linksHandler.toggle(filter, collection);
+            }
+            /**
+             * @function removeFilter
+             * @description Forget a filter that is being deleted: it stops applying to anything.
+             * @param {Filter} filter - The filter.
+             */
+            removeFilter(filter) {
+                this.model.linksHandler.disconnectAll(filter);
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _catalogue_extraInitializers);
+            }
+        };
+    })();
+    define(Canvas, "my-canvas");
 
     let DeleteTool = (() => {
         let _classSuper = GradumTool;
@@ -33176,23 +35095,400 @@
         };
     })();
 
+    /**
+     * @class CatalogueModel
+     *
+     * @extends GradumModel
+     * @description Everything on offer, and what it is measured in. Read once, from the files the catalogue was
+     * pointed at, and shared by everything that lists or describes a product.
+     */
+    let CatalogueModel = (() => {
+        let _classSuper = GradumModel;
+        let _products_decorators;
+        let _products_initializers = [];
+        let _products_extraInitializers = [];
+        let _units_decorators;
+        let _units_initializers = [];
+        let _units_extraInitializers = [];
+        let _source_decorators;
+        let _source_initializers = [];
+        let _source_extraInitializers = [];
+        let _unitsSource_decorators;
+        let _unitsSource_initializers = [];
+        let _unitsSource_extraInitializers = [];
+        let _sourceHandler_decorators;
+        let _sourceHandler_initializers = [];
+        let _sourceHandler_extraInitializers = [];
+        let _unitsHandler_decorators;
+        let _unitsHandler_initializers = [];
+        let _unitsHandler_extraInitializers = [];
+        let _categoriesHandler_decorators;
+        let _categoriesHandler_initializers = [];
+        let _categoriesHandler_extraInitializers = [];
+        return class CatalogueModel extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _products_decorators = [signal];
+                _units_decorators = [signal];
+                _source_decorators = [signal];
+                _unitsSource_decorators = [signal];
+                _sourceHandler_decorators = [handler()];
+                _unitsHandler_decorators = [handler()];
+                _categoriesHandler_decorators = [handler()];
+                __esDecorate$1(null, null, _products_decorators, { kind: "field", name: "products", static: false, private: false, access: { has: obj => "products" in obj, get: obj => obj.products, set: (obj, value) => { obj.products = value; } }, metadata: _metadata }, _products_initializers, _products_extraInitializers);
+                __esDecorate$1(null, null, _units_decorators, { kind: "field", name: "units", static: false, private: false, access: { has: obj => "units" in obj, get: obj => obj.units, set: (obj, value) => { obj.units = value; } }, metadata: _metadata }, _units_initializers, _units_extraInitializers);
+                __esDecorate$1(null, null, _source_decorators, { kind: "field", name: "source", static: false, private: false, access: { has: obj => "source" in obj, get: obj => obj.source, set: (obj, value) => { obj.source = value; } }, metadata: _metadata }, _source_initializers, _source_extraInitializers);
+                __esDecorate$1(null, null, _unitsSource_decorators, { kind: "field", name: "unitsSource", static: false, private: false, access: { has: obj => "unitsSource" in obj, get: obj => obj.unitsSource, set: (obj, value) => { obj.unitsSource = value; } }, metadata: _metadata }, _unitsSource_initializers, _unitsSource_extraInitializers);
+                __esDecorate$1(null, null, _sourceHandler_decorators, { kind: "field", name: "sourceHandler", static: false, private: false, access: { has: obj => "sourceHandler" in obj, get: obj => obj.sourceHandler, set: (obj, value) => { obj.sourceHandler = value; } }, metadata: _metadata }, _sourceHandler_initializers, _sourceHandler_extraInitializers);
+                __esDecorate$1(null, null, _unitsHandler_decorators, { kind: "field", name: "unitsHandler", static: false, private: false, access: { has: obj => "unitsHandler" in obj, get: obj => obj.unitsHandler, set: (obj, value) => { obj.unitsHandler = value; } }, metadata: _metadata }, _unitsHandler_initializers, _unitsHandler_extraInitializers);
+                __esDecorate$1(null, null, _categoriesHandler_decorators, { kind: "field", name: "categoriesHandler", static: false, private: false, access: { has: obj => "categoriesHandler" in obj, get: obj => obj.categoriesHandler, set: (obj, value) => { obj.categoriesHandler = value; } }, metadata: _metadata }, _categoriesHandler_initializers, _categoriesHandler_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            /**
+             * @description Every product the catalogue knows about, as read from its source.
+             */
+            products = __runInitializers$1(this, _products_initializers, []);
+            /**
+             * @description What the products' numbers are measured in. Empty until the units file has been read.
+             */
+            units = (__runInitializers$1(this, _products_extraInitializers), __runInitializers$1(this, _units_initializers, { price: "", properties: {} }));
+            /**
+             * @description Where the products are read from. Naming a source is all it takes; the source handler
+             * watches this and goes and reads it.
+             */
+            source = (__runInitializers$1(this, _units_extraInitializers), __runInitializers$1(this, _source_initializers, ""));
+            /**
+             * @description Where the units are read from, the same way.
+             */
+            unitsSource = (__runInitializers$1(this, _source_extraInitializers), __runInitializers$1(this, _unitsSource_initializers, ""));
+            /**
+             * @description Reading the products and units from the files they were pointed at.
+             */
+            sourceHandler = (__runInitializers$1(this, _unitsSource_extraInitializers), __runInitializers$1(this, _sourceHandler_initializers, void 0));
+            /**
+             * @description Writing a product's numbers out with their units.
+             */
+            unitsHandler = (__runInitializers$1(this, _sourceHandler_extraInitializers), __runInitializers$1(this, _unitsHandler_initializers, void 0));
+            /**
+             * @description Reads the products' categories as a tree.
+             */
+            categoriesHandler = (__runInitializers$1(this, _unitsHandler_extraInitializers), __runInitializers$1(this, _categoriesHandler_initializers, void 0));
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _categoriesHandler_extraInitializers);
+            }
+        };
+    })();
+
+    /**
+     * @description Make one entry of a source file into a {@link Product}, filling in whatever it left out, so
+     * nothing reading a product has to ask whether a field is there.
+     * @param {Partial<Product>} read - The entry as read.
+     * @returns {Product} The product.
+     * @internal
+     */
+    const toProduct = (read) => ({
+        id: read?.id ?? randomId(),
+        name: read?.name ?? "",
+        categories: Array.isArray(read?.categories) ? read.categories : [],
+        price: typeof read?.price === "number" ? read.price : 0,
+        description: {
+            highlights: Array.isArray(read?.description?.highlights) ? read.description.highlights : [],
+            text: read?.description?.text ?? "",
+        },
+        properties: read?.properties ?? {},
+        images: Array.isArray(read?.images) ? read.images : [],
+    });
+    /**
+     * @class CatalogueSourceHandler
+     *
+     * @extends GradumHandler
+     * @description Reads the catalogue's products and units from wherever it was pointed.
+     *
+     * Fetching and making sense of a file touches nothing but the model — a source to read, a list to fill — so
+     * it is a handler. Naming a source is all the catalogue has to do: this watches the names and goes and reads
+     * them.
+     */
+    let CatalogueSourceHandler = (() => {
+        let _classSuper = GradumHandler;
+        let _instanceExtraInitializers = [];
+        let _followSource_decorators;
+        let _followUnitsSource_decorators;
+        return class CatalogueSourceHandler extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _followSource_decorators = [effect];
+                _followUnitsSource_decorators = [effect];
+                __esDecorate$1(this, null, _followSource_decorators, { kind: "method", name: "followSource", static: false, private: false, access: { has: obj => "followSource" in obj, get: obj => obj.followSource }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate$1(this, null, _followUnitsSource_decorators, { kind: "method", name: "followUnitsSource", static: false, private: false, access: { has: obj => "followUnitsSource" in obj, get: obj => obj.followUnitsSource }, metadata: _metadata }, null, _instanceExtraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            keyName = (__runInitializers$1(this, _instanceExtraInitializers), "source");
+            followSource() {
+                const source = this.model.source;
+                if (source)
+                    void this.read(source);
+            }
+            followUnitsSource() {
+                const source = this.model.unitsSource;
+                if (source)
+                    void this.readUnits(source);
+            }
+            /**
+             * @function read
+             * @description Read a file of products and list them. The file may be either a bare array of products or
+             * an object with them under `products`.
+             *
+             * A file that cannot be read leaves the catalogue empty and says so in the console rather than throwing:
+             * a shop with nothing on offer is a better failure than a page that never finishes loading.
+             * @param {string} source - URL to read from.
+             * @returns {Promise<Product[]>} What ended up listed.
+             */
+            async read(source) {
+                if (!source)
+                    return [];
+                try {
+                    const read = await this.fetchJson(source);
+                    const products = Array.isArray(read) ? read : read?.products;
+                    this.model.products = Array.isArray(products) ? products.map(toProduct) : [];
+                }
+                catch (error) {
+                    console.warn(`Catalogue could not read its products from "${source}":`, error);
+                    this.model.products = [];
+                }
+                return this.model.products;
+            }
+            /**
+             * @function readUnits
+             * @description Read a file of units. A file that cannot be read leaves the numbers without units, and
+             * says so in the console.
+             * @param {string} source - URL to read from.
+             * @returns {Promise<Units>} The units now in use.
+             */
+            async readUnits(source) {
+                if (!source)
+                    return this.model.units;
+                try {
+                    const read = await this.fetchJson(source);
+                    this.model.units = { price: read?.price ?? "", properties: read?.properties ?? {} };
+                }
+                catch (error) {
+                    console.warn(`Catalogue could not read its units from "${source}":`, error);
+                }
+                return this.model.units;
+            }
+            async fetchJson(source) {
+                const response = await fetch(source);
+                if (!response.ok)
+                    throw new Error(`${response.status} ${response.statusText}`);
+                return response.json();
+            }
+        };
+    })();
+
+    /**
+     * @class CatalogueUnitsHandler
+     *
+     * @extends GradumHandler
+     * @description Writes a product's numbers out the way a person reads them: with their unit, rounded, and
+     * under a label rather than a key.
+     *
+     * Reads the units from the model as it goes, so anything showing a formatted value from inside an `@effect`
+     * is shown again once the units file has been read.
+     */
+    class CatalogueUnitsHandler extends GradumHandler {
+        keyName = "units";
+        /**
+         * @function format
+         * @description A property's value, ready to show: a number rounded to two places and followed by its
+         * unit, a range as its two ends — `"3–10 years"`, or `"14+ years"` when it is open above — and anything
+         * else as it is.
+         * @param {string} key - The property's key, which is what its unit is listed under.
+         * @param {PropertyValue} value - The value.
+         * @returns {string} The value as text.
+         */
+        format(key, value) {
+            if (value === null || value === undefined)
+                return "";
+            if (typeof value === "string")
+                return value;
+            let text;
+            if (typeof value === "number")
+                text = this.round(value);
+            else {
+                const min = typeof value.min === "number" ? this.round(value.min) : undefined;
+                const max = typeof value.max === "number" ? this.round(value.max) : undefined;
+                if (min !== undefined && max !== undefined)
+                    text = min === max ? min : `${min}–${max}`;
+                else if (min !== undefined)
+                    text = `${min}+`;
+                else if (max !== undefined)
+                    text = `up to ${max}`;
+                else
+                    return "";
+            }
+            const unit = this.model.units?.properties?.[key];
+            return unit ? `${text} ${unit}` : text;
+        }
+        /**
+         * @function formatPrice
+         * @description A price, ready to show.
+         * @param {number} value - The price.
+         * @returns {string} The price as text.
+         */
+        formatPrice(value) {
+            return formatPrice(value);
+        }
+        /**
+         * @function label
+         * @description What to call a property: its key, split into words — `shippingWeight` reads
+         * "Shipping weight".
+         * @param {string} key - The property's key.
+         * @returns {string} The label.
+         */
+        label(key) {
+            const words = String(key ?? "").replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase();
+            return words.charAt(0).toUpperCase() + words.slice(1);
+        }
+        /**
+         * @function order
+         * @description The keys of a product's properties in the order to show them: measurements first, then
+         * everything said in words, then the catalogue's own reference numbers, which nobody shopping looks for.
+         * @param {Record<string, PropertyValue>} properties - The product's properties.
+         * @returns {string[]} The keys, in order.
+         */
+        order(properties) {
+            const rank = (key) => key === "asin" ? 2 : typeof properties[key] === "string" ? 1 : 0;
+            return Object.keys(properties ?? {}).sort((a, b) => rank(a) - rank(b));
+        }
+        /**
+         * @description A number to two places at most, without trailing zeros.
+         * @param {number} value - The number.
+         * @returns {string} It as text.
+         * @protected
+         */
+        round(value) {
+            return String(Math.round(value * 100) / 100);
+        }
+    }
+
+    /**
+     * @class Catalogue
+     *
+     * @extends GradumHeadlessElement
+     * @description Everything on offer, loaded once and shared. A collection stocked from the catalogue lists
+     * its products, and an item's details panel asks it how to write the product's numbers out.
+     *
+     * Headless: nothing about it is drawn. It is an element rather than a bare model only so that it is made
+     * the way everything else is, with its handlers wired in from its defaults.
+     */
+    let Catalogue = (() => {
+        let _classSuper = GradumHeadlessElement;
+        let _source_decorators;
+        let _source_initializers = [];
+        let _source_extraInitializers = [];
+        let _unitsSource_decorators;
+        let _unitsSource_initializers = [];
+        let _unitsSource_extraInitializers = [];
+        let _products_decorators;
+        let _products_initializers = [];
+        let _products_extraInitializers = [];
+        let _units_decorators;
+        let _units_initializers = [];
+        let _units_extraInitializers = [];
+        return class Catalogue extends _classSuper {
+            static {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
+                _source_decorators = [expose("model")];
+                _unitsSource_decorators = [expose("model")];
+                _products_decorators = [expose("model", false)];
+                _units_decorators = [expose("model", false)];
+                __esDecorate$1(null, null, _source_decorators, { kind: "field", name: "source", static: false, private: false, access: { has: obj => "source" in obj, get: obj => obj.source, set: (obj, value) => { obj.source = value; } }, metadata: _metadata }, _source_initializers, _source_extraInitializers);
+                __esDecorate$1(null, null, _unitsSource_decorators, { kind: "field", name: "unitsSource", static: false, private: false, access: { has: obj => "unitsSource" in obj, get: obj => obj.unitsSource, set: (obj, value) => { obj.unitsSource = value; } }, metadata: _metadata }, _unitsSource_initializers, _unitsSource_extraInitializers);
+                __esDecorate$1(null, null, _products_decorators, { kind: "field", name: "products", static: false, private: false, access: { has: obj => "products" in obj, get: obj => obj.products, set: (obj, value) => { obj.products = value; } }, metadata: _metadata }, _products_initializers, _products_extraInitializers);
+                __esDecorate$1(null, null, _units_decorators, { kind: "field", name: "units", static: false, private: false, access: { has: obj => "units" in obj, get: obj => obj.units, set: (obj, value) => { obj.units = value; } }, metadata: _metadata }, _units_initializers, _units_extraInitializers);
+                if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            }
+            static defaultProperties = {
+                model: CatalogueModel,
+                handlers: [CatalogueSourceHandler, CatalogueUnitsHandler, CatalogueCategoriesHandler],
+            };
+            /**
+             * @description Where the products are read from. Assigning it loads them, replacing whatever the
+             * catalogue was listing.
+             */
+            source = __runInitializers$1(this, _source_initializers, void 0);
+            /**
+             * @description Where the units are read from. Assigning it loads them.
+             */
+            unitsSource = (__runInitializers$1(this, _source_extraInitializers), __runInitializers$1(this, _unitsSource_initializers, void 0));
+            /**
+             * @readonly
+             * @description Every product on offer.
+             */
+            products = (__runInitializers$1(this, _unitsSource_extraInitializers), __runInitializers$1(this, _products_initializers, void 0));
+            /**
+             * @readonly
+             * @description What the products' numbers are measured in.
+             */
+            units = (__runInitializers$1(this, _products_extraInitializers), __runInitializers$1(this, _units_initializers, void 0));
+            /**
+             * @function load
+             * @description Read the products again, now, rather than waiting for the source to change. Use it to
+             * pick up a file that has been edited since it was last read.
+             * @param {string} [source=this.source] - URL to read from.
+             * @returns {Promise<Product[]>} What ended up listed.
+             */
+            async load(source = this.source) {
+                return this.model.sourceHandler.read(source);
+            }
+            /**
+             * @function format
+             * @description A product's property, ready to show. See {@link CatalogueUnitsHandler.format}.
+             * @param {string} key - The property's key.
+             * @param {PropertyValue} value - Its value.
+             * @returns {string} The value as text.
+             */
+            format(key, value) {
+                return this.model.unitsHandler.format(key, value);
+            }
+            /**
+             * @function label
+             * @description What to call a property. See {@link CatalogueUnitsHandler.label}.
+             * @param {string} key - The property's key.
+             * @returns {string} The label.
+             */
+            label(key) {
+                return this.model.unitsHandler.label(key);
+            }
+            constructor() {
+                super(...arguments);
+                __runInitializers$1(this, _units_extraInitializers);
+            }
+        };
+    })();
+
     GradumIcon.defaultProperties.directory = "assets";
-    const canvas = Canvas.create({ parent: document.body });
-    //Everything on offer, read from items.json. On the canvas rather than beside it, so that a card anywhere —
-    //on the shelf, on the canvas, in a cart — finds the canvas above it and can ask which carts there are.
-    Shelf.create({ parent: canvas, source: "items.json" });
+    //Everything on offer, read once and shared by every catalogue drawn on the canvas.
+    const catalogue = Catalogue.create({ source: "data/products.json", unitsSource: "data/units.json" });
+    Canvas.create({ parent: document.body, catalogue });
+    const selectButton = GradumButton.create({ leftIcon: "cursor", tools: SelectTool, classes: "demo-button" });
     Toolbar.create({
         parent: document.body,
         entries: [
-            GradumButton.create({ leftIcon: "cursor", tools: SelectTool, classes: "demo-button" }),
+            selectButton,
             GradumButton.create({ leftIcon: "resize", tools: ResizeTool, classes: "demo-button" }),
             GradumButton.create({ leftIcon: "rotate", tools: RotateTool, classes: "demo-button" }),
             Bucket.create({ leftIcon: "bucket", classes: "demo-button" }),
-            GradumButton.create({ leftIcon: "addSquare", tools: AddSquareTool, classes: "demo-button" }),
             GradumButton.create({ leftIcon: "trash", tools: DeleteTool, classes: "demo-button" }),
             div({ classes: "divider" }),
-            GradumButton.create({ text: "Add cart", tools: AddCartTool, classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "addSquare", tools: AddSquareTool, classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "add-catalogue", tools: AddCatalogueTool, classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "add-cart", tools: AddCartTool, classes: "demo-button" }),
+            GradumButton.create({ leftIcon: "add-search", tools: AddFilterTool, classes: "demo-button" }),
         ]
     });
+    //Start out selecting, as the cursor would, rather than with no tool at all.
+    GradumEventManager.instance.setTool(selectButton, ClickMode.left);
 
 })();

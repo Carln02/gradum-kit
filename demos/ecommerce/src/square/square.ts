@@ -1,10 +1,14 @@
 import {
-    define, GradumElement, Point, signal, auto, effect, gradum, Color, Anchor, AnchorPoint, GradumRect
+    define, GradumElement, Point, signal, auto, effect, gradum, Color, Anchor, AnchorPoint, GradumRect, GradumModel, GradumView
 } from "../../../../build/gradum-kit.esm";
 import "./square.css";
 
 //Custom square element, defined as a custom element
-export class Square extends GradumElement {
+export class Square<
+    View extends GradumView = GradumView,
+    Data extends object = object,
+    Model extends GradumModel = GradumModel
+> extends GradumElement<View, Data, Model> {
     //Data as signals
     @signal color: Color = Color.random([60, 90], [40, 70]);
     @signal position: Point = new Point();
@@ -17,6 +21,7 @@ export class Square extends GradumElement {
     }) accessor size: Point = new Point(100, 100);
 
     public initialize() {
+        if (this.initialized) return;
         gradum(this).metadata.set(true, "modifiable");
         super.initialize();
     }
@@ -65,8 +70,6 @@ export class Square extends GradumElement {
         });
     }
 
-    //Updating the representation of the square
-    //@effect methods will be called when the values of the signals they use change
     @effect protected updatePosition() {
         const rect = this.getBoundingClientRect();
         gradum(this).setStyle("transform", `

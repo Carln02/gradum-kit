@@ -1,38 +1,61 @@
 import {
-    div, effect, element, GradumDropdown, GradumNumericalInput, GradumView, gradum, img, signal, span,
-    untrack
+    DefaultEventName, div, effect, element, GradumIcon, GradumView, gradum, img, signal, span
 } from "../../../../build/gradum-kit.esm";
 import {Item} from "./item";
 import {ItemModel} from "./item.model";
 import {formatPrice} from "../utils";
-import {Canvas} from "../canvas/canvas";
-import {Cart} from "../cart/cart";
+import {Carousel} from "../carousel/carousel";
+import {CartButton} from "../cartButton/cartButton";
+import type {Canvas} from "../canvas/canvas";
+import type {Cart} from "../cart/cart";
+
+//How many words of the description show before "Read more".
+const PreviewWords = 50;
 
 /**
  * @class ItemView
  *
  * @extends GradumView
- * @description The card itself: the item's picture beside its name and unit price, then the row that puts an
- * amount of it in a cart, and the row that says how much of it a recipe uses. Which cart is chosen from a
- * popup hung off the add button, so the card stays the size of what the item is rather than of what can be
- * done with it.
+ * @description The card itself. Collapsed, the product's picture beside its name, price, and the buttons to
+ * put it in a cart and to open it. Expanded, the card reads down instead: the name in full, where it is
+ * filed, the price, its pictures in a carousel, its description and a table of its measurements, with the
+ * same buttons at the end.
+ *
+ * Every part is a child of the card and the stylesheet lays them out for either state, so expanding moves
+ * nothing between parents. What only the expanded card shows is only drawn while it is expanded — a
+ * catalogue holds a hundred cards, and most are never opened.
  */
 export class ItemView extends GradumView<Item, ItemModel> {
     @signal public showAddButton: boolean = true;
-    @signal public showRecipe: boolean = true;
+
+    /**
+     * @description Whether the card shows everything about the product rather than only its name and price.
+     */
+    @signal public expanded: boolean = false;
+
+    /**
+     * @description Whether the description is shown in full rather than cut short.
+     */
+    @signal public fullText: boolean = false;
 
     protected picture: HTMLImageElement;
     protected title: HTMLElement;
     protected price: HTMLElement;
+    protected breadcrumb: HTMLElement;
 
-    protected cartAmountInput: GradumNumericalInput;
-    protected addDropdown: GradumDropdown;
-    protected subtotal: HTMLElement;
-    protected recipeAmountInput: GradumNumericalInput;
-    protected recipeUnit: HTMLElement;
+    protected carousel: Carousel;
 
-    protected cartRow: HTMLElement;
-    protected recipeRow: HTMLElement;
+    protected description: HTMLElement;
+    protected textBody: HTMLElement;
+    protected text: HTMLElement;
+    protected highlights: HTMLElement;
+    protected moreButton: HTMLElement;
+
+    protected propertiesTable: HTMLElement;
+
+    protected actions: HTMLElement;
+    protected cartButton: CartButton;
+    protected infoButton: HTMLElement;
 
     protected setupUIElements() {
         super.setupUIElements();
@@ -40,150 +63,190 @@ export class ItemView extends GradumView<Item, ItemModel> {
         this.picture = img({classes: "item-picture"});
         this.title = span({classes: "item-title"});
         this.price = span({classes: "item-price"});
+        this.breadcrumb = div({classes: ["item-breadcrumb", "item-detail"]});
 
-        this.cartAmountInput = GradumNumericalInput.create({classes: "item-amount", min: 0, decimalPlaces: 2});
-        this.subtotal = span({classes: "item-subtotal"});
+        this.carousel = Carousel.create({classes: ["item-carousel", "item-detail"]});
 
-        //A dropdown is the add button and its list of carts in one: a selector to click and a popup hung off
-        //it. The selector is a plain button rather than a GradumButton on purpose — a dropdown rewrites a
-        //GradumButton selector to show what was picked, and this one is an action, not a choice. It should
-        //go on saying "Add".
-        this.addDropdown = GradumDropdown.create({
-            classes: "item-add-dropdown",
-            selector: element({tag: "button", classes: "item-add", text: "Add"}),
-            popupClasses: "item-cart-popup"
+        this.textBody = span();
+        this.text = element({tag: "p", classes: "item-text", children: this.textBody});
+        this.highlights = element({tag: "ul", classes: "item-highlights"});
+        this.moreButton = element({tag: "button", classes: "item-more"});
+        this.description = div({
+            classes: ["item-description", "item-detail"],
+            children: [this.text, this.highlights, this.moreButton]
         });
 
-        gradum(this.addDropdown).showTransition = gradum().displayTransition;
+        this.propertiesTable = div({classes: ["item-properties", "item-detail"]});
 
-        this.recipeAmountInput = GradumNumericalInput.create({classes: "item-amount", min: 0, decimalPlaces: 2});
-        this.recipeUnit = span({classes: "item-unit"});
+        this.cartButton = CartButton.create();
+        this.infoButton = element({
+            tag: "button", classes: ["item-info", "pill-button"],
+            children: [GradumIcon.create({icon: "chevron-bottom"}), span({text: "Info"})]
+        });
+        this.actions = div({classes: "item-actions", children: [this.cartButton, this.infoButton]});
     }
 
     protected setupUILayout() {
         super.setupUILayout();
         gradum(this).addChild([
-            div({
-                classes: "item-header",
-                children: [
-                    this.picture,
-                    div({classes: "item-heading", children: [this.title, this.price]})
-                ]
-            }),
-            this.cartRow = div({
-                classes: ["item-row", "item-cart-row"],
-                children: [
-                    span({classes: "item-label", text: "Cart"}),
-                    this.cartAmountInput, this.addDropdown, this.subtotal
-                ]
-            }),
-            this.recipeRow = div({
-                classes: ["item-row", "item-recipe-row"],
-                children: [
-                    span({classes: "item-label", text: "Recipe"}),
-                    this.recipeAmountInput, this.recipeUnit
-                ]
-            })
+            this.picture, this.title, this.breadcrumb, this.price, this.carousel,
+            this.description, this.propertiesTable, this.actions
         ]);
-        gradum(this.recipeRow).showTransition = gradum().displayTransition;
     }
 
     protected setupUIListeners() {
         super.setupUIListeners();
-        this.cartAmountInput.onInput.add(() => this.model.cartAmount = this.cartAmountInput.value);
-        this.recipeAmountInput.onInput.add(() => this.model.recipeAmount = this.recipeAmountInput.value);
-        this.addDropdown.select.onEntryClicked = entry =>
-            this.addTo(gradum(this).closest(Canvas)?.getCart(entry.dataset?.cart));
+        gradum(this.infoButton).on(DefaultEventName.click, () => this.expanded = !this.expanded);
+        gradum(this.moreButton).on(DefaultEventName.click, () => this.fullText = !this.fullText);
+
+        this.cartButton.onAdd.add(value => {
+            const cart = this.canvas?.getCart(value) ?? this.cart;
+            if (!cart) return;
+            //Picking a cart is also what the card goes on adding to.
+            this.model.cart = cart;
+            cart.addItem(this.element, 1);
+        });
+        this.cartButton.onIncrement.add(() => this.cart?.addItem(this.element, 1));
+        this.cartButton.onDecrement.add(() => {
+            const cart = this.cart;
+            cart?.setAmount(this.element, cart.howMuchOf(this.element) - 1);
+        });
     }
 
-    @effect protected updatePlacement() {
-        const position = this.model.position;
-        gradum(this).toggleClass("placed", !!position);
-        gradum(this).setStyle("transform",
-            position ? `translate(${position.x}px, ${position.y}px)` : "", true);
+    /**
+     * @readonly
+     * @description The canvas the card is on, which is what knows the carts. Looked up by its tag rather than
+     * its class, so the card does not have to import the canvas — which imports the card.
+     * @protected
+     */
+    protected get canvas(): Canvas {
+        return gradum(this).closest("my-canvas") as Canvas;
+    }
+
+    /**
+     * @readonly
+     * @description The cart the card's button adds to: the one last picked, while it is still on the canvas,
+     * or the only one there is. With several and none picked yet, there is none until one is.
+     * @protected
+     */
+    protected get cart(): Cart {
+        const carts = this.canvas?.carts ?? [];
+        const picked = this.model.cart;
+        if (picked && carts.includes(picked)) return picked;
+        return carts.length === 1 ? carts[0] : undefined;
+    }
+
+    @effect protected updateExpanded() {
+        //The parts are laid out and hidden by the stylesheet rather than here, so a collapsed card takes no
+        //room for what it does not show.
+        gradum(this).toggleClass("expanded", this.expanded);
     }
 
     @effect protected updatePicture() {
         const image = this.model.image;
-        gradum(this.picture).show(!!image);
+        gradum(this.picture).toggleClass("item-hidden", !image);
         if (image) this.picture.src = image;
         this.picture.alt = this.model.name;
     }
 
     @effect protected updateTitle() {
         this.title.textContent = this.model.name;
+        this.title.title = this.model.name;
     }
 
     @effect protected updatePrice() {
-        this.price.textContent = `${formatPrice(this.model.price)} / ${this.model.unit}`;
+        this.price.textContent = formatPrice(this.model.price);
     }
 
     /**
-     * @description Rebuild the list of carts the popup offers. An item with no carts has nothing to be added
-     * to, so its add button says as much rather than opening on an empty list.
+     * @description Point the cart button at the cart the card adds to, and show how much of the product is
+     * in it. With no cart picked yet, adding asks which of them.
      * @protected
      */
-    @effect protected updateCarts() {
-        const carts = gradum(this).closest(Canvas)?.carts ?? [];
-        this.addDropdown.select.clear();
-        for (const cart of carts) this.addDropdown.select.addEntry(element({
-            tag: "button", classes: "item-cart-option", text: cart.name, "data-cart": cart.dataId
-        }));
+    @effect protected updateCartButton() {
+        const carts = this.canvas?.carts ?? [];
+        const cart = this.cart;
 
-        gradum(this.addDropdown).toggleClass("disabled", carts.length === 0);
+        this.cartButton.count = cart?.howMuchOf(this.element) ?? 0;
+        this.cartButton.choices = (cart ? [cart] : carts).map(entry => ({label: entry.name, value: entry.dataId}));
+        this.cartButton.disabled = carts.length === 0 || !!cart?.locked;
+        gradum(this.cartButton).toggleClass("item-hidden", !this.showAddButton);
     }
 
-    @effect protected showDropdown() {
-        gradum(this.addDropdown).show(this.showAddButton);
+    @effect protected updateBreadcrumb() {
+        if (!this.expanded) return;
+        const categories = this.model.categories ?? [];
+        this.breadcrumb.replaceChildren(...categories.map(category => span({classes: "item-chip", text: category})));
+        gradum(this.breadcrumb).toggleClass("item-hidden", categories.length === 0);
     }
 
-    @effect protected showRecipeStuff() {
-        gradum(this.recipeRow).show(this.showRecipe);
-    }
-
-    @effect protected updateCartAmount() {
-        this.showAmount(this.cartAmountInput, this.model.cartAmount);
-    }
-
-    @effect protected updateRecipeAmount() {
-        this.showAmount(this.recipeAmountInput, this.model.recipeAmount);
-        this.recipeUnit.textContent = this.model.unit;
-    }
-
-    @effect protected updateSubtotal() {
-        this.subtotal.textContent = formatPrice(this.model.cartCost);
+    @effect protected updateCarousel() {
+        if (!this.expanded) return;
+        const images = this.model.images ?? [];
+        this.carousel.images = images;
+        this.carousel.alt = this.model.name;
+        gradum(this.carousel).toggleClass("item-hidden", images.length === 0);
     }
 
     /**
-     * @description Hand the amount on the card to the cart that was chosen. Choosing is also what picks the
-     * cart, so the card goes on pointing at the one it was last added to.
-     * @param {Cart} cart - The cart chosen from the dropdown.
-     * @protected
+     * @description The description's text in full: the product's own, or its selling points run together
+     * when it has none — in which case, in full, the list says it all and the text is left empty.
      */
-    protected addTo(cart: Cart) {
-        if (!cart) return;
-        this.model.cart = cart;
-        //Asked of the cart rather than of the card: taking something in is the cart's own business, and
-        //whether it will is the cart's own decision.
-        cart.addItem(this.element, this.model.cartAmount);
+    protected get descriptionText(): string {
+        const description = this.model.description;
+        if (description?.text) return description.text;
+        return this.fullText ? "" : (description?.highlights ?? []).join(" ");
     }
 
     /**
-     * @description Show an amount in one of the fields, unless it is already showing it.
-     *
-     * The field is read without subscribing to it, so that a card only ever writes into a field because the
-     * model changed — never because the field did. A field someone has just cleared is left cleared: it
-     * reads as zero, and writing that zero back mid-keystroke is what makes a field impossible to type in.
-     * @param {GradumNumericalInput} input - The field to write into.
-     * @param {number} amount - The amount it should be showing.
+     * @description Fill in the description. Cut short, it is the first {@link PreviewWords} words with
+     * "Read more" straight after the last one. In full, the text, the selling points as a list, and
+     * "Read less" under them. With nothing more to show, there is no button.
      * @protected
      */
-    protected showAmount(input: GradumNumericalInput, amount: number) {
-        untrack(() => {
-            const shown = input.value;
-            if (Number.isNaN(shown) && amount === 0) return;
-            if (shown === amount) return;
-            input.value = amount;
-        });
+    @effect protected updateDescription() {
+        if (!this.expanded) return;
+        const highlights = this.model.description?.highlights ?? [];
+        this.highlights.replaceChildren(...highlights.map(highlight => element({tag: "li", text: highlight})));
+        gradum(this.description).toggleClass("item-hidden", !this.model.description?.text && highlights.length === 0);
+
+        const fullText = this.fullText;
+        const text = this.descriptionText;
+        const words = text.split(/\s+/).filter(Boolean);
+        const cut = !fullText && words.length > PreviewWords;
+
+        gradum(this.description).toggleClass("full", fullText);
+        this.moreButton.textContent = fullText ? "Read less" : "Read more";
+        gradum(this.moreButton).toggleClass("item-hidden", !cut && !fullText && highlights.length === 0);
+        //Inline at the end of the text while it is cut, under the list once it is not.
+        if (fullText) this.description.appendChild(this.moreButton);
+        else this.text.appendChild(this.moreButton);
+
+        this.textBody.textContent = cut ? words.slice(0, PreviewWords).join(" ") + "… " : text + " ";
+    }
+
+    /**
+     * @description Rebuild the table of measurements, each under its label and with its unit. Reads the
+     * units through the catalogue, so the table is drawn again once the units file has been read. A card off
+     * any canvas has no catalogue, and shows the numbers bare.
+     * @protected
+     */
+    @effect protected updateProperties() {
+        if (!this.expanded) return;
+        const properties = this.model.properties ?? {};
+        const catalogue = this.canvas?.catalogue;
+        const keys = catalogue?.model.unitsHandler.order(properties) ?? Object.keys(properties);
+
+        this.propertiesTable.replaceChildren(...keys.map(key => div({
+            classes: "item-property",
+            children: [
+                span({classes: "item-property-name", text: catalogue?.label(key) ?? key}),
+                span({
+                    classes: "item-property-value",
+                    text: catalogue?.format(key, properties[key]) ?? String(properties[key])
+                }),
+            ]
+        })));
+        gradum(this.propertiesTable).toggleClass("item-hidden", keys.length === 0);
     }
 }

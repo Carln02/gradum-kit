@@ -1,0 +1,192 @@
+.item-shelf {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1.5rem;
+}
+/* A column rather than the square's centred box: the title bar, then the items under it. */
+.demo-square.demo-collection {
+    /* The fraction of their natural size the cards are drawn at. Left at 1 unless a fit operator that
+       shrinks them says otherwise. */
+    --collection-fit-scale: 1;
+    /* How far the title bar and the pager float in from the panel's edges. */
+    --collection-inset: 1rem;
+    /* No z-index of its own, so the collection raises no stacking context and its bars can sit above the
+       items while its area stays below them. The items carry `z-index: 1`, which is what puts them on top of
+       the area they are lying on. */
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.375rem;
+
+    box-sizing: border-box;
+    /* None on the right: the scrollbar's gutter is the margin there, kept even when nothing overflows so the
+       cards do not shift when it comes and goes. */
+    padding: var(--collection-inset) 0 var(--collection-inset) var(--collection-inset);
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+}
+
+/* A slim bar, held in from the panel's edge and kept clear of the title bar and the pager floating over the
+   ends of the panel. The gutter is wider than the bar; the thumb's transparent borders are what place it. */
+.demo-square.demo-collection::-webkit-scrollbar {
+    width: 18px;
+}
+
+.demo-square.demo-collection::-webkit-scrollbar-track {
+    margin: 4rem 0;
+    background: transparent;
+}
+
+.demo-square.demo-collection::-webkit-scrollbar-thumb {
+    background: var(--line);
+    background-clip: padding-box;
+    border: solid transparent;
+    border-width: 0 9px 0 5px;
+    border-radius: var(--radius-pill);
+}
+
+/* The cards a collection is holding are laid out by it, down its length and across its width. Everything in
+   a card is sized in em, so a fit operator that shrinks the cards has one number to set — the font size —
+   rather than a list of properties to write. */
+.demo-collection > .demo-square.demo-item {
+    flex: none;
+    width: auto;
+    margin: 0;
+    font-size: calc(1rem * var(--collection-fit-scale));
+}
+
+/* Said by the view, when the fit operator reports the contents running past the area. */
+.demo-collection.collection-full .collection-count {
+    color: var(--price);
+    font-weight: 600;
+}
+
+.demo-square.demo-collection.locked {
+    border-style: solid;
+}
+
+/* Somewhere to shop from — a catalogue, or a cart — reads as a panel rather than an area things were put. */
+.demo-square.demo-collection.catalogue,
+demo-cart.demo-square.demo-collection {
+    border-style: solid;
+    box-shadow: var(--shadow-float);
+    /* Its colour is see-through white; what shows through it is blurred, so the cards stay readable. */
+    backdrop-filter: var(--blur);
+}
+
+/* Floating over the top of the cards, which scroll on under it. Pinned there, so a collection covered in
+   cards can still be named and locked however far down they have been scrolled. */
+.demo-collection .collection-header {
+    /* Held from the content box, which the panel's padding already keeps off the edge. */
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    flex: none;
+    /* Ordered before everything, so cards sorted by a filter stay under it. */
+    order: -1;
+
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.875rem;
+}
+
+.demo-collection .collection-name {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.demo-collection .collection-count {
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+/* A catalogue's count is the whole range on offer, which the pager already says. */
+.demo-collection.catalogue .collection-count {
+    display: none;
+}
+
+/* Pushed to the far end of the bar, so the buttons sit together. */
+.demo-collection .collection-lock {
+    margin-left: auto;
+}
+
+.demo-collection .collection-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+
+    background: none;
+    border: none;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+}
+
+.demo-collection .collection-button .gradum-icon {
+    width: 65%;
+    height: 65%;
+    fill: var(--muted);
+}
+
+.demo-collection .collection-button:hover .gradum-icon {
+    fill: var(--text-soft);
+}
+
+/* The same kind of bar as the title, floating over the bottom of the cards and pinned there, so the pager
+   stays in reach however far down the page of cards has been scrolled. Ordered after everything, so cards
+   sorted by a filter stay above it. */
+.demo-collection .collection-footer {
+    position: sticky;
+    bottom: var(--collection-inset);
+    z-index: 2;
+    order: 1000000;
+    flex: none;
+    align-self: center;
+    margin-top: auto;
+
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+}
+
+.demo-collection .collection-footer.hidden {
+    display: none;
+}
+
+/* A sticky footer stops at the edge of the content box, so with the padding under the cards it would never
+   reach the bottom. It keeps its distance from the edge with its own offset instead. */
+.demo-square.demo-collection:has(> .collection-footer:not(.hidden)) {
+    padding-bottom: 0;
+}
+
+.demo-square.demo-collection:has(> .collection-footer:not(.hidden)) > .collection-footer {
+    margin-bottom: var(--collection-inset);
+}
+
+.demo-collection .collection-page {
+    color: var(--text-soft);
+    font-size: 1rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.demo-collection .collection-page-button {
+    font-size: 0.75rem;
+}
+
+/* Left out by a filter linked to the collection. Still in it — only not shown. */
+.demo-collection > .demo-item.filtered-out {
+    display: none;
+}

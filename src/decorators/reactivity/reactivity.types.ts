@@ -66,14 +66,18 @@ type SignalEntry<Type = any> = {
  * @property {Set<SignalEntry>} dependencies - Signals read during the last run.
  * @property {Array<() => void>} cleanups - Handlers to run before the next execution.
  * @property {boolean} scheduled - Whether a run is already queued, used to coalesce repeated invalidations.
+ * @property {boolean} disposed - Whether the effect has been disposed. A disposed effect skips any run still
+ * queued for it, and is never run again.
  * @property {() => void} run - Execute the effect: run cleanups, re-collect dependencies, and resubscribe.
- * @property {() => void} dispose - Stop the effect: drop subscriptions and run remaining cleanups.
+ * @property {() => void} dispose - Stop the effect: drop subscriptions, run remaining cleanups, and skip any
+ * run still queued.
  */
 export type Effect = {
     callback: () => void,
     dependencies: Set<SignalEntry>,
     cleanups: Array<() => void>,
     scheduled: boolean,
+    disposed: boolean,
     run(): void,
     dispose(): void
 }

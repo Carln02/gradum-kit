@@ -7,24 +7,32 @@ demo-toolbar {
 
     display: flex;
     flex-direction: row;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
     padding: 8px;
 
-    background-color: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 8%), 0 1px 2px rgb(0 0 0 / 5%);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-small);
 }
 
 demo-toolbar .gradum-icon {
     display: block;
-    width: 1.4em;
-    height: 1.4em;
+    width: 20px;
+    height: 20px;
 }
 
+/* Round, the icon alone in it. */
 demo-toolbar > .gradum-button {
-    padding: 7px;
-    border-radius: calc(var(--radius) - 4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: var(--radius-pill);
 
     border: 1px solid transparent;
     background-color: transparent;
@@ -45,13 +53,13 @@ demo-toolbar svg {
 }
 
 demo-toolbar > .gradum-button:hover {
-    background-color: var(--hover);
+    background-color: var(--fill);
     color: var(--text);
 }
 
 /* The active tool. Filled rather than outlined, so which mode you are in reads at a glance. */
 demo-toolbar > .gradum-button.selected {
-    background-color: var(--active);
+    background-color: var(--color-primary);
     color: var(--text);
 }
 
@@ -65,8 +73,8 @@ demo-toolbar > .gradum-button > * {
 }
 
 .divider {
-    width: 2px;
-    margin: 8px;
+    align-self: center;
+    width: 1px;
+    height: 28px;
     background-color: var(--line);
-    border-radius: 100px;
 }

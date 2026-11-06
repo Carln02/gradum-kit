@@ -524,6 +524,54 @@ describe("effect (function form)", () => {
     });
 });
 
+describe("effect (disposal during a flush)", () => {
+    it("skips a run already queued when disposed by an effect woken by the same write", async () => {
+        const target: SignalBox<string> = signal("beside");
+        const seen: string[] = [];
+
+        let stopTracker: () => void;
+        //Subscribed first, so the write wakes it before the tracker.
+        const stopOwner = effect(() => {
+            if (target.value === "inside") stopTracker?.();
+        });
+        stopTracker = effect(() => {
+            seen.push(target.value);
+        });
+        expect(seen).toEqual(["beside"]);
+
+        target.value = "inside";
+        await flushMicrotasks(4);
+        expect(seen).toEqual(["beside"]);
+
+        target.value = "beside";
+        await flushMicrotasks(4);
+        expect(seen).toEqual(["beside"]);
+        stopOwner();
+    });
+
+    it("does not subscribe again when it disposes itself while running", async () => {
+        const x: SignalBox<number> = signal(0);
+        let runs = 0;
+
+        let stop: () => void;
+        stop = effect(() => {
+            runs++;
+            if (x.value !== 1) return;
+            stop();
+            //Read after the disposal, so it is tracked by a run that must not subscribe again.
+            void x.value;
+        });
+
+        x.value = 1;
+        await flushMicrotasks(4);
+        expect(runs).toBe(2);
+
+        x.value = 2;
+        await flushMicrotasks(4);
+        expect(runs).toBe(2);
+    });
+});
+
 describe("effect (decorator form, deferred start)", () => {
     it("does not run until initializeEffects(instance) is called", async () => {
         class VM {

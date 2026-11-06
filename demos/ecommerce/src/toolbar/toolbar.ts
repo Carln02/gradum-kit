@@ -2,7 +2,7 @@ import {define, GradumElement, gradum, effect, signal, auto} from "../../../../b
 import "./toolbar.css";
 
 export class Toolbar extends GradumElement {
-    @signal public color: string = "white";
+    @signal public color: string = "var(--color-white-transparent)";
 
     @auto() public set entries(value: HTMLElement[]) {
         value.forEach(entry => this.addTool(entry));

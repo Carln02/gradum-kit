@@ -132,6 +132,27 @@ export class SignalUtils {
                 return entry;
             };
 
+            //A field a superclass already made a signal, declared again further down. By the time this runs the
+            //redeclaration has defined a plain value over the superclass's accessor, and the signal is already
+            //there — so carry on with that one rather than building a second: hand it the new initial value
+            //and put the accessor back. Building another would find the first and keep it, leaving the new
+            //accessor reading a slot nothing ever writes.
+            if (kind === "field") {
+                const inherited = utils.getSignal<Value>(this, key);
+                const own = Object.getOwnPropertyDescriptor(this, key);
+                if (inherited && own && "value" in own) {
+                    delete this[key];
+                    Object.defineProperty(this, key, {
+                        configurable: true,
+                        enumerable: own.enumerable ?? true,
+                        get: () => inherited.get(),
+                        set: (v: Value) => inherited.set(v),
+                    });
+                    inherited.set(own.value);
+                    return;
+                }
+            }
+
             if (kind === "field" || kind === "accessor") {
                 const descriptor = getFirstDescriptorInChain(this, key);
                 const acc = value as { get?: (this: any) => Value; set?: (this: any, v: Value) => void };

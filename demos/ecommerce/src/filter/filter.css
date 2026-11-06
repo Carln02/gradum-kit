@@ -1,0 +1,268 @@
+/* A panel rather than the square's centred box: the sections stack down it, and what does not fit scrolls. */
+.demo-square.demo-filter {
+    z-index: 3;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.75rem;
+
+    box-sizing: border-box;
+    padding: 1rem;
+    overflow-y: auto;
+
+    color: var(--text-soft);
+    font-size: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-float);
+}
+
+/* Dragging the panel should move it, not sweep a selection across its text. */
+demo-filter {
+    user-select: none;
+}
+
+demo-filter input,
+demo-filter select {
+    user-select: text;
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 0.3rem 0.6rem;
+    color: inherit;
+    font: inherit;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+}
+
+demo-filter button {
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+/* Paused, it still shows what it would ask, but plainly says it is not asking it. */
+demo-filter.paused > :not(.filter-header) {
+    opacity: 0.5;
+}
+
+demo-filter .hidden {
+    display: none !important;
+}
+
+demo-filter .filter-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+demo-filter .filter-title {
+    margin-right: auto;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* The pills an item's Info button is. */
+demo-filter .filter-switch,
+demo-filter .filter-reset,
+demo-filter .filter-direction {
+    padding: 0.35rem 0.7rem;
+    font-weight: 700;
+    background: var(--color-primary-light);
+    border: none;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-small);
+}
+
+demo-filter .filter-switch.off {
+    color: var(--muted);
+    background: var(--line);
+}
+
+demo-filter .filter-switch:hover,
+demo-filter .filter-reset:hover,
+demo-filter .filter-direction:hover {
+    filter: brightness(0.97);
+}
+
+/* A pill with the magnifier at its end. */
+demo-filter .filter-search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+}
+
+demo-filter .filter-search-box:focus-within {
+    border-color: var(--color-primary);
+}
+
+demo-filter .filter-search-box .gradum-icon {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    fill: var(--text-soft);
+}
+
+demo-filter .filter-search {
+    flex: 1;
+    width: 100%;
+    padding: 0;
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    outline: none;
+    background: none;
+}
+
+demo-filter .filter-search::placeholder {
+    color: var(--muted);
+}
+
+demo-filter .filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+demo-filter .filter-heading {
+    font-weight: 700;
+}
+
+demo-filter .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+demo-filter .filter-row > select {
+    flex: 1;
+}
+
+demo-filter .filter-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem;
+}
+
+demo-filter .filter-crumb {
+    padding: 0;
+    color: var(--muted);
+    background: none;
+    border: none;
+}
+
+demo-filter .filter-crumb:hover {
+    text-decoration: underline;
+}
+
+demo-filter .filter-crumb.current {
+    color: inherit;
+    font-weight: 600;
+}
+
+demo-filter .filter-crumb + .filter-crumb::before {
+    content: "›";
+    margin-right: 0.15rem;
+    color: var(--muted);
+}
+
+demo-filter .filter-categories {
+    display: flex;
+    flex-direction: column;
+}
+
+demo-filter .filter-category {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.1rem 0;
+}
+
+demo-filter .filter-check {
+    margin: 0;
+    padding: 0;
+}
+
+demo-filter .filter-category-name {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: none;
+    border: none;
+}
+
+demo-filter .filter-category-name:hover {
+    text-decoration: underline;
+}
+
+demo-filter .filter-count {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+demo-filter .filter-more {
+    width: 0.6rem;
+    color: var(--muted);
+}
+
+demo-filter .filter-picked,
+demo-filter .filter-targets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+demo-filter .filter-chip {
+    padding: 0.25rem 0.5rem;
+    font-weight: 700;
+    background: var(--fill);
+    border: 1px solid var(--fill);
+    border-radius: var(--radius-pill);
+}
+
+demo-filter .filter-picked .filter-chip,
+demo-filter .filter-chip.selected {
+    color: var(--text);
+    background: var(--color-primary-light);
+    border-color: var(--color-primary);
+}
+
+demo-filter .filter-facets {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+demo-filter .filter-facet {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+demo-filter .filter-number {
+    flex: 1;
+    width: 0;
+}
+
+demo-filter .filter-remove {
+    padding: 0 0.3rem;
+    color: var(--muted);
+    background: none;
+    border: none;
+}
+
+demo-filter .filter-empty {
+    color: var(--muted);
+    font-style: italic;
+}

@@ -3604,6 +3604,26 @@ class SignalUtils {
                     delete self[key];
                 return entry;
             };
+            //A field a superclass already made a signal, declared again further down. By the time this runs the
+            //redeclaration has defined a plain value over the superclass's accessor, and the signal is already
+            //there — so carry on with that one rather than building a second: hand it the new initial value
+            //and put the accessor back. Building another would find the first and keep it, leaving the new
+            //accessor reading a slot nothing ever writes.
+            if (kind === "field") {
+                const inherited = utils.getSignal(this, key);
+                const own = Object.getOwnPropertyDescriptor(this, key);
+                if (inherited && own && "value" in own) {
+                    delete this[key];
+                    Object.defineProperty(this, key, {
+                        configurable: true,
+                        enumerable: own.enumerable ?? true,
+                        get: () => inherited.get(),
+                        set: (v) => inherited.set(v),
+                    });
+                    inherited.set(own.value);
+                    return;
+                }
+            }
             if (kind === "field" || kind === "accessor") {
                 const descriptor = getFirstDescriptorInChain(this, key);
                 const acc = value;
@@ -3686,7 +3706,12 @@ class EffectUtils {
             dependencies: new Set(),
             cleanups: [],
             scheduled: false,
+            disposed: false,
             run() {
+                //A run queued before the effect was disposed — by the same write that led to the disposal —
+                //still reaches here. It is skipped, so a disposed effect never writes again.
+                if (this.disposed)
+                    return;
                 for (const c of this.cleanups)
                     c();
                 this.cleanups = [];
@@ -3698,12 +3723,16 @@ class EffectUtils {
                 finally {
                     utils.activeEffect = null;
                 }
+                //Disposed by its own callback: following its signals again would bring it back.
+                if (this.disposed)
+                    return;
                 for (const dep of this.dependencies) {
                     const unsub = dep.sub(() => utils.schedule(this));
                     this.cleanups.push(unsub);
                 }
             },
             dispose() {
+                this.disposed = true;
                 for (const c of this.cleanups)
                     c();
                 this.cleanups = [];
@@ -17541,6 +17570,18 @@ let GradumIcon = (() => {
         get element() {
             return this._element;
         }
+        /**
+         * @function initialize
+         * @description Load the icon, now that every property it was created with is set. Loading waits for this
+         * because `create()` sets the given properties before the class defaults — loading as soon as `icon` was
+         * set would fetch it from before a default `directory` arrived, then fetch it again.
+         */
+        initialize() {
+            const first = !this.initialized;
+            super.initialize();
+            if (first && !this.element)
+                this.generateIcon();
+        }
         //Utilities
         /**
          * @function loadSvg
@@ -17578,9 +17619,13 @@ let GradumIcon = (() => {
          * @function generateIcon
          * @protected
          * @description Load the icon for the current name and type, and swap it in as this element's content.
-         * Reuses the existing element when only the source changed.
+         * Reuses the existing element when only the source changed. Does nothing while the icon is still being
+         * built — see {@link GradumIcon.initialize} — unless it is already on the page, as one written in markup
+         * is before it is ever initialized.
          */
         generateIcon() {
+            if (!this.initialized && !this.isConnected)
+                return;
             const path = this.path;
             const type = getFileExtension(path)?.substring(1);
             if (this.element instanceof HTMLImageElement

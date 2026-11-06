@@ -41,7 +41,7 @@ export class SelectTool extends GradumTool {
 
     /**
      * @description Pick a card up. Something that positions itself is dragged where it stands; something laid
-     * out by whatever it is in — a card in the shelf, a card in a cart — cannot be, so it stays put at low
+     * out by whatever it is in — a card in a list — cannot be, so it stays put at low
      * opacity and a ghost of it follows the pointer instead, to be dropped somewhere at the end.
      */
     @behavior() public dragStart(e: GradumDragEvent, el: Node) {

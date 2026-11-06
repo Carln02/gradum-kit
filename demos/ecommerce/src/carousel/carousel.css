@@ -1,0 +1,94 @@
+demo-carousel {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    height: 7.5em;
+    overflow: hidden;
+
+    background: var(--fill);
+    border-radius: var(--radius);
+}
+
+demo-carousel .carousel-picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+demo-carousel.empty .carousel-picture {
+    visibility: hidden;
+}
+
+demo-carousel .carousel-arrow {
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5em;
+    height: 1.5em;
+    padding: 0;
+
+    background: var(--color-02-transparent);
+    backdrop-filter: var(--blur-small);
+    border: none;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+}
+
+demo-carousel .carousel-arrow:hover {
+    background: var(--line);
+}
+
+demo-carousel .carousel-arrow .gradum-icon {
+    width: 100%;
+    height: 100%;
+    fill: var(--text-soft);
+}
+
+demo-carousel .carousel-previous {
+    left: var(--space-2);
+}
+
+demo-carousel .carousel-next {
+    right: var(--space-2);
+}
+
+/* A dot per picture, the current one in the primary colour and a touch larger. */
+demo-carousel .carousel-dots {
+    position: absolute;
+    bottom: var(--space-2);
+    left: 50%;
+    translate: -50% 0;
+
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    padding: 0.25em 0.45em;
+
+    background: var(--color-02-transparent);
+    backdrop-filter: var(--blur-small);
+    border-radius: var(--radius-pill);
+}
+
+demo-carousel .carousel-dot {
+    width: 0.4em;
+    height: 0.4em;
+    background: var(--line);
+    border-radius: var(--radius-pill);
+}
+
+demo-carousel .carousel-dot.current {
+    width: 0.5em;
+    height: 0.5em;
+    background: var(--color-primary);
+}
+
+demo-carousel.single .carousel-arrow,
+demo-carousel.single .carousel-dots {
+    display: none;
+}

@@ -1,0 +1,11 @@
+{
+  "price": "USD",
+  "properties": {
+    "length": "m",
+    "width": "m",
+    "height": "m",
+    "weight": "kg",
+    "shippingWeight": "kg",
+    "recommendedAge": "years"
+  }
+}
