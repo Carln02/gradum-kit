@@ -20,11 +20,15 @@ type SignalConstructorType = {
  * both by property key and by serialized key path.
  * @property {Map<PropertyKey, ReactivityDataEntry>} propertyKeyMap - Entries indexed by property key.
  * @property {Map<string, PropertyKey>} pathMap - Maps a serialized key path to the property key holding it,
- * so path-bound signals such as {@link modelSignal} can be resolved back to their entry.
+ * so path-bound signals such as {@link dataSignal} can be resolved back to their entry.
+ * @property {Map<string, SignalEntry>} pathSignals - One signal per serialized key path that something
+ * outside the object reads — a {@link dataSignal} declared on an element, view, or operator, reading its
+ * model's data. Emitted by {@link ReactivityUtils.markDirtyPath} alongside the path-bound properties.
  */
 type ReactivityData = {
     propertyKeyMap: Map<PropertyKey, ReactivityDataEntry>,
-    pathMap: Map<string, PropertyKey>
+    pathMap: Map<string, PropertyKey>,
+    pathSignals: Map<string, SignalEntry>
 }
 
 /**
@@ -69,7 +73,7 @@ export class ReactivityUtils {
     public data(target: object) {
         let obj = this.dataMap.get(target);
         if (!obj) {
-            obj = {propertyKeyMap: new Map(), pathMap: new Map()};
+            obj = {propertyKeyMap: new Map(), pathMap: new Map(), pathSignals: new Map()};
             this.dataMap.set(target, obj);
         }
         return obj!;
@@ -167,14 +171,36 @@ export class ReactivityUtils {
 
     public markDirtyPath(target: object, keys: KeyType[]) {
         const changed = this.serializePath(keys);
-        for (const [boundPath, propertyKey] of this.data(target).pathMap) {
-            // An empty changed path means the root was replaced, which overlaps every bound path
-            if (changed === ""
-                || boundPath === changed
-                || boundPath.startsWith(changed + "|")
-                || changed.startsWith(boundPath + "|"))
-                this.markDirty(target, propertyKey);
+        // An empty changed path means the root was replaced, which overlaps every bound path
+        const overlaps = (boundPath: string) => changed === ""
+            || boundPath === changed
+            || boundPath.startsWith(changed + "|")
+            || changed.startsWith(boundPath + "|");
+
+        const data = this.data(target);
+        for (const [boundPath, propertyKey] of data.pathMap)
+            if (overlaps(boundPath)) this.markDirty(target, propertyKey);
+        for (const [boundPath, entry] of data.pathSignals)
+            if (overlaps(boundPath)) entry.emit();
+    }
+
+    /**
+     * @description Make the running effect depend on a key path of `target`'s data, so it re-runs whenever
+     * {@link markDirtyPath} reports a change overlapping that path. This is how something reading another
+     * object's data (an element reading its model's) hears about changes it did not make itself.
+     * @param {object} target - The object owning the data, typically a model.
+     * @param {KeyType[]} keys - The key path being read.
+     */
+    public trackPath(target: object, keys: KeyType[]) {
+        if (!this.activeEffect || !target) return;
+        const path = this.serializePath(keys);
+        const pathSignals = this.data(target).pathSignals;
+        let entry = pathSignals.get(path);
+        if (!entry) {
+            entry = this.createSignalEntry(undefined);
+            pathSignals.set(path, entry);
         }
+        this.track(entry);
     }
 
     public bindPath(target: object, propertyKey: PropertyKey, keys: KeyType[]) {

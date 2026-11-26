@@ -5,6 +5,7 @@ import {GradumModel} from "../model/model";
 import {GradumEmitter} from "../emitter/emitter";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 import {GradumOperatorProperties} from "./operator.types";
+import {OwnedDisposable, runWithDisposableOwner, runWithOwner} from "./operator.ownership";
 
 /**
  * @class GradumOperator
@@ -19,6 +20,31 @@ import {GradumOperatorProperties} from "./operator.types";
  * component. It has access to the element, the model to read and write data, the view to update the UI, and the
  * emitter to listen for changes in the model or any other internal events. It can only communicate with other
  * operators via the emitter (by firing or listening for changes on a certain key).
+ *
+ * An operator can bring its own UI, so a feature — its DOM and its logic — lives in one class that can be added
+ * to any element. It has the same four setup phases as a view: `setupUIElements`, `setupUILayout`,
+ * `setupUIListeners`, `setupChangedCallbacks`. When the element initializes, each phase runs across the view and
+ * all operators before the next one starts, so an operator's layout can use what the view built.
+ *
+ * Every node it adds with `gradum(...).addChild` during `setupUIElements` and `setupUILayout` is its own, and is
+ * removed from the DOM when it is {@link detach | detached}. Use {@link own} for nodes added later.
+ *
+ * @example
+ * ```ts
+ * class LockOperator extends GradumOperator {
+ *     protected button: HTMLElement;
+ *
+ *     protected setupUIElements() {
+ *         super.setupUIElements();
+ *         this.button = button({text: "Lock"});
+ *     }
+ *
+ *     protected setupUILayout() {
+ *         super.setupUILayout();
+ *         gradum(this).addChild(this.button); // added to the element; removed on detach
+ *     }
+ * }
+ * ```
  */
 class GradumOperator<
     ElementType extends object = object,
@@ -77,18 +103,77 @@ class GradumOperator<
     protected setup(): void {}
 
     /**
+     * @description The nodes this operator added to the DOM, removed when it is detached.
+     */
+    protected readonly ownedNodes: Set<Node> = new Set();
+
+    /**
+     * @readonly
+     * @description The observers this operator created while setting itself up, destroyed by {@link detach}.
+     */
+    protected readonly ownedDisposables: Set<OwnedDisposable> = new Set();
+
+    /**
+     * @description How many of the UI phases the element has run ahead of {@link initialize}: 0 (none),
+     * 1 (elements) or 2 (elements and layout). The element runs them across all its pieces first, then calls
+     * `initialize`, which skips what already ran and resets this.
+     */
+    private uiStage: 0 | 1 | 2 = 0;
+
+    /**
+     * @function initializeUIElements
+     * @description Run {@link setupUIElements}, once. Called by the element for every piece before any layout
+     * runs; call {@link initialize} instead when initializing an operator yourself.
+     */
+    public initializeUIElements(): void {
+        if (this.uiStage >= 1) return;
+        this.uiStage = 1;
+        runWithOwner(this.ownedNodes, () => runWithDisposableOwner(this.ownedDisposables, () => this.setupUIElements()));
+    }
+
+    /**
+     * @function initializeUILayout
+     * @description Run {@link setupUILayout} (after {@link setupUIElements} if it hasn't run), once. Called by
+     * the element for every piece after all their elements exist; call {@link initialize} instead when
+     * initializing an operator yourself.
+     */
+    public initializeUILayout(): void {
+        this.initializeUIElements();
+        if (this.uiStage >= 2) return;
+        this.uiStage = 2;
+        runWithOwner(this.ownedNodes, () => runWithDisposableOwner(this.ownedDisposables, () => this.setupUILayout()));
+    }
+
+    /**
      * @function initialize
-     * @description Initializes the operator. Specifically, it will set up the change callbacks.
+     * @description Initializes the operator: runs whichever UI phases haven't run yet, then sets up its
+     * listeners and change callbacks.
      */
     public initialize(): void {
-        const setup = () => {
+        this.initializeUILayout();
+        const setup = () => runWithDisposableOwner(this.ownedDisposables, () => {
             this.setupUIListeners();
             this.setupChangedCallbacks();
-        };
+        });
         //Run against the emitter on the record, so whatever this operator subscribes while setting itself
         //up is known to be its own and can be taken back when it is detached.
         if (this.emitter) this.emitter.attributeTo(this, setup);
         else setup();
+        this.uiStage = 0;
+    }
+
+    /**
+     * @function own
+     * @description Mark a node as this operator's, so it is removed from the DOM when the operator is
+     * detached. Nodes added with `gradum(...).addChild` during the UI phases are already owned; use this for
+     * nodes added later, or with native DOM methods.
+     * @template {Node} Type - The type of the node.
+     * @param {Type} node - The node to own.
+     * @returns {Type} The node, for chaining.
+     */
+    public own<Type extends Node>(node: Type): Type {
+        if (node) this.ownedNodes.add(node);
+        return node;
     }
 
     /**
@@ -99,7 +184,9 @@ class GradumOperator<
      * its model, view and emitter are taken away — which is the point, since those are what its callbacks
      * would go on reading.
      *
-     * Initializing it again restores all three, so an operator may be removed and added back.
+     * The nodes it owns (see {@link own}) are removed from the DOM too.
+     *
+     * Initializing it again restores all of it, rebuilding its UI, so an operator may be removed and added back.
      *
      * *Note: a subscription made outside `initialize` — later, from a method of its own — is not on the
      * record, and is the operator's own to undo.*
@@ -108,6 +195,28 @@ class GradumOperator<
         detachListenersAndBehaviors(this);
         this.emitter?.removeFor(this);
         disposeEffect(this);
+        this.ownedDisposables.forEach(disposable => disposable.destroy());
+        this.ownedDisposables.clear();
+        this.ownedNodes.forEach(node => node.parentNode?.removeChild(node));
+        this.ownedNodes.clear();
+    }
+
+    /**
+     * @function setupUIElements
+     * @description Setup method for creating the operator's DOM elements. Don't attach them here: the
+     * element's other pieces may not have built theirs yet. Use {@link setupUILayout} for that.
+     * @protected
+     */
+    protected setupUIElements(): void {
+    }
+
+    /**
+     * @function setupUILayout
+     * @description Setup method for placing the operator's elements, e.g. with `gradum(this).addChild(...)`.
+     * Runs after every piece's {@link setupUIElements}, so the view's elements exist.
+     * @protected
+     */
+    protected setupUILayout(): void {
     }
 
     /**

@@ -11,6 +11,8 @@ import {GradumHandler} from "../handler/handler";
 import {FlatKeyType, KeyType} from "../../types/basic.types";
 import {addRegistryCategory, define} from "../../decorators/define/define";
 import {areEqual} from "../../utils/computations/equity";
+import {randomId} from "../../utils/computations/random";
+import {recordOwnedDisposable} from "../operator/operator.ownership";
 
 /**
  * @internal
@@ -170,6 +172,64 @@ class GradumModel<
      * @description Whether {@link GradumModel.initialize} has already run on this model.
      */
     protected isInitialized: boolean = false;
+
+    /**
+     * @private
+     * @description The elements this model is attached to, in the order they attached.
+     */
+    private readonly attachments: Set<object> = new Set();
+
+    /**
+     * @description The elements this model is currently attached to. A model can back several elements at
+     * once (two views of the same data); each of them reads and writes the same data.
+     * @returns {object[]} A copy of the list, safe to iterate while detaching.
+     */
+    public get attachedElements(): object[] {
+        return Array.from(this.attachments);
+    }
+
+    /**
+     * @internal
+     * @function trackAttachment
+     * @description Record that this model was attached to or detached from an element. Called by the MVC
+     * wiring when `gradum(element).model` changes; use {@link GradumModel.detach} or that setter instead.
+     * @param {object} element - The element.
+     * @param {boolean} [attached=true] - Whether it was attached (`true`) or detached (`false`).
+     */
+    public trackAttachment(element: object, attached: boolean = true): void {
+        if (!element) return;
+        if (attached) this.attachments.add(element);
+        else this.attachments.delete(element);
+    }
+
+    /**
+     * @function detach
+     * @description Detach this model from some of the elements it is attached to, or from all of them. Each
+     * element is left without a model: its view, operators and interactors are torn down (their DOM, listeners,
+     * effects and observers) until a model is attached to it again, which rebuilds them. The model and its data
+     * are untouched, and every other element keeps using it.
+     * @param {...object[]} elements - The elements to detach from. Omit to detach from all of them.
+     * @returns {this} Itself, for chaining.
+     *
+     * @example
+     * ```ts
+     * const shared = SquareModel.create({data});
+     * const a = Square.create({model: shared}), b = Square.create({model: shared});
+     *
+     * shared.detach(a);   // a has no model now, b still shows and edits the data
+     * shared.detach();    // detached from every element
+     * ```
+     */
+    public detach(...elements: object[]): this {
+        const targets = elements.length > 0 ? elements : this.attachedElements;
+        for (const element of targets) {
+            if (!this.attachments.has(element)) continue;
+            const selector = gradum(element);
+            if (selector.model === this) selector.model = undefined;
+            else this.attachments.delete(element);
+        }
+        return this;
+    }
 
     private readonly signals: Map<DataKeyType, SignalBox<unknown>> = new Map();
 
@@ -493,6 +553,18 @@ class GradumModel<
 
     /**
      * @protected
+     * @function isListAction
+     * @description Whether a container is an ordered list (indexed by position). Override this method to
+     * support other datatypes.
+     * @param {any} data - The container to test.
+     * @returns {boolean} `true` for arrays.
+     */
+    protected isListAction(data: any): boolean {
+        return Array.isArray(data);
+    }
+
+    /**
+     * @protected
      * @function addAction
      * @description Perform the raw insertion. Override this method to support other datatypes.
      * @param {GradumModel} model - The owning model.
@@ -551,8 +623,32 @@ class GradumModel<
         }
         const lastKeyWasUndefined = isUndefined(keys[keys.length - 1]);
         const changePath = lastKeyWasUndefined ? [...keys.slice(0, -1), key] : keys;
-        if (!isUndefined(key)) this.keyChanged(changePath);
+        if (isUndefined(key)) return key;
+        //Plain arrays shift their later entries; move the observed instances along with them.
+        const basePath = changePath.slice(0, -1);
+        const container = this.get(...basePath);
+        if (Array.isArray(container) && (key as number) < container.length - 1)
+            this.shiftIndices(basePath, key as number, 1);
+        this.keyChanged(changePath);
         return key;
+    }
+
+    /**
+     * @function push
+     * @description Insert a value into the container at the given key path: appended to the end of an array,
+     * or stored under a new random key in a map or object.
+     * @param {unknown} value - The value to insert.
+     * @param {...KeyType[]} keys - Key path to the container. Empty targets the model's own data.
+     * @returns {KeyType} The index (arrays) or generated key (maps and objects) where the value was stored.
+     *
+     * @example
+     * ```ts
+     * model.push({text: "", checked: false}, "items");
+     * ```
+     */
+    public push(value: unknown, ...keys: KeyType[]): KeyType {
+        const container = keys.length ? this.get(...keys) : this.data;
+        return this.add(value, ...keys, this.isListAction(container) ? undefined : randomId());
     }
 
     /**
@@ -694,6 +790,45 @@ class GradumModel<
                 this.internalDelete(undefined, parentData, keys[keys.length - 1]);
             }
         }
+        //Plain arrays shift their later entries back; move the observed instances along with them.
+        const basePath = keys.slice(0, -1);
+        const index = keys[keys.length - 1];
+        if (Array.isArray(this.get(...basePath)) && typeof index === "number")
+            this.shiftIndices(basePath, index + 1, -1);
+    }
+
+    /**
+     * @protected
+     * @function shiftIndices
+     * @description Move the observer instances under `basePath` whose index is at or after `fromIndex` by
+     * `offset`, so they stay aligned with their entries after an array insertion or removal.
+     * @param {KeyType[]} basePath - Key path of the array.
+     * @param {number} fromIndex - First index to move.
+     * @param {number} offset - How far to move them: positive after an insertion, negative after a removal.
+     */
+    protected shiftIndices(basePath: KeyType[], fromIndex: number, offset: number) {
+        const depth = basePath.length;
+        Array.from(this.changeObservers).forEach(entry => {
+            const observer = entry.observer;
+            const pathsToShift = observer.paths.filter(path =>
+                path.length > depth &&
+                basePath.every((k, i) => path[i] == k) &&
+                Number(path[depth]) >= fromIndex
+            );
+
+            const itemsToShift: [number, KeyType[], any][] = pathsToShift
+                .map(path => [Number(path[depth]), path, observer.get(...path)]);
+            itemsToShift.sort((a, b) => offset < 0 ? a[0] - b[0] : b[0] - a[0]);
+
+            pathsToShift.forEach(path => observer.detach(...path));
+            for (const [oldIndex, path, instance] of itemsToShift) {
+                const newIndex = oldIndex + offset;
+                if (typeof instance === "object" && "dataId" in instance)
+                    instance.dataId = String(newIndex);
+                const newPath = [...basePath, newIndex, ...path.slice(depth + 1)] as KeyType[];
+                observer.set(instance, ...newPath as DataKeyType[]);
+            }
+        });
     }
 
     /**
@@ -1147,6 +1282,7 @@ class GradumModel<
         }) as GradumObserver<DataEntryType, ComponentType, DataKeyType>;
 
         this.changeObservers.add({keys, observer});
+        recordOwnedDisposable(observer);
         if (initialize) observer.initialize();
         return observer;
     }
@@ -1186,6 +1322,7 @@ class GradumModel<
         }) as GradumObserver<DataEntryType, ComponentType, DataKeyType>;
 
         this.changeObservers.add({keys, observer, deep: true});
+        recordOwnedDisposable(observer);
         if (initialize) observer.initialize();
         return observer;
     }

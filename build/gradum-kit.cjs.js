@@ -1887,6 +1887,80 @@ class HierarchyFunctionsUtils {
     }
 }
 
+/**
+ * @internal
+ * @description The node set of the operator whose UI phases are running, if any. Kept in a module of its own,
+ * with no imports, so the hierarchy functions can record into it without importing the MVC classes.
+ */
+let currentOwner;
+/**
+ * @internal
+ * @function recordOwnedNode
+ * @description Record a node just added to the DOM as belonging to the operator whose UI phases are running.
+ * Called by {@link GradumSelector.addChild} and {@link GradumSelector.addChildBefore}; does nothing outside
+ * those phases.
+ * @param {Node} node - The node that was added.
+ */
+function recordOwnedNode(node) {
+    currentOwner?.add(node);
+}
+/**
+ * @internal
+ * @function runWithOwner
+ * @description Run some work with `owner` collecting every node it adds through `gradum(...).addChild`.
+ * Nests: the previous owner is restored afterwards, whether the work returns or throws. Pass `undefined` to
+ * run work whose additions belong to no operator, such as a view's phases.
+ * @template Type - What the work returns.
+ * @param {Set<Node> | undefined} owner - The set to collect into.
+ * @param {() => Type} work - The work to run.
+ * @returns {Type} Whatever the work returned.
+ */
+function runWithOwner(owner, work) {
+    const previous = currentOwner;
+    currentOwner = owner;
+    try {
+        return work();
+    }
+    finally {
+        currentOwner = previous;
+    }
+}
+/**
+ * @internal
+ * @description The set of the piece whose setup is running, collecting the observers it creates, if any.
+ */
+let currentDisposableOwner;
+/**
+ * @internal
+ * @function recordOwnedDisposable
+ * @description Record something just created, such as an observer from {@link GradumModel.generateObserver}, as
+ * belonging to the view or operator whose setup is running. Does nothing outside a setup.
+ * @param {OwnedDisposable} disposable - What was created.
+ */
+function recordOwnedDisposable(disposable) {
+    currentDisposableOwner?.add(disposable);
+}
+/**
+ * @internal
+ * @function runWithDisposableOwner
+ * @description Run some work with `owner` collecting every observer it creates. Nests like {@link runWithOwner}:
+ * the previous owner is restored afterwards. Pass `undefined` to run work whose observers belong to no piece.
+ * @template Type - What the work returns.
+ * @param {Set<OwnedDisposable> | undefined} owner - The set to collect into.
+ * @param {() => Type} work - The work to run.
+ * @returns {Type} Whatever the work returned.
+ */
+function runWithDisposableOwner(owner, work) {
+    const previous = currentDisposableOwner;
+    currentDisposableOwner = owner;
+    try {
+        return work();
+    }
+    finally {
+        currentDisposableOwner = previous;
+    }
+}
+
 const utils$c = new HierarchyFunctionsUtils();
 /**
  * @internal
@@ -2017,6 +2091,7 @@ function setupHierarchyFunctions() {
                     if (child instanceof GradumSelector)
                         child = child.element;
                     this.childHandler.appendChild(child);
+                    recordOwnedNode(child);
                     //TODO
                     // if (child["__outName"] && !this[child["__outName"]]) this[child["__outName"]] = child;
                 });
@@ -2073,6 +2148,7 @@ function setupHierarchyFunctions() {
                 if (child instanceof GradumSelector)
                     child = child.element;
                 this.childHandler.insertBefore(child, sibling);
+                recordOwnedNode(child);
             });
         }
         catch (e) {
@@ -3367,7 +3443,7 @@ class ReactivityUtils {
     data(target) {
         let obj = this.dataMap.get(target);
         if (!obj) {
-            obj = { propertyKeyMap: new Map(), pathMap: new Map() };
+            obj = { propertyKeyMap: new Map(), pathMap: new Map(), pathSignals: new Map() };
             this.dataMap.set(target, obj);
         }
         return obj;
@@ -3459,14 +3535,37 @@ class ReactivityUtils {
     }
     markDirtyPath(target, keys) {
         const changed = this.serializePath(keys);
-        for (const [boundPath, propertyKey] of this.data(target).pathMap) {
-            // An empty changed path means the root was replaced, which overlaps every bound path
-            if (changed === ""
-                || boundPath === changed
-                || boundPath.startsWith(changed + "|")
-                || changed.startsWith(boundPath + "|"))
+        // An empty changed path means the root was replaced, which overlaps every bound path
+        const overlaps = (boundPath) => changed === ""
+            || boundPath === changed
+            || boundPath.startsWith(changed + "|")
+            || changed.startsWith(boundPath + "|");
+        const data = this.data(target);
+        for (const [boundPath, propertyKey] of data.pathMap)
+            if (overlaps(boundPath))
                 this.markDirty(target, propertyKey);
+        for (const [boundPath, entry] of data.pathSignals)
+            if (overlaps(boundPath))
+                entry.emit();
+    }
+    /**
+     * @description Make the running effect depend on a key path of `target`'s data, so it re-runs whenever
+     * {@link markDirtyPath} reports a change overlapping that path. This is how something reading another
+     * object's data (an element reading its model's) hears about changes it did not make itself.
+     * @param {object} target - The object owning the data, typically a model.
+     * @param {KeyType[]} keys - The key path being read.
+     */
+    trackPath(target, keys) {
+        if (!this.activeEffect || !target)
+            return;
+        const path = this.serializePath(keys);
+        const pathSignals = this.data(target).pathSignals;
+        let entry = pathSignals.get(path);
+        if (!entry) {
+            entry = this.createSignalEntry(undefined);
+            pathSignals.set(path, entry);
         }
+        this.track(entry);
     }
     bindPath(target, propertyKey, keys) {
         this.data(target).pathMap.set(this.serializePath(keys), propertyKey);
@@ -3491,7 +3590,7 @@ class ReactivityUtils {
 /**
  * @internal
  * @class SignalUtils
- * @description Creates the signals behind `@signal`, `@modelSignal`, `@nestedModelSignal`, and
+ * @description Creates the signals behind `@signal`, `@dataSignal`, `@nestedModelSignal`, and
  * `@isolatedModelSignal`, and installs the accessors that route property reads and writes through them.
  */
 class SignalUtils {
@@ -3558,7 +3657,7 @@ class SignalUtils {
                         const value = baseGetter.call(this);
                         //The base pair answers first, and only gives way when it has nothing to say. That is
                         //what lets a default carried by whatever is installed closer to the declaration —
-                        //`@modelSignal @auto({defaultValue})` — still be reached: the model holds nothing
+                        //`@dataSignal @auto({defaultValue})` — still be reached: the model holds nothing
                         //until something is written, and the default is the answer until then.
                         if (!isUndefined(value) || !customGetter)
                             return value;
@@ -3575,7 +3674,7 @@ class SignalUtils {
                     return;
                 }
                 //Whatever is installed closer to the declaration writes first, and what it made of the value
-                //is what carries on to the base pair. `@modelSignal @auto({preprocessValue})` is the case
+                //is what carries on to the base pair. `@dataSignal @auto({preprocessValue})` is the case
                 //that needs it: the preprocessing lives in the installed setter, while the model is where
                 //reads come from — so handing the model the raw value would leave it holding exactly what
                 //the preprocessor had just turned down, with the processed one stranded where nothing looks.
@@ -3765,24 +3864,37 @@ function signal(...args) {
 }
 /**
  * @decorator
- * @function modelSignal
+ * @function dataSignal
  * @group Decorators
  * @category Signal
  *
- * @description Stage-3 decorator that turns a field on a {@link GradumModel} into a reactive property
- * stored in the model's data, rather than on the instance. Use it for state that must be persisted or
- * synced — on a {@link GradumYModel} the value lives in the underlying Y.js structure. Use `@signal`
- * instead for state that should stay in memory.
+ * @description Stage-3 decorator that turns a field into a reactive property stored in a model's data,
+ * rather than on the instance. Use it for state that must be persisted or synced: on a {@link GradumYModel}
+ * the value lives in the underlying Y.js structure. Use `@signal` instead for state that should stay in memory.
+ *
+ * Where the value lives depends on what declares it:
+ * - **On a {@link GradumModel}**: in that model's own data.
+ * - **On anything else** (a {@link GradumElement}, view, operator, interactor...): in the data of the model
+ * attached to that component. If there is none yet, a plain {@link GradumModel} is created and attached; a
+ * model attached explicitly later on replaces it.
+ *
+ * Either way, effects reading the property re-run whenever that key path of the model's data changes,
+ * whoever changed it.
  * @param {...KeyType[]} keys - The key path into the model's data. Defaults to the decorated member name if omitted.
  *
  * @example
  * ```ts
  * class TodoModel extends GradumModel {
- *   @modelSignal() title = "";
- *   @modelSignal("meta", "author") author = "";
+ *   @dataSignal() title = "";
+ *   @dataSignal("meta", "author") author = "";
+ * }
+ *
+ * //No model needed: one is created and attached on first use.
+ * class Circle extends GradumElement {
+ *   @dataSignal() radius = 50;
  * }
  * ```
- * Is equivalent to:
+ * On a model, is equivalent to:
  * ```ts
  * class TodoModel extends GradumModel {
  *   @signal get title() { return this.get("title"); }
@@ -3793,25 +3905,36 @@ function signal(...args) {
  * }
  * ```
  */
-function modelSignal(...keys) {
+function dataSignal(...keys) {
     return function (value, context) {
         const resolvedKeys = keys.length > 0 ? keys : [String(context.name)];
         context.addInitializer(function () {
-            utils$a.bindPath(this, context.name, resolvedKeys);
+            //A model is notified of its own changes through the path bound here. Anything else reads its
+            //model's data, and hears about changes through `trackPath` on that model instead (see below).
+            if (this instanceof GradumModel)
+                utils$a.bindPath(this, context.name, resolvedKeys);
+            //Created up front rather than on first read, so data passed to `create()` has a model to land in.
+            else
+                resolveDataModel(this);
         });
         let defaultValue = undefined;
         let hasDefault = false;
         const decorated = signalUtils.signalDecorator(value, context, function () {
-            const v = this.get?.(...resolvedKeys);
+            const model = resolveDataModel(this);
+            if (!model)
+                return undefined;
+            if (model !== this)
+                utils$a.trackPath(model, resolvedKeys);
+            const v = model.get(...resolvedKeys);
             if (v !== undefined)
                 return v;
             if (hasDefault) {
-                this.set?.(defaultValue, ...resolvedKeys);
+                model.set(defaultValue, ...resolvedKeys);
                 return defaultValue;
             }
             return undefined;
         }, function (v) {
-            this.set?.(v, ...resolvedKeys);
+            resolveDataModel(this)?.set(v, ...resolvedKeys);
         });
         if (context.kind === "field") {
             return function (initialFieldValue) {
@@ -3826,6 +3949,34 @@ function modelSignal(...keys) {
     };
 }
 /**
+ * @internal
+ * @function resolveDataModel
+ * @description The model a {@link dataSignal} declared on `target` reads and writes: `target` itself if it is
+ * a model, otherwise the model attached to its component, which is created and attached when there is none.
+ * The component is `target` itself for an element, and `target.element` for a view, operator, or other piece.
+ * @param {any} target - The instance declaring the signal.
+ * @returns {GradumModel} The model, or `undefined` if there is nothing to attach one to.
+ */
+function resolveDataModel(target) {
+    if (!target)
+        return undefined;
+    if (target instanceof GradumModel)
+        return target;
+    if (target.model instanceof GradumModel)
+        return target.model;
+    //Elements hold their model through `gradum(element).model`, whose setter also links it to the view and
+    //operators. A piece without an element (a free-standing view, say) just keeps the model on itself.
+    const owner = target instanceof Node ? target : target.element instanceof Node ? target.element : undefined;
+    if (owner && owner.model instanceof GradumModel)
+        return target.model ?? owner.model;
+    const model = new GradumModel({ data: {} });
+    if (owner)
+        owner.model = model;
+    if (!(target.model instanceof GradumModel))
+        target.model = model;
+    return target.model;
+}
+/**
  * @decorator
  * @function nestedModelSignal
  * @group Decorators
@@ -3834,7 +3985,7 @@ function modelSignal(...keys) {
  * @description Stage-3 decorator that exposes a nested collection as a {@link GradumModel} rather than as
  * raw data. Reading the property gives back the nested model, so you can attach a {@link GradumObserver}
  * to it; assigning replaces the data it wraps. Use it when you need to observe a collection — reach for
- * `@modelSignal` when the raw value is enough.
+ * `@dataSignal` when the raw value is enough.
  * @param {...string[]} keys - The key path navigating to the nested model.
  *
  * @example
@@ -3882,7 +4033,7 @@ function nestedModelSignal(...keys) {
  * - Getter returns the nested model instance via `this.nest(...keys)`.
  * - Setter assigns directly to `nestedModel.data = value`, leaving the parent's data untouched.
  *
- * **Limitation:** `@modelSignal("myField", "subKey")` will **not** work for a field backed by
+ * **Limitation:** `@dataSignal("myField", "subKey")` will **not** work for a field backed by
  * `@isolatedModelSignal`, because `GradumModel.get()` reads through the parent's data container
  * rather than routing through registered nested models. Access sub-keys directly through the
  * nested model instead: `(this.myField as MyNestedModel).subKey`.
@@ -4003,7 +4154,7 @@ function markDirty(target, ...keys) {
  * @group Decorators
  * @category Signal
  *
- * @description Marks as dirty every signal whose bound key path (registered via {@link modelSignal} or
+ * @description Marks as dirty every signal whose bound key path (registered via {@link dataSignal} or
  * {@link nestedModelSignal}) overlaps the given changed key path, and fires their attached effects.
  * A bound path overlaps the changed path when either is a prefix of (or equal to) the other:
  * replacing a parent value invalidates signals bound deeper inside it, and changing a nested value
@@ -5199,6 +5350,60 @@ function getRegisteredEntry(instance) {
 }
 
 /**
+ * @function randomId
+ * @group Utilities
+ * @category Random
+ *
+ * @description Generate a random identifier from the platform's cryptographic random source. Prefer it over
+ * {@link randomString} whenever the value has to be unpredictable, such as an element or record ID.
+ * @param {number} [length=8] - How many characters the ID should be.
+ * @returns {string} A random alphanumeric ID of the requested length.
+ */
+function randomId(length = 8) {
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return Array.from(array)
+        .map(b => b.toString(36).padStart(2, "0"))
+        .join("")
+        .slice(0, length);
+}
+/**
+ * @function randomFromRange
+ * @group Utilities
+ * @category Random
+ *
+ * @description Pick a random number between two bounds. The bounds may be given in either order, and
+ * non-numeric input yields `0` rather than `NaN`.
+ * @param {number} n1 - One end of the range.
+ * @param {number} n2 - The other end of the range.
+ * @returns {number} A number in `[min, max)`, or `0` if either bound was not a number.
+ */
+function randomFromRange(n1, n2) {
+    if (typeof n1 != "number" || typeof n2 != "number")
+        return 0;
+    const min = Math.min(n1, n2);
+    const max = Math.max(n1, n2);
+    return (Math.random() * (max - min)) + min;
+}
+/**
+ * @function randomString
+ * @group Utilities
+ * @category Random
+ *
+ * @description Generate a random alphanumeric string from `Math.random`. Suitable for filler and test data;
+ * use {@link randomId} instead when the value must be unguessable.
+ * @param {number} [length=12] - How many characters the string should be.
+ * @returns {string} A random string of the requested length.
+ */
+function randomString(length = 12) {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++)
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    return result;
+}
+
+/**
  * @class GradumModel
  * @group MVC
  * @category Model
@@ -5325,6 +5530,66 @@ let GradumModel = (() => {
          * @description Whether {@link GradumModel.initialize} has already run on this model.
          */
         isInitialized = false;
+        /**
+         * @private
+         * @description The elements this model is attached to, in the order they attached.
+         */
+        attachments = new Set();
+        /**
+         * @description The elements this model is currently attached to. A model can back several elements at
+         * once (two views of the same data); each of them reads and writes the same data.
+         * @returns {object[]} A copy of the list, safe to iterate while detaching.
+         */
+        get attachedElements() {
+            return Array.from(this.attachments);
+        }
+        /**
+         * @internal
+         * @function trackAttachment
+         * @description Record that this model was attached to or detached from an element. Called by the MVC
+         * wiring when `gradum(element).model` changes; use {@link GradumModel.detach} or that setter instead.
+         * @param {object} element - The element.
+         * @param {boolean} [attached=true] - Whether it was attached (`true`) or detached (`false`).
+         */
+        trackAttachment(element, attached = true) {
+            if (!element)
+                return;
+            if (attached)
+                this.attachments.add(element);
+            else
+                this.attachments.delete(element);
+        }
+        /**
+         * @function detach
+         * @description Detach this model from some of the elements it is attached to, or from all of them. Each
+         * element is left without a model: its view, operators and interactors are torn down (their DOM, listeners,
+         * effects and observers) until a model is attached to it again, which rebuilds them. The model and its data
+         * are untouched, and every other element keeps using it.
+         * @param {...object[]} elements - The elements to detach from. Omit to detach from all of them.
+         * @returns {this} Itself, for chaining.
+         *
+         * @example
+         * ```ts
+         * const shared = SquareModel.create({data});
+         * const a = Square.create({model: shared}), b = Square.create({model: shared});
+         *
+         * shared.detach(a);   // a has no model now, b still shows and edits the data
+         * shared.detach();    // detached from every element
+         * ```
+         */
+        detach(...elements) {
+            const targets = elements.length > 0 ? elements : this.attachedElements;
+            for (const element of targets) {
+                if (!this.attachments.has(element))
+                    continue;
+                const selector = gradum(element);
+                if (selector.model === this)
+                    selector.model = undefined;
+                else
+                    this.attachments.delete(element);
+            }
+            return this;
+        }
         signals = new Map();
         /**
          * @protected
@@ -5613,6 +5878,17 @@ let GradumModel = (() => {
         }
         /**
          * @protected
+         * @function isListAction
+         * @description Whether a container is an ordered list (indexed by position). Override this method to
+         * support other datatypes.
+         * @param {any} data - The container to test.
+         * @returns {boolean} `true` for arrays.
+         */
+        isListAction(data) {
+            return Array.isArray(data);
+        }
+        /**
+         * @protected
          * @function addAction
          * @description Perform the raw insertion. Override this method to support other datatypes.
          * @param {GradumModel} model - The owning model.
@@ -5647,9 +5923,32 @@ let GradumModel = (() => {
             }
             const lastKeyWasUndefined = isUndefined(keys[keys.length - 1]);
             const changePath = lastKeyWasUndefined ? [...keys.slice(0, -1), key] : keys;
-            if (!isUndefined(key))
-                this.keyChanged(changePath);
+            if (isUndefined(key))
+                return key;
+            //Plain arrays shift their later entries; move the observed instances along with them.
+            const basePath = changePath.slice(0, -1);
+            const container = this.get(...basePath);
+            if (Array.isArray(container) && key < container.length - 1)
+                this.shiftIndices(basePath, key, 1);
+            this.keyChanged(changePath);
             return key;
+        }
+        /**
+         * @function push
+         * @description Insert a value into the container at the given key path: appended to the end of an array,
+         * or stored under a new random key in a map or object.
+         * @param {unknown} value - The value to insert.
+         * @param {...KeyType[]} keys - Key path to the container. Empty targets the model's own data.
+         * @returns {KeyType} The index (arrays) or generated key (maps and objects) where the value was stored.
+         *
+         * @example
+         * ```ts
+         * model.push({text: "", checked: false}, "items");
+         * ```
+         */
+        push(value, ...keys) {
+            const container = keys.length ? this.get(...keys) : this.data;
+            return this.add(value, ...keys, this.isListAction(container) ? undefined : randomId());
         }
         /**
          * @function addFlat
@@ -5765,6 +6064,40 @@ let GradumModel = (() => {
                     this.internalDelete(undefined, parentData, keys[keys.length - 1]);
                 }
             }
+            //Plain arrays shift their later entries back; move the observed instances along with them.
+            const basePath = keys.slice(0, -1);
+            const index = keys[keys.length - 1];
+            if (Array.isArray(this.get(...basePath)) && typeof index === "number")
+                this.shiftIndices(basePath, index + 1, -1);
+        }
+        /**
+         * @protected
+         * @function shiftIndices
+         * @description Move the observer instances under `basePath` whose index is at or after `fromIndex` by
+         * `offset`, so they stay aligned with their entries after an array insertion or removal.
+         * @param {KeyType[]} basePath - Key path of the array.
+         * @param {number} fromIndex - First index to move.
+         * @param {number} offset - How far to move them: positive after an insertion, negative after a removal.
+         */
+        shiftIndices(basePath, fromIndex, offset) {
+            const depth = basePath.length;
+            Array.from(this.changeObservers).forEach(entry => {
+                const observer = entry.observer;
+                const pathsToShift = observer.paths.filter(path => path.length > depth &&
+                    basePath.every((k, i) => path[i] == k) &&
+                    Number(path[depth]) >= fromIndex);
+                const itemsToShift = pathsToShift
+                    .map(path => [Number(path[depth]), path, observer.get(...path)]);
+                itemsToShift.sort((a, b) => offset < 0 ? a[0] - b[0] : b[0] - a[0]);
+                pathsToShift.forEach(path => observer.detach(...path));
+                for (const [oldIndex, path, instance] of itemsToShift) {
+                    const newIndex = oldIndex + offset;
+                    if (typeof instance === "object" && "dataId" in instance)
+                        instance.dataId = String(newIndex);
+                    const newPath = [...basePath, newIndex, ...path.slice(depth + 1)];
+                    observer.set(instance, ...newPath);
+                }
+            });
         }
         /**
          * @function deleteFlat
@@ -6080,6 +6413,7 @@ let GradumModel = (() => {
                 }
             });
             this.changeObservers.add({ keys, observer });
+            recordOwnedDisposable(observer);
             if (initialize)
                 observer.initialize();
             return observer;
@@ -6113,6 +6447,7 @@ let GradumModel = (() => {
                 }
             });
             this.changeObservers.add({ keys, observer, deep: true });
+            recordOwnedDisposable(observer);
             if (initialize)
                 observer.initialize();
             return observer;
@@ -6562,19 +6897,18 @@ const proxyWrapperSymbol = Symbol("__proxyWrapper__");
  */
 class MvcFunctionsUtils {
     dataMap = new WeakMap;
-    modelLookupMap = new WeakMap;
     peek(element) {
         if (element instanceof GradumSelector)
             element = element.element;
         if (element instanceof GradumModel)
-            element = this.modelLookupMap.get(element)?.values().next().value;
+            element = element.attachedElements[0];
         return element ? this.dataMap.get(element) : undefined;
     }
     data(element) {
         if (element instanceof GradumSelector)
             element = element.element;
         if (element instanceof GradumModel)
-            element = this.modelLookupMap.get(element)?.values().next().value;
+            element = element.attachedElements[0];
         if (!element)
             return;
         let entry = this.dataMap.get(element);
@@ -6592,12 +6926,7 @@ class MvcFunctionsUtils {
     attachModel(element, model, attach = true) {
         if (!element || !model)
             return;
-        if (attach && !this.modelLookupMap.has(model))
-            this.modelLookupMap.set(model, new Set());
-        if (attach)
-            this.modelLookupMap.get(model).add(element);
-        else
-            this.modelLookupMap.get(model).delete(element);
+        model.trackAttachment(element, attach);
     }
     updateModel(element, model, attach = true) {
         if (!element || !model)
@@ -6612,7 +6941,12 @@ class MvcFunctionsUtils {
         }
         else {
             model.onKeyChanged.remove(mvc.emitterKeyCallback);
-            model.fireCallbackHook = undefined;
+            //The hook holds one element's callback at a time. Detaching another element sharing the model must
+            //not cut off the one it points to; detaching the one it points to hands it to a remaining element.
+            if (model.fireCallbackHook === mvc.emitterCallback) {
+                const remaining = model.attachedElements.find(other => other !== element);
+                model.fireCallbackHook = remaining ? this.peek(remaining)?.emitterCallback : undefined;
+            }
         }
     }
     updateView(element, view, attach = true) {
@@ -6694,6 +7028,43 @@ class MvcFunctionsUtils {
         mvc.interactors.forEach(interactor => this.updateInteractor(element, interactor));
         mvc.tools.forEach(tool => this.updateTool(element, tool));
         mvc.constrainers.forEach(constrainer => this.updateConstrainer(element, constrainer));
+    }
+    /**
+     * @function unbindPieces
+     * @description Tear down whatever on an initialized element is bound to its current view and model, ahead of
+     * either one being replaced or removed: the view (or `view`, when given) and every operator and interactor are
+     * detached — their DOM, listeners, emitter subscriptions, effects and observers — and the effects of the element,
+     * its tools and its constrainers are disposed. {@link bindPieces} builds them again.
+     * @param {object} element - The element.
+     * @param {GradumView} [view] - The view to detach, when it is not (or no longer) the one on record.
+     */
+    unbindPieces(element, view = this.peek(element)?.view) {
+        const mvc = this.peek(element);
+        if (!mvc)
+            return;
+        view?.detach?.();
+        mvc.operators.forEach(operator => operator.detach());
+        mvc.interactors.forEach(interactor => interactor.detach());
+        [element, ...mvc.tools.values(), ...mvc.constrainers.values()].forEach(piece => disposeEffect(piece));
+    }
+    /**
+     * @function bindPieces
+     * @description Build again what {@link unbindPieces} tore down, against the element's current view and model:
+     * the UI phases run across the view, operators and interactors one phase at a time (as when the element
+     * initializes), then each of them initializes, and the effects of the element, its tools and its
+     * constrainers start again so they read the new pieces.
+     * @param {object} element - The element.
+     */
+    bindPieces(element) {
+        const mvc = this.peek(element);
+        if (!mvc)
+            return;
+        this.linkPieces(element);
+        const uiPieces = [mvc.view, ...mvc.operators.values(), ...mvc.interactors.values()];
+        uiPieces.forEach(piece => piece?.initializeUIElements?.());
+        uiPieces.forEach(piece => piece?.initializeUILayout?.());
+        uiPieces.forEach(piece => piece?.initialize?.());
+        [element, ...mvc.tools.values(), ...mvc.constrainers.values()].forEach(piece => initializeEffects(piece));
     }
     removeInstance(element, kind, keyOrInstance) {
         if (!element)
@@ -6832,13 +7203,31 @@ function setupMvcFunctions() {
             if (!this.element)
                 return;
             const mvc = utils$8.data(this.element);
-            utils$8.attachModel(this.element, this.model, false);
-            utils$8.updateModel(this.element, mvc.model, false);
-            if (!value)
+            const previous = mvc.model;
+            const next = !value ? undefined
+                : typeof value === "function" ? value.create() : value;
+            if (previous === next)
                 return;
-            mvc.model = typeof value === "function" ? value.create() : value;
-            utils$8.attachModel(this.element, mvc.model);
+            //Once initialized, the view and operators hold effects and observers bound to the previous model.
+            //They are torn down first and, if there is a new model, built again against it.
+            const live = !!mvc.initialized;
+            if (live && !mvc.unbound)
+                utils$8.unbindPieces(this.element);
+            if (previous) {
+                utils$8.updateModel(this.element, previous, false);
+                utils$8.attachModel(this.element, previous, false);
+            }
+            mvc.model = next;
+            if (next)
+                utils$8.attachModel(this.element, next);
             utils$8.linkPieces(this.element);
+            if (live && next) {
+                next.initialize();
+                utils$8.bindPieces(this.element);
+            }
+            //Left without a model, the element stays torn down until one is attached.
+            if (live)
+                mvc.unbound = !next;
         },
         configurable: true, enumerable: true,
     });
@@ -6849,8 +7238,23 @@ function setupMvcFunctions() {
         set(value) {
             if (!this.element)
                 return;
-            utils$8.data(this.element).view = utils$8.generateInstance(value, this.element);
+            const mvc = utils$8.data(this.element);
+            const previous = mvc.view;
+            const next = value ? utils$8.generateInstance(value, this.element) : undefined;
+            if (previous === next)
+                return;
+            //Operators and interactors may have put their UI inside the previous view's elements, or read them in
+            //effects, so they are rebuilt along with the new view.
+            const live = !!mvc.initialized;
+            if (live && !mvc.unbound)
+                utils$8.unbindPieces(this.element, previous);
+            if (previous)
+                utils$8.updateView(this.element, previous, false);
+            mvc.view = next;
             utils$8.linkPieces(this.element);
+            //An element whose model was detached stays torn down; attaching a model builds everything.
+            if (live && !mvc.unbound)
+                utils$8.bindPieces(this.element);
         },
         configurable: true, enumerable: true,
     });
@@ -7023,6 +7427,12 @@ function setupMvcFunctions() {
         const mvc = utils$8.peek(this.element);
         if (!mvc)
             return this;
+        //Each UI phase runs across the view and every operator before the next starts, so an operator's
+        //layout can use the elements the view (or another operator) created.
+        const uiPieces = [mvc.view, ...mvc.operators.values(), ...mvc.interactors.values(),
+            ...mvc.tools.values(), ...mvc.constrainers.values()];
+        uiPieces.forEach(piece => piece?.initializeUIElements?.());
+        uiPieces.forEach(piece => piece?.initializeUILayout?.());
         mvc.view?.initialize();
         mvc.operators.forEach(operator => operator.initialize());
         mvc.interactors.forEach(interactor => interactor.initialize());
@@ -7084,6 +7494,16 @@ function setupMvcFunctions() {
     // -------------------------------------------------------------------------
     // Manipulations
     // -------------------------------------------------------------------------
+    GradumSelector.prototype.removeView = function () {
+        if (this.element)
+            this.view = undefined;
+        return this;
+    };
+    GradumSelector.prototype.removeModel = function () {
+        if (this.element)
+            this.model = undefined;
+        return this;
+    };
     GradumSelector.prototype.getOperator = function (key) {
         return utils$8.peek(this.element)?.operators.get(key);
     };
@@ -8009,6 +8429,31 @@ class GradumKeyEvent extends GradumEvent {
  * component. It has access to the element, the model to read and write data, the view to update the UI, and the
  * emitter to listen for changes in the model or any other internal events. It can only communicate with other
  * operators via the emitter (by firing or listening for changes on a certain key).
+ *
+ * An operator can bring its own UI, so a feature — its DOM and its logic — lives in one class that can be added
+ * to any element. It has the same four setup phases as a view: `setupUIElements`, `setupUILayout`,
+ * `setupUIListeners`, `setupChangedCallbacks`. When the element initializes, each phase runs across the view and
+ * all operators before the next one starts, so an operator's layout can use what the view built.
+ *
+ * Every node it adds with `gradum(...).addChild` during `setupUIElements` and `setupUILayout` is its own, and is
+ * removed from the DOM when it is {@link detach | detached}. Use {@link own} for nodes added later.
+ *
+ * @example
+ * ```ts
+ * class LockOperator extends GradumOperator {
+ *     protected button: HTMLElement;
+ *
+ *     protected setupUIElements() {
+ *         super.setupUIElements();
+ *         this.button = button({text: "Lock"});
+ *     }
+ *
+ *     protected setupUILayout() {
+ *         super.setupUILayout();
+ *         gradum(this).addChild(this.button); // added to the element; removed on detach
+ *     }
+ * }
+ * ```
  */
 class GradumOperator {
     /**
@@ -8058,20 +8503,76 @@ class GradumOperator {
      */
     setup() { }
     /**
+     * @description The nodes this operator added to the DOM, removed when it is detached.
+     */
+    ownedNodes = new Set();
+    /**
+     * @readonly
+     * @description The observers this operator created while setting itself up, destroyed by {@link detach}.
+     */
+    ownedDisposables = new Set();
+    /**
+     * @description How many of the UI phases the element has run ahead of {@link initialize}: 0 (none),
+     * 1 (elements) or 2 (elements and layout). The element runs them across all its pieces first, then calls
+     * `initialize`, which skips what already ran and resets this.
+     */
+    uiStage = 0;
+    /**
+     * @function initializeUIElements
+     * @description Run {@link setupUIElements}, once. Called by the element for every piece before any layout
+     * runs; call {@link initialize} instead when initializing an operator yourself.
+     */
+    initializeUIElements() {
+        if (this.uiStage >= 1)
+            return;
+        this.uiStage = 1;
+        runWithOwner(this.ownedNodes, () => runWithDisposableOwner(this.ownedDisposables, () => this.setupUIElements()));
+    }
+    /**
+     * @function initializeUILayout
+     * @description Run {@link setupUILayout} (after {@link setupUIElements} if it hasn't run), once. Called by
+     * the element for every piece after all their elements exist; call {@link initialize} instead when
+     * initializing an operator yourself.
+     */
+    initializeUILayout() {
+        this.initializeUIElements();
+        if (this.uiStage >= 2)
+            return;
+        this.uiStage = 2;
+        runWithOwner(this.ownedNodes, () => runWithDisposableOwner(this.ownedDisposables, () => this.setupUILayout()));
+    }
+    /**
      * @function initialize
-     * @description Initializes the operator. Specifically, it will set up the change callbacks.
+     * @description Initializes the operator: runs whichever UI phases haven't run yet, then sets up its
+     * listeners and change callbacks.
      */
     initialize() {
-        const setup = () => {
+        this.initializeUILayout();
+        const setup = () => runWithDisposableOwner(this.ownedDisposables, () => {
             this.setupUIListeners();
             this.setupChangedCallbacks();
-        };
+        });
         //Run against the emitter on the record, so whatever this operator subscribes while setting itself
         //up is known to be its own and can be taken back when it is detached.
         if (this.emitter)
             this.emitter.attributeTo(this, setup);
         else
             setup();
+        this.uiStage = 0;
+    }
+    /**
+     * @function own
+     * @description Mark a node as this operator's, so it is removed from the DOM when the operator is
+     * detached. Nodes added with `gradum(...).addChild` during the UI phases are already owned; use this for
+     * nodes added later, or with native DOM methods.
+     * @template {Node} Type - The type of the node.
+     * @param {Type} node - The node to own.
+     * @returns {Type} The node, for chaining.
+     */
+    own(node) {
+        if (node)
+            this.ownedNodes.add(node);
+        return node;
     }
     /**
      * @function detach
@@ -8081,7 +8582,9 @@ class GradumOperator {
      * its model, view and emitter are taken away — which is the point, since those are what its callbacks
      * would go on reading.
      *
-     * Initializing it again restores all three, so an operator may be removed and added back.
+     * The nodes it owns (see {@link own}) are removed from the DOM too.
+     *
+     * Initializing it again restores all of it, rebuilding its UI, so an operator may be removed and added back.
      *
      * *Note: a subscription made outside `initialize` — later, from a method of its own — is not on the
      * record, and is the operator's own to undo.*
@@ -8090,6 +8593,26 @@ class GradumOperator {
         detachListenersAndBehaviors(this);
         this.emitter?.removeFor(this);
         disposeEffect(this);
+        this.ownedDisposables.forEach(disposable => disposable.destroy());
+        this.ownedDisposables.clear();
+        this.ownedNodes.forEach(node => node.parentNode?.removeChild(node));
+        this.ownedNodes.clear();
+    }
+    /**
+     * @function setupUIElements
+     * @description Setup method for creating the operator's DOM elements. Don't attach them here: the
+     * element's other pieces may not have built theirs yet. Use {@link setupUILayout} for that.
+     * @protected
+     */
+    setupUIElements() {
+    }
+    /**
+     * @function setupUILayout
+     * @description Setup method for placing the operator's elements, e.g. with `gradum(this).addChild(...)`.
+     * Runs after every piece's {@link setupUIElements}, so the view's elements exist.
+     * @protected
+     */
+    setupUILayout() {
     }
     /**
      * @function setupUIListeners
@@ -8352,8 +8875,15 @@ class Point {
             : this.y > y2 ? y2
                 : this.y;
     }
-    bound(x1, x2, y1 = x1, y2 = x2) {
-        return new Point(this.boundX(x1, x2), this.boundY(y1, y2));
+    bound(x1, x2, y1, y2) {
+        if (typeof x1 === "object" && typeof x2 === "object")
+            return new Point(this.boundX(x1.x, x2.x), this.boundY(x1.y, x2.y));
+        return new Point(this.boundX(x1, x2), this.boundY(y1 ?? x1, y2 ?? x2));
+    }
+    round(step = 1) {
+        const stepX = typeof step === "number" ? step : step.x;
+        const stepY = typeof step === "number" ? step : step.y;
+        return new Point(Math.round(this.x / stepX) * stepX, Math.round(this.y / stepY) * stepY);
     }
     add(x, y) {
         if (typeof x == "number")
@@ -10604,14 +11134,18 @@ function defineDefaultProperties(constructor) {
             if (this[initializedKey])
                 return;
             this[initializedKey] = true;
-            this.setupUIElements?.();
-            this.setupUILayout?.();
-            this.setupUIListeners?.();
-            attachListenersAndBehaviors(this);
-            this.setupFields?.();
-            this.setupChangedCallbacks?.();
-            gradum(this).initializeMvc();
-            initializeEffects(this);
+            //An element's own nodes and observers belong to it, not to whichever view or operator is setting
+            //itself up while creating this element.
+            runWithOwner(undefined, () => runWithDisposableOwner(undefined, () => {
+                this.setupUIElements?.();
+                this.setupUILayout?.();
+                this.setupUIListeners?.();
+                attachListenersAndBehaviors(this);
+                this.setupFields?.();
+                this.setupChangedCallbacks?.();
+                gradum(this).initializeMvc();
+                initializeEffects(this);
+            }));
         },
         configurable: true,
         enumerable: false,
@@ -11317,14 +11851,17 @@ function setupElementFunctions() {
         if (!element || (element && !setOnlyBaseProperties)) {
             if (model) {
                 this.model = model;
-                if (data && this.model) {
-                    this.model.setDataWithoutInitializing(data);
-                    //Only assign when an id was actually supplied. Assigning unconditionally writes
-                    //`undefined` into the model's id, which on a model whose `id` is a @modelSignal lands
-                    //in the data itself and wipes the id that came in with `data`.
-                    if (!isUndefined(dataId))
-                        this.model.id = dataId;
-                }
+                mvcUpdated = true;
+            }
+            //Into whichever model the element has, not only one passed alongside: an element using
+            //`@dataSignal` without a model gets a default one as it is constructed, and `data` belongs there.
+            if (data && this.model) {
+                this.model.setDataWithoutInitializing(data);
+                //Only assign when an id was actually supplied. Assigning unconditionally writes
+                //`undefined` into the model's id, which on a model whose `id` is a @dataSignal lands
+                //in the data itself and wipes the id that came in with `data`.
+                if (!isUndefined(dataId))
+                    this.model.id = dataId;
                 mvcUpdated = true;
             }
             const mvc = gradum(props, true).extract(MvcFields);
@@ -14389,60 +14926,6 @@ function binaryInsert(array, item, compare) {
     }
     array.splice(low, 0, item);
     return low;
-}
-
-/**
- * @function randomId
- * @group Utilities
- * @category Random
- *
- * @description Generate a random identifier from the platform's cryptographic random source. Prefer it over
- * {@link randomString} whenever the value has to be unpredictable, such as an element or record ID.
- * @param {number} [length=8] - How many characters the ID should be.
- * @returns {string} A random alphanumeric ID of the requested length.
- */
-function randomId(length = 8) {
-    const array = new Uint8Array(length);
-    crypto.getRandomValues(array);
-    return Array.from(array)
-        .map(b => b.toString(36).padStart(2, "0"))
-        .join("")
-        .slice(0, length);
-}
-/**
- * @function randomFromRange
- * @group Utilities
- * @category Random
- *
- * @description Pick a random number between two bounds. The bounds may be given in either order, and
- * non-numeric input yields `0` rather than `NaN`.
- * @param {number} n1 - One end of the range.
- * @param {number} n2 - The other end of the range.
- * @returns {number} A number in `[min, max)`, or `0` if either bound was not a number.
- */
-function randomFromRange(n1, n2) {
-    if (typeof n1 != "number" || typeof n2 != "number")
-        return 0;
-    const min = Math.min(n1, n2);
-    const max = Math.max(n1, n2);
-    return (Math.random() * (max - min)) + min;
-}
-/**
- * @function randomString
- * @group Utilities
- * @category Random
- *
- * @description Generate a random alphanumeric string from `Math.random`. Suitable for filler and test data;
- * use {@link randomId} instead when the value must be unguessable.
- * @param {number} [length=12] - How many characters the string should be.
- * @returns {string} A random string of the requested length.
- */
-function randomString(length = 12) {
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-    for (let i = 0; i < length; i++)
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    return result;
 }
 
 const utils$2 = new ConstrainerFunctionsUtils();
@@ -22494,6 +22977,12 @@ let GradumYModel = (() => {
         /**
          * @inheritDoc
          */
+        isListAction(data) {
+            return data instanceof yjs.Array || super.isListAction(data);
+        }
+        /**
+         * @inheritDoc
+         */
         addAction(model, data, value, key) {
             if (data instanceof yjs.Array) {
                 let index = key;
@@ -22692,26 +23181,6 @@ let GradumYModel = (() => {
                     this.detachNestedObservers(value[i]);
             }
         }
-        shiftIndices(basePath, fromIndex, offset) {
-            const depth = basePath.length;
-            Array.from(this.changeObservers).forEach(entry => {
-                const observer = entry.observer;
-                const pathsToShift = observer.paths.filter(path => path.length > depth &&
-                    basePath.every((k, i) => path[i] == k) &&
-                    Number(path[depth]) >= fromIndex);
-                const itemsToShift = pathsToShift
-                    .map(path => [Number(path[depth]), path, observer.get(...path)]);
-                itemsToShift.sort((a, b) => offset < 0 ? a[0] - b[0] : b[0] - a[0]);
-                pathsToShift.forEach(path => observer.detach(...path));
-                for (const [oldIndex, path, instance] of itemsToShift) {
-                    const newIndex = oldIndex + offset;
-                    if (typeof instance === "object" && "dataId" in instance)
-                        instance.dataId = String(newIndex);
-                    const newPath = [...basePath, newIndex, ...path.slice(depth + 1)];
-                    observer.set(instance, ...newPath);
-                }
-            });
-        }
         getPathToTarget(target) {
             const search = (current, path) => {
                 if (current === target)
@@ -22903,17 +23372,108 @@ class GradumView {
      */
     setup() { }
     /**
+     * @description How many of the UI phases the element has run ahead of {@link initialize}: 0 (none),
+     * 1 (elements) or 2 (elements and layout). The element runs them across all its pieces first, then calls
+     * `initialize`, which skips what already ran and resets this, so calling `initialize` again re-runs every
+     * phase.
+     */
+    uiStage = 0;
+    /**
+     * @function initializeUIElements
+     * @description Run {@link setupUIElements}, once. Called by the element for every piece (the view and its
+     * operators) before any layout runs.
+     */
+    initializeUIElements() {
+        if (this.uiStage >= 1)
+            return;
+        this.uiStage = 1;
+        //The view's nodes are its own, not those of an operator that happens to be creating this element.
+        this.runOwned(() => this.setupUIElements());
+    }
+    /**
+     * @function initializeUILayout
+     * @description Run {@link setupUILayout} (after {@link setupUIElements} if it hasn't run), once. Called by
+     * the element for every piece after all their elements exist.
+     */
+    initializeUILayout() {
+        this.initializeUIElements();
+        if (this.uiStage >= 2)
+            return;
+        this.uiStage = 2;
+        this.runOwned(() => this.setupUILayout());
+    }
+    /**
      * @function initialize
-     * @description Initializes the view by setting up change callbacks, UI elements, layout, and event listeners.
+     * @description Initializes the view: runs whichever UI phases (elements, layout) haven't run yet, then sets
+     * up its event listeners and change callbacks.
      */
     initialize() {
-        this.setupUIElements();
-        this.setupUILayout();
-        this.setupUIListeners();
-        //Attached here rather than inside `setupUIListeners` so that a view overriding that method cannot
-        //drop its own declared listeners by forgetting to call `super`.
-        attachListenersAndBehaviors(this);
-        this.setupChangedCallbacks();
+        this.initializeUILayout();
+        //Only observers are recorded here, like on an operator: nodes count as the view's own when added during
+        //its UI phases, or through `own()`.
+        const setup = () => runWithDisposableOwner(this.ownedDisposables, () => {
+            this.setupUIListeners();
+            //Attached here rather than inside `setupUIListeners` so that a view overriding that method cannot
+            //drop its own declared listeners by forgetting to call `super`.
+            attachListenersAndBehaviors(this);
+            this.setupChangedCallbacks();
+        });
+        //Run against the emitter on the record, so whatever the view subscribes while setting itself up can be
+        //taken back when it is detached.
+        if (this.emitter)
+            this.emitter.attributeTo(this, setup);
+        else
+            setup();
+        this.uiStage = 0;
+    }
+    /**
+     * @readonly
+     * @description The nodes this view added to the DOM during its UI phases, removed by {@link detach}.
+     */
+    ownedNodes = new Set();
+    /**
+     * @readonly
+     * @description The observers this view created while setting itself up, destroyed by {@link detach}.
+     */
+    ownedDisposables = new Set();
+    /**
+     * @private
+     * @function runOwned
+     * @description Run part of the view's setup so that the nodes it adds and the observers it creates are
+     * recorded as the view's own.
+     */
+    runOwned(work) {
+        runWithOwner(this.ownedNodes, () => runWithDisposableOwner(this.ownedDisposables, work));
+    }
+    /**
+     * @function own
+     * @description Mark a node as belonging to this view, so {@link detach} removes it. Only needed for nodes added
+     * outside the UI phases: everything added through `gradum(...).addChild` while they run is recorded already.
+     * @template {Node} Type - The node's type.
+     * @param {Type} node - The node.
+     * @returns {Type} The same node, for chaining.
+     */
+    own(node) {
+        if (node)
+            this.ownedNodes.add(node);
+        return node;
+    }
+    /**
+     * @function detach
+     * @description Take the view off its element: stop its listeners, emitter subscriptions and effects, destroy
+     * the observers it created, and remove the nodes it added. Called when the element's view is replaced or
+     * its model is detached; calling {@link initialize} afterwards builds it again from scratch. Styles its
+     * effects set on the element itself stay until something else sets them.
+     */
+    detach() {
+        detachListenersAndBehaviors(this);
+        this.emitter?.removeFor(this);
+        disposeEffect(this);
+        this.ownedDisposables.forEach(disposable => disposable.destroy());
+        this.ownedDisposables.clear();
+        this.ownedNodes.forEach(node => node.parentNode?.removeChild(node));
+        this.ownedNodes.clear();
+        this.uiStage = 0;
     }
     /**
      * @function setupChangedCallbacks
@@ -23681,6 +24241,7 @@ exports.createYArray = createYArray;
 exports.createYDoc = createYDoc;
 exports.createYMap = createYMap;
 exports.css = css;
+exports.dataSignal = dataSignal;
 exports.deepObserveAll = deepObserveAll;
 exports.deepObserveAny = deepObserveAny;
 exports.define = define;
@@ -23754,7 +24315,6 @@ exports.loadLocalFont = loadLocalFont;
 exports.markDirty = markDirty;
 exports.markDirtyPath = markDirtyPath;
 exports.mod = mod;
-exports.modelSignal = modelSignal;
 exports.mutator = mutator;
 exports.nestedModelSignal = nestedModelSignal;
 exports.observe = observe;

@@ -1,5 +1,5 @@
 import {describe, it, expect, vi} from "vitest";
-import {effect, initializeEffects, modelSignal, signal} from "../reactivity/reactivity";
+import {effect, initializeEffects, dataSignal, signal} from "../reactivity/reactivity";
 import {GradumModel} from "../../mvc/model/model";
 import {auto} from "../auto/auto";
 import {Point} from "../../gradumComponents/datatypes/point/point";
@@ -140,7 +140,7 @@ describe("@signal on its own is unchanged", () => {
     });
 });
 
-describe("@modelSignal stacked on @auto", () => {
+describe("@dataSignal stacked on @auto", () => {
     //A model signal keeps its value in the model's data rather than on the instance, so a decorator applied
     //closer to the declaration has to be composed with rather than stepped over: the value the model is
     //handed must be the one that came back out of it, or the clamp reads as enforced and is not.
@@ -148,7 +148,7 @@ describe("@modelSignal stacked on @auto", () => {
 
     it("routes writes through @auto's preprocessValue", () => {
         class ProbeModel extends GradumModel {
-            @modelSignal() @auto({preprocessValue: cap10}) public capped: number;
+            @dataSignal() @auto({preprocessValue: cap10}) public capped: number;
         }
 
         const model = new ProbeModel({data: {}});
@@ -159,7 +159,7 @@ describe("@modelSignal stacked on @auto", () => {
 
     it("stores the processed value in the model's data, not the raw one", () => {
         class ProbeModel extends GradumModel {
-            @modelSignal() @auto({preprocessValue: cap10}) public capped: number;
+            @dataSignal() @auto({preprocessValue: cap10}) public capped: number;
         }
 
         const model = new ProbeModel({data: {}});
@@ -172,7 +172,7 @@ describe("@modelSignal stacked on @auto", () => {
 
     it("preprocesses on the way to a nested key path", () => {
         class ProbeModel extends GradumModel {
-            @modelSignal("bounds", "width") @auto({preprocessValue: cap10}) public width: number;
+            @dataSignal("bounds", "width") @auto({preprocessValue: cap10}) public width: number;
         }
 
         const model = new ProbeModel({data: {bounds: {}}});
@@ -186,7 +186,7 @@ describe("@modelSignal stacked on @auto", () => {
         const seen: number[] = [];
 
         class ProbeModel extends GradumModel {
-            @modelSignal() @auto({callBefore: (value: number) => {seen.push(value)}}) public tracked: number;
+            @dataSignal() @auto({callBefore: (value: number) => {seen.push(value)}}) public tracked: number;
         }
 
         const model = new ProbeModel({data: {}});
@@ -199,15 +199,15 @@ describe("@modelSignal stacked on @auto", () => {
 
     it("falls back to @auto's defaultValue when the data holds nothing", () => {
         class ProbeModel extends GradumModel {
-            @modelSignal() @auto({defaultValue: 3}) public sized: number;
+            @dataSignal() @auto({defaultValue: 3}) public sized: number;
         }
 
         expect(new ProbeModel({data: {}}).sized).toBe(3);
     });
 
-    it("leaves a plain @modelSignal untouched", () => {
+    it("leaves a plain @dataSignal untouched", () => {
         class ProbeModel extends GradumModel {
-            @modelSignal() public plain: number;
+            @dataSignal() public plain: number;
         }
 
         const model = new ProbeModel({data: {}});
@@ -219,7 +219,7 @@ describe("@modelSignal stacked on @auto", () => {
 
     it("keeps effects firing on a preprocessed write", async () => {
         class ProbeModel extends GradumModel {
-            @modelSignal() @auto({preprocessValue: cap10}) public capped: number;
+            @dataSignal() @auto({preprocessValue: cap10}) public capped: number;
 
             public seen: number[] = [];
 
@@ -268,7 +268,7 @@ describe("@auto accepts a falsy default", () => {
 
     it("reaches a zero default through a model signal", () => {
         class ProbeModel extends GradumModel {
-            @modelSignal() @auto({defaultValue: 0}) public price: number;
+            @dataSignal() @auto({defaultValue: 0}) public price: number;
         }
         expect(new ProbeModel({data: {}}).price).toBe(0);
     });

@@ -88,6 +88,13 @@ class GradumYModel<
     /**
      * @inheritDoc
      */
+    protected isListAction(data: any): boolean {
+        return data instanceof YArray || super.isListAction(data);
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected addAction(model: GradumModel, data: any, value: any, key: KeyType): KeyType {
         if (data instanceof YArray) {
             let index = key as number;
@@ -268,31 +275,6 @@ class GradumYModel<
         } else if (Array.isArray(value)) {
             for (let i = 0; i < value.length; i++) this.detachNestedObservers(value[i]);
         }
-    }
-
-    private shiftIndices(basePath: KeyType[], fromIndex: number, offset: number) {
-        const depth = basePath.length;
-        Array.from(this.changeObservers).forEach(entry => {
-            const observer = entry.observer;
-            const pathsToShift = observer.paths.filter(path =>
-                path.length > depth &&
-                basePath.every((k, i) => path[i] == k) &&
-                Number(path[depth]) >= fromIndex
-            );
-
-            const itemsToShift: [number, KeyType[], any][] = pathsToShift
-                .map(path => [Number(path[depth]), path, observer.get(...path)]);
-            itemsToShift.sort((a, b) => offset < 0 ? a[0] - b[0] : b[0] - a[0]);
-
-            pathsToShift.forEach(path => observer.detach(...path));
-            for (const [oldIndex, path, instance] of itemsToShift) {
-                const newIndex = oldIndex + offset;
-                if (typeof instance === "object" && "dataId" in instance)
-                    instance.dataId = String(newIndex);
-                const newPath = [...basePath, newIndex, ...path.slice(depth + 1)] as KeyType[];
-                observer.set(instance, ...newPath as DataKeyType[]);
-            }
-        });
     }
 
     private getPathToTarget(target: any): KeyType[] {

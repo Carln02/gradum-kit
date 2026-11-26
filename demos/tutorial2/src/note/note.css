@@ -1,0 +1,73 @@
+my-note {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-sizing: border-box;
+    padding: 12px 14px;
+
+    border: 1px solid rgb(0 0 0 / 8%);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 8%);
+}
+
+my-note > .note-title {
+    margin: 0;
+    font-size: 15px;
+    outline: none;
+}
+
+my-note > .note-content {
+    flex: 1;
+    margin-top: 4px;
+    overflow: auto;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    outline: none;
+}
+
+/* Empty content shows a hint. */
+my-note > .note-content:empty::before {
+    content: "Write something…";
+    color: var(--muted);
+}
+
+/* Checklist variant (NoteChecklistView). */
+my-note > .note-checklist {
+    flex: 0 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 4px;
+    overflow: auto;
+}
+
+my-note > .note-checklist > my-check-item {
+    flex-shrink: 0;
+}
+
+my-note > .note-checklist-add {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+my-note > .note-checklist-add:hover {
+    scale: 1;
+    color: var(--text);
+}
+
+my-note > .note-checklist-add .gradum-icon,
+my-note > .note-checklist-add svg {
+    width: 16px;
+    height: 16px;
+    opacity: 0.5;
+}

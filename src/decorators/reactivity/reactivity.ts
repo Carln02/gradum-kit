@@ -111,24 +111,37 @@ function signal(...args: any): any {
 
 /**
  * @decorator
- * @function modelSignal
+ * @function dataSignal
  * @group Decorators
  * @category Signal
  *
- * @description Stage-3 decorator that turns a field on a {@link GradumModel} into a reactive property
- * stored in the model's data, rather than on the instance. Use it for state that must be persisted or
- * synced — on a {@link GradumYModel} the value lives in the underlying Y.js structure. Use `@signal`
- * instead for state that should stay in memory.
+ * @description Stage-3 decorator that turns a field into a reactive property stored in a model's data,
+ * rather than on the instance. Use it for state that must be persisted or synced: on a {@link GradumYModel}
+ * the value lives in the underlying Y.js structure. Use `@signal` instead for state that should stay in memory.
+ *
+ * Where the value lives depends on what declares it:
+ * - **On a {@link GradumModel}**: in that model's own data.
+ * - **On anything else** (a {@link GradumElement}, view, operator, interactor...): in the data of the model
+ * attached to that component. If there is none yet, a plain {@link GradumModel} is created and attached; a
+ * model attached explicitly later on replaces it.
+ *
+ * Either way, effects reading the property re-run whenever that key path of the model's data changes,
+ * whoever changed it.
  * @param {...KeyType[]} keys - The key path into the model's data. Defaults to the decorated member name if omitted.
  *
  * @example
  * ```ts
  * class TodoModel extends GradumModel {
- *   @modelSignal() title = "";
- *   @modelSignal("meta", "author") author = "";
+ *   @dataSignal() title = "";
+ *   @dataSignal("meta", "author") author = "";
+ * }
+ *
+ * //No model needed: one is created and attached on first use.
+ * class Circle extends GradumElement {
+ *   @dataSignal() radius = 50;
  * }
  * ```
- * Is equivalent to:
+ * On a model, is equivalent to:
  * ```ts
  * class TodoModel extends GradumModel {
  *   @signal get title() { return this.get("title"); }
@@ -139,7 +152,7 @@ function signal(...args: any): any {
  * }
  * ```
  */
-function modelSignal(...keys: KeyType[]) {
+function dataSignal(...keys: KeyType[]) {
     return function <Type extends object, Value>(
         value:
             | ((initial: Value) => Value)
@@ -154,7 +167,11 @@ function modelSignal(...keys: KeyType[]) {
     ): any {
         const resolvedKeys = keys.length > 0 ? keys : [String(context.name)];
         context.addInitializer(function (this: any) {
-            utils.bindPath(this, context.name, resolvedKeys);
+            //A model is notified of its own changes through the path bound here. Anything else reads its
+            //model's data, and hears about changes through `trackPath` on that model instead (see below).
+            if (this instanceof GradumModel) utils.bindPath(this, context.name, resolvedKeys);
+            //Created up front rather than on first read, so data passed to `create()` has a model to land in.
+            else resolveDataModel(this);
         });
 
         let defaultValue: Value = undefined;
@@ -164,16 +181,20 @@ function modelSignal(...keys: KeyType[]) {
             value,
             context,
             function (this: any) {
-                const v = this.get?.(...resolvedKeys);
+                const model = resolveDataModel(this);
+                if (!model) return undefined;
+                if (model !== this) utils.trackPath(model, resolvedKeys);
+
+                const v = model.get(...resolvedKeys);
                 if (v !== undefined) return v;
                 if (hasDefault) {
-                    this.set?.(defaultValue, ...resolvedKeys);
+                    model.set(defaultValue, ...resolvedKeys);
                     return defaultValue;
                 }
                 return undefined;
             },
             function (this: any, v: Value) {
-                this.set?.(v, ...resolvedKeys);
+                resolveDataModel(this)?.set(v, ...resolvedKeys);
             }
         );
 
@@ -192,6 +213,31 @@ function modelSignal(...keys: KeyType[]) {
 }
 
 /**
+ * @internal
+ * @function resolveDataModel
+ * @description The model a {@link dataSignal} declared on `target` reads and writes: `target` itself if it is
+ * a model, otherwise the model attached to its component, which is created and attached when there is none.
+ * The component is `target` itself for an element, and `target.element` for a view, operator, or other piece.
+ * @param {any} target - The instance declaring the signal.
+ * @returns {GradumModel} The model, or `undefined` if there is nothing to attach one to.
+ */
+function resolveDataModel(target: any): GradumModel {
+    if (!target) return undefined;
+    if (target instanceof GradumModel) return target;
+    if (target.model instanceof GradumModel) return target.model;
+
+    //Elements hold their model through `gradum(element).model`, whose setter also links it to the view and
+    //operators. A piece without an element (a free-standing view, say) just keeps the model on itself.
+    const owner = target instanceof Node ? target : target.element instanceof Node ? target.element : undefined;
+    if (owner && owner.model instanceof GradumModel) return target.model ?? owner.model;
+
+    const model = new GradumModel({data: {}});
+    if (owner) owner.model = model;
+    if (!(target.model instanceof GradumModel)) target.model = model;
+    return target.model;
+}
+
+/**
  * @decorator
  * @function nestedModelSignal
  * @group Decorators
@@ -200,7 +246,7 @@ function modelSignal(...keys: KeyType[]) {
  * @description Stage-3 decorator that exposes a nested collection as a {@link GradumModel} rather than as
  * raw data. Reading the property gives back the nested model, so you can attach a {@link GradumObserver}
  * to it; assigning replaces the data it wraps. Use it when you need to observe a collection — reach for
- * `@modelSignal` when the raw value is enough.
+ * `@dataSignal` when the raw value is enough.
  * @param {...string[]} keys - The key path navigating to the nested model.
  *
  * @example
@@ -265,7 +311,7 @@ function nestedModelSignal(...keys: string[]) {
  * - Getter returns the nested model instance via `this.nest(...keys)`.
  * - Setter assigns directly to `nestedModel.data = value`, leaving the parent's data untouched.
  *
- * **Limitation:** `@modelSignal("myField", "subKey")` will **not** work for a field backed by
+ * **Limitation:** `@dataSignal("myField", "subKey")` will **not** work for a field backed by
  * `@isolatedModelSignal`, because `GradumModel.get()` reads through the parent's data container
  * rather than routing through registered nested models. Access sub-keys directly through the
  * nested model instead: `(this.myField as MyNestedModel).subKey`.
@@ -477,7 +523,7 @@ function markDirty(target: object, ...keys: KeyType[]) {
  * @group Decorators
  * @category Signal
  *
- * @description Marks as dirty every signal whose bound key path (registered via {@link modelSignal} or
+ * @description Marks as dirty every signal whose bound key path (registered via {@link dataSignal} or
  * {@link nestedModelSignal}) overlaps the given changed key path, and fires their attached effects.
  * A bound path overlaps the changed path when either is a prefix of (or equal to) the other:
  * replacing a parent value invalidates signals bound deeper inside it, and changing a nested value
@@ -571,7 +617,7 @@ export {
     effect,
     setSignal,
     signal,
-    modelSignal,
+    dataSignal,
     nestedModelSignal,
     isolatedModelSignal,
     getSignal,

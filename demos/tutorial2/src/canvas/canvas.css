@@ -1,0 +1,32 @@
+my-canvas {
+    position: absolute;
+    display: block;
+    overflow: visible;
+    touch-action: none;
+
+    /* GPU optimizations */
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+my-canvas > #canvas-background {
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    /* No pointer-events: none here. The canvas itself is 0x0, so the background is what clicks on empty space
+       land on — it's what puts the canvas in the event's path. */
+}
+
+my-canvas * {
+    /* GPU optimizations */
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+my-canvas > * {
+    position: absolute;
+}

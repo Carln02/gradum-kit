@@ -1,12 +1,12 @@
-import {modelSignal, signal, GradumModel} from "../../../../build/gradum-kit.esm";
+import {dataSignal, signal, GradumModel} from "../../../../build/gradum-kit.esm";
 import {SongState} from "./song.types";
 
 export class SongModel extends GradumModel {
-    @modelSignal() id: string;
-    @modelSignal() title: string;
-    @modelSignal() artist: string;
-    @modelSignal() album: string;
-    @modelSignal() cover: string;
-    @modelSignal() duration: number;
+    @dataSignal() id: string;
+    @dataSignal() title: string;
+    @dataSignal() artist: string;
+    @dataSignal() album: string;
+    @dataSignal() cover: string;
+    @dataSignal() duration: number;
     @signal state: SongState;
 }

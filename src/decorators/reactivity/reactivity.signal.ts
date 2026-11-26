@@ -6,7 +6,7 @@ import {isUndefined} from "../../utils/dataManipulation/misc";
 /**
  * @internal
  * @class SignalUtils
- * @description Creates the signals behind `@signal`, `@modelSignal`, `@nestedModelSignal`, and
+ * @description Creates the signals behind `@signal`, `@dataSignal`, `@nestedModelSignal`, and
  * `@isolatedModelSignal`, and installs the accessors that route property reads and writes through them.
  */
 export class SignalUtils {
@@ -88,7 +88,7 @@ export class SignalUtils {
                         const value = baseGetter.call(this);
                         //The base pair answers first, and only gives way when it has nothing to say. That is
                         //what lets a default carried by whatever is installed closer to the declaration —
-                        //`@modelSignal @auto({defaultValue})` — still be reached: the model holds nothing
+                        //`@dataSignal @auto({defaultValue})` — still be reached: the model holds nothing
                         //until something is written, and the default is the answer until then.
                         if (!isUndefined(value) || !customGetter) return value;
                     }
@@ -104,7 +104,7 @@ export class SignalUtils {
                     return;
                 }
                 //Whatever is installed closer to the declaration writes first, and what it made of the value
-                //is what carries on to the base pair. `@modelSignal @auto({preprocessValue})` is the case
+                //is what carries on to the base pair. `@dataSignal @auto({preprocessValue})` is the case
                 //that needs it: the preprocessing lives in the installed setter, while the model is where
                 //reads come from — so handing the model the raw value would leave it holding exactly what
                 //the preprocessor had just turned down, with the processed one stranded where nothing looks.

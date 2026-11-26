@@ -7,6 +7,7 @@ import {GradumHandler} from "../../mvc/handler/handler";
 import {GradumOperator} from "../../mvc/operator/operator";
 import {GradumEmitter} from "../../mvc/emitter/emitter";
 import {GradumModel} from "../../mvc/model/model";
+import {GradumView} from "../../mvc/view/view";
 import {gradum} from "../gradumFunctions";
 import {MvcGenerationProperties, MvcProperties} from "./mvc.types";
 
@@ -53,12 +54,28 @@ export function setupMvcFunctions() {
         set(this: GradumSelector, value) {
             if (!this.element) return;
             const mvc = utils.data(this.element);
-            utils.attachModel(this.element, this.model, false);
-            utils.updateModel(this.element, mvc.model, false);
-            if (!value) return;
-            mvc.model = typeof value === "function" ? (value as any).create() : value;
-            utils.attachModel(this.element, mvc.model);
+            const previous = mvc.model;
+            const next: GradumModel = !value ? undefined
+                : typeof value === "function" ? (value as any).create() : value;
+            if (previous === next) return;
+
+            //Once initialized, the view and operators hold effects and observers bound to the previous model.
+            //They are torn down first and, if there is a new model, built again against it.
+            const live = !!mvc.initialized;
+            if (live && !mvc.unbound) utils.unbindPieces(this.element);
+            if (previous) {
+                utils.updateModel(this.element, previous, false);
+                utils.attachModel(this.element, previous, false);
+            }
+            mvc.model = next;
+            if (next) utils.attachModel(this.element, next);
             utils.linkPieces(this.element);
+            if (live && next) {
+                next.initialize();
+                utils.bindPieces(this.element);
+            }
+            //Left without a model, the element stays torn down until one is attached.
+            if (live) mvc.unbound = !next;
         },
         configurable: true, enumerable: true,
     });
@@ -69,8 +86,20 @@ export function setupMvcFunctions() {
         },
         set(this: GradumSelector, value) {
             if (!this.element) return;
-            utils.data(this.element).view = utils.generateInstance(value, this.element);
+            const mvc = utils.data(this.element);
+            const previous = mvc.view;
+            const next: GradumView = value ? utils.generateInstance(value, this.element) : undefined;
+            if (previous === next) return;
+
+            //Operators and interactors may have put their UI inside the previous view's elements, or read them in
+            //effects, so they are rebuilt along with the new view.
+            const live = !!mvc.initialized;
+            if (live && !mvc.unbound) utils.unbindPieces(this.element, previous);
+            if (previous) utils.updateView(this.element, previous, false);
+            mvc.view = next;
             utils.linkPieces(this.element);
+            //An element whose model was detached stays torn down; attaching a model builds everything.
+            if (live && !mvc.unbound) utils.bindPieces(this.element);
         },
         configurable: true, enumerable: true,
     });
@@ -235,6 +264,12 @@ export function setupMvcFunctions() {
         if (!this.element) return this;
         const mvc = utils.peek(this.element);
         if (!mvc) return this;
+        //Each UI phase runs across the view and every operator before the next starts, so an operator's
+        //layout can use the elements the view (or another operator) created.
+        const uiPieces = [mvc.view, ...mvc.operators.values(), ...mvc.interactors.values(),
+            ...mvc.tools.values(), ...mvc.constrainers.values()];
+        uiPieces.forEach(piece => piece?.initializeUIElements?.());
+        uiPieces.forEach(piece => piece?.initializeUILayout?.());
         mvc.view?.initialize();
         mvc.operators.forEach(operator => operator.initialize());
         mvc.interactors.forEach(interactor => interactor.initialize());
@@ -297,6 +332,16 @@ export function setupMvcFunctions() {
     // -------------------------------------------------------------------------
     // Manipulations
     // -------------------------------------------------------------------------
+
+    GradumSelector.prototype.removeView = function (this: GradumSelector) {
+        if (this.element) this.view = undefined;
+        return this;
+    };
+
+    GradumSelector.prototype.removeModel = function (this: GradumSelector) {
+        if (this.element) this.model = undefined;
+        return this;
+    };
 
     GradumSelector.prototype.getOperator = function (this: GradumSelector, key: string) {
         return utils.peek(this.element)?.operators.get(key);

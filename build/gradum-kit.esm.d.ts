@@ -421,6 +421,41 @@ declare class Point {
      */
     bound(x1: number, x2: number, y1?: number, y2?: number): Point;
     /**
+     * @function bound
+     * @description Clamp this point between two points, each axis on its own: x between `min.x` and `max.x`,
+     * y between `min.y` and `max.y`.
+     * @param {Coordinate} min - The lower bounds.
+     * @param {Coordinate} max - The upper bounds.
+     * @returns {Point} A new clamped point. This point is left unchanged.
+     *
+     * @example
+     * ```ts
+     * size.bound(new Point(60, 60), new Point(400, 400));
+     * ```
+     */
+    bound(min: Coordinate, max: Coordinate): Point;
+    /**
+     * @function round
+     * @description Round each coordinate to the nearest multiple of a step — a grid snap. With no step, rounds
+     * to the nearest integer.
+     * @param {number} [step=1] - The step for both axes.
+     * @returns {Point} A new rounded point. This point is left unchanged.
+     *
+     * @example
+     * ```ts
+     * new Point(57, 23).round(40); // (40, 40)
+     * ```
+     */
+    round(step?: number): Point;
+    /**
+     * @function round
+     * @description Round each coordinate to the nearest multiple of its own step: x to a multiple of `step.x`,
+     * y to a multiple of `step.y`.
+     * @param {Coordinate} step - The step for each axis.
+     * @returns {Point} A new rounded point. This point is left unchanged.
+     */
+    round(step: Coordinate): Point;
+    /**
      * @description Add coordinates to this point
      * @param {number} n - The value to add to both x and y
      * @returns {Point} A new point holding the result. This point is left unchanged.
@@ -1382,6 +1417,45 @@ declare class GradumModel<DataType = any, DataKeyType extends KeyType = any, IdT
      * @description Whether {@link GradumModel.initialize} has already run on this model.
      */
     protected isInitialized: boolean;
+    /**
+     * @private
+     * @description The elements this model is attached to, in the order they attached.
+     */
+    private readonly attachments;
+    /**
+     * @description The elements this model is currently attached to. A model can back several elements at
+     * once (two views of the same data); each of them reads and writes the same data.
+     * @returns {object[]} A copy of the list, safe to iterate while detaching.
+     */
+    get attachedElements(): object[];
+    /**
+     * @internal
+     * @function trackAttachment
+     * @description Record that this model was attached to or detached from an element. Called by the MVC
+     * wiring when `gradum(element).model` changes; use {@link GradumModel.detach} or that setter instead.
+     * @param {object} element - The element.
+     * @param {boolean} [attached=true] - Whether it was attached (`true`) or detached (`false`).
+     */
+    trackAttachment(element: object, attached?: boolean): void;
+    /**
+     * @function detach
+     * @description Detach this model from some of the elements it is attached to, or from all of them. Each
+     * element is left without a model: its view, operators and interactors are torn down (their DOM, listeners,
+     * effects and observers) until a model is attached to it again, which rebuilds them. The model and its data
+     * are untouched, and every other element keeps using it.
+     * @param {...object[]} elements - The elements to detach from. Omit to detach from all of them.
+     * @returns {this} Itself, for chaining.
+     *
+     * @example
+     * ```ts
+     * const shared = SquareModel.create({data});
+     * const a = Square.create({model: shared}), b = Square.create({model: shared});
+     *
+     * shared.detach(a);   // a has no model now, b still shows and edits the data
+     * shared.detach();    // detached from every element
+     * ```
+     */
+    detach(...elements: object[]): this;
     private readonly signals;
     /**
      * @protected
@@ -1538,6 +1612,15 @@ declare class GradumModel<DataType = any, DataKeyType extends KeyType = any, IdT
     protected internalAdd(model: GradumModel, data: any, value: any, key: KeyType): KeyType;
     /**
      * @protected
+     * @function isListAction
+     * @description Whether a container is an ordered list (indexed by position). Override this method to
+     * support other datatypes.
+     * @param {any} data - The container to test.
+     * @returns {boolean} `true` for arrays.
+     */
+    protected isListAction(data: any): boolean;
+    /**
+     * @protected
      * @function addAction
      * @description Perform the raw insertion. Override this method to support other datatypes.
      * @param {GradumModel} model - The owning model.
@@ -1572,6 +1655,20 @@ declare class GradumModel<DataType = any, DataKeyType extends KeyType = any, IdT
      * @returns {KeyType} The index or key where the value was stored.
      */
     add(value: unknown, ...keys: KeyType[]): KeyType;
+    /**
+     * @function push
+     * @description Insert a value into the container at the given key path: appended to the end of an array,
+     * or stored under a new random key in a map or object.
+     * @param {unknown} value - The value to insert.
+     * @param {...KeyType[]} keys - Key path to the container. Empty targets the model's own data.
+     * @returns {KeyType} The index (arrays) or generated key (maps and objects) where the value was stored.
+     *
+     * @example
+     * ```ts
+     * model.push({text: "", checked: false}, "items");
+     * ```
+     */
+    push(value: unknown, ...keys: KeyType[]): KeyType;
     /**
      * @function addFlat
      * @description Insert a value at the position described by the given flat key.
@@ -1643,6 +1740,16 @@ declare class GradumModel<DataType = any, DataKeyType extends KeyType = any, IdT
      * @param {...KeyType[]} keys - Ordered path from outermost to innermost key.
      */
     delete(...keys: KeyType[]): void;
+    /**
+     * @protected
+     * @function shiftIndices
+     * @description Move the observer instances under `basePath` whose index is at or after `fromIndex` by
+     * `offset`, so they stay aligned with their entries after an array insertion or removal.
+     * @param {KeyType[]} basePath - Key path of the array.
+     * @param {number} fromIndex - First index to move.
+     * @param {number} offset - How far to move them: positive after an insertion, negative after a removal.
+     */
+    protected shiftIndices(basePath: KeyType[], fromIndex: number, offset: number): void;
     /**
      * @function deleteFlat
      * @description Remove the entry at the given flat key.
@@ -2118,6 +2225,14 @@ type GradumViewProperties<ElementType extends object = object, ModelType extends
 };
 
 /**
+ * @internal
+ * @description Anything an MVC piece can tear down when it is detached, such as a {@link GradumObserver}.
+ */
+type OwnedDisposable = {
+    destroy(): void;
+};
+
+/**
  * @class GradumView
  * @group MVC
  * @category View
@@ -2154,10 +2269,64 @@ declare class GradumView<ElementType extends object = object, ModelType extends 
      */
     protected setup(): void;
     /**
+     * @description How many of the UI phases the element has run ahead of {@link initialize}: 0 (none),
+     * 1 (elements) or 2 (elements and layout). The element runs them across all its pieces first, then calls
+     * `initialize`, which skips what already ran and resets this, so calling `initialize` again re-runs every
+     * phase.
+     */
+    private uiStage;
+    /**
+     * @function initializeUIElements
+     * @description Run {@link setupUIElements}, once. Called by the element for every piece (the view and its
+     * operators) before any layout runs.
+     */
+    initializeUIElements(): void;
+    /**
+     * @function initializeUILayout
+     * @description Run {@link setupUILayout} (after {@link setupUIElements} if it hasn't run), once. Called by
+     * the element for every piece after all their elements exist.
+     */
+    initializeUILayout(): void;
+    /**
      * @function initialize
-     * @description Initializes the view by setting up change callbacks, UI elements, layout, and event listeners.
+     * @description Initializes the view: runs whichever UI phases (elements, layout) haven't run yet, then sets
+     * up its event listeners and change callbacks.
      */
     initialize(): void;
+    /**
+     * @readonly
+     * @description The nodes this view added to the DOM during its UI phases, removed by {@link detach}.
+     */
+    protected readonly ownedNodes: Set<Node>;
+    /**
+     * @readonly
+     * @description The observers this view created while setting itself up, destroyed by {@link detach}.
+     */
+    protected readonly ownedDisposables: Set<OwnedDisposable>;
+    /**
+     * @private
+     * @function runOwned
+     * @description Run part of the view's setup so that the nodes it adds and the observers it creates are
+     * recorded as the view's own.
+     */
+    private runOwned;
+    /**
+     * @function own
+     * @description Mark a node as belonging to this view, so {@link detach} removes it. Only needed for nodes added
+     * outside the UI phases: everything added through `gradum(...).addChild` while they run is recorded already.
+     * @template {Node} Type - The node's type.
+     * @param {Type} node - The node.
+     * @returns {Type} The same node, for chaining.
+     */
+    own<Type extends Node>(node: Type): Type;
+    /**
+     * @function detach
+     * @description Take the view off its element: stop its listeners, emitter subscriptions and effects, destroy
+     * the observers it created, and remove the nodes it added. Called when the element's view is replaced or
+     * its model is detached; calling {@link initialize} afterwards builds it again from scratch. Styles its
+     * effects set on the element itself stay until something else sets them.
+     */
+    detach(): void;
     /**
      * @function setupChangedCallbacks
      * @description Setup method for initializing data/model change listeners and associated UI logic.
@@ -2215,6 +2384,31 @@ type GradumOperatorProperties<ElementType extends object = object, ViewType exte
  * component. It has access to the element, the model to read and write data, the view to update the UI, and the
  * emitter to listen for changes in the model or any other internal events. It can only communicate with other
  * operators via the emitter (by firing or listening for changes on a certain key).
+ *
+ * An operator can bring its own UI, so a feature — its DOM and its logic — lives in one class that can be added
+ * to any element. It has the same four setup phases as a view: `setupUIElements`, `setupUILayout`,
+ * `setupUIListeners`, `setupChangedCallbacks`. When the element initializes, each phase runs across the view and
+ * all operators before the next one starts, so an operator's layout can use what the view built.
+ *
+ * Every node it adds with `gradum(...).addChild` during `setupUIElements` and `setupUILayout` is its own, and is
+ * removed from the DOM when it is {@link detach | detached}. Use {@link own} for nodes added later.
+ *
+ * @example
+ * ```ts
+ * class LockOperator extends GradumOperator {
+ *     protected button: HTMLElement;
+ *
+ *     protected setupUIElements() {
+ *         super.setupUIElements();
+ *         this.button = button({text: "Lock"});
+ *     }
+ *
+ *     protected setupUILayout() {
+ *         super.setupUILayout();
+ *         gradum(this).addChild(this.button); // added to the element; removed on detach
+ *     }
+ * }
+ * ```
  */
 declare class GradumOperator<ElementType extends object = object, ViewType extends GradumView = GradumView<any, any>, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter> {
     /**
@@ -2255,10 +2449,49 @@ declare class GradumOperator<ElementType extends object = object, ViewType exten
      */
     protected setup(): void;
     /**
+     * @description The nodes this operator added to the DOM, removed when it is detached.
+     */
+    protected readonly ownedNodes: Set<Node>;
+    /**
+     * @readonly
+     * @description The observers this operator created while setting itself up, destroyed by {@link detach}.
+     */
+    protected readonly ownedDisposables: Set<OwnedDisposable>;
+    /**
+     * @description How many of the UI phases the element has run ahead of {@link initialize}: 0 (none),
+     * 1 (elements) or 2 (elements and layout). The element runs them across all its pieces first, then calls
+     * `initialize`, which skips what already ran and resets this.
+     */
+    private uiStage;
+    /**
+     * @function initializeUIElements
+     * @description Run {@link setupUIElements}, once. Called by the element for every piece before any layout
+     * runs; call {@link initialize} instead when initializing an operator yourself.
+     */
+    initializeUIElements(): void;
+    /**
+     * @function initializeUILayout
+     * @description Run {@link setupUILayout} (after {@link setupUIElements} if it hasn't run), once. Called by
+     * the element for every piece after all their elements exist; call {@link initialize} instead when
+     * initializing an operator yourself.
+     */
+    initializeUILayout(): void;
+    /**
      * @function initialize
-     * @description Initializes the operator. Specifically, it will set up the change callbacks.
+     * @description Initializes the operator: runs whichever UI phases haven't run yet, then sets up its
+     * listeners and change callbacks.
      */
     initialize(): void;
+    /**
+     * @function own
+     * @description Mark a node as this operator's, so it is removed from the DOM when the operator is
+     * detached. Nodes added with `gradum(...).addChild` during the UI phases are already owned; use this for
+     * nodes added later, or with native DOM methods.
+     * @template {Node} Type - The type of the node.
+     * @param {Type} node - The node to own.
+     * @returns {Type} The node, for chaining.
+     */
+    own<Type extends Node>(node: Type): Type;
     /**
      * @function detach
      * @description Undoes {@link initialize}: the operator stops hearing about anything. Every `@listener`
@@ -2267,12 +2500,28 @@ declare class GradumOperator<ElementType extends object = object, ViewType exten
      * its model, view and emitter are taken away — which is the point, since those are what its callbacks
      * would go on reading.
      *
-     * Initializing it again restores all three, so an operator may be removed and added back.
+     * The nodes it owns (see {@link own}) are removed from the DOM too.
+     *
+     * Initializing it again restores all of it, rebuilding its UI, so an operator may be removed and added back.
      *
      * *Note: a subscription made outside `initialize` — later, from a method of its own — is not on the
      * record, and is the operator's own to undo.*
      */
     detach(): void;
+    /**
+     * @function setupUIElements
+     * @description Setup method for creating the operator's DOM elements. Don't attach them here: the
+     * element's other pieces may not have built theirs yet. Use {@link setupUILayout} for that.
+     * @protected
+     */
+    protected setupUIElements(): void;
+    /**
+     * @function setupUILayout
+     * @description Setup method for placing the operator's elements, e.g. with `gradum(this).addChild(...)`.
+     * Runs after every piece's {@link setupUIElements}, so the view's elements exist.
+     * @protected
+     */
+    protected setupUILayout(): void;
     /**
      * @function setupUIListeners
      * @description Setup method for defining DOM and input event listeners.
@@ -6553,24 +6802,37 @@ declare function signal<Type extends object, Value>(value: ((initial: Value) => 
 }, context: ClassFieldDecoratorContext<Type, Value> | ClassGetterDecoratorContext<Type, Value> | ClassSetterDecoratorContext<Type, Value> | ClassAccessorDecoratorContext<Type, Value>): any;
 /**
  * @decorator
- * @function modelSignal
+ * @function dataSignal
  * @group Decorators
  * @category Signal
  *
- * @description Stage-3 decorator that turns a field on a {@link GradumModel} into a reactive property
- * stored in the model's data, rather than on the instance. Use it for state that must be persisted or
- * synced — on a {@link GradumYModel} the value lives in the underlying Y.js structure. Use `@signal`
- * instead for state that should stay in memory.
+ * @description Stage-3 decorator that turns a field into a reactive property stored in a model's data,
+ * rather than on the instance. Use it for state that must be persisted or synced: on a {@link GradumYModel}
+ * the value lives in the underlying Y.js structure. Use `@signal` instead for state that should stay in memory.
+ *
+ * Where the value lives depends on what declares it:
+ * - **On a {@link GradumModel}**: in that model's own data.
+ * - **On anything else** (a {@link GradumElement}, view, operator, interactor...): in the data of the model
+ * attached to that component. If there is none yet, a plain {@link GradumModel} is created and attached; a
+ * model attached explicitly later on replaces it.
+ *
+ * Either way, effects reading the property re-run whenever that key path of the model's data changes,
+ * whoever changed it.
  * @param {...KeyType[]} keys - The key path into the model's data. Defaults to the decorated member name if omitted.
  *
  * @example
  * ```ts
  * class TodoModel extends GradumModel {
- *   @modelSignal() title = "";
- *   @modelSignal("meta", "author") author = "";
+ *   @dataSignal() title = "";
+ *   @dataSignal("meta", "author") author = "";
+ * }
+ *
+ * //No model needed: one is created and attached on first use.
+ * class Circle extends GradumElement {
+ *   @dataSignal() radius = 50;
  * }
  * ```
- * Is equivalent to:
+ * On a model, is equivalent to:
  * ```ts
  * class TodoModel extends GradumModel {
  *   @signal get title() { return this.get("title"); }
@@ -6581,7 +6843,7 @@ declare function signal<Type extends object, Value>(value: ((initial: Value) => 
  * }
  * ```
  */
-declare function modelSignal(...keys: KeyType[]): <Type extends object, Value>(value: ((initial: Value) => Value) | ((this: Type) => Value) | ((this: Type, v: Value) => void) | {
+declare function dataSignal(...keys: KeyType[]): <Type extends object, Value>(value: ((initial: Value) => Value) | ((this: Type) => Value) | ((this: Type, v: Value) => void) | {
     get?: (this: Type) => Value;
     set?: (this: Type, value: Value) => void;
 }, context: ClassFieldDecoratorContext<Type, Value> | ClassGetterDecoratorContext<Type, Value> | ClassSetterDecoratorContext<Type, Value> | ClassAccessorDecoratorContext<Type, Value>) => any;
@@ -6594,7 +6856,7 @@ declare function modelSignal(...keys: KeyType[]): <Type extends object, Value>(v
  * @description Stage-3 decorator that exposes a nested collection as a {@link GradumModel} rather than as
  * raw data. Reading the property gives back the nested model, so you can attach a {@link GradumObserver}
  * to it; assigning replaces the data it wraps. Use it when you need to observe a collection — reach for
- * `@modelSignal` when the raw value is enough.
+ * `@dataSignal` when the raw value is enough.
  * @param {...string[]} keys - The key path navigating to the nested model.
  *
  * @example
@@ -6633,7 +6895,7 @@ declare function nestedModelSignal(...keys: string[]): <Type extends object, Val
  * - Getter returns the nested model instance via `this.nest(...keys)`.
  * - Setter assigns directly to `nestedModel.data = value`, leaving the parent's data untouched.
  *
- * **Limitation:** `@modelSignal("myField", "subKey")` will **not** work for a field backed by
+ * **Limitation:** `@dataSignal("myField", "subKey")` will **not** work for a field backed by
  * `@isolatedModelSignal`, because `GradumModel.get()` reads through the parent's data container
  * rather than routing through registered nested models. Access sub-keys directly through the
  * nested model instead: `(this.myField as MyNestedModel).subKey`.
@@ -6764,7 +7026,7 @@ declare function markDirty(target: object, ...keys: KeyType[]): void;
  * @group Decorators
  * @category Signal
  *
- * @description Marks as dirty every signal whose bound key path (registered via {@link modelSignal} or
+ * @description Marks as dirty every signal whose bound key path (registered via {@link dataSignal} or
  * {@link nestedModelSignal}) overlaps the given changed key path, and fires their attached effects.
  * A bound path overlaps the changed path when either is a prefix of (or equal to) the other:
  * replacing a parent value invalidates signals bound deeper inside it, and changing a nested value
@@ -11288,6 +11550,10 @@ declare class GradumYModel<DataType = any, DataKeyType extends KeyType = any, Id
     /**
      * @inheritDoc
      */
+    protected isListAction(data: any): boolean;
+    /**
+     * @inheritDoc
+     */
     protected addAction(model: GradumModel, data: any, value: any, key: KeyType): KeyType;
     /**
      * @inheritDoc
@@ -11330,7 +11596,6 @@ declare class GradumYModel<DataType = any, DataKeyType extends KeyType = any, Id
      * @param {any} value - The Y.js type to stop observing. Non-Y values are ignored.
      */
     protected detachNestedObservers(value: any): void;
-    private shiftIndices;
     private getPathToTarget;
 }
 
@@ -12198,7 +12463,7 @@ type FontProperties = {
  */
 declare function loadLocalFont(font: FontProperties): void;
 
-export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, GradumBaseElement, GradumButton, GradumButtonPopup, GradumClickEventName, GradumConstrainer, GradumContentSwitch, GradumDragEvent, GradumDragEventName, GradumDrawer, GradumDropdown, GradumElement, GradumEmitter, GradumEvent, GradumEventManager, GradumEventName, GradumGrid, GradumHandler, GradumHeadlessElement, GradumIcon, GradumIconSwitch, GradumIconToggle, GradumInput, GradumInteractor, GradumKeyEvent, GradumKeyEventName, GradumLabelElement, GradumMap, GradumMarkingMenu, GradumModel, GradumMovable, GradumMoveEventName, GradumNestedMap, GradumNodeList, GradumNumericalInput, GradumObserver, GradumOperator, GradumPopup, GradumProxiedElement, GradumQueue, GradumRect, GradumRichElement, GradumSelect, GradumSelectElement, GradumSelectInputEvent, GradumSelectWheel, GradumSelector, GradumTool, GradumView, GradumWeakSet, GradumWheelEvent, GradumWheelEventName, GradumYModel, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, deepObserveAll, deepObserveAny, define, detachListenersAndBehaviors, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, g, generateTagFunction, getAllRegistered, getConstructorChain, getDeclaringPrototype, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, gr, gradum, gradumify, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, modelSignal, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, reattachListenersAndBehaviors, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, textToElement, textarea, tool, trackSignal, trim, untrack, urlToBlob, video };
+export { $, AccessLevel, ActionMode, Anchor, AnchorPoint, ApplyDefaultsMergeProperties, BasicInputEvents, ClickMode, ClosestOrigin, Color, ContentSwitchMode, DefaultClickEventName, DefaultDragEventName, DefaultEventName, DefaultKeyEventName, DefaultMoveEventName, DefaultWheelEventName, Delegate, Direction, GradumBaseElement, GradumButton, GradumButtonPopup, GradumClickEventName, GradumConstrainer, GradumContentSwitch, GradumDragEvent, GradumDragEventName, GradumDrawer, GradumDropdown, GradumElement, GradumEmitter, GradumEvent, GradumEventManager, GradumEventName, GradumGrid, GradumHandler, GradumHeadlessElement, GradumIcon, GradumIconSwitch, GradumIconToggle, GradumInput, GradumInteractor, GradumKeyEvent, GradumKeyEventName, GradumLabelElement, GradumMap, GradumMarkingMenu, GradumModel, GradumMovable, GradumMoveEventName, GradumNestedMap, GradumNodeList, GradumNumericalInput, GradumObserver, GradumOperator, GradumPopup, GradumProxiedElement, GradumQueue, GradumRect, GradumRichElement, GradumSelect, GradumSelectElement, GradumSelectInputEvent, GradumSelectWheel, GradumSelector, GradumTool, GradumView, GradumWeakSet, GradumWheelEvent, GradumWheelEventName, GradumYModel, InOut, InputDevice, Listener, ListenerSet, MathMLNamespace, MathMLTags, NonPassiveEvents, OnOff, Open, Point, PopupFallbackMode, Propagation, Range, RegistryCategory, Reifect, Shown, Side, SideH, SideV, StatefulReifect, SvgNamespace, SvgTags, a, aabbCorners, addInYArray, addInYMap, addRegistryCategory, alphabeticalSorting, areEqual, areSimilar, attachListenersAndBehaviors, auto, behavior, blindElement, blobToUrl, button, cache, callOnce, callOncePerInstance, camelToKebabCase, canvas, checker, clearCache, clearCacheEntry, clearUrlParams, closestPointOnAabb, closestPointOnEdge, closestPointOnSegment, constrainer, createProxy, createYArray, createYDoc, createYMap, css, dataSignal, deepObserveAll, deepObserveAny, define, detachListenersAndBehaviors, disposeEffect, div, drawer, eachEqualToAny, effect, element, equalToAny, expose, fetchSvg, findRegistered, flexCol, flexColCenter, flexRow, flexRowCenter, form, formatHHMMSS, formatMMSS, formatMmSs, g, generateTagFunction, getAllRegistered, getConstructorChain, getDeclaringPrototype, getEventPosition, getFileExtension, getFirstDescriptorInChain, getFirstPrototypeInChainWith, getPrototypeChain, getRegisteredByCategories, getRegisteredElements, getRegisteredEntry, getRegisteredMvc, getSignal, getSuperDescriptor, getSuperMethod, getUrlParam, getVideoDuration, gr, gradum, gradumify, h1, h2, h3, h4, h5, h6, handler, hasPropertyInChain, hasSeparatingAxisForPolygons, hashBySize, hashString, img, initializeEffects, input, interactor, intersectSegments, isNull, isPointInConvexPolygon, isUndefined, isolatedModelSignal, jsonToYjs, kebabToCamelCase, linearInterpolation, link, listener, loadLocalFont, markDirty, markDirtyPath, mod, mutator, nestedModelSignal, observe, operator, p, parse, pointInsideRect, polygonsIntersect, projectPolygonOntoAxis, pushUrlParams, randomFromRange, randomId, randomString, reattachListenersAndBehaviors, removeFromYArray, replaceUrlParams, segmentIntersectsPolygon, setSignal, signal, solver, spacer, span, stringify, style, stylesheet, textToElement, textarea, tool, trackSignal, trim, untrack, urlToBlob, video };
 export type { ApplyDefaultsOptions, AutoOptions, BasicPropertyConfig, BlockStoreType, CacheOptions, ChildHandler, CloneElementOptions, ConstrainerAddCallbackProperties, ConstrainerCallbackProperties, ConstrainerChecker, ConstrainerMutator, ConstrainerMutatorProperties, ConstrainerSolver, Coordinate, DefaultEventNameEntry, DefaultEventNameKey, DefineOptions, ElementTagDefinition, ElementTagMap, EnabledGradumEventTypes, FeedforwardProperties, FlatKeyType, FlexRect, FontProperties, Gradum, GradumButtonPopupProperties, GradumConstrainerProperties, GradumContentSwitchProperties, GradumDragEventProperties, GradumDrawerProperties, GradumDropdownProperties, GradumElementDefaultInterface, GradumElementMvcInterface, GradumElementProperties, GradumElementPropertiesMap, GradumElementTagNameMap, GradumElementUiInterface, GradumEventManagerLockStateProperties, GradumEventManagerProperties, GradumEventManagerStateProperties, GradumEventNameEntry, GradumEventNameKey, GradumEventProperties, GradumHeadlessProperties, GradumIconProperties, GradumIconSwitchProperties, GradumIconToggleProperties, GradumInputProperties, GradumInteractorProperties, GradumKeyEventProperties, GradumLabelElementProperties, GradumMarkingMenuProperties, GradumModelProperties, GradumModelProxy, GradumNumericalInputProperties, GradumObserverProperties, GradumOperatorProperties, GradumPopupProperties, GradumProperties, GradumProxiedProperties, GradumRawEventProperties, GradumRectProperties, GradumRichElementProperties, GradumSelectElementProperties, GradumSelectInputEventProperties, GradumSelectProperties, GradumSelectWheelProperties, GradumSelectWheelStylingProperties, GradumToolProperties, GradumViewProperties, GradumWheelEventProperties, GradumifyOptions, HTMLElementMutableFields, HTMLElementNonFunctions, HTMLTag, HitResolver, KeyType, ListenerCallback, ListenerOptions, ListenerProperties, MakeConstrainerOptions, MakeToolOptions, MatchListenerProperties, MathMLTag, MvcBlockKeyType, MvcBlocksType, MvcFlatKeyType, MvcGenerationProperties, MvcProperties, NodeListSlot, NodeListType, PartialRecord, PreventDefaultOptions, PreventDefaultsSetting, PropertyConfig, RegistryEntry, ReifectAppliedOptions, ReifectEnabledObject, ReifectInterpolator, ReifectObjectData, ReifectOnSwitchCallback, SVGTag, SVGTagMap, ScopedKey, SetToolOptions, SignalBox, SignalEntry, StateInterpolator, StateSpecificProperty, StatefulReifectCoreProperties, StatefulReifectProperties, StatelessPropertyConfig, StatelessReifectCoreProperties, StatelessReifectProperties, StylesRoot, StylesType, ToolBehaviorCallback, ToolBehaviorOptions, ValidElement, ValidHTMLElement, ValidMathMLElement, ValidNode, ValidSVGElement, ValidTag, YDocumentProperties };
 
 // Flattened from relative module augmentations
@@ -12953,6 +13218,25 @@ interface GradumSelector<Type extends object = Node> {
          *  but not in the provided configuration.
          */
         getMvcDifference<ViewType extends GradumView = GradumView<any, any>, DataType extends object = object, ModelType extends GradumModel = GradumModel, EmitterType extends GradumEmitter = GradumEmitter<any>>(properties?: MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>): MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>;
+        /**
+         * @function removeView
+         * @category MVC
+         * @description Removes the element's view: it is detached (its DOM, listeners, effects and observers go with
+         * it) and, on an initialized element, the operators and interactors are rebuilt without it. Same as
+         * assigning `undefined` to {@link view}. Does nothing if the element has no view.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeView(): this;
+        /**
+         * @function removeModel
+         * @category MVC
+         * @description Detaches the element's model from this element only; any other element using the same
+         * model keeps it. On an initialized element, the view, operators and interactors are torn down until a
+         * model is attached again, which rebuilds them. Same as assigning `undefined` to {@link model}, or calling
+         * {@link GradumModel.detach} with this element. Does nothing if the element has no model.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeModel(): this;
         /**
          * @function getOperator
          * @category MVC

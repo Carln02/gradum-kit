@@ -2,19 +2,19 @@ import {describe, it, expect} from "vitest";
 import {gradum} from "../../gradumFunctions";
 import {div} from "../../../elementCreation/basicElements";
 import {GradumModel} from "../../../mvc/model/model";
-import {modelSignal} from "../../../decorators/reactivity/reactivity";
+import {dataSignal} from "../../../decorators/reactivity/reactivity";
 
 /**
  * `setProperties` used to assign `model.id = dataId` unconditionally. When no `dataId` was passed that
- * wrote `undefined`, and on a model whose `id` is a @modelSignal the write lands in the data itself —
+ * wrote `undefined`, and on a model whose `id` is a @dataSignal the write lands in the data itself —
  * wiping the id that arrived with `data`.
  */
 class IdModel extends GradumModel {
     // `id` deliberately shadows GradumModel's own `id` with a data-backed signal — that is the shape
     // real models use (e.g. the musicPlayer SongModel) and the one the bug depends on.
     // @ts-expect-error - intentional override of the base property with a signal-backed one.
-    @modelSignal() public id: string;
-    @modelSignal() public title: string;
+    @dataSignal() public id: string;
+    @dataSignal() public title: string;
 }
 
 describe("setProperties: dataId must not clobber the model's id", () => {

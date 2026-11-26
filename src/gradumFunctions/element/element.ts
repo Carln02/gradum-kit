@@ -66,13 +66,16 @@ export function setupElementFunctions() {
         if (!element || (element && !setOnlyBaseProperties)) {
             if (model) {
                 this.model = model;
-                if (data && this.model) {
-                    this.model.setDataWithoutInitializing(data);
-                    //Only assign when an id was actually supplied. Assigning unconditionally writes
-                    //`undefined` into the model's id, which on a model whose `id` is a @modelSignal lands
-                    //in the data itself and wipes the id that came in with `data`.
-                    if (!isUndefined(dataId)) this.model.id = dataId;
-                }
+                mvcUpdated = true;
+            }
+            //Into whichever model the element has, not only one passed alongside: an element using
+            //`@dataSignal` without a model gets a default one as it is constructed, and `data` belongs there.
+            if (data && this.model) {
+                this.model.setDataWithoutInitializing(data);
+                //Only assign when an id was actually supplied. Assigning unconditionally writes
+                //`undefined` into the model's id, which on a model whose `id` is a @dataSignal lands
+                //in the data itself and wipes the id that came in with `data`.
+                if (!isUndefined(dataId)) this.model.id = dataId;
                 mvcUpdated = true;
             }
 

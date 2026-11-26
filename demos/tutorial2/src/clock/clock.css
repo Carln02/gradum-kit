@@ -1,0 +1,20 @@
+my-clock {
+    border-radius: 100%;
+    border: 3px solid var(--text);
+    box-sizing: border-box;
+}
+
+/* Hands pivot from their bottom-centre, placed at the clock's centre. */
+my-clock > .clock-hand {
+    position: absolute;
+    left: 50%;
+    bottom: 50%;
+    transform-origin: 50% 100%;
+    translate: -50% 0;
+    border-radius: 2px;
+    background: var(--text);
+}
+
+my-clock > .clock-hour { width: 4px; height: 25%; }
+my-clock > .clock-minute { width: 3px; height: 38%; }
+my-clock > .clock-second { width: 1px; height: 42%; background: #e5484d; }

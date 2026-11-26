@@ -1119,3 +1119,25 @@ describe("YModel", () => {
         });
     });
 });
+describe("GradumYModel.push", () => {
+    it("pushes onto the YArray", () => {
+        const doc = new Y.Doc();
+        const root = doc.getMap("root");
+        root.set("items", new Y.Array());
+        const model = GradumYModel.create({data: root, initialize: true});
+        model.push("a", "items");
+        model.push("b", "items");
+        expect((root.get("items") as Y.Array<string>).toArray()).toEqual(["a", "b"]);
+    });
+});
+
+describe("GradumYModel.push on a YMap", () => {
+    it("stores under a random key", () => {
+        const doc = new Y.Doc();
+        const root = doc.getMap("root");
+        root.set("items", new Y.Map());
+        const model = GradumYModel.create({data: root, initialize: true});
+        const key = model.push("a", "items");
+        expect((root.get("items") as Y.Map<string>).get(key as string)).toBe("a");
+    });
+});

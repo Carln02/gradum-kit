@@ -55,9 +55,13 @@ export class StickyLineConstrainer extends GradumConstrainer<StickyLine, StickyL
             }
         }
 
-        const start = this.view.startHandle?.position;
-        const end = this.view.endHandle?.position;
-        if (!start || !end) return;
+        //The handles' own positions, read before they are made into points: `new Point(undefined)` is the
+        //origin and is perfectly truthy, so asking afterwards is asking nothing.
+        const startPosition = this.view.startHandle?.position;
+        const endPosition = this.view.endHandle?.position;
+        if (!startPosition || !endPosition) return;
+        const start = new Point(startPosition);
+        const end = new Point(endPosition);
 
         //What the target answers for. Usually itself — but the canvas hands the line a feedforward for an
         //object being dragged, a copy that shows where the object will land while the object itself follows
@@ -98,7 +102,8 @@ export class StickyLineConstrainer extends GradumConstrainer<StickyLine, StickyL
         //If element is undefined, not an Element, or doesn't have a position field --> return.
         if (!element || !(element instanceof Element) || !("position" in element)) return false;
         //If the element's position is not an object --> return.
-        element.position = position;
+        if (element.position instanceof Point) element.position = position;
+        else element.position = position.object;
         return true;
     }
 }

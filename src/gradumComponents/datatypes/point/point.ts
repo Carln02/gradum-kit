@@ -186,8 +186,54 @@ class Point {
      * @returns {Point} A new clamped point. This point is left unchanged.
      */
     public bound(x1: number, x2: number, y1?: number, y2?: number): Point
-    public bound(x1: number, x2: number, y1: number = x1, y2: number = x2): Point {
-        return new Point(this.boundX(x1, x2), this.boundY(y1, y2));
+
+    /**
+     * @function bound
+     * @description Clamp this point between two points, each axis on its own: x between `min.x` and `max.x`,
+     * y between `min.y` and `max.y`.
+     * @param {Coordinate} min - The lower bounds.
+     * @param {Coordinate} max - The upper bounds.
+     * @returns {Point} A new clamped point. This point is left unchanged.
+     *
+     * @example
+     * ```ts
+     * size.bound(new Point(60, 60), new Point(400, 400));
+     * ```
+     */
+    public bound(min: Coordinate, max: Coordinate): Point
+    public bound(x1: number | Coordinate, x2: number | Coordinate, y1?: number, y2?: number): Point {
+        if (typeof x1 === "object" && typeof x2 === "object")
+            return new Point(this.boundX(x1.x, x2.x), this.boundY(x1.y, x2.y));
+        return new Point(this.boundX(x1 as number, x2 as number),
+            this.boundY(y1 ?? x1 as number, y2 ?? x2 as number));
+    }
+
+    /**
+     * @function round
+     * @description Round each coordinate to the nearest multiple of a step — a grid snap. With no step, rounds
+     * to the nearest integer.
+     * @param {number} [step=1] - The step for both axes.
+     * @returns {Point} A new rounded point. This point is left unchanged.
+     *
+     * @example
+     * ```ts
+     * new Point(57, 23).round(40); // (40, 40)
+     * ```
+     */
+    public round(step?: number): Point
+
+    /**
+     * @function round
+     * @description Round each coordinate to the nearest multiple of its own step: x to a multiple of `step.x`,
+     * y to a multiple of `step.y`.
+     * @param {Coordinate} step - The step for each axis.
+     * @returns {Point} A new rounded point. This point is left unchanged.
+     */
+    public round(step: Coordinate): Point
+    public round(step: number | Coordinate = 1): Point {
+        const stepX = typeof step === "number" ? step : step.x;
+        const stepY = typeof step === "number" ? step : step.y;
+        return new Point(Math.round(this.x / stepX) * stepX, Math.round(this.y / stepY) * stepY);
     }
 
     /**

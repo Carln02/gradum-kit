@@ -2,24 +2,24 @@ import {describe, it, expect} from "vitest";
 import * as Y from "yjs";
 import {GradumModel} from "../model/model";
 import {GradumYModel} from "../model/yModel";
-import {effect, modelSignal} from "../../decorators/reactivity/reactivity";
+import {effect, dataSignal} from "../../decorators/reactivity/reactivity";
 
 async function flushMicrotasks(times = 4) {
     for (let i = 0; i < times; i++) await Promise.resolve();
 }
 
 class CardModel extends GradumModel {
-    @modelSignal() cardData: any;
-    @modelSignal("cardData", "title") cardTitle: string;
+    @dataSignal() cardData: any;
+    @dataSignal("cardData", "title") cardTitle: string;
 }
 
 class CardYModel extends GradumYModel {
-    @modelSignal() thumbnail: string;
-    @modelSignal() cardData: any;
-    @modelSignal("cardData", "title") cardTitle: string;
+    @dataSignal() thumbnail: string;
+    @dataSignal() cardData: any;
+    @dataSignal("cardData", "title") cardTitle: string;
 }
 
-describe("@modelSignal — path-bound invalidation", () => {
+describe("@dataSignal — path-bound invalidation", () => {
 
     describe("plain GradumModel", () => {
         it("re-runs an effect on a nested binding when the parent key is replaced", async () => {

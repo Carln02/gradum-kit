@@ -1,0 +1,36 @@
+my-side-button {
+    --side-button-level: 0;
+    --side-button-size: 28px;
+    --side-button-gap: 6px;
+
+    position: absolute;
+    top: calc(var(--side-button-level, 0) * (var(--side-button-size) + var(--side-button-gap)));
+    left: calc(100% + var(--side-button-gap));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--side-button-size);
+    height: var(--side-button-size);
+    padding: 6px;
+    border-radius: 8px;
+
+    /* Shown and hidden by gradum(...).show(), which sets opacity and pointer-events. */
+    transition: opacity 0.15s;
+}
+
+/* Covers the gap to the parent, so moving the pointer onto the button doesn't leave the parent. */
+my-side-button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 100%;
+    width: var(--side-button-gap);
+}
+
+my-side-button .gradum-icon,
+my-side-button svg {
+    width: 100%;
+    height: 100%;
+}

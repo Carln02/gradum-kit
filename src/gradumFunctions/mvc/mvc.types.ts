@@ -266,6 +266,31 @@ declare module "../gradumSelector" {
         ): MvcGenerationProperties<ViewType, DataType, ModelType, EmitterType>;
 
         // -------------------------------------------------------------------------
+        // View and model
+        // -------------------------------------------------------------------------
+
+        /**
+         * @function removeView
+         * @category MVC
+         * @description Removes the element's view: it is detached (its DOM, listeners, effects and observers go with
+         * it) and, on an initialized element, the operators and interactors are rebuilt without it. Same as
+         * assigning `undefined` to {@link view}. Does nothing if the element has no view.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeView(): this;
+
+        /**
+         * @function removeModel
+         * @category MVC
+         * @description Detaches the element's model from this element only; any other element using the same
+         * model keeps it. On an initialized element, the view, operators and interactors are torn down until a
+         * model is attached again, which rebuilds them. Same as assigning `undefined` to {@link model}, or calling
+         * {@link GradumModel.detach} with this element. Does nothing if the element has no model.
+         * @returns {this} Itself, allowing for method chaining.
+         */
+        removeModel(): this;
+
+        // -------------------------------------------------------------------------
         // Operators
         // -------------------------------------------------------------------------
 

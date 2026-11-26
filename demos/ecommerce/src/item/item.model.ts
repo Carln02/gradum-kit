@@ -1,4 +1,4 @@
-import {auto, GradumModel, modelSignal, Point, signal} from "../../../../build/gradum-kit.esm";
+import {auto, GradumModel, dataSignal, Point, signal} from "../../../../build/gradum-kit.esm";
 import {ItemData} from "./item.types";
 import {atLeastZero} from "../utils";
 import {Cart} from "../cart/cart";
@@ -14,12 +14,12 @@ import {ProductDescription, PropertyValue} from "../catalogue/catalogue.types";
  * since none of it belongs to the item. Where the card is, and how it is shown, belong to the card.
  */
 export class ItemModel extends GradumModel<ItemData> {
-    @modelSignal() @auto({defaultValue: "Unnamed item"}) public name: string;
-    @modelSignal() @auto({preprocessValue: atLeastZero, defaultValue: 0}) public price: number;
-    @modelSignal() public images: string[];
-    @modelSignal() public categories: string[];
-    @modelSignal() public description: ProductDescription;
-    @modelSignal() public properties: Record<string, PropertyValue>;
+    @dataSignal() @auto({defaultValue: "Unnamed item"}) public name: string;
+    @dataSignal() @auto({preprocessValue: atLeastZero, defaultValue: 0}) public price: number;
+    @dataSignal() public images: string[];
+    @dataSignal() public categories: string[];
+    @dataSignal() public description: ProductDescription;
+    @dataSignal() public properties: Record<string, PropertyValue>;
 
     @signal public cart: Cart = undefined;
 

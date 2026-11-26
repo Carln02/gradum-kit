@@ -1,0 +1,51 @@
+my-check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+my-check-item > .check-item-box {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+}
+
+my-check-item > .check-item-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 14px;
+    outline: none;
+}
+
+my-check-item > .check-item-text:empty::before {
+    content: "To do…";
+    color: var(--muted);
+}
+
+my-check-item.checked > .check-item-text {
+    text-decoration: line-through;
+    color: var(--muted);
+}
+
+my-check-item > .check-item-delete {
+    display: none;
+    width: 20px;
+    height: 20px;
+    padding: 4px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+}
+
+my-check-item:hover > .check-item-delete {
+    display: block;
+}
+
+my-check-item > .check-item-delete:hover {
+    background: rgb(0 0 0 / 6%);
+}

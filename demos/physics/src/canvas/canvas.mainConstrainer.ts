@@ -175,7 +175,7 @@ export class CanvasConstrainer extends GradumConstrainer {
         //If position is a Point --> add to it delta.
         if (position instanceof Point) obj.position = position.add(delta);
         //Otherwise --> treat it as a coordinate, turn it into a point, and add to it delta.
-        else obj.position = new Point(position as Coordinate).add(delta);
+        else obj.position = new Point(position as Coordinate).add(delta).object;
         return true;
     }
 

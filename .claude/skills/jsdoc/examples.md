@@ -141,7 +141,7 @@ declare function markDirty(target: object, key: PropertyKey): void;
  * @category Signal
  *
  * @description Mark the signal bound to the given key path as dirty and run its effects.
- * Use this form for signals created by {@link modelSignal}.
+ * Use this form for signals created by {@link dataSignal}.
  * @param {object} target - The object holding the signal.
  * @param {...KeyType[]} keys - The key path the signal is bound to.
  */

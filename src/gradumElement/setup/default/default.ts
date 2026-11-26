@@ -1,5 +1,6 @@
 import {gradum} from "../../../gradumFunctions/gradumFunctions";
 import {initializeEffects} from "../../../decorators/reactivity/reactivity";
+import {runWithDisposableOwner, runWithOwner} from "../../../mvc/operator/operator.ownership";
 import {attachListenersAndBehaviors} from "../../../decorators/listener/listener";
 import {CloneElementOptions, FeedforwardProperties} from "../../../gradumFunctions/element/element.types";
 
@@ -35,14 +36,18 @@ export function defineDefaultProperties<Type extends new (...args: any[]) => any
         value: function (): void {
             if (this[initializedKey]) return;
             this[initializedKey] = true;
-            this.setupUIElements?.();
-            this.setupUILayout?.();
-            this.setupUIListeners?.();
-            attachListenersAndBehaviors(this);
-            this.setupFields?.();
-            this.setupChangedCallbacks?.();
-            gradum(this).initializeMvc();
-            initializeEffects(this);
+            //An element's own nodes and observers belong to it, not to whichever view or operator is setting
+            //itself up while creating this element.
+            runWithOwner(undefined, () => runWithDisposableOwner(undefined, () => {
+                this.setupUIElements?.();
+                this.setupUILayout?.();
+                this.setupUIListeners?.();
+                attachListenersAndBehaviors(this);
+                this.setupFields?.();
+                this.setupChangedCallbacks?.();
+                gradum(this).initializeMvc();
+                initializeEffects(this);
+            }));
         },
         configurable: true,
         enumerable: false,

@@ -2,6 +2,7 @@ import "./hierarchy.types";
 import {$} from "../gradumFunctions";
 import {HierarchyFunctionsUtils} from "./hierarchy.utils";
 import {GradumSelector} from "../gradumSelector";
+import {recordOwnedNode} from "../../mvc/operator/operator.ownership";
 import {ValidElement, ValidTag} from "../../types/element.types";
 
 const utils = new HierarchyFunctionsUtils();
@@ -135,6 +136,7 @@ export function setupHierarchyFunctions() {
                 if (!child) return;
                 if (child instanceof GradumSelector) child = child.element;
                 this.childHandler.appendChild(child);
+                recordOwnedNode(child);
                 //TODO
                 // if (child["__outName"] && !this[child["__outName"]]) this[child["__outName"]] = child;
             });
@@ -187,6 +189,7 @@ export function setupHierarchyFunctions() {
                 if (!child) return;
                 if (child instanceof GradumSelector) child = child.element;
                 this.childHandler.insertBefore(child, sibling);
+                recordOwnedNode(child);
             });
         } catch (e) {
             console.error(e);

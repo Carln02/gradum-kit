@@ -9,6 +9,7 @@ import {GradumConstrainer} from "../../mvc/constrainer/constrainer";
 import {KeyType} from "../../types/basic.types";
 import {GradumHandler} from "../../mvc/handler/handler";
 import {MvcManyInstancesOrConstructors} from "./mvc.types";
+import {disposeEffect, initializeEffects} from "../../decorators/reactivity/reactivity";
 
 /**
  * @internal
@@ -39,6 +40,7 @@ type MvcData = {
     tools: Map<string, GradumTool>;
     constrainers: Map<string, GradumConstrainer>;
     initialized?: boolean;
+    unbound?: boolean;
     emitterCallback: (value: any, key: string) => void;
     emitterKeyCallback: (value: any, ...keys: KeyType[]) => void;
 };
@@ -57,17 +59,16 @@ export const proxyWrapperSymbol = Symbol("__proxyWrapper__");
  */
 export class MvcFunctionsUtils {
     private dataMap = new WeakMap<object, MvcData>;
-    private modelLookupMap = new WeakMap<GradumModel, Set<object>>;
 
     public peek(element: object): MvcData | undefined {
         if (element instanceof GradumSelector) element = element.element;
-        if (element instanceof GradumModel) element = this.modelLookupMap.get(element)?.values().next().value;
+        if (element instanceof GradumModel) element = element.attachedElements[0];
         return element ? this.dataMap.get(element) : undefined;
     }
 
     public data(element: object): MvcData {
         if (element instanceof GradumSelector) element = element.element;
-        if (element instanceof GradumModel) element = this.modelLookupMap.get(element)?.values().next().value;
+        if (element instanceof GradumModel) element = element.attachedElements[0];
         if (!element) return;
         let entry = this.dataMap.get(element);
         if (!entry) {
@@ -84,9 +85,7 @@ export class MvcFunctionsUtils {
 
     public attachModel(element: object, model: GradumModel, attach: boolean = true) {
         if (!element || !model) return;
-        if (attach && !this.modelLookupMap.has(model)) this.modelLookupMap.set(model, new Set());
-        if (attach) this.modelLookupMap.get(model).add(element);
-        else this.modelLookupMap.get(model).delete(element);
+        model.trackAttachment(element, attach);
     }
 
     public updateModel(element: object, model: GradumModel, attach: boolean = true) {
@@ -98,7 +97,12 @@ export class MvcFunctionsUtils {
             model.fireCallbackHook = mvc.emitterCallback;
         } else {
             model.onKeyChanged.remove(mvc.emitterKeyCallback);
-            model.fireCallbackHook = undefined;
+            //The hook holds one element's callback at a time. Detaching another element sharing the model must
+            //not cut off the one it points to; detaching the one it points to hands it to a remaining element.
+            if (model.fireCallbackHook === mvc.emitterCallback) {
+                const remaining = model.attachedElements.find(other => other !== element);
+                model.fireCallbackHook = remaining ? this.peek(remaining)?.emitterCallback : undefined;
+            }
         }
     }
 
@@ -172,6 +176,43 @@ export class MvcFunctionsUtils {
         mvc.interactors.forEach(interactor => this.updateInteractor(element, interactor));
         mvc.tools.forEach(tool => this.updateTool(element, tool));
         mvc.constrainers.forEach(constrainer => this.updateConstrainer(element, constrainer));
+    }
+
+    /**
+     * @function unbindPieces
+     * @description Tear down whatever on an initialized element is bound to its current view and model, ahead of
+     * either one being replaced or removed: the view (or `view`, when given) and every operator and interactor are
+     * detached — their DOM, listeners, emitter subscriptions, effects and observers — and the effects of the element,
+     * its tools and its constrainers are disposed. {@link bindPieces} builds them again.
+     * @param {object} element - The element.
+     * @param {GradumView} [view] - The view to detach, when it is not (or no longer) the one on record.
+     */
+    public unbindPieces(element: object, view: GradumView = this.peek(element)?.view) {
+        const mvc = this.peek(element);
+        if (!mvc) return;
+        view?.detach?.();
+        mvc.operators.forEach(operator => operator.detach());
+        mvc.interactors.forEach(interactor => interactor.detach());
+        [element, ...mvc.tools.values(), ...mvc.constrainers.values()].forEach(piece => disposeEffect(piece));
+    }
+
+    /**
+     * @function bindPieces
+     * @description Build again what {@link unbindPieces} tore down, against the element's current view and model:
+     * the UI phases run across the view, operators and interactors one phase at a time (as when the element
+     * initializes), then each of them initializes, and the effects of the element, its tools and its
+     * constrainers start again so they read the new pieces.
+     * @param {object} element - The element.
+     */
+    public bindPieces(element: object) {
+        const mvc = this.peek(element);
+        if (!mvc) return;
+        this.linkPieces(element);
+        const uiPieces = [mvc.view, ...mvc.operators.values(), ...mvc.interactors.values()];
+        uiPieces.forEach(piece => piece?.initializeUIElements?.());
+        uiPieces.forEach(piece => piece?.initializeUILayout?.());
+        uiPieces.forEach(piece => piece?.initialize?.());
+        [element, ...mvc.tools.values(), ...mvc.constrainers.values()].forEach(piece => initializeEffects(piece));
     }
 
     public removeInstance(element: object, kind: string, keyOrInstance: string | object) {
